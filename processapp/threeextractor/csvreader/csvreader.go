@@ -143,8 +143,8 @@ func (c *CsvReader) readFile(fileName string) {
 
 	if len(DataTranspose) > 0 {
 		c.insertData()
-		// c.convert3Ext(fileName)
-		// c.convert10Min(fileName)
+		c.convert3Ext(fileName)
+		c.convert10Min(fileName)
 		// c.remove3Seconds(fileName)
 	}
 

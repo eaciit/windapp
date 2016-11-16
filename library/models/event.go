@@ -20,6 +20,9 @@ type DowntimeEvent struct {
 	AlarmDescription string
 	Duration         float64
 	Detail           []DowntimeEventDetail
+	DownGrid         bool
+	DownEnvironment  bool
+	DownMachine      bool
 }
 
 type DowntimeEventDetail struct {
@@ -55,6 +58,9 @@ type EventDown struct {
 	AlarmDescription string
 	Duration         float64
 	Detail           []EventDownDetail
+	DownGrid         bool
+	DownEnvironment  bool
+	DownMachine      bool
 }
 
 type EventDownDetail struct {

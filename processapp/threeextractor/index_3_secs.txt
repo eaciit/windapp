@@ -1,6 +1,8 @@
 db.ScadaThreeSecs.createIndex( { file: 1 } )
 db.ScadaThreeSecs.createIndex( { timestampconverted: 1 } )
+db.ScadaThreeSecs.createIndex( { timestampsecondgroup: 1 } )
 db.ScadaThreeSecs.createIndex( { file: 1, timestampconverted: 1 } )
 db.ScadaThreeSecs.createIndex( { projectname: 1 } )
 db.ScadaThreeSecs.createIndex( { turbine: 1 } )
 db.ScadaThreeSecs.createIndex( { timestampconverted: 1 , turbine:1, projectname:1} )
+db.ScadaThreeSecs.createIndex( { timestampsecondgroup: 1 , turbine:1, projectname:1} )
