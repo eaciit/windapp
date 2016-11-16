@@ -1,0 +1,89 @@
+package controller
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/eaciit/knot/knot.v1"
+	"github.com/eaciit/toolkit"
+)
+
+type App struct {
+	Server *knot.Server
+}
+
+var (
+	LayoutFile    = "layout.html"
+	AppBasePath   = func(dir string, err error) string { return dir }(os.Getwd())
+	DATA_PATH     = filepath.Join(AppBasePath, "data")
+	CONFIG_PATH   = filepath.Join(AppBasePath, "config")
+	MenuList      = []string{}
+	ServerAddress = ""
+)
+
+func init() {
+	fmt.Println("Base Path ===> ", AppBasePath)
+
+	if DATA_PATH != "" {
+		fmt.Println("DATA_PATH ===> ", DATA_PATH)
+		fmt.Println("CONFIG_PATH ===> ", CONFIG_PATH)
+	}
+}
+
+type Payload struct {
+	Period              string
+	DateStart           time.Time
+	DateEnd             time.Time
+	Project             string
+	Turbine             string
+	Skip                int
+	Take                int
+	Sort                []Sorting
+	Filter              toolkit.M
+	IsValidTimeDuration bool
+}
+
+type PayloadAnalytic struct {
+	Period     string
+	Project    string
+	Turbine    []interface{}
+	DateStart  time.Time
+	DateEnd    time.Time
+	IsClean    bool
+	IsAverage  bool
+	IsDownTime bool
+	Color      []interface{}
+	BreakDown  string
+}
+
+type PayloadAnalyticPC struct {
+	Period       string
+	DateStart    time.Time
+	DateEnd      time.Time
+	Turbine      []interface{}
+	Project      string
+	IsClean      bool
+	IsDeviation  bool
+	DeviationVal string
+	IsAverage    bool
+	Color        []interface{}
+	ColorDeg     []interface{}
+	IsDownTime   bool
+	BreakDown    string
+	ViewSession  string
+}
+
+type PayloadKPI struct {
+	Project         string
+	Turbine         []interface{}
+	Period          string
+	DateStart       time.Time
+	DateEnd         time.Time
+	ColumnBreakDown string
+	RowBreakDown    string
+	KeyA            string
+	KeyB            string
+	KeyC            string
+}

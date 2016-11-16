@@ -1,0 +1,32 @@
+.ecdatabrowser-filter {
+  line-height: 25px;
+  text-align: left; }
+  .ecdatabrowser-filter:after {
+    content: ":";
+    position: absolute;
+    right: 5px; }
+
+.databrowser-query-label {
+  line-height: 25px;
+  text-align: left; }
+
+.ecdatabrowser-filtersimple > div {
+  margin-bottom: 10px;
+  min-height: 32px; }
+
+.ecdatabrowser-filteradvance > div {
+  margin-bottom: 10px;
+  min-height: 32px; }
+
+input[type=checkbox].ecdatabrowser-ckcrange {
+  margin-right: 5px; }
+
+.ecdatabrowser-spacerange {
+  margin: 0px 3px 0px 3px;
+  // font-size: 18px;
+  display: none; }
+
+.ecdatabrowser-filterto {
+  display: none; }
+
+/*# sourceMappingURL=ecdatabrowser.css.map */

@@ -1,0 +1,36 @@
+.panel-body {
+	padding-bottom: 20px !important;
+}
+
+/*.rectangle-1 {
+    background-color: #ff880e;
+    float: left;
+    border-left: 1px solid #ff880e;
+    width: 10px;
+    height: 10px;
+    margin-top: 15px;
+}*/
+
+.span-legend {
+	float: left;
+	margin: 11px 5px 0px 5px;
+}
+
+.btn-legend {
+	float: left;
+	margin: 14px 0px 0px 5px;
+}
+.pl15{
+    padding-left: 15%;
+}
+.txtWar {
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  border: 1px solid transparent;
+  font-weight:500;
+}
+.windrose-item {
+  height: 320px;
+  padding: 10px;
+  margin: 10px 0;
+}

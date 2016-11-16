@@ -1,0 +1,20 @@
+.panel-filter {
+	margin-top:15px;
+}
+
+.panel-content {
+	margin-top:15px;
+}
+
+.modal-dialog {
+	width: 700px;
+}
+
+.tab-content {
+	height: 220px;
+	overflow: auto;
+}
+
+input[type=checkbox], input[type=radio] {
+	margin: 8px;
+}

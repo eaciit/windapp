@@ -1,0 +1,31 @@
+<script src="{{BaseUrl}}res/core/js/page-admintable.js"></script>
+
+<div>
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">
+					PL Collections
+				</h3>
+				<div class="panel-nav-button">
+					<button class="btn btn-sm btn-danger" data-bind="click: at.clearcollection">
+						<i class="fa fa-trash"></i> Empty
+					</button>
+					<button class="btn btn-sm btn-primary" data-bind="click: at.refreshData">
+						<i class="fa fa-refresh"></i> Refresh
+					</button>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div data-bind="visible: at.contentIsLoading">
+					{{template "_loader.html"}}
+				</div>
+				<div data-bind="visible: !at.contentIsLoading()">
+					<div class="grid-at" data-bind="kendoGrid: at.gridConfig"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="clearfix"></div>

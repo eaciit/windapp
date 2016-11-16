@@ -1,0 +1,543 @@
+<script src="{{BaseUrl}}res/core/js/page-monitoring.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+    .green{
+        color: #31b445;
+    }
+    .red{
+        color: #e91e3a;
+    }
+    .bold{
+        text-weight:bold;
+    }
+    .summary{
+        font-size: 16px;
+    }
+    .table-sum{
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+    .table-sum, .table-sum>tbody>tr>td, .table-sum>tbody>tr>th, .table-sum>tfoot>tr>td, .table-sum>tfoot>tr>th, .table-sum>thead>tr>td, .table-sum>thead>tr>th {
+        border: 0px solid #f4f4f4;
+    }
+    .table-sum>tbody>tr>td, .table-sum>tbody>tr>th, .table-sum>tfoot>tr>td, .table-sum>tfoot>tr>th, .table-sum>thead>tr>td, .table-sum>thead>tr>th {
+        border-top: 0px solid #ffffff;
+        border-right: 2px solid #eee;
+        padding: 0px;
+    }
+    .no-border{
+        border-right:0px solid #eee;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-heading">
+                    Monitoring&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="warningrmation"></i>&nbsp;
+                </div>
+                <div class="panel-body" style="text-align:center">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <table class="table table-bordered table-sum">
+                                <thead>
+                                    <tr>
+                                        <td width="20%">WF/Turbines</td>
+                                        <td width="20%">Tot.Capacity</td>
+                                        <td width="20%">Wind Speed Avg.</td>
+                                        <td width="20%">Tot. Prod</td>
+                                        <td rowspan="2" class="no-border">
+                                            Testing
+                                        </td>
+                                    </tr>
+                                </thead>
+                                <tbody class="bold summary">
+                                    <tr>
+                                        <td>1/24</td>
+                                        <td>2.1 MW</td>
+                                        <td>5.7 m/s</td>
+                                        <td>120 MWh</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-condensed table-striped">
+                                <thead class="bold">
+                                    <tr>
+                                        <td width="10%">Tejuva</td>
+                                        <td><i class="fa fa-flash"></i></td>
+                                        <td><i class="fa fa-tachometer"></i></td>
+                                        <td><i class="fa fa-line-chart"></i></td>
+                                        <td><i class="fa fa-gears"></i></td>
+                                        <td><i class="fa fa-th"></i></td>
+                                        <td><i>10<sup>m</sup></i></td>
+                                        <td><i>3<sub>s</sub></i></td>
+                                        <td><i>Ov.</i></td>
+                                        <td><i>C.</i></td>
+                                        <td><i class="fa fa-bell"></i></td>
+                                        <td><i class="fa fa-th-large"></i></td>
+                                        <td><i>Vc.</i></td>
+                                        <td><i class="fa fa-warning"></i></td>
+                                        <td><i>Rt.</i></td>
+                                        <td><i class="fa fa-volume-control-phone"></i></td>
+                                        <td><i>>24</i></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                     <tr>
+                                        <td>TJW001</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>TJW002</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>TJW003</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>TJW004</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-bordered table-sum">
+                                <thead>
+                                    <tr>
+                                        <td width="20%">WF/Turbines</td>
+                                        <td width="20%">Tot.Capacity</td>
+                                        <td width="20%">Wind Speed Avg.</td>
+                                        <td width="20%">Tot. Prod</td>
+                                        <td rowspan="2" class="no-border">
+                                            Testing
+                                        </td>
+                                    </tr>
+                                </thead>
+                                <tbody class="bold summary">
+                                    <tr>
+                                        <td>1/24</td>
+                                        <td>2.1 MW</td>
+                                        <td>5.7 m/s</td>
+                                        <td>120 MWh</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-condensed table-striped">
+                                <thead class="bold">
+                                    <tr>
+                                        <td width="10%">Norbury</td>
+                                        <td><i class="fa fa-flash"></i></td>
+                                        <td><i class="fa fa-tachometer"></i></td>
+                                        <td><i class="fa fa-line-chart"></i></td>
+                                        <td><i class="fa fa-gears"></i></td>
+                                        <td><i class="fa fa-th"></i></td>
+                                        <td><i>10<sup>m</sup></i></td>
+                                        <td><i>3<sub>s</sub></i></td>
+                                        <td><i>Ov.</i></td>
+                                        <td><i>C.</i></td>
+                                        <td><i class="fa fa-bell"></i></td>
+                                        <td><i class="fa fa-th-large"></i></td>
+                                        <td><i>Vc.</i></td>
+                                        <td><i class="fa fa-warning"></i></td>
+                                        <td><i>Rt.</i></td>
+                                        <td><i class="fa fa-volume-control-phone"></i></td>
+                                        <td><i>>24</i></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                     <tr>
+                                        <td>Norbury1</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Norbury2</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Norbury3</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Norbury4</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <table class="table table-bordered table-sum">
+                                <thead>
+                                    <tr>
+                                        <td width="20%">WF/Turbines</td>
+                                        <td width="20%">Tot.Capacity</td>
+                                        <td width="20%">Wind Speed Avg.</td>
+                                        <td width="20%">Tot. Prod</td>
+                                        <td rowspan="2" class="no-border">
+                                            Testing
+                                        </td>
+                                    </tr>
+                                </thead>
+                                <tbody class="bold summary">
+                                    <tr>
+                                        <td>1/24</td>
+                                        <td>2.1 MW</td>
+                                        <td>5.7 m/s</td>
+                                        <td>120 MWh</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-condensed table-striped">
+                                <thead class="bold">
+                                    <tr>
+                                        <td width="10%">Backen</td>
+                                        <td><i class="fa fa-flash"></i></td>
+                                        <td><i class="fa fa-tachometer"></i></td>
+                                        <td><i class="fa fa-line-chart"></i></td>
+                                        <td><i class="fa fa-gears"></i></td>
+                                        <td><i class="fa fa-th"></i></td>
+                                        <td><i>10<sup>m</sup></i></td>
+                                        <td><i>3<sub>s</sub></i></td>
+                                        <td><i>Ov.</i></td>
+                                        <td><i>C.</i></td>
+                                        <td><i class="fa fa-bell"></i></td>
+                                        <td><i class="fa fa-th-large"></i></td>
+                                        <td><i>Vc.</i></td>
+                                        <td><i class="fa fa-warning"></i></td>
+                                        <td><i>Rt.</i></td>
+                                        <td><i class="fa fa-volume-control-phone"></i></td>
+                                        <td><i>>24</i></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                     <tr>
+                                        <td>Backen1</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Backen2</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Backen3</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Backen4</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                         <div class="col-md-6">
+                            <table class="table table-bordered table-sum">
+                                <thead>
+                                    <tr>
+                                        <td width="20%">WF/Turbines</td>
+                                        <td width="20%">Tot.Capacity</td>
+                                        <td width="20%">Wind Speed Avg.</td>
+                                        <td width="20%">Tot. Prod</td>
+                                        <td rowspan="2" class="no-border">
+                                            Testing
+                                        </td>
+                                    </tr>
+                                </thead>
+                                <tbody class="bold summary">
+                                    <tr>
+                                        <td>1/24</td>
+                                        <td>2.1 MW</td>
+                                        <td>5.7 m/s</td>
+                                        <td>120 MWh</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table table-condensed table-striped">
+                                <thead class="bold">
+                                    <tr>
+                                        <td width="10%">Delling</td>
+                                        <td><i class="fa fa-flash"></i></td>
+                                        <td><i class="fa fa-tachometer"></i></td>
+                                        <td><i class="fa fa-line-chart"></i></td>
+                                        <td><i class="fa fa-gears"></i></td>
+                                        <td><i class="fa fa-th"></i></td>
+                                        <td><i>10<sup>m</sup></i></td>
+                                        <td><i>3<sub>s</sub></i></td>
+                                        <td><i>Ov.</i></td>
+                                        <td><i>C.</i></td>
+                                        <td><i class="fa fa-bell"></i></td>
+                                        <td><i class="fa fa-th-large"></i></td>
+                                        <td><i>Vc.</i></td>
+                                        <td><i class="fa fa-warning"></i></td>
+                                        <td><i>Rt.</i></td>
+                                        <td><i class="fa fa-volume-control-phone"></i></td>
+                                        <td><i>>24</i></td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                     <tr>
+                                        <td>Delling1</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Delling2</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Delling3</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-check green"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Delling4</td>
+                                        <td>80</td>
+                                        <td>10</td>
+                                        <td>70</td>
+                                        <td>90</td>
+                                        <td>90</td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-times red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                        <td><i class="fa fa-circle red"></i></td>
+                                        <td><i class="fa fa-circle green"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+[
+	{
+		"_id": "db_acl",
+		"data": {
+			"db": "wfdemo",
+			"driver": "mongo",
+			"host": "go.eaciit.com:27123",
+			"pass": "B1gD@ta",
+			"setting": {
+				"timeout": 3000
+			},
+			"user": "eaciit"
+		}
+	},
+	{
+		"_id": "db_ostro",
+		"data": {
+			"db": "wfdemo",
+			"driver": "mongo",
+			"host": "go.eaciit.com:27123",
+			"pass": "B1gD@ta",
+			"setting": {
+				"timeout": 3000
+			},
+			"user": "eaciit"
+		}
+	},
+	{
+		"_id": "port",
+		"data": 8030
+	},
+	{
+		"_id": "default_username",
+		"data": "eaciit"
+	},
+	{
+		"_id": "default_password",
+		"data": "Password.1"
+	}
+]

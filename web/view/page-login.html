@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>var viewModel = new Object()</script>
+        {{template "_head.html"}}
+        <script src="{{BaseUrl}}res/core/js/page-login.js"></script>
+        <link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout.css" />
+    </head>
+    <style type="text/css">
+        .login-bg{
+          background: url('{{BaseUrl}}res/img/login_bg.jpg') no-repeat left top;
+          background-size: cover;
+          position:relative;
+          z-index:500;
+        }
+    </style>
+    <body class="is-loading">
+        <div class="login-body">    
+            <div class="container-fluid">
+                <section class="row">
+                    <!-- Main panel starts here -->
+                    <!-- <div class="row"> -->
+                        <div class="col-sm-12">
+                            <div class="login-form col-md-3 col-xs-12" id="loginForm">
+                                <!-- create process loader here -->
+                                
+                                    <form class="form form-horizontal fh" id="login-form" novalidate>
+                                        <center id="head-top">
+                                            <div class="login-logo"><img  src="{{BaseUrl}}res/img/logo.png" /></div>
+                                            <div data-bind="html: lg.ErrorMessage, visible:(lg.errorMessage != '')" id="error-message"></div>
+                                         </center>
+
+                                        <div class="login-form-bg">
+                                            <div class="form-group login-form-group">
+                                                <label class="col-sm-12 form-login-label">Username</label>
+                                                <div class="col-sm-12">
+                                                    <input type="text" class="form-control input-sm full-width" id="username" name="username" placeholder="Type username here" data-bind="value: lg.configLogin.username"  required />
+                                                    <span class="k-invalid-msg" data-for="username"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group login-form-group">
+                                                <label class="col-sm-12 form-login-label">Password</label>
+                                                <div class="col-sm-12">
+                                                    <input type="password" class="form-control input-sm full-width" id="password" name="password" placeholder="Type password here" data-bind="value: lg.configLogin.password"  required />
+                                                    <span class="k-invalid-msg" data-for="password"></span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group login-form-group">
+
+                                                <div class="col-sm-12">
+                                                    <div class="pull-left">
+                                                        <a id="forgetPassword" href="#" data-bind="click: lg.showAccesReset">
+                                                            Can't access your account?
+                                                        </a>
+                                                    </div>
+                                                    <div class="pull-right">
+                                                        <button class="btn btn-sm btn-primary" id="btnLogin" data-bind="click: lg.getLogin">
+                                                            Login
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="footnote">
+                                                © 2016 EACIIT Pte Ltd
+                                            </div>
+                                        </div>
+                                    </form>
+                                
+                            </div>
+                            <div class="login-bg col-md-9">
+                               &nbsp;
+                            </div>
+                        </div>
+                        <!-- Modal Forget Password -->
+                        <div class="modal fade" id="modalForgot" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <!-- Modal Header -->
+                                    <div class="modal-header">
+                                        <button type="button" class="close" 
+                                           data-dismiss="modal">
+                                               <span aria-hidden="true">&times;</span>
+                                               <span class="sr-only">Close</span>
+                                        </button>
+                                        <h4 class="modal-title" id="myModalLabel">
+                                            Create Account Access
+                                        </h4>
+                                    </div>
+                                    
+                                    <!-- Modal Body -->
+                                    <div class="modal-body">
+                                        
+                                        <form role="form" class="form-horizontal" id="email-form">
+                                          <div class="form-group">
+                                            <label class="control-label col-sm-3">Email address</label>
+                                            <div class="col-xs-8">
+                                              <input type="email" class="form-control input-sm" name="email" placeholder="Enter email" data-bind="value: lg.forgetLogin.email"  required/>
+                                              <span class="k-invalid-msg" data-for="email"></span>
+                                            </div>
+                                          </div>
+                                        </form> 
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-sm btn-default"
+                                                data-dismiss="modal">
+                                                    Close
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-primary" data-bind="click: lg.getForgetLogin">
+                                            Send Email
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <!-- </div> -->
+                        <!-- Modal Forget Password End -->
+                        
+                     </div>
+                </section>
+            </div>
+        </div>
+    </body>
+    <script>ko.applyBindings(viewModel)</script>
+</html>
+

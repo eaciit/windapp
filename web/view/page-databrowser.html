@@ -1,0 +1,291 @@
+<script src="{{BaseUrl}}res/core/js/page-databrowser.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+    .col-md-1 {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-databrowser.css">
+<div class="row">
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12">
+            <ul class="nav nav-pills nav-replace-title" role="tablist">
+                <li>
+                    <div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
+                        <label class="control-label col-md-1 col-sm-1" style="padding-left: 0px;width:50px;">Period</label>&nbsp;
+                        <input class="col-md-1 col-sm-1" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:120px;" />
+                        <label class="control-label col-md-1 col-sm-1" style="width:20px;">&nbsp;&nbsp;to</label>
+                        <input class="col-md-1 col-sm-1 db-end-date" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:120px;" />&nbsp;
+                    </div>
+                </li>
+                <!-- <div class="new-line">&nbsp;</div> -->
+                <li>
+                    <!-- <div class="input-group input-group-sm ez"> -->
+                        <label class="control-label col-md-1 col-sm-1 label-turbine" style="width:80px;">Turbine</label>
+                        <select class="col-md-1 col-sm-1 turbine-multi" id="turbineMulti" data-bind="kendoMultiSelect: { data: dbr.turbineList, dataValueField: 'value', dataTextField: 'text', filter: 'contains', suggest: true, change: function() {dbr.checkTurbine()} }" style="width:120px;">
+						</select>
+                    <!-- </div> -->
+                </li>
+                <li>
+                    <button type="button" id="btnRefresh" class="btn btn-sm btn-primary" style="margin-left: 10px;"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-body">
+                    <ul class="nav nav-tabs " role="tablist">
+                        <li id="mainTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#Main" aria-controls="Main" role="tab" data-toggle="tab" class="tab-custom">Main</a></li>
+                        <li id="exceptionTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#Exception" aria-controls="Exception" role="tab" data-toggle="tab" class="tab-custom">Exception</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="Main">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#Generation" aria-controls="Generation" role="tab" data-toggle="tab" class="tab-custom">Scada Data</a></li>
+                                <li id="alarmTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#Alarm" aria-controls="Alarm" role="tab" data-toggle="tab" class="tab-custom">Alarm Data</a></li>
+                                <li id="jmrTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
+                                <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane active" id="Generation">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbine" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldata" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Total Power</label><br />
+                                        <label id="totalpower" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green">
+                                        <label class="summary-header">Total Power Lost</label><br />
+                                        <label id="totalpowerlost" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Total Production</label><br />
+                                        <label id="totalprod" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green-no-float">
+                                        <label class="summary-header">Average Wind Speed</label><br />
+                                        <label id="avgwindspeed" class="summary-number">0.00</label>
+                                    </div>
+                                    
+                                    <div class="tab-pane-content">
+                                        <a href="#scada" data-toggle="collapse" class="pull-right label-showhide tooltipster tooltipstered" title="Click to show column list">Hide / Show Columns</a>
+                                        <div id="scada" class="collapse content-showhide">
+                                            <div data-bind="foreach: dbr.gridColumnsScada">
+                                                <div class="col-md-2">
+                                                    <div class="checkbox">
+                                                        <label>
+											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-'+$index()} , click: dbr.ShowHideColumnScada('dataGrid',field, 'chk-grid-'+$index(),$index())}">
+											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+											            <span data-bind="text:title"></span>
+											          </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div id="dataGrid" class="grid-custom"></div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="Alarm">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartalarm">-</span></strong> until: <strong><span id="availabledateendalarm">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbinealarm" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldataalarm" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Production</label><br />
+                                        <label id="totalprodalarm" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary left-border-green-no-float">
+                                        <label class="summary-header">Average Wind Speed</label><br />
+                                        <label id="avgwindspeedalarm" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div id="dataGridAlarm" class="grid-custom"></div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="JMR">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartjmr">-</span></strong> until: <strong><span id="availabledateendjmr">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org-no-float">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldatajmr" class="summary-number">0</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div id="dataGridJMR"></div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="MET">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartmet">-</span></strong> until: <strong><span id="availabledateendmet">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org-no-float">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldatamet" class="summary-number">0</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div id="dataGridMet" class="grid-met"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="Exception">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li id="scadaExceptionTimeDurationTab" class="active" role="presentation"><a onclick="Data.RefreshGrid()" href="#ScadaExceptionTimeDuration" aria-controls="ScadaExceptionTimeDuration" role="tab" data-toggle="tab" class="tab-custom">Scada Exception Time Duration</a></li>
+                                <li id="scadaAnomaliesTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#GenerationAnomalies" aria-controls="GenerationAnomalies" role="tab" data-toggle="tab" class="tab-custom">Scada Anomaly</a></li>
+                                <li id="alarmOverlappingTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#AlarmOverlapping" aria-controls="AlarmOverlapping" role="tab" data-toggle="tab" class="tab-custom">Alarm Overlapping Data</a></li>
+                                <li id="alarmAnomaliesTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#AlarmAnomalies" aria-controls="AlarmAnomalies" role="tab" data-toggle="tab" class="tab-custom">Alarm Anomaly</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane active" id="ScadaExceptionTimeDuration">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartduration">-</span></strong> until: <strong><span id="availabledateendduration">-</span></strong>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbineExceptionTimeDuration" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldataExceptionTimeDuration" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Total Power</label><br />
+                                        <label id="totalpowerExceptionTimeDuration" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green">
+                                        <label class="summary-header">Total Power Lost</label><br />
+                                        <label id="totalpowerlostExceptionTimeDuration" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Total Production</label><br />
+                                        <label id="totprodExceptionTimeDuration" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green-no-float">
+                                        <label class="summary-header">Average Wind Speed</label><br />
+                                        <label id="avgwindspeedExceptionTimeDuration" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <a href="#scadaException" data-toggle="collapse" class="pull-right label-showhide tooltipster tooltipstered" title="Click to show column list">Hide / Show Columns</a>
+                                        <div id="scadaException" class="collapse content-showhide">
+                                            <div data-bind="foreach: dbr.gridColumnsScadaException">
+                                                <div class="col-md-2">
+                                                    <div class="checkbox">
+                                                        <label>
+											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-exception-'+$index()} , click: dbr.ShowHideColumnScada('dataGridExceptionTimeDuration',field, 'chk-grid-scada-exception-'+$index(),$index())}">
+											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+											            <span data-bind="text:title"></span>
+											          </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div id="dataGridExceptionTimeDuration" class="grid-custom"></div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="GenerationAnomalies">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartscadaanomaly">-</span></strong> until: <strong><span id="availabledateendscadaanomaly">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbineAnomalies" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldataAnomalies" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Power</label><br />
+                                        <label id="totalpowerAnomalies" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary left-border-green">
+                                        <label class="summary-header">Total Power Lost</label><br />
+                                        <label id="totalpowerlostAnomalies" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-green">
+                                        <label class="summary-header">Total Production</label><br />
+                                        <label id="totprodAnomalies" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="control-summary-hs left-border-org">
+                                        <label class="summary-header">Average Wind Speed</label><br />
+                                        <label id="avgwindspeedAnomalies" class="summary-number">0.00</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <a href="#scadaAnomaly" data-toggle="collapse" class="pull-right label-showhide tooltipster tooltipstered" title="Click to show column list">Hide / Show Columns</a>
+                                        <div id="scadaAnomaly" class="collapse content-showhide">
+                                            <div data-bind="foreach: dbr.gridColumnsScadaAnomaly">
+                                                <div class="col-md-2">
+                                                    <div class="checkbox">
+                                                        <label>
+											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-anomaly-'+$index()} , click: dbr.ShowHideColumnScada('dataGridAnomalies',field, 'chk-grid-scada-anomaly-'+$index(),$index())}">
+											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+											            <span data-bind="text:title"></span>
+											          </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div id="dataGridAnomalies" class="grid-custom"></div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="AlarmOverlapping">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartalarmoverlapping">-</span></strong> until: <strong><span id="availabledateendalarmoverlapping">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbinealarmo" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green-no-float">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldataalarmo" class="summary-number">0</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div id="dataGridAlarmOverlapping" class="grid-custom"></div>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane" id="AlarmAnomalies">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartalarmscadaanomaly">-</span></strong> until: <strong><span id="availabledateendalarmscadaanomaly">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbinealarmAnomalies" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green-no-float">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldataalarmAnomalies" class="summary-number">0</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div id="dataGridAlarmAnomalies" class="grid-custom"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

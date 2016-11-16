@@ -1,0 +1,13 @@
+.ez.input-group .input-group-addon {
+	background-color: #FCFCFC;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+
+.input-group-sm>.form-control, .input-group-sm>.input-group-addon, .input-group-sm>.input-group-btn>.btn {
+	padding: 5px 5px
+}
+
+.form-group {
+	margin-bottom: 3px
+}

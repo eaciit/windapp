@@ -1,0 +1,28 @@
+{
+    "Draft": "/Users/frezadev/Documents/watch/draft",
+    "Process": "/Users/frezadev/Documents/watch/process",
+    "Fail": "/Users/frezadev/Documents/watch/fail",
+    "Success": "/Users/frezadev/Documents/watch/success",
+    "Errors": "/Users/frezadev/Documents/watch/errors",
+    "Archive": "/Users/frezadev/Documents/watch/archive",
+    "Commands": [
+        {
+            "action": "COPY_TO_PROCESS",
+            "command": "mv %v %v",
+            "success": "DONE",
+            "fail": "DONE"
+        },
+        {
+            "action": "COPY_TO_SUCCESS",
+            "command": "mv %v %v",
+            "success": "DONE",
+            "fail": "DONE"
+        },
+        {
+            "action": "COPY_TO_FAIL",
+            "command": "mv %v %v",
+            "success": "DONE",
+            "fail": "DONE"
+        }
+    ]
+}

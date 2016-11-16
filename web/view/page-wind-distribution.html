@@ -1,0 +1,50 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<style type="text/css">
+	.mar15 {
+		margin-right: 15px
+	}
+	
+	.f15 {
+		font-size: 12px;
+	}
+</style>
+
+<script src="{{BaseUrl}}res/core/js/page-wind-distribution.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Wind Distribution&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+					</div>
+					<div class="panel-body">
+						<div class="col-md-9">
+							<div id="windDistribution"></div>
+							<div class="clearfix">&nbsp;</div>
+						</div>
+						<div class="col-md-3 turList">
+							<div class="panel-heading custom-header">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show detail"></i></div>
+							<div class="clearfix">&nbsp;</div>
+							<div class="checkbox" id="showHideChk"></div>
+							<div class="col-md-12 col-sm-12" id="right-turbine-list"></div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+          				<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>

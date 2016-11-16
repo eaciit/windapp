@@ -1,0 +1,201 @@
+.col-md-1 {
+    padding-left: 0px;
+    padding-right: 0px;
+    /*margin-left: -5px;*/
+}
+.filter-content{
+    margin-bottom: 10px;
+}
+.ez.panel .panel-heading {
+  font-size: 16px;
+}
+	
+label.control-label {
+	padding: 3.9px 30px 6px 6px;
+	display: inline-block;
+	height: 27.5px;
+	font-weight: bold;
+}
+label.summary-header {
+	padding: 5px 0px 0px 5px;
+	font-size: 14px;
+	color: #585555;
+	text-align:center;	
+}
+label.summary-number {
+	padding: 0px 0px 5px 5px;
+	font-size: 22px;
+	color: #585555 ;
+	text-align:center;
+	margin-top: -5px;
+}
+
+.control-input {
+	padding: 0px 0px 0px 4px;
+	background: transparent;
+}
+
+.control-tab {
+	padding: 10px 0px 0px 0px;
+	background: transparent;
+}
+
+.control-summary {
+	/*border-radius: 3%;*/
+	padding: 0px 0px 0px 0px;
+	width: 200px;
+	height: 60px;
+	margin: 0px 15px 15px 0px;
+	/*box-shadow: 5px 7px 5px #888888;*/
+	overflow: hidden;
+	text-align: center;
+	border: 1px solid #dedeec;
+}
+.control-summary-img {
+	size:50%;
+	float:left;
+	content:url("{{BaseUrl}}res/img/chart.png");
+}
+
+/* nav tabs */
+.nav.nav-tabs {
+	border-bottom: 1px solid #eb5b00;
+}
+.nav.nav-tabs li {
+	margin-right: 10px;
+}
+.nav.nav-tabs li.active {
+	
+}
+.nav.nav-tabs li a {
+	border: 1px solid #E0E0E0;
+	border-bottom: 1px solid transparent;
+	background: transparent;
+	color: #585555;
+}
+.nav.nav-tabs li a:hover {
+	border: 1px solid #eb5b00;
+	border-bottom: 1px solid transparent;
+	background: #eb5b19;
+	color: #fff;
+}
+.nav.nav-tabs li.active a {
+	border: 1px solid #eb5b00;
+	border-bottom: 1px solid transparent;
+	background: #eb5b19;
+	color: #fff;
+}
+.tab-content {
+	padding: 10px 0px;
+	margin-bottom: 10px;
+}
+.tab-content-nav { margin-bottom: 10px; }
+.left-border-org{
+	background-color: #ffffff; 
+	float: left;
+	border-left: 4px solid #eb5b19;
+}
+.left-border-org-no-float{
+	background-color: #ffffff;
+	border-left: 4px solid #eb5b19;
+}
+.left-border-green{
+	background-color: #ffffff; 
+	float: left;
+	border-left: 4px solid #5bc0de;
+}
+.left-border-green-no-float{
+	background-color: #ffffff;
+	border-left: 4px solid #5bc0de;
+}
+/*.grid-custom tbody tr:hover {
+    background: #ea5b19;
+    opacity: 0.5;
+    color: white;
+}*/
+.middle-header{
+	padding-top: 10px;
+}
+
+.grid-custom.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-wrap.k-auto-scrollable>table>thead>tr{
+	height: 30px !important;
+}
+.grid-custom.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-locked>table>thead>tr{
+	height: 107px !important;
+}
+.gridAlarmOkTime.k-header.k-with-icon.k-filterable>a.k-grid-filter{
+	padding-top: 15px!important;
+}
+.gridPowerLost.k-header.k-with-icon.k-filterable>a.k-grid-filter{
+	padding-top: 14px!important;
+}
+.checkbox label:after, 
+.radio label:after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.checkbox .cr,
+.radio .cr {
+    position: relative;
+    display: inline-block;
+    border: 1px solid #a9a9a9;
+    border-radius: .25em;
+    width: 1.3em;
+    height: 1.3em;
+    float: left;
+    margin-right: .5em;
+}
+
+.radio .cr {
+    border-radius: 50%;
+}
+
+.checkbox .cr .cr-icon,
+.radio .cr .cr-icon {
+    position: absolute;
+    font-size: .8em;
+    line-height: 0;
+    top: 50%;
+    left: 20%;
+}
+
+.radio .cr .cr-icon {
+    margin-left: 0.04em;
+}
+
+.checkbox label input[type="checkbox"],
+.radio label input[type="radio"] {
+    display: none;
+}
+
+.checkbox label input[type="checkbox"] + .cr > .cr-icon,
+.radio label input[type="radio"] + .cr > .cr-icon {
+    transform: scale(3) rotateZ(-20deg);
+    opacity: 0;
+    transition: all .3s ease-in;
+}
+
+.checkbox label input[type="checkbox"]:checked + .cr > .cr-icon,
+.radio label input[type="radio"]:checked + .cr > .cr-icon {
+    transform: scale(1) rotateZ(0deg);
+    opacity: 1;
+}
+
+.checkbox label input[type="checkbox"]:disabled + .cr,
+.radio label input[type="radio"]:disabled + .cr {
+    opacity: .5;
+}
+
+.nav>li>.tab-custom {
+    padding: 5px 10px;
+}
+
+.label-showhide{
+	margin-bottom: 10px;
+}
+
+.content-showhide{
+	padding-top: 30px;
+}

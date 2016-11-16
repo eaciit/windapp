@@ -1,0 +1,9 @@
+http://ostrowfm-oem.eaciitapp.com/
+port 2021
+
+8014_ostrowfm.conf
+8016_ostropms.conf
+8017_ostropmsdev.conf
+9002_ostrowfm-dev.conf
+9010.ostroreporting.conf
+9021_ostrowfm-oem.conf

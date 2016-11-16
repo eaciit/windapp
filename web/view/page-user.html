@@ -1,0 +1,206 @@
+<script src="{{BaseUrl}}res/core/js/page-user.js"></script>
+<script src="{{BaseUrl}}res/core/js/page-administration.js"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-user.css">
+
+<div class="row" style="padding-top: 15px;">
+	<div class="col-md-4 col-sm-4 ez panel-filter">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">Filter</h3>
+				<div class="panel-nav-button">
+					<div class="form-group relative align-right no-margin no-padding hardcore">
+						<button class="btn btn-sm btn-primary" data-bind="click: us.refreshData">
+							<i class="fa fa-refresh"></i> Reload Data
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div id="from-filter">
+					<p>Filter shown data.</p>
+					<div class="form-group form-group-table-name">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-100 align-right">Search</span>
+							<input type="text" class="form-control" required data-required-msg="cannot be empty" placeholder="Type value here ..." data-bind="value: us.filter.search" />
+						</div>
+					</div>
+				</div>
+
+				<div class="clearfix"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-8 col-sm-8 ez panel-content">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">
+					<button class="btn-toggle-filter no-padding">
+						<i class="fa fa-angle-double-left tooltipster color-grey" title="Toggle filter pane visibility"></i>
+					</button>
+					Data User
+				</h3>
+				<div class="panel-nav-button">
+					<button class="btn btn-primary btn-sm" data-bind="click: us.newData">
+						<i class="fa fa-plus"></i> New Data
+					</button>
+					<button class="btn btn-danger btn-sm" data-bind="click: us.deleteuser">
+						<i class="fa fa-trash"></i> Delete
+					</button>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div data-bind="visible: us.contentIsLoading">
+					{{template "_loader.html"}}
+				</div>
+				<div data-bind="visible: !us.contentIsLoading()">
+					<p data-bind="visible: us.selectedTableID() != ''">
+						Data on table <span class="tag bg-orange">user</span>.
+					</p>
+					<div class="grid-user"></div>
+					<div class="no-grid" data-bind="visible: app.is(us.selectedTableID, '')">No data to be shown.</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">
+        			<span data-bind="text: us.isNew() ? 'Create new' : 'Edit'"></span> data <span>user</span>
+        		</h4>
+            </div>
+            <div class="modal-body" data-bind="with: us.config">
+                <form class="wrapper form-user" novalidate>
+                	<div class="col-md-12">
+                		<ul class="nav nav-tabs" role="tablist">
+							<li role="presentation" class="active"><a href="#tabuser" aria-controls="home" role="tab" data-toggle="tab">User</a></li>
+							<li role="presentation"><a href="#tabgroup" aria-controls="access" role="tab" data-toggle="tab">Group</a></li>
+							<li role="presentation"><a href="#tabaccess" aria-controls="access" role="tab" data-toggle="tab">Access</a></li>
+						</ul>
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="tabuser">
+								<!-- <div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Login Type</span>
+										<select class="form-control input-sm" id="LoginType" name="LoginType" data-bind="value: LoginType">
+											<option value="0"></option>
+											<option value="1">Ldap</option>
+											<option value="2">Google</option>
+											<option value="3">Facebook</option>
+										</select>
+                                		<span class="k-invalid-msg" data-for="LoginType"></span>
+									</div>
+								</div> -->
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Login ID</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: LoginID" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Full Name</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: FullName" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Email</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: Email" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Password</span>
+										<input type="password" class="form-control" required data-required-msg="cannot be empty" data-bind="value: Password" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Enable</span>
+										<input type="checkbox" data-bind="checked: Enable" />
+									</div>
+								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="tabgroup">
+								<div class="col-md-6">
+	                                <div id="listgroup" class="grid listgroup" data-bind="kendoGrid: { dataSource: { pageSize: 15 },   data: us.listGroupsData, selectable: 'multiple, row', change: us.selectlistGridGroups, columns: us.listGroupsColumns, filterfable: true,     sortable: true, pageable: true}">
+	                                </div>
+								</div>
+								<div class="col-md-6">
+									<div class="grid selectedgroup" data-bind="kendoGrid: { dataSource: { pageSize: 15 }, data: us.selectedGroupsData, selectable: 'multiple, row', change: us.removeselectGridGroups, columns: us.selectedGroupsColumns, filterfable: false, pageable: true}"></div>
+								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="tabaccess">
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Add Privilage</span>
+										<button class="btn btn-success btn-sm" data-bind="click: us.addGrant">
+                                            <span class="glyphicon glyphicon-plus"></span> Add
+                                        </button>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<table class="table" id="datasource-settings">
+                                        <thead>
+                                            <tr>
+                                                <th width="200px;">Grant</th>
+                                                <th width="200px;">Access</th>
+                                                <th>Create</th>
+                                                <th>Read</th>
+                                                <th>Update</th>
+                                                <th>Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-bind="foreach: us.config.Grants">
+                                            <tr>
+                                            	<td data-bind="text: Grant">
+                                            	</td>
+                                                <td>
+                                                    <select class="form-control input-sm" data-bind=" value: AccessID ,options: adm.Access()"></select>
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessCreate" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessRead" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessUpdate" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessDelete" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-danger" data-bind="visible: Grant() == '', click: us.removeGrant">
+                                                            <span class="glyphicon glyphicon-remove"></span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+								</div>
+							</div>
+						</div>
+					</div>
+                </form>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">
+		        	Cancel
+		        </button>
+                <button class="btn btn-sm btn-primary" data-bind="click: us.saveChanges">
+					<i class="fa fa-save"></i> Save
+				</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>

@@ -1,0 +1,47 @@
+<script src="{{BaseUrl}}res/core/js/page-filter-analytic.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<style type="text/css">
+	.incomplete-icon {
+		margin-left: 10px;
+		/*margin-right: 10px;*/
+		color: #d91e18;
+	}
+</style>
+<div class="row">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+			<div class="col-md-12 col-sm-12 filter-content">
+				<label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+				<select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: fa.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
+					style="width:120px">
+                </select>&nbsp;
+				<div class="small-screen">&nbsp;</div>
+				<label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+				<select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: fa.turbineList, dataValueField: 'value', dataTextField: 'text', change: function() {fa.checkTurbine()}, suggest: true }"
+					style="width:120px">
+                </select>&nbsp;
+				<div class="new-line">&nbsp;</div>
+				<label class="control-label col-md-1 col-sm-1 label-filter">Period</label>&nbsp;
+				<select class="col-md-1 col-sm-1 period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: fa.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {fa.showHidePeriod()} }"
+					style="width:110px">
+                </select>
+				<div class="small-screen">&nbsp;</div>
+				<span class="show_hide custom-period">
+                    <input class="col-md-1 col-sm-1 filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date(),change: function(){fa.DateChange()}}" style="width:110px" />
+                    <label class="control-label col-md-1 col-sm-1 label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
+                    <div class="period-nwline">&nbsp;</div>
+                    <input class="col-md-1 col-sm-1 filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date(),change: function(){fa.DateChange()}}" style="width:110px" />&nbsp;
+                    &nbsp;
+                </span>
+				<div class="search-btn-line">&nbsp;</div>
+				<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+				<span class="incomplete-icon" data-bind="visible: fa.infoPeriodIcon() == true"><i class="fa fa-bell tooltipster tooltipstered faa-tada animated" title="Incomplete period range" aria-hidden="true"></i></span>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- <div class="col-md-12 col-sm-12 ez panel-content">
+	<div class="alert alert-success" role="alert">
+	  <a href="#" class="alert-link">...</a>
+	</div>
+</div> -->

@@ -1,0 +1,288 @@
+
+
+	{{if eq .subreport "page-report-distribution.html"}}
+		{{template "page-report-distribution.html"}}
+	{{else if eq .subreport "page-report-general-trade.html"}}
+		{{template "page-report-general-trade.html"}}
+	{{else if eq .subreport "page-report-market-efficiency.html"}}
+		{{template "page-report-market-efficiency.html"}}
+	{{else if eq .subreport "page-report-sgna.html"}}
+		{{template "page-report-sgna.html"}}
+	{{else if eq .subreport "page-report-chart-comparison.html"}}
+		{{template "page-report-chart-comparison.html"}}
+	{{end}}
+
+	
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>EACIIT Web Template</title>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<script>var viewModel = new Object()</script>
+
+		<!-- <link rel="shortcut icon" href="../assets/img/logo.png" type="image/x-icon" /> -->
+		<!-- <link rel="icon" href="../assets/img/logo.png" type="image/x-icon" /> -->
+
+		<!-- jquery -->
+		<script src="../assets/jquery/jquery-2.1.0.min.js"></script>
+		<script src="../assets/jquery/jquery-ui.min.js"></script>
+
+		<!-- pace -->
+		<link rel="stylesheet" href="../assets/pace/pace.css" />
+		<script src="../assets/pace/pace.min.js"></script>
+		<script>
+			Pace.on('done', function () {
+				$('.is-loading').removeClass('is-loading');
+			});
+		</script>
+
+		<!-- knockout -->
+		<script src="../assets/knockout/knockout-3.4.0.js"></script>
+		<script src="../assets/knockout/knockout.mapping.js"></script>
+
+		<!-- lazyjs -->
+		<script src="../assets/lazyjs/lazy.min.js"></script>
+
+		<!-- underscore -->
+		<script src="../assets/js/underscore.min.js"></script>
+
+		<!-- bootstrap -->
+		<script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+		<link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css" />
+
+		<!-- font-awesome -->
+		<link rel="stylesheet" href="../assets/font-awesome/css/font-awesome.min.css" />
+
+		<!-- material-switch -->
+		<link rel="stylesheet" href="../assets/material-switch/style.css" />
+
+		<!-- kendo-ui -->
+		<!-- <link href="../assets/kendo-ui/styles/kendo.default.min.css" rel="stylesheet"> -->
+		<link href="../assets/kendo-ui/styles/kendo.common-bootstrap.min.css" rel="stylesheet">
+		<!-- <link href="../assets/kendo-ui/styles/kendo.bootstrap.min.css" rel="stylesheet"> -->
+		<link href="../assets/kendo-ui/styles/kendo.dataviz.min.css" rel="stylesheet">
+		<!-- <link href="../assets/kendo-ui/styles/kendo.dataviz.bootstrap.min.css" rel="stylesheet"> -->
+		<!-- <link rel="stylesheet" href="../assets/core/css/kendo.ez.css" /> -->
+		<link rel="stylesheet" href="../assets/kendo-ui/styles/kendo.ez.css" />
+		<script src="../assets/kendo-ui/js/kendo.all.min.js"></script>
+
+		<!-- knockout-kendo -->
+		<script src="../assets/knockout-kendo/knockout-kendo.min.js"></script>
+
+		<!-- moment -->
+		<script src="../assets/moment/moment.min.js"></script>
+
+		<!-- sweetalert -->
+		<script src="../assets/sweetalert/sweetalert.min.js"></script>
+		<link href="../assets/sweetalert/sweetalert.min.css" rel="stylesheet"/>
+
+		<!-- tooltipster -->
+		<link rel="stylesheet" href="../assets/tooltipster/css/tooltipster.css" />
+		<link rel="stylesheet" href="../assets/tooltipster/css/tooltipster-val.css" />
+		<script src="../assets/tooltipster/js/jquery.tooltipster.min.js"></script>
+
+		<!-- fonts -->
+		<link rel="stylesheet" href="../assets/core/css/fonts.css" />
+
+		<!-- core -->
+		<script src="../assets/core/js/layout.js"></script>
+		<script src="../assets/core/js/app.js"></script>
+		<script src="../assets/core/js/page-example.js"></script>
+		<link rel="stylesheet" href="../assets/core/css/bootstrap-ext.css" />
+		<link rel="stylesheet" href="../assets/core/css/layout.css" />
+	</head>
+	<body class="is-loading">
+		<div class="app" data-bind="with: vm">
+			<header class="navbar navbar-fixed-top app-top">
+				<div class="app-wrapper">
+					<div class="app-identity">
+						<img src="../assets/img/logo.png" />
+					</div>
+					<div class="app-menu">
+						<ul class="nav navbar-nav" data-bind="foreach: menu">
+							<li data-bind="css: { 'dropdown': ($data.submenu.length > 0) }">
+								<a data-bind="css: { 'dropdown-toggle': ($data.submenu.length > 0), 'active': (vm.pageTitle() == $data.title) }, attr: { href: $data.href }">
+									<i data-bind="css: vm.menuIcon($data)"></i> <span data-bind="text: $data.title"></span>
+								</a>
+								<ul class="dropdown-menu" data-bind="foreach: $data.submenu, visible: ($data.submenu.length > 0)">
+									<li><a data-bind="attr: { href: $data.href }, text: $data.title"></a></li>
+								</ul>
+							</li>
+						</ul>
+						<div class="clear"></div>
+					</div>
+					<ul class="nav navbar-nav navbar-right m-n hidden-xs nav-user">
+						<li class="dropdown hidden-xs">
+							<a class="dropdown-toggle" href="#" data-toggle="dropdown" aria-expanded="true">
+								<span class="thumb-sm avatar pull-left">
+									<img src="../assets/img/Leonard_Jayamohan.jpg" />
+								</span>
+								<div class="pull-right name">
+									<span class="thumb-sm title-user">Leonard Jayamohan</span>
+									<b class="caret"></b>
+								</div>
+							</a>
+							<ul class="dropdown-menu animated fadeInRight">
+								<span class="arrow top"></span>
+								<li ><a href="#">Setting</a></li>
+								<li data-bind="click:app.Logout"><a href="#">Logout</a></li>
+							</ul>
+						</li>
+					</ul>
+					<div class="clear"></div>
+				</div>
+			</header>
+
+			<div class="app-container">
+				<div class="app-wrapper">
+					<div class="app-title">
+						<ol class="breadcrumb pull-right" data-bind="template:{name:'breadcrumbTemplate', foreach:vm.breadcrumb}">
+						</ol>
+						<h2 data-bind="text: pageTitle">Dashboard</h2>
+					</div>
+
+					<div class="app-content">
+						<div class="col-md-4 col-sm-4">
+							<div class="panel panel-headline bg-blue">
+								<div class="panel-heading">
+									<h3>
+										<i class="fa fa-user"></i> Total User
+									</h3>
+								</div>
+								<div class="panel-body" style="height: 120px;">
+									<div class="wrapper">
+										<p class="value">1.240</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4 col-sm-4">
+							<div class="panel panel-headline bg-green">
+								<div class="panel-heading">
+									<h3>
+										<i class="fa fa-gratipay"></i> Average Visit / Day
+									</h3>
+								</div>
+								<div class="panel-body" style="height: 120px;">
+									<div class="wrapper">
+										<p class="value">440</p>
+										<p class="description">Global average visits each day</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4 col-sm-4">
+							<div class="panel panel-headline bg-red">
+								<div class="panel-heading">
+									<h3>
+										<i class="fa fa-caret-up"></i> Total Revenue (USD)
+									</h3>
+								</div>
+								<div class="panel-body" style="height: 120px;">
+									<div class="wrapper">
+										<p class="value">$1,200</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="clearfix"></div>
+
+						<div class="col-md-6">
+							<div class="panel panel-ez">
+								<div class="panel-heading">
+									<h3>Chart 1</h3>
+								</div>
+								<div class="panel-body" style="height: 250px">
+									<p>Show commits frequency each days.</p>
+									<div class="chart-1" style="height: 200px"></div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="panel panel-ez">
+								<div class="panel-heading">
+									<h3>Chart 2</h3>
+								</div>
+								<div class="panel-body" style="height: 250px">
+									<div class="chart-2" style="height: 230px"></div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-12">
+							<div class="panel panel-ez">
+								<div class="panel-heading">
+									<h3>Grid</h3>
+									<div class="pull-right filter-toggle">
+										<label>Show Filter</label>
+										<div class="material-switch">
+											<input id="filter-toggle-panel-3" type="checkbox" />
+											<label for="filter-toggle-panel-3" class="label-success"></label>
+											<div class="clearfix"></div>
+										</div>
+										<div class="clear"></div>
+									</div>
+								</div>
+								<div class="panel-body">
+									<div class="panel-filter">
+										<div class="col-md-3">
+											<div class="input-group input-group-ez input-group-sm">
+												<span class="input-group-addon">Search</span>
+												<input type="text" class="form-control" placeholder="Type something here ..." />
+											</div>
+										</div>
+										<div class="col-md-3">
+											<div class="input-group input-group-ez input-group-sm">
+												<span class="input-group-addon">Category</span>
+												<select data-bind="kendoDropDownList: { data: ['a', 'b', 'c', 'd', 'e'], optionLabel: 'Click to select one ...' }" style="width: 100%"></select>
+											</div>
+										</div>
+										<div class="col-md-3">
+											<div class="input-group input-group-ez input-group-sm">
+												<span class="input-group-addon">Category</span>
+												<select data-bind="kendoMultiSelect: { data: ['a', 'b', 'c', 'd', 'e'], placeholder: 'Click to select one ...' }" style="width: 100%"></select>
+											</div>
+										</div>
+										<div class="clearfix"></div>
+									</div>
+									<div class="grid-1"></div>
+								</div>
+							</div>
+						</div>
+						<!-- <div class="col-md-6">
+							<div class="panel panel-ez">
+								<div class="panel-heading">
+									<h3>Form Element</h3>
+								</div>
+								<div class="panel-body" style="height: 250px">
+									<form class="form-horizontal">
+										<div class="form-group">
+											<label class="col-md-2 form-label">Email</label>
+											<div class="col-md-10">
+												<input type="text" class="form-control input-sm" placeholder="Email"/>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div> -->
+
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script id="breadcrumbTemplate" type="text/html">
+			<!-- ko if: (vm.breadcrumb().length-1)!=$index() -->
+			<li><a data-bind="text: title, attr: {href: href}"></a></li>
+			<!-- /ko -->
+			<!-- ko if: (vm.breadcrumb().length-1)==$index() -->
+			<li class="active" data-bind="text: title"></li>
+			<!-- /ko -->
+		</script>
+		<script>ko.applyBindings(viewModel)</script>
+	</body>
+</html>

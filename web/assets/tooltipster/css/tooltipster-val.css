@@ -1,0 +1,43 @@
+/* © 2015 - Noval Agung Prayogo */
+/* tooptipster val theme, copied from www.depeloper.com */
+
+.tooltipster-val {
+	border-radius: 5px; 
+	border: 1px solid #272822;
+	background: #272822;
+	color: #f8f8f2;
+}
+.tooltipster-val .tooltipster-content {
+	font-family: 'Source Sans Pro', 'Open Sans', Lato, Arial, sans-serif;
+	font-size: 12px;
+	line-height: 16px;
+	padding: 4px 8px;
+}
+
+
+.tooltipster-whi {
+	border-radius: 3px;
+	border: 1px solid #74B841;
+	background: #FFFFFF;
+	padding: 4px 0px;
+	color: #f8f8f2;
+}
+.tooltipster-whi .tooltipster-content {
+	font-family: 'Source Sans Pro', 'Open Sans', Lato, Arial, sans-serif;
+	font-size: 12px;
+	line-height: 16px;
+	padding: 4px 8px;
+}
+.tooltipster-whi .tooltipster-arrow-top .tooltipster-arrow-border {
+    border-color: rgb(92, 184, 92);
+    margin-bottom: -2px !important;
+}
+.tooltipster-whi .tooltipster-arrow-top span:nth-child(2) {
+	border-color: rgb(116, 184, 65);
+}
+.tooltipster-whi .tooltipster-content h3 {
+    color: #58666E;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border-bottom: 1px solid #F0F3F4;
+}

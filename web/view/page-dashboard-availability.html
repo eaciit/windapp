@@ -1,0 +1,247 @@
+<script src="{{BaseUrl}}res/core/js/page-dashboard-availability.js?ANTI_CACHE={{.AntiCache}}"></script>
+<div data-bind="visible:lgd.isAvailability">
+	<div id="availability-fleet" data-bind="visible:lgd.isFleet">
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Machine Availability(%) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="fleetChartMachAvail" class="margin-top-25"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Grid Availability(%) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="fleetChartGridAvail" class="margin-top-25"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Turbines Down (Hrs) - Last 24 Hrs</div>
+					<div class="panel-body box-list" id="dtturbines"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Lost Energy (MWh) by Down Time Type - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<!-- <div id="chartDTLEbyTypeCustomTooltip"></div> -->
+						<div id="chartDTLEbyType"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Lost Energy (MWh) by Project - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+
+						<div id="chartDTLostEnergy"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Losses (MWh) - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<div id="fleetChartTopTurbineLoss"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Loss Categories by Total Energy Loss(MWh) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="fleetChartTopLossCatEnergyLoss"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Loss Categories by Duration(Hrs) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="fleetChartTopLossCatDuration"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Loss Categories by Frequency - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="fleetChartTopLossCatFreq"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="availability-project" data-bind="visible:lgd.isNonFleet">
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Machine Availability(%) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="projectChartMachAvail" class="margin-top-25"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Grid Availability(%) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="projectChartGridAvail" class="margin-top-25"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Lost Energy Downtime Type - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<div id="projectChartLossEnergy"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Losses(MWh) - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<div id="projectChartTopTurbineLosses"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Duration (Hrs) - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<div id="projectChartDTDuration"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Frequency - Last 12 Months</div>
+					<div class="panel-body">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<div id="projectChartDTFrequency"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Loss Categories by Total Energy Loss(MWh) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="projectChartTopLossCatEnergyLoss"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Loss Categories by Duration(Hrs) - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="projectChartTopLossCatDuration"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading ph-availability">Top 10 Loss Categories by Frequency - Last 12 Months</div>
+					<div class="panel-body">
+						<div id="projectChartTopLossCatFreq"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<div data-bind="visible:avail.isDetailDTLostEnergy">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:avail.backToDownTimeChart()"><i class="fa fa-reply" aria-hidden="true"></i> Back</a>&nbsp;&nbsp;
+					<div class="inline-tab-detail" style="display: none;">&nbsp;</div>
+					<span class="show_hide_downtime">
+            			<select id="mdTypeList" data-bind="kendoDropDownList: { data: avail.mdTypeList, dataValueField: 'value', dataTextField: 'text',optionLabel: 'All Types', suggest: true, change: avail.getDetailDT }"></select>
+          			</span>
+					<!-- <div class="inline-tab-detail" style="display: none;">&nbsp;</div> -->
+					<span class="show_hide_project">
+            			<select id="projectList" class="projectlist-detail" data-bind="kendoDropDownList: { data: lgd.projectItem, dataValueField: 'value', dataTextField: 'text', suggest: true, change: avail.getDetailDTFromProject }"></select>
+            			<select id="mdTypeListFleet" class="typelist-detail" data-bind="kendoDropDownList: { data: avail.mdTypeList, dataValueField: 'value', dataTextField: 'text',optionLabel: 'All Types', suggest: true, change: avail.getDetailDTFromProject }"></select>
+          			</span>
+				</li>
+			</ul>
+		</div>
+		<div class="clearfix"></div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divDTLostEnergyDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+					<span data-bind="text:avail.detailDTLostEnergyTxt"></span>
+				</div>
+				<div class="panel-body">
+					<div class="col-md-12">
+						<!-- <div id="chartDTLostEnergyManehCustomTooltip"></div> -->
+						<div id="chartDTLostEnergyDetail"></div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+					<div class="col-md-12">
+						<div class="panel-heading">
+							<!--Detail-->
+						</div>
+						<div id="gridDTLostEnergyDetail"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div data-bind="visible:avail.isDetailDTTop">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:avail.backToDownTime()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divDTTopDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Downtime for Last 12 months
+					<span data-bind="text:avail.detailDTTopTxt"></span>
+				</div>
+				<div class="panel-body">
+					<div class="col-md-12">
+						<div id="chartDTTopDetail"></div>
+					</div>
+					<div class="col-md-12">
+						<div class="panel-heading">
+							<!--Detail-->
+						</div>
+						<div id="gridDTTopDetail"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

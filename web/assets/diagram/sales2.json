@@ -1,0 +1,95 @@
+{
+    "id": 6,
+    "title": "Nosotros",
+    "root": {
+        "title": "Endah Sufi",
+        "subtitle": "HEAD HR",
+        "Image": "",
+        "Color": "#FF4545",
+        "children": [{
+            "title": "Vaibhav Ram",
+            "subtitle": "BP S&M, C&B, ENGAGEMENT",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Wahyu Radita",
+                "subtitle": "ENGAGEMENT",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Era Brianto",
+                "subtitle": "Hr Sales",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Arief Trianto",
+                "subtitle": "Ass, Mgr - C&B",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Christine Paruliana",
+            "subtitle": "BP FINANCE, Learning and TA",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Yani Maria",
+                "subtitle": "Tallent Acquistion",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Aminulah S",
+                "subtitle": "Manager - L&D",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Riduan Siagian",
+            "subtitle": "BP MFG & IR",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Abdul Fattah",
+                "subtitle": "HR PROCESSES",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "",
+                "subtitle": "SI",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "",
+                "subtitle": "IS",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Paula Proklamarwati",
+            "subtitle": "BP LBO & GA",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Widiana",
+                "subtitle": "HR DIST",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Jhony Hermawan",
+                "subtitle": "GA DIST",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Reda Harman",
+                "subtitle": "GROUP GA",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Elia Kiswandono",
+            "subtitle": "PAYROLL",
+            "Image": "",
+            "Color": "#FF4545"
+        }]
+    }
+}

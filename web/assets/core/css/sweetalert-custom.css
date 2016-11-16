@@ -1,0 +1,99 @@
+/*For Sweet Alert*/
+.sweet-alert > h2{
+	font-size: 20px;
+}
+.sweet-alert > p {
+	display: block;
+    font-size: 15px;
+}
+.sweet-alert > p > .btn {
+	font-size: 14px;
+    padding: 5px 15px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+	border-radius: 3px;
+}
+.sweet-alert > .icon{
+	width: 30px;
+	height: 30px;
+	margin: 10px auto;
+}
+/*For Error*/
+.sweet-overlay {
+	z-index: 1050;
+}
+.sweet-alert > .error > .x-mark > .left{
+	top: 13px;
+    left: 5px !important;
+    width: 20px;
+    height: 3px;
+}
+.sweet-alert > .error > .x-mark > .right{
+	height: 3px;
+    width: 20px;
+    top: 13px;
+    right: 5px !important;
+}
+
+.sweet-alert > .info:before{
+    width: 4px !important;
+    height: 11px !important;
+    bottom: 14px !important;
+    margin-left: -1.5px !important;
+}
+
+.sweet-alert > .info:after{
+    width: 5px !important;
+    height: 5px !important;
+    margin-left: -2px !important;
+    top: 19px !important;
+}
+
+.sweet-alert > .warning > .body{
+	height: 13px !important;
+    top: 5px !important;
+    width: 3px !important;
+    margin-left: -1px !important;
+}
+.sweet-alert > .warning > .dot{
+	width: 4px !important;
+    height: 4px !important;
+    margin-left: -1.016px !important;
+    bottom: 5px !important;
+}
+
+.sweet-alert > .success > .placeholder{
+	width: 30px !important;
+	height: 30px !important;
+}
+.sweet-alert > .success > .tip{
+	width: 10px !important;
+    left: 6px !important;
+    height: 3px !important;
+    top: 17px !important;
+}
+	
+.sweet-alert > .success > .long{
+	width: 15px !important;
+    top: 15px !important;
+    right: 4px !important;
+    height: 3px !important;
+}
+
+.sweet-alert > .success > .fix{
+	width: 0px !important;
+	height: 0px !important;
+}
+
+.sweet-alert > .success:before{
+	top: -25px !important;
+    left: 0px !important;
+    height: 0px !important;
+    width: 0px !important;
+}
+.sweet-alert > .success:after{
+	width: 0px !important;
+	height: 0px !important;
+	top: 0px !important;
+    left: 0px !important;
+}

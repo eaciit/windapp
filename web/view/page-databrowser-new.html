@@ -1,0 +1,185 @@
+<script src="{{BaseUrl}}res/core/js/page-databrowser-new.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+    .col-md-1 {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+    #customGrid div.k-grid-header {
+        background-color: #ffffff;
+    }
+    #customGrid div.k-header.k-grid-toolbar{
+        background-color: #ffffff;
+        padding: 4px;
+        float: right;
+    }
+    .btn-control{
+        width: 30px;
+    }
+    .div-control{
+        text-align: center;
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-databrowser.css">
+<div class="row">
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12">
+            <ul class="nav nav-pills nav-replace-title" role="tablist">
+                <li>
+                    <div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
+                        <label class="control-label col-md-1 col-sm-1" style="padding-left: 0px;width:80px;">Period</label>&nbsp;
+                        <input class="col-md-1 col-sm-1" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:150px;" />
+                        <label class="control-label col-md-1 col-sm-1" style="width:20px;">&nbsp;&nbsp;to</label>
+                        <input class="col-md-1 col-sm-1" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:150px;" />&nbsp;
+                    </div>
+                </li>
+                <li>
+                    <div class="input-group input-group-sm ez">
+                        <label class="control-label col-md-1 col-sm-1" style="width:80px;">Turbine</label>
+                        <select class="col-md-1 col-sm-1" id="turbineMulti" data-bind="kendoMultiSelect: { data: dbr.turbineList, dataValueField: 'value', dataTextField: 'text', filter: 'contains', suggest: true, change: function() {dbr.checkTurbine()} }" style="width:150px;">
+						</select>
+                    </div>
+                </li>
+                <li>
+                    <button type="button" id="btnRefresh" class="btn btn-sm btn-primary"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scada" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
+                        <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
+                        <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="scada">
+                            <div class="databrowser-date-info">
+                                Data Available from: <strong><span id="availabledatestartscadadataoem">-</span></strong> until: <strong><span id="availabledateendscadadataoem">-</span></strong>
+                            </div>
+                            <div class="control-summary left-border-org">
+                                <label class="summary-header">Total Turbine</label><br />
+                                <label id="totalturbine" class="summary-number">0</label>
+                            </div>
+                            <div class="control-summary left-border-green">
+                                <label class="summary-header">Total Data</label><br />
+                                <label id="totaldata" class="summary-number">0</label>
+                            </div>
+                            <div class="control-summary left-border-org">
+                                <label class="summary-header">Total Production</label><br />
+                                <label id="totalprodoem" class="summary-number">0</label>
+                            </div>
+                            <div class="control-summary left-border-green">
+                                <label class="summary-header">Average Wind Speed</label><br />
+                                <label id="avgwindspeedoem" class="summary-number">0</label>
+                            </div>
+                            <!--<div class="control-summary left-border-org">
+                                <label class="summary-header">Total Power</label><br />
+                                <label id="totalpower" class="summary-number">0.00</label>
+                            </div>
+                            <div class="control-summary left-border-green-no-float">
+                                <label class="summary-header">Total Power Lost</label><br />
+                                <label id="totalpowerlost" class="summary-number">0.00</label>
+                            </div>-->
+                            <div class="tab-pane-content">
+                                <div class="clearfix">&nbsp;</div>
+                                <div id="scadaGrid" class="grid-custom"></div>
+                            </div>
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane" id="downtimeevent">
+                            <div class="databrowser-date-info">
+                                Data Available from: <strong><span id="availabledatestartDE">-</span></strong> until: <strong><span id="availabledateendDE">-</span></strong>
+                            </div>
+                            <div class="control-summary left-border-org">
+                                <label class="summary-header">Total Turbine</label><br />
+                                <label id="totalturbineDE" class="summary-number">0</label>
+                            </div>
+                            <div class="control-summary left-border-green">
+                                <label class="summary-header">Total Data</label><br />
+                                <label id="totaldataDE" class="summary-number">0</label>
+                            </div>
+<!--                             <div class="control-summary left-border-org">
+                                <label class="summary-header">Total Production</label><br />
+                                <label id="totalprodDE" class="summary-number">0</label>
+                            </div>
+                            <div class="control-summary left-border-green">
+                                <label class="summary-header">Average Wind Speed</label><br />
+                                <label id="avgwindspeedDE" class="summary-number">0</label>
+                            </div> -->
+                            <div class="tab-pane-content">
+                                <div class="clearfix">&nbsp;</div>
+                                <div id="DEgrid" class="grid-custom"></div>
+                            </div>
+                        </div>
+
+                         <div role="tabpanel" class="tab-pane" id="custom">
+                             <div class="tab-pane-content">
+                                <div class="control-summary left-border-org">
+                                    <label class="summary-header">Total Turbine</label><br />
+                                    <label id="totalturbineCustom" class="summary-number">0</label>
+                                </div>
+                                <div class="control-summary left-border-green">
+                                    <label class="summary-header">Total Data</label><br />
+                                    <label id="totaldataCustom" class="summary-number">0</label>
+                                </div>
+                                <div class="control-summary left-border-org">
+                                    <label class="summary-header">Total Production</label><br />
+                                    <label id="totalprodCustom" class="summary-number">0</label>
+                                </div>
+                                <div class="control-summary left-border-green">
+                                    <label class="summary-header">Average Wind Speed</label><br />
+                                    <label id="avgwindspeedCustom" class="summary-number">0</label>
+                                </div>
+                                <div class="clearfix">&nbsp;</div>
+                                <div id="customGrid" class="grid-custom"></div>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalShowHide" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span>Show Hide Column</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-5">
+                    <div id="columnList"></div>
+                </div>
+                <div class="col-md-2 div-control">
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToRight" data-bind="click:function() {dbr.selectRow()}"><i class="fa fa-angle-double-left"></i></button>
+                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToLeft" data-bind="click:function() {dbr.unselectRow()}"><i class="fa fa-angle-double-right"></i></button>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div id="selectedList"></div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">
+                    Cancel
+                </button>
+                <button class="btn btn-sm btn-primary" onclick="dbr.showColumn()">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+<script>
+    dbr.ColumnList({{.ColumnList}});
+</script>

@@ -1,0 +1,160 @@
+<script id="breadcrumbTemplate" type="text/html">
+	<!-- ko if: (vm.breadcrumb().length-1)!=$index() -->
+	<li><a data-bind="text: title, attr: {href: href}" class="ez"></a></li>
+	<!-- /ko -->
+	<!-- ko if: (vm.breadcrumb().length-1)==$index() -->
+	<li class="active" data-bind="text: title"></li>
+	<!-- /ko -->
+</script>
+
+<script id="template-edit-data-browser" type="text/html">
+	<div class="form-group">
+		<div class="input-group input-group-sm ez width-full">
+			<span class="input-group-addon align-right width-100" data-bind="text: Label"></span>
+			<!-- ko if: DataType() == 'string' -->
+			<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="attr: {name: Field()}, value: value" placeholder="Type value here ..." />
+			<!-- /ko -->
+			<!-- ko if: DataType() == 'bool' -->
+			<input type="checkbox" data-bind="attr: {name: Field()}, checked: value" />
+			<!-- /ko -->
+			<!-- ko if: DataType() == 'date' -->
+			<input type="text" class="form-control" data-bind="attr: {name: Field()}, kendoDatePicker: {format: 'mm ddd yyyy', value: value, placeholder: 'Type value here ...'}" />
+			<!-- /ko -->
+			<!-- ko if: DataType() != 'string' && DataType() != 'bool' && DataType() != 'date' -->
+			<input type="text" class="form-control" data-bind="attr: {name: Field()}, kendoNumericTextBox: {value: value}" />
+			<!-- /ko -->
+		</div>
+	</div>	
+</script>
+
+<script id="template-chart-comparison" type="text/html">
+	<div class="col-md-6 each-chart">
+		<div class="wrapper">
+			<p class="title"></p>
+			<div class="chart"></div>
+		</div>
+	</div>
+</script>
+
+<script id="template-report-filter" type="text/html">
+	<div class="panel">
+		<div class="panel-heading" role="tab" data-bind="attr: { 'id': 'h-' + $index() }">
+			<h4 class="panel-title">
+				<a role="button" data-toggle="collapse" data-parent=".ez-collapse" data-bind="attr: { 'href': '#c-' + $index() }, css: { 'collapsed': ($index() > 0) }">
+					<span class="pull-left" data-bind="text: $data.group"></span>
+					<span class="pull-right">
+						<i class="fa fa-angle-left"></i>
+						<i class="fa fa-angle-down"></i>
+					</span>
+					<span class="clearfix"></span>
+				</a>
+			</h4>
+		</div>
+		<div class="panel-collapse collapse" role="tabpanel" data-bind="attr: { 'id': 'c-' + $index() }, css: { 'in': ($index() == 0) }">
+			<div class="panel-body" data-bind="foreach: $data.sub">
+				<div class="form-group">
+					<!-- ko if: ($data._id == 'From') -->
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-80 align-right">From</span>
+							<div class="width-full">
+								<input type="text" style="width: 100%;" data-bind="kendoDatePicker: { value: rpt.value.From, start: 'decade', depth: 'decade', format: 'yyyy' }" />
+							</div>
+							<div class="clearfix"></div>
+						</div>
+					<!-- /ko -->
+					<!-- ko if: ($data._id == 'To') -->
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-80 align-right">To</span>
+							<div class="width-full">
+								<input type="text" style="width: 100%;" data-bind="kendoDatePicker: { value: rpt.value.To, start: 'decade', depth: 'decade', format: 'yyyy' }" />
+							</div>
+							<div class="clearfix"></div>
+						</div>
+					<!-- /ko -->
+					<!-- ko if: ($data._id == 'HQ') -->
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-80 align-right">HQ</span>
+							<div class="width-full">
+								<input class="form-control" type="checkbox" data-bind="checked: rpt.value.HQ">
+							</div>
+							<div class="clearfix"></div>
+						</div>
+					<!-- /ko -->
+					<!-- ko if: (($data._id != 'HQ') && ($data._id != 'From') && ($data._id != 'To')) -->
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-80 align-right" data-bind="text: $data.title">Branch</span>
+							<div class="width-full">
+								<select data-bind="kendoMultiSelect: rpt.filterMultiSelect($data)" style="width: 100%"></select>
+							</div>
+						</div>
+					<!-- /ko -->
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+
+<!-- <script id="template-menu" type="text/html">
+	<li data-bind="css: { 'dropdown dd-hover': ($data.submenu.length > 0) }">
+		<a class="color-base" data-bind="css: { 'dropdown-toggle': ($data.submenu.length > 0), 'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }">
+			<i data-bind="css: vm.menuIcon($data)"></i>&nbsp;
+			<span data-bind="text: $data.title"></span>
+		</a>
+		<ul class="dropdown-menu" data-bind="foreach: $data.submenu, visible: ($data.submenu.length > 0)">
+			<li data-bind="css: { 'dropdown dd-hover': ($data.submenu.length > 0) }">
+				<a class="color-base" data-bind="css: { 'dropdown-toggle': ($data.submenu.length > 0), 'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }">
+					<i data-bind="css: vm.menuIcon($data)"></i>&nbsp;
+					<span data-bind="text: $data.title"></span>	
+				</a>
+				<ul class="dropdown-menu" data-bind="foreach: $data.submenu, visible: ($data.submenu.length > 0)">
+					<li>
+						<a class="color-base" data-bind="css: { 'dropdown-toggle': ($data.submenu.length > 0), 'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }">
+							<i data-bind="css: vm.menuIcon($data)"></i>&nbsp;
+							<span data-bind="text: $data.title"></span>	
+						</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+</script> -->
+  <script id="template-menu" type="text/html">
+        <!-- ko if: $data.submenu.length==0 -->
+        <li data-bind="css:{'active': (vm.currentMenu() == $data.title)}, visible: true">
+	        <a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }">
+				<i data-bind="css: vm.menuIcon($data)"></i>&nbsp;
+				<span data-bind="text: $data.title"></span>
+			</a>
+        </li>
+        <!-- /ko -->
+        <!-- ko if: $data.submenu.length>0 -->
+        <li data-bind="css:{active:(vm.currentMenu() == $data.title)}" class="dropdown">
+        	<a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }" style="cursor:pointer" class="dropdown-toggle" data-toggle="dropdown">
+				<i data-bind="css: vm.menuIcon($data)"></i>&nbsp;
+				<span data-bind="text: $data.title"></span>
+				<b class="caret"></b>
+			</a>
+            <ul class="dropdown-menu" role="menu" data-bind="template:{name:'navbarSubTemplate', foreach:$data.submenu}"></ul>
+        </li>
+        <!-- /ko -->
+    </script>
+
+    <script id="navbarSubTemplate" type="text/html">
+        <!-- ko if: $data.submenu.length==0 -->
+        <li data-bind="css:{'active': (vm.currentMenu() == $data.title)}">
+            <a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }">
+				<i data-bind="css: vm.menuIcon($data)"></i>
+				<span data-bind="text: $data.title"></span>
+			</a>
+        </li>
+        <!-- /ko -->
+        <!-- ko if: $data.submenu.length>0 -->
+        <li data-bind="css:{'active': (vm.currentMenu() == $data.title)}, visible: true" class="dropdown-submenu">
+            <a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }" style="cursor:pointer" class="dropdown-toggle" data-toggle="dropdown">
+				<i data-bind="css: vm.menuIcon($data)"></i>
+				<span data-bind="text: $data.title"></span>
+			</a>
+            <ul class="dropdown-menu" role="menu" data-bind="template:{name:'navbarSubTemplate', foreach:$data.submenu}"></ul>
+        </li>
+        <!-- /ko -->
+    </script>

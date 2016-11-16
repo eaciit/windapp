@@ -1,0 +1,291 @@
+	body{
+		background-color: #f0f3f4;
+	}
+	.k-state-selected.k-state-focused {
+	    background-color: #ea5b19;
+	}
+	.height-custom{
+		height: 48px;
+		vertical-align: middle;
+		font-size: 30px;
+	}
+	.main-map {
+	    width: 100%;
+	    height: 265px;
+	}
+
+	.location-earning-stats {
+		text-align: center;
+	    font-family: 'Source Sans Pro', 'Lato', 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+	    font-weight: 600;
+	    margin-bottom: 5px;
+	    padding-left: 0;
+	    font-size: 11.8px;
+	    padding:5px;
+	    background:rgba(255,255,255,0.7);
+	    display: inline;
+	}
+
+	.location-earning-stats li {
+	    padding: 0px 15px;
+	}
+	.stat-divider {
+	    border-right: #ededed 1px solid;
+	}
+	.first-city {
+	    color: #ea5b19;
+	    display: block;
+	    font-size: 20px;
+	}
+	.second-city {
+	    color: #c5cc73;
+	    display: block;
+	    font-size: 20.5px;
+	}
+	.third-city {
+	    color: #e47578;
+	    display: block;
+	    font-size: 20.5px;
+	}
+	.panel-summary{
+		height: 170px;
+	}
+
+	.dropdownFilter{
+		width: 150px;
+	}
+
+	#india-map{
+		height: 200px;
+	}
+
+	.table-summary{
+		margin-top: -20px;
+	}
+/*	.table-summary-body{
+		height:205px;
+	}*/
+	.label-drilldown{
+		text-align: center;
+		padding: 0;
+		margin-top: 0px;
+		margin-bottom: 0px;
+	}
+
+	.btn-back{
+		margin-bottom: 10px;
+		height: 30px;
+   		padding: 5px !important;
+   		float: left;
+	}
+
+	.btn-back:hover{
+		cursor: pointer; 
+		cursor: hand;
+	}
+
+	.show_hide_downtime {
+    	display:none;
+	}
+
+	.show_hide_project {
+    	display:none;
+	}
+
+	.jvectormap-tip {
+	    position: absolute;
+	    display: none;
+	    border: solid 1px #CDCDCD;
+	    -webkit-border-radius: 3px;
+	    -moz-border-radius: 3px;
+	    border-radius: 3px;
+	    background: #292929;
+	    color: white;
+	    font-family: sans-serif, Verdana;
+	    font-size: smaller;
+	    padding: 3px;
+	    z-index:11;
+	 }
+
+	 li > a[role="tab"] {
+		cursor: pointer;
+	 }
+
+	 .box-list {
+		 overflow-y: auto;
+		 min-height: 406px;
+		 max-height: 406px;
+	 }
+
+	 .box-list > .btn-group {
+		 margin-bottom: 5px;
+		 margin-right: 5px;
+	 }
+
+	 .box-list > .btn-group > .btn {
+		 width: 58px !important;
+	 }
+	 .jvectormap-legend-inner {
+	  margin-bottom: 3px;
+	}
+
+	.jvectormap-legend-cnt-h .jvectormap-legend-tick {
+	  width: auto;
+	  margin-right: 10px;
+	}
+
+	.jvectormap-legend-cnt-h .jvectormap-legend-tick-text {
+	  display: inline-block;
+	  vertical-align: middle;
+	  line-height: 13px;
+	}
+
+	.jvectormap-legend-cnt-h .jvectormap-legend-tick-sample {
+	  width: 32px;
+	  height: 32px;
+	  display: inline-block;
+	  vertical-align: middle;
+	}
+
+	.k-map .k-marker-custom-marker {
+        background-image: url('../../img/wind-turbine.png');
+        background-size: 25px;
+        width: 25px;
+        height: 25px;
+    }
+
+    #india-map.k-map:focus{
+    	border: none !important;
+    }
+
+	.padding-right-10{
+		padding-right: 10px;
+	} 
+	.padding-left-0{
+		padding-left: 0px;
+	}
+	.padding-right-0{
+		padding-right: 0px;
+	}
+	.prod-div{
+		margin-left: -6px;
+		padding-right: 4px;
+	}
+	.plv-div {
+		margin-left: 1px;
+		padding-right: 4px;
+	}
+	.windiness-div{
+		padding-left: 6px;
+		padding-right: 0px;
+	}
+	.prodCur-div{
+		margin-left: -6px;
+		padding-right: 4px;
+	}
+	.summary-div{
+		margin-left: 1px;
+		padding-right: 0px;
+	}
+
+	 #chartProductionCustomTooltip {
+	 	margin-top: -175px !important;
+	    display: none;
+	    background: rgb(255, 255, 255) !important;
+	    color : "#58666e";
+        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+	    border: 2px solid #eee;
+	    padding: 10px;
+	    z-index:11;
+	    opacity: 1;
+	    width: 170px!important;
+	 }
+
+	 #chartWindinessCustomTooltip {
+	 	margin-top: -100px !important;
+	    display: none;
+	    background: rgb(255, 255, 255) !important;
+	    color : "#58666e";
+        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+	    border: 2px solid #eee;
+	    padding: 10px;
+	    z-index:11;
+	    opacity: 1;
+	    width: 170px!important;
+	 }
+
+
+	 #chartDTLostEnergyCustomTooltip, #chartDTLEbyTypeCustomTooltip {
+	 	margin-top: -100px !important;
+	 	/*margin-left: -150px !important;*/
+	    display: none;
+	    background: rgb(255, 255, 255) !important;
+	    color : "#58666e";
+        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+	    border: 2px solid #eee;
+	    padding: 10px;
+	    z-index:11;
+	    opacity: 1;
+	    width: 170px!important;
+	 }
+
+	 #chartDTLostEnergyManehCustomTooltip {
+	 	margin-top: -300px !important;
+	 	margin-left: -150px !important;
+	    display: none;
+	    background: rgb(255, 255, 255) !important;
+	    color : "#58666e";
+        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+	    border: 2px solid #eee;
+	    padding: 10px;
+	    z-index:11;
+	    opacity: 1;
+	    width: 170px!important;
+	 }
+
+/*	#chartProduction .k-tooltip.k-chart-tooltip{
+	   margin-top: -35px !important;
+	   margin-left: 30px !important;
+	}​*/
+	.k-tooltip.k-chart-tooltip {
+		margin-top: -50px !important;
+	    margin-left: 8px !important;
+	}
+
+/*	#chartDTLostEnergy .k-tooltip.k-chart-tooltip {
+		margin-top: -55px !important;
+	    margin-left: 20px !important;
+	}*/
+
+	.pie-title-center {
+	  display: inline-block;
+	  position: relative;
+	  text-align: center;
+	}
+
+	.pie-value {
+	  display: block;
+	  position: absolute;
+	  font-size: 14px;
+	  font-weight: bold;
+	  height: 40px;
+	  top: 50%;
+	  left: 0;
+	  right: 0;
+	  margin-top: -5px;
+	  line-height: 40px;
+	}
+
+	.padding-5{
+		padding: 5px;
+	}
+
+	#gridSummaryData tr td {
+	    border-bottom: 1px solid #eee;
+	}
+
+/*	@media(max-width: 320){
+		.dropdownFilter{
+			margin-bottom: 20px;
+		}
+	}*/

@@ -1,0 +1,142 @@
+
+{
+    "id": 3,
+    "title": "Nosotros",
+    "root": {
+        "title": "Pallavi Wad",
+        "subtitle": "HEAD MFG & PROCUREMENT",
+        "Image": "",
+        "Color": "#FF4545",
+        "children": [{
+            "title": "Budi Satriyo",
+            "subtitle": "REGULATOR & EXTERNAL PR",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Hendrvcus",
+                "subtitle": "ER SECURITY",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Fx Kumara W",
+            "subtitle": "HEAD MFG",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Ciptadi",
+                "subtitle": "Plant & Manager SI",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Agus Widadi",
+                "subtitle": "Plant Manager IS",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Endang Supriyatna",
+                "subtitle": "Production",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Wahyu Rahmat",
+                "subtitle": "Technic",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Tetty Pasaribu",
+                "subtitle": "QC",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Erdi Sultoni",
+                "subtitle": "Safety",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "",
+                "subtitle": "Plant Head New Plant",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Pradeep & CRP",
+            "subtitle": "NPD & CRP",
+            "Image": "",
+            "Color": "#FF4545"
+        }, {
+            "title": "Veronica L",
+            "subtitle": "SOURCING & PROCUREMENT",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Denna",
+                "subtitle": "Purchasing Direct",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Nike",
+                "subtitle": "Purchasing Indirect",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Vilisia",
+                "subtitle": "Purchasing",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "",
+                "subtitle": "NPD MANAGER",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Nanik Warnidi",
+            "subtitle": "SUPPLY CHAIN",
+            "Image": "",
+            "Color": "#FF4545"
+        }, {
+            "title": "Ester",
+            "subtitle": "PPIC",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Widuri",
+                "subtitle": "PPIC",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Mahdi",
+                "subtitle": "Field Warehouse",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "FACILITY MA. CONSTRUCTOR",
+            "subtitle": "Ishvarial Lad",
+            "Image": "",
+            "Color": "#FF4545"
+        }, {
+            "title": "Hendrvcus",
+            "subtitle": "ER SECURITY",
+            "Image": "",
+            "Color": "#FF4545"
+        }, {
+            "title": "Agnes Sudiastuti",
+            "subtitle": "R&D Sr.Manager",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Wolter Sihaloho",
+                "subtitle": "QA MANAGER",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "",
+                "subtitle": "PACKAGING MGR",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }]
+    }
+}

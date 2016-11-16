@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  {{template "_head.html"}}
+</head>
+
+<body class="layout-top-nav skin-black">
+  <div class="wrapper">
+    <header class="main-header">
+      <nav class="navbar navbar-static-top">
+        {{template "_menu.html"}}
+      </nav>
+    </header>
+    <div class="content-wrapper">
+      <section class="content-header">
+        <div class="breadcrumb pull-right" data-bind="{visible : (vm.isDashboard() == true) }">
+          <span class="dashboard-date-info">Data as of : <strong data-bind="text: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy HH:mm')"></strong></span>
+        </div>
+        <div class="pull-right bread-info" data-bind="{visible : (vm.isDashboard() != true) }">
+          <span>You are here &nbsp;&nbsp;:&nbsp;&nbsp;<span> 
+                  <ol class="breadcrumb pull-right" data-bind="template:{name:'breadcrumbTemplate', foreach:vm.breadcrumb}"></ol>
+                </div>
+            </section>
+
+            <section class="content">
+              <div data-bind="visible: app.isLoading" style="display:none;">
+                {{template "_loader.html"}}
+              </div>
+              <div data-bind="visible: app.isContentShow">{{.Content}}</div>
+            </section>
+        </div>
+    </div>
+		{{template "_script_template.html"}}
+		<script>
+			ko.applyBindings(viewModel);
+			toolkit.fixKendoMultiSelect();      
+		</script>
+	</body>
+</html>

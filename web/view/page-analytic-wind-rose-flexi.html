@@ -1,0 +1,54 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-wind-rose-flexi.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-wind-rose-flexi.css">
+
+<div>
+    <div class="row">
+        {{template "_filter-analytic.html"}}   
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="col-md-12 col-sm-12 hardcore landing">
+                <div class="panel ez no-padding hardcore">
+                    <div class="panel-heading">
+                        Wind Rose&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="col-md-12 col-sm-12 list" >
+                            <label class="col-md-1 col-sm-1 control-label keyA-label">No Of Section</label>
+                            <select class="col-md-1 col-sm-1" id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }" >
+                            </select>&nbsp;
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12">
+                            <div data-bind="foreach: wr.dataWindroseEachTurbine" >
+                                <div class="col-md-3" data-bind="attr:{id: 'chart-' + Name}">
+                                     <span data-bind="text: Name"></span>
+                                </div>
+                            </div>
+                        </div>
+
+<!--                         <div class="col-md-4">
+                            <a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf" data-bind="click: wr.ExportWindRose" style="margin-top: -45px;margin-right: 20px;cursor:pointer">
+                                    <h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
+                            </a>
+                            <div id="wr-chart" ></div>
+                        </div>
+                        <div class="col-md-5">
+                            <a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf" data-bind="click: wr.ExportWindRoseFreq" style="margin-top: -45px;margin-right: 20px;cursor:pointer">
+                                    <h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
+                            </a>
+                            <div id="wr-chart-freq" ></div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="panel-heading" style="margin-top: -35px;">Contribution Duration Avg. of Wind Speed Categories for All Turbines in Hours</div>
+                            <div id="gridContribution" class="grid-summary"></div>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clearfix"></div>

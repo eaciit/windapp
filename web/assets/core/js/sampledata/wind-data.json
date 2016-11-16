@@ -1,0 +1,282 @@
+[
+  {
+    "dir": 0,
+    "dirText": "N",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0
+  },
+  {
+    "dir": 0,
+    "dirText": "N",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 2
+  },
+  {
+    "dir": 0,
+    "dirText": "N",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 3
+  },
+  {
+    "dir": 0,
+    "dirText": "N",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 2.5
+  },
+  {
+    "dir": 0,
+    "dirText": "N",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0.3
+  },
+  {
+    "dir": 2,
+    "dirText": "NE",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0.5
+  },
+  {
+    "dir": 2,
+    "dirText": "NE",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 0.5
+  },
+  {
+    "dir": 2,
+    "dirText": "NE",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 0.8
+  },
+  {
+    "dir": 2,
+    "dirText": "NE",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 0.3
+  },
+  {
+    "dir": 2,
+    "dirText": "NE",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0
+  },
+  {
+    "dir": 4,
+    "dirText": "E",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0.5
+  },
+  {
+    "dir": 4,
+    "dirText": "E",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 0.7
+  },
+  {
+    "dir": 4,
+    "dirText": "E",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 1
+  },
+  {
+    "dir": 4,
+    "dirText": "E",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 0.5
+  },
+  {
+    "dir": 4,
+    "dirText": "E",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0
+  },
+  {
+    "dir": 6,
+    "dirText": "SE",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0
+  },
+  {
+    "dir": 6,
+    "dirText": "SE",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 0.8
+  },
+  {
+    "dir": 6,
+    "dirText": "SE",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 1.4
+  },
+  {
+    "dir": 6,
+    "dirText": "SE",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 1.4
+  },
+  {
+    "dir": 6,
+    "dirText": "SE",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0
+  },
+  {
+    "dir": 8,
+    "dirText": "S",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0.2
+  },
+  {
+    "dir": 8,
+    "dirText": "S",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 2
+  },
+  {
+    "dir": 8,
+    "dirText": "S",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 1
+  },
+  {
+    "dir": 8,
+    "dirText": "S",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 8
+  },
+  {
+    "dir": 8,
+    "dirText": "S",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0
+  },
+  {
+    "dir": 10,
+    "dirText": "SW",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0
+  },
+  {
+    "dir": 10,
+    "dirText": "SW",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 6
+  },
+  {
+    "dir": 10,
+    "dirText": "SW",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 3
+  },
+  {
+    "dir": 10,
+    "dirText": "SW",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 1
+  },
+  {
+    "dir": 10,
+    "dirText": "SW",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0
+  },
+  {
+    "dir": 12,
+    "dirText": "W",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0
+  },
+  {
+    "dir": 12,
+    "dirText": "W",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 2
+  },
+  {
+    "dir": 12,
+    "dirText": "W",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 3
+  },
+  {
+    "dir": 12,
+    "dirText": "W",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 1
+  },
+  {
+    "dir": 12,
+    "dirText": "W",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0.1
+  },
+  {
+    "dir": 14,
+    "dirText": "NW",
+    "category": 0,
+    "categoryText": "0 to 4",
+    "frequency": 0
+  },
+  {
+    "dir": 14,
+    "dirText": "NW",
+    "category": 1,
+    "categoryText": "4 to 7",
+    "frequency": 2
+  },
+  {
+    "dir": 14,
+    "dirText": "NW",
+    "category": 2,
+    "categoryText": "7 to 9",
+    "frequency": 5
+  },
+  {
+    "dir": 14,
+    "dirText": "NW",
+    "category": 3,
+    "categoryText": "9 to 14",
+    "frequency": 2
+  },
+  {
+    "dir": 14,
+    "dirText": "NW",
+    "category": 4,
+    "categoryText": "> 14",
+    "frequency": 0.1
+  }
+]

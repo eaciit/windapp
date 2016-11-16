@@ -1,0 +1,210 @@
+
+{
+    "id": 2,
+    "title": "Nosotros",
+    "root": {
+        "title": "Jatin Brahmecha",
+        "subtitle": "HEAD FINANCE",
+        "Image": "",
+        "Color": "#FF4545",
+        "children": [{
+            "title": "Vaibhav Joshi",
+            "subtitle": "CORP FIN",
+            "Image": "",
+            "Color": "#45FFB5",
+            "children": [{
+                "title": "Nancy",
+                "subtitle": "CORP FIN",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "Maya Mayrora",
+                "subtitle": "CORP FIN",
+                "Image": "",
+                "Color": "#45FFB5"
+            }]
+        }, {
+            "title": "Yung Susilo",
+            "subtitle": "IT",
+            "Image": "",
+            "Color": "#45FFB5",
+            "children": [{
+                "title": "GK Mahesh",
+                "subtitle": "ERP APPLICATION SUPPORT",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "Gusminto",
+                "subtitle": "INFRASTRUCTURE",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "Benny Andriawan",
+                "subtitle": "BIZ PROCESS & VDIST",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "Widiya Suganda",
+                "subtitle": "BIZ PROCESS FAC & GRC",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "Bokiman",
+                "subtitle": "BIZ PROCESS MAP, MDM & HR",
+                "Image": "",
+                "Color": "#45FFB5"
+            }]
+        }, {
+            "title": "Melia. O",
+            "subtitle": "INTERNAL AUDIT",
+            "Image": "",
+            "Color": "#45FFB5",
+            "children": [{
+                "title": "Budhy Lesmana",
+                "subtitle": "IA DISTRIBUTION",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "Dicky",
+                "subtitle": "IA Manufacturing",
+                "Image": "",
+                "Color": "#45FFB5"
+            }, {
+                "title": "",
+                "subtitle": "INTERNAL AUDIT MGR",
+                "Image": "",
+                "Color": "#45FFB5"
+            }]
+        }, {
+            "title": "Kusumawati",
+            "subtitle": "FINANCE CONTROLLER",
+            "Image": "",
+            "Color": "#45FFB5",
+            "children": [{
+                "title": "Ira Ryanto",
+                "subtitle": "FAM MANUFACTURING",
+                "Image": "",
+                "Color": "#45FFB5",
+                "children": [{
+                    "title": "Yuvika",
+                    "subtitle": "FAM MM & SI",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Novita Sari",
+                    "subtitle": "FA",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "",
+                    "subtitle": "MANAGER TAXATION",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "",
+                    "subtitle": "FINANCE MANAGER",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }]
+            }, {
+                "title": "Chandra W",
+                "subtitle": "FAM Susemi",
+                "Image": "",
+                "Color": "#45FFB5",
+                "children": [{
+                    "title": "Hatta",
+                    "subtitle": "FA",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Qori",
+                    "subtitle": "FA(Sarico)",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }]
+            }, {
+                "title": "Dede Kurniawati",
+                "subtitle": "FAM DISTRIBUTION",
+                "Image": "",
+                "Color": "#45FFB5",
+                "children": [{
+                    "title": "",
+                    "subtitle": "FINANCE MGR DISTRIBUTION",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Diana",
+                    "subtitle": "FA RD",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Marieni",
+                    "subtitle": "FA Bandung",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Astrid",
+                    "subtitle": "FA Jabodetabek",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Chandra Hadi",
+                    "subtitle": "FA Surabaya",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Trully",
+                    "subtitle": "FA Branches",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Lyly Haosana",
+                    "subtitle": "FA Makasar",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Yakobus",
+                    "subtitle": "FA Promotion Budget Controller",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Iwan Kriswanto",
+                    "subtitle": "FA Cirebon",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Chintawati",
+                    "subtitle": "FA Bali",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Thomas",
+                    "subtitle": "FA Klaten",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }, {
+                    "title": "Rahmat Wahono",
+                    "subtitle": "FA Semarang",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }]
+            }, {
+                "title": "Grace Natalie",
+                "subtitle": "LEGAL",
+                "Image": "",
+                "Color": "#45FFB5",
+                "children": [{
+                    "title": "Yonathan",
+                    "subtitle": "LEGAL AMGR",
+                    "Image": "",
+                    "Color": "#45FFB5"
+                }]
+            }, {
+                "title": "Atik.H",
+                "subtitle": "FA",
+                "Image": "",
+                "Color": "#45FFB5"
+            }]
+        }]
+    }
+}

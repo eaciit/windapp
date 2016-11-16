@@ -1,0 +1,34 @@
+<script src="{{BaseUrl}}res/core/js/page-dashboard-production.js?ANTI_CACHE={{.AntiCache}}"></script>
+
+<div data-bind="visible:lgd.isProduction">
+	<div class="col-md-12 col-sm-12">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+					<!--Production&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>-->
+				</div>
+				<div class="panel-body">
+					<center>
+						<div class="btn-group" data-toggle="buttons">
+							<label class="btn btn-sm btn-primary active radio-filter">
+                  <input type="radio" name="periodTypeProd" id="periodTypeLW" autocomplete="off" value="lw" checked> Last Week
+                </label>
+							<label class="btn btn-sm btn-primary radio-filter">
+                  <input type="radio" name="periodTypeProd" id="periodTypeMTD" autocomplete="off" value="mtd"> MTD
+                </label>
+							<label class="btn btn-sm btn-primary radio-filter">
+                  <input type="radio" name="periodTypeProd" id="periodTypeYTD" autocomplete="off" value="ytd"> YTD
+                </label>
+						</div>
+					</center>
+					<center>
+						<br/>
+						<span id="prodDateRangeStr" data-bind="text: prod.prodDateRangeStr"></span>
+					</center>
+					<div class="clearfix">&nbsp;</div>
+					<div id="productionGrid"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

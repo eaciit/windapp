@@ -1,0 +1,42 @@
+[{ 
+    "projectid" : "Tejuva", 
+    "projectname" : "Tejuva",
+	"totalpower" : 50.4,
+	"latitude" : 26.91275,
+	"longitude" : 70.914361
+},
+{ 
+    "projectid" : "Rajgarh", 
+    "projectname" : "Rajgarh",
+	"totalpower" : 25.6,
+	"latitude" : 26.542628,
+	"longitude" : 71.517993
+},
+{ 
+    "projectid" : "Lahori", 
+    "projectname" : "Lahori",
+	"totalpower" : 92,
+	"latitude" : 20.681555,
+	"longitude" : 78.963111
+},
+{ 
+    "projectid" : "Amba", 
+    "projectname" : "Amba",
+	"totalpower" : 66,
+	"latitude" : 23.334166,
+	"longitude" : 75.037611
+},
+{ 
+    "projectid" : "Nimbagallu", 
+    "projectname" : "Nimbagallu",
+	"totalpower" : 100,
+	"latitude" : 14.679972,
+	"longitude" : 77.599972
+},
+{ 
+    "projectid" : "Ralla", 
+    "projectname" : "Ralla",
+	"totalpower" : 197.4,
+	"latitude" : 14.414884,
+	"longitude" : 77.294618
+}]

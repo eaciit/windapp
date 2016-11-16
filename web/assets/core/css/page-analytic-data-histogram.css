@@ -1,0 +1,48 @@
+.panel-body {
+    padding-bottom: 20px !important;
+}
+
+.axis0 {
+	padding-top: 380px;
+    position: absolute;
+    z-index: 1000;
+    padding-left: 35px;
+    font: 12px 'Source Sans Pro', 'Lato', 'Open Sans', 'Helvetica Neue', Arial, sans-serif !important;
+    opacity: 0.8;
+}
+
+.axis1 {
+	padding-top: 380px;
+    position: absolute;
+    z-index: 1000;
+    padding-left: 36px;
+    font: 12px 'Source Sans Pro', 'Lato', 'Open Sans', 'Helvetica Neue', Arial, sans-serif !important;
+    opacity: 0.8;
+}
+
+.width-100 {
+	width: 80px !important;
+}
+
+.width-80 {
+    width: 80px;
+    float: left;
+    margin-right: 21px;
+}
+
+.width-50 {
+    width: 50px !important;
+}
+
+.histogramvalue{
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    /*padding-left: 95px;*/
+}
+
+.btn-group {
+    padding-top: 5px;
+}
+.bdr-right{
+    border-right: 2px solid #eee;
+}

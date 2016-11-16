@@ -1,0 +1,107 @@
+    .key-list{
+        margin: 2px !important;
+        margin-left: -25px !important;
+    }
+
+    .span-saved-views {
+        font-size:12px;
+    }
+
+    .div-saved-views {
+        margin-right:8px;
+    }
+
+    #panel-content-comparison {
+        margin-top:15px;
+    }
+
+    .table-responsive .table.table-bordered tbody td.column-keys {
+        border-bottom: 3px solid #ff5722;
+        height: 224px;
+        position: relative;
+    }
+    .key-label{
+        position: absolute;
+        bottom: 10px;
+        left: 5px;
+        width: 100%;
+        font-size:12px;
+        font-weight: bold;
+    }
+    .selected-key{
+        padding-top: 2px;
+        padding-left: 5px;
+        padding-bottom: 2px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .result-selected-key{
+        padding-top: 2px;
+        padding-bottom: 2px;
+        border-bottom: 1px solid #eee;
+        font-weight: bold;
+    }
+
+    .header-table {
+        border-top: 1px solid white !important;
+        border-left: 1px solid white !important;
+        border-right: 1px solid white !important;
+        border-bottom: 3px solid #ff5722 !important;
+    }
+    .column-odd{
+        background: #f0f3f4;
+    }
+
+    .column-filter-form{
+        max-width: 235px!important;
+        min-width: 235px!important;
+        height: 221px!important;
+        max-height: 350px!important;
+        overflow-x: auto;
+        padding: 5px;
+        border-bottom: 3px solid #ff5722;
+        border-right: 1.5px solid #ddd;
+    }
+    .column-filter-form .clearfix {
+        margin-bottom: 5px;
+    }
+
+    ::-webkit-scrollbar
+    {
+      width: 5px;  /* for vertical scrollbars */
+      height: 8px; /* for horizontal scrollbars */
+    }
+
+    ::-webkit-scrollbar-track
+    {
+      background: #fff
+    }
+
+    ::-webkit-scrollbar-thumb
+    {
+      background: rgb(221, 221, 221);
+    }
+
+    .btn-add-filter{
+        margin-right:-5px;
+        margin-bottom:-10px;
+        margin-top:-10px;
+    }
+
+    .td-scrollable{
+        width:83.4% !important;
+        overflow-y: hidden !important;
+        overflow-x: auto !important;
+        position: absolute !important;
+        padding: 0px !important;
+    }
+
+    .btn-refresh-all{
+        margin: -10px 10px -10px;
+    }
+    .period-info-label{
+        margin-top: 10px;
+        font-size: 10px;
+        font-style: italic;
+        font-weight: bold;
+    }

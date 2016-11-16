@@ -1,0 +1,13 @@
+div < .ec-cetege-nav {
+	position: relative;
+}
+div.ec-cetege-nav {
+	position: absolute;
+	top: -36px;
+	left: 5px;
+	z-index: 1001;
+}
+div.ec-cetege-nav.right {
+	left: auto;
+	right: 5px;
+}

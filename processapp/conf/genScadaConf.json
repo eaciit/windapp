@@ -1,0 +1,58 @@
+[
+    {
+        "kindOfDoc" : "standard",
+        "folder" : "scada",
+        "docType" : "excel",
+        "columns" : [
+            { "TimeStamp" : [{"index" : 0,"type" : ""},{"index" : 1,"type" : ""}]},
+            { "Turbine" : [{"index" : 2,"type" : "string"}]},
+            { "GridFrequency" : [{"index" : 3,"type" : "string"}]},
+            { "ReactivePower" : [{"index" : 4,"type" : "string"}]},
+            { "AlarmExtStopTime" : [{"index" : 5,"type" : "string"}]},
+            { "AlarmGridDownTime" : [{"index" : 6,"type" : "string"}]},
+            { "AlarmInterLineDown" : [{"index" : 7,"type" : "string"}]},
+            { "AlarmMachDownTime" : [{"index" : 8,"type" : "string"}]},
+            { "AlarmOkTime" : [{"index" : 9,"type" : "string"}]},
+            { "AlarmUnknownTime" : [{"index" : 10,"type" : "string"}]},
+            { "AlarmWeatherStop" : [{"index" : 11,"type" : "string"}]},
+            { "ExternalStopTime" : [{"index" : 12,"type" : "string"}]},
+            { "GridDownTime" : [{"index" : 13,"type" : "string"}]},
+            { "GridOkSecs" : [{"index" : 14,"type" : "string"}]},
+            { "InternalLineDown" : [{"index" : 15,"type" : "string"}]},
+            { "MachineDownTime" : [{"index" : 16,"type" : "string"}]},
+            { "OkSecs" : [{"index" : 17,"type" : "string"}]},
+            { "OkTime" : [{"index" : 18,"type" : "string"}]},
+            { "UnknownTime" : [{"index" : 19,"type" : "string"}]},
+            { "WeatherStopTime" : [{"index" : 20,"type" : "string"}]},
+            { "GeneratorRPM" : [{"index" : 21,"type" : "string"}]},
+            { "NacelleYawPositionUntwist" : [{"index" : 22,"type" : "string"}]},
+            { "NacelleTemperature" : [{"index" : 23,"type" : "string"}]},
+            { "AdjWindSpeed" : [{"index" : 24,"type" : "string"}]},
+            { "AmbientTemperature" : [{"index" : 25,"type" : "string"}]},
+            { "AvgBladeAngle" : [{"index" : 26,"type" : "string"}]},
+            { "AvgWindSpeed" : [{"index" : 27,"type" : "string"}]},
+            { "UnitsGenerated" : [{"index" : 28,"type" : "string"}]},
+            { "EstimatedPower" : [{"index" : 29,"type" : "string"}]},
+            { "NacelDirection" : [{"index" : 30,"type" : "string"}]},
+            { "Power" : [{"index" : 31,"type" : "string"}]},
+            { "PowerLost" : [{"index" : 32,"type" : "string"}]},
+            { "RotorRPM" : [{"index" : 33,"type" : "string"}]},
+            { "WindDirection" : [{"index" : 34,"type" : "string"}]}
+        ]
+    },
+    {
+        "kindOfDoc" : "scadaNew",
+        "folder" : "scadaNew",
+        "docType" : "csv",
+        "columns" : [
+            { "TimeStamp" : [{"index" : 0,"type" : ""}]},
+            { "Turbine" : [{"index" : 2,"type" : "string"}]},
+            { "Power" : [{"index" : 3,"type" : "string"}]},
+            { "AvgWindSpeed" : [{"index" : 97,"type" : "string"}]},
+            { "WindDirection" : [{"index" : 212,"type" : "string"}]},
+            { "NacelDirection" : [{"index" : 127,"type" : "string"}]},
+            { "ReactivePower" : [{"index" : 78,"type" : "string"}]},
+            { "RotorRPM" : [{"index" : 84,"type" : "string"}]}
+        ]
+    }
+]

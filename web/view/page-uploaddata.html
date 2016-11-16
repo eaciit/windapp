@@ -1,0 +1,76 @@
+<script src="{{BaseUrl}}res/core/js/page-uploaddata.js"></script>
+
+<div data-bind="with: ud">
+	<div class="col-md-4 col-sm-4 ez panel-filter">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">Form</h3>
+			</div>
+			<div class="panel-body">
+				<form class="wrapper form-upload-file" novalidate>
+					<div class="form-group">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon align-right width-100">Model</span>
+							<select name="model" class="width-full" required data-required-msg="Model cannot be empty" data-bind="kendoDropDownList: dropDownModel"></select>
+						</div>
+						<span class="k-invalid-msg" data-for="model"></span>
+					</div>
+
+					<div class="form-group">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon align-right width-100">File to upload</span>
+							<input type="file" name="file" class="form-control" required data-required-msg="File cannot be empty" placeholder="Select file" accept=".csv"></select>
+						</div>
+						<span class="k-invalid-msg" data-for="file"></span>
+					</div>
+
+					<div class="form-group">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon align-right width-100">Description</span>
+							<input type="text" name="description" class="form-control" required data-required-msg="Description cannot be empty" data-bind="value: inputDescription" placeholder="Write description here ..."></select>
+						</div>
+						<span class="k-invalid-msg" data-for="description"></span>
+					</div>
+
+					<div class="form-group">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon align-right width-100">Field Id</span>
+							<input type="text" name="fieldid" class="form-control" required data-required-msg="Field ID cannot be empty" data-bind="value: inputFieldID" placeholder="Write field id here ..."></select>
+						</div>
+						<span class="k-invalid-msg" data-for="fieldid"></span>
+					</div>
+
+					<div class="form-group align-right no-margin no-padding hardcore">
+						<button class="btn btn-sm btn-primary ez ez-animate width-100" data-bind="click: doUpload">&nbsp;
+							<span>Submit</span>
+							<div class="icon">
+								<i class="fa fa-upload"></i>
+							</div>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-8 col-sm-8 ez panel-content">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">
+					<button class="btn-toggle-filter no-padding"></button>
+					List of Uploaded Files
+				</h3>
+			</div>
+			<div class="panel-body">
+				<div class="wrapper">
+					<div  data-bind="visible: ud.dataUploadedFiles().length > 0">
+						<div class="grid grid-uploadData" data-bind="kendoGrid: gridUploadedFiles"></div>
+					</div>
+					<div class="no-grid" data-bind="visible: ud.dataUploadedFiles().length == 0">No data uploaded yet.</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+</div>

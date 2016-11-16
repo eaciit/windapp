@@ -1,0 +1,130 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-loss-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-loss-analysis.css">
+<script id="templateChart" type="text/x-kendo-template">
+   <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important"># if ( points[i].series.name  == "PC Deviation" || points[i].series.name  == "Electrical Losses" ) {##= points[i].value # MWh#} else {# #= points[i].value # %  #}#</span></div>
+  # } #
+</script>
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Losses and Efficiency&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+					</div>
+					<div class="panel-body">
+						<ul class="nav nav-tabs " role="tablist">
+							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.refreshGrid();" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
+
+							<li id="analysisTab" role="presentation"><a onclick="pg.refreshGrid();" href="#analysis" aria-controls="Analysis" role="tab" data-toggle="tab" class="tab-custom">Analysis</a></li>
+
+							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.refreshGrid();" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab"
+									class="tab-custom">Top 10 Downtime</a></li>
+						</ul>
+
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="staticView">
+								<div id="lossGrid" class="grid-custom"></div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="analysis">
+								<div class="col-md-12 pull-right">
+									<span class="pull-right">
+                                        <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
+									<select class="form-control input-sm" id="breakdownlist"></select>
+									</span>
+								</div>
+								<div class="col-md-12">
+									<div id="lossChart"></div>
+								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="top10downtime">
+								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+									<div class="panel ez no-padding hardcore">
+										<div class="panel-heading">Top 10 Turbine Downtime by Duration (Hours)</div>
+										<div class="panel-body">
+											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+											<div id="chartDTDuration"></div>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+									<div class="panel ez no-padding hardcore">
+										<div class="panel-heading">Top 10 Turbine Downtime by Frequency</div>
+										<div class="panel-body">
+											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+											<div id="chartDTFrequency"></div>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+									<div class="panel ez no-padding hardcore">
+										<div class="panel-heading">Top 10 Turbine Downtime by Losses (MWh)</div>
+										<div class="panel-body">
+											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+											<div id="chartTopTurbineLoss"></div>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+									<div class="panel ez no-padding hardcore">
+										<div class="panel-heading">Top 10 Loss Categories by Total Energy Loss (MWh)</div>
+										<div class="panel-body">
+											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+											<div id="chartLCByLTE"></div>
+										</div>
+									</div>
+								</div>
+								<div class="row" data-bind="visible:pg.isDetailDTTop">
+									<div class="col-md-12 col-sm-12 ez panel-content">
+										<div class="col-md-12 col-sm-12">
+											<ul class="nav nav-pills nav-replace-title" role="tablist">
+												<li role="presentation" class="detaildowntime active">
+													<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:pg.backToDownTime()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+												</li>
+											</ul>
+										</div>
+									</div>
+									<div class="col-md-12 col-sm-12 ez panel-content" id="divDTTopDetail">
+										<div class="col-md-12 col-sm-12 hardcore landing">
+											<div class="panel ez no-padding hardcore">
+												<div class="panel-heading">Downtime duration for Last 12 months
+													<span data-bind="text:pg.detailDTTopTxt"></span>
+												</div>
+												<div class="panel-body">
+													<div class="col-md-12">
+														<div id="chartDTTopDetail"></div>
+													</div>
+													<div class="col-md-12">
+														<div class="panel-heading">
+															<!--Detail-->
+														</div>
+														<div id="gridDTTopDetail"></div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>

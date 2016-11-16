@@ -1,0 +1,79 @@
+package main
+
+import (
+	. "eaciit/wfdemo/processapp/controllers"
+	. "eaciit/wfdemo/processapp/controllers/dataGenerator"
+	// . "eaciit/wfdemo/processapp/controllers/excelConverter"
+	"os"
+	"runtime"
+
+	_ "github.com/eaciit/dbox/dbc/mssql"
+	"github.com/eaciit/orm"
+	tk "github.com/eaciit/toolkit"
+)
+
+var (
+	wd = func() string {
+		d, _ := os.Getwd()
+		return d + "/"
+	}()
+)
+
+func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	tk.Println("Starting the app..\n")
+
+	db, e := PrepareConnection()
+	if e != nil {
+		tk.Println(e)
+	} else {
+		base := new(BaseController)
+		base.Ctx = orm.New(db)
+		defer base.Ctx.Close()
+
+		// new(ConvTurbine).Generate(base)
+
+		// new(ConvScadaData).Generate(base)
+		// new(ConvScadaDataCsv).Generate(base)
+		// new(GenScadaDataExceptionDurationTime).Generate(base)
+
+		// new(ConvAlarm).Generate(base)
+		// new(ConvAlarmBrakeMaster).Generate(base)
+
+		// new(GenAlarmOverlapping).Generate(base)
+		// new(ConvTurbine).Generate(base)
+
+		// new(GenAlarmScadaAnomaly).Generate(base)
+		// new(GenScadaAlarmAnomaly).Generate(base)
+
+		// new(GenScadaSummary).Generate(base)
+		// new(GenScadaSummary).GenerateSummaryByFleet(base)
+		// new(GenScadaSummary).GenerateSummaryByProject(base)
+		// new(GenScadaLast24).Generate(base)
+		// new(GenScadaSummary).GenerateSummaryDaily(base)
+
+		// new(UpdateAlarmPowerLost).Generate(base)
+		// new(GenAlarmSummary).Generate(base)
+
+		// new(GenScadaWindRose).Generate(base)
+		// new(GenScadaWindRose).GenerateFromScadaNew(base)
+		// new(GenScadaPowerCurve).GenerateAvg(base)
+		// new(GenScadaPowerCurve).GenerateAdj(base)
+		// new(GenScadaPowerCurvePlus).GeneratePlusAdj(base)
+		// new(GenScadaPowerCurvePlus).GeneratePlusAvg(base)
+		// new(UpdateScadaMinutes).Generate(base)
+		new(UpdateScadaMinutes).GenerateDensity(base)
+		// new(UpdateProjectScadaAndAlarm).Generate(base)
+
+		// new(ConvJMRBreakup).Generate(base)
+
+		// new(ConvPermanentMetTowerCSV).Generate(base)
+		// met := new(UpdateMetTower)
+		// met.Generate(base)
+		// met.GenerateWindRose(base)
+
+		// new(ConvScadaDataOEM).Generate(base)
+	}
+
+	tk.Println("Application Close..")
+}

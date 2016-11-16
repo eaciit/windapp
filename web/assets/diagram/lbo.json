@@ -1,0 +1,100 @@
+{
+    "id": 4,
+    "title": "Nosotros",
+    "root": {
+        "title": "Rianti Tan",
+        "subtitle": "HEAD OPERATION & LOGISTIK",
+        "Image": "",
+        "Color": "#FF4545",
+        "children": [{
+            "title": "Agus Utoyo",
+            "subtitle": "BRANCH OPS EAST JAVA|BALI|MKSR",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Irwan Nawawi",
+                "subtitle": "BRANCH MAKASAR",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Agus Utoyo",
+                "subtitle": "BRANCH BALI",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Agus Utoyo",
+                "subtitle": "BRANCH EJ",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Herry Munaji",
+            "subtitle": "BRANCH OPS CENTRAL JAVA",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Herry M",
+                "subtitle": "BRANCH KLATEN",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Herry M",
+                "subtitle": "BRANCH SEMARANG",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Luki Sulihin",
+            "subtitle": "BRANCH OPS WEST JAVA",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Luki",
+                "subtitle": "BRANCH CIREBON",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Luki",
+                "subtitle": "BRANCH BANDUNG",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Agus Marwanto",
+            "subtitle": "BRANCH OPS JABODETABEK",
+            "Image": "",
+            "Color": "#FF4545"
+        }, {
+            "title": "Toharfin",
+            "subtitle": "F/G WAREHOUSING",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Suyitno",
+                "subtitle": "LOGISTIK",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Albert Tobing",
+                "subtitle": "STOCK PLANNING",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "M Prayoga",
+                "subtitle": "CWH",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "",
+                "subtitle": "CWH MM",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Batara",
+            "subtitle": "PURCHASING",
+            "Image": "",
+            "Color": "#FF4545"
+        }]
+    }
+}

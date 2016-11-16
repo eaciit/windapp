@@ -1,0 +1,2 @@
+db.EventRaw.createIndex( { brakeprogram: 1 } )
+db.EventRaw.createIndex( { alarmtoggle: 1 } )

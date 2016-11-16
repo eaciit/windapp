@@ -1,0 +1,106 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-comparison.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-comparison.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 ez panel-content" id="panel-content-comparison">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-heading">
+                    Analytics Studio&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
+                    <div class="pull-right div-saved-views">
+                        <span class="span-saved-views"><b>Saved Views <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Saved views by the user, maximum 3 views for each user"></i></b></span>&nbsp;
+                        <select class="form-control input-sm" id="savedViews"></select>
+                        <button type="button" class="btn btn-sm btn-primary btn-filter-refresh" id="btnSaveView">Save</button>
+                    </div>
+                    
+                </div>
+                <div class="panel-body">
+                    <div class="col-md-12">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-condensed">
+                                <thead>
+                                    <tr style="height: 35px;">
+                                        <th width="15%" class="header-table">Keys</th>
+                                        <th style="width:80%" class="header-table">
+                                            Filter
+                                            <button class="btn btn-sm btn-success pull-right btn-add-filter" onclick="page.generateElementFilter(null, 'button', 0)"><i class="fa fa-plus"></i> Add filter to compare</button>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="column-keys">
+                                            <div data-bind="foreach: page.keyComparison">
+                                                <div class="col-md-6">
+                                                    <div class="checkbox key-list">
+                                                        <label>
+                                                        <input type="checkbox" class="chkbox" data-bind="{checked: status ,value: value ,attr:{id: 'chk-key-'+$index(),onchange:'page.ChangeKeyList(this)', text: text}}">
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span data-bind="text:text"></span>
+                                                      </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="clearfix">&nbsp;</div>
+                                            <div class="clearfix">&nbsp;</div>
+                                            <div class="key-label">
+                                                <div class="pull-left">Selected Keys </div>
+                                                <div class="pull-right btn-refresh-all"><button class="btn btn-sm btn-primary" onclick="page.refreshAll()"><i class="fa fa-refresh"></i> &nbsp;All </button></div>
+                                            </div>
+                                        </td>
+                                        <td class="td-scrollable">
+                                            <table>
+                                                <tbody>
+                                                    <tr class="filter-form"></tr>
+                                                    <tr class="filter-results"></tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                       <td>
+                                            <div class="content-selected-key">
+                                                <div class="selected-key data-default" data-value="default"><i>* No key selected</i></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade modal-fade-in-scale-up" id="modalForm" aria-hidden="true" aria-labelledby="modalTitle" role="dialog" tabindex="-1" style="margin-top:20px">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title" id="modal-views-title">Save / Update View</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-input row">
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Name</label>
+                        <div class="control-input col-md-5">
+                            <input type="text" id="inputViewName" name="inputViewName" class="input-sm form-control" placeholder="Type view name" required data-required-msg="Model name required!"/>
+                            <span class="k-invalid-msg" data-for="inputViewName"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default margin-0" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="page.saveView()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

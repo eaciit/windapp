@@ -1,0 +1,220 @@
+<div class="col-md-3 col-sm-3 ez panel-filter" style="display: none;">
+	<div class="panel-yo"></div>
+	<div class="panel ez no-padding hardcore panel-fix">
+		<div class="panel-heading">
+			<h3 class="no-margin">Filter</h3>
+		</div>
+		<div class="panel-body">
+			<div id="from-filter">
+				<p>Click each section below to show respective filter.</p>
+				<div class="wrapper">
+
+
+
+
+
+
+					<div class="panel-group ez-collapse" role="tablist" aria-multiselectable="true">
+					    <div class="panel">
+					        <div class="panel-heading" role="tab" id="h-0">
+					            <h4 class="panel-title">
+									<a role="button" data-toggle="collapse" data-parent=".ez-collapse" href="#c-0">
+										<span class="pull-left">Base Filter</span>
+										<span class="pull-right">
+											<i class="fa fa-angle-left"></i>
+											<i class="fa fa-angle-down"></i>
+										</span>
+										<span class="clearfix"></span>
+									</a>
+								</h4>
+					        </div>
+					        <div class="panel-collapse collapse in" role="tabpanel" id="c-0">
+					            <div class="panel-body">
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[0].sub[0].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[0].sub[0])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[0].sub[1].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[0].sub[1])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[0].sub[2].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[0].sub[2])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[0].sub[3].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[0].sub[3])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[0].sub[4].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[0].sub[4])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+									<div class="form-group" data-bind="visible: rpt.isUsingMonthQuarterFiter">&nbsp;</div>
+
+									<div class="form-group" data-bind="visible: rpt.isUsingMonthQuarterFiter">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right" style="width: 110px;">By month/quarter</span>
+											<div class="width-full">
+												<select type="text" style="width: 132px;" data-bind="kendoDropDownList: { data: rpt.optionMonthQuarters, dataValueField: '_id', dataTextField: 'Name', value: rpt.monthQuarter, optionLabel: 'Not used', change: rpt.changeMonthQuarter }"></select>
+											</div>
+										</div>
+									</div>
+									
+									<div class="form-group" data-bind="visible: rpt.isUsingMonthQuarterFiter">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right" style="width: 110px;">Value</span>
+											<div class="width-full">
+												<select type="text" data-bind="kendoMultiSelect: { data: rpt.optionMonthsQuarterValues(), dataValueField: '_id', dataTextField: 'Name', value: rpt.monthQuarterValues, placeholder: 'Choose values', filter: 'contains', enabled: rpt.isEnableMonthQuarterValues }"></select>
+											</div>
+										</div>
+									</div>
+					            </div>
+					        </div>
+					    </div>
+
+					    <div class="panel">
+					        <div class="panel-heading" role="tab" id="h-1">
+					            <h4 class="panel-title">
+									<a role="button" data-toggle="collapse" data-parent=".ez-collapse" href="#c-1" class="collapsed">
+										<span class="pull-left">Geographical</span>
+										<span class="pull-right">
+											<i class="fa fa-angle-left"></i>
+											<i class="fa fa-angle-down"></i>
+										</span>
+										<span class="clearfix"></span>
+									</a>
+								</h4>
+					        </div>
+					        <div class="panel-collapse collapse" role="tabpanel" id="c-1">
+					            <div class="panel-body">
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[1].sub[0].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[1].sub[0])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[1].sub[1].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[1].sub[1])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+					            </div>
+					        </div>
+					    </div>
+
+					    <div class="panel">
+					        <div class="panel-heading" role="tab" id="h-2">
+					            <h4 class="panel-title">
+									<a role="button" data-toggle="collapse" data-parent=".ez-collapse" href="#c-2" class="collapsed">
+										<span class="pull-left">Customer</span>
+										<span class="pull-right">
+											<i class="fa fa-angle-left"></i>
+											<i class="fa fa-angle-down"></i>
+										</span>
+										<span class="clearfix"></span>
+									</a>
+								</h4>
+					        </div>
+					        <div class="panel-collapse collapse" role="tabpanel" id="c-2">
+					            <div class="panel-body">
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[2].sub[0].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[2].sub[0])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[2].sub[1].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[2].sub[1])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[2].sub[2].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[2].sub[2])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+					            </div>
+					        </div>
+					    </div>
+
+					    <div class="panel">
+					        <div class="panel-heading" role="tab" id="h-3">
+					            <h4 class="panel-title">
+									<a role="button" data-toggle="collapse" data-parent=".ez-collapse" href="#c-3" class="collapsed">
+										<span class="pull-left">Product</span>
+										<span class="pull-right">
+											<i class="fa fa-angle-left"></i>
+											<i class="fa fa-angle-down"></i>
+										</span>
+										<span class="clearfix"></span>
+									</a>
+								</h4>
+					        </div>
+					        <div class="panel-collapse collapse" role="tabpanel" id="c-3">
+					            <div class="panel-body">
+					                <div class="form-group">
+					                    <div class="input-group input-group-sm ez width-full">
+					                        <span class="input-group-addon width-80 align-right" data-bind="html: rpt.filter[3].sub[0].title">&nbsp;</span>
+					                        <div class="width-full">
+					                            <select data-bind="kendoMultiSelect: rpt.filterMultiSelect(rpt.filter[3].sub[0])" style="width: 100%"></select>
+					                        </div>
+					                    </div>
+					                </div>
+					            </div>
+					        </div>
+					    </div>
+					</div>
+
+
+
+
+
+				</div>
+			</div>
+
+			<div class="clearfix"></div>
+		</div>
+	</div>
+</div>

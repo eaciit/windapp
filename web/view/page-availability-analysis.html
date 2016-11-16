@@ -1,0 +1,127 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-availability-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-availability-analysis.css">
+<script id="template" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { 
+        if(i==5) { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# MWh</span></div>
+  #     } else { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# %</span></div>
+  #     }
+    } #
+</script>
+
+<div id="pAvailability">
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Availability&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+						<div class="pull-right" style="margin-right:15px">
+							<span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Breakdown the chart based on the filter"></i></b></span>&nbsp;
+							<select class="form-control input-sm" id="breakdownlist"></select>
+						</div>
+					</div>
+					<div class="panel-body">
+						<div class="col-md-12">
+							<div class="clearfix">&nbsp;</div>
+							<span class="tools pull-right">
+                                  <div class="btn-group" data-toggle="buttons">
+                                      <label class="btn btn-primary btn-xs" onclick="$('#availabilityChart').kendoChart2Grid()">
+                                          <input type="radio" name="convert" id="totable" value="totable" checked><i class="fa fa-table"></i>
+                                      </label>
+                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartAvailability(pg.dataSource())">
+                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                                      </label>
+                                  </div>
+                            </span>
+							<br>
+							<div class="clearfix">&nbsp;</div>
+							<div id="availabilityChart"></div>
+						</div>
+						<div class="col-md-12">
+							<div class="clearfix">&nbsp;</div>
+							<span class="tools pull-right">
+                                  <div class="btn-group" data-toggle="buttons">
+                                      <label class="btn btn-primary btn-xs" onclick="$('#productionChart').kendoChart2Grid()">
+                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                                      </label>
+                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartProduction(pg.dataSource())">
+                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                                      </label>
+                                  </div>
+                            </span>
+							<br>
+							<div class="clearfix">&nbsp;</div>
+							<div id="productionChart"></div>
+						</div>
+
+						<!--        <div class="col-md-12">
+                                <div class="panel-heading custom-header">Keys &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></div>
+                                <div class="clearfix">&nbsp;</div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="mavail" checked class="keys" onclick="pg.keysClick(this, 0)">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b>Machine Availability</b></span>
+                                    </label>
+                                    <br/>
+                                    <label>
+                                        <input type="checkbox" id="gavail" checked class="keys" onclick="pg.keysClick(this, 1)">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b>Grid Availability</b></span>
+                                    </label>
+                                    <br/>
+                                    <label>
+                                        <input type="checkbox" id="tavail" checked class="keys" onclick="pg.keysClick(this, 2)">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b>Total Availability</b></span>
+                                    </label>
+                                    <br/>
+                                    <label>
+                                        <input type="checkbox" id="davail" checked class="keys" onclick="pg.keysClick(this, 3)">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b>Data Availability</b></span>
+                                    </label>
+                                    <br/>
+                                    <label>
+                                        <input type="checkbox" id="prod" checked class="keys" onclick="pg.keysClick(this, 4)">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b>Production</b></span>
+                                    </label>
+                                    <br/>
+                                    <label>
+                                        <input type="checkbox" id="plf" checked class="keys" onclick="pg.keysClick(this, 5)">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b>PLF</b></span>
+                                    </label>
+                                </div>
+                                <div class="clearfix">&nbsp;</div>
+                            </div>
+                            <div class="col-md-12">
+                                <br/>
+                                <div class="panel-heading custom-header">Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></div>
+                                <div class="clearfix">&nbsp;</div>
+                                <select id="breakdownlist" data-bind="kendoDropDownList: { data: pg.breakDownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pg.loadData()} }" style="width:120px;margin-left:20px;">
+                                <div class="clearfix">&nbsp;</div>
+                            </div>
+                        </div>-->
+					<div class="clearfix">&nbsp;</div>
+          <div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+          </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+  fa.populateTurbine({{.TurbineList}});
+  fa.populateProject({{.ProjectList}});
+</script>

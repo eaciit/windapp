@@ -1,0 +1,168 @@
+{
+    "id": 5,
+    "title": "Nosotros",
+    "root": {
+        "title": "Rianti Tan",
+        "subtitle": "HEAD SALES",
+        "Image": "",
+        "Color": "#FF4545",
+        "children": [{
+            "title": "Liantono",
+            "subtitle": "NSM",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Anas Bachtiar",
+                "subtitle": "ZSM 1",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Stephanus",
+                "subtitle": "ZSM 2",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Anna Catur",
+                "subtitle": "ZSM 3",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Rony Putu",
+                "subtitle": "ZSM 4",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Nur Basman",
+                "subtitle": "Sales Capability",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Ruki Meliati",
+            "subtitle": "CHANNEL HEAD MT-1",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Agus Riyanto",
+                "subtitle": "KAM SAT",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Conny Tan",
+                "subtitle": "KAM Lotte",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Jaky Ika",
+                "subtitle": "KAM DFI Group",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Widhi Astuti",
+                "subtitle": "KAM Yogya",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Ita S",
+                "subtitle": "KAM Tip Top",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Ardiahty Bachtiar",
+            "subtitle": "CHANNEL HEAD MT-2",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "",
+                "subtitle": "TOC MT PROJECT MGR",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Pharmacy, Wildan",
+                "subtitle": "KAE MTI JKT",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Echo",
+                "subtitle": "KAM C4",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Ang Kenneth",
+                "subtitle": "KAM MTI Nas",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Cornellius",
+                "subtitle": "KAM Intraco Group",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "Ronald Susant",
+            "subtitle": "CHANNEL HEAD GT",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Novrinsyah",
+                "subtitle": "GT CHANNEL MGR",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Andrian S",
+                "subtitle": "GT Sales Dev",
+                "Image": "",
+                "Color": "#FF4545"
+            }, {
+                "title": "Budi Santoso",
+                "subtitle": "GT PROJECT",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }, {
+            "title": "",
+            "subtitle": "COMMERCIAL HEAD",
+            "Image": "",
+            "Color": "#FF4545",
+            "children": [{
+                "title": "Danu Raditya",
+                "subtitle": "CUSTOMER DEVELOPMENT HEAD",
+                "Image": "",
+                "Color": "#FF4545",
+                "children": [{
+                    "title": "Arif Rachman",
+                    "subtitle": "CATEGORY MGR",
+                    "Image": "",
+                    "Color": "#FF4545"
+                }, {
+                    "title": "Lina Liana",
+                    "subtitle": "SALES ANALYTICS",
+                    "Image": "",
+                    "Color": "#FF4545"
+                }, {
+                    "title": "Herryansyah A",
+                    "subtitle": "SALES DEV MGR",
+                    "Image": "",
+                    "Color": "#FF4545"
+                }]
+            }, {
+                "title": "Noviati S",
+                "subtitle": "NEW BUSSINESS HEAD",
+                "Image": "",
+                "Color": "#FF4545",
+                "children": [{
+                    "title": "Untung S",
+                    "subtitle": "KAM Industrial",
+                    "Image": "",
+                    "Color": "#FF4545"
+                }]
+            }, {
+                "title": "Verly",
+                "subtitle": "SPG DEV HEAD",
+                "Image": "",
+                "Color": "#FF4545"
+            }]
+        }]
+    }
+}

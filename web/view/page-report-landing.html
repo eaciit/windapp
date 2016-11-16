@@ -1,0 +1,457 @@
+<script src="{{BaseUrl}}res/core/js/page-report-landing.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-report-landing.css">
+
+<script id="templateProd" type="text/x-kendo-template">
+  <div style="text-align:center"><b>#: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy') # #: category #:00</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2') # kWh</span></div>
+  # } #
+</script>
+<script id="templateCum" type="text/x-kendo-template">
+  <div><b>#: kendo.toString(kendo.parseDate(category), 'dd MMM yyyy') #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1') # GWh</span></div>
+  # } #
+</script>
+<script id="templateAvail" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1') # %</span></div>
+  # } #
+</script>
+<script id="templateProdMonth" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(kendo.format('{0:n2}',points[i].value), 2)# GWh</span></div>
+  # } #
+</script>
+<script id="templateDTLEbyType" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { 
+  		if(i==0) { #
+    		<div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# MWh</span></div>
+  # 	} else if(i==1) { #
+    		<div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# hours</span></div>
+  # 	} else if(i==2) { #
+    		<div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: points[i].value # times</span></div>
+  # 	}
+  	} #
+</script>
+<script id="templateDowntimeLostEnergy" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# MWh</span></div>
+  # } #
+</script>
+<script id="templateWindiness" type="text/x-kendo-template">
+  <div style="text-align:center"><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# m/s</span></div>
+  # } #
+</script>
+
+<div class="row" data-bind="visible:vm.isDashboard">
+	<div class="col-md-12" style="padding-left: 10px;">
+		<ul class="nav nav-pills nav-replace-title" role="tablist">
+			<li>
+				<div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
+					<div class="width-full">
+						<select type="text" id="projectId" class="dropdownFilter" data-bind="kendoDropDownList: { value: lgd.projectName, data: lgd.projectList, dataTextField: 'text',dataValueField: 'value',change:lgd.LoadData}"></select>
+					</div>
+				</div>
+			</li>
+			<div class="inline-tab">&nbsp;</div>
+			<li role="presentation" class="active tab-summary">
+				<a role="tab" data-toggle="tab" id="tabSummary">Summary</a>
+			</li>
+			<li role="presentation" class="tab-production">
+				<a role="tab" data-toggle="tab" id="tabProduction">Production</a>
+			</li>
+			<li role="presentation" class="tab-downtime">
+				<a role="tab" data-toggle="tab" id="tabDowntime">Availability</a>
+			</li>
+			<!--<li role="presentation" class="tab-availability">
+          <a role="tab" data-toggle="tab" id="tabAvailability">Availability</a>
+        </li>-->
+		</ul>
+	</div>
+	<div data-bind="visible:lgd.isSummary">
+		<div class="col-md-8 col-sm-8">
+			<div class="col-md-6 col-sm-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">Production (kWh) - Last 24 Hours</div>
+					<div class="panel-body">
+						<div id="chartProductionCustomTooltip"></div>
+						<div id="chartProduction"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-sm-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Availability (%) - Last 12 Months
+						<span class="tools pull-right">
+                  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
+                </span>
+					</div>
+					<div class="panel-body">
+						<div id="chartAbility"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-sm-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">Cumulative Production (GWh) - Month to Date</div>
+					<div class="panel-body">
+						<!--<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>-->
+						<div id="chartCumProduction"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-sm-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">Lost Energy (GWh) - Last 12 Months</div>
+					<div class="panel-body">
+						<!-- <div id="chartDTLostEnergyCustomTooltip"></div> -->
+						<div id="chartLostEnergy"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-4 col-sm-4">
+			<div class="col-md-3 col-sm-4 no-padding" data-bind="with:lgd">
+				<div class="pad box-pane-right bg-white col-summary">
+					<div class="description-block">
+						<div class="sparkbar pad" data-color="#fff">No. of Sites</div>
+						<h4 class="description-header first-city" data-bind="text:noOfProjects">0</h4>
+					</div>
+					<div class="description-block">
+						<div class="sparkbar pad" data-color="#fff">No. of Turbines</div>
+						<h4 class="description-header first-city" data-bind="text:noOfTurbines">0</h4>
+					</div>
+					<div class="description-block margin-bottom">
+						<div class="sparkbar pad" data-color="#fff">Total Max. Capacity</div>
+						<h4 class="description-header first-city" data-bind="text:totalMaxCapacity">0</h4>
+					</div>
+					<div class="description-block">
+						<div class="sparkbar pad" data-color="#fff">Currently Down</div>
+						<h4 class="description-header third-city" data-bind="text:currentDown">0</h4>
+					</div>
+					<div class="description-block margin-bottom">
+						<div class="sparkbar pad" data-color="#fff">Down More Than 2 Days</div>
+						<h4 class="description-header third-city" data-bind="text:twoDaysDown">0</h4>
+					</div>
+					<div class="description-block">
+						<div class="sparkbar pad" data-color="#fff">Performance vs Budget</div>
+						<h4 class="description-header second-city">0%</h4>
+					</div>
+					<div class="description-block margin-bottom">
+						<div class="sparkbar pad" data-color="#fff">Achievement vs Annual Budget</div>
+						<h4 class="description-header second-city">0%</h4>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-9 col-sm-8 no-padding">
+				<div class="pad">
+					<div id="india-map" style="height: 450px;"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-12 col-sm-12 no-padding">
+			<div class="col-md-12 col-sm-12 ez panel-content">
+				<div class="col-md-4 col-sm-4 hardcore landing">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Production (GWh) - Last 12 Months</div>
+						<div class="panel-body">
+							<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+							<div id="chartProdMonth"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 col-sm-4 hardcore landing">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">PLF (%) Comparison for all Projects - Last 12 Months</div>
+						<div class="panel-body">
+							<div id="chartPLF"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 col-sm-4 hardcore landing" id="div-windiness">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Windiness (m/s) - Last 12 Months</div>
+						<div class="panel-body">
+							<div id="chartWindinessCustomTooltip"></div>
+							<div id="chartWindiness"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-12 col-sm-12 ez panel-content">
+				<div class="col-md-4 col-sm-4 hardcore landing">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Production (GWh) - Current Year & Last Year</div>
+						<div class="panel-body">
+							<div id="chartCurrLast"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-8 col-sm-8 hardcore landing">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Summary Data for Last 12 Months</div>
+						<div class="panel-body panel-summary gridSummaryData" style="height: 180px">
+							<div id="gridSummaryData"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div data-bind="visible:lgd.isProduction">
+		<div class="col-md-12 col-sm-12">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">Production&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i></div>
+					<div class="panel-body">
+						<center>
+							<div class="btn-group" data-toggle="buttons">
+								<label class="btn btn-sm btn-primary active radio-filter">
+                  <input type="radio" name="periodTypeProd" id="periodTypeLW" autocomplete="off" value="lw" checked> Last Week
+                </label>
+								<label class="btn btn-sm btn-primary radio-filter">
+                  <input type="radio" name="periodTypeProd" id="periodTypeMTD" autocomplete="off" value="mtd"> MTD
+                </label>
+								<label class="btn btn-sm btn-primary radio-filter">
+                  <input type="radio" name="periodTypeProd" id="periodTypeYTD" autocomplete="off" value="ytd"> YTD
+                </label>
+							</div>
+						</center>
+						<center>
+							<br/>
+							<span id="prodDateRangeStr" data-bind="text: lgd.prodDateRangeStr"></span>
+						</center>
+						<div class="clearfix">&nbsp;</div>
+						<div id="productionGrid"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div data-bind="visible:lgd.isDowntime">
+		<div class="">
+			<div class="col-md-9 col-sm-9">
+				<div class="col-md-12 col-sm-12 hardcore landing" data-bind="visible:lgd.isFleet">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Lost Energy (MWh) by Down Time Type - Last 12 Months</div>
+						<div class="panel-body">
+							<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+							<!-- <div id="chartDTLEbyTypeCustomTooltip"></div> -->
+							<div id="chartDTLEbyType"></div>
+						</div>
+					</div>
+				</div>
+				<div id="lostcontrol" class="col-md-12 col-sm-12 hardcore landing">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Lost Energy (MWh) - Last 12 Months</div>
+						<div class="panel-body">
+							<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+
+							<div id="chartDTLostEnergy"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.isNonFleet">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Top 10 Downtime by Duration (Hours) - Last 12 Months</div>
+						<div class="panel-body">
+							<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+							<div id="chartDTDuration"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.isNonFleet">
+					<div class="panel ez no-padding hardcore">
+						<div class="panel-heading">Top 10 Downtime by Frequency - Last 12 Months</div>
+						<div class="panel-body">
+							<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+							<div id="chartDTFrequency"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-3">
+				<!--<div class="col-md-12 col-sm-12 hardcore landing">-->
+				<div class="col-md-12 col-sm-12 panel ez no-padding hardcore">
+					<div class="panel-heading">Turbines Down (Hrs) During Last 24 Hours</div>
+					<div class="panel-body box-list" id="dtturbines"></div>
+				</div>
+				<!--</div>-->
+			</div>
+		</div>
+	</div>
+	<!--<div data-bind="visible:lgd.isAvailability">
+    <div class="col-md-12 col-sm-12">
+      <div class="col-md-12 col-sm-12 hardcore landing">
+        <div class="panel ez no-padding hardcore">
+          <div class="panel-heading">Availability&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i></div>
+          <div class="panel-body">
+            <center>
+              <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-sm btn-primary active radio-filter">
+                  <input type="radio" name="periodTypeAvail" id="periodTypeLWAvail" autocomplete="off" value="lw" checked> Last Week
+                </label>
+                <label class="btn btn-sm btn-primary radio-filter">
+                  <input type="radio" name="periodTypeAvail" id="periodTypeMTDAvail" autocomplete="off" value="mtd"> MTD
+                </label>
+                <label class="btn btn-sm btn-primary radio-filter">
+                  <input type="radio" name="periodTypeAvail" id="periodTypeYTDAvail" autocomplete="off" value="ytd"> YTD
+                </label>
+              </div>
+            </center>
+            <center>
+              <br/>
+              <span id="availDateRangeStr" data-bind="text: lgd.prodDateRangeStr"></span>
+            </center>
+            <div class="clearfix">&nbsp;</div>
+            <div id="availabilityGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>-->
+</div>
+
+<div class="row" data-bind="visible:lgd.isDetailProd">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:lgd.backToDashboard()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Detail Production<span data-bind="text:lgd.detailProdMsTxt"></span> <span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:lgd.detailProdTxt"></span></strong></div>
+				<div class="panel-body">
+					<div class="col-md-8">
+						<div id="chartDetailProduction"></div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+					<div class="col-md-4">
+						<div id="gridDetailProduction"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row" data-bind="visible:lgd.isDetailProdByProject">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:lgd.toDetailProduction()"><i class="fa fa-reply" aria-hidden="true"></i> Back</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading"><span data-bind="text:lgd.detailProdProjectTxt"></span>&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:lgd.detailProdDateTxt"></strong></div>
+				<div class="panel-body">
+					<div class="col-md-8">
+						<div id="chartDetailProdByProject"></div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+					<div class="col-md-4">
+						<div id="gridDetailProdByProject"></div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row" data-bind="visible:lgd.isDetailDTLostEnergy">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:lgd.backToDownTimeChart()"><i class="fa fa-reply" aria-hidden="true"></i> Back</a>&nbsp;&nbsp;
+					<div class="inline-tab-detail" style="display: none;">&nbsp;</div>
+					<span class="show_hide_downtime">
+            <select id="mdTypeList" data-bind="kendoDropDownList: { data: lgd.mdTypeList, dataValueField: 'value', dataTextField: 'text',optionLabel: 'All Types', suggest: true, change: lgd.getDetailDT }">
+            </select>
+          </span>
+					<!-- <div class="inline-tab-detail" style="display: none;">&nbsp;</div> -->
+					<span class="show_hide_project">
+            <select id="projectList" class="projectlist-detail" data-bind="kendoDropDownList: { data: lgd.projectItem, dataValueField: 'value', dataTextField: 'text', suggest: true, change: lgd.getDetailDTFromProject }">
+            </select>
+            <select id="mdTypeListFleet" class="typelist-detail" data-bind="kendoDropDownList: { data: lgd.mdTypeList, dataValueField: 'value', dataTextField: 'text',optionLabel: 'All Types', suggest: true, change: lgd.getDetailDTFromProject }">
+            </select>
+          </span>
+				</li>
+			</ul>
+		</div>
+		<div class="clearfix"></div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divDTLostEnergyDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+					<span data-bind="text:lgd.detailDTLostEnergyTxt"></span>
+				</div>
+				<div class="panel-body">
+					<div class="col-md-12">
+						<!-- <div id="chartDTLostEnergyManehCustomTooltip"></div> -->
+						<div id="chartDTLostEnergyDetail"></div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+					<div class="col-md-12">
+						<div class="panel-heading">
+							<!--Detail-->
+						</div>
+						<div id="gridDTLostEnergyDetail"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row" data-bind="visible:lgd.isDetailDTTop">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:lgd.backToDownTime()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divDTTopDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Downtime duration for Last 12 months
+					<span data-bind="text:lgd.detailDTTopTxt"></span>
+				</div>
+				<div class="panel-body">
+					<div class="col-md-12">
+						<div id="chartDTTopDetail"></div>
+					</div>
+					<div class="col-md-12">
+						<div class="panel-heading">
+							<!--Detail-->
+						</div>
+						<div id="gridDTTopDetail"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

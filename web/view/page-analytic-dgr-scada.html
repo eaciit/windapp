@@ -1,0 +1,37 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-dgr-scada.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-dgr-scada.css">
+<div class="row">
+	{{template "_filter-analytic.html"}}
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading" style="text-align: center;">
+					<strong>DGR</strong> vs <strong>Scada</strong>&nbsp;<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true"
+						title="Information"></i>&nbsp; | &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;
+					<span id="total-capacity-info"></span>
+					<span id="total-capacity-info"></span>
+				</div>
+				<div class="panel-body">
+					<!-- 					<div class="col-md-8">
+						<div id="chartDgrVsScada"></div>
+					</div> -->
+
+					<div class="col-md-6 col-md-offset-3" style="text-align:center">
+						<div class="clearfix">&nbsp;</div>
+						<div id="gridSummaryDgrScada"></div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+					<div class="clearfix">&nbsp;</div>
+          			<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>

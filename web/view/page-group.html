@@ -1,0 +1,183 @@
+<script src="{{BaseUrl}}res/core/js/page-group.js"></script>
+<script src="{{BaseUrl}}res/core/js/page-administration.js"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-group.css">
+
+<div class="row" style="padding-top: 15px;">
+	<div class="col-md-4 col-sm-4 ez panel-filter">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">Filter</h3>
+				<div class="panel-nav-button">
+					<div class="form-group relative align-right no-margin no-padding hardcore">
+						<button class="btn btn-sm btn-primary" data-bind="click: gr.refreshData">
+							<i class="fa fa-refresh"></i> Reload Data
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div id="from-filter">
+					<p>Filter shown data.</p>
+					<div class="form-group form-group-table-name">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-100 align-right">Search</span>
+							<input type="text" class="form-control" required data-required-msg="cannot be empty" placeholder="Type value here ..." data-bind="value: gr.filter.search" />
+						</div>
+					</div>
+				</div>
+
+				<div class="clearfix"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-8 col-sm-8 ez panel-content">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">
+					<button class="btn-toggle-filter no-padding">
+						<i class="fa fa-angle-double-left tooltipster color-grey" title="Toggle filter pane visibility"></i>
+					</button>
+					Data Group
+				</h3>
+				<div class="panel-nav-button">
+					<button class="btn btn-primary btn-sm" data-bind="click: gr.newData">
+						<i class="fa fa-plus"></i> New Data
+					</button>
+					<button class="btn btn-danger btn-sm" data-bind="click: gr.deletegroup">
+						<i class="fa fa-trash"></i> Delete
+					</button>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div data-bind="visible: gr.contentIsLoading">
+					{{template "_loader.html"}}
+				</div>
+				<div data-bind="visible: !gr.contentIsLoading()">
+					<p data-bind="visible: gr.selectedTableID() != ''">
+						Data on table <span class="tag bg-orange">group</span>.
+					</p>
+					<div class="grid-group"></div>
+					<div class="no-grid" data-bind="visible: app.is(gr.selectedTableID, '')">No data to be shown.</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">
+        			<span data-bind="text: gr.isNew() ? 'Create new' : 'Edit'"></span> data <span>group</span>
+        		</h4>
+            </div>
+            <div class="modal-body" data-bind="with: gr.config">
+                <form class="wrapper form-group" novalidate>
+                	<div class="col-md-12">
+                		<ul class="nav nav-tabs" role="tablist">
+							<li role="presentation" class="active"><a href="#tabgroup" aria-controls="home" role="tab" data-toggle="tab">Groups</a></li>
+							<li role="presentation"><a href="#tabaccess" aria-controls="access" role="tab" data-toggle="tab">Access</a></li>
+						</ul>
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="tabgroup">
+								<!-- <div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Add Type</span>
+										<input type="radio" name="grouptype" value="1" data-bind="checked: GroupType" /> ldap
+										<input type="radio" name="grouptype" value="0" data-bind="checked: GroupType" /> basic
+									</div>
+								</div> -->
+			                	<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">ID</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: _id" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Title</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: Title" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Owner</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: Owner" placeholder="Type value here ..." />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Enable</span>
+										<input type="checkbox" data-bind="checked: Enable" />
+									</div>
+								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="tabaccess">
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Add Privilege</span>
+										<button class="btn btn-success btn-sm" data-bind="click: gr.addGrant">
+                                            <span class="glyphicon glyphicon-plus"></span> Add
+                                        </button>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<table class="table" id="datasource-settings">
+                                        <thead>
+                                            <tr>
+                                                <th width="200px;">Access</th>
+                                                <th>Create</th>
+                                                <th>Read</th>
+                                                <th>Update</th>
+                                                <th>Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-bind="foreach: gr.config.Grants">
+                                            <tr>
+                                                <td>
+                                                    <!-- <select class="form-control input-sm" data-bind="visible: (app.mode() == 'editor'),value: AccessID ,options: adm.Access,selectedOptions : usr.config.Grants()[$index()].AccessID "></select> -->
+                                                    <select class="form-control input-sm" data-bind=" value: AccessID ,options: adm.Access()"></select>
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessCreate" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessRead" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessUpdate" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <input type='checkbox' value="AccessDelete" data-bind=" checked: AccessValue" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-danger" data-bind="click: gr.removeGrant">
+                                                            <span class="glyphicon glyphicon-remove"></span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+								</div>
+							</div>
+						</div>
+					</div>
+                </form>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">
+		        	Cancel
+		        </button>
+                <button class="btn btn-sm btn-primary" data-bind="click: gr.saveChanges">
+					<i class="fa fa-save"></i> Save
+				</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
