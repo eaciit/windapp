@@ -340,10 +340,11 @@ func GetCustomFieldList() []tk.M {
 		"temp_mainbearing", "temp_nacelle", "temp_outdoor", "timestamp", "turbine",
 	}
 
-	_amettower_label := []string{"V Hub</br>WS 90m Avg", "V Hub</br>WS 90m Std Dev", "V Ref</br>WS 88m Avg", "V Ref</br>WS 88m Std Dev",
-		"V Tip</br>WS 42m Avg", "V Tip</br>WS 42m Std Dev", "D Hub</br>WD 88m Avg", "D Hub</br>WD 88m Std Dev", "D Ref</br>WD 86m Avg",
-		"D Ref</br>WD 86m Std Dev", "T Hub & H Hub</br>Humid 85m Avg", "T Hub & H Hub</br>Humid 85m Std Dev", "T Ref & H Ref</br>Humid 85.5m Avg", "T Ref & H Ref</br>Humid 85.5m Std Dev",
-		"T Hub & H Hub</br>Temp 85.5m Avg", "T Hub & H Hub</br>Temp 85.5m Std Dev", "T Ref & H Ref</br>Temp 85.5 Avg", "T Ref & H Ref</br>Temp 85.5 Std Dev", "Baro Air Pressure</br>85.5m Avg", "Baro Air Pressure</br>85.5m Std Dev",
+	_amettower_label := []string{"Time Stamp", "V Hub WS 90m Avg", "V Hub WS 90m Std Dev", "V Ref WS 88m Avg", "V Ref WS 88m Std Dev",
+		"V Tip WS 42m Avg", "V Tip WS 42m Std Dev", "D Hub WD 88m Avg", "D Hub WD 88m Std Dev", "D Ref WD 86m Avg",
+		"D Ref WD 86m Std Dev", "T Hub & H Hub Humid 85m Avg", "T Hub & H Hub Humid 85m Std Dev", "T Ref & H Ref Humid 85.5m Avg", "T Ref & H Ref Humid 85.5m Std Dev",
+		"T Hub & H Hub Temp 85.5m Avg", "T Hub & H Hub Temp 85.5m Std Dev", "T Ref & H Ref Temp 85.5 Avg", "T Ref & H Ref Temp 85.5 Std Dev", "Baro Air Pressure 85.5m Avg", "Baro Air Pressure 85.5m Std Dev",
+
 	}
 
 	_amettower_field := []string{"vhubws90mavg", "vhubws90mstddev", "vrefws88mavg", "vrefws88mstddev", "vtipws42mavg",

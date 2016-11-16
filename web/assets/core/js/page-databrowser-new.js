@@ -397,14 +397,28 @@ var Data = {
 		};
 
 		var columns = [];
-		$.each(dbr.ColumnList(), function(i, val){
-			var col = {
-				field : val._id, 
-				title : val.label,
-				headerAttributes: {style:"text-align:center"}
-			};
-			columns.push(col);
-		});
+        var gColumns = dbr.selectedColumn();
+        if(dbr.selectedColumn().length == 0){
+            gColumns = dbr.defaultSelectedColumn();
+        }
+
+        $.each(gColumns, function(i, val){
+         var col = {
+             field : val._id, 
+             title : val.label,
+             headerAttributes: {style:"text-align:center"}
+         };
+         columns.push(col);
+        });
+
+		// $.each(dbr.ColumnList(), function(i, val){
+		// 	var col = {
+		// 		field : val._id, 
+		// 		title : val.label,
+		// 		headerAttributes: {style:"text-align:center"}
+		// 	};
+		// 	columns.push(col);
+		// });
 
         $('#customGrid').html("");
         $('#customGrid').kendoGrid({
@@ -440,6 +454,7 @@ var Data = {
                         return res.data.Data
                     },
                     total: function (res) {
+                        console.log(res.data);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -456,17 +471,17 @@ var Data = {
                 ],
             },
 	         toolbar: [
-                "excel",
+                // "excel",
                 {
                     text: "Show Hide Columns",
                     name: "showHideColumn",
                     imageClass: "fa fa-eye-slash ",
                 }
             ],
-            excel: {
-                fileName: "Custom 10 Minutes Data.xlsx",
-                filterable: true,
-            },
+            // excel: {
+            //     fileName: "Custom 10 Minutes Data.xlsx",
+            //     filterable: true,
+            // },
             selectable: "multiple",
             reorderable: true,
             groupable: false,
