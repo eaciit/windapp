@@ -137,14 +137,14 @@ func (c *CsvReader) readFile(fileName string) {
 		}
 	}
 
-	f.Close()	
+	f.Close()
 
 	wg.Wait()
 
 	if len(DataTranspose) > 0 {
 		c.insertData()
-		c.convert3Ext(fileName)
-		c.convert10Min(fileName)
+		// c.convert3Ext(fileName)
+		// c.convert10Min(fileName)
 		// c.remove3Seconds(fileName)
 	}
 
@@ -198,13 +198,12 @@ func (c *CsvReader) insertData() {
 				mdl.DateId1 = dt.Get("DateId1").(time.Time)
 				mdl.DateId2 = dt.Get("DateId2").(time.Time)
 
-				timeStamp := val.TimeStamp1.UTC()
+				timeStamp := mdl.TimeStamp1.UTC()
 				seconds := tk.Div(tk.ToFloat64(timeStamp.Nanosecond(), 1, tk.RoundingAuto), 1000000000)
 				secondsInt := tk.ToInt(seconds, tk.RoundingAuto)
 				newTimeTmp := timeStamp.Add(time.Duration(secondsInt) * time.Second)
-				strTime := tk.ToString(newTimeTmp.Year()) + tk.ToString(int(newTimeTmp.Month())) + tk.ToString(newTimeTmp.Day()) + " " + tk.ToString(newTimeTmp.Hour()) + ":" + tk.ToString(newTimeTmp.Minute()) + ":" + tk.ToString(newTimeTmp.Second())
-				newTime, _ := time.Parse("200612 15:4:5", strTime)
-
+				// strTime := tk.ToString(newTimeTmp.Year()) + tk.ToString(int(newTimeTmp.Month())) + tk.ToString(newTimeTmp.Day()) + " " + tk.ToString(newTimeTmp.Hour()) + ":" + tk.ToString(newTimeTmp.Minute()) + ":" + tk.ToString(newTimeTmp.Second())
+				newTime, _ := time.Parse("20060102 15:04:05", newTimeTmp.Format("20060102 15:04:05"))
 				mdl.TimeStampSecondGroup = newTime
 
 				mdl.THour = mdl.TimeStampSecondGroup.Hour()
@@ -223,7 +222,7 @@ func (c *CsvReader) insertData() {
 				ref := reflect.ValueOf(mdl).Elem()
 				typeOf := ref.Type()
 				for i := 0; i < ref.NumField(); i++ {
-					if typeOf.Field(i).Name != "ID" && typeOf.Field(i).Name != "ModelBase" && typeOf.Field(i).Name != "ProjectName" && typeOf.Field(i).Name != "Turbine" && typeOf.Field(i).Name != "TimeStamp1" && typeOf.Field(i).Name != "TimeStamp2" && typeOf.Field(i).Name != "DateId1" && typeOf.Field(i).Name != "DateId2" && typeOf.Field(i).Name != "THour" && typeOf.Field(i).Name != "TMinute" && typeOf.Field(i).Name != "TSecond" && typeOf.Field(i).Name != "TMinuteValue" && typeOf.Field(i).Name != "TMinuteCategory" && typeOf.Field(i).Name != "TimeStampConverted" && typeOf.Field(i).Name != "DateId1Info" && typeOf.Field(i).Name != "DateId2Info" && typeOf.Field(i).Name != "Line" && typeOf.Field(i).Name != "File" && typeOf.Field(i).Name != "TimeStampConvertedInt" {
+					if typeOf.Field(i).Name != "ID" && typeOf.Field(i).Name != "ModelBase" && typeOf.Field(i).Name != "ProjectName" && typeOf.Field(i).Name != "Turbine" && typeOf.Field(i).Name != "TimeStamp1" && typeOf.Field(i).Name != "TimeStamp2" && typeOf.Field(i).Name != "DateId1" && typeOf.Field(i).Name != "DateId2" && typeOf.Field(i).Name != "THour" && typeOf.Field(i).Name != "TMinute" && typeOf.Field(i).Name != "TSecond" && typeOf.Field(i).Name != "TMinuteValue" && typeOf.Field(i).Name != "TMinuteCategory" && typeOf.Field(i).Name != "TimeStampConverted" && typeOf.Field(i).Name != "DateId1Info" && typeOf.Field(i).Name != "DateId2Info" && typeOf.Field(i).Name != "Line" && typeOf.Field(i).Name != "File" && typeOf.Field(i).Name != "TimeStampConvertedInt" && typeOf.Field(i).Name != "TimeStampSecondGroup" {
 						fieldName := typeOf.Field(i).Name
 						setVal := ref.Field(i)
 						if setVal.IsValid() {
@@ -311,5 +310,4 @@ func parseContent(contents []string, fileName string) {
 		newData := DataTranspose.Get(id).(tk.M)
 		DataTranspose.Set(id, newData.Set(column, value))
 	}
-}
 }
