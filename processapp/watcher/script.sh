@@ -1,11 +1,11 @@
 sudo pkill wfdemo-receiver
 
-$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-dev" -to="eaciit/wfdemo"
+$GOPATH/bin/gorep -path="." -from="github.com/eaciit/windapp-dev" -to="github.com/eaciit/windapp"
 
 svn update ../../../library/
 svn update ../../watcher
 
-$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo" -to="eaciit/wfdemo-dev"
+$GOPATH/bin/gorep -path="." -from="github.com/eaciit/windapp" -to="github.com/eaciit/windapp-dev"
 
 rm wfdemo-receiver
 rm nohup.out

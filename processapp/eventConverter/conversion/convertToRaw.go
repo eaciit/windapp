@@ -1,13 +1,14 @@
 package conversion
 
 import (
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
@@ -115,7 +116,9 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					}
 
 					var brakeProgram int
+					var brakeType string
 					brakeProgram = brakes[alarmIdx].BrakeProgram
+					brakeType = brakes[alarmIdx].Type
 
 					sTurbineStatus, _ := row.Cells[7].String()
 					turbineStatus := ""
@@ -140,6 +143,7 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					rawdata.AlarmDescription = alarmDesc
 					rawdata.AlarmId = alarmIdx
 					rawdata.TurbineStatus = strings.TrimSpace(turbineStatus)
+					rawdata.BrakeType = brakeType
 					sAlarmToggle, _ := row.Cells[2].String()
 
 					rawdata = rawdata.New()

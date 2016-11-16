@@ -1,12 +1,14 @@
 package conversion
 
 import (
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
+
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
@@ -154,6 +156,16 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 								if down.DateInfoStart.MonthId != 0 {
 									mutex.Lock()
+									brakeType := data.BrakeType
+									if strings.Contains(strings.ToLower(brakeType), "grid") {
+										down.DownGrid = true
+									}
+									if strings.Contains(strings.ToLower(brakeType), "environment") {
+										down.DownEnvironment = true
+									}
+									if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
+										down.DownMachine = true
+									}
 									ev.Ctx.Insert(down)
 									mutex.Unlock()
 								}

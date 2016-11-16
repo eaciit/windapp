@@ -1,9 +1,9 @@
 package generatorControllers
 
 import (
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
-	. "eaciit/wfdemo/processapp/controllers"
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
+	. "github.com/eaciit/windapp/processapp/controllers"
 	"fmt"
 	c "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"

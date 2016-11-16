@@ -1,9 +1,9 @@
 package main
 
 import (
-	. "eaciit/wfdemo/processapp/controllers"
-	. "eaciit/wfdemo/processapp/controllers/dataGenerator"
-	// . "eaciit/wfdemo/processapp/controllers/excelConverter"
+	. "github.com/eaciit/windapp/processapp/controllers"
+	. "github.com/eaciit/windapp/processapp/controllers/dataGenerator"
+	// . "github.com/eaciit/windapp/processapp/controllers/excelConverter"
 	"os"
 	"runtime"
 

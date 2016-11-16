@@ -1,10 +1,10 @@
 package main
 
 import (
-	. "eaciit/wfdemo/library/core"
-	. "eaciit/wfdemo/library/models"
-	"eaciit/wfdemo/web"
-	. "eaciit/wfdemo/web/controller"
+	. "github.com/eaciit/windapp/library/core"
+	. "github.com/eaciit/windapp/library/models"
+	"github.com/eaciit/windapp/web"
+	. "github.com/eaciit/windapp/web/controller"
 	"fmt"
 	"net/http"
 

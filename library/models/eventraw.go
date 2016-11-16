@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "eaciit/wfdemo/library/helper"
+	. "github.com/eaciit/windapp/library/helper"
 	"time"
 
 	"github.com/eaciit/orm"
@@ -22,6 +22,7 @@ type DowntimeEventRaw struct {
 	AlarmId          int
 	TurbineStatus    string
 	AlarmToggle      bool
+	BrakeType        string
 }
 
 func (m *DowntimeEventRaw) New() *DowntimeEventRaw {
@@ -50,6 +51,7 @@ type EventRaw struct {
 	AlarmId          int
 	TurbineStatus    string
 	AlarmToggle      bool
+	BrakeType        string
 }
 
 func (m *EventRaw) New() *EventRaw {

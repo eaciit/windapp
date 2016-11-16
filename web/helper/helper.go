@@ -1,7 +1,7 @@
 package helper
 
 import (
-	. "eaciit/wfdemo/library/core"
+	. "github.com/eaciit/windapp/library/core"
 	"errors"
 	"io"
 	"os"

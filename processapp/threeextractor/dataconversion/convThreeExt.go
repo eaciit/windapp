@@ -1,15 +1,15 @@
 package dataconversion
 
 import (
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
-	. "eaciit/wfdemo/processapp/watcher/controllers"
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
+	. "github.com/eaciit/windapp/processapp/watcher/controllers"
 	"log"
 	"strconv"
 	"sync"
 	"time"
 
-	hpp "eaciit/wfdemo/processapp/helper"
+	hpp "github.com/eaciit/windapp/processapp/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	. "github.com/eaciit/orm"

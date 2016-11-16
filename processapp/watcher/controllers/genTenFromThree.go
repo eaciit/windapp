@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
 
 	"log"
 
 	"time"
 
-	hpp "eaciit/wfdemo/processapp/helper"
+	hpp "github.com/eaciit/windapp/processapp/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	. "github.com/eaciit/orm"

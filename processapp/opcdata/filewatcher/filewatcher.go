@@ -1,7 +1,7 @@
 package filewatcher
 
 import (
-	d "eaciit/wfdemo/processapp/opcdata/datareader"
+	d "github.com/eaciit/windapp/processapp/opcdata/datareader"
 	tk "github.com/eaciit/toolkit"
 	"github.com/howeyc/fsnotify"
 	"strings"

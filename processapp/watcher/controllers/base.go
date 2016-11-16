@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	// . "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
+	// . "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/orm"

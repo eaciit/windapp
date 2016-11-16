@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "eaciit/wfdemo/library/core"
-	hp "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
-	"eaciit/wfdemo/web/helper"
+	. "github.com/eaciit/windapp/library/core"
+	hp "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
+	"github.com/eaciit/windapp/web/helper"
 	"time"
 
 	"github.com/eaciit/dbox"

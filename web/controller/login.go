@@ -1,8 +1,8 @@
 package controller
 
 import (
-	. "eaciit/wfdemo/library/models"
-	"eaciit/wfdemo/web/helper"
+	. "github.com/eaciit/windapp/library/models"
+	"github.com/eaciit/windapp/web/helper"
 	"errors"
 	"strings"
 	"time"

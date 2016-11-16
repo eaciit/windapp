@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "eaciit/wfdemo/library/core"
+	. "github.com/eaciit/windapp/library/core"
 	"errors"
 	"fmt"
 	"github.com/eaciit/acl/v1.0"

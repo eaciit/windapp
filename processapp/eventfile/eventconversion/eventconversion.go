@@ -1,13 +1,14 @@
 package eventconversion
 
 import (
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
@@ -147,8 +148,10 @@ func (ev *EventConversion) processFile(filename string, wg *sync.WaitGroup, ctx 
 						csr.Close()
 
 						brakeProgram := 0
+						brakeType := ""
 						if len(alarmbrakes) > 0 {
 							brakeProgram = alarmbrakes[0].BrakeProgram
+							brakeType = alarmbrakes[0].Type
 						}
 
 						sTurbineStatus, _ := row.Cells[7].String()
@@ -175,6 +178,7 @@ func (ev *EventConversion) processFile(filename string, wg *sync.WaitGroup, ctx 
 						rawdata.AlarmDescription = alarmDesc
 						rawdata.AlarmId = alarmIdx
 						rawdata.TurbineStatus = strings.TrimSpace(turbineStatus)
+						rawdata.BrakeType = brakeType
 						sAlarmToggle, _ := row.Cells[2].String()
 
 						if strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "TRUE" || strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "1" {
@@ -194,7 +198,8 @@ func (ev *EventConversion) processFile(filename string, wg *sync.WaitGroup, ctx 
 									Set("timestart", rawdata.TimeStamp).
 									Set("project", project).
 									Set("turbine", turbine).
-									Set("alarmdescription", rawdata.AlarmDescription))
+									Set("alarmdescription", rawdata.AlarmDescription).
+									Set("braketype", rawdata.BrakeType))
 							}
 
 							cekAlarms.Set(tk.ToString(rawdata.AlarmId), rawdata.AlarmToggle)
@@ -230,6 +235,20 @@ func (ev *EventConversion) processFile(filename string, wg *sync.WaitGroup, ctx 
 									downEvent.DateInfoStart = GetDateInfo(downEvent.TimeStart)
 									downEvent.TimeEnd = latestData.Get("timeend").(time.Time)
 									downEvent.DateInfoEnd = GetDateInfo(downEvent.TimeEnd)
+
+									brakeType := latestData.GetString("braketype")
+
+									if strings.Contains(strings.ToLower(brakeType), "grid") {
+										downEvent.DownGrid = true
+									}
+
+									if strings.Contains(strings.ToLower(brakeType), "environment") {
+										downEvent.DownEnvironment = true
+									}
+
+									if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
+										downEvent.DownMachine = true
+									}
 
 									downDetail := make([]DowntimeEventDetail, 0)
 									details := latestData.Get("detail").([]tk.M)

@@ -17,8 +17,8 @@ import (
 	"github.com/fsnotify/fsnotify"
 	// "github.com/metakeule/fmtdate"
 
-	dc "eaciit/wfdemo/processapp/threeextractor/dataconversion"
-	. "eaciit/wfdemo/processapp/watcher/controllers"
+	dc "github.com/eaciit/windapp/processapp/threeextractor/dataconversion"
+	. "github.com/eaciit/windapp/processapp/watcher/controllers"
 
 	"archive/tar"
 	"archive/zip"

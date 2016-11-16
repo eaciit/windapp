@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "eaciit/wfdemo/library/core"
-	. "eaciit/wfdemo/library/helper"
-	. "eaciit/wfdemo/library/models"
-	"eaciit/wfdemo/web/helper"
+	. "github.com/eaciit/windapp/library/core"
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
+	"github.com/eaciit/windapp/web/helper"
 	"fmt"
 	"strings"
 

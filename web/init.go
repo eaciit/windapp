@@ -1,9 +1,9 @@
 package web
 
 import (
-	. "eaciit/wfdemo/library/core"
-	. "eaciit/wfdemo/library/models"
-	"eaciit/wfdemo/web/controller"
+	. "github.com/eaciit/windapp/library/core"
+	. "github.com/eaciit/windapp/library/models"
+	"github.com/eaciit/windapp/web/controller"
 	"os"
 	"path/filepath"
 	"runtime"
