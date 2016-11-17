@@ -142,6 +142,25 @@ var Data = {
             }         
         });
     },
+    LoadAvailDateCustom: function () {
+        app.ajaxPost(viewModel.appName + "/databrowsernew/getcustomavaildate", {}, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            
+            if (res.data.CustomDate.length == 0) {
+                res.data.CustomDate = [];
+            } else {
+                if (res.data.CustomDate.length > 0) {
+                    var arrDate = res.data.CustomDate.sort();
+                    var minDatetemp = new Date(arrDate[0]);
+                    var maxDatetemp = new Date(arrDate[3]);
+                    $('#availabledatestartCustom').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+                    $('#availabledateendCustom').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+                }
+            }         
+        });
+    },
     RefreshGrid: function () {
         setTimeout(function () {
             $('#scadaGrid').data('kendoGrid').refresh();
@@ -763,5 +782,6 @@ $(document).ready(function () {
     }, 1000);
     Data.LoadAvailDate();
     Data.LoadAvailDateDE();
+    Data.LoadAvailDateCustom();
 
 });
