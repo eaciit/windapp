@@ -147,7 +147,7 @@ var Data = {
             if (!app.isFine(res)) {
                 return;
             }
-            
+
             if (res.data.CustomDate.length == 0) {
                 res.data.CustomDate = [];
             } else {
@@ -396,7 +396,10 @@ var Data = {
                 title: val.title,
                 value: true
             }
+
             dbr.gridColumnsScada.push(result);
+
+                
         });
 	},
 	InitCustomGrid: function(){
@@ -425,19 +428,21 @@ var Data = {
          var col = {
              field : val._id, 
              title : val.label,
+             type: val._id == "turbine" ? "string" : "number",
              headerAttributes: {style:"text-align:center"}
          };
+
+        if(val._id == "timestamp"){
+            col = {
+                field: val._id,
+                title: val.label,
+                type: "date",
+                template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", 
+                value: true
+            }
+        }
          columns.push(col);
         });
-
-		// $.each(dbr.ColumnList(), function(i, val){
-		// 	var col = {
-		// 		field : val._id, 
-		// 		title : val.label,
-		// 		headerAttributes: {style:"text-align:center"}
-		// 	};
-		// 	columns.push(col);
-		// });
 
         $('#customGrid').html("");
         $('#customGrid').kendoGrid({
@@ -473,7 +478,7 @@ var Data = {
                         return res.data.Data
                     },
                     total: function (res) {
-                        console.log(res.data);
+
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -506,6 +511,7 @@ var Data = {
             groupable: false,
             sortable: true,
             pageable: true,
+            filterable: true,
             columns : columns,
         });
         
@@ -572,7 +578,7 @@ var Data = {
                     return ress.data.Data
                 },
                 total: function(res) {
-                    // console.log(res);
+
                     if (!app.isFine(res)) {
                         return;
                     }
