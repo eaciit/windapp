@@ -103,7 +103,13 @@ var Data = {
             app.loading(true);
             this.InitScadaGrid();
             this.InitDEgrid();
+            this.InitCustomGrid();
+
         }
+
+        this.LoadAvailDate();
+        this.LoadAvailDateDE();
+        this.LoadAvailDateCustom();
     },
     LoadAvailDate: function () {
         app.ajaxPost(viewModel.appName + "/databrowsernew/getscadadataoemavaildate", {}, function (res) {
@@ -495,17 +501,18 @@ var Data = {
                 ],
             },
 	         toolbar: [
-                // "excel",
+                "excel",
                 {
                     text: "Show Hide Columns",
                     name: "showHideColumn",
                     imageClass: "fa fa-eye-slash ",
                 }
             ],
-            // excel: {
-            //     fileName: "Custom 10 Minutes Data.xlsx",
-            //     filterable: true,
-            // },
+            excel: {
+                fileName: "Custom 10 Minutes Data.xlsx",
+                filterable: true,
+                 allPages: true
+            },
             selectable: "multiple",
             reorderable: true,
             groupable: false,
@@ -786,8 +793,6 @@ $(document).ready(function () {
         Data.InitDefault();
         Data.InitCustomGrid();
     }, 1000);
-    Data.LoadAvailDate();
-    Data.LoadAvailDateDE();
-    Data.LoadAvailDateCustom();
+
 
 });
