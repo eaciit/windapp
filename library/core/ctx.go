@@ -5,6 +5,7 @@ import (
 
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/jsons"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 	"github.com/eaciit/toolkit"
 )

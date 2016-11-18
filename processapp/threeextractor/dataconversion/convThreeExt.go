@@ -1,13 +1,14 @@
 package dataconversion
 
 import (
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
-	. "github.com/eaciit/windapp/processapp/watcher/controllers"
 	"log"
 	"strconv"
 	"sync"
 	"time"
+
+	. "github.com/eaciit/windapp/library/helper"
+	. "github.com/eaciit/windapp/library/models"
+	. "github.com/eaciit/windapp/processapp/watcher/controllers"
 
 	hpp "github.com/eaciit/windapp/processapp/helper"
 
@@ -95,6 +96,8 @@ func (d *ConvThreeExt) Generate(file string) (errorLine tk.M) {
 
 					Fast_CurrentL3List := d.getAvg(ctx, startTime, "fast_currentl3")
 					Fast_CurrentL3Map := d.getMap(Fast_CurrentL3List, "fast_currentl3")
+
+					// log.Printf("Fast_CurrentL3Map: %#v \n", Fast_CurrentL3Map)
 
 					Fast_ActivePower_kWList := d.getAvg(ctx, startTime, "fast_activepower_kw")
 					Fast_ActivePower_kWMap := d.getMap(Fast_ActivePower_kWList, "fast_activepower_kw")
@@ -1288,7 +1291,8 @@ func (d *ConvThreeExt) getAvg(ctx *DataContext, timestampconverted time.Time, fi
 			"projectname": "$projectname",
 			"turbine":     "$turbine",
 		},
-		field: tk.M{"$avg": "$" + field},
+		field:               tk.M{"$avg": "$" + field},
+		field + "countsecs": tk.M{"$sum": 1},
 	}
 
 	pipes = append(pipes, tk.M{"$match": match})
@@ -1329,11 +1333,10 @@ func (d *ConvThreeExt) getMap(list []tk.M, field string) (result map[string]tk.M
 
 		count = val.GetInt(field + "countsecs")
 
-		// log.Printf("count: %v | %#v \n", val.GetInt(field+"_count"), key)
+		// log.Printf("count: %v | %#v | %v  \n", val.GetInt(field+"_count"), key, timeStamp.UTC().String())
 
 		if count == 0 {
 			avg = emptyValueBig
-			// log.Print("empty: %v \n", key)
 		} else {
 			avg = val.GetFloat64(field)
 		}
@@ -1342,5 +1345,10 @@ func (d *ConvThreeExt) getMap(list []tk.M, field string) (result map[string]tk.M
 		value.Set(field+"countsecs", count)
 		result[key] = value
 	}
+
+	/*if field == "fast_currentl3" {
+		log.Printf("list: \n%#v \n", result)
+	}*/
+
 	return
 }

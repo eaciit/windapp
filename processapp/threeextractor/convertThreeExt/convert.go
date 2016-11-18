@@ -39,7 +39,7 @@ func main() {
 	start := time.Now()
 	log.Println("Start Convert...")
 
-	UpdateThreeSecs("", conn, ctx)
+	// UpdateThreeSecs("", conn, ctx)
 
 	convExt := dc.NewConvThreeExt(ctx)
 	convExt.Generate("")
@@ -87,9 +87,12 @@ func UpdateThreeSecs(file string, conn dbox.IConnection, ctx *orm.DataContext) {
 		seconds := tk.Div(tk.ToFloat64(timeStamp.Nanosecond(), 1, tk.RoundingAuto), 1000000000)
 		secondsInt := tk.ToInt(seconds, tk.RoundingAuto)
 		newTimeTmp := timeStamp.Add(time.Duration(secondsInt) * time.Second)
-		strTime := tk.ToString(newTimeTmp.Year()) + tk.ToString(int(newTimeTmp.Month())) + tk.ToString(newTimeTmp.Day()) + " " + tk.ToString(newTimeTmp.Hour()) + ":" + tk.ToString(newTimeTmp.Minute()) + ":" + tk.ToString(newTimeTmp.Second())
+		// strTime := tk.ToString(newTimeTmp.Year()) + tk.ToString(int(newTimeTmp.Month())) + tk.ToString(newTimeTmp.Day()) + " " + tk.ToString(newTimeTmp.Hour()) + ":" + tk.ToString(newTimeTmp.Minute()) + ":" + tk.ToString(newTimeTmp.Second())
+		// TimeStampSecondGroup, _ := time.Parse("200612 15:4:5", strTime)
 
-		TimeStampSecondGroup, _ := time.Parse("200612 15:4:5", strTime)
+		TimeStampSecondGroup, _ := time.Parse("20060102 15:04:05", newTimeTmp.Format("20060102 15:04:05"))
+
+		// log.Printf("TimeStampSecondGroup: %#v | %v \n", newTimeTmp.String(), TimeStampSecondGroup.String())
 
 		THour := TimeStampSecondGroup.Hour()
 		TMinute := TimeStampSecondGroup.Minute()
