@@ -51,14 +51,14 @@ var (
 		"Slow_RatedPower", "Slow_TempConv3", "Slow_TempConv2", "Slow_TotalActPowerIn_kWh", "Slow_TotalActPowerInG1_kWh", "Slow_TotalActPowerInG2_kWh",
 		"Slow_TotalActPowerOutG2_kWh", "Slow_TotalG2ActiveHours", "Slow_TotalReactPowerInG2_kVArh", "Slow_TotalReactPowerOut_kVArh", "Slow_UTCoffset_int"}
 
-	intstartdate = int(20160821)
-	intenddate   = int(20160821)
+	intstartdate = int(20160801)
+	intenddate   = int(20160831)
 )
 
 func main() {
 
 	flag.IntVar(&intstartdate, "sdate", 20160821, "Start date for processing data")
-	flag.IntVar(&intenddate, "edate", 20160821, "End date for processing data")
+	flag.IntVar(&intenddate, "edate", 20160831, "End date for processing data")
 	flag.Parse()
 
 	startdate := tk.String2Date(tk.Sprintf("%d", intstartdate), "YYYYMMdd").UTC()
@@ -87,7 +87,7 @@ func main() {
 		step := getstep(count)
 		sresult := make(chan int, count)
 		sdata := make(chan time.Time, count)
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 20; i++ {
 			go calcdata(i, sdata, sresult)
 		}
 
@@ -122,6 +122,8 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 	workerconn, _ := PrepareConnection()
 	defer workerconn.Close()
 
+	dtablename := tk.Sprintf("%s", new(ScadaThreeSecs).TableName())
+
 	sresult := make(chan int, 100)
 	sdata := make(chan ScadaConvTenMin, 100)
 	for i := 0; i < 5; i++ {
@@ -131,7 +133,7 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 	_tinterval := time.Time{}
 	for _tinterval = range jobs {
 		csr, e := workerconn.NewQuery().
-			Select().From(new(ScadaThreeSecs).TableName()).
+			Select().From(dtablename).
 			Where(dbox.Eq("timestampconverted", _tinterval)).
 			Cursor(nil)
 
@@ -141,13 +143,72 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 		}
 		defer csr.Close()
 
-		mapscadatenmin := make(map[string]*ScadaConvTenMin, 0)
+		mapscada3avg := make(map[string]*ScadaThreeSecs, 0)
+		mapavgcount := make(map[string]tk.M, 0)
 		for {
 			sts := new(ScadaThreeSecs)
 			e = csr.Fetch(sts, 1, false)
 			if e != nil {
 				break
 			}
+
+			//Round time Second
+			timeStamp := sts.TimeStamp1.UTC()
+			seconds := tk.Div(tk.ToFloat64(timeStamp.Nanosecond(), 1, tk.RoundingAuto), 1000000000)
+			secondsInt := tk.ToInt(seconds, tk.RoundingAuto)
+			newTimeTmp := timeStamp.Add(time.Duration(secondsInt) * time.Second)
+			TimeStampSecondGroup, _ := time.Parse("20060102 15:04:05", newTimeTmp.Format("20060102 15:04:05"))
+
+			//timeStampStr := m.TimeStamp.UTC().Format("060102_1504") //m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine
+			key := TimeStampSecondGroup.UTC().Format("20060102_150405") + "#" + sts.ProjectName + "#" + sts.Turbine
+			stsavg := new(ScadaThreeSecs)
+			if _, exist := mapscada3avg[key]; exist {
+				stsavg = mapscada3avg[key]
+			}
+
+			tkmcount := tk.M{}
+			if _, exist := mapavgcount[key]; exist {
+				tkmcount = mapavgcount[key]
+			}
+
+			fillto3secaggr(sts, stsavg, tkmcount, key)
+			mapscada3avg[key] = stsavg
+			mapavgcount[key] = tkmcount
+		}
+
+		// tk.Println(">>>>>>>>>>> length mapscada3avg : ", len(mapscada3avg))
+		mapscadatenmin := make(map[string]*ScadaConvTenMin, 0)
+		for _key, sts := range mapscada3avg {
+
+			// ===================================================================
+			// ===Count and set aggr=====================================================
+
+			tkmcount := tk.M{}
+			if _, exist := mapavgcount[_key]; exist {
+				tkmcount = mapavgcount[_key]
+			}
+
+			for _, _str := range structlist {
+				rval := reflect.ValueOf(sts).Elem().FieldByName(_str)
+
+				if !rval.IsValid() {
+					continue
+				}
+
+				ival := rval.Float()
+				if ival == emptyValueBig {
+					continue
+				}
+
+				if _str != "Fast_YawService" {
+					ival = tk.Div(ival, tkmcount.GetFloat64(_str))
+				}
+
+				rval.SetFloat(ival)
+			}
+
+			// ===================================================================
+			// ===================================================================
 
 			//timeStampStr := m.TimeStamp.UTC().Format("060102_1504")
 			//m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine
@@ -157,7 +218,7 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 				sctm = mapscadatenmin[key]
 			}
 
-			fillto(sts, sctm, key)
+			fillto10min(sts, sctm, key)
 
 			mapscadatenmin[key] = sctm
 		}
@@ -294,6 +355,8 @@ func getinterval(tablename string, cdate time.Time) (arrval []time.Time) {
 	match := tk.M{}.Set("timestampconverted", tk.M{"$gt": cdate}).
 		Set("timestampconverted", tk.M{"$lte": cdate.AddDate(0, 0, 1)})
 
+	// match := tk.M{}.Set("timestampconverted", tk.M{"$gt": time.Date(2016, 8, 21, 22, 0, 0, 0, time.UTC)})
+
 	group := tk.M{}.Set("_id", "$timestampconverted")
 	sort := tk.M{}.Set("_id", 1)
 
@@ -334,7 +397,7 @@ func getinterval(tablename string, cdate time.Time) (arrval []time.Time) {
 	return
 }
 
-func fillto(_sts *ScadaThreeSecs, _sctm *ScadaConvTenMin, key string) {
+func fillto10min(_sts *ScadaThreeSecs, _sctm *ScadaConvTenMin, key string) {
 
 	for _, _str := range structlist {
 		_strmax := tk.Sprintf("%s_Max", _str)
@@ -387,77 +450,6 @@ func fillto(_sts *ScadaThreeSecs, _sctm *ScadaConvTenMin, key string) {
 		}
 	}
 
-	/*
-		for _, _str := range arrvar {
-			if _sctm.ID == "" {
-				_tkmsctm.Set(_str, emptyValueBig)
-				_tkmsctm.Set(tk.Sprintf("%s_Min", _str), emptyValueBig)
-				_tkmsctm.Set(tk.Sprintf("%s_Max", _str), emptyValueBig)
-				_tkmsctm.Set(tk.Sprintf("%s_StdDev", _str), emptyValueBig)
-			}
-
-			if _tkmsts.GetFloat64(_str) != emptyValueBig {
-				if _tkmsctm.GetFloat64(_str) == emptyValueBig {
-					_tkmsctm.Set(_str, 0)
-				}
-
-				ival := _tkmsts.GetFloat64(_str)
-				ifloat64 := _tkmsctm.GetFloat64(_str) + ival
-
-				_tkmsctm.Set(_str, ifloat64)
-
-				_strmax := tk.Sprintf("%s_Max", _str)
-				_strmin := tk.Sprintf("%s_Min", _str)
-
-				_strdev := tk.Sprintf("%s_StdDev", _str)
-				_strcount := tk.Sprintf("%s_Count", _str)
-
-				if _tkmsctm.GetFloat64(_strmax) < ival {
-					_tkmsctm.Set(_strmax, ival)
-				}
-
-				if _tkmsctm.GetFloat64(_strmin) == emptyValueBig || _tkmsctm.GetFloat64(_strmin) > ival {
-					_tkmsctm.Set(_strmin, ival)
-				}
-
-				_tkmsctm.Set(_strdev, 0)
-
-				iint := _tkmsctm.GetInt(_strcount) + 1
-				_tkmsctm.Set(_strcount, iint)
-			}
-		}
-		err := tk.Serde(_tkmsctm, _sctm, "json")
-		if err != nil {
-			tk.Println(err.Error())
-		}
-	*/
-
-	// if _sctm.ID == "" {
-	// 	_sctm.Fast_ActivePower_kW = emptyValueBig
-	// 	_sctm.Fast_ActivePower_kW_StdDev = emptyValueBig
-	// 	_sctm.Fast_ActivePower_kW_Min = emptyValueBig
-	// 	_sctm.Fast_ActivePower_kW_Max = emptyValueBig
-	// }
-
-	// if _sts.Fast_ActivePower_kW != emptyValueBig {
-	// 	if _sctm.Fast_ActivePower_kW == emptyValueBig {
-	// 		_sctm.Fast_ActivePower_kW = 0
-	// 	}
-
-	// 	_sctm.Fast_ActivePower_kW += _sts.Fast_ActivePower_kW
-
-	// 	if _sctm.Fast_ActivePower_kW_Max < _sts.Fast_ActivePower_kW {
-	// 		_sctm.Fast_ActivePower_kW_Max = _sts.Fast_ActivePower_kW
-	// 	}
-
-	// 	if _sctm.Fast_ActivePower_kW_Min == emptyValueBig || _sctm.Fast_ActivePower_kW_Min > _sts.Fast_ActivePower_kW {
-	// 		_sctm.Fast_ActivePower_kW_Min = _sts.Fast_ActivePower_kW
-	// 	}
-
-	// 	_sctm.Fast_ActivePower_kW_StdDev = 0
-	// 	_sctm.Fast_ActivePower_kW_Count += 1
-	// }
-
 	_sctm.ID = key
 	_sctm.TimeStamp = _sts.TimeStampConverted
 	_sctm.TimeStampInt = int64(tk.ToInt(_sts.TimeStampConverted.Format("20060102150405"), tk.RoundingAuto))
@@ -469,6 +461,60 @@ func fillto(_sts *ScadaThreeSecs, _sctm *ScadaConvTenMin, key string) {
 	_sctm.File = _sts.File
 	// No    int
 	_sctm.Count += 1
+
+	return
+}
+
+func fillto3secaggr(_sts *ScadaThreeSecs, _stsavg *ScadaThreeSecs, tkm tk.M, key string) {
+
+	for _, _str := range structlist {
+		_rstavg := reflect.ValueOf(_stsavg).Elem().FieldByName(_str)
+		if !_rstavg.IsValid() {
+			continue
+		}
+
+		if _stsavg.ID == "" {
+			_rstavg.SetFloat(emptyValueBig)
+		}
+
+		rval := reflect.ValueOf(_sts).Elem().FieldByName(_str)
+		ival := emptyValueBig
+
+		if rval.IsValid() {
+			ival = rval.Float()
+		}
+
+		if ival != emptyValueBig {
+			tval := _rstavg.Float()
+			if tval == emptyValueBig {
+				tval = 0
+			}
+
+			if _str == "Fast_YawService" {
+				if ival < tval {
+					tval = ival
+				}
+			} else {
+				tval += ival
+			}
+
+			_rstavg.SetFloat(tval)
+
+			iint := tkm.GetInt(_str) + 1
+			tkm.Set(_str, iint)
+		}
+	}
+
+	_stsavg.ID = key
+
+	_stsavg.TimeStampConverted = _sts.TimeStampConverted
+	_stsavg.TimeStampSecondGroup = _sts.TimeStampSecondGroup
+
+	_stsavg.ProjectName = _sts.ProjectName
+	_stsavg.Turbine = _sts.Turbine
+
+	_stsavg.File = _sts.File
+	// _stsavg.Count += 1
 
 	return
 }
