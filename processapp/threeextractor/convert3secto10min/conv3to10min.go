@@ -82,12 +82,16 @@ func main() {
 		arrtimeinterval := getinterval(new(ScadaThreeSecs).TableName(), cdate)
 		count := len(arrtimeinterval)
 
+		// for _, val := range arrtimeinterval {
+		// 	tk.Println(val)
+		// }
+
 		log.Println("Found Interval Data : ", count)
 
 		step := getstep(count)
 		sresult := make(chan int, count)
 		sdata := make(chan time.Time, count)
-		for i := 0; i < 20; i++ {
+		for i := 0; i < 30; i++ {
 			go calcdata(i, sdata, sresult)
 		}
 
@@ -343,56 +347,63 @@ func getstep(count int) int {
 }
 
 func getinterval(tablename string, cdate time.Time) (arrval []time.Time) {
-	conn, err := PrepareConnection()
-	if err != nil {
-		tk.Println(err)
-		return
+
+	arrval = make([]time.Time, 0)
+	_enddate := cdate.AddDate(0, 0, 1)
+	for cdate.Before(_enddate) {
+		cdate = cdate.Add(time.Minute * 10)
+		arrval = append(arrval, cdate)
 	}
-	defer conn.Close()
+	// conn, err := PrepareConnection()
+	// if err != nil {
+	// 	tk.Println(err)
+	// 	return
+	// }
+	// defer conn.Close()
 
-	pipes := []tk.M{}
-	//ISODate("2016-08-21T19:10:00.000+0000")
-	match := tk.M{}.Set("timestampconverted", tk.M{"$gt": cdate}).
-		Set("timestampconverted", tk.M{"$lte": cdate.AddDate(0, 0, 1)})
+	// pipes := []tk.M{}
+	// //ISODate("2016-08-21T19:10:00.000+0000")
+	// match := tk.M{}.Set("timestampconverted", tk.M{"$gt": cdate}).
+	// 	Set("timestampconverted", tk.M{"$lte": cdate.AddDate(0, 0, 1)})
 
-	// match := tk.M{}.Set("timestampconverted", tk.M{"$gt": time.Date(2016, 8, 21, 22, 0, 0, 0, time.UTC)})
+	// // match := tk.M{}.Set("timestampconverted", tk.M{"$gt": time.Date(2016, 8, 21, 22, 0, 0, 0, time.UTC)})
 
-	group := tk.M{}.Set("_id", "$timestampconverted")
-	sort := tk.M{}.Set("_id", 1)
+	// group := tk.M{}.Set("_id", "$timestampconverted")
+	// sort := tk.M{}.Set("_id", 1)
 
-	pipes = append(pipes, tk.M{"$match": match})
-	pipes = append(pipes, tk.M{"$group": group})
-	pipes = append(pipes, tk.M{"$sort": sort})
+	// pipes = append(pipes, tk.M{"$match": match})
+	// pipes = append(pipes, tk.M{"$group": group})
+	// pipes = append(pipes, tk.M{"$sort": sort})
 
-	// tk.Printfn(">>>> %v", match)
+	// // tk.Printfn(">>>> %v", match)
 
-	csr, e := conn.NewQuery().
-		From(tablename).
-		Command("pipe", pipes).
-		Cursor(nil)
+	// csr, e := conn.NewQuery().
+	// 	From(tablename).
+	// 	Command("pipe", pipes).
+	// 	Cursor(nil)
 
-	if e != nil {
-		log.Printf("ERRROR: %v \n", e.Error())
-		os.Exit(1)
-	}
-	defer csr.Close()
+	// if e != nil {
+	// 	log.Printf("ERRROR: %v \n", e.Error())
+	// 	os.Exit(1)
+	// }
+	// defer csr.Close()
 
-	arrval = []time.Time{}
-	for {
-		tkm := tk.M{}
-		e = csr.Fetch(&tkm, 1, false)
-		if e != nil {
-			/*
-				if strings.Contains(e.Error(), "Not found") {
-					log.Printf("EOF")
-				} else {
-					log.Printf("ERRROR: %v \n", e.Error())
-				}
-			*/
-			break
-		}
-		arrval = append(arrval, tkm.Get("_id", time.Time{}).(time.Time).UTC())
-	}
+	// arrval = []time.Time{}
+	// for {
+	// 	tkm := tk.M{}
+	// 	e = csr.Fetch(&tkm, 1, false)
+	// 	if e != nil {
+	// 		/*
+	// 			if strings.Contains(e.Error(), "Not found") {
+	// 				log.Printf("EOF")
+	// 			} else {
+	// 				log.Printf("ERRROR: %v \n", e.Error())
+	// 			}
+	// 		*/
+	// 		break
+	// 	}
+	// 	arrval = append(arrval, tkm.Get("_id", time.Time{}).(time.Time).UTC())
+	// }
 
 	return
 }
