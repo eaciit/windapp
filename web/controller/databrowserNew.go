@@ -282,9 +282,9 @@ func (m *DataBrowserNewController) GetDowntimeEventvailDate(k *knot.WebContext) 
 	for i := 0; i < 2; i++ {
 		var arrsort []string
 		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
+			arrsort = append(arrsort, "timestart")
 		} else {
-			arrsort = append(arrsort, "-timestamp")
+			arrsort = append(arrsort, "-timestart")
 		}
 
 		query := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Skip(0).Take(1)
@@ -547,6 +547,65 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 		TotalProduction: totalProduction,
 		AvgWindSpeed:    avgWindSpeed,
 		TotalTurbine:    totalTurbine,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataBrowserNewController) GetCustomAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	Dateresults := make([]time.Time, 0)
+
+	// ScadaDataOEM
+	for i := 0; i < 2; i++ {
+		var arrsort []string
+		if i == 0 {
+			arrsort = append(arrsort, "timestamp")
+		} else {
+			arrsort = append(arrsort, "-timestamp")
+		}
+
+		query := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).Skip(0).Take(1)
+		query = query.Order(arrsort...)
+
+		queryMetTower := DB().Connection.NewQuery().From(new(MetTower).TableName()).Skip(0).Take(1)
+		queryMetTower = queryMetTower.Order(arrsort...)
+
+		csr, e := query.Cursor(nil)
+		csrM, eM := queryMetTower.Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer csr.Close()
+
+		if eM != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer csrM.Close()
+
+		Result := make([]ScadaDataOEM, 0)
+		e = csr.Fetch(&Result, 0, false)
+
+		ResultMetTower := make([]MetTower, 0)
+		eM = csrM.Fetch(&ResultMetTower, 0, false)
+
+		tk.Printf("Result : %s \n", Result)
+		tk.Printf("ResultMetTower : %s \n", ResultMetTower)
+
+		for _, val := range Result {
+			Dateresults = append(Dateresults, val.TimeStamp.UTC())
+		}
+		for _, val := range ResultMetTower {
+			Dateresults = append(Dateresults, val.TimeStamp.UTC())
+		}
+	}
+
+
+	data := struct {
+		CustomDate []time.Time
+	}{
+		CustomDate: Dateresults,
 	}
 
 	return helper.CreateResult(true, data, "success")
