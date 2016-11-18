@@ -4,9 +4,9 @@ import (
 	. "github.com/eaciit/windapp/library/helper"
 	. "github.com/eaciit/windapp/library/models"
 	"log"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
 
 	hpp "github.com/eaciit/windapp/processapp/helper"
 
@@ -47,9 +47,9 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 		match = tk.M{"file": file}
 		pipes = append(pipes, tk.M{"$match": match})
 	}
-	
+
 	group := tk.M{
-		"_id": "$file",
+		"_id":           "$file",
 		"min_timestamp": tk.M{"$min": "$timestampconverted"},
 		"max_timestamp": tk.M{"$max": "$timestampconverted"},
 	}
@@ -73,14 +73,14 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 		// log.Printf("list: %#v \n", list)
 		if len(list) > 0 {
 			for _, valList := range list {
-				// log.Printf("valList: %#v \n", valList)	
+				// log.Printf("valList: %#v \n", valList)
 				startTime, _ := time.Parse("20060102 15:04", valList.Get("min_timestamp").(time.Time).UTC().Format("20060102 15:04"))
 				endTime, _ := time.Parse("20060102 15:04", valList.Get("max_timestamp").(time.Time).UTC().Format("20060102 15:04"))
 
-				for {					
+				for {
 					if startTime.Format("2006-01-02 15:04") > endTime.Format("2006-01-02 15:04") {
 						break
-					}					
+					}
 
 					startTimeInt, _ := strconv.ParseInt(startTime.Format("200601021504"), 10, 64)
 
@@ -353,9 +353,9 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 					groupSub := tk.M{
 						"_id": tk.M{
 							// "timestamp":   "$timestampconverted",
-							"timestampint":   "$timestampconvertedint",
-							"projectname": "$projectname",
-							"turbine":     "$turbine",
+							"timestampint": "$timestampconvertedint",
+							"projectname":  "$projectname",
+							"turbine":      "$turbine",
 						},
 						"count": tk.M{"$sum": 1},
 					}
@@ -385,7 +385,7 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 					e = csr.Fetch(&listSub, 0, false)
 
 					countData := len(listSub)
-					
+
 					if countData > 0 {
 						// log.Printf("timestamp: %v | %v | %v \n", startTime.Format("20060102 15:04"), countData, listSub[0].Get("_id").(tk.M).Get("timestampint"))
 
@@ -407,7 +407,7 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 
 							wg.Add(1)
 							go func(data []tk.M) {
-								for idx, val := range data {									
+								for idx, val := range data {
 
 									tenScada := new(ScadaConvTenMin)
 									tenScada.No = idx + 1
@@ -424,12 +424,11 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 									key := timeStampStr + "#" + projectNameSub + "#" + turbineSub
 
 									tenScada.TimeStamp = timeStampSub
-									tenScada.TimeStampInt, _ = strconv.ParseInt(tenScada.TimeStamp.Format("200601021504"), 10, 64)									
+									tenScada.TimeStampInt, _ = strconv.ParseInt(tenScada.TimeStamp.Format("200601021504"), 10, 64)
 									tenScada.DateInfo = GetDateInfo(timeStampSub)
 									tenScada.ProjectName = projectNameSub
 									tenScada.Turbine = turbineSub
 									tenScada.Count = val.GetInt("count")
-									
 
 									tenScada = tenScada.New()
 
@@ -440,12 +439,12 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_ActivePower_kW_Min = fastActivePower.GetFloat64("fast_activepower_kw_min")
 										tenScada.Fast_ActivePower_kW_Max = fastActivePower.GetFloat64("fast_activepower_kw_max")
 										tenScada.Fast_ActivePower_kW_Count = fastActivePower.GetInt("fast_activepower_kw_count")
-									}else{
+									} else {
 										tenScada.Fast_ActivePower_kW = emptyValueBig
 										tenScada.Fast_ActivePower_kW_StdDev = emptyValueBig
 										tenScada.Fast_ActivePower_kW_Min = emptyValueBig
 										tenScada.Fast_ActivePower_kW_Max = emptyValueBig
-										
+
 									}
 
 									fastWindSpeedMs := fastWindSpeedMsMap[key]
@@ -455,12 +454,12 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_WindSpeed_ms_Min = fastWindSpeedMs.GetFloat64("fast_windspeed_ms_min")
 										tenScada.Fast_WindSpeed_ms_Max = fastWindSpeedMs.GetFloat64("fast_windspeed_ms_max")
 										tenScada.Fast_WindSpeed_ms_Count = fastWindSpeedMs.GetInt("fast_windspeed_ms_count")
-									}else{
+									} else {
 										tenScada.Fast_WindSpeed_ms = emptyValueBig
 										tenScada.Fast_WindSpeed_ms_StdDev = emptyValueBig
 										tenScada.Fast_WindSpeed_ms_Min = emptyValueBig
 										tenScada.Fast_WindSpeed_ms_Max = emptyValueBig
-										
+
 									}
 
 									slowNacellePos := slowNacellePosMap[key]
@@ -470,12 +469,12 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_NacellePos_Min = slowNacellePos.GetFloat64("slow_nacellepos_min")
 										tenScada.Slow_NacellePos_Max = slowNacellePos.GetFloat64("slow_nacellepos_max")
 										tenScada.Slow_NacellePos_Count = slowNacellePos.GetInt("slow_nacellepos_count")
-									}else{
+									} else {
 										tenScada.Slow_NacellePos = emptyValueBig
 										tenScada.Slow_NacellePos_StdDev = emptyValueBig
 										tenScada.Slow_NacellePos_Min = emptyValueBig
 										tenScada.Slow_NacellePos_Max = emptyValueBig
-										
+
 									}
 
 									slowWindDirection := slowWindDirectionMap[key]
@@ -485,12 +484,12 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_WindDirection_Min = slowWindDirection.GetFloat64("slow_winddirection_min")
 										tenScada.Slow_WindDirection_Max = slowWindDirection.GetFloat64("slow_winddirection_max")
 										tenScada.Slow_WindDirection_Count = slowWindDirection.GetInt("slow_winddirection_count")
-									}else{
+									} else {
 										tenScada.Slow_WindDirection = emptyValueBig
 										tenScada.Slow_WindDirection_StdDev = emptyValueBig
 										tenScada.Slow_WindDirection_Min = emptyValueBig
 										tenScada.Slow_WindDirection_Max = emptyValueBig
-										
+
 									}
 
 									Fast_CurrentL3 := Fast_CurrentL3Map[key]
@@ -499,13 +498,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_CurrentL3_StdDev = Fast_CurrentL3.GetFloat64("fast_currentl3_stddev")
 										tenScada.Fast_CurrentL3_Min = Fast_CurrentL3.GetFloat64("fast_currentl3_min")
 										tenScada.Fast_CurrentL3_Max = Fast_CurrentL3.GetFloat64("fast_currentl3_max")
-										tenScada.Fast_CurrentL3_Count = Fast_CurrentL3.GetFloat64("fast_currentl3_count")
-									}else{
+										tenScada.Fast_CurrentL3_Count = Fast_CurrentL3.GetInt("fast_currentl3_count")
+									} else {
 										tenScada.Fast_CurrentL3 = emptyValueBig
 										tenScada.Fast_CurrentL3_StdDev = emptyValueBig
 										tenScada.Fast_CurrentL3_Min = emptyValueBig
 										tenScada.Fast_CurrentL3_Max = emptyValueBig
-										
+
 									}
 
 									Fast_CurrentL1 := Fast_CurrentL1Map[key]
@@ -514,13 +513,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_CurrentL1_StdDev = Fast_CurrentL1.GetFloat64("fast_currentl1_stddev")
 										tenScada.Fast_CurrentL1_Min = Fast_CurrentL1.GetFloat64("fast_currentl1_min")
 										tenScada.Fast_CurrentL1_Max = Fast_CurrentL1.GetFloat64("fast_currentl1_max")
-										tenScada.Fast_CurrentL1_Count = Fast_CurrentL1.GetFloat64("fast_currentl1_count")
-									}else{
+										tenScada.Fast_CurrentL1_Count = Fast_CurrentL1.GetInt("fast_currentl1_count")
+									} else {
 										tenScada.Fast_CurrentL1 = emptyValueBig
 										tenScada.Fast_CurrentL1_StdDev = emptyValueBig
 										tenScada.Fast_CurrentL1_Min = emptyValueBig
 										tenScada.Fast_CurrentL1_Max = emptyValueBig
-										
+
 									}
 
 									Fast_ActivePowerSetpoint_kW := Fast_ActivePowerSetpoint_kWMap[key]
@@ -529,13 +528,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_ActivePowerSetpoint_kW_StdDev = Fast_ActivePowerSetpoint_kW.GetFloat64("fast_activepowersetpoint_kw_stddev")
 										tenScada.Fast_ActivePowerSetpoint_kW_Min = Fast_ActivePowerSetpoint_kW.GetFloat64("fast_activepowersetpoint_kw_min")
 										tenScada.Fast_ActivePowerSetpoint_kW_Max = Fast_ActivePowerSetpoint_kW.GetFloat64("fast_activepowersetpoint_kw_max")
-										tenScada.Fast_ActivePowerSetpoint_kW_Count = Fast_ActivePowerSetpoint_kW.GetFloat64("fast_activepowersetpoint_kw_count")
-									}else{
+										tenScada.Fast_ActivePowerSetpoint_kW_Count = Fast_ActivePowerSetpoint_kW.GetInt("fast_activepowersetpoint_kw_count")
+									} else {
 										tenScada.Fast_ActivePowerSetpoint_kW = emptyValueBig
 										tenScada.Fast_ActivePowerSetpoint_kW_StdDev = emptyValueBig
 										tenScada.Fast_ActivePowerSetpoint_kW_Min = emptyValueBig
 										tenScada.Fast_ActivePowerSetpoint_kW_Max = emptyValueBig
-										
+
 									}
 
 									Fast_CurrentL2 := Fast_CurrentL2Map[key]
@@ -544,13 +543,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_CurrentL2_StdDev = Fast_CurrentL2.GetFloat64("fast_currentl2_stddev")
 										tenScada.Fast_CurrentL2_Min = Fast_CurrentL2.GetFloat64("fast_currentl2_min")
 										tenScada.Fast_CurrentL2_Max = Fast_CurrentL2.GetFloat64("fast_currentl2_max")
-										tenScada.Fast_CurrentL2_Count = Fast_CurrentL2.GetFloat64("fast_currentl2_count")
-									}else{
+										tenScada.Fast_CurrentL2_Count = Fast_CurrentL2.GetInt("fast_currentl2_count")
+									} else {
 										tenScada.Fast_CurrentL2 = emptyValueBig
 										tenScada.Fast_CurrentL2_StdDev = emptyValueBig
 										tenScada.Fast_CurrentL2_Min = emptyValueBig
 										tenScada.Fast_CurrentL2_Max = emptyValueBig
-										
+
 									}
 
 									Fast_DrTrVibValue := Fast_DrTrVibValueMap[key]
@@ -559,13 +558,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_DrTrVibValue_StdDev = Fast_DrTrVibValue.GetFloat64("fast_drtrvibvalue_stddev")
 										tenScada.Fast_DrTrVibValue_Min = Fast_DrTrVibValue.GetFloat64("fast_drtrvibvalue_min")
 										tenScada.Fast_DrTrVibValue_Max = Fast_DrTrVibValue.GetFloat64("fast_drtrvibvalue_max")
-										tenScada.Fast_DrTrVibValue_Count = Fast_DrTrVibValue.GetFloat64("fast_drtrvibvalue_count")
-									}else{
+										tenScada.Fast_DrTrVibValue_Count = Fast_DrTrVibValue.GetInt("fast_drtrvibvalue_count")
+									} else {
 										tenScada.Fast_DrTrVibValue = emptyValueBig
 										tenScada.Fast_DrTrVibValue_StdDev = emptyValueBig
 										tenScada.Fast_DrTrVibValue_Min = emptyValueBig
 										tenScada.Fast_DrTrVibValue_Max = emptyValueBig
-										
+
 									}
 
 									Fast_GenSpeed_RPM := Fast_GenSpeed_RPMMap[key]
@@ -574,13 +573,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_GenSpeed_RPM_StdDev = Fast_GenSpeed_RPM.GetFloat64("fast_genspeed_rpm_stddev")
 										tenScada.Fast_GenSpeed_RPM_Min = Fast_GenSpeed_RPM.GetFloat64("fast_genspeed_rpm_min")
 										tenScada.Fast_GenSpeed_RPM_Max = Fast_GenSpeed_RPM.GetFloat64("fast_genspeed_rpm_max")
-										tenScada.Fast_GenSpeed_RPM_Count = Fast_GenSpeed_RPM.GetFloat64("fast_genspeed_rpm_count")
-									}else{
+										tenScada.Fast_GenSpeed_RPM_Count = Fast_GenSpeed_RPM.GetInt("fast_genspeed_rpm_count")
+									} else {
 										tenScada.Fast_GenSpeed_RPM = emptyValueBig
 										tenScada.Fast_GenSpeed_RPM_StdDev = emptyValueBig
 										tenScada.Fast_GenSpeed_RPM_Min = emptyValueBig
 										tenScada.Fast_GenSpeed_RPM_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAccuV1 := Fast_PitchAccuV1Map[key]
@@ -589,13 +588,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAccuV1_StdDev = Fast_PitchAccuV1.GetFloat64("fast_pitchaccuv1_stddev")
 										tenScada.Fast_PitchAccuV1_Min = Fast_PitchAccuV1.GetFloat64("fast_pitchaccuv1_min")
 										tenScada.Fast_PitchAccuV1_Max = Fast_PitchAccuV1.GetFloat64("fast_pitchaccuv1_max")
-										tenScada.Fast_PitchAccuV1_Count = Fast_PitchAccuV1.GetFloat64("fast_pitchaccuv1_count")
-									}else{
+										tenScada.Fast_PitchAccuV1_Count = Fast_PitchAccuV1.GetInt("fast_pitchaccuv1_count")
+									} else {
 										tenScada.Fast_PitchAccuV1 = emptyValueBig
 										tenScada.Fast_PitchAccuV1_StdDev = emptyValueBig
 										tenScada.Fast_PitchAccuV1_Min = emptyValueBig
 										tenScada.Fast_PitchAccuV1_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAngle := Fast_PitchAngleMap[key]
@@ -604,13 +603,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAngle_StdDev = Fast_PitchAngle.GetFloat64("fast_pitchangle_stddev")
 										tenScada.Fast_PitchAngle_Min = Fast_PitchAngle.GetFloat64("fast_pitchangle_min")
 										tenScada.Fast_PitchAngle_Max = Fast_PitchAngle.GetFloat64("fast_pitchangle_max")
-										tenScada.Fast_PitchAngle_Count = Fast_PitchAngle.GetFloat64("fast_pitchangle_count")
-									}else{
+										tenScada.Fast_PitchAngle_Count = Fast_PitchAngle.GetInt("fast_pitchangle_count")
+									} else {
 										tenScada.Fast_PitchAngle = emptyValueBig
 										tenScada.Fast_PitchAngle_StdDev = emptyValueBig
 										tenScada.Fast_PitchAngle_Min = emptyValueBig
 										tenScada.Fast_PitchAngle_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAngle3 := Fast_PitchAngle3Map[key]
@@ -619,13 +618,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAngle3_StdDev = Fast_PitchAngle3.GetFloat64("fast_pitchangle3_stddev")
 										tenScada.Fast_PitchAngle3_Min = Fast_PitchAngle3.GetFloat64("fast_pitchangle3_min")
 										tenScada.Fast_PitchAngle3_Max = Fast_PitchAngle3.GetFloat64("fast_pitchangle3_max")
-										tenScada.Fast_PitchAngle3_Count = Fast_PitchAngle3.GetFloat64("fast_pitchangle3_count")
-									}else{
+										tenScada.Fast_PitchAngle3_Count = Fast_PitchAngle3.GetInt("fast_pitchangle3_count")
+									} else {
 										tenScada.Fast_PitchAngle3 = emptyValueBig
 										tenScada.Fast_PitchAngle3_StdDev = emptyValueBig
 										tenScada.Fast_PitchAngle3_Min = emptyValueBig
 										tenScada.Fast_PitchAngle3_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAngle2 := Fast_PitchAngle2Map[key]
@@ -634,13 +633,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAngle2_StdDev = Fast_PitchAngle2.GetFloat64("fast_pitchangle2_stddev")
 										tenScada.Fast_PitchAngle2_Min = Fast_PitchAngle2.GetFloat64("fast_pitchangle2_min")
 										tenScada.Fast_PitchAngle2_Max = Fast_PitchAngle2.GetFloat64("fast_pitchangle2_max")
-										tenScada.Fast_PitchAngle2_Count = Fast_PitchAngle2.GetFloat64("fast_pitchangle2_count")
-									}else{
+										tenScada.Fast_PitchAngle2_Count = Fast_PitchAngle2.GetInt("fast_pitchangle2_count")
+									} else {
 										tenScada.Fast_PitchAngle2 = emptyValueBig
 										tenScada.Fast_PitchAngle2_StdDev = emptyValueBig
 										tenScada.Fast_PitchAngle2_Min = emptyValueBig
 										tenScada.Fast_PitchAngle2_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchConvCurrent1 := Fast_PitchConvCurrent1Map[key]
@@ -649,13 +648,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchConvCurrent1_StdDev = Fast_PitchConvCurrent1.GetFloat64("fast_pitchconvcurrent1_stddev")
 										tenScada.Fast_PitchConvCurrent1_Min = Fast_PitchConvCurrent1.GetFloat64("fast_pitchconvcurrent1_min")
 										tenScada.Fast_PitchConvCurrent1_Max = Fast_PitchConvCurrent1.GetFloat64("fast_pitchconvcurrent1_max")
-										tenScada.Fast_PitchConvCurrent1_Count = Fast_PitchConvCurrent1.GetFloat64("fast_pitchconvcurrent1_count")
-									}else{
+										tenScada.Fast_PitchConvCurrent1_Count = Fast_PitchConvCurrent1.GetInt("fast_pitchconvcurrent1_count")
+									} else {
 										tenScada.Fast_PitchConvCurrent1 = emptyValueBig
 										tenScada.Fast_PitchConvCurrent1_StdDev = emptyValueBig
 										tenScada.Fast_PitchConvCurrent1_Min = emptyValueBig
 										tenScada.Fast_PitchConvCurrent1_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchConvCurrent3 := Fast_PitchConvCurrent3Map[key]
@@ -664,13 +663,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchConvCurrent3_StdDev = Fast_PitchConvCurrent3.GetFloat64("fast_pitchconvcurrent3_stddev")
 										tenScada.Fast_PitchConvCurrent3_Min = Fast_PitchConvCurrent3.GetFloat64("fast_pitchconvcurrent3_min")
 										tenScada.Fast_PitchConvCurrent3_Max = Fast_PitchConvCurrent3.GetFloat64("fast_pitchconvcurrent3_max")
-										tenScada.Fast_PitchConvCurrent3_Count = Fast_PitchConvCurrent3.GetFloat64("fast_pitchconvcurrent3_count")
-									}else{
+										tenScada.Fast_PitchConvCurrent3_Count = Fast_PitchConvCurrent3.GetInt("fast_pitchconvcurrent3_count")
+									} else {
 										tenScada.Fast_PitchConvCurrent3 = emptyValueBig
 										tenScada.Fast_PitchConvCurrent3_StdDev = emptyValueBig
 										tenScada.Fast_PitchConvCurrent3_Min = emptyValueBig
 										tenScada.Fast_PitchConvCurrent3_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchConvCurrent2 := Fast_PitchConvCurrent2Map[key]
@@ -679,13 +678,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchConvCurrent2_StdDev = Fast_PitchConvCurrent2.GetFloat64("fast_pitchconvcurrent2_stddev")
 										tenScada.Fast_PitchConvCurrent2_Min = Fast_PitchConvCurrent2.GetFloat64("fast_pitchconvcurrent2_min")
 										tenScada.Fast_PitchConvCurrent2_Max = Fast_PitchConvCurrent2.GetFloat64("fast_pitchconvcurrent2_max")
-										tenScada.Fast_PitchConvCurrent2_Count = Fast_PitchConvCurrent2.GetFloat64("fast_pitchconvcurrent2_count")
-									}else{
+										tenScada.Fast_PitchConvCurrent2_Count = Fast_PitchConvCurrent2.GetInt("fast_pitchconvcurrent2_count")
+									} else {
 										tenScada.Fast_PitchConvCurrent2 = emptyValueBig
 										tenScada.Fast_PitchConvCurrent2_StdDev = emptyValueBig
 										tenScada.Fast_PitchConvCurrent2_Min = emptyValueBig
 										tenScada.Fast_PitchConvCurrent2_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PowerFactor := Fast_PowerFactorMap[key]
@@ -694,13 +693,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PowerFactor_StdDev = Fast_PowerFactor.GetFloat64("fast_powerfactor_stddev")
 										tenScada.Fast_PowerFactor_Min = Fast_PowerFactor.GetFloat64("fast_powerfactor_min")
 										tenScada.Fast_PowerFactor_Max = Fast_PowerFactor.GetFloat64("fast_powerfactor_max")
-										tenScada.Fast_PowerFactor_Count = Fast_PowerFactor.GetFloat64("fast_powerfactor_count")
-									}else{
+										tenScada.Fast_PowerFactor_Count = Fast_PowerFactor.GetInt("fast_powerfactor_count")
+									} else {
 										tenScada.Fast_PowerFactor = emptyValueBig
 										tenScada.Fast_PowerFactor_StdDev = emptyValueBig
 										tenScada.Fast_PowerFactor_Min = emptyValueBig
 										tenScada.Fast_PowerFactor_Max = emptyValueBig
-										
+
 									}
 
 									Fast_ReactivePowerSetpointPPC_kVA := Fast_ReactivePowerSetpointPPC_kVAMap[key]
@@ -709,13 +708,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA_StdDev = Fast_ReactivePowerSetpointPPC_kVA.GetFloat64("fast_reactivepowersetpointppc_kva_stddev")
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA_Min = Fast_ReactivePowerSetpointPPC_kVA.GetFloat64("fast_reactivepowersetpointppc_kva_min")
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA_Max = Fast_ReactivePowerSetpointPPC_kVA.GetFloat64("fast_reactivepowersetpointppc_kva_max")
-										tenScada.Fast_ReactivePowerSetpointPPC_kVA_Count = Fast_ReactivePowerSetpointPPC_kVA.GetFloat64("fast_reactivepowersetpointppc_kva_count")
-									}else{
+										tenScada.Fast_ReactivePowerSetpointPPC_kVA_Count = Fast_ReactivePowerSetpointPPC_kVA.GetInt("fast_reactivepowersetpointppc_kva_count")
+									} else {
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA = emptyValueBig
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA_StdDev = emptyValueBig
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA_Min = emptyValueBig
 										tenScada.Fast_ReactivePowerSetpointPPC_kVA_Max = emptyValueBig
-										
+
 									}
 
 									Fast_ReactivePower_kVAr := Fast_ReactivePower_kVArMap[key]
@@ -724,13 +723,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_ReactivePower_kVAr_StdDev = Fast_ReactivePower_kVAr.GetFloat64("fast_reactivepower_kvar_stddev")
 										tenScada.Fast_ReactivePower_kVAr_Min = Fast_ReactivePower_kVAr.GetFloat64("fast_reactivepower_kvar_min")
 										tenScada.Fast_ReactivePower_kVAr_Max = Fast_ReactivePower_kVAr.GetFloat64("fast_reactivepower_kvar_max")
-										tenScada.Fast_ReactivePower_kVAr_Count = Fast_ReactivePower_kVAr.GetFloat64("fast_reactivepower_kvar_count")
-									}else{
+										tenScada.Fast_ReactivePower_kVAr_Count = Fast_ReactivePower_kVAr.GetInt("fast_reactivepower_kvar_count")
+									} else {
 										tenScada.Fast_ReactivePower_kVAr = emptyValueBig
 										tenScada.Fast_ReactivePower_kVAr_StdDev = emptyValueBig
 										tenScada.Fast_ReactivePower_kVAr_Min = emptyValueBig
 										tenScada.Fast_ReactivePower_kVAr_Max = emptyValueBig
-										
+
 									}
 
 									Fast_RotorSpeed_RPM := Fast_RotorSpeed_RPMMap[key]
@@ -739,13 +738,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_RotorSpeed_RPM_StdDev = Fast_RotorSpeed_RPM.GetFloat64("fast_rotorspeed_rpm_stddev")
 										tenScada.Fast_RotorSpeed_RPM_Min = Fast_RotorSpeed_RPM.GetFloat64("fast_rotorspeed_rpm_min")
 										tenScada.Fast_RotorSpeed_RPM_Max = Fast_RotorSpeed_RPM.GetFloat64("fast_rotorspeed_rpm_max")
-										tenScada.Fast_RotorSpeed_RPM_Count = Fast_RotorSpeed_RPM.GetFloat64("fast_rotorspeed_rpm_count")
-									}else{
+										tenScada.Fast_RotorSpeed_RPM_Count = Fast_RotorSpeed_RPM.GetInt("fast_rotorspeed_rpm_count")
+									} else {
 										tenScada.Fast_RotorSpeed_RPM = emptyValueBig
 										tenScada.Fast_RotorSpeed_RPM_StdDev = emptyValueBig
 										tenScada.Fast_RotorSpeed_RPM_Min = emptyValueBig
 										tenScada.Fast_RotorSpeed_RPM_Max = emptyValueBig
-										
+
 									}
 
 									Fast_VoltageL1 := Fast_VoltageL1Map[key]
@@ -754,13 +753,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_VoltageL1_StdDev = Fast_VoltageL1.GetFloat64("fast_voltagel1_stddev")
 										tenScada.Fast_VoltageL1_Min = Fast_VoltageL1.GetFloat64("fast_voltagel1_min")
 										tenScada.Fast_VoltageL1_Max = Fast_VoltageL1.GetFloat64("fast_voltagel1_max")
-										tenScada.Fast_VoltageL1_Count = Fast_VoltageL1.GetFloat64("fast_voltagel1_count")
-									}else{
+										tenScada.Fast_VoltageL1_Count = Fast_VoltageL1.GetInt("fast_voltagel1_count")
+									} else {
 										tenScada.Fast_VoltageL1 = emptyValueBig
 										tenScada.Fast_VoltageL1_StdDev = emptyValueBig
 										tenScada.Fast_VoltageL1_Min = emptyValueBig
 										tenScada.Fast_VoltageL1_Max = emptyValueBig
-										
+
 									}
 
 									Fast_VoltageL2 := Fast_VoltageL2Map[key]
@@ -769,13 +768,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_VoltageL2_StdDev = Fast_VoltageL2.GetFloat64("fast_voltagel2_stddev")
 										tenScada.Fast_VoltageL2_Min = Fast_VoltageL2.GetFloat64("fast_voltagel2_min")
 										tenScada.Fast_VoltageL2_Max = Fast_VoltageL2.GetFloat64("fast_voltagel2_max")
-										tenScada.Fast_VoltageL2_Count = Fast_VoltageL2.GetFloat64("fast_voltagel2_count")
-									}else{
+										tenScada.Fast_VoltageL2_Count = Fast_VoltageL2.GetInt("fast_voltagel2_count")
+									} else {
 										tenScada.Fast_VoltageL2 = emptyValueBig
 										tenScada.Fast_VoltageL2_StdDev = emptyValueBig
 										tenScada.Fast_VoltageL2_Min = emptyValueBig
 										tenScada.Fast_VoltageL2_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CapableCapacitiveReactPwr_kVAr := Slow_CapableCapacitiveReactPwr_kVArMap[key]
@@ -784,13 +783,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_StdDev = Slow_CapableCapacitiveReactPwr_kVAr.GetFloat64("slow_capablecapacitivereactpwr_kvar_stddev")
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_Min = Slow_CapableCapacitiveReactPwr_kVAr.GetFloat64("slow_capablecapacitivereactpwr_kvar_min")
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_Max = Slow_CapableCapacitiveReactPwr_kVAr.GetFloat64("slow_capablecapacitivereactpwr_kvar_max")
-										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_Count = Slow_CapableCapacitiveReactPwr_kVAr.GetFloat64("slow_capablecapacitivereactpwr_kvar_count")
-									}else{
+										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_Count = Slow_CapableCapacitiveReactPwr_kVAr.GetInt("slow_capablecapacitivereactpwr_kvar_count")
+									} else {
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr = emptyValueBig
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_StdDev = emptyValueBig
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_Min = emptyValueBig
 										tenScada.Slow_CapableCapacitiveReactPwr_kVAr_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CapableInductiveReactPwr_kVAr := Slow_CapableInductiveReactPwr_kVArMap[key]
@@ -799,13 +798,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CapableInductiveReactPwr_kVAr_StdDev = Slow_CapableInductiveReactPwr_kVAr.GetFloat64("slow_capableinductivereactpwr_kvar_stddev")
 										tenScada.Slow_CapableInductiveReactPwr_kVAr_Min = Slow_CapableInductiveReactPwr_kVAr.GetFloat64("slow_capableinductivereactpwr_kvar_min")
 										tenScada.Slow_CapableInductiveReactPwr_kVAr_Max = Slow_CapableInductiveReactPwr_kVAr.GetFloat64("slow_capableinductivereactpwr_kvar_max")
-										tenScada.Slow_CapableInductiveReactPwr_kVAr_Count = Slow_CapableInductiveReactPwr_kVAr.GetFloat64("slow_capableinductivereactpwr_kvar_count")
-									}else{
+										tenScada.Slow_CapableInductiveReactPwr_kVAr_Count = Slow_CapableInductiveReactPwr_kVAr.GetInt("slow_capableinductivereactpwr_kvar_count")
+									} else {
 										tenScada.Slow_CapableInductiveReactPwr_kVAr = emptyValueBig
 										tenScada.Slow_CapableInductiveReactPwr_kVAr_StdDev = emptyValueBig
 										tenScada.Slow_CapableInductiveReactPwr_kVAr_Min = emptyValueBig
 										tenScada.Slow_CapableInductiveReactPwr_kVAr_Max = emptyValueBig
-										
+
 									}
 
 									Slow_DateTime_Sec := Slow_DateTime_SecMap[key]
@@ -814,13 +813,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_DateTime_Sec_StdDev = Slow_DateTime_Sec.GetFloat64("slow_datetime_sec_stddev")
 										tenScada.Slow_DateTime_Sec_Min = Slow_DateTime_Sec.GetFloat64("slow_datetime_sec_min")
 										tenScada.Slow_DateTime_Sec_Max = Slow_DateTime_Sec.GetFloat64("slow_datetime_sec_max")
-										tenScada.Slow_DateTime_Sec_Count = Slow_DateTime_Sec.GetFloat64("slow_datetime_sec_count")
-									}else{
+										tenScada.Slow_DateTime_Sec_Count = Slow_DateTime_Sec.GetInt("slow_datetime_sec_count")
+									} else {
 										tenScada.Slow_DateTime_Sec = emptyValueBig
 										tenScada.Slow_DateTime_Sec_StdDev = emptyValueBig
 										tenScada.Slow_DateTime_Sec_Min = emptyValueBig
 										tenScada.Slow_DateTime_Sec_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAngle1 := Fast_PitchAngle1Map[key]
@@ -829,13 +828,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAngle1_StdDev = Fast_PitchAngle1.GetFloat64("fast_pitchangle1_stddev")
 										tenScada.Fast_PitchAngle1_Min = Fast_PitchAngle1.GetFloat64("fast_pitchangle1_min")
 										tenScada.Fast_PitchAngle1_Max = Fast_PitchAngle1.GetFloat64("fast_pitchangle1_max")
-										tenScada.Fast_PitchAngle1_Count = Fast_PitchAngle1.GetFloat64("fast_pitchangle1_count")
-									}else{
+										tenScada.Fast_PitchAngle1_Count = Fast_PitchAngle1.GetInt("fast_pitchangle1_count")
+									} else {
 										tenScada.Fast_PitchAngle1 = emptyValueBig
 										tenScada.Fast_PitchAngle1_StdDev = emptyValueBig
 										tenScada.Fast_PitchAngle1_Min = emptyValueBig
 										tenScada.Fast_PitchAngle1_Max = emptyValueBig
-										
+
 									}
 
 									Fast_VoltageL3 := Fast_VoltageL3Map[key]
@@ -844,13 +843,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_VoltageL3_StdDev = Fast_VoltageL3.GetFloat64("fast_voltagel3_stddev")
 										tenScada.Fast_VoltageL3_Min = Fast_VoltageL3.GetFloat64("fast_voltagel3_min")
 										tenScada.Fast_VoltageL3_Max = Fast_VoltageL3.GetFloat64("fast_voltagel3_max")
-										tenScada.Fast_VoltageL3_Count = Fast_VoltageL3.GetFloat64("fast_voltagel3_count")
-									}else{
+										tenScada.Fast_VoltageL3_Count = Fast_VoltageL3.GetInt("fast_voltagel3_count")
+									} else {
 										tenScada.Fast_VoltageL3 = emptyValueBig
 										tenScada.Fast_VoltageL3_StdDev = emptyValueBig
 										tenScada.Fast_VoltageL3_Min = emptyValueBig
 										tenScada.Fast_VoltageL3_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CapableCapacitivePwrFactor := Slow_CapableCapacitivePwrFactorMap[key]
@@ -859,13 +858,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CapableCapacitivePwrFactor_StdDev = Slow_CapableCapacitivePwrFactor.GetFloat64("slow_capablecapacitivepwrfactor_stddev")
 										tenScada.Slow_CapableCapacitivePwrFactor_Min = Slow_CapableCapacitivePwrFactor.GetFloat64("slow_capablecapacitivepwrfactor_min")
 										tenScada.Slow_CapableCapacitivePwrFactor_Max = Slow_CapableCapacitivePwrFactor.GetFloat64("slow_capablecapacitivepwrfactor_max")
-										tenScada.Slow_CapableCapacitivePwrFactor_Count = Slow_CapableCapacitivePwrFactor.GetFloat64("slow_capablecapacitivepwrfactor_count")
-									}else{
+										tenScada.Slow_CapableCapacitivePwrFactor_Count = Slow_CapableCapacitivePwrFactor.GetInt("slow_capablecapacitivepwrfactor_count")
+									} else {
 										tenScada.Slow_CapableCapacitivePwrFactor = emptyValueBig
 										tenScada.Slow_CapableCapacitivePwrFactor_StdDev = emptyValueBig
 										tenScada.Slow_CapableCapacitivePwrFactor_Min = emptyValueBig
 										tenScada.Slow_CapableCapacitivePwrFactor_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_Production_kWh := Fast_Total_Production_kWhMap[key]
@@ -874,13 +873,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_Production_kWh_StdDev = Fast_Total_Production_kWh.GetFloat64("fast_total_production_kwh_stddev")
 										tenScada.Fast_Total_Production_kWh_Min = Fast_Total_Production_kWh.GetFloat64("fast_total_production_kwh_min")
 										tenScada.Fast_Total_Production_kWh_Max = Fast_Total_Production_kWh.GetFloat64("fast_total_production_kwh_max")
-										tenScada.Fast_Total_Production_kWh_Count = Fast_Total_Production_kWh.GetFloat64("fast_total_production_kwh_count")
-									}else{
+										tenScada.Fast_Total_Production_kWh_Count = Fast_Total_Production_kWh.GetInt("fast_total_production_kwh_count")
+									} else {
 										tenScada.Fast_Total_Production_kWh = emptyValueBig
 										tenScada.Fast_Total_Production_kWh_StdDev = emptyValueBig
 										tenScada.Fast_Total_Production_kWh_Min = emptyValueBig
 										tenScada.Fast_Total_Production_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_Prod_Day_kWh := Fast_Total_Prod_Day_kWhMap[key]
@@ -889,13 +888,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_Prod_Day_kWh_StdDev = Fast_Total_Prod_Day_kWh.GetFloat64("fast_total_prod_day_kwh_stddev")
 										tenScada.Fast_Total_Prod_Day_kWh_Min = Fast_Total_Prod_Day_kWh.GetFloat64("fast_total_prod_day_kwh_min")
 										tenScada.Fast_Total_Prod_Day_kWh_Max = Fast_Total_Prod_Day_kWh.GetFloat64("fast_total_prod_day_kwh_max")
-										tenScada.Fast_Total_Prod_Day_kWh_Count = Fast_Total_Prod_Day_kWh.GetFloat64("fast_total_prod_day_kwh_count")
-									}else{
+										tenScada.Fast_Total_Prod_Day_kWh_Count = Fast_Total_Prod_Day_kWh.GetInt("fast_total_prod_day_kwh_count")
+									} else {
 										tenScada.Fast_Total_Prod_Day_kWh = emptyValueBig
 										tenScada.Fast_Total_Prod_Day_kWh_StdDev = emptyValueBig
 										tenScada.Fast_Total_Prod_Day_kWh_Min = emptyValueBig
 										tenScada.Fast_Total_Prod_Day_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_Prod_Month_kWh := Fast_Total_Prod_Month_kWhMap[key]
@@ -904,13 +903,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_Prod_Month_kWh_StdDev = Fast_Total_Prod_Month_kWh.GetFloat64("fast_total_prod_month_kwh_stddev")
 										tenScada.Fast_Total_Prod_Month_kWh_Min = Fast_Total_Prod_Month_kWh.GetFloat64("fast_total_prod_month_kwh_min")
 										tenScada.Fast_Total_Prod_Month_kWh_Max = Fast_Total_Prod_Month_kWh.GetFloat64("fast_total_prod_month_kwh_max")
-										tenScada.Fast_Total_Prod_Month_kWh_Count = Fast_Total_Prod_Month_kWh.GetFloat64("fast_total_prod_month_kwh_count")
-									}else{
+										tenScada.Fast_Total_Prod_Month_kWh_Count = Fast_Total_Prod_Month_kWh.GetInt("fast_total_prod_month_kwh_count")
+									} else {
 										tenScada.Fast_Total_Prod_Month_kWh = emptyValueBig
 										tenScada.Fast_Total_Prod_Month_kWh_StdDev = emptyValueBig
 										tenScada.Fast_Total_Prod_Month_kWh_Min = emptyValueBig
 										tenScada.Fast_Total_Prod_Month_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Fast_ActivePowerOutPWCSell_kW := Fast_ActivePowerOutPWCSell_kWMap[key]
@@ -919,13 +918,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_ActivePowerOutPWCSell_kW_StdDev = Fast_ActivePowerOutPWCSell_kW.GetFloat64("fast_activepoweroutpwcsell_kw_stddev")
 										tenScada.Fast_ActivePowerOutPWCSell_kW_Min = Fast_ActivePowerOutPWCSell_kW.GetFloat64("fast_activepoweroutpwcsell_kw_min")
 										tenScada.Fast_ActivePowerOutPWCSell_kW_Max = Fast_ActivePowerOutPWCSell_kW.GetFloat64("fast_activepoweroutpwcsell_kw_max")
-										tenScada.Fast_ActivePowerOutPWCSell_kW_Count = Fast_ActivePowerOutPWCSell_kW.GetFloat64("fast_activepoweroutpwcsell_kw_count")
-									}else{
+										tenScada.Fast_ActivePowerOutPWCSell_kW_Count = Fast_ActivePowerOutPWCSell_kW.GetInt("fast_activepoweroutpwcsell_kw_count")
+									} else {
 										tenScada.Fast_ActivePowerOutPWCSell_kW = emptyValueBig
 										tenScada.Fast_ActivePowerOutPWCSell_kW_StdDev = emptyValueBig
 										tenScada.Fast_ActivePowerOutPWCSell_kW_Min = emptyValueBig
 										tenScada.Fast_ActivePowerOutPWCSell_kW_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Frequency_Hz := Fast_Frequency_HzMap[key]
@@ -934,13 +933,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Frequency_Hz_StdDev = Fast_Frequency_Hz.GetFloat64("fast_frequency_hz_stddev")
 										tenScada.Fast_Frequency_Hz_Min = Fast_Frequency_Hz.GetFloat64("fast_frequency_hz_min")
 										tenScada.Fast_Frequency_Hz_Max = Fast_Frequency_Hz.GetFloat64("fast_frequency_hz_max")
-										tenScada.Fast_Frequency_Hz_Count = Fast_Frequency_Hz.GetFloat64("fast_frequency_hz_count")
-									}else{
+										tenScada.Fast_Frequency_Hz_Count = Fast_Frequency_Hz.GetInt("fast_frequency_hz_count")
+									} else {
 										tenScada.Fast_Frequency_Hz = emptyValueBig
 										tenScada.Fast_Frequency_Hz_StdDev = emptyValueBig
 										tenScada.Fast_Frequency_Hz_Min = emptyValueBig
 										tenScada.Fast_Frequency_Hz_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempG1L2 := Slow_TempG1L2Map[key]
@@ -949,13 +948,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempG1L2_StdDev = Slow_TempG1L2.GetFloat64("slow_tempg1l2_stddev")
 										tenScada.Slow_TempG1L2_Min = Slow_TempG1L2.GetFloat64("slow_tempg1l2_min")
 										tenScada.Slow_TempG1L2_Max = Slow_TempG1L2.GetFloat64("slow_tempg1l2_max")
-										tenScada.Slow_TempG1L2_Count = Slow_TempG1L2.GetFloat64("slow_tempg1l2_count")
-									}else{
+										tenScada.Slow_TempG1L2_Count = Slow_TempG1L2.GetInt("slow_tempg1l2_count")
+									} else {
 										tenScada.Slow_TempG1L2 = emptyValueBig
 										tenScada.Slow_TempG1L2_StdDev = emptyValueBig
 										tenScada.Slow_TempG1L2_Min = emptyValueBig
 										tenScada.Slow_TempG1L2_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempG1L3 := Slow_TempG1L3Map[key]
@@ -964,13 +963,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempG1L3_StdDev = Slow_TempG1L3.GetFloat64("slow_tempg1l3_stddev")
 										tenScada.Slow_TempG1L3_Min = Slow_TempG1L3.GetFloat64("slow_tempg1l3_min")
 										tenScada.Slow_TempG1L3_Max = Slow_TempG1L3.GetFloat64("slow_tempg1l3_max")
-										tenScada.Slow_TempG1L3_Count = Slow_TempG1L3.GetFloat64("slow_tempg1l3_count")
-									}else{
+										tenScada.Slow_TempG1L3_Count = Slow_TempG1L3.GetInt("slow_tempg1l3_count")
+									} else {
 										tenScada.Slow_TempG1L3 = emptyValueBig
 										tenScada.Slow_TempG1L3_StdDev = emptyValueBig
 										tenScada.Slow_TempG1L3_Min = emptyValueBig
 										tenScada.Slow_TempG1L3_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGearBoxHSSDE := Slow_TempGearBoxHSSDEMap[key]
@@ -979,13 +978,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGearBoxHSSDE_StdDev = Slow_TempGearBoxHSSDE.GetFloat64("slow_tempgearboxhssde_stddev")
 										tenScada.Slow_TempGearBoxHSSDE_Min = Slow_TempGearBoxHSSDE.GetFloat64("slow_tempgearboxhssde_min")
 										tenScada.Slow_TempGearBoxHSSDE_Max = Slow_TempGearBoxHSSDE.GetFloat64("slow_tempgearboxhssde_max")
-										tenScada.Slow_TempGearBoxHSSDE_Count = Slow_TempGearBoxHSSDE.GetFloat64("slow_tempgearboxhssde_count")
-									}else{
+										tenScada.Slow_TempGearBoxHSSDE_Count = Slow_TempGearBoxHSSDE.GetInt("slow_tempgearboxhssde_count")
+									} else {
 										tenScada.Slow_TempGearBoxHSSDE = emptyValueBig
 										tenScada.Slow_TempGearBoxHSSDE_StdDev = emptyValueBig
 										tenScada.Slow_TempGearBoxHSSDE_Min = emptyValueBig
 										tenScada.Slow_TempGearBoxHSSDE_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGearBoxIMSNDE := Slow_TempGearBoxIMSNDEMap[key]
@@ -994,13 +993,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGearBoxIMSNDE_StdDev = Slow_TempGearBoxIMSNDE.GetFloat64("slow_tempgearboximsnde_stddev")
 										tenScada.Slow_TempGearBoxIMSNDE_Min = Slow_TempGearBoxIMSNDE.GetFloat64("slow_tempgearboximsnde_min")
 										tenScada.Slow_TempGearBoxIMSNDE_Max = Slow_TempGearBoxIMSNDE.GetFloat64("slow_tempgearboximsnde_max")
-										tenScada.Slow_TempGearBoxIMSNDE_Count = Slow_TempGearBoxIMSNDE.GetFloat64("slow_tempgearboximsnde_count")
-									}else{
+										tenScada.Slow_TempGearBoxIMSNDE_Count = Slow_TempGearBoxIMSNDE.GetInt("slow_tempgearboximsnde_count")
+									} else {
 										tenScada.Slow_TempGearBoxIMSNDE = emptyValueBig
 										tenScada.Slow_TempGearBoxIMSNDE_StdDev = emptyValueBig
 										tenScada.Slow_TempGearBoxIMSNDE_Min = emptyValueBig
 										tenScada.Slow_TempGearBoxIMSNDE_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempOutdoor := Slow_TempOutdoorMap[key]
@@ -1009,13 +1008,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempOutdoor_StdDev = Slow_TempOutdoor.GetFloat64("slow_tempoutdoor_stddev")
 										tenScada.Slow_TempOutdoor_Min = Slow_TempOutdoor.GetFloat64("slow_tempoutdoor_min")
 										tenScada.Slow_TempOutdoor_Max = Slow_TempOutdoor.GetFloat64("slow_tempoutdoor_max")
-										tenScada.Slow_TempOutdoor_Count = Slow_TempOutdoor.GetFloat64("slow_tempoutdoor_count")
-									}else{
+										tenScada.Slow_TempOutdoor_Count = Slow_TempOutdoor.GetInt("slow_tempoutdoor_count")
+									} else {
 										tenScada.Slow_TempOutdoor = emptyValueBig
 										tenScada.Slow_TempOutdoor_StdDev = emptyValueBig
 										tenScada.Slow_TempOutdoor_Min = emptyValueBig
 										tenScada.Slow_TempOutdoor_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAccuV3 := Fast_PitchAccuV3Map[key]
@@ -1024,13 +1023,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAccuV3_StdDev = Fast_PitchAccuV3.GetFloat64("fast_pitchaccuv3_stddev")
 										tenScada.Fast_PitchAccuV3_Min = Fast_PitchAccuV3.GetFloat64("fast_pitchaccuv3_min")
 										tenScada.Fast_PitchAccuV3_Max = Fast_PitchAccuV3.GetFloat64("fast_pitchaccuv3_max")
-										tenScada.Fast_PitchAccuV3_Count = Fast_PitchAccuV3.GetFloat64("fast_pitchaccuv3_count")
-									}else{
+										tenScada.Fast_PitchAccuV3_Count = Fast_PitchAccuV3.GetInt("fast_pitchaccuv3_count")
+									} else {
 										tenScada.Fast_PitchAccuV3 = emptyValueBig
 										tenScada.Fast_PitchAccuV3_StdDev = emptyValueBig
 										tenScada.Fast_PitchAccuV3_Min = emptyValueBig
 										tenScada.Fast_PitchAccuV3_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalTurbineActiveHours := Slow_TotalTurbineActiveHoursMap[key]
@@ -1039,13 +1038,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalTurbineActiveHours_StdDev = Slow_TotalTurbineActiveHours.GetFloat64("slow_totalturbineactivehours_stddev")
 										tenScada.Slow_TotalTurbineActiveHours_Min = Slow_TotalTurbineActiveHours.GetFloat64("slow_totalturbineactivehours_min")
 										tenScada.Slow_TotalTurbineActiveHours_Max = Slow_TotalTurbineActiveHours.GetFloat64("slow_totalturbineactivehours_max")
-										tenScada.Slow_TotalTurbineActiveHours_Count = Slow_TotalTurbineActiveHours.GetFloat64("slow_totalturbineactivehours_count")
-									}else{
+										tenScada.Slow_TotalTurbineActiveHours_Count = Slow_TotalTurbineActiveHours.GetInt("slow_totalturbineactivehours_count")
+									} else {
 										tenScada.Slow_TotalTurbineActiveHours = emptyValueBig
 										tenScada.Slow_TotalTurbineActiveHours_StdDev = emptyValueBig
 										tenScada.Slow_TotalTurbineActiveHours_Min = emptyValueBig
 										tenScada.Slow_TotalTurbineActiveHours_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalTurbineOKHours := Slow_TotalTurbineOKHoursMap[key]
@@ -1054,13 +1053,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalTurbineOKHours_StdDev = Slow_TotalTurbineOKHours.GetFloat64("slow_totalturbineokhours_stddev")
 										tenScada.Slow_TotalTurbineOKHours_Min = Slow_TotalTurbineOKHours.GetFloat64("slow_totalturbineokhours_min")
 										tenScada.Slow_TotalTurbineOKHours_Max = Slow_TotalTurbineOKHours.GetFloat64("slow_totalturbineokhours_max")
-										tenScada.Slow_TotalTurbineOKHours_Count = Slow_TotalTurbineOKHours.GetFloat64("slow_totalturbineokhours_count")
-									}else{
+										tenScada.Slow_TotalTurbineOKHours_Count = Slow_TotalTurbineOKHours.GetInt("slow_totalturbineokhours_count")
+									} else {
 										tenScada.Slow_TotalTurbineOKHours = emptyValueBig
 										tenScada.Slow_TotalTurbineOKHours_StdDev = emptyValueBig
 										tenScada.Slow_TotalTurbineOKHours_Min = emptyValueBig
 										tenScada.Slow_TotalTurbineOKHours_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalTurbineTimeAllHours := Slow_TotalTurbineTimeAllHoursMap[key]
@@ -1069,13 +1068,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalTurbineTimeAllHours_StdDev = Slow_TotalTurbineTimeAllHours.GetFloat64("slow_totalturbinetimeallhours_stddev")
 										tenScada.Slow_TotalTurbineTimeAllHours_Min = Slow_TotalTurbineTimeAllHours.GetFloat64("slow_totalturbinetimeallhours_min")
 										tenScada.Slow_TotalTurbineTimeAllHours_Max = Slow_TotalTurbineTimeAllHours.GetFloat64("slow_totalturbinetimeallhours_max")
-										tenScada.Slow_TotalTurbineTimeAllHours_Count = Slow_TotalTurbineTimeAllHours.GetFloat64("slow_totalturbinetimeallhours_count")
-									}else{
+										tenScada.Slow_TotalTurbineTimeAllHours_Count = Slow_TotalTurbineTimeAllHours.GetInt("slow_totalturbinetimeallhours_count")
+									} else {
 										tenScada.Slow_TotalTurbineTimeAllHours = emptyValueBig
 										tenScada.Slow_TotalTurbineTimeAllHours_StdDev = emptyValueBig
 										tenScada.Slow_TotalTurbineTimeAllHours_Min = emptyValueBig
 										tenScada.Slow_TotalTurbineTimeAllHours_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempG1L1 := Slow_TempG1L1Map[key]
@@ -1084,13 +1083,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempG1L1_StdDev = Slow_TempG1L1.GetFloat64("slow_tempg1l1_stddev")
 										tenScada.Slow_TempG1L1_Min = Slow_TempG1L1.GetFloat64("slow_tempg1l1_min")
 										tenScada.Slow_TempG1L1_Max = Slow_TempG1L1.GetFloat64("slow_tempg1l1_max")
-										tenScada.Slow_TempG1L1_Count = Slow_TempG1L1.GetFloat64("slow_tempg1l1_count")
-									}else{
+										tenScada.Slow_TempG1L1_Count = Slow_TempG1L1.GetInt("slow_tempg1l1_count")
+									} else {
 										tenScada.Slow_TempG1L1 = emptyValueBig
 										tenScada.Slow_TempG1L1_StdDev = emptyValueBig
 										tenScada.Slow_TempG1L1_Min = emptyValueBig
 										tenScada.Slow_TempG1L1_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGearBoxOilSump := Slow_TempGearBoxOilSumpMap[key]
@@ -1099,13 +1098,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGearBoxOilSump_StdDev = Slow_TempGearBoxOilSump.GetFloat64("slow_tempgearboxoilsump_stddev")
 										tenScada.Slow_TempGearBoxOilSump_Min = Slow_TempGearBoxOilSump.GetFloat64("slow_tempgearboxoilsump_min")
 										tenScada.Slow_TempGearBoxOilSump_Max = Slow_TempGearBoxOilSump.GetFloat64("slow_tempgearboxoilsump_max")
-										tenScada.Slow_TempGearBoxOilSump_Count = Slow_TempGearBoxOilSump.GetFloat64("slow_tempgearboxoilsump_count")
-									}else{
+										tenScada.Slow_TempGearBoxOilSump_Count = Slow_TempGearBoxOilSump.GetInt("slow_tempgearboxoilsump_count")
+									} else {
 										tenScada.Slow_TempGearBoxOilSump = emptyValueBig
 										tenScada.Slow_TempGearBoxOilSump_StdDev = emptyValueBig
 										tenScada.Slow_TempGearBoxOilSump_Min = emptyValueBig
 										tenScada.Slow_TempGearBoxOilSump_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchAccuV2 := Fast_PitchAccuV2Map[key]
@@ -1114,13 +1113,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchAccuV2_StdDev = Fast_PitchAccuV2.GetFloat64("fast_pitchaccuv2_stddev")
 										tenScada.Fast_PitchAccuV2_Min = Fast_PitchAccuV2.GetFloat64("fast_pitchaccuv2_min")
 										tenScada.Fast_PitchAccuV2_Max = Fast_PitchAccuV2.GetFloat64("fast_pitchaccuv2_max")
-										tenScada.Fast_PitchAccuV2_Count = Fast_PitchAccuV2.GetFloat64("fast_pitchaccuv2_count")
-									}else{
+										tenScada.Fast_PitchAccuV2_Count = Fast_PitchAccuV2.GetInt("fast_pitchaccuv2_count")
+									} else {
 										tenScada.Fast_PitchAccuV2 = emptyValueBig
 										tenScada.Fast_PitchAccuV2_StdDev = emptyValueBig
 										tenScada.Fast_PitchAccuV2_Min = emptyValueBig
 										tenScada.Fast_PitchAccuV2_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalGridOkHours := Slow_TotalGridOkHoursMap[key]
@@ -1129,13 +1128,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalGridOkHours_StdDev = Slow_TotalGridOkHours.GetFloat64("slow_totalgridokhours_stddev")
 										tenScada.Slow_TotalGridOkHours_Min = Slow_TotalGridOkHours.GetFloat64("slow_totalgridokhours_min")
 										tenScada.Slow_TotalGridOkHours_Max = Slow_TotalGridOkHours.GetFloat64("slow_totalgridokhours_max")
-										tenScada.Slow_TotalGridOkHours_Count = Slow_TotalGridOkHours.GetFloat64("slow_totalgridokhours_count")
-									}else{
+										tenScada.Slow_TotalGridOkHours_Count = Slow_TotalGridOkHours.GetInt("slow_totalgridokhours_count")
+									} else {
 										tenScada.Slow_TotalGridOkHours = emptyValueBig
 										tenScada.Slow_TotalGridOkHours_StdDev = emptyValueBig
 										tenScada.Slow_TotalGridOkHours_Min = emptyValueBig
 										tenScada.Slow_TotalGridOkHours_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalActPowerOut_kWh := Slow_TotalActPowerOut_kWhMap[key]
@@ -1144,13 +1143,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalActPowerOut_kWh_StdDev = Slow_TotalActPowerOut_kWh.GetFloat64("slow_totalactpowerout_kwh_stddev")
 										tenScada.Slow_TotalActPowerOut_kWh_Min = Slow_TotalActPowerOut_kWh.GetFloat64("slow_totalactpowerout_kwh_min")
 										tenScada.Slow_TotalActPowerOut_kWh_Max = Slow_TotalActPowerOut_kWh.GetFloat64("slow_totalactpowerout_kwh_max")
-										tenScada.Slow_TotalActPowerOut_kWh_Count = Slow_TotalActPowerOut_kWh.GetFloat64("slow_totalactpowerout_kwh_count")
-									}else{
+										tenScada.Slow_TotalActPowerOut_kWh_Count = Slow_TotalActPowerOut_kWh.GetInt("slow_totalactpowerout_kwh_count")
+									} else {
 										tenScada.Slow_TotalActPowerOut_kWh = emptyValueBig
 										tenScada.Slow_TotalActPowerOut_kWh_StdDev = emptyValueBig
 										tenScada.Slow_TotalActPowerOut_kWh_Min = emptyValueBig
 										tenScada.Slow_TotalActPowerOut_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Fast_YawService := Fast_YawServiceMap[key]
@@ -1159,13 +1158,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_YawService_StdDev = Fast_YawService.GetFloat64("fast_yawservice_stddev")
 										tenScada.Fast_YawService_Min = Fast_YawService.GetFloat64("fast_yawservice_min")
 										tenScada.Fast_YawService_Max = Fast_YawService.GetFloat64("fast_yawservice_max")
-										tenScada.Fast_YawService_Count = Fast_YawService.GetFloat64("fast_yawservice_count")
-									}else{
+										tenScada.Fast_YawService_Count = Fast_YawService.GetInt("fast_yawservice_count")
+									} else {
 										tenScada.Fast_YawService = emptyValueBig
 										tenScada.Fast_YawService_StdDev = emptyValueBig
 										tenScada.Fast_YawService_Min = emptyValueBig
 										tenScada.Fast_YawService_Max = emptyValueBig
-										
+
 									}
 
 									Fast_YawAngle := Fast_YawAngleMap[key]
@@ -1174,13 +1173,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_YawAngle_StdDev = Fast_YawAngle.GetFloat64("fast_yawangle_stddev")
 										tenScada.Fast_YawAngle_Min = Fast_YawAngle.GetFloat64("fast_yawangle_min")
 										tenScada.Fast_YawAngle_Max = Fast_YawAngle.GetFloat64("fast_yawangle_max")
-										tenScada.Fast_YawAngle_Count = Fast_YawAngle.GetFloat64("fast_yawangle_count")
-									}else{
+										tenScada.Fast_YawAngle_Count = Fast_YawAngle.GetInt("fast_yawangle_count")
+									} else {
 										tenScada.Fast_YawAngle = emptyValueBig
 										tenScada.Fast_YawAngle_StdDev = emptyValueBig
 										tenScada.Fast_YawAngle_Min = emptyValueBig
 										tenScada.Fast_YawAngle_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CapableInductivePwrFactor := Slow_CapableInductivePwrFactorMap[key]
@@ -1189,13 +1188,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CapableInductivePwrFactor_StdDev = Slow_CapableInductivePwrFactor.GetFloat64("slow_capableinductivepwrfactor_stddev")
 										tenScada.Slow_CapableInductivePwrFactor_Min = Slow_CapableInductivePwrFactor.GetFloat64("slow_capableinductivepwrfactor_min")
 										tenScada.Slow_CapableInductivePwrFactor_Max = Slow_CapableInductivePwrFactor.GetFloat64("slow_capableinductivepwrfactor_max")
-										tenScada.Slow_CapableInductivePwrFactor_Count = Slow_CapableInductivePwrFactor.GetFloat64("slow_capableinductivepwrfactor_count")
-									}else{
+										tenScada.Slow_CapableInductivePwrFactor_Count = Slow_CapableInductivePwrFactor.GetInt("slow_capableinductivepwrfactor_count")
+									} else {
 										tenScada.Slow_CapableInductivePwrFactor = emptyValueBig
 										tenScada.Slow_CapableInductivePwrFactor_StdDev = emptyValueBig
 										tenScada.Slow_CapableInductivePwrFactor_Min = emptyValueBig
 										tenScada.Slow_CapableInductivePwrFactor_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGearBoxHSSNDE := Slow_TempGearBoxHSSNDEMap[key]
@@ -1204,13 +1203,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGearBoxHSSNDE_StdDev = Slow_TempGearBoxHSSNDE.GetFloat64("slow_tempgearboxhssnde_stddev")
 										tenScada.Slow_TempGearBoxHSSNDE_Min = Slow_TempGearBoxHSSNDE.GetFloat64("slow_tempgearboxhssnde_min")
 										tenScada.Slow_TempGearBoxHSSNDE_Max = Slow_TempGearBoxHSSNDE.GetFloat64("slow_tempgearboxhssnde_max")
-										tenScada.Slow_TempGearBoxHSSNDE_Count = Slow_TempGearBoxHSSNDE.GetFloat64("slow_tempgearboxhssnde_count")
-									}else{
+										tenScada.Slow_TempGearBoxHSSNDE_Count = Slow_TempGearBoxHSSNDE.GetInt("slow_tempgearboxhssnde_count")
+									} else {
 										tenScada.Slow_TempGearBoxHSSNDE = emptyValueBig
 										tenScada.Slow_TempGearBoxHSSNDE_StdDev = emptyValueBig
 										tenScada.Slow_TempGearBoxHSSNDE_Min = emptyValueBig
 										tenScada.Slow_TempGearBoxHSSNDE_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempHubBearing := Slow_TempHubBearingMap[key]
@@ -1219,13 +1218,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempHubBearing_StdDev = Slow_TempHubBearing.GetFloat64("slow_temphubbearing_stddev")
 										tenScada.Slow_TempHubBearing_Min = Slow_TempHubBearing.GetFloat64("slow_temphubbearing_min")
 										tenScada.Slow_TempHubBearing_Max = Slow_TempHubBearing.GetFloat64("slow_temphubbearing_max")
-										tenScada.Slow_TempHubBearing_Count = Slow_TempHubBearing.GetFloat64("slow_temphubbearing_count")
-									}else{
+										tenScada.Slow_TempHubBearing_Count = Slow_TempHubBearing.GetInt("slow_temphubbearing_count")
+									} else {
 										tenScada.Slow_TempHubBearing = emptyValueBig
 										tenScada.Slow_TempHubBearing_StdDev = emptyValueBig
 										tenScada.Slow_TempHubBearing_Min = emptyValueBig
 										tenScada.Slow_TempHubBearing_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalG1ActiveHours := Slow_TotalG1ActiveHoursMap[key]
@@ -1234,13 +1233,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalG1ActiveHours_StdDev = Slow_TotalG1ActiveHours.GetFloat64("slow_totalg1activehours_stddev")
 										tenScada.Slow_TotalG1ActiveHours_Min = Slow_TotalG1ActiveHours.GetFloat64("slow_totalg1activehours_min")
 										tenScada.Slow_TotalG1ActiveHours_Max = Slow_TotalG1ActiveHours.GetFloat64("slow_totalg1activehours_max")
-										tenScada.Slow_TotalG1ActiveHours_Count = Slow_TotalG1ActiveHours.GetFloat64("slow_totalg1activehours_count")
-									}else{
+										tenScada.Slow_TotalG1ActiveHours_Count = Slow_TotalG1ActiveHours.GetInt("slow_totalg1activehours_count")
+									} else {
 										tenScada.Slow_TotalG1ActiveHours = emptyValueBig
 										tenScada.Slow_TotalG1ActiveHours_StdDev = emptyValueBig
 										tenScada.Slow_TotalG1ActiveHours_Min = emptyValueBig
 										tenScada.Slow_TotalG1ActiveHours_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalActPowerOutG1_kWh := Slow_TotalActPowerOutG1_kWhMap[key]
@@ -1249,13 +1248,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalActPowerOutG1_kWh_StdDev = Slow_TotalActPowerOutG1_kWh.GetFloat64("slow_totalactpoweroutg1_kwh_stddev")
 										tenScada.Slow_TotalActPowerOutG1_kWh_Min = Slow_TotalActPowerOutG1_kWh.GetFloat64("slow_totalactpoweroutg1_kwh_min")
 										tenScada.Slow_TotalActPowerOutG1_kWh_Max = Slow_TotalActPowerOutG1_kWh.GetFloat64("slow_totalactpoweroutg1_kwh_max")
-										tenScada.Slow_TotalActPowerOutG1_kWh_Count = Slow_TotalActPowerOutG1_kWh.GetFloat64("slow_totalactpoweroutg1_kwh_count")
-									}else{
+										tenScada.Slow_TotalActPowerOutG1_kWh_Count = Slow_TotalActPowerOutG1_kWh.GetInt("slow_totalactpoweroutg1_kwh_count")
+									} else {
 										tenScada.Slow_TotalActPowerOutG1_kWh = emptyValueBig
 										tenScada.Slow_TotalActPowerOutG1_kWh_StdDev = emptyValueBig
 										tenScada.Slow_TotalActPowerOutG1_kWh_Min = emptyValueBig
 										tenScada.Slow_TotalActPowerOutG1_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalReactPowerInG1_kVArh := Slow_TotalReactPowerInG1_kVArhMap[key]
@@ -1264,13 +1263,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalReactPowerInG1_kVArh_StdDev = Slow_TotalReactPowerInG1_kVArh.GetFloat64("slow_totalreactpowering1_kvarh_stddev")
 										tenScada.Slow_TotalReactPowerInG1_kVArh_Min = Slow_TotalReactPowerInG1_kVArh.GetFloat64("slow_totalreactpowering1_kvarh_min")
 										tenScada.Slow_TotalReactPowerInG1_kVArh_Max = Slow_TotalReactPowerInG1_kVArh.GetFloat64("slow_totalreactpowering1_kvarh_max")
-										tenScada.Slow_TotalReactPowerInG1_kVArh_Count = Slow_TotalReactPowerInG1_kVArh.GetFloat64("slow_totalreactpowering1_kvarh_count")
-									}else{
+										tenScada.Slow_TotalReactPowerInG1_kVArh_Count = Slow_TotalReactPowerInG1_kVArh.GetInt("slow_totalreactpowering1_kvarh_count")
+									} else {
 										tenScada.Slow_TotalReactPowerInG1_kVArh = emptyValueBig
 										tenScada.Slow_TotalReactPowerInG1_kVArh_StdDev = emptyValueBig
 										tenScada.Slow_TotalReactPowerInG1_kVArh_Min = emptyValueBig
 										tenScada.Slow_TotalReactPowerInG1_kVArh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_NacelleDrill := Slow_NacelleDrillMap[key]
@@ -1279,13 +1278,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_NacelleDrill_StdDev = Slow_NacelleDrill.GetFloat64("slow_nacelledrill_stddev")
 										tenScada.Slow_NacelleDrill_Min = Slow_NacelleDrill.GetFloat64("slow_nacelledrill_min")
 										tenScada.Slow_NacelleDrill_Max = Slow_NacelleDrill.GetFloat64("slow_nacelledrill_max")
-										tenScada.Slow_NacelleDrill_Count = Slow_NacelleDrill.GetFloat64("slow_nacelledrill_count")
-									}else{
+										tenScada.Slow_NacelleDrill_Count = Slow_NacelleDrill.GetInt("slow_nacelledrill_count")
+									} else {
 										tenScada.Slow_NacelleDrill = emptyValueBig
 										tenScada.Slow_NacelleDrill_StdDev = emptyValueBig
 										tenScada.Slow_NacelleDrill_Min = emptyValueBig
 										tenScada.Slow_NacelleDrill_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGearBoxIMSDE := Slow_TempGearBoxIMSDEMap[key]
@@ -1294,13 +1293,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGearBoxIMSDE_StdDev = Slow_TempGearBoxIMSDE.GetFloat64("slow_tempgearboximsde_stddev")
 										tenScada.Slow_TempGearBoxIMSDE_Min = Slow_TempGearBoxIMSDE.GetFloat64("slow_tempgearboximsde_min")
 										tenScada.Slow_TempGearBoxIMSDE_Max = Slow_TempGearBoxIMSDE.GetFloat64("slow_tempgearboximsde_max")
-										tenScada.Slow_TempGearBoxIMSDE_Count = Slow_TempGearBoxIMSDE.GetFloat64("slow_tempgearboximsde_count")
-									}else{
+										tenScada.Slow_TempGearBoxIMSDE_Count = Slow_TempGearBoxIMSDE.GetInt("slow_tempgearboximsde_count")
+									} else {
 										tenScada.Slow_TempGearBoxIMSDE = emptyValueBig
 										tenScada.Slow_TempGearBoxIMSDE_StdDev = emptyValueBig
 										tenScada.Slow_TempGearBoxIMSDE_Min = emptyValueBig
 										tenScada.Slow_TempGearBoxIMSDE_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_Operating_hrs := Fast_Total_Operating_hrsMap[key]
@@ -1309,13 +1308,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_Operating_hrs_StdDev = Fast_Total_Operating_hrs.GetFloat64("fast_total_operating_hrs_stddev")
 										tenScada.Fast_Total_Operating_hrs_Min = Fast_Total_Operating_hrs.GetFloat64("fast_total_operating_hrs_min")
 										tenScada.Fast_Total_Operating_hrs_Max = Fast_Total_Operating_hrs.GetFloat64("fast_total_operating_hrs_max")
-										tenScada.Fast_Total_Operating_hrs_Count = Fast_Total_Operating_hrs.GetFloat64("fast_total_operating_hrs_count")
-									}else{
+										tenScada.Fast_Total_Operating_hrs_Count = Fast_Total_Operating_hrs.GetInt("fast_total_operating_hrs_count")
+									} else {
 										tenScada.Fast_Total_Operating_hrs = emptyValueBig
 										tenScada.Fast_Total_Operating_hrs_StdDev = emptyValueBig
 										tenScada.Fast_Total_Operating_hrs_Min = emptyValueBig
 										tenScada.Fast_Total_Operating_hrs_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempNacelle := Slow_TempNacelleMap[key]
@@ -1324,13 +1323,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempNacelle_StdDev = Slow_TempNacelle.GetFloat64("slow_tempnacelle_stddev")
 										tenScada.Slow_TempNacelle_Min = Slow_TempNacelle.GetFloat64("slow_tempnacelle_min")
 										tenScada.Slow_TempNacelle_Max = Slow_TempNacelle.GetFloat64("slow_tempnacelle_max")
-										tenScada.Slow_TempNacelle_Count = Slow_TempNacelle.GetFloat64("slow_tempnacelle_count")
-									}else{
+										tenScada.Slow_TempNacelle_Count = Slow_TempNacelle.GetInt("slow_tempnacelle_count")
+									} else {
 										tenScada.Slow_TempNacelle = emptyValueBig
 										tenScada.Slow_TempNacelle_StdDev = emptyValueBig
 										tenScada.Slow_TempNacelle_Min = emptyValueBig
 										tenScada.Slow_TempNacelle_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_Grid_OK_hrs := Fast_Total_Grid_OK_hrsMap[key]
@@ -1339,13 +1338,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_Grid_OK_hrs_StdDev = Fast_Total_Grid_OK_hrs.GetFloat64("fast_total_grid_ok_hrs_stddev")
 										tenScada.Fast_Total_Grid_OK_hrs_Min = Fast_Total_Grid_OK_hrs.GetFloat64("fast_total_grid_ok_hrs_min")
 										tenScada.Fast_Total_Grid_OK_hrs_Max = Fast_Total_Grid_OK_hrs.GetFloat64("fast_total_grid_ok_hrs_max")
-										tenScada.Fast_Total_Grid_OK_hrs_Count = Fast_Total_Grid_OK_hrs.GetFloat64("fast_total_grid_ok_hrs_count")
-									}else{
+										tenScada.Fast_Total_Grid_OK_hrs_Count = Fast_Total_Grid_OK_hrs.GetInt("fast_total_grid_ok_hrs_count")
+									} else {
 										tenScada.Fast_Total_Grid_OK_hrs = emptyValueBig
 										tenScada.Fast_Total_Grid_OK_hrs_StdDev = emptyValueBig
 										tenScada.Fast_Total_Grid_OK_hrs_Min = emptyValueBig
 										tenScada.Fast_Total_Grid_OK_hrs_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_WTG_OK_hrs := Fast_Total_WTG_OK_hrsMap[key]
@@ -1354,13 +1353,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_WTG_OK_hrs_StdDev = Fast_Total_WTG_OK_hrs.GetFloat64("fast_total_wtg_ok_hrs_stddev")
 										tenScada.Fast_Total_WTG_OK_hrs_Min = Fast_Total_WTG_OK_hrs.GetFloat64("fast_total_wtg_ok_hrs_min")
 										tenScada.Fast_Total_WTG_OK_hrs_Max = Fast_Total_WTG_OK_hrs.GetFloat64("fast_total_wtg_ok_hrs_max")
-										tenScada.Fast_Total_WTG_OK_hrs_Count = Fast_Total_WTG_OK_hrs.GetFloat64("fast_total_wtg_ok_hrs_count")
-									}else{
+										tenScada.Fast_Total_WTG_OK_hrs_Count = Fast_Total_WTG_OK_hrs.GetInt("fast_total_wtg_ok_hrs_count")
+									} else {
 										tenScada.Fast_Total_WTG_OK_hrs = emptyValueBig
 										tenScada.Fast_Total_WTG_OK_hrs_StdDev = emptyValueBig
 										tenScada.Fast_Total_WTG_OK_hrs_Min = emptyValueBig
 										tenScada.Fast_Total_WTG_OK_hrs_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempCabinetTopBox := Slow_TempCabinetTopBoxMap[key]
@@ -1369,13 +1368,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempCabinetTopBox_StdDev = Slow_TempCabinetTopBox.GetFloat64("slow_tempcabinettopbox_stddev")
 										tenScada.Slow_TempCabinetTopBox_Min = Slow_TempCabinetTopBox.GetFloat64("slow_tempcabinettopbox_min")
 										tenScada.Slow_TempCabinetTopBox_Max = Slow_TempCabinetTopBox.GetFloat64("slow_tempcabinettopbox_max")
-										tenScada.Slow_TempCabinetTopBox_Count = Slow_TempCabinetTopBox.GetFloat64("slow_tempcabinettopbox_count")
-									}else{
+										tenScada.Slow_TempCabinetTopBox_Count = Slow_TempCabinetTopBox.GetInt("slow_tempcabinettopbox_count")
+									} else {
 										tenScada.Slow_TempCabinetTopBox = emptyValueBig
 										tenScada.Slow_TempCabinetTopBox_StdDev = emptyValueBig
 										tenScada.Slow_TempCabinetTopBox_Min = emptyValueBig
 										tenScada.Slow_TempCabinetTopBox_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGeneratorBearingNDE := Slow_TempGeneratorBearingNDEMap[key]
@@ -1384,13 +1383,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGeneratorBearingNDE_StdDev = Slow_TempGeneratorBearingNDE.GetFloat64("slow_tempgeneratorbearingnde_stddev")
 										tenScada.Slow_TempGeneratorBearingNDE_Min = Slow_TempGeneratorBearingNDE.GetFloat64("slow_tempgeneratorbearingnde_min")
 										tenScada.Slow_TempGeneratorBearingNDE_Max = Slow_TempGeneratorBearingNDE.GetFloat64("slow_tempgeneratorbearingnde_max")
-										tenScada.Slow_TempGeneratorBearingNDE_Count = Slow_TempGeneratorBearingNDE.GetFloat64("slow_tempgeneratorbearingnde_count")
-									}else{
+										tenScada.Slow_TempGeneratorBearingNDE_Count = Slow_TempGeneratorBearingNDE.GetInt("slow_tempgeneratorbearingnde_count")
+									} else {
 										tenScada.Slow_TempGeneratorBearingNDE = emptyValueBig
 										tenScada.Slow_TempGeneratorBearingNDE_StdDev = emptyValueBig
 										tenScada.Slow_TempGeneratorBearingNDE_Min = emptyValueBig
 										tenScada.Slow_TempGeneratorBearingNDE_Max = emptyValueBig
-										
+
 									}
 
 									Fast_Total_Access_hrs := Fast_Total_Access_hrsMap[key]
@@ -1399,13 +1398,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_Total_Access_hrs_StdDev = Fast_Total_Access_hrs.GetFloat64("fast_total_access_hrs_stddev")
 										tenScada.Fast_Total_Access_hrs_Min = Fast_Total_Access_hrs.GetFloat64("fast_total_access_hrs_min")
 										tenScada.Fast_Total_Access_hrs_Max = Fast_Total_Access_hrs.GetFloat64("fast_total_access_hrs_max")
-										tenScada.Fast_Total_Access_hrs_Count = Fast_Total_Access_hrs.GetFloat64("fast_total_access_hrs_count")
-									}else{
+										tenScada.Fast_Total_Access_hrs_Count = Fast_Total_Access_hrs.GetInt("fast_total_access_hrs_count")
+									} else {
 										tenScada.Fast_Total_Access_hrs = emptyValueBig
 										tenScada.Fast_Total_Access_hrs_StdDev = emptyValueBig
 										tenScada.Fast_Total_Access_hrs_Min = emptyValueBig
 										tenScada.Fast_Total_Access_hrs_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempBottomPowerSection := Slow_TempBottomPowerSectionMap[key]
@@ -1414,13 +1413,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempBottomPowerSection_StdDev = Slow_TempBottomPowerSection.GetFloat64("slow_tempbottompowersection_stddev")
 										tenScada.Slow_TempBottomPowerSection_Min = Slow_TempBottomPowerSection.GetFloat64("slow_tempbottompowersection_min")
 										tenScada.Slow_TempBottomPowerSection_Max = Slow_TempBottomPowerSection.GetFloat64("slow_tempbottompowersection_max")
-										tenScada.Slow_TempBottomPowerSection_Count = Slow_TempBottomPowerSection.GetFloat64("slow_tempbottompowersection_count")
-									}else{
+										tenScada.Slow_TempBottomPowerSection_Count = Slow_TempBottomPowerSection.GetInt("slow_tempbottompowersection_count")
+									} else {
 										tenScada.Slow_TempBottomPowerSection = emptyValueBig
 										tenScada.Slow_TempBottomPowerSection_StdDev = emptyValueBig
 										tenScada.Slow_TempBottomPowerSection_Min = emptyValueBig
 										tenScada.Slow_TempBottomPowerSection_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempGeneratorBearingDE := Slow_TempGeneratorBearingDEMap[key]
@@ -1429,13 +1428,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempGeneratorBearingDE_StdDev = Slow_TempGeneratorBearingDE.GetFloat64("slow_tempgeneratorbearingde_stddev")
 										tenScada.Slow_TempGeneratorBearingDE_Min = Slow_TempGeneratorBearingDE.GetFloat64("slow_tempgeneratorbearingde_min")
 										tenScada.Slow_TempGeneratorBearingDE_Max = Slow_TempGeneratorBearingDE.GetFloat64("slow_tempgeneratorbearingde_max")
-										tenScada.Slow_TempGeneratorBearingDE_Count = Slow_TempGeneratorBearingDE.GetFloat64("slow_tempgeneratorbearingde_count")
-									}else{
+										tenScada.Slow_TempGeneratorBearingDE_Count = Slow_TempGeneratorBearingDE.GetInt("slow_tempgeneratorbearingde_count")
+									} else {
 										tenScada.Slow_TempGeneratorBearingDE = emptyValueBig
 										tenScada.Slow_TempGeneratorBearingDE_StdDev = emptyValueBig
 										tenScada.Slow_TempGeneratorBearingDE_Min = emptyValueBig
 										tenScada.Slow_TempGeneratorBearingDE_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalReactPowerIn_kVArh := Slow_TotalReactPowerIn_kVArhMap[key]
@@ -1444,13 +1443,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalReactPowerIn_kVArh_StdDev = Slow_TotalReactPowerIn_kVArh.GetFloat64("slow_totalreactpowerin_kvarh_stddev")
 										tenScada.Slow_TotalReactPowerIn_kVArh_Min = Slow_TotalReactPowerIn_kVArh.GetFloat64("slow_totalreactpowerin_kvarh_min")
 										tenScada.Slow_TotalReactPowerIn_kVArh_Max = Slow_TotalReactPowerIn_kVArh.GetFloat64("slow_totalreactpowerin_kvarh_max")
-										tenScada.Slow_TotalReactPowerIn_kVArh_Count = Slow_TotalReactPowerIn_kVArh.GetFloat64("slow_totalreactpowerin_kvarh_count")
-									}else{
+										tenScada.Slow_TotalReactPowerIn_kVArh_Count = Slow_TotalReactPowerIn_kVArh.GetInt("slow_totalreactpowerin_kvarh_count")
+									} else {
 										tenScada.Slow_TotalReactPowerIn_kVArh = emptyValueBig
 										tenScada.Slow_TotalReactPowerIn_kVArh_StdDev = emptyValueBig
 										tenScada.Slow_TotalReactPowerIn_kVArh_Min = emptyValueBig
 										tenScada.Slow_TotalReactPowerIn_kVArh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempBottomControlSection := Slow_TempBottomControlSectionMap[key]
@@ -1459,13 +1458,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempBottomControlSection_StdDev = Slow_TempBottomControlSection.GetFloat64("slow_tempbottomcontrolsection_stddev")
 										tenScada.Slow_TempBottomControlSection_Min = Slow_TempBottomControlSection.GetFloat64("slow_tempbottomcontrolsection_min")
 										tenScada.Slow_TempBottomControlSection_Max = Slow_TempBottomControlSection.GetFloat64("slow_tempbottomcontrolsection_max")
-										tenScada.Slow_TempBottomControlSection_Count = Slow_TempBottomControlSection.GetFloat64("slow_tempbottomcontrolsection_count")
-									}else{
+										tenScada.Slow_TempBottomControlSection_Count = Slow_TempBottomControlSection.GetInt("slow_tempbottomcontrolsection_count")
+									} else {
 										tenScada.Slow_TempBottomControlSection = emptyValueBig
 										tenScada.Slow_TempBottomControlSection_StdDev = emptyValueBig
 										tenScada.Slow_TempBottomControlSection_Min = emptyValueBig
 										tenScada.Slow_TempBottomControlSection_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempConv1 := Slow_TempConv1Map[key]
@@ -1474,13 +1473,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempConv1_StdDev = Slow_TempConv1.GetFloat64("slow_tempconv1_stddev")
 										tenScada.Slow_TempConv1_Min = Slow_TempConv1.GetFloat64("slow_tempconv1_min")
 										tenScada.Slow_TempConv1_Max = Slow_TempConv1.GetFloat64("slow_tempconv1_max")
-										tenScada.Slow_TempConv1_Count = Slow_TempConv1.GetFloat64("slow_tempconv1_count")
-									}else{
+										tenScada.Slow_TempConv1_Count = Slow_TempConv1.GetInt("slow_tempconv1_count")
+									} else {
 										tenScada.Slow_TempConv1 = emptyValueBig
 										tenScada.Slow_TempConv1_StdDev = emptyValueBig
 										tenScada.Slow_TempConv1_Min = emptyValueBig
 										tenScada.Slow_TempConv1_Max = emptyValueBig
-										
+
 									}
 
 									Fast_ActivePowerRated_kW := Fast_ActivePowerRated_kWMap[key]
@@ -1489,13 +1488,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_ActivePowerRated_kW_StdDev = Fast_ActivePowerRated_kW.GetFloat64("fast_activepowerrated_kw_stddev")
 										tenScada.Fast_ActivePowerRated_kW_Min = Fast_ActivePowerRated_kW.GetFloat64("fast_activepowerrated_kw_min")
 										tenScada.Fast_ActivePowerRated_kW_Max = Fast_ActivePowerRated_kW.GetFloat64("fast_activepowerrated_kw_max")
-										tenScada.Fast_ActivePowerRated_kW_Count = Fast_ActivePowerRated_kW.GetFloat64("fast_activepowerrated_kw_count")
-									}else{
+										tenScada.Fast_ActivePowerRated_kW_Count = Fast_ActivePowerRated_kW.GetInt("fast_activepowerrated_kw_count")
+									} else {
 										tenScada.Fast_ActivePowerRated_kW = emptyValueBig
 										tenScada.Fast_ActivePowerRated_kW_StdDev = emptyValueBig
 										tenScada.Fast_ActivePowerRated_kW_Min = emptyValueBig
 										tenScada.Fast_ActivePowerRated_kW_Max = emptyValueBig
-										
+
 									}
 
 									Fast_NodeIP := Fast_NodeIPMap[key]
@@ -1504,13 +1503,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_NodeIP_StdDev = Fast_NodeIP.GetFloat64("fast_nodeip_stddev")
 										tenScada.Fast_NodeIP_Min = Fast_NodeIP.GetFloat64("fast_nodeip_min")
 										tenScada.Fast_NodeIP_Max = Fast_NodeIP.GetFloat64("fast_nodeip_max")
-										tenScada.Fast_NodeIP_Count = Fast_NodeIP.GetFloat64("fast_nodeip_count")
-									}else{
+										tenScada.Fast_NodeIP_Count = Fast_NodeIP.GetInt("fast_nodeip_count")
+									} else {
 										tenScada.Fast_NodeIP = emptyValueBig
 										tenScada.Fast_NodeIP_StdDev = emptyValueBig
 										tenScada.Fast_NodeIP_Min = emptyValueBig
 										tenScada.Fast_NodeIP_Max = emptyValueBig
-										
+
 									}
 
 									Fast_PitchSpeed1 := Fast_PitchSpeed1Map[key]
@@ -1519,13 +1518,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Fast_PitchSpeed1_StdDev = Fast_PitchSpeed1.GetFloat64("fast_pitchspeed1_stddev")
 										tenScada.Fast_PitchSpeed1_Min = Fast_PitchSpeed1.GetFloat64("fast_pitchspeed1_min")
 										tenScada.Fast_PitchSpeed1_Max = Fast_PitchSpeed1.GetFloat64("fast_pitchspeed1_max")
-										tenScada.Fast_PitchSpeed1_Count = Fast_PitchSpeed1.GetFloat64("fast_pitchspeed1_count")
-									}else{
+										tenScada.Fast_PitchSpeed1_Count = Fast_PitchSpeed1.GetInt("fast_pitchspeed1_count")
+									} else {
 										tenScada.Fast_PitchSpeed1 = emptyValueBig
 										tenScada.Fast_PitchSpeed1_StdDev = emptyValueBig
 										tenScada.Fast_PitchSpeed1_Min = emptyValueBig
 										tenScada.Fast_PitchSpeed1_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CFCardSize := Slow_CFCardSizeMap[key]
@@ -1534,13 +1533,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CFCardSize_StdDev = Slow_CFCardSize.GetFloat64("slow_cfcardsize_stddev")
 										tenScada.Slow_CFCardSize_Min = Slow_CFCardSize.GetFloat64("slow_cfcardsize_min")
 										tenScada.Slow_CFCardSize_Max = Slow_CFCardSize.GetFloat64("slow_cfcardsize_max")
-										tenScada.Slow_CFCardSize_Count = Slow_CFCardSize.GetFloat64("slow_cfcardsize_count")
-									}else{
+										tenScada.Slow_CFCardSize_Count = Slow_CFCardSize.GetInt("slow_cfcardsize_count")
+									} else {
 										tenScada.Slow_CFCardSize = emptyValueBig
 										tenScada.Slow_CFCardSize_StdDev = emptyValueBig
 										tenScada.Slow_CFCardSize_Min = emptyValueBig
 										tenScada.Slow_CFCardSize_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CPU_Number := Slow_CPU_NumberMap[key]
@@ -1549,13 +1548,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CPU_Number_StdDev = Slow_CPU_Number.GetFloat64("slow_cpu_number_stddev")
 										tenScada.Slow_CPU_Number_Min = Slow_CPU_Number.GetFloat64("slow_cpu_number_min")
 										tenScada.Slow_CPU_Number_Max = Slow_CPU_Number.GetFloat64("slow_cpu_number_max")
-										tenScada.Slow_CPU_Number_Count = Slow_CPU_Number.GetFloat64("slow_cpu_number_count")
-									}else{
+										tenScada.Slow_CPU_Number_Count = Slow_CPU_Number.GetInt("slow_cpu_number_count")
+									} else {
 										tenScada.Slow_CPU_Number = emptyValueBig
 										tenScada.Slow_CPU_Number_StdDev = emptyValueBig
 										tenScada.Slow_CPU_Number_Min = emptyValueBig
 										tenScada.Slow_CPU_Number_Max = emptyValueBig
-										
+
 									}
 
 									Slow_CFCardSpaceLeft := Slow_CFCardSpaceLeftMap[key]
@@ -1564,13 +1563,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_CFCardSpaceLeft_StdDev = Slow_CFCardSpaceLeft.GetFloat64("slow_cfcardspaceleft_stddev")
 										tenScada.Slow_CFCardSpaceLeft_Min = Slow_CFCardSpaceLeft.GetFloat64("slow_cfcardspaceleft_min")
 										tenScada.Slow_CFCardSpaceLeft_Max = Slow_CFCardSpaceLeft.GetFloat64("slow_cfcardspaceleft_max")
-										tenScada.Slow_CFCardSpaceLeft_Count = Slow_CFCardSpaceLeft.GetFloat64("slow_cfcardspaceleft_count")
-									}else{
+										tenScada.Slow_CFCardSpaceLeft_Count = Slow_CFCardSpaceLeft.GetInt("slow_cfcardspaceleft_count")
+									} else {
 										tenScada.Slow_CFCardSpaceLeft = emptyValueBig
 										tenScada.Slow_CFCardSpaceLeft_StdDev = emptyValueBig
 										tenScada.Slow_CFCardSpaceLeft_Min = emptyValueBig
 										tenScada.Slow_CFCardSpaceLeft_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TempBottomCapSection := Slow_TempBottomCapSectionMap[key]
@@ -1579,13 +1578,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempBottomCapSection_StdDev = Slow_TempBottomCapSection.GetFloat64("slow_tempbottomcapsection_stddev")
 										tenScada.Slow_TempBottomCapSection_Min = Slow_TempBottomCapSection.GetFloat64("slow_tempbottomcapsection_min")
 										tenScada.Slow_TempBottomCapSection_Max = Slow_TempBottomCapSection.GetFloat64("slow_tempbottomcapsection_max")
-										tenScada.Slow_TempBottomCapSection_Count = Slow_TempBottomCapSection.GetFloat64("slow_tempbottomcapsection_count")
-									}else{
+										tenScada.Slow_TempBottomCapSection_Count = Slow_TempBottomCapSection.GetInt("slow_tempbottomcapsection_count")
+									} else {
 										tenScada.Slow_TempBottomCapSection = emptyValueBig
 										tenScada.Slow_TempBottomCapSection_StdDev = emptyValueBig
 										tenScada.Slow_TempBottomCapSection_Min = emptyValueBig
 										tenScada.Slow_TempBottomCapSection_Max = emptyValueBig
-										
+
 									}
 
 									Slow_RatedPower := Slow_RatedPowerMap[key]
@@ -1594,13 +1593,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_RatedPower_StdDev = Slow_RatedPower.GetFloat64("slow_ratedpower_stddev")
 										tenScada.Slow_RatedPower_Min = Slow_RatedPower.GetFloat64("slow_ratedpower_min")
 										tenScada.Slow_RatedPower_Max = Slow_RatedPower.GetFloat64("slow_ratedpower_max")
-										tenScada.Slow_RatedPower_Count = Slow_RatedPower.GetFloat64("slow_ratedpower_count")
-									}else{
+										tenScada.Slow_RatedPower_Count = Slow_RatedPower.GetInt("slow_ratedpower_count")
+									} else {
 										tenScada.Slow_RatedPower = emptyValueBig
 										tenScada.Slow_RatedPower_StdDev = emptyValueBig
 										tenScada.Slow_RatedPower_Min = emptyValueBig
 										tenScada.Slow_RatedPower_Max = emptyValueBig
-										
+
 									}
 
 									SlowTempConv3 := Slow_TempConv3Map[key]
@@ -1609,13 +1608,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempConv3_StdDev = SlowTempConv3.GetFloat64("slow_tempconv3_stddev")
 										tenScada.Slow_TempConv3_Min = SlowTempConv3.GetFloat64("slow_tempconv3_min")
 										tenScada.Slow_TempConv3_Max = SlowTempConv3.GetFloat64("slow_tempconv3_max")
-										tenScada.Slow_TempConv3_Count = SlowTempConv3.GetFloat64("slow_tempconv3_count")
-									}else{
+										tenScada.Slow_TempConv3_Count = SlowTempConv3.GetInt("slow_tempconv3_count")
+									} else {
 										tenScada.Slow_TempConv3 = emptyValueBig
 										tenScada.Slow_TempConv3_StdDev = emptyValueBig
 										tenScada.Slow_TempConv3_Min = emptyValueBig
 										tenScada.Slow_TempConv3_Max = emptyValueBig
-										
+
 									}
 
 									SlowTempConv2 := Slow_TempConv2Map[key]
@@ -1624,13 +1623,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TempConv2_StdDev = SlowTempConv2.GetFloat64("slow_tempconv2_stddev")
 										tenScada.Slow_TempConv2_Min = SlowTempConv2.GetFloat64("slow_tempconv2_min")
 										tenScada.Slow_TempConv2_Max = SlowTempConv2.GetFloat64("slow_tempconv2_max")
-										tenScada.Slow_TempConv2_Count = SlowTempConv2.GetFloat64("slow_tempconv2_count")
-									}else{
+										tenScada.Slow_TempConv2_Count = SlowTempConv2.GetInt("slow_tempconv2_count")
+									} else {
 										tenScada.Slow_TempConv2 = emptyValueBig
 										tenScada.Slow_TempConv2_StdDev = emptyValueBig
 										tenScada.Slow_TempConv2_Min = emptyValueBig
 										tenScada.Slow_TempConv2_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalActPowerIn_kWh := Slow_TotalActPowerIn_kWhMap[key]
@@ -1639,13 +1638,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalActPowerIn_kWh_StdDev = Slow_TotalActPowerIn_kWh.GetFloat64("slow_totalactpowerin_kwh_stddev")
 										tenScada.Slow_TotalActPowerIn_kWh_Min = Slow_TotalActPowerIn_kWh.GetFloat64("slow_totalactpowerin_kwh_min")
 										tenScada.Slow_TotalActPowerIn_kWh_Max = Slow_TotalActPowerIn_kWh.GetFloat64("slow_totalactpowerin_kwh_max")
-										tenScada.Slow_TotalActPowerIn_kWh_Count = Slow_TotalActPowerIn_kWh.GetFloat64("slow_totalactpowerin_kwh_count")
-									}else{
+										tenScada.Slow_TotalActPowerIn_kWh_Count = Slow_TotalActPowerIn_kWh.GetInt("slow_totalactpowerin_kwh_count")
+									} else {
 										tenScada.Slow_TotalActPowerIn_kWh = emptyValueBig
 										tenScada.Slow_TotalActPowerIn_kWh_StdDev = emptyValueBig
 										tenScada.Slow_TotalActPowerIn_kWh_Min = emptyValueBig
 										tenScada.Slow_TotalActPowerIn_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalActPowerInG1_kWh := Slow_TotalActPowerInG1_kWhMap[key]
@@ -1654,13 +1653,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalActPowerInG1_kWh_StdDev = Slow_TotalActPowerInG1_kWh.GetFloat64("slow_totalactpowering1_kwh_stddev")
 										tenScada.Slow_TotalActPowerInG1_kWh_Min = Slow_TotalActPowerInG1_kWh.GetFloat64("slow_totalactpowering1_kwh_min")
 										tenScada.Slow_TotalActPowerInG1_kWh_Max = Slow_TotalActPowerInG1_kWh.GetFloat64("slow_totalactpowering1_kwh_max")
-										tenScada.Slow_TotalActPowerInG1_kWh_Count = Slow_TotalActPowerInG1_kWh.GetFloat64("slow_totalactpowering1_kwh_count")
-									}else{
+										tenScada.Slow_TotalActPowerInG1_kWh_Count = Slow_TotalActPowerInG1_kWh.GetInt("slow_totalactpowering1_kwh_count")
+									} else {
 										tenScada.Slow_TotalActPowerInG1_kWh = emptyValueBig
 										tenScada.Slow_TotalActPowerInG1_kWh_StdDev = emptyValueBig
 										tenScada.Slow_TotalActPowerInG1_kWh_Min = emptyValueBig
 										tenScada.Slow_TotalActPowerInG1_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalActPowerInG2_kWh := Slow_TotalActPowerInG2_kWhMap[key]
@@ -1669,13 +1668,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalActPowerInG2_kWh_StdDev = Slow_TotalActPowerInG2_kWh.GetFloat64("slow_totalactpowering2_kwh_stddev")
 										tenScada.Slow_TotalActPowerInG2_kWh_Min = Slow_TotalActPowerInG2_kWh.GetFloat64("slow_totalactpowering2_kwh_min")
 										tenScada.Slow_TotalActPowerInG2_kWh_Max = Slow_TotalActPowerInG2_kWh.GetFloat64("slow_totalactpowering2_kwh_max")
-										tenScada.Slow_TotalActPowerInG2_kWh_Count = Slow_TotalActPowerInG2_kWh.GetFloat64("slow_totalactpowering2_kwh_count")
-									}else{
+										tenScada.Slow_TotalActPowerInG2_kWh_Count = Slow_TotalActPowerInG2_kWh.GetInt("slow_totalactpowering2_kwh_count")
+									} else {
 										tenScada.Slow_TotalActPowerInG2_kWh = emptyValueBig
 										tenScada.Slow_TotalActPowerInG2_kWh_StdDev = emptyValueBig
 										tenScada.Slow_TotalActPowerInG2_kWh_Min = emptyValueBig
 										tenScada.Slow_TotalActPowerInG2_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalActPowerOutG2_kWh := Slow_TotalActPowerOutG2_kWhMap[key]
@@ -1684,13 +1683,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalActPowerOutG2_kWh_StdDev = Slow_TotalActPowerOutG2_kWh.GetFloat64("slow_totalactpoweroutg2_kwh_stddev")
 										tenScada.Slow_TotalActPowerOutG2_kWh_Min = Slow_TotalActPowerOutG2_kWh.GetFloat64("slow_totalactpoweroutg2_kwh_min")
 										tenScada.Slow_TotalActPowerOutG2_kWh_Max = Slow_TotalActPowerOutG2_kWh.GetFloat64("slow_totalactpoweroutg2_kwh_max")
-										tenScada.Slow_TotalActPowerOutG2_kWh_Count = Slow_TotalActPowerOutG2_kWh.GetFloat64("slow_totalactpoweroutg2_kwh_count")
-									}else{
+										tenScada.Slow_TotalActPowerOutG2_kWh_Count = Slow_TotalActPowerOutG2_kWh.GetInt("slow_totalactpoweroutg2_kwh_count")
+									} else {
 										tenScada.Slow_TotalActPowerOutG2_kWh = emptyValueBig
 										tenScada.Slow_TotalActPowerOutG2_kWh_StdDev = emptyValueBig
 										tenScada.Slow_TotalActPowerOutG2_kWh_Min = emptyValueBig
 										tenScada.Slow_TotalActPowerOutG2_kWh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalG2ActiveHours := Slow_TotalG2ActiveHoursMap[key]
@@ -1699,13 +1698,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalG2ActiveHours_StdDev = Slow_TotalG2ActiveHours.GetFloat64("slow_totalg2activehours_stddev")
 										tenScada.Slow_TotalG2ActiveHours_Min = Slow_TotalG2ActiveHours.GetFloat64("slow_totalg2activehours_min")
 										tenScada.Slow_TotalG2ActiveHours_Max = Slow_TotalG2ActiveHours.GetFloat64("slow_totalg2activehours_max")
-										tenScada.Slow_TotalG2ActiveHours_Count = Slow_TotalG2ActiveHours.GetFloat64("slow_totalg2activehours_count")
-									}else{
+										tenScada.Slow_TotalG2ActiveHours_Count = Slow_TotalG2ActiveHours.GetInt("slow_totalg2activehours_count")
+									} else {
 										tenScada.Slow_TotalG2ActiveHours = emptyValueBig
 										tenScada.Slow_TotalG2ActiveHours_StdDev = emptyValueBig
 										tenScada.Slow_TotalG2ActiveHours_Min = emptyValueBig
 										tenScada.Slow_TotalG2ActiveHours_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalReactPowerInG2_kVArh := Slow_TotalReactPowerInG2_kVArhMap[key]
@@ -1714,13 +1713,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalReactPowerInG2_kVArh_StdDev = Slow_TotalReactPowerInG2_kVArh.GetFloat64("slow_totalreactpowering2_kvarh_stddev")
 										tenScada.Slow_TotalReactPowerInG2_kVArh_Min = Slow_TotalReactPowerInG2_kVArh.GetFloat64("slow_totalreactpowering2_kvarh_min")
 										tenScada.Slow_TotalReactPowerInG2_kVArh_Max = Slow_TotalReactPowerInG2_kVArh.GetFloat64("slow_totalreactpowering2_kvarh_max")
-										tenScada.Slow_TotalReactPowerInG2_kVArh_Count = Slow_TotalReactPowerInG2_kVArh.GetFloat64("slow_totalreactpowering2_kvarh_count")
-									}else{
+										tenScada.Slow_TotalReactPowerInG2_kVArh_Count = Slow_TotalReactPowerInG2_kVArh.GetInt("slow_totalreactpowering2_kvarh_count")
+									} else {
 										tenScada.Slow_TotalReactPowerInG2_kVArh = emptyValueBig
 										tenScada.Slow_TotalReactPowerInG2_kVArh_StdDev = emptyValueBig
 										tenScada.Slow_TotalReactPowerInG2_kVArh_Min = emptyValueBig
 										tenScada.Slow_TotalReactPowerInG2_kVArh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_TotalReactPowerOut_kVArh := Slow_TotalReactPowerOut_kVArhMap[key]
@@ -1729,13 +1728,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_TotalReactPowerOut_kVArh_StdDev = Slow_TotalReactPowerOut_kVArh.GetFloat64("slow_totalreactpowerout_kvarh_stddev")
 										tenScada.Slow_TotalReactPowerOut_kVArh_Min = Slow_TotalReactPowerOut_kVArh.GetFloat64("slow_totalreactpowerout_kvarh_min")
 										tenScada.Slow_TotalReactPowerOut_kVArh_Max = Slow_TotalReactPowerOut_kVArh.GetFloat64("slow_totalreactpowerout_kvarh_max")
-										tenScada.Slow_TotalReactPowerOut_kVArh_Count = Slow_TotalReactPowerOut_kVArh.GetFloat64("slow_totalreactpowerout_kvarh_count")
-									}else{
+										tenScada.Slow_TotalReactPowerOut_kVArh_Count = Slow_TotalReactPowerOut_kVArh.GetInt("slow_totalreactpowerout_kvarh_count")
+									} else {
 										tenScada.Slow_TotalReactPowerOut_kVArh = emptyValueBig
 										tenScada.Slow_TotalReactPowerOut_kVArh_StdDev = emptyValueBig
 										tenScada.Slow_TotalReactPowerOut_kVArh_Min = emptyValueBig
 										tenScada.Slow_TotalReactPowerOut_kVArh_Max = emptyValueBig
-										
+
 									}
 
 									Slow_UTCoffset_int := Slow_UTCoffset_intMap[key]
@@ -1744,13 +1743,13 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 										tenScada.Slow_UTCoffset_int_StdDev = Slow_UTCoffset_int.GetFloat64("slow_utcoffset_int_stddev")
 										tenScada.Slow_UTCoffset_int_Min = Slow_UTCoffset_int.GetFloat64("slow_utcoffset_int_min")
 										tenScada.Slow_UTCoffset_int_Max = Slow_UTCoffset_int.GetFloat64("slow_utcoffset_int_max")
-										tenScada.Slow_UTCoffset_int_Count = Slow_UTCoffset_int.GetFloat64("slow_utcoffset_int_count")
-									}else{
+										tenScada.Slow_UTCoffset_int_Count = Slow_UTCoffset_int.GetInt("slow_utcoffset_int_count")
+									} else {
 										tenScada.Slow_UTCoffset_int = emptyValueBig
 										tenScada.Slow_UTCoffset_int_StdDev = emptyValueBig
 										tenScada.Slow_UTCoffset_int_Min = emptyValueBig
 										tenScada.Slow_UTCoffset_int_Max = emptyValueBig
-										
+
 									}
 
 									// log.Printf("%#v \n", tenScada)
@@ -1767,8 +1766,7 @@ func (d *DataConversion) Generate(file string) (errorLine tk.M) {
 
 								wg.Done()
 							}(data)
-							
-							
+
 							counter++
 
 							if endIndex >= countData {
