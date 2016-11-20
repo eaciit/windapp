@@ -1,10 +1,10 @@
 package main
 
 import (
-	. "github.com/eaciit/windapp/library/core"
-	. "github.com/eaciit/windapp/library/models"
-	"github.com/eaciit/windapp/web"
-	. "github.com/eaciit/windapp/web/controller"
+	. "eaciit/ostrowfm/library/core"
+	. "eaciit/ostrowfm/library/models"
+	"eaciit/ostrowfm/web"
+	. "eaciit/ostrowfm/web/controller"
 	"fmt"
 	"net/http"
 

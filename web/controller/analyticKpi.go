@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "github.com/eaciit/windapp/library/core"
-	hp "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
-	"github.com/eaciit/windapp/web/helper"
+	. "eaciit/ostrowfm/library/core"
+	hp "eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
+	"eaciit/ostrowfm/web/helper"
 	"strconv"
 	"strings"
 	"time"

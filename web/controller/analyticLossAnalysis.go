@@ -1,9 +1,9 @@
 package controller
 
 import (
-	. "github.com/eaciit/windapp/library/core"
-	. "github.com/eaciit/windapp/library/models"
-	"github.com/eaciit/windapp/web/helper"
+	. "eaciit/ostrowfm/library/core"
+	. "eaciit/ostrowfm/library/models"
+	"eaciit/ostrowfm/web/helper"
 	"fmt"
 	"strconv"
 	"strings"

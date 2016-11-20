@@ -1,7 +1,7 @@
 package helper
 
 import (
-	. "github.com/eaciit/windapp/library/core"
+	. "eaciit/ostrowfm/library/core"
 	"errors"
 	"io"
 	"os"
@@ -29,14 +29,14 @@ var (
 )
 
 type PayloadsDB struct {
-	Turbine         []interface{}
-	DateStart       time.Time
-	DateEnd         time.Time
-	Skip   int
-	Take   int
-	Sort   []Sorting
-	Filter *FilterJS `json:"filter"`
-	Misc   toolkit.M `json:"misc"`
+	Turbine   []interface{}
+	DateStart time.Time
+	DateEnd   time.Time
+	Skip      int
+	Take      int
+	Sort      []Sorting
+	Filter    *FilterJS `json:"filter"`
+	Misc      toolkit.M `json:"misc"`
 }
 
 type Payloads struct {

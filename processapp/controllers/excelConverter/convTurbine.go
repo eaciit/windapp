@@ -1,9 +1,9 @@
 package converterControllers
 
 import (
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
-	. "github.com/eaciit/windapp/processapp/controllers"
+	. "eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
+	. "eaciit/ostrowfm/processapp/controllers"
 	"fmt"
 	"os"
 	"strconv"

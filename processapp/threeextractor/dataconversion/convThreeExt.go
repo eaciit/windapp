@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
-	. "github.com/eaciit/windapp/processapp/watcher/controllers"
+	. "eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
+	. "eaciit/ostrowfm/processapp/watcher/controllers"
 
-	hpp "github.com/eaciit/windapp/processapp/helper"
+	hpp "eaciit/ostrowfm/processapp/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	. "github.com/eaciit/orm"

@@ -1,9 +1,9 @@
 package web
 
 import (
-	. "github.com/eaciit/windapp/library/core"
-	. "github.com/eaciit/windapp/library/models"
-	"github.com/eaciit/windapp/web/controller"
+	. "eaciit/ostrowfm/library/core"
+	. "eaciit/ostrowfm/library/models"
+	"eaciit/ostrowfm/web/controller"
 	"os"
 	"path/filepath"
 	"runtime"

@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "github.com/eaciit/windapp/library/core"
+	. "eaciit/ostrowfm/library/core"
 	"errors"
 	"fmt"
 	"github.com/eaciit/acl/v1.0"

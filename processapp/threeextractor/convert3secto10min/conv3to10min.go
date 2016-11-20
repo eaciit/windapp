@@ -11,8 +11,8 @@ import (
 	"github.com/eaciit/dbox"
 	tk "github.com/eaciit/toolkit"
 
-	"github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
+	"eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 
@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"time"
 	// "github.com/eaciit/orm"
-	// dc "github.com/eaciit/windapp/processapp/threeextractor/dataconversion"
+	// dc "eaciit/ostrowfm/processapp/threeextractor/dataconversion"
 )
 
 var (

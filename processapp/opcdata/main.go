@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	w "github.com/eaciit/windapp/processapp/opcdata/filewatcher"
+	w "eaciit/ostrowfm/processapp/opcdata/filewatcher"
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	_ "github.com/eaciit/orm"

@@ -1,9 +1,9 @@
 package generatorControllers
 
 import (
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
-	. "github.com/eaciit/windapp/processapp/controllers"
+	. "eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
+	. "eaciit/ostrowfm/processapp/controllers"
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"

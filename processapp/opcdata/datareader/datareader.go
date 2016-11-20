@@ -2,7 +2,7 @@ package datareader
 
 import (
 	"bufio"
-	. "github.com/eaciit/windapp/library/models"
+	. "eaciit/ostrowfm/library/models"
 	"encoding/csv"
 	"io"
 	"io/ioutil"

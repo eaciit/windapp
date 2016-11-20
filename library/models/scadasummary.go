@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "github.com/eaciit/windapp/library/helper"
+	. "eaciit/ostrowfm/library/helper"
 	"github.com/eaciit/orm"
 	"gopkg.in/mgo.v2/bson"
 	"time"

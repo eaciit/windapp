@@ -3,8 +3,8 @@ package controllers
 import (
 	"log"
 
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
+	. "eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/orm"

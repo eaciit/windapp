@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"bufio"
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
+	. "eaciit/ostrowfm/library/helper"
+	. "eaciit/ostrowfm/library/models"
 	"encoding/csv"
 	"io"
 	"os"
