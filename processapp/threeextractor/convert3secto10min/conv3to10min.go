@@ -283,7 +283,7 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 
 			//timeStampStr := m.TimeStamp.UTC().Format("060102_1504")
 			//m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine
-			key := sts.TimeStampConverted.UTC().Format("060102_1504") + "#" + sts.ProjectName + "#" + sts.Turbine
+			key := sts.TimeStampConverted.UTC().Format("20060102_1504") + "#" + sts.ProjectName + "#" + sts.Turbine
 			sctm := new(ScadaConvTenMin)
 			if _, exist := mapscadatenmin[key]; exist {
 				sctm = mapscadatenmin[key]
