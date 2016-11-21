@@ -56,6 +56,7 @@ var (
 
 	strintervaldate = ""
 	strfilename     = ""
+	config          = map[string]string{}
 )
 
 func main() {
@@ -85,7 +86,7 @@ func main() {
 	}
 
 	log.Println(tk.Sprintf("Convert Data for %s", linit))
-	config := ReadConfig()
+	config = ReadConfig()
 
 	log.Println(tk.Sprintf("Connect to %s, %s", config["host"], config["database"]))
 	conn, err := PrepareConnection()
@@ -375,8 +376,6 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 }
 
 func PrepareConnection() (dbox.IConnection, error) {
-	config := ReadConfig()
-
 	ci := &dbox.ConnectionInfo{config["host"], config["database"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
 	c, e := dbox.NewConnection("mongo", ci)
 
@@ -396,8 +395,6 @@ func ReadConfig() map[string]string {
 	ret := make(map[string]string)
 	file, err := os.Open("../conf" + separator + "app.conf")
 	if err == nil {
-		defer file.Close()
-
 		reader := bufio.NewReader(file)
 		for {
 			line, _, e := reader.ReadLine()
@@ -412,6 +409,7 @@ func ReadConfig() map[string]string {
 		tk.Println(err.Error())
 	}
 
+	file.Close()
 	return ret
 }
 
