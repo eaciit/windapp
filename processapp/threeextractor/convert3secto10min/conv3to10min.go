@@ -186,19 +186,20 @@ func main() {
 }
 
 func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
-	workerconn, _ := PrepareConnection()
-	defer workerconn.Close()
+	// workerconn, _ := PrepareConnection()
+	// defer workerconn.Close()
 
 	dtablename := tk.Sprintf("%s", new(ScadaThreeSecs).TableName())
 
-	sresult := make(chan int, 100)
-	sdata := make(chan ScadaConvTenMin, 100)
-	for i := 0; i < 5; i++ {
-		go workersave(i, sdata, sresult)
-	}
+	// sresult := make(chan int, 100)
+	// sdata := make(chan ScadaConvTenMin, 100)
+	// for i := 0; i < 5; i++ {
+	// 	go workersave(i, sdata, sresult)
+	// }
 
 	_tinterval := time.Time{}
 	for _tinterval = range jobs {
+		workerconn, _ := PrepareConnection()
 		csr, e := workerconn.NewQuery().
 			Select().From(dtablename).
 			Where(dbox.Eq("timestampconverted", _tinterval)).
@@ -208,7 +209,6 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			log.Printf("ERRROR: %v | for data [%v] \n", e.Error(), _tinterval)
 			continue
 		}
-		defer csr.Close()
 
 		mapscada3avg := make(map[string]*ScadaThreeSecs, 0)
 		mapavgcount := make(map[string]tk.M, 0)
@@ -242,6 +242,9 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			mapscada3avg[key] = stsavg
 			mapavgcount[key] = tkmcount
 		}
+
+		csr.Close()
+		workerconn.Close()
 
 		// tk.Println(">>>>>>>>>>> length mapscada3avg : ", len(mapscada3avg))
 		mapscadatenmin := make(map[string]*ScadaConvTenMin, 0)
@@ -290,20 +293,30 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			mapscadatenmin[key] = sctm
 		}
 
+		sresult := make(chan int, 100)
+		sdata := make(chan ScadaConvTenMin, 100)
+		for i := 0; i < 5; i++ {
+			go workersave(i, sdata, sresult)
+		}
+
 		for _, sctm := range mapscadatenmin {
 			sdata <- *sctm
 		}
+
+		close(sdata)
 
 		for i := 0; i < len(mapscadatenmin); i++ {
 			<-sresult
 		}
 
+		close(sresult)
+
 		result <- len(mapscadatenmin)
 		// tk.Printfn("[DONE] Interval %v with %d data", _tinterval, len(mapscadatenmin))
 	}
 
-	close(sdata)
-	close(sresult)
+	// close(sdata)
+	// close(sresult)
 	return
 }
 
