@@ -192,11 +192,11 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 
 	dtablename := tk.Sprintf("%s", new(ScadaThreeSecs).TableName())
 
-	// sresult := make(chan int, 100)
-	// sdata := make(chan ScadaConvTenMin, 100)
-	// for i := 0; i < 5; i++ {
-	// 	go workersave(i, sdata, sresult)
-	// }
+	sresult := make(chan int, 100)
+	sdata := make(chan ScadaConvTenMin, 100)
+	for i := 0; i < 5; i++ {
+		go workersave(i, sdata, sresult)
+	}
 
 	_tinterval := time.Time{}
 	for _tinterval = range jobs {
@@ -294,30 +294,31 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			mapscadatenmin[key] = sctm
 		}
 
-		sresult := make(chan int, 100)
-		sdata := make(chan ScadaConvTenMin, 100)
-		for i := 0; i < 5; i++ {
-			go workersave(i, sdata, sresult)
-		}
+		// sresult := make(chan int, 100)
+		// sdata := make(chan ScadaConvTenMin, 100)
+		// for i := 0; i < 5; i++ {
+		// 	go workersave(i, sdata, sresult)
+		// }
 
 		for _, sctm := range mapscadatenmin {
 			sdata <- *sctm
 		}
 
-		close(sdata)
+		// close(sdata)
 
 		for i := 0; i < len(mapscadatenmin); i++ {
 			<-sresult
 		}
 
-		close(sresult)
+		// close(sresult)
 
 		result <- len(mapscadatenmin)
 		// tk.Printfn("[DONE] Interval %v with %d data", _tinterval, len(mapscadatenmin))
 	}
 
-	// close(sdata)
-	// close(sresult)
+	close(sdata)
+	close(sresult)
+
 	return
 }
 
