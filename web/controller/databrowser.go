@@ -1,9 +1,9 @@
 package controller
 
 import (
-	. "eaciit/ostrowfm/library/core"
-	. "eaciit/ostrowfm/library/models"
-	"eaciit/ostrowfm/web/helper"
+	. "eaciit/wfdemo-git/library/core"
+	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	"strings"
 
 	// "fmt"

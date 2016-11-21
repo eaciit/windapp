@@ -8,7 +8,7 @@ import (
 	"github.com/eaciit/orm"
 	"github.com/eaciit/toolkit"
 
-	. "eaciit/ostrowfm/library/core"
+	. "eaciit/wfdemo-git/library/core"
 )
 
 type Log struct {

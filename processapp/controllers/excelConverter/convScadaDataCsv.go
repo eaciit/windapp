@@ -2,9 +2,9 @@ package converterControllers
 
 import (
 	"bufio"
-	. "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
-	. "eaciit/ostrowfm/processapp/controllers"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git/processapp/controllers"
 	"encoding/csv"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"

@@ -1,10 +1,10 @@
 package main
 
 import (
-	. "eaciit/ostrowfm/library/core"
-	. "eaciit/ostrowfm/library/models"
-	"eaciit/ostrowfm/web"
-	. "eaciit/ostrowfm/web/controller"
+	. "eaciit/wfdemo-git/library/core"
+	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web"
+	. "eaciit/wfdemo-git/web/controller"
 	"fmt"
 	"net/http"
 

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	. "eaciit/ostrowfm/library/core"
-	"eaciit/ostrowfm/web/helper"
+	. "eaciit/wfdemo-git/library/core"
+	"eaciit/wfdemo-git/web/helper"
 	"sort"
 
 	"github.com/eaciit/knot/knot.v1"

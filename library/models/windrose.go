@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "eaciit/ostrowfm/library/helper"
+	. "eaciit/wfdemo-git/library/helper"
 	"github.com/eaciit/orm"
 	"gopkg.in/mgo.v2/bson"
 )

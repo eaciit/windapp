@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "eaciit/ostrowfm/library/core"
-	hp "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
-	"eaciit/ostrowfm/web/helper"
+	. "eaciit/wfdemo-git/library/core"
+	hp "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	"strconv"
 	"strings"
 	"time"

@@ -2,9 +2,9 @@ package csvreader
 
 import (
 	"bufio"
-	. "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
-	dc "eaciit/ostrowfm/processapp/threeextractor/dataconversion"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
 	"encoding/csv"
 	"io/ioutil"
 	"log"

@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "eaciit/ostrowfm/library/core"
-	. "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
-	"eaciit/ostrowfm/web/helper"
+	. "eaciit/wfdemo-git/library/core"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	c "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"

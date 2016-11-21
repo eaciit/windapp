@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "eaciit/ostrowfm/library/core"
+	. "eaciit/wfdemo-git/library/core"
 	"errors"
 	"fmt"
 	"github.com/eaciit/acl/v1.0"

@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	. "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 
 	"log"
 
 	"time"
 
-	hpp "eaciit/ostrowfm/processapp/helper"
+	hpp "eaciit/wfdemo-git/processapp/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	. "github.com/eaciit/orm"

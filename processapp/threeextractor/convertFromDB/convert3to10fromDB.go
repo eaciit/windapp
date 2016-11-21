@@ -10,9 +10,9 @@ import (
 	"github.com/eaciit/dbox"
 	tk "github.com/eaciit/toolkit"
 
-	// . "eaciit/ostrowfm/library/models"
+	// . "eaciit/wfdemo-git/library/models"
 
-	dc "eaciit/ostrowfm/processapp/threeextractor/dataconversion"
+	dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"

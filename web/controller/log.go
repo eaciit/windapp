@@ -1,8 +1,8 @@
 package controller
 
 import (
-	. "eaciit/ostrowfm/library/models"
-	"eaciit/ostrowfm/web/helper"
+	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"

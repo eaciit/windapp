@@ -1,7 +1,7 @@
 package models
 
 import (
-	// . "eaciit/ostrowfm/library/helper"
+	// . "eaciit/wfdemo-git/library/helper"
 	"time"
 
 	"github.com/eaciit/orm"

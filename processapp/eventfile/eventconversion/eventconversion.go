@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	. "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"

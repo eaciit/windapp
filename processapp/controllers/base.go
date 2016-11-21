@@ -3,8 +3,8 @@ package controllers
 import (
 	"log"
 
-	. "eaciit/ostrowfm/library/helper"
-	. "eaciit/ostrowfm/library/models"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/orm"
