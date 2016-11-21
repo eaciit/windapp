@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "github.com/eaciit/windapp/library/helper"
+	. "eaciit/wfdemo-git/library/helper"
 	"time"
 
 	"github.com/eaciit/orm"

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	. "github.com/eaciit/windapp/library/core"
-	"github.com/eaciit/windapp/web/helper"
+	. "eaciit/wfdemo-git/library/core"
+	"eaciit/wfdemo-git/web/helper"
 	"sort"
 
 	"github.com/eaciit/knot/knot.v1"

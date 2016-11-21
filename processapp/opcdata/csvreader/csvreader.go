@@ -2,8 +2,8 @@ package csvreader
 
 import (
 	"bufio"
-	. "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 	"encoding/csv"
 	"github.com/eaciit/orm"
 	tk "github.com/eaciit/toolkit"

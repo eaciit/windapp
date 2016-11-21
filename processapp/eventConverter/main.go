@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	. "github.com/eaciit/windapp/processapp/eventConverter/conversion"
+	. "eaciit/wfdemo-git/processapp/eventConverter/conversion"
 	"os"
 	"runtime"
 	"strings"

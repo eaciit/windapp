@@ -1,8 +1,8 @@
 package controller
 
 import (
-	// . "github.com/eaciit/windapp/library/models"
-	"github.com/eaciit/windapp/web/helper"
+	// . "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	"net/http"
 
 	"github.com/eaciit/knot/knot.v1"

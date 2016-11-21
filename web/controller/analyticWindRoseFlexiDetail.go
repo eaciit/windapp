@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "github.com/eaciit/windapp/library/core"
-	_ "github.com/eaciit/windapp/library/helper"
-	. "github.com/eaciit/windapp/library/models"
-	"github.com/eaciit/windapp/web/helper"
+	. "eaciit/wfdemo-git/library/core"
+	_ "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	c "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"

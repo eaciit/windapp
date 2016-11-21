@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "github.com/eaciit/windapp/library/models"
+	. "eaciit/wfdemo-git/library/models"
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/jsons"
 	_ "github.com/eaciit/dbox/dbc/mongo"
