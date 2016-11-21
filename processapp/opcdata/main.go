@@ -26,8 +26,9 @@ func FileWatcher() {
 	config := ReadConfig()
 	dirSources := config["FileSources"]
 	dirProcess := config["FileProcess"]
-
-	watcher := w.NewFileWatcher(dirSources, dirProcess, wd)
+	scpDir := config["UploadDirectory"]
+	watcher := w.NewFileWatcher(dirSources, dirProcess, wd,scpDir)
+	
 	watcher.StartWatcher()
 }
 

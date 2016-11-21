@@ -22,6 +22,7 @@ type DataReader struct {
 	FileLocation string
 	PathProcess  string
 	PathRoot     string
+	PathUpload   string
 }
 
 var (
@@ -36,12 +37,12 @@ var (
 	ReaderConfigFile = "conf/reader.conf"
 )
 
-func NewDataReader(fileLocation string, pathProcess string, pathRoot string) *DataReader {
+func NewDataReader(fileLocation string, pathProcess string, pathRoot string,pathUpload string) *DataReader {
 	dr := new(DataReader)
 	dr.FileLocation = fileLocation
 	dr.PathProcess = pathProcess
 	dr.PathRoot = pathRoot
-
+	dr.PathUpload = pathUpload
 	return dr
 }
 
@@ -100,16 +101,24 @@ func (c *DataReader) writeConfig(lastFileName string, lastIndex int) {
 }
 
 func (c *DataReader) Start() {
+	time.Sleep(5000*time.Millisecond)
 	fileToProcess := c.copyFile(c.FileLocation, c.PathProcess+"\\"+DraftDir)
 	if fileToProcess != "" {
 		if fileExists(fileToProcess) {
 			file, _ := os.Stat(fileToProcess)
 			start := time.Now()
 
-			DataTranspose = tk.M{}
+			//DataTranspose = tk.M{}
 			FileCount++
-			c.readFile(file.Name())
-
+			//c.readFile(file.Name())
+			//fName := c.createLog()
+			tk.Println("Finish created log file")
+			
+			fZip := c.createZip(c.PathProcess+"\\"+DraftDir+"\\"+file.Name())
+			tk.Println("Start sending file: " + fZip)
+			c.sendFile(fZip)
+			//c.writeConfig(file.Name(), 0)
+			
 			duration := time.Now().Sub(start).Seconds()
 			tk.Println(tk.Sprintf("Loading file %v data about %v sec(s)", file.Name(), duration))
 		}
@@ -214,7 +223,7 @@ func (c *DataReader) readFile(fileName string) {
 }
 
 func (c *DataReader) sendFile(filename string) {
-	locationTarget := "/home/developer/wfdemo-watch/draft"
+	locationTarget := c.PathUpload
 
 	ssh := new(SshSetting)
 
@@ -242,13 +251,16 @@ func (c *DataReader) sendFile(filename string) {
 		tk.Println("Error opening file: " + err.Error())
 		os.Exit(1)
 	}
-
-	err = ssh.SshCopyByFile(file, fileStat.Size(), fileStat.Mode().Perm(), filepath.Base(fileStat.Name()), locationTarget)
-	if err != nil {
-		tk.Println("Error: ", err.Error())
-	} else {
-		tk.Println("Sending file successfully")
+	for true{
+		err = ssh.SshCopyByFile(file, fileStat.Size(), fileStat.Mode().Perm(), filepath.Base(fileStat.Name()), locationTarget)
+		if err != nil {
+			tk.Println("Error: ", err.Error())
+		} else {
+			tk.Println("Sending file successfully")
+			break
+		}
 	}
+	
 }
 
 func (c *DataReader) copyFile(src string, pathTarget string) string {
@@ -334,7 +346,11 @@ func (c *DataReader) createLog() string {
 }
 
 func (c *DataReader) createZip(fileName string) string {
-	filetarget := c.PathProcess + "\\Results\\result_" + tk.ToString(FileCount) + ".zip"
+	filenameRaw := strings.Split(fileName,"\\")
+	filenameAA := filenameRaw[len(filenameRaw)-1]
+	
+	filetarget := c.PathProcess + "\\Results\\result_" +  filenameAA[:len(filenameAA)-4]+ ".zip"
+	tk.Println("ZIPPING",fileName, filetarget)
 	err := tk.ZipCompress(fileName, filetarget)
 	if err != nil {
 		tk.Println("Error compressing file: ", err.Error())
