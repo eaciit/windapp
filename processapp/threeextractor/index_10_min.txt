@@ -1,6 +1,0 @@
-db.Temp_ScadaConvTenMin.createIndex( { timestamp: 1 } )
-db.Temp_ScadaConvTenMin.createIndex( { "dateinfo.dateid": 1 } )
-db.Temp_ScadaConvTenMin.createIndex( { turbine: 1 } )
-db.Temp_ScadaConvTenMin.createIndex( { file: 1 } )
-db.Temp_ScadaConvTenMin.createIndex( { "dateinfo.dateid": 1, turbine: 1 } )
-db.Temp_ScadaConvTenMin.createIndex( { "timestamp": 1, turbine: 1 } )
