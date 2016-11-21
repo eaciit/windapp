@@ -72,7 +72,9 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
-	filter = append(filter, dbox.Eq("projectname", project))
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
 	filter = append(filter, dbox.Gte("avgwindspeed", 0.5)) //Only >= 1
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
