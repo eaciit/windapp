@@ -74,6 +74,17 @@ func main() {
 	start := time.Now()
 	log.Println(tk.Sprintf("Convert Data from %v to %v", startdate, enddate))
 	//=============================
+	// Prepare go routine to calculate data
+	//=============================
+
+	sresult := make(chan int, 200)
+	sdata := make(chan time.Time, 200)
+	for i := 0; i < 20; i++ {
+		go calcdata(i, sdata, sresult)
+	}
+
+	//=============================
+
 	cdate := startdate
 	for !cdate.After(enddate) {
 		t0 := time.Now()
@@ -82,24 +93,13 @@ func main() {
 		arrtimeinterval := getinterval(new(ScadaThreeSecs).TableName(), cdate)
 		count := len(arrtimeinterval)
 
-		// for _, val := range arrtimeinterval {
-		// 	tk.Println(val)
-		// }
-
 		log.Println("Found Interval Data : ", count)
 
 		step := getstep(count)
-		sresult := make(chan int, count)
-		sdata := make(chan time.Time, count)
-		for i := 0; i < 30; i++ {
-			go calcdata(i, sdata, sresult)
-		}
 
 		for _, _v := range arrtimeinterval {
 			sdata <- _v
 		}
-
-		close(sdata)
 
 		_countdata := int(0)
 		for i := 0; i < count; i++ {
@@ -111,10 +111,14 @@ func main() {
 			}
 		}
 
-		cdate = cdate.AddDate(0, 0, 1)
 		log.Println(tk.Sprintf("Done Process Data for %v, in %s total %d rows saved",
 			cdate, time.Since(t0).String(), _countdata))
+
+		cdate = cdate.AddDate(0, 0, 1)
 	}
+
+	close(sdata)
+	close(sresult)
 
 	//=============================
 
@@ -240,6 +244,7 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 	}
 
 	close(sdata)
+	close(sresult)
 	return
 }
 
