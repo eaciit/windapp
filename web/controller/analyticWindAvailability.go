@@ -40,7 +40,7 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-	if len(turbine) > 0 {
+	if len(project) > 0 {
 		match.Set("projectname", project)
 	}
 	match.Set("avgwindspeed", tk.M{}.Set("$gte", 3))
