@@ -23,6 +23,8 @@ type DataReader struct {
 	PathProcess  string
 	PathRoot     string
 	PathUpload   string
+	SSHUser		 string
+	SSHServer	 string
 }
 
 var (
@@ -38,12 +40,14 @@ var (
 	ReaderConfigFile = "conf/reader.conf"
 )
 
-func NewDataReader(fileLocation string, pathProcess string, pathRoot string,pathUpload string) *DataReader {
+func NewDataReader(fileLocation string, pathProcess string, pathRoot string,pathUpload,sshuser,sshserver string) *DataReader {
 	dr := new(DataReader)
 	dr.FileLocation = fileLocation
 	dr.PathProcess = pathProcess
 	dr.PathRoot = pathRoot
 	dr.PathUpload = pathUpload
+	dr.SSHServer = sshserver
+	dr.SSHUser =sshuser
 	return dr
 }
 
@@ -103,6 +107,7 @@ func (c *DataReader) writeConfig(lastFileName string, lastIndex int) {
 
 func (c *DataReader) Start() {
 	time.Sleep(5000*time.Millisecond)
+	tk.Println(">>>>>",c.PathProcess)
 	fileToProcess := c.copyFile(c.FileLocation, c.PathProcess+"\\"+DraftDir)
 	if fileToProcess != "" {
 		if fileExists(fileToProcess) {
@@ -238,8 +243,8 @@ func (c *DataReader) sendFile(filename string) {
 	ssh := new(SshSetting)
 
 	ssh.SSHAuthType = SSHAuthType_Certificate
-	ssh.SSHHost = "go.eaciit.com:22"
-	ssh.SSHUser = "developer"
+	ssh.SSHHost = c.SSHServer
+	ssh.SSHUser = c.SSHUser
 	ssh.SSHKeyLocation = c.PathRoot + "\\conf\\key\\developer.pem"
 
 	_, err := ssh.Connect()
@@ -285,6 +290,7 @@ func (c *DataReader) copyFile(src string, pathTarget string) string {
 	destFile, err := os.Create(pathTarget + "\\" + srcFileStat.Name())
 	defer destFile.Close()
 	if err != nil {
+		tk.Println(pathTarget + "\\" + srcFileStat.Name())
 		tk.Println("Error read target file: " + err.Error())
 		os.Exit(1)
 	}
