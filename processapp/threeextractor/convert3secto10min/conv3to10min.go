@@ -356,7 +356,7 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 				istddev2 = (icount * istddev2) - (ifloat * ifloat)
 				// tk.Printfn(" >>>>>>> istddev2 : %#v ", istddev2)
 
-				istddev2 = tk.Div(istddev2, (icount * (icount - 1)))
+				istddev2 = tk.Div(istddev2, (icount * icount))
 				// tk.Printfn(" div >>>>>>> istddev2 : %#v ", istddev2)
 
 				istddev := math.Sqrt(istddev2)
