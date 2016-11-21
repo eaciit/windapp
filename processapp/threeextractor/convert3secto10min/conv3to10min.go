@@ -53,17 +53,42 @@ var (
 
 	intstartdate = int(20160801)
 	intenddate   = int(20160831)
+
+	strintervaldate = ""
+	strfilename     = ""
+	config          = map[string]string{}
 )
 
 func main() {
 
 	flag.IntVar(&intstartdate, "sdate", 20160821, "Start date for processing data")
 	flag.IntVar(&intenddate, "edate", 20160831, "End date for processing data")
+	flag.StringVar(&strintervaldate, "idate", "", "Interval date in string")
+	flag.StringVar(&strfilename, "file", "", "Filename will be first priority to execute")
 	flag.Parse()
 
 	startdate := tk.String2Date(tk.Sprintf("%d", intstartdate), "YYYYMMdd").UTC()
 	enddate := tk.String2Date(tk.Sprintf("%d", intenddate), "YYYYMMdd").UTC()
 
+	sselector := string("date") //idate, file
+	arridate := make([]string, 0)
+
+	linit := string("")
+	if strfilename != "" {
+		sselector = "file"
+		linit = strfilename
+	} else if strintervaldate != "" {
+		sselector = "idate"
+		arridate = strings.Split(strintervaldate, "|")
+		linit = strintervaldate
+	} else {
+		linit = tk.Sprintf("%s to %s", startdate.Format("2006-01-02"), enddate.Format("2006-01-02"))
+	}
+
+	log.Println(tk.Sprintf("Convert Data for %s", linit))
+	config = ReadConfig()
+
+	log.Println(tk.Sprintf("Connect to %s, %s", config["host"], config["database"]))
 	conn, err := PrepareConnection()
 	if err != nil {
 		tk.Println(err)
@@ -72,7 +97,7 @@ func main() {
 	// ctx := orm.New(conn)
 
 	start := time.Now()
-	log.Println(tk.Sprintf("Convert Data from %v to %v", startdate, enddate))
+
 	//=============================
 	// Prepare go routine to calculate data
 	//=============================
@@ -86,17 +111,53 @@ func main() {
 	//=============================
 
 	cdate := startdate
-	for !cdate.After(enddate) {
+	iarr := int(0)
+	isbreak := false
+	for {
 		t0 := time.Now()
-		log.Println(tk.Sprintf("Preparing Process Data for %v ", cdate))
 
-		arrtimeinterval := getinterval(new(ScadaThreeSecs).TableName(), cdate)
+		match := tk.M{}
+		scond := ""
+
+		if sselector == "file" {
+			if iarr > 0 {
+				isbreak = true
+			} else {
+				match.Set("file", strfilename)
+				scond = strfilename
+			}
+			iarr++
+		} else if sselector == "idate" {
+			if iarr > len(arridate) {
+				isbreak = true
+			} else {
+				idate := tk.String2Date(arridate[iarr], "YYYYMMdd").UTC()
+				match.Set("$and", []tk.M{tk.M{}.Set("timestampconverted", tk.M{"$gt": idate}),
+					tk.M{}.Set("timestampconverted", tk.M{"$lte": idate.AddDate(0, 0, 1)})})
+				scond = idate.Format("2006-01-02")
+			}
+			iarr++
+		} else {
+			if cdate.After(enddate) {
+				isbreak = true
+			} else {
+				match.Set("$and", []tk.M{tk.M{}.Set("timestampconverted", tk.M{"$gt": cdate}),
+					tk.M{}.Set("timestampconverted", tk.M{"$lte": cdate.AddDate(0, 0, 1)})})
+				scond = cdate.Format("2006-01-02")
+			}
+			cdate = cdate.AddDate(0, 0, 1)
+		}
+
+		if isbreak {
+			break
+		}
+
+		log.Println(tk.Sprintf("Preparing Process Data for %s ", scond))
+		arrtimeinterval := getinterval(new(ScadaThreeSecs).TableName(), match)
 		count := len(arrtimeinterval)
 
-		log.Println("Found Interval Data : ", count)
-
+		log.Println(tk.Sprintf("Found Interval Data : %d in %s", count, time.Since(t0).String()))
 		step := getstep(count)
-
 		for _, _v := range arrtimeinterval {
 			sdata <- _v
 		}
@@ -112,9 +173,8 @@ func main() {
 		}
 
 		log.Println(tk.Sprintf("Done Process Data for %v, in %s total %d rows saved",
-			cdate, time.Since(t0).String(), _countdata))
+			scond, time.Since(t0).String(), _countdata))
 
-		cdate = cdate.AddDate(0, 0, 1)
 	}
 
 	close(sdata)
@@ -127,8 +187,8 @@ func main() {
 }
 
 func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
-	workerconn, _ := PrepareConnection()
-	defer workerconn.Close()
+	// workerconn, _ := PrepareConnection()
+	// defer workerconn.Close()
 
 	dtablename := tk.Sprintf("%s", new(ScadaThreeSecs).TableName())
 
@@ -140,6 +200,7 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 
 	_tinterval := time.Time{}
 	for _tinterval = range jobs {
+		workerconn, _ := PrepareConnection()
 		csr, e := workerconn.NewQuery().
 			Select().From(dtablename).
 			Where(dbox.Eq("timestampconverted", _tinterval)).
@@ -149,7 +210,6 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			log.Printf("ERRROR: %v | for data [%v] \n", e.Error(), _tinterval)
 			continue
 		}
-		defer csr.Close()
 
 		mapscada3avg := make(map[string]*ScadaThreeSecs, 0)
 		mapavgcount := make(map[string]tk.M, 0)
@@ -183,6 +243,9 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			mapscada3avg[key] = stsavg
 			mapavgcount[key] = tkmcount
 		}
+
+		csr.Close()
+		workerconn.Close()
 
 		// tk.Println(">>>>>>>>>>> length mapscada3avg : ", len(mapscada3avg))
 		mapscadatenmin := make(map[string]*ScadaConvTenMin, 0)
@@ -231,13 +294,23 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 			mapscadatenmin[key] = sctm
 		}
 
+		// sresult := make(chan int, 100)
+		// sdata := make(chan ScadaConvTenMin, 100)
+		// for i := 0; i < 5; i++ {
+		// 	go workersave(i, sdata, sresult)
+		// }
+
 		for _, sctm := range mapscadatenmin {
 			sdata <- *sctm
 		}
 
+		// close(sdata)
+
 		for i := 0; i < len(mapscadatenmin); i++ {
 			<-sresult
 		}
+
+		// close(sresult)
 
 		result <- len(mapscadatenmin)
 		// tk.Printfn("[DONE] Interval %v with %d data", _tinterval, len(mapscadatenmin))
@@ -245,6 +318,7 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 
 	close(sdata)
 	close(sresult)
+
 	return
 }
 
@@ -303,8 +377,6 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 }
 
 func PrepareConnection() (dbox.IConnection, error) {
-	config := ReadConfig()
-
 	ci := &dbox.ConnectionInfo{config["host"], config["database"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
 	c, e := dbox.NewConnection("mongo", ci)
 
@@ -324,8 +396,6 @@ func ReadConfig() map[string]string {
 	ret := make(map[string]string)
 	file, err := os.Open("../conf" + separator + "app.conf")
 	if err == nil {
-		defer file.Close()
-
 		reader := bufio.NewReader(file)
 		for {
 			line, _, e := reader.ReadLine()
@@ -340,6 +410,7 @@ func ReadConfig() map[string]string {
 		tk.Println(err.Error())
 	}
 
+	file.Close()
 	return ret
 }
 
@@ -351,64 +422,54 @@ func getstep(count int) int {
 	return v
 }
 
-func getinterval(tablename string, cdate time.Time) (arrval []time.Time) {
+func getinterval(tablename string, match tk.M) (arrval []time.Time) {
 
-	arrval = make([]time.Time, 0)
-	_enddate := cdate.AddDate(0, 0, 1)
-	for cdate.Before(_enddate) {
-		cdate = cdate.Add(time.Minute * 10)
-		arrval = append(arrval, cdate)
+	// arrval = make([]time.Time, 0)
+	// _enddate := cdate.AddDate(0, 0, 1)
+	// for cdate.Before(_enddate) {
+	// 	cdate = cdate.Add(time.Minute * 10)
+	// 	arrval = append(arrval, cdate)
+	// }
+	conn, err := PrepareConnection()
+	if err != nil {
+		tk.Println(err)
+		return
 	}
-	// conn, err := PrepareConnection()
-	// if err != nil {
-	// 	tk.Println(err)
-	// 	return
-	// }
-	// defer conn.Close()
+	defer conn.Close()
 
-	// pipes := []tk.M{}
-	// //ISODate("2016-08-21T19:10:00.000+0000")
-	// match := tk.M{}.Set("timestampconverted", tk.M{"$gt": cdate}).
-	// 	Set("timestampconverted", tk.M{"$lte": cdate.AddDate(0, 0, 1)})
+	pipes := []tk.M{}
+	//ISODate("2016-08-21T19:10:00.000+0000")
+	// match := tk.M{}.Set("timestampconverted", tk.M{"$gt": time.Date(2016, 8, 21, 22, 0, 0, 0, time.UTC)})
 
-	// // match := tk.M{}.Set("timestampconverted", tk.M{"$gt": time.Date(2016, 8, 21, 22, 0, 0, 0, time.UTC)})
+	group := tk.M{}.Set("_id", "$timestampconverted")
+	sort := tk.M{}.Set("_id", 1)
 
-	// group := tk.M{}.Set("_id", "$timestampconverted")
-	// sort := tk.M{}.Set("_id", 1)
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": group})
+	pipes = append(pipes, tk.M{"$sort": sort})
 
-	// pipes = append(pipes, tk.M{"$match": match})
-	// pipes = append(pipes, tk.M{"$group": group})
-	// pipes = append(pipes, tk.M{"$sort": sort})
+	// tk.Printfn(">>>> %v", match)
 
-	// // tk.Printfn(">>>> %v", match)
+	csr, e := conn.NewQuery().
+		From(tablename).
+		Command("pipe", pipes).
+		Cursor(nil)
 
-	// csr, e := conn.NewQuery().
-	// 	From(tablename).
-	// 	Command("pipe", pipes).
-	// 	Cursor(nil)
+	if e != nil {
+		log.Printf("ERRROR: %v \n", e.Error())
+		os.Exit(1)
+	}
+	defer csr.Close()
 
-	// if e != nil {
-	// 	log.Printf("ERRROR: %v \n", e.Error())
-	// 	os.Exit(1)
-	// }
-	// defer csr.Close()
-
-	// arrval = []time.Time{}
-	// for {
-	// 	tkm := tk.M{}
-	// 	e = csr.Fetch(&tkm, 1, false)
-	// 	if e != nil {
-	// 		/*
-	// 			if strings.Contains(e.Error(), "Not found") {
-	// 				log.Printf("EOF")
-	// 			} else {
-	// 				log.Printf("ERRROR: %v \n", e.Error())
-	// 			}
-	// 		*/
-	// 		break
-	// 	}
-	// 	arrval = append(arrval, tkm.Get("_id", time.Time{}).(time.Time).UTC())
-	// }
+	arrval = []time.Time{}
+	for {
+		tkm := tk.M{}
+		e = csr.Fetch(&tkm, 1, false)
+		if e != nil {
+			break
+		}
+		arrval = append(arrval, tkm.Get("_id", time.Time{}).(time.Time).UTC())
+	}
 
 	return
 }
