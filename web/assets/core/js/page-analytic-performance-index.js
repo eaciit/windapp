@@ -131,9 +131,9 @@ var Data = {
                     title: "Performance",
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
-                        { field: "PerformanceIndex", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },format: "{0:n2}"},
-                        { field: "Production", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },format: "{0:n2}"},
-                        { field: "Power", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },format: "{0:n2}"},
+                        { field: "PerformanceIndex", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "Production", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "Power", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
                 {
