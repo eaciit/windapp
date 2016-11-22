@@ -123,9 +123,9 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		}
 
 		queryAggr := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-			Aggr(dbox.AggrSum, "$energy", "totalProduction").
-			Aggr(dbox.AggrSum, "$power", "totalPower").
-			Aggr(dbox.AggrSum, "$denpower", "totaldenPower").
+			Aggr(dbox.AggrAvr, "$energy", "totalProduction").
+			Aggr(dbox.AggrAvr, "$power", "totalPower").
+			Aggr(dbox.AggrAvr, "$denpower", "totaldenPower").
 			Group("projectname").Where(dbox.And(filter...))
 
 		caggr, e := queryAggr.Cursor(nil)
@@ -244,9 +244,9 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				// }
 
 				queryAggr := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-					Aggr(dbox.AggrSum, "$energy", "totalProduction").
-					Aggr(dbox.AggrSum, "$power", "totalPower").
-					Aggr(dbox.AggrSum, "$denpower", "totaldenPower").
+					Aggr(dbox.AggrAvr, "$energy", "totalProduction").
+					Aggr(dbox.AggrAvr, "$power", "totalPower").
+					Aggr(dbox.AggrAvr, "$denpower", "totaldenPower").
 					Group("turbine").Where(dbox.And(filter...))
 
 				caggr, e := queryAggr.Cursor(nil)
