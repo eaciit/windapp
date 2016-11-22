@@ -1,24 +1,4 @@
 <script src="{{BaseUrl}}res/core/js/page-databrowser-new.js?ANTI_CACHE={{.AntiCache}}"></script>
-<style type="text/css">
-    .col-md-1 {
-        padding-left: 0px;
-        padding-right: 0px;
-    }
-    #customGrid div.k-grid-header {
-        background-color: #ffffff;
-    }
-    #customGrid div.k-header.k-grid-toolbar{
-        background-color: #ffffff;
-        padding: 4px;
-        float: right;
-    }
-    .btn-control{
-        width: 30px;
-    }
-    .div-control{
-        text-align: center;
-    }
-</style>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-databrowser.css">
 <div class="row">
     <div class="col-md-12 col-sm-12 ez panel-content">
@@ -26,10 +6,10 @@
             <ul class="nav nav-pills nav-replace-title" role="tablist">
                 <li>
                     <div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
-                        <label class="control-label col-md-1 col-sm-1" style="padding-left: 0px;width:80px;">Period</label>&nbsp;
-                        <input class="col-md-1 col-sm-1" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:150px;" />
-                        <label class="control-label col-md-1 col-sm-1" style="width:20px;">&nbsp;&nbsp;to</label>
-                        <input class="col-md-1 col-sm-1" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:150px;" />&nbsp;
+                        <label class="control-label col-md-1 col-sm-1 lbl-period">Period</label>&nbsp;
+                        <input class="col-md-1 col-sm-1 txt-startdate" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}"/>
+                        <label class="control-label col-md-1 col-sm-1 lbl-to">&nbsp;&nbsp;to</label>
+                        <input class="col-md-1 col-sm-1 txt-enddate" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}"/>&nbsp;
                     </div>
                 </li>
                 <li>
@@ -75,17 +55,9 @@
                                 <label class="summary-header">Average Wind Speed</label><br />
                                 <label id="avgwindspeedoem" class="summary-number">0</label>
                             </div>
-                            <!--<div class="control-summary left-border-org">
-                                <label class="summary-header">Total Power</label><br />
-                                <label id="totalpower" class="summary-number">0.00</label>
-                            </div>
-                            <div class="control-summary left-border-green-no-float">
-                                <label class="summary-header">Total Power Lost</label><br />
-                                <label id="totalpowerlost" class="summary-number">0.00</label>
-                            </div>-->
                             <div class="tab-pane-content">
                                 <div class="clearfix">&nbsp;</div>
-                                <div id="scadaGrid" class="grid-custom"></div>
+                                <div id="scadaGrid" class="grid-custom-db-new"></div>
                             </div>
                         </div>
 
@@ -101,17 +73,9 @@
                                 <label class="summary-header">Total Data</label><br />
                                 <label id="totaldataDE" class="summary-number">0</label>
                             </div>
-<!--                             <div class="control-summary left-border-org">
-                                <label class="summary-header">Total Production</label><br />
-                                <label id="totalprodDE" class="summary-number">0</label>
-                            </div>
-                            <div class="control-summary left-border-green">
-                                <label class="summary-header">Average Wind Speed</label><br />
-                                <label id="avgwindspeedDE" class="summary-number">0</label>
-                            </div> -->
                             <div class="tab-pane-content">
                                 <div class="clearfix">&nbsp;</div>
-                                <div id="DEgrid" class="grid-custom"></div>
+                                <div id="DEgrid" class="grid-custom-db-new"></div>
                             </div>
                         </div>
 
@@ -137,7 +101,7 @@
                                     <label id="avgwindspeedCustom" class="summary-number">0</label>
                                 </div>
                                 <div class="clearfix">&nbsp;</div>
-                                <div id="customGrid" class="grid-custom"></div>
+                                <div id="customGrid" class="grid-custom-db-new"></div>
                             </div>
                          </div>
                     </div>

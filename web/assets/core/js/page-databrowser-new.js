@@ -435,6 +435,7 @@ var Data = {
              field : val._id, 
              title : val.label,
              type: val._id == "turbine" ? "string" : "number",
+             width: 120,
              headerAttributes: {style:"text-align:center"}
          };
 
@@ -443,6 +444,7 @@ var Data = {
                 field: val._id,
                 title: val.label,
                 type: "date",
+                width:140,
                 template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", 
                 value: true
             }
@@ -519,6 +521,7 @@ var Data = {
             sortable: true,
             pageable: true,
             filterable: true,
+            scrollable: true,
             columns : columns,
         });
         
@@ -541,6 +544,7 @@ var Data = {
         $('.k-grid-showHideColumn').on("click", function(){
             Data.InitColumnList();
             $("#modalShowHide").modal();
+            return false;
         });
     },
     InitDEgrid: function() {
