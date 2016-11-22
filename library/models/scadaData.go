@@ -75,6 +75,7 @@ type ScadaData struct {
 	DeviationPct              float64 // new added on Sep 27, 2016 by ams
 	MTTR                      float64
 	MTTF                      float64
+	PerformanceIndex          float64 // (power / denpower) in %
 }
 
 func (m *ScadaData) New() *ScadaData {
