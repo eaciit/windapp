@@ -80,15 +80,6 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		tk.Println("Error: " + err.Error())
 	} else {
 		err = csr.Fetch(&eventRaws, 0, false)
-
-		if loop.Turbine == "HBR006" {
-			for _, xx := range eventRaws {
-				log.Printf("EVENTRAWS : %v | %v \n", xx.TimeStamp.UTC().String(), xx.AlarmDescription)
-			}
-		}
-
-		log.Println()
-
 		if err != nil {
 			tk.Println("Error: " + err.Error())
 		} else {
@@ -188,38 +179,16 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 					}
 				}
 
-				// tmpLoopData := loopData[endIdx+1:]
-
 				tmpLoopData := []EventRaw{}
-
-				/*if startIdx > 0 {
-					tmpLoopData = append(tmpLoopData, loopData[:startIdx+1]...)
-				}*/
 
 				if endIdx > 0 {
 					tmpLoopData = append(tmpLoopData, loopData[endIdx+1:]...)
 				}
 
-				// log.Printf("tmpLoopData: %v --- %v | %#v \n", startIdx, endIdx, len(tmpLoopData))
-
 				loopData = tmpLoopData
-
-				/*for idx, data := range loopData {
-					if data.DateInfo.MonthId == 0 {
-						log.Printf("idx: %v | %v | %v | %v \n", idx, data.AlarmId, data.TimeStamp.UTC(), data.AlarmToggle)
-					}
-				}*/
 
 				if len(loopData) == 0 {
 					break mainLoop
-				} else {
-					if loop.Turbine == "HBR006" {
-						for _, xx := range loopData {
-							log.Printf("loopData : %v | %v \n", xx.TimeStamp.UTC().String(), xx.AlarmDescription)
-						}
-
-						log.Println()
-					}
 				}
 			}
 		}
