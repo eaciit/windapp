@@ -2,15 +2,11 @@ package controller
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	// . "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 
-	"fmt"
-	// "strings"
 	"time"
 
-	// "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
@@ -94,22 +90,21 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		var filter []*dbox.Filter
 
 		switch i {
-		case 0:
+		case 3:
 			// last24hours
 			filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-1))))
 			break
-		case 1:
+		case 2:
 			// lastweek
 			filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-7))))
 			break
-		case 2:
+		case 1:
 			// mtd
 			filter = append(filter, dbox.Gte("dateinfo.dateid", time.Date(tEnd.Year(), tEnd.Month(), 1, 0, 0, 0, 0, tEnd.Location())))
 			break
-		case 3:
+		case 0:
 			// ytd
 			filter = append(filter, dbox.Gte("dateinfo.dateid", time.Date(tEnd.Year(), 1, 1, 0, 0, 0, 0, tEnd.Location())))
-			// fmt.Println(time.Date(tEnd.Year(), 1, 1, 0, 0, 0, 0, tEnd.Location()))
 			break
 		default:
 			// period
@@ -145,37 +140,35 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 
 		var resulttemp Performance
 
-		fmt.Println(aggrData)
-
 		for _, val := range aggrData {
 			switch i {
-			case 0:
+			case 3:
 				// last24hours
-				results = append(results, resulttemp)
-				results[len(results)-1].Project = val["_id"].(tk.M)["projectname"].(string)
 				results[len(results)-1].PerformanceIndexLast24Hours = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 				results[len(results)-1].ProductionLast24Hours = val.GetFloat64("totalProduction")
 				results[len(results)-1].PowerLast24Hours = val.GetFloat64("totalPower")
-				results[len(results)-1].StartDate = tStart
-				results[len(results)-1].EndDate = tEnd
 				break
-			case 1:
+			case 2:
 				// lastweek
 				results[len(results)-1].PerformanceIndexLastWeek = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 				results[len(results)-1].ProductionLastWeek = val.GetFloat64("totalProduction")
 				results[len(results)-1].PowerLastWeek = val.GetFloat64("totalPower")
 				break
-			case 2:
+			case 1:
 				// mtd
 				results[len(results)-1].PerformanceIndexMTD = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 				results[len(results)-1].ProductionMTD = val.GetFloat64("totalProduction")
 				results[len(results)-1].PowerMTD = val.GetFloat64("totalPower")
 				break
-			case 3:
+			case 0:
 				// ytd
+				results = append(results, resulttemp)
+				results[len(results)-1].Project = val["_id"].(tk.M)["projectname"].(string)
 				results[len(results)-1].PerformanceIndexYTD = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 				results[len(results)-1].ProductionYTD = val.GetFloat64("totalProduction")
 				results[len(results)-1].PowerYTD = val.GetFloat64("totalPower")
+				results[len(results)-1].StartDate = tStart
+				results[len(results)-1].EndDate = tEnd
 				break
 			default:
 				// period
@@ -218,22 +211,21 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				var filter []*dbox.Filter
 
 				switch j {
-				case 0:
+				case 3:
 					// last24hours
 					filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-1))))
 					break
-				case 1:
+				case 2:
 					// lastweek
 					filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-7))))
 					break
-				case 2:
+				case 1:
 					// mtd
 					filter = append(filter, dbox.Gte("dateinfo.dateid", time.Date(tEnd.Year(), tEnd.Month(), 1, 0, 0, 0, 0, tEnd.Location())))
 					break
-				case 3:
+				case 0:
 					// ytd
 					filter = append(filter, dbox.Gte("dateinfo.dateid", time.Date(tEnd.Year(), 1, 1, 0, 0, 0, 0, tEnd.Location())))
-					// fmt.Println(time.Date(tEnd.Year(), 1, 1, 0, 0, 0, 0, tEnd.Location()))
 					break
 				default:
 					// period
@@ -273,33 +265,33 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 
 				for _, val := range aggrData {
 					switch j {
-					case 0:
+					case 3:
 						// last24hours
-						results[i].Details = append(results[i].Details, resultdetailtemp)
-						results[i].Details[len(results[i].Details)-1].Turbine = val["_id"].(tk.M)["turbine"].(string)
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexLast24Hours = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 						results[i].Details[len(results[i].Details)-1].ProductionLast24Hours = val.GetFloat64("totalProduction")
 						results[i].Details[len(results[i].Details)-1].PowerLast24Hours = val.GetFloat64("totalPower")
-						results[i].Details[len(results[i].Details)-1].StartDate = tStart
-						results[i].Details[len(results[i].Details)-1].EndDate = tEnd
 						break
-					case 1:
+					case 2:
 						// lastweek
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexLastWeek = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 						results[i].Details[len(results[i].Details)-1].ProductionLastWeek = val.GetFloat64("totalProduction")
 						results[i].Details[len(results[i].Details)-1].PowerLastWeek = val.GetFloat64("totalPower")
 						break
-					case 2:
+					case 1:
 						// mtd
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexMTD = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 						results[i].Details[len(results[i].Details)-1].ProductionMTD = val.GetFloat64("totalProduction")
 						results[i].Details[len(results[i].Details)-1].PowerMTD = val.GetFloat64("totalPower")
 						break
-					case 3:
+					case 0:
 						// ytd
+						results[i].Details = append(results[i].Details, resultdetailtemp)
+						results[i].Details[len(results[i].Details)-1].Turbine = val["_id"].(tk.M)["turbine"].(string)
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexYTD = val.GetFloat64("totalPower") / val.GetFloat64("totaldenPower") * 100
 						results[i].Details[len(results[i].Details)-1].ProductionYTD = val.GetFloat64("totalProduction")
 						results[i].Details[len(results[i].Details)-1].PowerYTD = val.GetFloat64("totalPower")
+						results[i].Details[len(results[i].Details)-1].StartDate = tStart
+						results[i].Details[len(results[i].Details)-1].EndDate = tEnd
 						break
 					default:
 						// period
