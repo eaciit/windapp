@@ -73,6 +73,7 @@ func init() {
 	app.Register(controller.CreateUserPreferencesController())
 
 	app.Register(controller.CreateDataEntryPowerCurveController())
+	app.Register(controller.CreateAnalyticPerformanceIndexController())
 
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")
