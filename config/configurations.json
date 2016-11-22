@@ -2,14 +2,14 @@
 	{
 		"_id": "db_acl",
 		"data": {
-			"db": "ecwfdemo",
+			"db": "wfdemo",
 			"driver": "mongo",
 			"host": "localhost:27123",
-			"pass": "",
+			"pass": "B1gD@ta",
 			"setting": {
 				"timeout": 3000
 			},
-			"user": ""
+			"user": "eaciit"
 		}
 	},
 	{
