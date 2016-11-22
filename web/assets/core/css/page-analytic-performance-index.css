@@ -1,0 +1,133 @@
+.turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.turbine-chk, .down-chk{
+	width: 20px;
+    height: 20px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.turbine-chk:hover, .down-chk:hover{
+    color: #fff;
+}
+.turbine-chk:active, .down-chk:active{
+    color: #fff;
+}
+.custom-header{
+	margin-top: -35px;
+	padding-left: 2px;
+}
+#showHideChk, #isCleanDiv, #isShowDownTime{
+	margin-top: -5px;
+	margin-left: -18px;
+}
+
+.radio-filter {
+	width: 100px !important;
+	margin-bottom: 2px !important;
+}
+
+.Epdf{
+    margin-top: -50px;
+    margin-right: 20px;
+    cursor:pointer
+}
+.turList{
+    max-height:300px;
+    height: 300px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.cFilter{
+    min-height:200px;
+}
+.detPc{
+    margin-top: -10px;
+    margin-right: 20px;
+    cursor:pointer
+}
+.powerDet{
+    height:500px;
+}
+.colRed{
+    color: red;
+}
+.colBlack{
+    color: black;
+}
+
+.nav-power-curve{
+    margin: auto;
+    text-align: center;
+    height: 70px;
+}
+.txt-deviation{
+    height: 25px;
+    max-width: 50px;
+    margin-left: 5px;
+    padding: 5px;
+    text-align: center;
+}
+.deviation-div{
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
+.isDeviationDiv{
+    margin-left: 2px;
+    margin-top: -5px;
+}
+.deviation-cr{
+    margin-top: 3px;
+}
+
+
+@media(max-width: 340px){
+    .cFilter {
+        min-height: 200px;
+        padding-top: 50px;
+    }
+}
+
+@media(max-width: 480px){
+    .power-curve-chart{
+        max-width: 450px;
+        overflow-x: scroll;
+        overflow-y: hidden;
+    }
+    .power-curve-chart>#powerCurve{
+        width: 550px !important;
+    }
+}
+
+@media(max-width: 991px){
+    .turList{
+        max-height:100px!important;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    .fa-file-pdf-o{
+        font-size: 16px;
+    }
+    .Epdf {
+        margin-right: 10px;
+    }
+}
+
+@media(max-width: 1249px){
+    .turList{
+        max-height:250px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    .cFilter {
+        min-height: 200px;
+        padding-top: 50px;
+    }
+}
