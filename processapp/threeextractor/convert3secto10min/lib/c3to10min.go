@@ -1,11 +1,10 @@
-package main
+package c3to10min
 
 import (
 	"bufio"
 	"log"
 	"math"
 	"os"
-	// "strconv"
 	"strings"
 
 	"github.com/eaciit/dbox"
@@ -16,11 +15,9 @@ import (
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 
-	"flag"
+	"errors"
 	"reflect"
 	"time"
-	// "github.com/eaciit/orm"
-	// dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
 )
 
 var (
@@ -51,39 +48,42 @@ var (
 		"Slow_RatedPower", "Slow_TempConv3", "Slow_TempConv2", "Slow_TotalActPowerIn_kWh", "Slow_TotalActPowerInG1_kWh", "Slow_TotalActPowerInG2_kWh",
 		"Slow_TotalActPowerOutG2_kWh", "Slow_TotalG2ActiveHours", "Slow_TotalReactPowerInG2_kVArh", "Slow_TotalReactPowerOut_kVArh", "Slow_UTCoffset_int"}
 
-	intstartdate = int(20160801)
-	intenddate   = int(20160831)
+	// intstartdate = int(20160801)
+	// intenddate   = int(20160831)
 
-	strintervaldate = ""
-	strfilename     = ""
-	config          = map[string]string{}
+	startdate, enddate, cdate = time.Time{}, time.Time{}, time.Time{} //date, year
+	arridate                  = []string{}                            //adate
+	strfilename               = string("")                            //file
+
+	config = map[string]string{}
 )
 
-func main() {
+//>> Param >>
+// selector = date | file | adate | year
+// >> selector = date
+// sdate / edate exp. "20160821" / "20160831"
+// exp tk.M{}.Set("selector", "date").Set("sdate", "20160821").Set("edate","20160831")
+// >> selector = file
+// file exp. "DataFile20160821-01.csv"
+// exp tk.M{}.Set("selector", "file").Set("file", "DataFile20160821-01.csv")
+// >> selector = adate
+// adate exp []string{"20160821", "20160831"}
+// exp tk.M{}.Set("selector", "adate").Set("adate", []string{"20160821", "20160831"})
+// >> selector = year
+// year exp 2016
+// exp tk.M{}.Set("selector", "year").Set("year", 2016)
+//>>>>>>>>>>>
 
-	flag.IntVar(&intstartdate, "sdate", 20160821, "Start date for processing data")
-	flag.IntVar(&intenddate, "edate", 20160831, "End date for processing data")
-	flag.StringVar(&strintervaldate, "idate", "", "Interval date in string")
-	flag.StringVar(&strfilename, "file", "", "Filename will be first priority to execute")
-	flag.Parse()
-
-	startdate := tk.String2Date(tk.Sprintf("%d", intstartdate), "YYYYMMdd").UTC()
-	enddate := tk.String2Date(tk.Sprintf("%d", intenddate), "YYYYMMdd").UTC()
-
-	sselector := string("date") //idate, file
-	arridate := make([]string, 0)
+func Generate(param tk.M) (ferr error) {
 
 	linit := string("")
-	if strfilename != "" {
-		sselector = "file"
-		linit = strfilename
-	} else if strintervaldate != "" {
-		sselector = "idate"
-		arridate = strings.Split(strintervaldate, "|")
-		linit = strintervaldate
-	} else {
-		linit = tk.Sprintf("%s to %s", startdate.Format("2006-01-02"), enddate.Format("2006-01-02"))
+	ferr, linit = checkparam(param)
+	if ferr != nil {
+		log.Println(ferr.Error())
+		return
 	}
+
+	sselector := param.GetString("selector")
 
 	log.Println(tk.Sprintf("Convert Data for %s", linit))
 	config = ReadConfig()
@@ -94,7 +94,6 @@ func main() {
 		tk.Println(err)
 	}
 	defer conn.Close()
-	// ctx := orm.New(conn)
 
 	start := time.Now()
 
@@ -110,7 +109,6 @@ func main() {
 
 	//=============================
 
-	cdate := startdate
 	iarr := int(0)
 	isbreak := false
 	for {
@@ -119,25 +117,9 @@ func main() {
 		match := tk.M{}
 		scond := ""
 
-		if sselector == "file" {
-			if iarr > 0 {
-				isbreak = true
-			} else {
-				match.Set("file", strfilename)
-				scond = strfilename
-			}
-			iarr++
-		} else if sselector == "idate" {
-			if iarr > len(arridate) {
-				isbreak = true
-			} else {
-				idate := tk.String2Date(arridate[iarr], "YYYYMMdd").UTC()
-				match.Set("$and", []tk.M{tk.M{}.Set("timestampconverted", tk.M{"$gt": idate}),
-					tk.M{}.Set("timestampconverted", tk.M{"$lte": idate.AddDate(0, 0, 1)})})
-				scond = idate.Format("2006-01-02")
-			}
-			iarr++
-		} else {
+		//date | file | adate | year
+		switch sselector {
+		case "date", "year":
 			if cdate.After(enddate) {
 				isbreak = true
 			} else {
@@ -146,6 +128,24 @@ func main() {
 				scond = cdate.Format("2006-01-02")
 			}
 			cdate = cdate.AddDate(0, 0, 1)
+		case "file":
+			if iarr > 0 {
+				isbreak = true
+			} else {
+				match.Set("file", strfilename)
+				scond = strfilename
+			}
+			iarr++
+		case "adate":
+			if iarr >= len(arridate) {
+				isbreak = true
+			} else {
+				idate := tk.String2Date(arridate[iarr], "YYYYMMdd").UTC()
+				match.Set("$and", []tk.M{tk.M{}.Set("timestampconverted", tk.M{"$gt": idate}),
+					tk.M{}.Set("timestampconverted", tk.M{"$lte": idate.AddDate(0, 0, 1)})})
+				scond = idate.Format("2006-01-02")
+			}
+			iarr++
 		}
 
 		if isbreak {
@@ -184,6 +184,55 @@ func main() {
 
 	log.Printf("All data conversion done in %s \n",
 		time.Since(start).String())
+
+	return
+}
+
+func checkparam(_param tk.M) (_ferr error, _linit string) {
+	_ferr = nil
+	_linit = string("")
+
+	_select := _param.GetString("selector")
+	switch _select {
+	case "date":
+		if !_param.Has("sdate") || !_param.Has("edate") {
+			_ferr = errors.New(tk.Sprintf("%s value is not found", _select))
+			return
+		}
+		_linit = tk.Sprintf("%s to %s", _param.GetString("sdate"), _param.GetString("edate"))
+		startdate = tk.String2Date(_param.GetString("sdate"), "YYYYMMdd").UTC()
+		cdate = startdate
+		enddate = tk.String2Date(_param.GetString("edate"), "YYYYMMdd").UTC()
+	case "adate":
+		if !_param.Has(_select) {
+			_ferr = errors.New(tk.Sprintf("%s value is not found", _select))
+			return
+		}
+		_linit = strings.Join(_param[_select].([]string), ",")
+		arridate = _param[_select].([]string)
+	case "file":
+		if !_param.Has(_select) {
+			_ferr = errors.New(tk.Sprintf("%s value is not found", _select))
+			return
+		}
+		_linit = _param.GetString(_select)
+		strfilename = _param.GetString(_select)
+	case "year":
+		if !_param.Has(_select) {
+			_ferr = errors.New(tk.Sprintf("%s value is not found", _select))
+			return
+		}
+		_linit = _param.GetString(_select)
+
+		tdate := tk.Sprintf("%d0101", _param.GetInt(_select))
+		startdate = tk.String2Date(tdate, "YYYYMMdd").UTC()
+		cdate = startdate
+
+		tdate = tk.Sprintf("%d0101", _param.GetInt(_select)+1)
+		enddate = tk.String2Date(tdate, "YYYYMMdd").UTC()
+	}
+
+	return
 }
 
 func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
