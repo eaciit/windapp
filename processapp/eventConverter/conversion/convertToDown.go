@@ -154,7 +154,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 								down.Detail = details
 
-								if down.DateInfoStart.MonthId != 0 {
+								if down.DateInfoStart.MonthId != 0 && down.TimeStart.Year() != 1 {
 									mutex.Lock()
 									brakeType := data.BrakeType
 									if strings.Contains(strings.ToLower(brakeType), "grid") {
@@ -168,9 +168,8 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 									}
 									ev.Ctx.Insert(down)
 									mutex.Unlock()
+									// log.Print("Insert Event Down")
 								}
-
-								log.Println("Insert Event Down")
 
 								details = []EventDownDetail{}
 								endIdx = idx
@@ -180,27 +179,13 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 					}
 				}
 
-				// tmpLoopData := loopData[endIdx+1:]
-
 				tmpLoopData := []EventRaw{}
-
-				/*if startIdx > 0 {
-					tmpLoopData = append(tmpLoopData, loopData[:startIdx+1]...)
-				}*/
 
 				if endIdx > 0 {
 					tmpLoopData = append(tmpLoopData, loopData[endIdx+1:]...)
 				}
 
-				// log.Printf("tmpLoopData: %v --- %v | %#v \n", startIdx, endIdx, len(tmpLoopData))
-
 				loopData = tmpLoopData
-
-				/*for idx, data := range loopData {
-					if data.DateInfo.MonthId == 0 {
-						log.Printf("idx: %v | %v | %v | %v \n", idx, data.AlarmId, data.TimeStamp.UTC(), data.AlarmToggle)
-					}
-				}*/
 
 				if len(loopData) == 0 {
 					break mainLoop
