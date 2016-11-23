@@ -3,9 +3,8 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-performance-index.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-performance-index.css">
-
 <div>
-	<div class="row" data-bind="visible:page.isMain">
+	<div class="row">
 		{{template "_filter-analytic.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
@@ -14,7 +13,7 @@
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
 					</div>
 					<div class="panel-body">
-					
+						<div id="performance-grid"></div>
 					</div>
 				</div>
 			</div>
