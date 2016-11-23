@@ -105,7 +105,7 @@ func main() {
 			select {
 			case event := <-watcher.Events:
 				// log.Println("event:", event)
-				if event.Op&fsnotify.Create == fsnotify.Create {
+				if event.Op&fsnotify.Create == fsnotify.Create {					
 					go processFile(event.Name, conf.Commands)
 				}
 			case err := <-watcher.Errors:
@@ -144,6 +144,19 @@ func processFile(filePath string, com []Command) {
 	// dt := time.Now()
 	// dtStr := fmtdate.Format(TIME_FORMAT_STR, dt)
 	fmt.Println("Process")
+	for true{
+		byteOut,err:=runCMD("lsof "+filePath)
+		if err!=nil{
+			log.Print("Gagal")
+		}
+		if len(byteOut)==0{
+			break
+		}else{
+			fmt.Println(string(byteOut))
+			time.Sleep(200*time.Millisecond)
+		}
+		
+	}
 	file := strings.Split(filePath, pathSep)
 	fileName := file[len(file)-1]
 
