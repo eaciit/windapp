@@ -35,8 +35,8 @@ func main() {
 	config := ReadConfig()
 	dir := config["FileProcess"]
 
-	event := NewEventRawConversion(ctx, dir)
-	event.Run()
+	/*event := NewEventRawConversion(ctx, dir)
+	event.Run()*/
 
 	down := NewDownConversion(ctx, dir)
 	down.Run()

@@ -19,7 +19,7 @@ import (
 var (
 	separatorRaw = string(os.PathSeparator)
 	// mutex           = &sync.Mutex{}
-	countPerProcessRaw = 10
+	countPerProcessRaw = 5
 )
 
 type EventRawConversion struct {

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/eaciit/orm"
+	tk "github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -48,7 +49,7 @@ func (m *DowntimeEvent) TableName() string {
 
 type EventDown struct {
 	orm.ModelBase    `bson:"-",json:"-"`
-	ID               bson.ObjectId ` bson:"_id" , json:"_id" `
+	ID               string ` bson:"_id" , json:"_id" `
 	ProjectName      string
 	Turbine          string
 	TimeStart        time.Time
@@ -72,7 +73,9 @@ type EventDownDetail struct {
 }
 
 func (m *EventDown) New() *EventDown {
-	m.ID = bson.NewObjectId()
+	milistr := tk.ToString(m.TimeStart.Nanosecond() / 1000000)
+	timeStampStr := m.TimeStart.Format("060102_150405") + "_" + milistr
+	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine
 	return m
 }
 

@@ -166,6 +166,9 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 									if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
 										down.DownMachine = true
 									}
+
+									down := down.New()
+
 									ev.Ctx.Insert(down)
 									mutex.Unlock()
 									// log.Print("Insert Event Down")
