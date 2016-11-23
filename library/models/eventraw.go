@@ -2,6 +2,7 @@ package models
 
 import (
 	. "eaciit/wfdemo-git/library/helper"
+	"math/rand"
 	"time"
 
 	"github.com/eaciit/orm"
@@ -39,12 +40,14 @@ func (m *DowntimeEventRaw) TableName() string {
 }
 
 type EventRaw struct {
-	orm.ModelBase    `bson:"-",json:"-"`
-	ID               string ` bson:"_id" , json:"_id" `
-	ProjectName      string
-	Turbine          string
-	TimeStamp        time.Time
-	DateInfo         DateInfo
+	orm.ModelBase `bson:"-",json:"-"`
+	ID            string ` bson:"_id" , json:"_id" `
+	ProjectName   string
+	Turbine       string
+	TimeStamp     time.Time
+	// TimeStampUTC     time.Time
+	DateInfo DateInfo
+	// DateInfoUTC      DateInfo
 	EventType        string
 	BrakeProgram     int
 	AlarmDescription string
@@ -57,7 +60,7 @@ type EventRaw struct {
 func (m *EventRaw) New() *EventRaw {
 	milistr := tk.ToString(m.TimeStamp.Nanosecond() / 1000000)
 	timeStampStr := m.TimeStamp.Format("060102_150405") + "_" + milistr
-	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine + "#" + tk.ToString(m.AlarmId)
+	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine + "#" + tk.ToString(m.AlarmId) + "#" + time.Now().Format("060102150405_000000000") + "_" + tk.ToString(rand.Intn(100000))
 	return m
 }
 

@@ -2,6 +2,7 @@ package conversion
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -19,7 +20,7 @@ import (
 var (
 	separatorRaw = string(os.PathSeparator)
 	// mutex           = &sync.Mutex{}
-	countPerProcessRaw = 5
+	countPerProcessRaw = 3
 )
 
 type EventRawConversion struct {
@@ -87,6 +88,8 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 	now := time.Now()
 	tk.Println("Starting process file ", filename)
 
+	total := 0
+
 	fLoc := ev.FilePath + separatorRaw + filename
 	fi, err := os.Stat(fLoc)
 	turbine := strings.Replace(fi.Name(), ".xlsx", "", 1)
@@ -133,13 +136,18 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					rawdata.ProjectName = project
 					rawdata.Turbine = turbine
 					sTimeStamp, _ := row.Cells[0].String()
-					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+					// rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05-07:00", strings.Replace(sTimeStamp, "T", " ", 1))
+					// rawdata.TimeStampUTC = rawdata.TimeStamp.UTC()
+
+					// log.Printf("%v | %v || %v \n", strings.Replace(sTimeStamp, "T", " ", 1), sTimeStamp, rawdata.TimeStamp.String())
 
 					sEventType, _ := row.Cells[1].String()
 					rawdata.EventType = strings.TrimSpace(sEventType)
 
 					rawdata.BrakeProgram = brakeProgram
 					rawdata.DateInfo = GetDateInfo(rawdata.TimeStamp)
+					// rawdata.DateInfoUTC = GetDateInfo(rawdata.TimeStampUTC)
 					rawdata.AlarmDescription = alarmDesc
 					rawdata.AlarmId = alarmIdx
 					rawdata.TurbineStatus = strings.TrimSpace(turbineStatus)
@@ -154,14 +162,20 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 						rawdata.AlarmToggle = false
 					}
 
-					ev.Ctx.Insert(rawdata)
+					e := ev.Ctx.Insert(rawdata)
+					if e != nil {
+						log.Printf("error: %v \n", e.Error())
+						total++
+					}
+				} else {
+					total++
 				}
 			}
 		}
 	}
 
 	duration := time.Now().Sub(now)
-	tk.Println(tk.Sprintf("Process file %v about %v sec(s)", filename, duration.Seconds()))
+	tk.Println(tk.Sprintf("Process file %v about %v sec(s) | total error: %v", filename, duration.Seconds(), total))
 
 	// mutex.Unlock()
 
