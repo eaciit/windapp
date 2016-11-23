@@ -181,13 +181,15 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 	}
 
 	if len(turbine) == 0 {
-		var filter []*dbox.Filter
-		filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-		filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+		// var filter []*dbox.Filter
+
+		// filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+		// filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 
 		queryAggr := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
 			// Aggr(dbox.AggrMax, "$energy", "energy").
-			Group("turbine").Where(dbox.And(filter...))
+			Group("turbine")
+			// .Where(dbox.And(filter...))
 
 		caggr, e := queryAggr.Cursor(nil)
 		if e != nil {

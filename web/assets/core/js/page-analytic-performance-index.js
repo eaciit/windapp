@@ -73,8 +73,8 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndex", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "Production", title: "Prod <br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "Power", title: "Act. Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "Production", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "Power", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -82,8 +82,8 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" }, format: "{0:n2}"},
-                        { field: "ProductionLast24Hours", title: "Prod <br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "PowerLast24Hours", title: "Act. Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "ProductionLast24Hours", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PowerLast24Hours", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -91,8 +91,8 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLastWeek", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionLastWeek", title: "Prod <br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "PowerLastWeek", title: "Act. Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "ProductionLastWeek", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PowerLastWeek", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -100,8 +100,8 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexMTD", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionMTD", title: "Prod <br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "PowerMTD", title: "Act. Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "ProductionMTD", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PowerMTD", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -109,8 +109,8 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexYTD", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionYTD", title: "Prod<br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "PowerYTD", title: "Act. Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "ProductionYTD", title: "Prod<br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PowerYTD", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
                 { field: "StartDate", title: "Custom Range Selected", width: 200,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },template: "#= kendo.toString(moment.utc(StartDate).format('DD-MM-YYYY'), 'HH:mm:ss') # until  #= kendo.toString(moment.utc(EndDate).format('DD-MM-YYYY'), 'HH:mm:ss')#"},
