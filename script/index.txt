@@ -27,3 +27,7 @@ db.MetTower.createIndex( { "timestamp": 1} )
 db.EventRaw.createIndex( { brakeprogram: 1 } )
 db.EventRaw.createIndex( { alarmtoggle: 1 } )
 db.EventRaw.createIndex( { timestamp: 1 } )
+
+db.EventDown.createIndex( { brakeprogram: 1 } )
+db.EventDown.createIndex( { alarmtoggle: 1 } )
+db.EventDown.createIndex( { timestamp: 1 } )
