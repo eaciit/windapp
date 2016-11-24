@@ -44,7 +44,8 @@ var lastParamChart = {};
 var dtType = '';
 var monthDetailDT = '';
 var projectSelected = '';
-var maxdate = new Date(Date.UTC(2016, 5, 30, 23, 59, 59, 0));
+var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+var maxdate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 23, 59, 59, 0));
 
 lgd.getProjectList = function () {
     app.ajaxPost(viewModel.appName + "/dashboard/getprojectlist", {}, function (res) {
