@@ -96,7 +96,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 			break
 		case 2:
 			// lastweek
-			filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-7))))
+			// filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-7))))
+			filter = append(filter, dbox.Gte("dateinfo.dateid", time.Date(tEnd.Year(), tEnd.Month(), tEnd.Day()-7, 0, 0, 0, 0, time.UTC)))
 			break
 		case 1:
 			// mtd
@@ -219,7 +220,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 					break
 				case 2:
 					// lastweek
-					filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-7))))
+					// filter = append(filter, dbox.Gte("dateinfo.dateid", tEnd.Add(time.Hour*24*(-7))))
+					filter = append(filter, dbox.Gte("dateinfo.dateid", time.Date(tEnd.Year(), tEnd.Month(), tEnd.Day()-7, 0, 0, 0, 0, time.UTC)))
 					break
 				case 1:
 					// mtd
