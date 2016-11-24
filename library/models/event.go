@@ -55,11 +55,13 @@ type EventDown struct {
 	ProjectName   string
 	Turbine       string
 	TimeStart     time.Time
+	TimeStartInt  int64
 	// TimeStartUTC     time.Time
 	DateInfoStart DateInfo
 	// DateInfoStartUTC DateInfo
 	TimeEnd time.Time
 	// TimeEndUTC       time.Time
+	TimeEndInt  int64
 	DateInfoEnd DateInfo
 	// DateInfoEndUTC   DateInfo
 	AlarmDescription string
@@ -71,10 +73,11 @@ type EventDown struct {
 }
 
 type EventDownDetail struct {
-	TimeStamp        time.Time
-	TimeStampUTC     time.Time
-	DateInfo         DateInfo
-	DateInfoUTC      DateInfo
+	TimeStamp    time.Time
+	TimeStampInt int64
+	// TimeStampUTC     time.Time
+	DateInfo DateInfo
+	// DateInfoUTC      DateInfo
 	AlarmId          int
 	AlarmDescription string
 	AlarmToggle      bool

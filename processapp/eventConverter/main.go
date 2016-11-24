@@ -30,7 +30,6 @@ func main() {
 		tk.Println(err)
 	}
 	ctx := orm.New(conn)
-	_ = ctx
 
 	config := ReadConfig()
 	dir := config["FileProcess"]
