@@ -1,8 +1,5 @@
 'use strict';
 
-// var monthNames = ["January", "February", "March", "April", "May", "June",
-//     "July", "August", "September", "October", "November", "December"
-// ];
 
 viewModel.summary = {};
 var sum = viewModel.summary;
@@ -20,7 +17,7 @@ sum.noOfTurbines = ko.observable();
 sum.totalMaxCapacity = ko.observable();
 sum.currentDown = ko.observable();
 sum.twoDaysDown = ko.observable();
-
+vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
@@ -39,7 +36,7 @@ sum.loadData = function () {
 
             var lastUpdate = new Date(res.data[0].LastUpdate);
 
-            vm.dateAsOf(lastUpdate.addHours(-7));
+            // vm.dateAsOf(lastUpdate.addHours(-7));
             sum.ProductionChart(res.data[0].Productions);
             sum.CumProduction(res.data[0].CummulativeProductions);
             sum.SummaryData(project);
@@ -369,18 +366,7 @@ sum.Windiness = function (dataSource) {
             },
 
         },
-        // seriesHover: function(e) {
-        //   console.log(e)
-        //   var positionX = e.originalEvent.offsetX,
-        //       positionY = e.originalEvent.offsetY,
-        //       value = e.value;
-        //   $("#chartWindinessCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateWindiness").html())({ e:e }));;                  
-        // },
     });
-
-    //  $("#chartWindiness").mouseleave(function(e){
-    //    $("#chartWindinessCustomTooltip").hide();
-    // })
 }
 
 sum.ProdMonth = function (dataSource) {
@@ -824,17 +810,7 @@ sum.ProductionChart = function (dataSource) {
             },
             format: dataFormat,
         },
-        // seriesHover: function(e) {
-        //   var positionX = e.originalEvent.clientX,
-        //       positionY = e.originalEvent.clientY,
-        //       value = e.value;
-        //   $("#chartProductionCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateProd").html())({ e:e }));;                  
-        // },
     });
-
-    // $("#chartProduction").mouseleave(function(e){
-    //    $("#chartProductionCustomTooltip").hide();
-    // })
 }
 
 sum.CumProduction = function (dataSource) {
