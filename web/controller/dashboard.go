@@ -1286,7 +1286,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 	match := tk.M{}
 
 	if p.DateStr == "" {
-		fromDate = p.Date.AddDate(0, -12, 0)
+		fromDate = p.Date.AddDate(0, -13, 0)
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
 
