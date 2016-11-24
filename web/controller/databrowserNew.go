@@ -344,7 +344,6 @@ func GetCustomFieldList() []tk.M {
 		"V Tip WS 42m Avg", "V Tip WS 42m Std Dev", "D Hub WD 88m Avg", "D Hub WD 88m Std Dev", "D Ref WD 86m Avg",
 		"D Ref WD 86m Std Dev", "T Hub & H Hub Humid 85m Avg", "T Hub & H Hub Humid 85m Std Dev", "T Ref & H Ref Humid 85.5m Avg", "T Ref & H Ref Humid 85.5m Std Dev",
 		"T Hub & H Hub Temp 85.5m Avg", "T Hub & H Hub Temp 85.5m Std Dev", "T Ref & H Ref Temp 85.5 Avg", "T Ref & H Ref Temp 85.5 Std Dev", "Baro Air Pressure 85.5m Avg", "Baro Air Pressure 85.5m Std Dev",
-
 	}
 
 	_amettower_field := []string{"vhubws90mavg", "vhubws90mstddev", "vrefws88mavg", "vrefws88mstddev", "vtipws42mavg",
@@ -590,8 +589,8 @@ func (m *DataBrowserNewController) GetCustomAvailDate(k *knot.WebContext) interf
 		ResultMetTower := make([]MetTower, 0)
 		eM = csrM.Fetch(&ResultMetTower, 0, false)
 
-		tk.Printf("Result : %s \n", Result)
-		tk.Printf("ResultMetTower : %s \n", ResultMetTower)
+		/*tk.Printf("Result : %s \n", Result)
+		tk.Printf("ResultMetTower : %s \n", ResultMetTower)*/
 
 		for _, val := range Result {
 			Dateresults = append(Dateresults, val.TimeStamp.UTC())
@@ -600,7 +599,6 @@ func (m *DataBrowserNewController) GetCustomAvailDate(k *knot.WebContext) interf
 			Dateresults = append(Dateresults, val.TimeStamp.UTC())
 		}
 	}
-
 
 	data := struct {
 		CustomDate []time.Time
