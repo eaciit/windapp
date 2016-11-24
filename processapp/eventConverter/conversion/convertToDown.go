@@ -107,6 +107,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						tmp.AlarmId = data.AlarmId
 						tmp.AlarmToggle = data.AlarmToggle
 						tmp.TimeStamp = data.TimeStamp
+						tmp.TimeStampInt = data.TimeStampInt
 						// tmp.TimeStampUTC = data.TimeStampUTC
 						tmp.DateInfo = data.DateInfo
 						// tmp.DateInfoUTC = data.DateInfoUTC
@@ -147,16 +148,18 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 								down.Turbine = loop.Turbine
 
 								down.TimeStart = start.TimeStamp
+								down.TimeStartInt = start.TimeStampInt
 								down.DateInfoStart = GetDateInfo(start.TimeStamp)
 
-								/*down.TimeStartUTC = start.TimeStampUTC
-								down.DateInfoStartUTC = start.DateInfoUTC*/
+								// down.TimeStartUTC = start.TimeStampUTC
+								// down.DateInfoStartUTC = start.DateInfoUTC
 
 								down.TimeEnd = end.TimeStamp
+								down.TimeEndInt = end.TimeStampInt
 								down.DateInfoEnd = GetDateInfo(end.TimeStamp)
 
-								/*down.TimeEndUTC = end.TimeStampUTC
-								down.DateInfoEndUTC = end.DateInfoUTC*/
+								// down.TimeEndUTC = end.TimeStampUTC
+								// down.DateInfoEndUTC = end.DateInfoUTC
 
 								down.AlarmDescription = start.AlarmDescription
 								down.Duration = end.TimeStamp.Sub(start.TimeStamp).Seconds()
@@ -213,7 +216,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	duration := time.Now().Sub(now)
 	log.Printf("Process %v | %v about %v sec(s) \n", loop.Project, loop.Turbine, duration.Seconds())
 	// mutex.Unlock()
-
+	csr.Close()
 	wg.Done()
 }
 
@@ -331,6 +334,6 @@ func (ev *DownConversion) getLatest() []GroupResult {
 
 		result = append(result, tmp)
 	}
-
+	csr.Close()
 	return result
 }

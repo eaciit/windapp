@@ -3,11 +3,11 @@ package main
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
 	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
-	// . "eaciit/wfdemo-git/processapp/controllers/excelConverter"
+	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 	"os"
 	"runtime"
 
-	_ "github.com/eaciit/dbox/dbc/mssql"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 	tk "github.com/eaciit/toolkit"
 )
@@ -62,15 +62,16 @@ func main() {
 		// new(GenScadaPowerCurvePlus).GeneratePlusAdj(base)
 		// new(GenScadaPowerCurvePlus).GeneratePlusAvg(base)
 		// new(UpdateScadaMinutes).Generate(base)
-		new(UpdateScadaMinutes).GenerateDensity(base)
+		// new(UpdateScadaMinutes).GenerateDensity(base)
 		// new(UpdateProjectScadaAndAlarm).Generate(base)
 
 		// new(ConvJMRBreakup).Generate(base)
 
+		new(ConvPermanentMetTower).Generate(base)
 		// new(ConvPermanentMetTowerCSV).Generate(base)
-		// met := new(UpdateMetTower)
-		// met.Generate(base)
-		// met.GenerateWindRose(base)
+		met := new(UpdateMetTower)
+		met.Generate(base)
+		met.GenerateWindRose(base)
 
 		// new(ConvScadaDataOEM).Generate(base)
 	}
