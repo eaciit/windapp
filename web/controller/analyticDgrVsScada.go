@@ -116,17 +116,17 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 
 	if len(list) > 0 {
 		scada := list[0]
-		sPower = scada["power"].(float64) / 1000 // in KWh
-		sMinutesInHour := scada["minutes"].(float64) / 60.0
+		sPower = scada.GetFloat64("power") / 1000 // in KWh
+		sMinutesInHour := scada.GetFloat64("minutes") / 60.0
 		sEnergy = sPower / 6
-		sOktime = scada["oktime"].(float64)
+		sOktime = scada.GetFloat64("oktime")
 		sDowntime = ((24 * duration * 144 * 600) - sOktime) / 3600
-		sWindspeed = scada["windspeed"].(float64)
+		sWindspeed = scada.GetFloat64("windspeed")
 		sPlf = sEnergy / (24 * duration * 24 * 2100) * 100 * 1000
 		sTrueavail = (sOktime / 3600) / (duration * 24 * 24) * 100
 
-		sMachineavail = (sMinutesInHour - (scada["machinedowntime"].(float64) / 3600)) / (24 * 24 * duration) * 100
-		sGridavail = (sMinutesInHour - (scada["griddowntime"].(float64) / 3600)) / (24 * 24 * duration) * 100
+		sMachineavail = (sMinutesInHour - (scada.GetFloat64("machinedowntime") / 3600)) / (24 * 24 * duration) * 100
+		sGridavail = (sMinutesInHour - (scada.GetFloat64("griddowntime") / 3600)) / (24 * 24 * duration) * 100
 	}
 
 	scadaItem.power = sPower
