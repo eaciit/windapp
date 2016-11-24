@@ -1917,10 +1917,12 @@ var Data = {
         });*/
     },
     InitDefault: function () {
-        var lastStartDate = new Date(Date.UTC(2016, 5, 30, 0, 0, 0, 0));
-        var lastEndDate = new Date(Date.UTC(2016, 5, 23, 0, 0, 0, 0));
-        $('#dateEnd').data('kendoDatePicker').value(lastStartDate);
-        $('#dateStart').data('kendoDatePicker').value(lastEndDate);
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+    var lastEndDate = new Date(app.toUTC(maxDateData));
+
+    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
 
         setTimeout(function () {
             Data.LoadData();
