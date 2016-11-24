@@ -589,8 +589,8 @@ func (m *DataBrowserNewController) GetCustomAvailDate(k *knot.WebContext) interf
 		ResultMetTower := make([]MetTower, 0)
 		eM = csrM.Fetch(&ResultMetTower, 0, false)
 
-		tk.Printf("Result : %s \n", Result)
-		tk.Printf("ResultMetTower : %s \n", ResultMetTower)
+		/*tk.Printf("Result : %s \n", Result)
+		tk.Printf("ResultMetTower : %s \n", ResultMetTower)*/
 
 		for _, val := range Result {
 			Dateresults = append(Dateresults, val.TimeStamp.UTC())

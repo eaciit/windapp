@@ -1002,8 +1002,9 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		match := tk.M{}
 		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+interval)).Set("$gte", startcategory))
 		match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-		match.Set("projectname", project)
-
+		if len(project) > 0 {
+			match.Set("projectname", project)
+		}
 		if len(turbine) > 0 {
 			match.Set("turbine", tk.M{}.Set("$in", turbine))
 		}
@@ -1085,8 +1086,9 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		match := tk.M{}
 		match.Set("power", tk.M{}.Set("$lt", (startcategory+interval)).Set("$gte", startcategory))
 		match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-		match.Set("projectname", project)
-
+		if len(project) > 0 {
+			match.Set("projectname", project)
+		}
 		if len(turbine) > 0 {
 			match.Set("turbine", tk.M{}.Set("$in", turbine))
 		}

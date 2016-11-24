@@ -2,6 +2,7 @@ package conversion
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -9,6 +10,7 @@ import (
 
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
+	"strconv"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
@@ -19,7 +21,7 @@ import (
 var (
 	separatorRaw = string(os.PathSeparator)
 	// mutex           = &sync.Mutex{}
-	countPerProcessRaw = 10
+	countPerProcessRaw = 3
 )
 
 type EventRawConversion struct {
@@ -31,7 +33,6 @@ func NewEventRawConversion(ctx *orm.DataContext, filePath string) *EventRawConve
 	ev := new(EventRawConversion)
 	ev.Ctx = ctx
 	ev.FilePath = filePath
-
 	return ev
 }
 
@@ -45,7 +46,7 @@ func (ev *EventRawConversion) Run() {
 
 			files, err := ioutil.ReadDir(ev.FilePath)
 			if err != nil {
-				tk.Println(err)
+				log.Println(err)
 			}
 
 			counter := 0
@@ -85,7 +86,9 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 	// mutex.Lock()
 
 	now := time.Now()
-	tk.Println("Starting process file ", filename)
+	log.Println("Starting process file ", filename)
+
+	total := 0
 
 	fLoc := ev.FilePath + separatorRaw + filename
 	fi, err := os.Stat(fLoc)
@@ -94,8 +97,10 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 
 	xls, err := xlsx.OpenFile(fLoc)
 	if err != nil {
-		tk.Println("Error open excel file : ", err.Error())
+		log.Println("Error open excel file : ", err.Error())
 	}
+
+	// var result []orm.IModel
 
 	for _, sheet := range xls.Sheet {
 		for idx, row := range sheet.Rows {
@@ -133,13 +138,24 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					rawdata.ProjectName = project
 					rawdata.Turbine = turbine
 					sTimeStamp, _ := row.Cells[0].String()
-					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+					// rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05-07:00", strings.Replace(sTimeStamp, "T", " ", 1))
+					// rawdata.TimeStampUTC = rawdata.TimeStamp.UTC()
+
+					milistr := tk.ToString(rawdata.TimeStamp.Nanosecond() / 1000000)
+					timeStampStr := rawdata.TimeStamp.Format("060102150405") + milistr
+
+					rawdata.TimeStampInt, _ = strconv.ParseInt(timeStampStr, 10, 64)
+
+					// log.Printf("%v | %v || %v \n", strings.Replace(sTimeStamp, "T", " ", 1), sTimeStamp, rawdata.TimeStamp.String())
+					// log.Printf("%v | %v || %v \n", rawdata.TimeStamp.String(), rawdata.TimeStampUTC.String(), strings.Replace(sTimeStamp, "T", " ", 1))
 
 					sEventType, _ := row.Cells[1].String()
 					rawdata.EventType = strings.TrimSpace(sEventType)
 
 					rawdata.BrakeProgram = brakeProgram
 					rawdata.DateInfo = GetDateInfo(rawdata.TimeStamp)
+					// rawdata.DateInfoUTC = GetDateInfo(rawdata.TimeStampUTC)
 					rawdata.AlarmDescription = alarmDesc
 					rawdata.AlarmId = alarmIdx
 					rawdata.TurbineStatus = strings.TrimSpace(turbineStatus)
@@ -154,14 +170,82 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 						rawdata.AlarmToggle = false
 					}
 
-					ev.Ctx.Insert(rawdata)
+					// var tmpResult orm.IModel
+					// tmpResult = rawdata
+
+					// result = append(result, tmpResult)
+					e := ev.Ctx.Insert(rawdata)
+					if e != nil {
+						log.Printf("error: %v \n", e.Error())
+						total++
+					}
+				} else {
+					total++
 				}
 			}
 		}
 	}
 
+	// ctx := orm.New(ev.Conn)
+
+	/*resLen := len(result)
+	maxInsert := 2
+
+	if resLen > 0 {
+		count := 0
+		tmpResult := []orm.IModel{}
+
+	doneLoop:
+		for {
+			start := count * maxInsert
+			end := count*maxInsert + maxInsert
+
+			if len(result[start:end]) == maxInsert {
+				tmpResult = result[start:end]
+			} else {
+				tmpResult = result[start:]
+			}
+
+		doneInsert:
+			for {
+				e := ev.Ctx.InsertBulk(tmpResult)
+				if e != nil {
+					log.Printf("error: %v \n", e.Error())
+					e = ev.Ctx.Connection.Connect()
+
+					end = resLen + 1
+					break doneInsert
+
+					if e != nil {
+						log.Printf("error: %v \n", e.Error())
+					}
+				} else {
+					break doneInsert
+				}
+			}
+
+			if end >= resLen {
+				break doneLoop
+			}
+		}
+	}*/
+
+	/*for {
+		e := ev.Ctx.InsertBulk(result)
+		if e != nil {
+			log.Printf("error: %v \n", e.Error())
+			ev.Ctx.Connection.Close()
+			e = ev.Ctx.Connection.Connect()
+			if e != nil {
+				log.Printf("error: %v \n", e.Error())
+			}
+		} else {
+			break
+		}
+	}*/
+
 	duration := time.Now().Sub(now)
-	tk.Println(tk.Sprintf("Process file %v about %v sec(s)", filename, duration.Seconds()))
+	log.Println(tk.Sprintf("Process file %v about %v sec(s) | total error: %v", filename, duration.Seconds(), total))
 
 	// mutex.Unlock()
 
@@ -175,21 +259,21 @@ func GetAlarmBrake(ctx *orm.DataContext) map[int]AlarmBrake {
 		From(new(AlarmBrake).TableName()).
 		Cursor(nil)
 
-	defer csr.Close()
+	// defer csr.Close()
 
 	if err != nil {
-		tk.Printf("ERROR: %v \n", err.Error())
+		log.Printf("ERROR: %v \n", err.Error())
 		return nil
 	}
 
 	err = csr.Fetch(&alarmbrakes, 0, false)
 
 	if err != nil {
-		tk.Printf("ERROR: %v \n", err.Error())
+		log.Printf("ERROR: %v \n", err.Error())
 		return nil
 	}
 
-	tk.Printf("GetAlarmBrake: %v \n", len(alarmbrakes))
+	// log.Printf("GetAlarmBrake: %v \n", len(alarmbrakes))
 
 	result := map[int]AlarmBrake{}
 
@@ -202,7 +286,7 @@ func GetAlarmBrake(ctx *orm.DataContext) map[int]AlarmBrake {
 	/*for x, val := range result {
 		fmt.Printf("%#v | %#v \n", x, val)
 	}*/
-
+	csr.Close()
 	return result
 }
 

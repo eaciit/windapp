@@ -435,6 +435,7 @@ var Data = {
              field : val._id, 
              title : val.label,
              type: val._id == "turbine" ? "string" : "number",
+             width: 120,
              headerAttributes: {style:"text-align:center"}
          };
 
@@ -443,6 +444,7 @@ var Data = {
                 field: val._id,
                 title: val.label,
                 type: "date",
+                width:140,
                 template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", 
                 value: true
             }
@@ -519,6 +521,7 @@ var Data = {
             sortable: true,
             pageable: true,
             filterable: true,
+            scrollable: true,
             columns : columns,
         });
         
@@ -541,6 +544,7 @@ var Data = {
         $('.k-grid-showHideColumn').on("click", function(){
             Data.InitColumnList();
             $("#modalShowHide").modal();
+            return false;
         });
     },
     InitDEgrid: function() {
@@ -633,10 +637,12 @@ var Data = {
     });
 	},
     InitDefault: function () {
-        var lastStartDate = new Date(Date.UTC(2016, 5, 30, 0, 0, 0, 0));
-        var lastEndDate = new Date(Date.UTC(2016, 5, 23, 0, 0, 0, 0));
-        $('#dateEnd').data('kendoDatePicker').value(lastStartDate);
-        $('#dateStart').data('kendoDatePicker').value(lastEndDate);
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+    var lastEndDate = new Date(app.toUTC(maxDateData));
+
+    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
 
         setTimeout(function () {
             Data.LoadData();

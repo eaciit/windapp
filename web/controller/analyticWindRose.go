@@ -4,13 +4,14 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"sort"
+	"strings"
+	"time"
+
 	c "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
-	"sort"
-	"strings"
-	"time"
 )
 
 type AnalyticWindRoseController struct {
@@ -250,7 +251,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 
 	scadas := []MiniScada{}
 
-	csr, _ := DB().Connection.NewQuery().From(new(ScadaDataNew).TableName()).
+	csr, _ := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
 		Where(dbox.And(filter...)).Cursor(nil) //.Order("turbine")
 
 	e = csr.Fetch(&scadas, 0, false)

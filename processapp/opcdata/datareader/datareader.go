@@ -22,6 +22,9 @@ type DataReader struct {
 	FileLocation string
 	PathProcess  string
 	PathRoot     string
+	PathUpload   string
+	SSHUser		 string
+	SSHServer	 string
 }
 
 var (
@@ -30,18 +33,21 @@ var (
 	mutexData        = &sync.Mutex{}
 	idx              = 0
 	FileCount        = 0
+	FileName	  	 = ""
 	DraftDir         = "Draft"
 	ProcessDir       = "Process"
 	SuccessDir       = "Success"
 	ReaderConfigFile = "conf/reader.conf"
 )
 
-func NewDataReader(fileLocation string, pathProcess string, pathRoot string) *DataReader {
+func NewDataReader(fileLocation string, pathProcess string, pathRoot string,pathUpload,sshuser,sshserver string) *DataReader {
 	dr := new(DataReader)
 	dr.FileLocation = fileLocation
 	dr.PathProcess = pathProcess
 	dr.PathRoot = pathRoot
-
+	dr.PathUpload = pathUpload
+	dr.SSHServer = sshserver
+	dr.SSHUser =sshuser
 	return dr
 }
 
@@ -100,6 +106,8 @@ func (c *DataReader) writeConfig(lastFileName string, lastIndex int) {
 }
 
 func (c *DataReader) Start() {
+	time.Sleep(5000*time.Millisecond)
+	tk.Println(">>>>>",c.PathProcess)
 	fileToProcess := c.copyFile(c.FileLocation, c.PathProcess+"\\"+DraftDir)
 	if fileToProcess != "" {
 		if fileExists(fileToProcess) {
@@ -108,11 +116,23 @@ func (c *DataReader) Start() {
 
 			DataTranspose = tk.M{}
 			FileCount++
+			FileName = file.Name()
 			c.readFile(file.Name())
-
+			//fName := c.createLog()
+			//tk.Println("Finish created log file")
+			
+			//fZip := c.createZip(c.PathProcess+"\\"+DraftDir+"\\"+file.Name())
+			//tk.Println("Start sending file: " + fZip)
+			//c.sendFile(fZip)
+			//c.writeConfig(file.Name(), 0)
+			
 			duration := time.Now().Sub(start).Seconds()
 			tk.Println(tk.Sprintf("Loading file %v data about %v sec(s)", file.Name(), duration))
+		}else{
+			tk.Println("File not exists")
 		}
+	}else{
+		tk.Println("No file to process")
 	}
 }
 
@@ -136,7 +156,7 @@ func (c *DataReader) readFile(fileName string) {
 	draftFile := c.PathProcess + "\\" + DraftDir + "\\" + fileName
 	processFile := c.PathProcess + "\\" + ProcessDir + "\\" + fileName
 	successFile := c.PathProcess + "\\" + SuccessDir + "\\" + fileName
-
+	
 	err := os.Rename(draftFile, processFile)
 	if err != nil {
 		tk.Println("Error Move Draft File : ", err.Error())
@@ -158,10 +178,10 @@ func (c *DataReader) readFile(fileName string) {
 	endIndex := (counter+1)*countPerProcess - 1
 	isFinish := false
 
-	if startIndex >= countData {
+	/*if startIndex >= countData {
 		isFinish = true
 		c.writeConfig("", 0)
-	}
+	}*/
 
 	for !isFinish {
 		startIndex = counter * countPerProcess
@@ -205,22 +225,26 @@ func (c *DataReader) readFile(fileName string) {
 	if len(DataTranspose) > 0 {
 		tk.Println("Start create log file...")
 		fName := c.createLog()
+		tk.Println("OOOOO",successFile,fName)
+		
 		tk.Println("Finish created log file")
 		fZip := c.createZip(fName)
 		tk.Println("Start sending file: " + fZip)
 		c.sendFile(fZip)
 		c.writeConfig(fileName, endIndex)
+	}else{
+		tk.Println("MMM4",len(DataTranspose))
 	}
 }
 
 func (c *DataReader) sendFile(filename string) {
-	locationTarget := "/home/developer/wfdemo-watch/draft"
+	locationTarget := c.PathUpload
 
 	ssh := new(SshSetting)
 
 	ssh.SSHAuthType = SSHAuthType_Certificate
-	ssh.SSHHost = "go.eaciit.com:22"
-	ssh.SSHUser = "developer"
+	ssh.SSHHost = c.SSHServer
+	ssh.SSHUser = c.SSHUser
 	ssh.SSHKeyLocation = c.PathRoot + "\\conf\\key\\developer.pem"
 
 	_, err := ssh.Connect()
@@ -242,13 +266,16 @@ func (c *DataReader) sendFile(filename string) {
 		tk.Println("Error opening file: " + err.Error())
 		os.Exit(1)
 	}
-
-	err = ssh.SshCopyByFile(file, fileStat.Size(), fileStat.Mode().Perm(), filepath.Base(fileStat.Name()), locationTarget)
-	if err != nil {
-		tk.Println("Error: ", err.Error())
-	} else {
-		tk.Println("Sending file successfully")
+	for true{
+		err = ssh.SshCopyByFile(file, fileStat.Size(), fileStat.Mode().Perm(), filepath.Base(fileStat.Name()), locationTarget)
+		if err != nil {
+			tk.Println("Error: ", err.Error())
+		} else {
+			tk.Println("Sending file successfully")
+			break
+		}
 	}
+	
 }
 
 func (c *DataReader) copyFile(src string, pathTarget string) string {
@@ -263,6 +290,7 @@ func (c *DataReader) copyFile(src string, pathTarget string) string {
 	destFile, err := os.Create(pathTarget + "\\" + srcFileStat.Name())
 	defer destFile.Close()
 	if err != nil {
+		tk.Println(pathTarget + "\\" + srcFileStat.Name())
 		tk.Println("Error read target file: " + err.Error())
 		os.Exit(1)
 	}
@@ -296,7 +324,7 @@ func (c *DataReader) createLog() string {
 		}
 	}
 
-	f, _ := os.Create(c.PathProcess + "\\Results\\result_" + tk.ToString(FileCount) + ".csv")
+	f, _ := os.Create(c.PathProcess + "\\Results\\result_" + FileName)
 	defer f.Close()
 
 	f.WriteString(content + "\n")
@@ -334,7 +362,11 @@ func (c *DataReader) createLog() string {
 }
 
 func (c *DataReader) createZip(fileName string) string {
-	filetarget := c.PathProcess + "\\Results\\result_" + tk.ToString(FileCount) + ".zip"
+	filenameRaw := strings.Split(fileName,"\\")
+	filenameAA := filenameRaw[len(filenameRaw)-1]
+	
+	filetarget := c.PathProcess + "\\Results\\" +  filenameAA[:len(filenameAA)-4]+ ".zip"
+	tk.Println("ZIPPING",fileName, filetarget)
 	err := tk.ZipCompress(fileName, filetarget)
 	if err != nil {
 		tk.Println("Error compressing file: ", err.Error())
@@ -371,7 +403,10 @@ func parseContent(contents []string) {
 	id := time1.Format("20060102_150405") + "_" + time2.Format("20060102_150405") + "_" + project + "_" + turbine
 
 	if DataTranspose.Get(id) == nil {
-		DataTranspose.Set(id, tk.M{}.Set("Id", id).Set("ProjectName", project).Set("Turbine", turbine).Set("TimeStamp1", time1).Set("TimeStamp2", time2).Set("DateId1", date1).Set("DateId2", date2).Set("THour", thour).Set("TMinute", tminute).Set("TSecond", tsecond).Set("TMinuteValue", tminutevalue).Set("TMinuteCategory", tminutecategory).Set("TimeStampConverted", timestampconverted).Set(column, value))
+		//tk.Println(DataTranspose,id,project,turbine,time1,time2,date1,date2,thour,tminute,tsecond,tminutevalue)
+		u:=tk.M{}.Set("Id", id).Set("ProjectName", project).Set("Turbine", turbine).Set("TimeStamp1", time1).Set("TimeStamp2", time2).Set("DateId1", date1).Set("DateId2", date2).Set("THour", thour).Set("TMinute", tminute).Set("TSecond", tsecond).Set("TMinuteValue", tminutevalue).Set("TMinuteCategory", tminutecategory).Set("TimeStampConverted", timestampconverted).Set(column, value)
+		//tk.Println("Add",id)		
+		DataTranspose.Set(id, u)
 	} else {
 		newData := DataTranspose.Get(id).(tk.M)
 		DataTranspose.Set(id, newData.Set(column, value))

@@ -23,9 +23,9 @@ var (
 )
 
 type GroupResult struct {
-	Project string
-	Turbine string
-	Min     time.Time
+	Project           string
+	Turbine           string
+	LatestProcessTime time.Time
 }
 
 type DownConversion struct {
@@ -48,6 +48,7 @@ func (ev *DownConversion) Run() {
 	for _, loop := range loops {
 		wg.Add(1)
 		go ev.processTurbine(loop, &wg)
+		// log.Printf("loop: %v \n", loop)
 	}
 
 	wg.Wait()
@@ -57,7 +58,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	// mutex.Lock()
 
 	now := time.Now()
-	log.Printf("Starting process %v | %v | %v \n", loop.Project, loop.Turbine, loop.Min.UTC().String())
+	log.Printf("Starting process %v | %v | %v \n", loop.Project, loop.Turbine, loop.LatestProcessTime.String())
 
 	pipes := []tk.M{}
 
@@ -65,7 +66,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		"projectname":  loop.Project,
 		"turbine":      loop.Turbine,
 		"eventtype":    "alarmchanged",
-		"timestamp":    tk.M{"$gte": loop.Min},
+		"timestamp":    tk.M{"$gte": loop.LatestProcessTime},
 		"brakeprogram": tk.M{"$gt": 0},
 	}
 	pipes = append(pipes, tk.M{"$match": match})
@@ -106,7 +107,10 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						tmp.AlarmId = data.AlarmId
 						tmp.AlarmToggle = data.AlarmToggle
 						tmp.TimeStamp = data.TimeStamp
+						tmp.TimeStampInt = data.TimeStampInt
+						// tmp.TimeStampUTC = data.TimeStampUTC
 						tmp.DateInfo = data.DateInfo
+						// tmp.DateInfoUTC = data.DateInfoUTC
 						tmp.AlarmDescription = data.AlarmDescription
 
 						// log.Printf("trueFound: %v | %#v \n", idx, len(trueFound))
@@ -144,17 +148,25 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 								down.Turbine = loop.Turbine
 
 								down.TimeStart = start.TimeStamp
+								down.TimeStartInt = start.TimeStampInt
 								down.DateInfoStart = GetDateInfo(start.TimeStamp)
 
+								// down.TimeStartUTC = start.TimeStampUTC
+								// down.DateInfoStartUTC = start.DateInfoUTC
+
 								down.TimeEnd = end.TimeStamp
+								down.TimeEndInt = end.TimeStampInt
 								down.DateInfoEnd = GetDateInfo(end.TimeStamp)
+
+								// down.TimeEndUTC = end.TimeStampUTC
+								// down.DateInfoEndUTC = end.DateInfoUTC
 
 								down.AlarmDescription = start.AlarmDescription
 								down.Duration = end.TimeStamp.Sub(start.TimeStamp).Seconds()
 
 								down.Detail = details
 
-								if down.DateInfoStart.MonthId != 0 {
+								if down.DateInfoStart.MonthId != 0 && down.TimeStart.Year() != 1 {
 									mutex.Lock()
 									brakeType := data.BrakeType
 									if strings.Contains(strings.ToLower(brakeType), "grid") {
@@ -166,11 +178,13 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 									if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
 										down.DownMachine = true
 									}
+
+									down := down.New()
+
 									ev.Ctx.Insert(down)
 									mutex.Unlock()
+									// log.Print("Insert Event Down")
 								}
-
-								log.Println("Insert Event Down")
 
 								details = []EventDownDetail{}
 								endIdx = idx
@@ -180,27 +194,13 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 					}
 				}
 
-				// tmpLoopData := loopData[endIdx+1:]
-
 				tmpLoopData := []EventRaw{}
-
-				/*if startIdx > 0 {
-					tmpLoopData = append(tmpLoopData, loopData[:startIdx+1]...)
-				}*/
 
 				if endIdx > 0 {
 					tmpLoopData = append(tmpLoopData, loopData[endIdx+1:]...)
 				}
 
-				// log.Printf("tmpLoopData: %v --- %v | %#v \n", startIdx, endIdx, len(tmpLoopData))
-
 				loopData = tmpLoopData
-
-				/*for idx, data := range loopData {
-					if data.DateInfo.MonthId == 0 {
-						log.Printf("idx: %v | %v | %v | %v \n", idx, data.AlarmId, data.TimeStamp.UTC(), data.AlarmToggle)
-					}
-				}*/
 
 				if len(loopData) == 0 {
 					break mainLoop
@@ -216,7 +216,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	duration := time.Now().Sub(now)
 	log.Printf("Process %v | %v about %v sec(s) \n", loop.Project, loop.Turbine, duration.Seconds())
 	// mutex.Unlock()
-
+	csr.Close()
 	wg.Done()
 }
 
@@ -231,7 +231,7 @@ func (ev *DownConversion) getLatest() []GroupResult {
 			"project": "$projectname",
 			"turbine": "$turbine",
 		},
-		"min_timestamp": tk.M{"$min": "$timeend"},
+		"timestamp": tk.M{"$max": "$timeend"},
 	}
 
 	pipes = append(pipes, tk.M{"$group": group})
@@ -256,70 +256,84 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		return nil
 	}
 
-	for _, val := range eventDowns {
+	/*for _, val := range eventDowns {
 		id := val.Get("_id").(tk.M)
 		log.Printf("%#v \n", id)
-	}
+	}*/
 
 	if len(eventDowns) > 0 {
+		// log.Printf("len(eventDowns): %v \n", len(eventDowns))
 		for _, val := range eventDowns {
 			id := val.Get("_id").(tk.M)
 
 			tmp := GroupResult{}
 			tmp.Project = id.GetString("project")
 			tmp.Turbine = id.GetString("turbine")
-			tmp.Min = val.Get("min_timestamp").(time.Time)
-
-			result = append(result, tmp)
-		}
-	} else {
-
-		// check min from eventraw
-		match := tk.M{}
-		pipes = []tk.M{}
-		match = tk.M{"eventtype": "alarmchanged", "brakeprogram": tk.M{"$gt": 0}}
-		pipes = append(pipes, tk.M{"$match": match})
-
-		group = tk.M{
-			"_id": tk.M{
-				"project": "$projectname",
-				"turbine": "$turbine",
-			},
-			"min_timestamp": tk.M{"$min": "$timestamp"},
-		}
-
-		pipes = append(pipes, tk.M{"$group": group})
-
-		csr, err = ev.Ctx.Connection.NewQuery().
-			From(new(EventRaw).TableName()).
-			Command("pipe", pipes).
-			Cursor(nil)
-
-		defer csr.Close()
-
-		eventRaws := []tk.M{}
-
-		if err != nil {
-			tk.Println("Error: " + err.Error())
-			return nil
-		}
-		err = csr.Fetch(&eventRaws, 0, false)
-
-		if err != nil {
-			tk.Println("Error: " + err.Error())
-			return nil
-		}
-
-		for _, val := range eventRaws {
-			id := val.Get("_id").(tk.M)
-
-			tmp := GroupResult{}
-			tmp.Project = id.GetString("project")
-			tmp.Turbine = id.GetString("turbine")
-			tmp.Min = val.Get("min_timestamp").(time.Time)
+			tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
 
 			result = append(result, tmp)
 		}
 	}
+
+	turbines := []string{}
+
+	for _, val := range result {
+		turbines = append(turbines, val.Turbine)
+	}
+
+	// check min from eventraw
+
+	match := tk.M{}
+	pipes = []tk.M{}
+	match = tk.M{"eventtype": "alarmchanged", "brakeprogram": tk.M{"$gt": 0}}
+
+	if len(turbines) > 0 {
+		// checking new turbine that not in eventdown yet
+		match.Set("turbine", tk.M{"$nin": turbines})
+	}
+
+	pipes = append(pipes, tk.M{"$match": match})
+
+	group = tk.M{
+		"_id": tk.M{
+			"project": "$projectname",
+			"turbine": "$turbine",
+		},
+		"timestamp": tk.M{"$min": "$timestamp"},
+	}
+
+	pipes = append(pipes, tk.M{"$group": group})
+
+	csr, err = ev.Ctx.Connection.NewQuery().
+		From(new(EventRaw).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	eventRaws := []tk.M{}
+
+	if err != nil {
+		tk.Println("Error: " + err.Error())
+		return nil
+	}
+	err = csr.Fetch(&eventRaws, 0, false)
+
+	if err != nil {
+		tk.Println("Error: " + err.Error())
+		return nil
+	}
+	// log.Printf("len(eventRaws): %v \n", len(eventRaws))
+	for _, val := range eventRaws {
+		id := val.Get("_id").(tk.M)
+
+		tmp := GroupResult{}
+		tmp.Project = id.GetString("project")
+		tmp.Turbine = id.GetString("turbine")
+		tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
+
+		result = append(result, tmp)
+	}
+	csr.Close()
 	return result
 }

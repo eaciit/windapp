@@ -1,10 +1,7 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser.js?ANTI_CACHE={{.AntiCache}}"></script>
-<style type="text/css">
-    .col-md-1 {
-        padding-left: 0px;
-        padding-right: 0px;
-    }
-</style>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-databrowser.css">
 <div class="row">
     <div class="col-md-12 col-sm-12 ez panel-content">
@@ -12,19 +9,17 @@
             <ul class="nav nav-pills nav-replace-title" role="tablist">
                 <li>
                     <div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
-                        <label class="control-label col-md-1 col-sm-1" style="padding-left: 0px;width:50px;">Period</label>&nbsp;
-                        <input class="col-md-1 col-sm-1" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:120px;" />
-                        <label class="control-label col-md-1 col-sm-1" style="width:20px;">&nbsp;&nbsp;to</label>
-                        <input class="col-md-1 col-sm-1 db-end-date" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" style="width:120px;" />&nbsp;
+                        <label class="control-label col-md-1 col-sm-1 lbl-period"> Period</label>&nbsp;
+                        <input class="col-md-1 col-sm-1 txt-startdate" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" />
+                        <label class="control-label col-md-1 col-sm-1 lbl-to">&nbsp;&nbsp;to</label>
+                        <input class="col-md-1 col-sm-1 db-end-date txt-enddate" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01)}" />&nbsp;
                     </div>
                 </li>
                 <!-- <div class="new-line">&nbsp;</div> -->
                 <li>
-                    <!-- <div class="input-group input-group-sm ez"> -->
-                        <label class="control-label col-md-1 col-sm-1 label-turbine" style="width:80px;">Turbine</label>
-                        <select class="col-md-1 col-sm-1 turbine-multi" id="turbineMulti" data-bind="kendoMultiSelect: { data: dbr.turbineList, dataValueField: 'value', dataTextField: 'text', filter: 'contains', suggest: true, change: function() {dbr.checkTurbine()} }" style="width:120px;">
-						</select>
-                    <!-- </div> -->
+                    <label class="control-label col-md-1 col-sm-1 label-turbine" style="width:80px;">Turbine</label>
+                    <select class="col-md-1 col-sm-1 turbine-multi" id="turbineMulti" data-bind="kendoMultiSelect: { data: dbr.turbineList, dataValueField: 'value', dataTextField: 'text', filter: 'contains', suggest: true, change: function() {dbr.checkTurbine()} }" style="width:120px;">
+					</select>
                 </li>
                 <li>
                     <button type="button" id="btnRefresh" class="btn btn-sm btn-primary" style="margin-left: 10px;"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>

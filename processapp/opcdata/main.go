@@ -2,13 +2,17 @@ package main
 
 import (
 	"bufio"
-	w "eaciit/wfdemo-git/processapp/opcdata/filewatcher"
+	//w "eaciit/wfdemo-git/processapp/opcdata/filewatcher"
+	d "eaciit/wfdemo-git/processapp/opcdata/datareader"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	_ "github.com/eaciit/orm"
 	tk "github.com/eaciit/toolkit"
-	"os"
-	"strings"
 )
 
 var (
@@ -21,14 +25,40 @@ var (
 func main() {
 	FileWatcher()
 }
+func FileIsExist(dirSources string) (bool, string) {
+	now := time.Now()
+	year, month, day := now.Date()
+	hour, _, _ := now.Clock()
 
+	targetFileName := fmt.Sprintf("DataFile%d%02d%02d-%02d.csv", year, month, day, hour)
+	tk.Println(dirSources + "\\" + targetFileName)
+	_, err := os.Open(dirSources + "\\" + targetFileName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			tk.Println("File Not Exist")
+
+		} else {
+			tk.Println(err.Error())
+		}
+		return false, ""
+	}
+	return true, targetFileName
+}
 func FileWatcher() {
 	config := ReadConfig()
 	dirSources := config["FileSources"]
 	dirProcess := config["FileProcess"]
-
-	watcher := w.NewFileWatcher(dirSources, dirProcess, wd)
-	watcher.StartWatcher()
+	scpDir := config["UploadDirectory"]
+	sshUser := config["SSHUser"]
+	sshServer := config["SSHServer"]
+	var FileName string
+	var e bool
+	//watcher := w.NewFileWatcher(dirSources, dirProcess, wd,scpDir)
+	if e, FileName = FileIsExist(dirSources); !e {
+		os.Exit(1)
+	}
+	d.NewDataReader(dirSources+"\\"+FileName, dirProcess, wd, scpDir, sshUser, sshServer).Start()
+	//watcher.StartWatcher()
 }
 
 func CsvExtractor() {

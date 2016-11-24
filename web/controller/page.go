@@ -118,6 +118,14 @@ func (w *PageController) AnalyticWRFlexiDetail(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) AnalyticPerformanceIndex(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-performance-index.html"
+
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) AnalyticPowerCurve(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
