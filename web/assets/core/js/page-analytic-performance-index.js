@@ -69,7 +69,7 @@ var Data = {
             columns       : [
                 { field: "Project", title: "Name", width: 110,headerAttributes: { style: "text-align: center" },attributes: { style: "padding-left: 20px" }},
                 {
-                    title: "Performance",
+                    title: "Performance<br>"+kendo.toString(moment.utc(fa.dateStart).format('DD-MM-YYYY '))+" to " + kendo.toString(moment.utc(fa.dateEnd).format('DD-MM-YYYY')) ,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndex", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
@@ -113,7 +113,6 @@ var Data = {
                         { field: "PowerYTD", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
-                { field: "StartDate", title: "Custom Range Selected", width: 200,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },template: "#= kendo.toString(moment.utc(StartDate).format('DD-MM-YYYY'), 'HH:mm:ss') # until  #= kendo.toString(moment.utc(EndDate).format('DD-MM-YYYY'), 'HH:mm:ss')#"},
             ]
         });
     },
@@ -177,8 +176,6 @@ var Data = {
                         { field: "PowerYTD", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
-                { field: "StartDate", title: "Custom Range Selected", width: 200,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },template: "#= kendo.toString(moment.utc(StartDate).format('DD-MM-YYYY'), 'HH:mm:ss') # until  #= kendo.toString(moment.utc(EndDate).format('DD-MM-YYYY'), 'HH:mm:ss')#"},
-                
             ]
         });
         $(".k-grid tbody .k-grid .k-grid-header").hide();
