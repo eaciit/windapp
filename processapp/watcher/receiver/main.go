@@ -1,8 +1,12 @@
 package main
 
 import (
+	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
 	"encoding/json"
 	"fmt"
+	"github.com/eaciit/database/base"
+	"github.com/eaciit/orm"
+	"github.com/fsnotify/fsnotify"
 	"io"
 	"log"
 	"os"
@@ -11,19 +15,15 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
-	"github.com/eaciit/database/base"
-	"github.com/eaciit/orm"
-	"github.com/fsnotify/fsnotify"
 	// "github.com/metakeule/fmtdate"
 
 	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
-	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 	"archive/tar"
 	"archive/zip"
-	"time"
 	"bytes"
+	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 	tk "github.com/eaciit/toolkit"
+	"time"
 )
 
 const (
@@ -49,18 +49,18 @@ type Configuration struct {
 }
 
 var (
-	conn base.IConnection
-	ctx  *orm.DataContext
-	conf Configuration
-	mux  = &sync.Mutex{}
+	conn    base.IConnection
+	ctx     *orm.DataContext
+	conf    Configuration
+	mux     = &sync.Mutex{}
 	pathSep = string(os.PathSeparator)
 )
 
 func main() {
-	
-	fmt.Println(".."+pathSep+"conf"+pathSep+"receiver-config.json")
-	
-	file, _ := os.Open(".."+pathSep+"conf"+pathSep+"receiver-config.json")
+
+	fmt.Println(".." + pathSep + "conf" + pathSep + "receiver-config.json")
+
+	file, _ := os.Open(".." + pathSep + "conf" + pathSep + "receiver-config.json")
 	decoder := json.NewDecoder(file)
 	err := decoder.Decode(&conf)
 
@@ -105,7 +105,7 @@ func main() {
 			select {
 			case event := <-watcher.Events:
 				// log.Println("event:", event)
-				if event.Op&fsnotify.Create == fsnotify.Create {					
+				if event.Op&fsnotify.Create == fsnotify.Create {
 					go processFile(event.Name, conf.Commands)
 				}
 			case err := <-watcher.Errors:
@@ -144,24 +144,25 @@ func processFile(filePath string, com []Command) {
 	// dt := time.Now()
 	// dtStr := fmtdate.Format(TIME_FORMAT_STR, dt)
 	fmt.Println("Process")
-	for true{
-		byteOut,err:=runCMD("lsof "+filePath)
-		if err!=nil{
+	for true {
+		byteOut, err := runCMD("lsof " + filePath)
+		if err != nil {
 			log.Print("Gagal")
+			//fmt.Println(string(byteOut))
 		}
-		if len(byteOut)==0{
+		if len(byteOut) == 0 {
 			break
-		}else{
+		} else {
 			fmt.Println(string(byteOut))
-			time.Sleep(200*time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 		}
-		
+
 	}
 	file := strings.Split(filePath, pathSep)
 	fileName := file[len(file)-1]
 
 	if strings.Contains(fileName, ".csv") {
-		time.Sleep(100*time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		log.Printf("Proccess file: %v \n", filePath)
 		var action Command
 
@@ -186,7 +187,7 @@ func processFile(filePath string, com []Command) {
 					//fmt.Println("PPPP")
 					if act.Action == next {
 						next = run(act, fileName)
-						
+
 						break
 					}
 				}
@@ -195,13 +196,13 @@ func processFile(filePath string, com []Command) {
 
 		log.Printf("DONE for file: %v\n", filePath)
 	} else if strings.Contains(fileName, ".tar") {
-		time.Sleep(100*time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		untar(filePath, conf.Draft)
 		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
 	} else if strings.Contains(fileName, ".zip") {
-		time.Sleep(100*time.Millisecond)
-		e:=unzip(filePath, conf.Draft)
-		if e!=nil{
+		time.Sleep(100 * time.Millisecond)
+		e := unzip(filePath, conf.Draft)
+		if e != nil {
 			panic(e)
 		}
 		fmt.Println("Unzip Done")
@@ -255,7 +256,7 @@ func untar(tarball, target string) error {
 }
 
 func unzip(archive, target string) error {
-	fmt.Println("Unzip",archive,target)
+	fmt.Println("Unzip", archive, target)
 	reader, err := zip.OpenReader(archive)
 	if err != nil {
 		return err
@@ -294,11 +295,11 @@ func unzip(archive, target string) error {
 }
 
 func runCMD(cmdStr string) (out []byte, err error) {
-	if pathSep=="\\"{
-		cmdStr=strings.Replace(cmdStr,"\\","/",-1)
-		
+	if pathSep == "\\" {
+		cmdStr = strings.Replace(cmdStr, "\\", "/", -1)
+
 	}
-	
+
 	fmt.Println("sh", "-c", cmdStr)
 	var errBuff bytes.Buffer
 	cmd := exec.Command("sh", "-c", cmdStr)
@@ -306,8 +307,8 @@ func runCMD(cmdStr string) (out []byte, err error) {
 	//cmd.Run()
 	//cmd.Path = os.Getenv("Path")
 	//fmt.Println(cmd.Path)
-	out, err = cmd.Output()	
-	if err!=nil{
+	out, err = cmd.Output()
+	if err != nil {
 		fmt.Println(errBuff.String())
 	}
 	return
@@ -323,7 +324,7 @@ func run(action Command, file string) (next string) {
 		cmdStr = fmt.Sprintf(action.Command, conf.Draft+pathSep+file, conf.Process+pathSep+file)
 	} else if action.Action == "COPY_TO_SUCCESS" {
 		runCommand = doProcess(conf.Process + pathSep + file)
-		
+
 		cmdStr = fmt.Sprintf(action.Command, conf.Process+pathSep+file, conf.Success+pathSep+file)
 	} else if action.Action == "COPY_TO_FAIL" {
 		cmdStr = fmt.Sprintf(action.Command, conf.Process+pathSep+file, conf.Fail+pathSep+file)
@@ -339,7 +340,7 @@ func run(action Command, file string) (next string) {
 		}
 
 		if err != nil {
-			log.Printf("result: %v %s\n%s", err.Error(),cmdStr,string(out))
+			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
 			next = action.Success
 		} else {
 			next = action.Success
@@ -376,8 +377,8 @@ func doProcess(file string) (success bool) {
 		WriteWatcherErrors(errorLine, fileName, conf.Errors)
 		log.Println("ConvScadaTreeSecs: DONE")
 		muxDo.Unlock()
-		log.Println("Begin Converting ",file)
-		err := c3to10.Generate(tk.M{}.Set("selector","file").Set("file",fileName))
+		log.Println("Begin Converting ", file)
+		err := c3to10.Generate(tk.M{}.Set("selector", "file").Set("file", fileName))
 		if err != nil {
 			tk.Println(err)
 		} else {
@@ -388,17 +389,17 @@ func doProcess(file string) (success bool) {
 		// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
 		// WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
 		// log.Println("GenTenFromThreeSecond: DONE")
-		
+
 		/*
-		muxDo.Lock()
-		errorLine = tk.M{}
-		conv := dc.NewDataConversion(base.Ctx)
-		errorLine = conv.Generate(fileName)
-		// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
-		WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
-		log.Printf("GenTenFromThreeSecond: %v DONE | in %v seconds \n", file, time.Now().Sub(start).Seconds())
-		success = true
-		muxDo.Unlock()*/
+			muxDo.Lock()
+			errorLine = tk.M{}
+			conv := dc.NewDataConversion(base.Ctx)
+			errorLine = conv.Generate(fileName)
+			// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
+			WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
+			log.Printf("GenTenFromThreeSecond: %v DONE | in %v seconds \n", file, time.Now().Sub(start).Seconds())
+			success = true
+			muxDo.Unlock()*/
 	}
 
 	return

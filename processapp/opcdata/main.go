@@ -12,25 +12,30 @@ import (
 	"time"
 	"fmt"
 	"strings"
+	"path/filepath"
+	"eaciit/wfdemo-git/processapp/opcdata/model"
+	"io/ioutil"
 )
-
+var pathSep = string(os.PathSeparator) 
 var (
 	wd = func() string {
-		d, _ := os.Getwd()
-		return d + "/"
+		d, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+		return d + pathSep
 	}()
 )
+var modified map[string]string
+var	processed map[string]model.ProcessedLog
 
 func main() {
 	FileWatcher()
 }
-func FileIsExist(dirSources string)(bool,string){
-	now := time.Now()
-	year,month,day:=now.Date()
-	hour,_,_:=now.Clock()
+
+func FileIsExist(dirSources,targetFileName string)bool{
+	
+	//indx:=6
+	//for indx>=0;indx--{
 		
-	targetFileName := fmt.Sprintf("DataFile%d%02d%02d-%02d.csv",year,month,day,hour)
-	tk.Println(dirSources+"\\"+targetFileName)
+	//tk.Println(dirSources+"\\"+targetFileName)
 	_,err:=os.Open(dirSources+"\\"+targetFileName)
 	if err!=nil{
 		if os.IsNotExist(err){
@@ -39,24 +44,80 @@ func FileIsExist(dirSources string)(bool,string){
 		}else{
 			tk.Println(err.Error())
 		}
-		return false,""
+		return false
 	}
-	return true,targetFileName
+	return true
+	//}
+	
 }
 func FileWatcher() {
 	config := ReadConfig()
+	
 	dirSources := config["FileSources"]
 	dirProcess := config["FileProcess"]
 	scpDir := config["UploadDirectory"]
 	sshUser := config["SSHUser"]
 	sshServer := config["SSHServer"]
-	var FileName string
+	//var FileName string
 	var e bool
-	//watcher := w.NewFileWatcher(dirSources, dirProcess, wd,scpDir)
-	if e,FileName=FileIsExist(dirSources);!e{
-		os.Exit(1)
+	now := time.Now()
+	indx:=6
+	
+	for ;indx>=0;indx--{
+		prev:=now.Add(time.Duration(-indx)*time.Hour)
+		year,month,day:=prev.Date()
+		hour,_,_:=prev.Clock()
+		modFileName := fmt.Sprintf("%d%02d%02d",year,month,day)
+		modified = ReadModified(modFileName)
+		processed = ReadProcessed(modFileName)
+		targetFileName := fmt.Sprintf("DataFile%d%02d%02d-%02d.csv",year,month,day,hour)
+			
+		//watcher := w.NewFileWatcher(dirSources, dirProcess, wd,scpDir)
+		if e=FileIsExist(dirSources,targetFileName);!e{
+			continue
+		}
+		fmt.Println(dirSources+pathSep+targetFileName)
+		info, _ := os.Stat(dirSources+pathSep+targetFileName)
+		modifiedTimeFS := info.ModTime()
+		modifiedTimeFS,_ = time.Parse("02-Jan-2006 15:04:05",modifiedTimeFS.Format("02-Jan-2006 15:04:05"))
+		if _,ok:=modified[targetFileName];ok{
+			lastModTimeLog,_ := time.Parse("02-Jan-2006 15:04:05",modified[targetFileName])
+			fmt.Println(lastModTimeLog.Format("02-Jan-2006 15:04:05"),modifiedTimeFS.Format("02-Jan-2006 15:04:05"))
+			if modifiedTimeFS.After(lastModTimeLog){
+				fmt.Println("File ",targetFileName,"Modified")
+				_,e,start,end,rows:=d.NewDataReader(dirSources+"\\"+targetFileName, dirProcess, wd,scpDir,sshUser,sshServer).Start(0)
+				if e==nil{
+					modified[targetFileName]=modifiedTimeFS.Format("02-Jan-2006 15:04:05")
+					newPf:=processed[targetFileName]
+					newPf.StartTime = start.Format("02-Jan-2006 15:04:05")
+					newPf.EndTime = end.Format("02-Jan-2006 15:04:05")
+					newPf.RowIndex = rows
+					processed[targetFileName]=newPf
+				}else{
+					fmt.Println(e.Error())
+				}
+			}else{
+				fmt.Println(lastModTimeLog.Nanosecond(),modifiedTimeFS.Nanosecond())
+			}
+		}else{
+			
+			_,e,start,end,rows:=d.NewDataReader(dirSources+"\\"+targetFileName, dirProcess, wd,scpDir,sshUser,sshServer).Start(0)
+			if e==nil{
+				modified[targetFileName]=modifiedTimeFS.Format("02-Jan-2006 15:04:05")
+				newPf:=new(model.ProcessedLog)
+				(*newPf).Filename = targetFileName
+				(*newPf).StartTime = start.Format("02-Jan-2006 15:04:05")
+				(*newPf).EndTime = end.Format("02-Jan-2006 15:04:05")
+				(*newPf).RowIndex = rows
+				processed[targetFileName]=*newPf
+			}
+			
+		}
+		WriteModified(modFileName)
+		WriteProcessed(modFileName)
+		
 	}
-	d.NewDataReader(dirSources+"\\"+FileName, dirProcess, wd,scpDir,sshUser,sshServer).Start()
+	
 	//watcher.StartWatcher()
 }
 
@@ -89,10 +150,105 @@ func PrepareConnection() (dbox.IConnection, error) {
 
 	return c, nil
 }
+/*func WriteUnprocessedLog(){
+	strBuff:=""
+	for val,_:=range unprocessed{
+		strBuff+=val+"\n"
+	}
+	buff:=[]byte{strBuff}
+	err:=ioutil.WriteFile(wd + "conf/unprocessed.log",buff,0644)
+	if err!=nil{
+		panic(err)
+	}
+}func isInlist(list []string,item string) bool {
+	for _,val:=range unprocessed{
+		if val==item{
+			return true
+		}
+	}
+	return false
+}
+func ReadUnprocessedLog(){
+	file, err := os.Open(wd + "conf/unprocessed.log")
+	if err == nil {
+		defer file.Close()
+		reader := bufio.NewReader(file)
+		for {
+			line, _, e := reader.ReadLine()
+			if e != nil {
+				break
+			}
+			if !isInlist(unprocessed,line){
+				unprocessed = append(unprocessed,line)
+			}
+			
+			
+			//sval := strings.Split(string(line), "=")
+			//ret[sval[0]] = sval[1]
+		}
+	}
+}*/
 
+func WriteModified(filename string){
+	strBuf:=""
+	for val,key:=range modified{
+		strBuf+=val+";"+key+"\n"
+	}
+	buff:=[]byte(strBuf)
+	fmt.Println("Write Modified",wd+"log"+pathSep+"modified_"+filename+".csv")
+	ioutil.WriteFile(wd+"log"+pathSep+"modified_"+filename+".csv",buff,0644)
+}
+func WriteProcessed(filename string){
+	strBuf:=""
+	for _,val:=range processed{
+		strBuf+=val.ToString()
+	}
+	buff:=[]byte(strBuf)
+	fmt.Println("Write Processed",wd+"log"+pathSep+"processed_"+filename+".csv")
+	ioutil.WriteFile(wd+"log"+pathSep+"processed_"+filename+".csv",buff,0644)
+}
+func ReadProcessed(filename string) map[string]model.ProcessedLog {
+	ret := make(map[string]model.ProcessedLog)
+	file, err := os.Open(wd + "log"+pathSep+"processed_"+filename+".csv")
+	if err == nil {
+		defer file.Close()
+		reader := bufio.NewReader(file)
+		for {
+			line, _, e := reader.ReadLine()
+			if e != nil {
+				break
+			}
+			newPF := model.FromString(string(line))
+			ret[(*newPF).Filename] = *newPF
+		}
+	}
+	return ret
+}
+func ReadModified(filename string) map[string]string {
+	ret := make(map[string]string)
+	file, err := os.Open(wd + "log"+pathSep+"modified_"+filename+".csv")
+	if err == nil {
+		defer file.Close()
+
+		reader := bufio.NewReader(file)
+		for {
+			line, _, e := reader.ReadLine()
+			if e != nil {
+				break
+			}
+
+			sval := strings.Split(string(line), ";")
+			ret[sval[0]] = sval[1]
+		}
+	} else {
+		tk.Println(err.Error())
+	}
+
+	return ret
+}
 func ReadConfig() map[string]string {
 	ret := make(map[string]string)
-	file, err := os.Open(wd + "conf/app.conf")
+	file, err := os.Open(wd + "conf"+pathSep+"app.conf")
 	if err == nil {
 		defer file.Close()
 
