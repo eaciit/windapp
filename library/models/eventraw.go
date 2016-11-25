@@ -40,15 +40,15 @@ func (m *DowntimeEventRaw) TableName() string {
 }
 
 type EventRaw struct {
-	orm.ModelBase    `bson:"-",json:"-"`
-	ID               string ` bson:"_id" , json:"_id" `
-	ProjectName      string
-	Turbine          string
-	TimeStamp        time.Time
-	TimeStampInt     int64
-	TimeStampUTC     time.Time
-	DateInfo         DateInfo
-	DateInfoUTC      DateInfo
+	orm.ModelBase `bson:"-",json:"-"`
+	ID            string ` bson:"_id" , json:"_id" `
+	ProjectName   string
+	Turbine       string
+	TimeStamp     time.Time
+	TimeStampInt  int64
+	// TimeStampUTC     time.Time
+	DateInfo DateInfo
+	// DateInfoUTC      DateInfo
 	EventType        string
 	BrakeProgram     int
 	AlarmDescription string

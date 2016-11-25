@@ -19,7 +19,7 @@ import (
 var (
 	separator       = string(os.PathSeparator)
 	mutex           = &sync.Mutex{}
-	countPerProcess = 3
+	countPerProcess = 2
 )
 
 type GroupResult struct {
@@ -180,8 +180,22 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 									}
 
 									down := down.New()
+									count := 0
+									for {
+										e := ev.Ctx.Insert(down)
+										if e != nil {
+											log.Printf("error: %v \n", e.Error())
+											down = down.New()
+										} else {
+											break
+										}
 
-									ev.Ctx.Insert(down)
+										if count == 2 {
+											break
+										}
+										count++
+									}
+
 									mutex.Unlock()
 									// log.Print("Insert Event Down")
 								}
