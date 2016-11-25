@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	// "strings"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
@@ -507,6 +506,57 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			}
 		}
 		dt.Set("Unit", units)
+	}
+
+	if len(kpiAnalysisResult) == 0 {
+		var (
+			turbinelist []tk.M
+		)
+
+		queryAggr := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).
+			Group("turbineid")
+
+		caggr, e := queryAggr.Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer caggr.Close()
+		e = caggr.Fetch(&turbinelist, 0, false)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		var unit []string
+		unit = append(unit, "MWh")
+		unit = append(unit, "%")
+		unit = append(unit, "Lacs")
+
+		tmpColArr := []tk.M{}
+		for i := 0; i < (tk.ToInt(tEnd.Format("200601"), "") - tk.ToInt(tStart.Format("200601"), "") + 1); i++ {
+			tmpCol := tk.M{}
+			tmpCol.Set("KeyA", 0.0)
+			tmpCol.Set("KeyB", 0.0)
+			tmpCol.Set("KeyC", 0.0)
+
+			loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("200601"), "")+i), "YYYYMM").UTC()
+
+			tmpCol.Set("Name", tk.ToString(loopmonth.Format("January 2006"))+" <br/> "+periodDivider.GetString(tk.ToString(loopmonth.Format("200601"))))
+			tmpCol.Set("TitleKeyA", "MWh")
+			tmpCol.Set("TitleKeyB", "%")
+			tmpCol.Set("TitleKeyC", "Lacs")
+			tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("200601")))
+
+			tmpColArr = append(tmpColArr, tmpCol)
+		}
+
+		for _, turbine := range turbinelist {
+			tmpRes := tk.M{}
+
+			tmpRes.Set("Column", tmpColArr)
+			tmpRes.Set("Row", turbine["_id"].(tk.M)["turbineid"].(string))
+			tmpRes.Set("Unit", unit)
+			kpiAnalysisResult = append(kpiAnalysisResult, tmpRes)
+		}
 	}
 
 	data := struct {
