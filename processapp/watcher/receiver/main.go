@@ -148,7 +148,7 @@ func processFile(filePath string, com []Command) {
 		byteOut, err := runCMD("lsof " + filePath)
 		if err != nil {
 			log.Print("Gagal")
-			//fmt.Println(string(byteOut))
+			fmt.Println(string(byteOut))
 		}
 		if len(byteOut) == 0 {
 			break
@@ -197,13 +197,20 @@ func processFile(filePath string, com []Command) {
 		log.Printf("DONE for file: %v\n", filePath)
 	} else if strings.Contains(fileName, ".tar") {
 		time.Sleep(100 * time.Millisecond)
-		untar(filePath, conf.Draft)
+		e := untar(filePath, conf.Draft)
+		if e != nil {
+			fmt.Println(filePath,"is Corrupt")
+			return
+			//panic(e)
+		}
 		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
 	} else if strings.Contains(fileName, ".zip") {
 		time.Sleep(100 * time.Millisecond)
 		e := unzip(filePath, conf.Draft)
 		if e != nil {
-			panic(e)
+			fmt.Println(filePath,"is Corrupt")
+			return
+			//panic(e)
 		}
 		fmt.Println("Unzip Done")
 		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
