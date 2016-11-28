@@ -373,6 +373,8 @@ fa.InitDefaultValue = function () {
 fa.GetBreakDown = function () {
     fa.periodType = $("#periodList").data("kendoDropDownList").value();
     fa.project = $("#projectList").data("kendoDropDownList").value();
+    fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
+    fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
     var result = [];
 
