@@ -2,7 +2,7 @@ package datareader
 
 import (
 	"bufio"
-	. "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git-dev/library/models"
 	"encoding/csv"
 	"io"
 	"errors"

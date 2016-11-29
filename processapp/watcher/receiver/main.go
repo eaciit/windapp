@@ -15,9 +15,20 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+<<<<<<< HEAD
+	c3to10 "eaciit/wfdemo-git-dev/processapp/threeextractor/convert3secto10min/lib"
+	"github.com/eaciit/database/base"
+	"github.com/eaciit/orm"
+	"github.com/fsnotify/fsnotify"
+	// "github.com/metakeule/fmtdate"
+
+	//dc "eaciit/wfdemo-git-dev/processapp/threeextractor/dataconversion"
+	. "eaciit/wfdemo-git-dev/processapp/watcher/controllers"
+=======
 	// "github.com/metakeule/fmtdate"
 
 	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
+>>>>>>> ff526b6092c206f84ca92a25c090162fba672585
 	"archive/tar"
 	"archive/zip"
 	"bytes"

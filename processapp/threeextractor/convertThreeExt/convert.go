@@ -11,14 +11,14 @@ import (
 	"github.com/eaciit/dbox"
 	tk "github.com/eaciit/toolkit"
 
-	. "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git-dev/library/models"
 
 	"time"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 
-	dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
+	dc "eaciit/wfdemo-git-dev/processapp/threeextractor/dataconversion"
 )
 
 var (

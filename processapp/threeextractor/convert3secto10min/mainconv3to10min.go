@@ -5,7 +5,7 @@ import (
 	tk "github.com/eaciit/toolkit"
 	"strings"
 
-	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
+	c3to10 "eaciit/wfdemo-git-dev/processapp/threeextractor/convert3secto10min/lib"
 )
 
 var (

@@ -1,10 +1,10 @@
 package controller
 
 import (
-	. "eaciit/wfdemo-git/library/core"
-	hp "eaciit/wfdemo-git/library/helper"
-	. "eaciit/wfdemo-git/library/models"
-	"eaciit/wfdemo-git/web/helper"
+	. "eaciit/wfdemo-git-dev/library/core"
+	hp "eaciit/wfdemo-git-dev/library/helper"
+	. "eaciit/wfdemo-git-dev/library/models"
+	"eaciit/wfdemo-git-dev/web/helper"
 	"strconv"
 	"strings"
 	"time"

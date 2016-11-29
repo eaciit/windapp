@@ -1,9 +1,9 @@
 package generatorControllers
 
 import (
-	. "eaciit/wfdemo-git/library/helper"
-	. "eaciit/wfdemo-git/library/models"
-	. "eaciit/wfdemo-git/processapp/controllers"
+	. "eaciit/wfdemo-git-dev/library/helper"
+	. "eaciit/wfdemo-git-dev/library/models"
+	. "eaciit/wfdemo-git-dev/processapp/controllers"
 	_ "fmt"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
