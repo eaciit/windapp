@@ -2,12 +2,11 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
-	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	// . "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
 	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 	"os"
 	"runtime"
 
-	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 	tk "github.com/eaciit/toolkit"
 )
@@ -21,7 +20,7 @@ var (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	tk.Println("Starting the app..\n")
+	tk.Println("Starting the app..")
 
 	db, e := PrepareConnection()
 	if e != nil {
@@ -67,13 +66,13 @@ func main() {
 
 		// new(ConvJMRBreakup).Generate(base)
 
-		new(ConvPermanentMetTower).Generate(base)
+		// new(ConvPermanentMetTower).Generate(base)
 		// new(ConvPermanentMetTowerCSV).Generate(base)
-		met := new(UpdateMetTower)
+		/*met := new(UpdateMetTower)
 		met.Generate(base)
-		met.GenerateWindRose(base)
+		met.GenerateWindRose(base)*/
 
-		// new(ConvScadaDataOEM).Generate(base)
+		new(ConvScadaDataOEM).Generate(base)
 	}
 
 	tk.Println("Application Close..")

@@ -24,7 +24,7 @@ var (
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	tk.Println("Starting processing event file...")
+	tk.Println("Starting convert event data to down...")
 	conn, err := PrepareConnection()
 	if err != nil {
 		tk.Println(err)
@@ -34,13 +34,13 @@ func main() {
 	config := ReadConfig()
 	dir := config["FileProcess"]
 
-	/*event := NewEventRawConversion(ctx, dir)
-	event.Run()*/
+	event := NewEventRawConversion(ctx, dir)
+	event.Run()
 
 	down := NewDownConversion(ctx, dir)
 	down.Run()
 
-	tk.Println("End processing event file...")
+	tk.Println("End processing event data to down...")
 }
 
 func PrepareConnection() (dbox.IConnection, error) {

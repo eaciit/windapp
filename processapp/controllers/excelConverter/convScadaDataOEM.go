@@ -9,7 +9,6 @@ import (
 
 	"strings"
 
-	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
 	"github.com/tealeg/xlsx"
 )
@@ -23,7 +22,7 @@ type ConvScadaDataOEM struct {
 func (d *ConvScadaDataOEM) Generate(base *BaseController) {
 	funcName := "Converting Scada Data OEM"
 	project := "Tejuva"
-	folder := "scadaOEM/09_SEP"
+	folder := "scadaOEM/11_NOV/16.11.16to24.11.16/TML"
 	if base != nil {
 		d.BaseController = base
 
@@ -40,8 +39,8 @@ func (d *ConvScadaDataOEM) Generate(base *BaseController) {
 			anName := strings.Split(source.Name(), ".")
 			turbine := anName[0]
 			tk.Printf("turbine: %v \n", turbine)
-			tk.Println(path + "\\" + source.Name())
-			file, e := xlsx.OpenFile(path + "\\" + source.Name())
+			tk.Println(path + "/" + source.Name())
+			file, e := xlsx.OpenFile(path + "/" + source.Name())
 			if e != nil {
 				ErrorHandler(e, funcName)
 				os.Exit(0)
