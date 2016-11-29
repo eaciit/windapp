@@ -135,3 +135,7 @@ label.summary-number {
 	opacity: 1;
 	width: 170px!important;
 }
+
+#lossChart{
+	padding-top: 15px;
+}

@@ -21,7 +21,7 @@ import (
 var (
 	separatorRaw = string(os.PathSeparator)
 	// mutex           = &sync.Mutex{}
-	countPerProcessRaw = 3
+	countPerProcessRaw = 2
 )
 
 type EventRawConversion struct {
@@ -139,7 +139,9 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					rawdata.Turbine = turbine
 					sTimeStamp, _ := row.Cells[0].String()
 					// rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
-					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05-07:00", strings.Replace(sTimeStamp, "T", " ", 1))
+					//rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05-07:00", strings.Replace(sTimeStamp, "T", " ", 1))
+					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05.000", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+
 					// rawdata.TimeStampUTC = rawdata.TimeStamp.UTC()
 
 					milistr := tk.ToString(rawdata.TimeStamp.Nanosecond() / 1000000)
@@ -147,7 +149,7 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 
 					rawdata.TimeStampInt, _ = strconv.ParseInt(timeStampStr, 10, 64)
 
-					// log.Printf("%v | %v || %v \n", strings.Replace(sTimeStamp, "T", " ", 1), sTimeStamp, rawdata.TimeStamp.String())
+					// log.Printf("%v | %v || %v \n", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", " ", 1), sTimeStamp, rawdata.TimeStamp.String())
 					// log.Printf("%v | %v || %v \n", rawdata.TimeStamp.String(), rawdata.TimeStampUTC.String(), strings.Replace(sTimeStamp, "T", " ", 1))
 
 					sEventType, _ := row.Cells[1].String()
@@ -162,8 +164,6 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					rawdata.BrakeType = brakeType
 					sAlarmToggle, _ := row.Cells[2].String()
 
-					rawdata = rawdata.New()
-
 					if strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "TRUE" || strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "1" {
 						rawdata.AlarmToggle = true
 					} else {
@@ -174,10 +174,23 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 					// tmpResult = rawdata
 
 					// result = append(result, tmpResult)
-					e := ev.Ctx.Insert(rawdata)
-					if e != nil {
-						log.Printf("error: %v \n", e.Error())
-						total++
+					count := 0
+					for {
+						rawdata = rawdata.New()
+						e := ev.Ctx.Insert(rawdata)
+						if e != nil {
+							log.Printf("error: %v \n", e.Error())
+							if count == 0 {
+								total++
+							}
+						} else {
+							break
+						}
+
+						if count == 2 {
+							break
+						}
+						count++
 					}
 				} else {
 					total++

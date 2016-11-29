@@ -11,6 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/pkelchte/spline"
 )
 
 // UpdateScadaMinutes
@@ -251,28 +253,28 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 			e = ctx.NewQuery().Update().From(new(ScadaData).TableName()).
 				Where(dbox.Eq("_id", data.ID)).
 				Exec(tk.M{}.Set("data", tk.M{}.
-				Set("totalavail", totalavail).
-				Set("machineavail", machineavail).
-				Set("gridavail", gridavail).
-				Set("wsadjforpc", retadjws).
-				Set("wsavgforpc", retavgws).
-				Set("pcdeviation", pcDeviation).
-				Set("pcvalue", pcValue).
-				Set("pcvalueadj", pcValueAdj).
-				Set("estimatedenergy", estimatedEnergy).
-				Set("energylost", energyLost).
-				Set("energy", energy).
-				Set("denvalue", density).
-				Set("denph", pH).
-				Set("denadjwindspeed", adjDenWs).
-				Set("denwindspeed", denWs).
-				Set("denpower", denPower).
-				Set("denpcdeviation", denPcDeviation).
-				Set("dendeviationpct", denDeviationPct).
-				Set("denpcvalue", denPcValue).
-				Set("deviationpct", deviationPct).
-				Set("mttr", mttr).
-				Set("mttf", mttf)))
+					Set("totalavail", totalavail).
+					Set("machineavail", machineavail).
+					Set("gridavail", gridavail).
+					Set("wsadjforpc", retadjws).
+					Set("wsavgforpc", retavgws).
+					Set("pcdeviation", pcDeviation).
+					Set("pcvalue", pcValue).
+					Set("pcvalueadj", pcValueAdj).
+					Set("estimatedenergy", estimatedEnergy).
+					Set("energylost", energyLost).
+					Set("energy", energy).
+					Set("denvalue", density).
+					Set("denph", pH).
+					Set("denadjwindspeed", adjDenWs).
+					Set("denwindspeed", denWs).
+					Set("denpower", denPower).
+					Set("denpcdeviation", denPcDeviation).
+					Set("dendeviationpct", denDeviationPct).
+					Set("denpcvalue", denPcValue).
+					Set("deviationpct", deviationPct).
+					Set("mttr", mttr).
+					Set("mttf", mttf)))
 			if e != nil {
 				tk.Printf("Update fail: %s", e.Error())
 			}
@@ -352,4 +354,46 @@ func GetPowerCurve(ctx dbox.IConnection, avgWs float64) (float64, float64, float
 	}
 
 	return totalPower, wsret, wsavgret
+}
+
+func GetPowerCurveCubicInterpolation(ctx dbox.IConnection, _model string, avgws float64) (cpower float64, err error) {
+	cpower = 0
+	err = nil
+
+	apcm := []PowerCurveModel{}
+
+	csr, err := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
+		Where(dbox.Eq("model", _model)).
+		Order("windspeed").Cursor(nil)
+
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	_ws := []float64{}
+	_power := []float64{}
+
+	err = csr.Fetch(&apcm, 0, false)
+	if err != nil {
+		return
+	}
+
+	for _, _val := range apcm {
+		iws := _val.WindSpeed
+		ipower := _val.Power1
+
+		if tk.HasMember(_ws, iws) {
+			continue
+		}
+
+		_ws = append(_ws, iws)
+		_power = append(_power, ipower)
+	}
+	// tk.Printfn(">>>> %v", _ws)
+	s := spline.Spline{}
+	s.Set_points(_ws, _power, true)
+	cpower = s.Operate(avgws)
+
+	return
 }

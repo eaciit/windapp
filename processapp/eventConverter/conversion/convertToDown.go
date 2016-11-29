@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	. "eaciit/wfdemo-git/library/helper"
+	// . "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
@@ -19,7 +19,7 @@ import (
 var (
 	separator       = string(os.PathSeparator)
 	mutex           = &sync.Mutex{}
-	countPerProcess = 3
+	countPerProcess = 2
 )
 
 type GroupResult struct {
@@ -106,7 +106,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						tmp := EventDownDetail{}
 						tmp.AlarmId = data.AlarmId
 						tmp.AlarmToggle = data.AlarmToggle
-						tmp.TimeStamp = data.TimeStamp
+						tmp.TimeStamp = data.TimeStamp.UTC()
 						tmp.TimeStampInt = data.TimeStampInt
 						// tmp.TimeStampUTC = data.TimeStampUTC
 						tmp.DateInfo = data.DateInfo
@@ -147,26 +147,20 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 								down.ProjectName = loop.Project
 								down.Turbine = loop.Turbine
 
-								down.TimeStart = start.TimeStamp
+								down.TimeStart = start.TimeStamp.UTC()
 								down.TimeStartInt = start.TimeStampInt
-								down.DateInfoStart = GetDateInfo(start.TimeStamp)
+								down.DateInfoStart = start.DateInfo
 
-								// down.TimeStartUTC = start.TimeStampUTC
-								// down.DateInfoStartUTC = start.DateInfoUTC
-
-								down.TimeEnd = end.TimeStamp
+								down.TimeEnd = end.TimeStamp.UTC()
 								down.TimeEndInt = end.TimeStampInt
-								down.DateInfoEnd = GetDateInfo(end.TimeStamp)
-
-								// down.TimeEndUTC = end.TimeStampUTC
-								// down.DateInfoEndUTC = end.DateInfoUTC
+								down.DateInfoEnd = end.DateInfo
 
 								down.AlarmDescription = start.AlarmDescription
-								down.Duration = end.TimeStamp.Sub(start.TimeStamp).Seconds()
+								down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
 
 								down.Detail = details
 
-								if down.DateInfoStart.MonthId != 0 && down.TimeStart.Year() != 1 {
+								if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
 									mutex.Lock()
 									brakeType := data.BrakeType
 									if strings.Contains(strings.ToLower(brakeType), "grid") {
@@ -180,8 +174,22 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 									}
 
 									down := down.New()
+									count := 0
+									for {
+										e := ev.Ctx.Insert(down)
+										if e != nil {
+											log.Printf("error: %v \n", e.Error())
+											down = down.New()
+										} else {
+											break
+										}
 
-									ev.Ctx.Insert(down)
+										if count == 2 {
+											break
+										}
+										count++
+									}
+
 									mutex.Unlock()
 									// log.Print("Insert Event Down")
 								}

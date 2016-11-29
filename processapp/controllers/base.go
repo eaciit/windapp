@@ -6,8 +6,11 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
-	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
+
+	"github.com/eaciit/dbox"
+
 	tk "github.com/eaciit/toolkit"
 	// "math"
 	"io/ioutil"
@@ -16,8 +19,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	_ "github.com/eaciit/dbox/dbc/mongo"
 )
 
 var (
@@ -258,7 +259,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 	if e != nil {
 		return nil, e
 	}
-
+	tk.Println("DB Connect...\n")
 	return c, nil
 }
 

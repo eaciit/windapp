@@ -298,8 +298,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	var collName string
-	collName = "ScadaData"
+	// var collName string
+	// collName = "ScadaData"
 	dVal := (tk.ToFloat64(tk.ToInt(DeviationVal, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
 	selArr := 1
 
@@ -308,6 +308,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Gt("power", 0))
 	if !IsDeviation {
 		filter = append(filter, dbox.Gte(colDeviation, dVal))
 	}
@@ -315,8 +316,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		filter = append(filter, dbox.Eq("oktime", 600))
 	}
 
+	// tk.Printf("%#v\n", filter)
+	// tk.Printf("%#v\n", filter...)
 	csr, e := DB().Connection.NewQuery().
-		From(collName).
+		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
 		Where(dbox.And(filter...)).
 		Cursor(nil)
@@ -361,8 +364,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("color", colorField[selArr])
 
 		for _, val := range exist {
+			// tk.Printf("%#v\n", filter)
 			idD := val.Get("_id").(tk.M)
-			datas = append(datas, []float64{idD.GetFloat64("colId"), tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))})
+			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production") }) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 		}
 
 		if len(datas) > 0 {
