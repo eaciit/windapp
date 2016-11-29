@@ -1,7 +1,7 @@
 package models
 
 import (
-	. "eaciit/wfdemo-git/library/core"
+	. "eaciit/wfdemo-git-dev/library/core"
 	"errors"
 	"fmt"
 	"github.com/eaciit/acl/v1.0"
