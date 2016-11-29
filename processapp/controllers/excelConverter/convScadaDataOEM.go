@@ -1,9 +1,9 @@
 package converterControllers
 
 import (
-	. "eaciit/wfdemo-git/library/helper"
-	. "eaciit/wfdemo-git/library/models"
-	. "eaciit/wfdemo-git/processapp/controllers"
+	. "eaciit/wfdemo-git-dev/library/helper"
+	. "eaciit/wfdemo-git-dev/library/models"
+	. "eaciit/wfdemo-git-dev/processapp/controllers"
 	"os"
 	"time"
 
