@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	//w "eaciit/wfdemo-git-dev/processapp/opcdata/filewatcher"
-	d "eaciit/wfdemo-git-dev/processapp/opcdata/datareader"
+	//w "eaciit/wfdemo-git/processapp/opcdata/filewatcher"
+	d "eaciit/wfdemo-git/processapp/opcdata/datareader"
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	_ "github.com/eaciit/orm"

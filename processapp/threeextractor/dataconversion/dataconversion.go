@@ -1,14 +1,14 @@
 package dataconversion
 
 import (
-	. "eaciit/wfdemo-git-dev/library/helper"
-	. "eaciit/wfdemo-git-dev/library/models"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 	"log"
 	"strconv"
 	"sync"
 	"time"
 
-	hpp "eaciit/wfdemo-git-dev/processapp/helper"
+	hpp "eaciit/wfdemo-git/processapp/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	. "github.com/eaciit/orm"

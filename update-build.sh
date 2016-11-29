@@ -4,11 +4,11 @@ sudo pkill wfdemo-dev
 rm wfdemo-dev
 rm nohup.out
 
-$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git-dev" -to="eaciit/wfdemo-git"
+$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git"
 
 git pull
 
-$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git-dev"
+$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git"
 
 
 go build -o wfdemo-dev

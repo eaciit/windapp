@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	c "eaciit/wfdemo-git-dev/processapp/threeextractor/csvreader"
+	c "eaciit/wfdemo-git/processapp/threeextractor/csvreader"
 	"log"
 	_ "math"
 	"os"

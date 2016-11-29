@@ -10,8 +10,8 @@ import (
 	"github.com/eaciit/dbox"
 	tk "github.com/eaciit/toolkit"
 
-	"eaciit/wfdemo-git-dev/library/helper"
-	. "eaciit/wfdemo-git-dev/library/models"
+	"eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 

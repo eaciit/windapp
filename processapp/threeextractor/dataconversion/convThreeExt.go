@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	. "eaciit/wfdemo-git-dev/library/helper"
-	. "eaciit/wfdemo-git-dev/library/models"
-	. "eaciit/wfdemo-git-dev/processapp/watcher/controllers"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 
-	hpp "eaciit/wfdemo-git-dev/processapp/helper"
+	hpp "eaciit/wfdemo-git/processapp/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	. "github.com/eaciit/orm"

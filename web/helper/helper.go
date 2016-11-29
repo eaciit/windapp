@@ -1,7 +1,7 @@
 package helper
 
 import (
-	. "eaciit/wfdemo-git-dev/library/core"
+	. "eaciit/wfdemo-git/library/core"
 	"errors"
 	"io"
 	"os"

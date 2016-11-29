@@ -2,9 +2,9 @@ package converterControllers
 
 import (
 	"bufio"
-	. "eaciit/wfdemo-git-dev/library/helper"
-	. "eaciit/wfdemo-git-dev/library/models"
-	. "eaciit/wfdemo-git-dev/processapp/controllers"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git/processapp/controllers"
 	"encoding/csv"
 	"io"
 	"os"

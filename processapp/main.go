@@ -7,9 +7,9 @@ import (
 	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 =======
 
-	. "eaciit/wfdemo-git-dev/processapp/controllers"
-	. "eaciit/wfdemo-git-dev/processapp/controllers/dataGenerator"
-	. "eaciit/wfdemo-git-dev/processapp/controllers/excelConverter"
+	. "eaciit/wfdemo-git/processapp/controllers"
+	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 >>>>>>> a0bda0a9905baf4d0e67cbdc86fddbd6e8910e93
 	"os"
 	"runtime"

@@ -1,9 +1,9 @@
 package controller
 
 import (
-	_ "eaciit/wfdemo-git-dev/library/core"
-	_ "eaciit/wfdemo-git-dev/library/models"
-	"eaciit/wfdemo-git-dev/web/helper"
+	_ "eaciit/wfdemo-git/library/core"
+	_ "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	_ "fmt"
 	_ "github.com/eaciit/crowd"
 	_ "github.com/eaciit/dbox"

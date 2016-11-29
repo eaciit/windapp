@@ -1,8 +1,8 @@
 package controller
 
 import (
-	. "eaciit/wfdemo-git-dev/library/core"
-	. "eaciit/wfdemo-git-dev/library/models"
+	. "eaciit/wfdemo-git/library/core"
+	. "eaciit/wfdemo-git/library/models"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"

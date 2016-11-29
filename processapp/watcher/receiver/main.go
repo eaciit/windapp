@@ -16,14 +16,14 @@ import (
 	"strings"
 	"sync"
 <<<<<<< HEAD
-	c3to10 "eaciit/wfdemo-git-dev/processapp/threeextractor/convert3secto10min/lib"
+	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
 	"github.com/eaciit/database/base"
 	"github.com/eaciit/orm"
 	"github.com/fsnotify/fsnotify"
 	// "github.com/metakeule/fmtdate"
 
-	//dc "eaciit/wfdemo-git-dev/processapp/threeextractor/dataconversion"
-	. "eaciit/wfdemo-git-dev/processapp/watcher/controllers"
+	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
+	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 =======
 	// "github.com/metakeule/fmtdate"
 

@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	. "eaciit/wfdemo-git-dev/library/helper"
-	. "eaciit/wfdemo-git-dev/library/models"
+	. "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 
 	"strconv"
 
