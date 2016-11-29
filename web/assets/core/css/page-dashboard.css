@@ -169,24 +169,23 @@
 		padding-right: 0px;
 	}
 	.prod-div{
-		margin-left: -6px;
-		padding-right: 4px;
+		margin-right: 1.5px;
 	}
-	.plv-div {
-		margin-left: 1px;
-		padding-right: 4px;
+	.plf-div {
+	    margin-left: -1.5px;
+	    margin-right: 3.5px;
 	}
 	.windiness-div{
-		padding-left: 6px;
-		padding-right: 0px;
+	    margin-left: -3px;
+	    margin-right: -5px;
 	}
 	.prodCur-div{
 		margin-left: -6px;
 		padding-right: 4px;
 	}
 	.summary-div{
-		margin-left: 1px;
-		padding-right: 0px;
+		margin-left: -1.5px;
+		margin-right: -5px;
 	}
 
 	 #chartProductionCustomTooltip {

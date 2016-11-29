@@ -115,7 +115,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 
 	// temporary add last date hardcode, then will change to get it from database automatically
 	// add by ams, 2016-10-04
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-06-30 23:50")
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
 	lastDateData = lastDateData.UTC()
 	r.SetSession("lastdate_data", lastDateData)
 

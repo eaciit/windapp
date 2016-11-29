@@ -33,8 +33,8 @@ func (d *ConvPermanentMetTower) Generate(base *BaseController) {
 		tk.Println("Converting Met Tower Data from Excel File..")
 		for _, source := range dataSources {
 			if !strings.Contains(source.Name(), "~") {
-				tk.Println(path + "\\" + source.Name())
-				file, e := xlsx.OpenFile(path + "\\" + source.Name())
+				tk.Println(path + "/" + source.Name())
+				file, e := xlsx.OpenFile(path + "/" + source.Name())
 				if e != nil {
 					ErrorHandler(e, funcName)
 					os.Exit(0)

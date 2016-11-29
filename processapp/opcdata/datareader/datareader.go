@@ -5,6 +5,7 @@ import (
 	. "eaciit/wfdemo-git-dev/library/models"
 	"encoding/csv"
 	"io"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-
+	"fmt"
 	_ "github.com/eaciit/orm"
 	. "github.com/eaciit/sshclient"
 	tk "github.com/eaciit/toolkit"
@@ -105,9 +106,10 @@ func (c *DataReader) writeConfig(lastFileName string, lastIndex int) {
 	}
 }
 
-func (c *DataReader) Start() {
-	time.Sleep(5000*time.Millisecond)
+func (c *DataReader) Start(beginIndex int)(float64,error,time.Time,time.Time,int) {
+	//time.Sleep(5000*time.Millisecond)
 	tk.Println(">>>>>",c.PathProcess)
+	
 	fileToProcess := c.copyFile(c.FileLocation, c.PathProcess+"\\"+DraftDir)
 	if fileToProcess != "" {
 		if fileExists(fileToProcess) {
@@ -117,7 +119,7 @@ func (c *DataReader) Start() {
 			DataTranspose = tk.M{}
 			FileCount++
 			FileName = file.Name()
-			c.readFile(file.Name())
+			countData := c.readFile(file.Name(),beginIndex)
 			//fName := c.createLog()
 			//tk.Println("Finish created log file")
 			
@@ -125,30 +127,33 @@ func (c *DataReader) Start() {
 			//tk.Println("Start sending file: " + fZip)
 			//c.sendFile(fZip)
 			//c.writeConfig(file.Name(), 0)
-			
-			duration := time.Now().Sub(start).Seconds()
+			kk := time.Now()
+			duration := kk.Sub(start).Seconds()
 			tk.Println(tk.Sprintf("Loading file %v data about %v sec(s)", file.Name(), duration))
+			return duration,nil,start,kk,countData
 		}else{
 			tk.Println("File not exists")
+			return -1.0,errors.New("File not exists"),time.Time{},time.Time{},0
 		}
 	}else{
 		tk.Println("No file to process")
+		return -1.0,errors.New("No file to process"),time.Time{},time.Time{},0
 	}
 }
 
-func (c *DataReader) readFile(fileName string) {
+func (c *DataReader) readFile(fileName string,beginIndex int)int {
 	var wg sync.WaitGroup
-
+	
 	conf := c.readerConfig()
 	lastFileName := conf["LastFileName"]
-	lastIndex := tk.ToInt(conf["LastIndex"], "0")
-
+	//lastIndex := tk.ToInt(conf["LastIndex"], "0")
+	lastIndex := beginIndex
 	if lastFileName != "" && lastFileName != fileName {
 		c.writeConfig("", 0)
 
 		conf = c.readerConfig()
 		lastFileName = conf["LastFileName"]
-		lastIndex = tk.ToInt(conf["LastIndex"], "0")
+		//lastIndex = tk.ToInt(conf["LastIndex"], "0")
 	}
 
 	tk.Println("Start processing file: " + fileName)
@@ -222,19 +227,18 @@ func (c *DataReader) readFile(fileName string) {
 		tk.Println("Error Move Process File : ", err.Error())
 	}
 
-	if len(DataTranspose) > 0 {
-		tk.Println("Start create log file...")
-		fName := c.createLog()
-		tk.Println("OOOOO",successFile,fName)
-		
-		tk.Println("Finish created log file")
-		fZip := c.createZip(fName)
-		tk.Println("Start sending file: " + fZip)
-		c.sendFile(fZip)
-		c.writeConfig(fileName, endIndex)
-	}else{
-		tk.Println("MMM4",len(DataTranspose))
-	}
+	
+	tk.Println("Start create log file...")
+	fName := c.createLog(countData)
+	tk.Println("OOOOO",successFile,fName)
+	
+	tk.Println("Finish created log file")
+	fZip := c.createZip(fName)
+	tk.Println("Start sending file: " + fZip)
+	c.sendFile(fZip)
+	c.writeConfig(fileName, endIndex)
+	
+	return countData
 }
 
 func (c *DataReader) sendFile(filename string) {
@@ -310,7 +314,7 @@ func (c *DataReader) copyFile(src string, pathTarget string) string {
 	return destFile.Name()
 }
 
-func (c *DataReader) createLog() string {
+func (c *DataReader) createLog(rowcount int) string {
 	scada := new(ScadaThreeSecs)
 	ref := reflect.ValueOf(scada).Elem()
 	typeOf := ref.Type()
@@ -324,7 +328,7 @@ func (c *DataReader) createLog() string {
 		}
 	}
 
-	f, _ := os.Create(c.PathProcess + "\\Results\\result_" + FileName)
+	f, _ := os.Create(c.PathProcess + "\\Results\\result_" +fmt.Sprintf("%010d",rowcount)+"_"+ FileName)
 	defer f.Close()
 
 	f.WriteString(content + "\n")

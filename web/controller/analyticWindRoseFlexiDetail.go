@@ -1,20 +1,22 @@
 package controller
 
 import (
+
 	. "eaciit/wfdemo-git-dev/library/core"
 	_ "eaciit/wfdemo-git-dev/library/helper"
 	. "eaciit/wfdemo-git-dev/library/models"
 	"eaciit/wfdemo-git-dev/web/helper"
-	c "github.com/eaciit/crowd"
-	"github.com/eaciit/dbox"
-	_ "github.com/eaciit/dbox/dbc/mongo"
-	"github.com/eaciit/knot/knot.v1"
-	"github.com/eaciit/toolkit"
 	_ "math"
 	"sort"
 	_ "strconv"
 	"strings"
 	"time"
+
+	c "github.com/eaciit/crowd"
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+	"github.com/eaciit/knot/knot.v1"
+	"github.com/eaciit/toolkit"
 )
 
 type AnalyticWindRoseFlexiDetailController struct {
@@ -77,7 +79,7 @@ func (m *AnalyticWindRoseFlexiDetailController) GetFlexiDataEachTurbine(k *knot.
 
 	scadas := []MiniScada{}
 
-	csr, _ := DB().Connection.NewQuery().From(new(ScadaDataNew).TableName()).
+	csr, _ := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
 		Where(dbox.And(filter...)).Cursor(nil) //.Order("turbine")
 
 	e = csr.Fetch(&scadas, 0, false)
