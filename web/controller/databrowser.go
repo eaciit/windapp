@@ -24,13 +24,27 @@ func CreateDataBrowserController() *DataBrowserController {
 
 func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
+	var filter []*dbox.Filter
 
-	p := new(helper.Payloads)
+	p := new(helper.PayloadsDB)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	filter, _ := p.ParseFilter()
+	// filter, _ := p.ParseFilter()
+
+	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	turbine := p.Turbine
+
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+
 
 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(p.Skip).Take(p.Take)
 	query.Where(dbox.And(filter...))
@@ -65,18 +79,19 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		results = append(results, val)
 	}
 
-	queryC := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...))
-	ccount, e := queryC.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer ccount.Close()
+	// queryC := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...))
+	// ccount, e := queryC.Cursor(nil)
+	// if e != nil {
+	// 	return helper.CreateResult(false, nil, e.Error())
+	// }
+	// defer ccount.Close()
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
 	totalTurbine := 0
 	totalProduction := 0.0
-	avgWindSpeed := 0.0
+	sumWindSpeed := 0.0
+	countData := 0.0
 
 	aggrData := []tk.M{}
 
@@ -84,7 +99,8 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
 		Aggr(dbox.AggrSum, "$power", "totalProduction").
-		Aggr(dbox.AggrAvr, "$avgwindspeed", "avgWindSpeed").
+		Aggr(dbox.AggrSum, "$avgwindspeed", "sumWindSpeed").
+		Aggr(dbox.AggrSum, 1, "countData").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -101,13 +117,14 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		totalPower += val.GetFloat64("TotalPower")
 		totalPowerLost += val.GetFloat64("TotalPowerLost")
 		totalProduction += val.GetFloat64("totalProduction")
-		avgWindSpeed += val.GetFloat64("avgWindSpeed")
+		sumWindSpeed += val.GetFloat64("sumWindSpeed")
+		countData += val.GetFloat64("countData")
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
 		Data            []ScadaData
-		Total           int
+		Total           float64
 		TotalPower      float64
 		TotalPowerLost  float64
 		TotalProduction float64
@@ -115,11 +132,11 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		TotalTurbine    int
 	}{
 		Data:            results,
-		Total:           ccount.Count(),
+		Total:           countData,
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalProduction / 6,
-		AvgWindSpeed:    avgWindSpeed,
+		AvgWindSpeed:    sumWindSpeed / countData,
 		TotalTurbine:    totalTurbine,
 	}
 
@@ -180,7 +197,7 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	totalPower := 0.0
 	totalPowerLost := 0.0
 	// totalProduction := 0.0
-	avgWindSpeed := 0.0
+	sumWindSpeed := 0.0
 	totalTurbine := 0
 
 	aggrData := []tk.M{}
@@ -188,7 +205,7 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	queryAggr := DB().Connection.NewQuery().From(new(ScadaAlarmAnomaly).TableName()).
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
-		Aggr(dbox.AggrAvr, "$avgwindspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$avgwindspeed", "sumWindSpeed").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -204,7 +221,7 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	for _, val := range aggrData {
 		totalPower += val.GetFloat64("TotalPower")
 		totalPowerLost += val.GetFloat64("TotalPowerLost")
-		avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+		sumWindSpeed += val.GetFloat64("sumWindSpeed")
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
@@ -222,7 +239,7 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalPower / 6,
-		AvgWindSpeed:    avgWindSpeed,
+		AvgWindSpeed:    sumWindSpeed / float64(ccount.Count()),
 		TotalTurbine:    totalTurbine,
 	}
 
