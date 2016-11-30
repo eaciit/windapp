@@ -2,7 +2,7 @@
 	{
 		"_id": "db_acl",
 		"data": {
-			"db": "wfdemo-oem",
+			"db": "wfdemo-prod",
 			"driver": "mongo",
 			"host": "go.eaciit.com:27123",
 			"pass": "B1gD@ta",
@@ -15,7 +15,7 @@
 	{
 		"_id": "db_ostro",
 		"data": {
-			"db": "wfdemo-oem",
+			"db": "wfdemo-prod",
 			"driver": "mongo",
 			"host": "go.eaciit.com:27123",
 			"pass": "B1gD@ta",
@@ -27,7 +27,7 @@
 	},
 	{
 		"_id": "port",
-		"data": 9021
+		"data": 8014
 	},
 	{
 		"_id": "default_username",
