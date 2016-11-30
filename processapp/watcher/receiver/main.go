@@ -4,9 +4,6 @@ import (
 	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
 	"encoding/json"
 	"fmt"
-	"github.com/eaciit/database/base"
-	"github.com/eaciit/orm"
-	"github.com/fsnotify/fsnotify"
 	"io"
 	"log"
 	"os"
@@ -15,26 +12,22 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-<<<<<<< HEAD
-	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
+
 	"github.com/eaciit/database/base"
 	"github.com/eaciit/orm"
 	"github.com/fsnotify/fsnotify"
 	// "github.com/metakeule/fmtdate"
 
-	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
-=======
-	// "github.com/metakeule/fmtdate"
 
 	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
->>>>>>> ff526b6092c206f84ca92a25c090162fba672585
 	"archive/tar"
 	"archive/zip"
 	"bytes"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
-	tk "github.com/eaciit/toolkit"
 	"time"
+
+	tk "github.com/eaciit/toolkit"
 )
 
 const (
@@ -159,7 +152,6 @@ func processFile(filePath string, com []Command) {
 		byteOut, err := runCMD("lsof " + filePath)
 		if err != nil {
 			log.Print("Gagal")
-			fmt.Println(string(byteOut))
 		}
 		if len(byteOut) == 0 {
 			break
@@ -208,20 +200,13 @@ func processFile(filePath string, com []Command) {
 		log.Printf("DONE for file: %v\n", filePath)
 	} else if strings.Contains(fileName, ".tar") {
 		time.Sleep(100 * time.Millisecond)
-		e := untar(filePath, conf.Draft)
-		if e != nil {
-			fmt.Println(filePath,"is Corrupt")
-			return
-			//panic(e)
-		}
+		untar(filePath, conf.Draft)
 		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
 	} else if strings.Contains(fileName, ".zip") {
 		time.Sleep(100 * time.Millisecond)
 		e := unzip(filePath, conf.Draft)
 		if e != nil {
-			fmt.Println(filePath,"is Corrupt")
-			return
-			//panic(e)
+			panic(e)
 		}
 		fmt.Println("Unzip Done")
 		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))

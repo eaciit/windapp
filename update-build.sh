@@ -1,15 +1,14 @@
-#### for wfdemo-git-dev uncomment below part
+#### for wfdemo-git-oem uncomment below part
 
 git checkout .
 
-sudo pkill wfdemo-dev
-rm wfdemo-dev
+sudo pkill wfdemo-oem
+rm wfdemo-oem
 rm nohup.out
 
 git pull
 
-$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git"
+$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git-oem"
 
-
-go build -o wfdemo-dev
-nohup ./wfdemo-dev &
+go build -o wfdemo-oem
+nohup ./wfdemo-oem &
