@@ -84,7 +84,7 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
 		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalProduction").
-		Aggr(dbox.AggrAvr, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -119,7 +119,7 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalProduction,
-		AvgWindSpeed:    avgWindSpeed,
+		AvgWindSpeed:    avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:    totalTurbine,
 	}
 
@@ -509,7 +509,7 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
 		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalProduction").
-		Aggr(dbox.AggrAvr, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -544,7 +544,7 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalProduction,
-		AvgWindSpeed:    avgWindSpeed,
+		AvgWindSpeed:    avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:    totalTurbine,
 	}
 

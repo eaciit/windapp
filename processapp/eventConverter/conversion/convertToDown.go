@@ -19,7 +19,7 @@ import (
 var (
 	separator       = string(os.PathSeparator)
 	mutex           = &sync.Mutex{}
-	countPerProcess = 2
+	countPerProcess = 1
 )
 
 type GroupResult struct {

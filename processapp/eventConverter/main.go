@@ -34,6 +34,11 @@ func main() {
 	config := ReadConfig()
 	dir := config["FileProcess"]
 
+	/*
+		// under development, not done yet
+		event := NewCombineRaw(ctx)
+		event.Run()*/
+
 	event := NewEventRawConversion(ctx, dir)
 	event.Run()
 
