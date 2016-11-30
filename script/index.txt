@@ -50,6 +50,8 @@ db.EventRaw.createIndex( { alarmtoggle: -1 } )
 db.EventRaw.createIndex( { timestamp: -1 } )
 db.EventRaw.createIndex( { "dateinfo.monthid": 1, turbine: 1,"dateinfo.monthid": -1, turbine: -1 } )
 db.EventRaw.createIndex( { "timestamp": 1, turbine: 1,"timestamp": -1, turbine: -1 } )
+db.EventRaw.createIndex( { "projectname": 1, turbine: 1, timestamp:1} )
+db.EventRaw.createIndex( { "projectname": 1, turbine: 1, timestamp:1, eventtype: 1, brakeprogram: 1} )
 
 db.EventDown.createIndex( { brakeprogram: 1 } )
 db.EventDown.createIndex( { alarmtoggle: 1 } )

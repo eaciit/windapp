@@ -259,17 +259,21 @@ var Data = {
             turbine = $("#turbineMulti").data("kendoMultiSelect").value();
         }
 
-        var param = {};
+        var param = {
+            DateStart: dateStart,
+            DateEnd: dateEnd,
+            Turbine: turbine,
+        };
 
         $('#dataGrid').html("");
         $('#dataGrid').kendoGrid({
             dataSource: {
-                filter: [
-                    { field: "timestamp", operator: "gte", value: dateStart },
-                    { field: "timestamp", operator: "lte", value: dateEnd },
-                    { field: "isvalidtimeduration", operator: "eq", value: true },
-                    { field: "turbine", operator: "in", value: turbine }
-                ],
+                // filter: [
+                //     { field: "timestamp", operator: "gte", value: dateStart },
+                //     { field: "timestamp", operator: "lte", value: dateEnd },
+                //     // { field: "isvalidtimeduration", operator: "eq", value: true },
+                //     { field: "turbine", operator: "in", value: turbine }
+                // ],
                 serverPaging: true,
                 serverSorting: true,
                 serverFiltering: true,
@@ -435,17 +439,22 @@ var Data = {
             turbine = $("#turbineMulti").data("kendoMultiSelect").value();
         }
 
-        var param = {};
+        var param = {
+            DateStart: dateStart,
+            DateEnd: dateEnd,
+            Turbine: turbine,
+        };
+
 
         $('#dataGridExceptionTimeDuration').html("");
         $('#dataGridExceptionTimeDuration').kendoGrid({
             dataSource: {
-                filter: [
-                    { field: "timestamp", operator: "gte", value: dateStart },
-                    { field: "timestamp", operator: "lte", value: dateEnd },
-                    { field: "isvalidtimeduration", operator: "eq", value: false },
-                    { field: "turbine", operator: "in", value: turbine }
-                ],
+                // filter: [
+                //     { field: "timestamp", operator: "gte", value: dateStart },
+                //     { field: "timestamp", operator: "lte", value: dateEnd },
+                //     { field: "isvalidtimeduration", operator: "eq", value: false },
+                //     { field: "turbine", operator: "in", value: turbine }
+                // ],
                 serverPaging: true,
                 serverSorting: true,
                 serverFiltering: true,
