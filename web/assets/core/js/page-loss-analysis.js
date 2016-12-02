@@ -147,7 +147,18 @@ pg.GridLoss = function () {
         $('#lossGrid').kendoGrid({
             dataSource: {
                 data: gData,
-                pageSize: 10
+                pageSize: 10,
+                aggregate: [
+                    { field: "Production", aggregate: "sum" },
+                    { field: "LossEnergy", aggregate: "sum" },
+                    { field: "MachineDownHours", aggregate: "sum" },
+                    { field: "GridDownHours", aggregate: "sum" },
+                    { field: "EnergyyMD", aggregate: "sum" },
+                    { field: "EnergyyGD", aggregate: "sum" },
+                    { field: "ElectricLoss", aggregate: "sum" },
+                    { field: "PCDeviation", aggregate: "sum" },
+                    { field: "Others", aggregate: "sum" },
+                ]
             },
             groupable: false,
             sortable: true,
@@ -163,14 +174,15 @@ pg.GridLoss = function () {
                     },
                     headerAttributes: {
                         style: "text-align:center;"
-                    }
+                    },
+                    footerTemplate: "<center>Total</center>"
                 }, {
                     title: "Production",
                     headerAttributes: {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(Hours)", field: "Production", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                        { title: "(Hours)", field: "Production", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",footerTemplate: "<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                     ]
                 }, {
                     title: "Lost Energy",
@@ -178,7 +190,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(MWh)", field: "LossEnergy", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                        { title: "(MWh)", field: "LossEnergy", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",footerTemplate: "<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                     ]
                     // field: "LossEnergy",
                     // width: 100,
@@ -200,7 +212,7 @@ pg.GridLoss = function () {
                             title: "Machine",
                             headerAttributes: { style: "text-align:center;" },
                             columns: [
-                                { title: "(Hours)", field: "MachineDownHours", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                                { title: "(Hours)", field: "MachineDownHours", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",footerTemplate: "<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                             ]
                             // field: "MachineDownHours", width: 100, attributes: { class: "align-right" },format: "{0:n2}",headerAttributes: { style: "text-align:center;" } 
                         },
@@ -208,7 +220,7 @@ pg.GridLoss = function () {
                             title: "Grid",
                             headerAttributes: { style: "text-align:center;" },
                             columns: [
-                                { title: "(Hours)", field: "GridDownHours", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                                { title: "(Hours)", field: "GridDownHours", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",footerTemplate: "<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>"  },
                             ]
                             // field: "GridDownHours", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",headerAttributes: { style: "text-align:center;" }
                         },
@@ -223,7 +235,7 @@ pg.GridLoss = function () {
                             title: "Machine",
                             headerAttributes: { style: "text-align:center;" },
                             columns: [
-                                { title: "(MWh)", field: "EnergyyMD", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                                { title: "(MWh)", field: "EnergyyMD", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",footerTemplate:"<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                             ]
                             // field: "EnergyyMD", width: 100, attributes: { class: "align-right" },format: "{0:n2}",headerAttributes: { style: "text-align:center;" } 
                         },
@@ -231,7 +243,7 @@ pg.GridLoss = function () {
                             title: "Grid",
                             headerAttributes: { style: "text-align:center;" },
                             columns: [
-                                { title: "(MWh)", field: "EnergyyMD", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                                { title: "(MWh)", field: "EnergyyGD", width: 100, attributes: { class: "align-right" }, format: "{0:n2}", footerTemplate:"<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                             ]
                             // field: "EnergyyGD", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",headerAttributes: { style: "text-align:center;" }
                         },
@@ -242,7 +254,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(MWh)", field: "ElectricLoss", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                        { title: "(MWh)", field: "ElectricLoss", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",footerTemplate:"<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                     ]
                     // field: "ElectricLoss",
                     // width: 100,
@@ -259,7 +271,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(MWh)", field: "PCDeviation", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                        { title: "(MWh)", field: "PCDeviation", width: 100, attributes: { class: "align-right" }, format: "{0:n2}", footerTemplate:"<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>"},
                     ]
                     // field: "PCDeviation",
                     // width: 100,
@@ -276,7 +288,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(MWh)", field: "Others", width: 100, attributes: { class: "align-right" }, format: "{0:n2}" },
+                        { title: "(MWh)", field: "Others", width: 100, attributes: { class: "align-right" }, format: "{0:n2}", footerTemplate:"<div style='text-align:right'>#=kendo.toString(sum, 'n2')#</div>" },
                     ]
                     // field: "Others",
                     // width: 100,
