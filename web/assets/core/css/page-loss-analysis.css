@@ -139,3 +139,8 @@ label.summary-number {
 #lossChart{
 	padding-top: 15px;
 }
+.k-grid-footer td, .k-group-footer td, .k-grouping-row td {
+    color: #585555;
+    border-color: #F0F3F4;
+    font-weight: 700;
+}

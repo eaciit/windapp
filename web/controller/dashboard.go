@@ -5,7 +5,7 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"fmt"
+	"log"
 	"strings"
 
 	"github.com/eaciit/orm"
@@ -1855,15 +1855,15 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			b, err := time.Parse("2006-01-02T15:04:05.000Z", filt.Value.(string))
 			t, _ := time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Println(err.Error())
 			} else {
 				from = t
 			}
 		} else if filt.Field == "dateinfo.dateid" && filt.Op == "lte" {
 			b, err := time.Parse("2006-01-02T15:04:05.000Z", filt.Value.(string))
-			t, _ := time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
+			t, _ := time.Parse("2006-01-02 15:04:05.999999999", b.UTC().Format("2006-01-02")+" 23:59:59.999999999")
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Println(err.Error())
 			} else {
 				to = t
 			}
@@ -1895,6 +1895,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			tmp = append(tmp, val.(tk.M))
 		}
 	}
+
+	// log.Printf("tmp: \n%#v \n", tmp)
 
 	matches = tk.M{"$and": tmp}
 	group := tk.M{}
