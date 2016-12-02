@@ -52,6 +52,9 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		/*tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 		tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+
+		// log.Printf("EndDate: %v \n", tEnd)
+
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
@@ -71,6 +74,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			"totaltimestamp":  tk.M{"$sum": 1},
 			"available":       tk.M{"$sum": "$available"},
 			"minutes":         tk.M{"$sum": "$minutes"},
+			"maxdate":         tk.M{"$max": "$timestamp"},
 		}
 
 		if p.Project != "" {
@@ -101,10 +105,20 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
 			var totalTurbine float64
 
-			// totalTurbine = tk.ToFloat64(len(p.Turbine), 0, tk.RoundingAuto)
-			totalTurbine = 1.0
+			// totalTurbine = 1.0
+			// hourValue := val.GetFloat64("minutes") / 60.0
 
-			minutesInHour := val.GetFloat64("minutes") / 60.0
+			if len(p.Turbine) == 0 {
+				totalTurbine = 24.0
+			} else {
+				totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
+			}
+
+			maxDate := val.Get("maxdate").(time.Time)
+			hourValue := tk.ToFloat64(maxDate.Sub(tStart).Hours()/24, 1, tk.RoundingUp) * 24.0
+
+			// log.Printf("%v | %v | %v | \n", totalTurbine, maxDate.UTC(), hourValue, val.GetFloat64("minutes")/60.0)
+
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
 			energy := power / 6
@@ -114,11 +128,14 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			gDownTime := val.GetFloat64("griddowntime") / 3600.0
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
 
-			plf = energy / (totalTurbine * minutesInHour * 2100) * 100 * 1000
-			trueAvail = (okTime / 3600) / (totalTurbine * minutesInHour) * 100
-			machineAvail = (minutesInHour - mDownTime) / (totalTurbine * minutesInHour) * 100
-			gridAvail = (minutesInHour - gDownTime) / (totalTurbine * minutesInHour) * 100
-			dataAvail = (sumTimeStamp * 10 / 60) / (minutesInHour * totalTurbine) * 100
+			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
+
+			// log.Printf("%v | %v | %v | \n", plf, energy, totalTurbine, hourValue)
+
+			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
+			machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
+			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100
+			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
 			prod = energy
 
 			for _, val := range p.Keys {
