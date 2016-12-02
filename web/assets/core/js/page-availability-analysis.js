@@ -128,7 +128,7 @@ pg.createChartProduction = function (dataSource) {
     $("#productionChart").replaceWith('<div id="productionChart"></div>');
     $("#productionChart").height(height);
     $("#productionChart").kendoChart({
-        // height: "150px",
+        height: "150px",
         theme: "Flat",
         legend: {
             position: "top",
