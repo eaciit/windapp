@@ -74,7 +74,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			"totaltimestamp":  tk.M{"$sum": 1},
 			"available":       tk.M{"$sum": "$available"},
 			"minutes":         tk.M{"$sum": "$minutes"},
-			"maxdate":         tk.M{"$max": "$timestamp"},
+			"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
 		}
 
 		if p.Project != "" {
