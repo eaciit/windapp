@@ -10,6 +10,8 @@ import (
 	"github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
+
+	. "eaciit/wfdemo-git/library/core"
 )
 
 type LoginController struct {
@@ -100,6 +102,8 @@ func (l *LoginController) GetUserName(r *knot.WebContext) interface{} {
 func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
+
 	payload := toolkit.M{}
 	if err := r.GetPayload(&payload); err != nil {
 		return helper.CreateResult(false, "", err.Error())
@@ -115,7 +119,28 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 
 	// temporary add last date hardcode, then will change to get it from database automatically
 	// add by ams, 2016-10-04
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
+
+	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
+	
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	Result := make([]ScadaData, 0)
+	e = csr.Fetch(&Result, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for _, val := range Result {
+		// toolkit.Printf("Result : %s \n", val.TimeStamp.UTC())
+		lastDateData = val.TimeStamp.UTC()
+	}
+
+		toolkit.Printf("Result : %s \n", lastDateData)
 	lastDateData = lastDateData.UTC()
 	r.SetSession("lastdate_data", lastDateData)
 
