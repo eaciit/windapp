@@ -495,12 +495,12 @@ sum.AvailabilityChart = function (dataSource) {
             }
         },
         series: [{
-            name: "PBA",
+            name: "TBA",
             field: "ScadaAvail",
             // opacity : 0.5,
             color: "#21c4af"
         }, {
-            name: "TBA",
+            name: "DBA",
             field: "TrueAvail",
             // opacity : 0.5,
             color: "#ff880e",

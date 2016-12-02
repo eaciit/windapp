@@ -631,7 +631,7 @@ var Data = {
             filterable: false
         },
         { title: "Alarm Description", field: "AlarmDescription", width: 100, filterable: false },
-        { title: "Duration", field: "Duration", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+        { title: "Duration (Second)", field: "Duration", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
 
         ]
     });
