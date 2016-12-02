@@ -17,6 +17,9 @@ sum.noOfTurbines = ko.observable();
 sum.totalMaxCapacity = ko.observable();
 sum.currentDown = ko.observable();
 sum.twoDaysDown = ko.observable();
+sum.dataSource = ko.observable();
+sum.dataSourceScada = ko.observable();
+
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
@@ -27,6 +30,8 @@ sum.loadData = function () {
             if (!toolkit.isFine(res)) {
                 return;
             }
+
+            sum.dataSource(res.data[0]);
 
             sum.noOfProjects(res.data[0].NoOfProjects);
             sum.noOfTurbines(res.data[0].NoOfTurbines);
@@ -46,7 +51,7 @@ sum.loadData = function () {
             if (!toolkit.isFine(res)) {
                 return;
             }
-
+            sum.dataSourceScada(res.data);
             sum.PLF(res.data);
             sum.LostEnergy(res.data);
             sum.Windiness(res.data);
@@ -141,6 +146,7 @@ sum.SummaryData = function (project) {
 }
 
 sum.PLF = function (dataSource) {
+    $("#chartPLF").replaceWith('<div id="chartPLF"></div>');
     $("#chartPLF").kendoChart({
         dataSource: {
             data: dataSource,
@@ -213,6 +219,7 @@ sum.PLF = function (dataSource) {
 }
 
 sum.LostEnergy = function (dataSource) {
+    $("#chartLostEnergy").replaceWith('<div id="chartLostEnergy"></div>');
     $("#chartLostEnergy").kendoChart({
         dataSource: {
             data: dataSource,
@@ -285,6 +292,7 @@ sum.LostEnergy = function (dataSource) {
 }
 
 sum.Windiness = function (dataSource) {
+    $("#chartWindiness").replaceWith('<div id="chartWindiness"></div>');
     $("#chartWindiness").kendoChart({
         dataSource: {
             data: dataSource,
@@ -370,6 +378,7 @@ sum.Windiness = function (dataSource) {
 }
 
 sum.ProdMonth = function (dataSource) {
+    $("#chartProdMonth").replaceWith('<div id="chartProdMonth"></div>');
     $("#chartProdMonth").kendoChart({
         dataSource: {
             data: dataSource,
@@ -456,6 +465,7 @@ sum.ProdMonth = function (dataSource) {
 }
 
 sum.AvailabilityChart = function (dataSource) {
+    $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({
         dataSource: {
             data: dataSource,
@@ -541,6 +551,7 @@ sum.AvailabilityChart = function (dataSource) {
 }
 
 sum.ProdCurLast = function (dataSource) {
+    $("#chartCurrLast").replaceWith('<div id="chartCurrLast"></div>');
     $("#chartCurrLast").kendoChart({
         dataSource: {
             data: dataSource,
@@ -723,6 +734,8 @@ sum.ProductionChart = function (dataSource) {
             dataFormat = "n0";
         }
     }
+
+    $("#chartProduction").replaceWith('<div id="chartProduction"></div>');
     $("#chartProduction").kendoChart({
         dataSource: {
             data: dataSource,
@@ -814,6 +827,7 @@ sum.ProductionChart = function (dataSource) {
 }
 
 sum.CumProduction = function (dataSource) {
+    $("#chartCumProduction").replaceWith('<div id="chartCumProduction"></div>');
     $("#chartCumProduction").kendoChart({
         dataSource: {
             data: dataSource,
