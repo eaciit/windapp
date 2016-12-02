@@ -466,7 +466,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			} else {
 				endDate, _ = time.Parse("2006-01-02 15:04:05", tEnd.UTC().Format("2006-01-02")+" 23:59:59")
 			}*/
-			endDate, _ = time.Parse("2006-01-02 15:04:05", tEnd.UTC().Format("2006-01-02")+" 23:59:59")
+			endDate, _ = time.Parse("2006-01-02 15:04:05.00", tEnd.UTC().Format("2006-01-02")+" 23:59:59.99")
 		} else {
 			err = errors.New("Date Cannot be Less Than 2013")
 		}
@@ -482,7 +482,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
 		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
 			endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
-				59, 59, 0, time.UTC)
+				59, 59, 999999999, time.UTC)
 		}
 
 		switch period {
@@ -502,14 +502,14 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 				}*/
 				/*dari end date frontend ditambah 1 bulan trus dikurangi 1 hari untuk dapet max day di bulan tsb*/
 				t := time.Date(tEnd.Year(), tEnd.Month()+1, 1, 0, 0, 0, 0, time.UTC)
-				endDate = time.Date(tEnd.Year(), tEnd.Month(), t.Add(-24*time.Hour).Day(), 23, 59, 59, 0, time.UTC)
+				endDate = time.Date(tEnd.Year(), tEnd.Month(), t.Add(-24*time.Hour).Day(), 23, 59, 59, 999999999, time.UTC)
 			} else {
 				err = errors.New("Date Cannot be Less Than 2013")
 			}
 		case "annual":
 			if tStart.Year() > 2012 || tEnd.Year() > 2012 {
 				if tEnd.Year() != endDate.Year() {
-					endDate = time.Date(tEnd.Year(), 12, 31, 23, 59, 59, 0, time.UTC)
+					endDate = time.Date(tEnd.Year(), 12, 31, 23, 59, 59, 999999999, time.UTC)
 				}
 				startDate = time.Date(tStart.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 			} else {
