@@ -1,6 +1,6 @@
 #### for wfdemo-git-oem uncomment below part
 
-git checkout .
+git reset --hard
 
 sudo pkill wfdemo-git-oem
 rm wfdemo-git-oem
