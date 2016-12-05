@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	. "eaciit/wfdemo-git/processapp/eventConverter/conversion"
+	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -24,10 +25,10 @@ var (
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	tk.Println("Starting convert event data to down...")
+	log.Println("Starting convert event data to down...")
 	conn, err := PrepareConnection()
 	if err != nil {
-		tk.Println(err)
+		log.Println(err)
 	}
 	ctx := orm.New(conn)
 
@@ -45,7 +46,7 @@ func main() {
 	down := NewDownConversion(ctx, dir)
 	down.Run()
 
-	tk.Println("End processing event data to down...")
+	log.Println("End processing event data to down...")
 }
 
 func PrepareConnection() (dbox.IConnection, error) {
@@ -63,7 +64,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 		return nil, e
 	}
 
-	tk.Println("DB Connect...")
+	log.Println("DB Connect...")
 
 	return c, nil
 }
@@ -85,7 +86,7 @@ func ReadConfig() map[string]string {
 			ret[sval[0]] = sval[1]
 		}
 	} else {
-		tk.Println(err.Error())
+		log.Println(err.Error())
 	}
 
 	return ret
