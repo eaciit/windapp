@@ -26,17 +26,17 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 
 	type PerformanceDetail struct {
 		Turbine                     string
-		PerformanceIndex            float64
+		PerformanceIndex            float64 //power / den power
 		PerformanceIndexLast24Hours float64
 		PerformanceIndexLastWeek    float64
 		PerformanceIndexMTD         float64
 		PerformanceIndexYTD         float64
-		Production                  float64
-		ProductionLast24Hours       float64
-		ProductionLastWeek          float64
-		ProductionMTD               float64
-		ProductionYTD               float64
-		Power                       float64
+		PotentialPower              float64 //den power
+		PotentialPowerLast24Hours   float64
+		PotentialPowerLastWeek      float64
+		PotentialPowerMTD           float64
+		PotentialPowerYTD           float64
+		Power                       float64 // power
 		PowerLast24Hours            float64
 		PowerLastWeek               float64
 		PowerMTD                    float64
@@ -52,11 +52,11 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		PerformanceIndexLastWeek    float64
 		PerformanceIndexMTD         float64
 		PerformanceIndexYTD         float64
-		Production                  float64
-		ProductionLast24Hours       float64
-		ProductionLastWeek          float64
-		ProductionMTD               float64
-		ProductionYTD               float64
+		PotentialPower              float64
+		PotentialPowerLast24Hours   float64
+		PotentialPowerLastWeek      float64
+		PotentialPowerMTD           float64
+		PotentialPowerYTD           float64
 		Power                       float64
 		PowerLast24Hours            float64
 		PowerLastWeek               float64
@@ -124,9 +124,9 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		}
 
 		queryAggr := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-			Aggr(dbox.AggrAvr, "$energy", "totalProduction").
-			Aggr(dbox.AggrAvr, "$power", "totalPower").
-			Aggr(dbox.AggrAvr, "$denpower", "totaldenPower").
+			// Aggr(dbox.AggrAvr, "$energy", "potentialPower").
+			Aggr(dbox.AggrSum, "$power", "totalPower").
+			Aggr(dbox.AggrSum, "$denpower", "totaldenPower").
 			Group("projectname").Where(dbox.And(filter...))
 
 		caggr, e := queryAggr.Cursor(nil)
@@ -146,19 +146,19 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 			case 3:
 				// last24hours
 				results[len(results)-1].PerformanceIndexLast24Hours = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-				results[len(results)-1].ProductionLast24Hours = val.GetFloat64("totalProduction")
+				results[len(results)-1].PotentialPowerLast24Hours = val.GetFloat64("totaldenPower")
 				results[len(results)-1].PowerLast24Hours = val.GetFloat64("totalPower")
 				break
 			case 2:
 				// lastweek
 				results[len(results)-1].PerformanceIndexLastWeek = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-				results[len(results)-1].ProductionLastWeek = val.GetFloat64("totalProduction")
+				results[len(results)-1].PotentialPowerLastWeek = val.GetFloat64("totaldenPower")
 				results[len(results)-1].PowerLastWeek = val.GetFloat64("totalPower")
 				break
 			case 1:
 				// mtd
 				results[len(results)-1].PerformanceIndexMTD = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-				results[len(results)-1].ProductionMTD = val.GetFloat64("totalProduction")
+				results[len(results)-1].PotentialPowerMTD = val.GetFloat64("totaldenPower")
 				results[len(results)-1].PowerMTD = val.GetFloat64("totalPower")
 				break
 			case 0:
@@ -166,7 +166,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				results = append(results, resulttemp)
 				results[len(results)-1].Project = val["_id"].(tk.M)["projectname"].(string)
 				results[len(results)-1].PerformanceIndexYTD = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-				results[len(results)-1].ProductionYTD = val.GetFloat64("totalProduction")
+				results[len(results)-1].PotentialPowerYTD = val.GetFloat64("totaldenPower")
 				results[len(results)-1].PowerYTD = val.GetFloat64("totalPower")
 				results[len(results)-1].StartDate = tStart
 				results[len(results)-1].EndDate = tEnd
@@ -174,7 +174,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 			default:
 				// period
 				results[len(results)-1].PerformanceIndex = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-				results[len(results)-1].Production = val.GetFloat64("totalProduction")
+				results[len(results)-1].PotentialPower = val.GetFloat64("totaldenPower")
 				results[len(results)-1].Power = val.GetFloat64("totalPower")
 				break
 			}
@@ -190,7 +190,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		queryAggr := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
 			// Aggr(dbox.AggrMax, "$energy", "energy").
 			Group("turbine")
-			// .Where(dbox.And(filter...))
+		// .Where(dbox.And(filter...))
 
 		caggr, e := queryAggr.Cursor(nil)
 		if e != nil {
@@ -248,9 +248,9 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				// }
 
 				queryAggr := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-					Aggr(dbox.AggrAvr, "$energy", "totalProduction").
-					Aggr(dbox.AggrAvr, "$power", "totalPower").
-					Aggr(dbox.AggrAvr, "$denpower", "totaldenPower").
+					// Aggr(dbox.AggrAvr, "$energy", "potentialPower").
+					Aggr(dbox.AggrSum, "$power", "totalPower").
+					Aggr(dbox.AggrSum, "$denpower", "totaldenPower").
 					Group("turbine").Where(dbox.And(filter...))
 
 				caggr, e := queryAggr.Cursor(nil)
@@ -272,19 +272,19 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 					case 3:
 						// last24hours
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexLast24Hours = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-						results[i].Details[len(results[i].Details)-1].ProductionLast24Hours = val.GetFloat64("totalProduction")
+						results[i].Details[len(results[i].Details)-1].PotentialPowerLast24Hours = val.GetFloat64("totaldenPower")
 						results[i].Details[len(results[i].Details)-1].PowerLast24Hours = val.GetFloat64("totalPower")
 						break
 					case 2:
 						// lastweek
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexLastWeek = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-						results[i].Details[len(results[i].Details)-1].ProductionLastWeek = val.GetFloat64("totalProduction")
+						results[i].Details[len(results[i].Details)-1].PotentialPowerLastWeek = val.GetFloat64("totaldenPower")
 						results[i].Details[len(results[i].Details)-1].PowerLastWeek = val.GetFloat64("totalPower")
 						break
 					case 1:
 						// mtd
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexMTD = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-						results[i].Details[len(results[i].Details)-1].ProductionMTD = val.GetFloat64("totalProduction")
+						results[i].Details[len(results[i].Details)-1].PotentialPowerMTD = val.GetFloat64("totaldenPower")
 						results[i].Details[len(results[i].Details)-1].PowerMTD = val.GetFloat64("totalPower")
 						break
 					case 0:
@@ -292,7 +292,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 						results[i].Details = append(results[i].Details, resultdetailtemp)
 						results[i].Details[len(results[i].Details)-1].Turbine = val["_id"].(tk.M)["turbine"].(string)
 						results[i].Details[len(results[i].Details)-1].PerformanceIndexYTD = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-						results[i].Details[len(results[i].Details)-1].ProductionYTD = val.GetFloat64("totalProduction")
+						results[i].Details[len(results[i].Details)-1].PotentialPowerYTD = val.GetFloat64("totaldenPower")
 						results[i].Details[len(results[i].Details)-1].PowerYTD = val.GetFloat64("totalPower")
 						results[i].Details[len(results[i].Details)-1].StartDate = tStart
 						results[i].Details[len(results[i].Details)-1].EndDate = tEnd
@@ -300,7 +300,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 					default:
 						// period
 						results[i].Details[len(results[i].Details)-1].PerformanceIndex = tk.Div(val.GetFloat64("totalPower"), val.GetFloat64("totaldenPower")) * 100
-						results[i].Details[len(results[i].Details)-1].Production = val.GetFloat64("totalProduction")
+						results[i].Details[len(results[i].Details)-1].PotentialPower = val.GetFloat64("totaldenPower")
 						results[i].Details[len(results[i].Details)-1].Power = val.GetFloat64("totalPower")
 						break
 					}

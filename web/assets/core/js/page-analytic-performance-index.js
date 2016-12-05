@@ -73,7 +73,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndex", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "Production", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPower", title: "Pot. Power <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "Power", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -82,7 +82,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" }, format: "{0:n2}"},
-                        { field: "ProductionLast24Hours", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerLast24Hours", title: "Pot. Power <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerLast24Hours", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -91,7 +91,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLastWeek", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionLastWeek", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerLastWeek", title: "Pot. Power <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerLastWeek", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -100,7 +100,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexMTD", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionMTD", title: "Prod <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerMTD", title: "Pot. Power <br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerMTD", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -109,7 +109,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexYTD", title: "Perf. Index <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionYTD", title: "Prod<br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerYTD", title: "Pot. Power<br>(KWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerYTD", title: "Act. Power <br> (KW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -136,7 +136,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndex", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "Production", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPower", title: "Pot. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "Power", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -145,7 +145,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right"}, format: "{0:n2}"},
-                        { field: "ProductionLast24Hours", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerLast24Hours", title: "Pot. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerLast24Hours", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -154,7 +154,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLastWeek", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionLastWeek", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerLastWeek", title: "Pot. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerLastWeek", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -163,7 +163,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexMTD", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionMTD", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerMTD", title: "Pot. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerMTD", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
@@ -172,7 +172,7 @@ var Data = {
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexYTD", title: "Perf. Index", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "ProductionYTD", title: "Prod", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PotentialPowerYTD", title: "Pot. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PowerYTD", title: "Act. Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                     ]
                 },
