@@ -118,9 +118,16 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				"minutes":         tk.M{"$sum": "$minutes"},
 				"countdata":       tk.M{"$sum": 1},
 			}
-			group.Set("_id", tk.M{"id1": breakDown})
-			if strings.Contains(breakDown, "month") {
-				group.Set("_id", tk.M{"id1": breakDown, "id2": "$dateinfo.monthdesc"})
+			if key == "Actual PLF" {
+				group.Set("_id", tk.M{"id1": breakDown, "monthid": "$dateinfo.monthid"})
+				if strings.Contains(breakDown, "month") {
+					group.Set("_id", tk.M{"id1": breakDown, "id2": "$dateinfo.monthdesc", "monthid": "$dateinfo.monthid"})
+				}
+			} else {
+				group.Set("_id", tk.M{"id1": breakDown})
+				if strings.Contains(breakDown, "month") {
+					group.Set("_id", tk.M{"id1": breakDown, "id2": "$dateinfo.monthdesc"})
+				}
 			}
 
 			pipes := []tk.M{{"$match": matches}, {"$group": group}, {"$sort": tk.M{"_id.id1": 1}}}
@@ -198,9 +205,14 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				// 	6, tk.RoundingAuto) /*percentage*/
 			case "Actual PLF":
 				// values = (val.GetFloat64("energy") / 1000) / (minutesInHour * 2.1) * 100 /*percentage*/
-				values = (val.GetFloat64("energy") / 1000) / (minutesInHour * 2.1 * totalTurbine) * 100
-				// tk.Printf("minutes : %s \n", val.GetFloat64("minutes"))
-				// tk.Printf("minutesInHour : %s \n", minutesInHour)
+				// values = (val.GetFloat64("energy") / 1000) / (minutesInHour * 2.1 * totalTurbine) * 100
+				ids, _ := tk.ToM(val["_id"])
+				days, _ := tk.ToM(monthDay[tk.ToString(ids.GetInt("monthid"))])
+				if !strings.Contains(breakDown, "dateid") {
+					values = (val.GetFloat64("energy") / 1000) / (days.GetFloat64("days") * 24 * 2.1 * totalTurbine) * 100
+				} else {
+					values = (val.GetFloat64("energy") / 1000) / (24 * 2.1 * totalTurbine) * 100
+				}
 			case "Actual Production":
 				values = val.GetFloat64("energy") / 1000 /*MWh*/
 			case "P50 Generation":
