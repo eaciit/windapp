@@ -118,9 +118,16 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				"minutes":         tk.M{"$sum": "$minutes"},
 				"countdata":       tk.M{"$sum": 1},
 			}
-			group.Set("_id", tk.M{"id1": breakDown, "monthid": "$dateinfo.monthid"})
-			if strings.Contains(breakDown, "month") {
-				group.Set("_id", tk.M{"id1": breakDown, "id2": "$dateinfo.monthdesc", "monthid": "$dateinfo.monthid"})
+			if key == "Actual PLF" {
+				group.Set("_id", tk.M{"id1": breakDown, "monthid": "$dateinfo.monthid"})
+				if strings.Contains(breakDown, "month") {
+					group.Set("_id", tk.M{"id1": breakDown, "id2": "$dateinfo.monthdesc", "monthid": "$dateinfo.monthid"})
+				}
+			} else {
+				group.Set("_id", tk.M{"id1": breakDown})
+				if strings.Contains(breakDown, "month") {
+					group.Set("_id", tk.M{"id1": breakDown, "id2": "$dateinfo.monthdesc"})
+				}
 			}
 
 			pipes := []tk.M{{"$match": matches}, {"$group": group}, {"$sort": tk.M{"_id.id1": 1}}}
