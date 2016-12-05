@@ -42,13 +42,16 @@ func NewDownConversion(ctx *orm.DataContext, filePath string) *DownConversion {
 }
 
 func (ev *DownConversion) Run() {
+	// _ = ev.getLatest()
 	var wg sync.WaitGroup
 	loops := ev.getLatest()
 
 	for _, loop := range loops {
+		// if loop.Turbine == "SSE017" {
+		// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
 		wg.Add(1)
 		go ev.processTurbine(loop, &wg)
-		// log.Printf("loop: %v \n", loop)
+		// }
 	}
 
 	wg.Wait()
@@ -66,7 +69,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		"projectname":  loop.Project,
 		"turbine":      loop.Turbine,
 		"eventtype":    "alarmchanged",
-		"timestamp":    tk.M{"$gte": loop.LatestProcessTime},
+		"timestamp":    tk.M{"$gt": loop.LatestProcessTime},
 		"brakeprogram": tk.M{"$gt": 0},
 	}
 	pipes = append(pipes, tk.M{"$match": match})
@@ -87,20 +90,27 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 			loopData := eventRaws
 
-			// log.Printf("loopData: %v \n", len(loopData))
-
 		mainLoop:
 			for {
+				// log.Printf("loopData: %v \n", len(loopData))
 				trueFound := map[int]EventDownDetail{}
 				details := []EventDownDetail{}
 				startIdx := -1
 				endIdx := -1
 
 				var start, end EventRaw
+				// log.Printf("loopData: %#v \n", loopData)
+				// log.Printf("trueFound: %#v \n", trueFound[1].DateInfo.MonthId)
+
+				/*for idx, data := range loopData {
+					log.Printf("loopData: %v | %#v \n", idx, data)
+				}*/
 
 			reloop:
 				for idx, data := range loopData {
-
+					// log.Printf("data: %v | %v | %v \n", data.TimeStamp.UTC(), data.AlarmToggle, data.AlarmId)
+					// log.Printf("loopData: %v \n", len(loopData))
+					// log.Printf("trueFound: %v | %#v \n", idx, len(trueFound))
 					if data.DateInfo.MonthId != 0 {
 
 						tmp := EventDownDetail{}
@@ -124,8 +134,10 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							}
 
 							trueFound[data.AlarmId] = tmp
-						} else if !data.AlarmToggle && !tk.IsNilOrEmpty(trueFound[data.AlarmId]) {
+							// log.Printf("n: %v \n", trueFound[data.AlarmId].DateInfo.MonthId)
+						} else if !data.AlarmToggle && trueFound[data.AlarmId].DateInfo.MonthId != 0 {
 							// log.Printf("y: %v \n", data.AlarmId)
+							// log.Printf("y: %v \n", trueFound[data.AlarmId])
 
 							details = append(details, trueFound[data.AlarmId])
 							details = append(details, tmp)
@@ -201,6 +213,8 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						}
 					}
 				}
+
+				// log.Printf("loopData: %v \n", len(loopData))
 
 				tmpLoopData := []EventRaw{}
 
@@ -331,6 +345,13 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		tk.Println("Error: " + err.Error())
 		return nil
 	}
+
+	/*for _, res := range result {
+		log.Printf("res: %v | %v \n", res.Turbine, res.LatestProcessTime)
+	}
+
+	tk.Println()*/
+
 	// log.Printf("len(eventRaws): %v \n", len(eventRaws))
 	for _, val := range eventRaws {
 		id := val.Get("_id").(tk.M)
@@ -343,5 +364,10 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		result = append(result, tmp)
 	}
 	csr.Close()
+
+	/*for _, res := range result {
+		log.Printf("res: %v | %v \n", res.Turbine, res.LatestProcessTime)
+	}*/
+
 	return result
 }

@@ -77,10 +77,10 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	listOfDays := []int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 	monthString := []string{"", "January", "February", "March", "April", "May", "June", "July",
 		"August", "September", "October", "November", "December"}
-	// totalTurbine := 1.0
-	// if !strings.Contains(breakDown, "turbine") {
-	// 	totalTurbine = tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
-	// }
+	totalTurbine := 1.0
+	if !strings.Contains(breakDown, "turbine") {
+		totalTurbine = tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
+	}
 
 	for i, key := range keys {
 		list = []tk.M{}
@@ -197,7 +197,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				// 	(duration * 144 )) * 100),
 				// 	6, tk.RoundingAuto) /*percentage*/
 			case "Actual PLF":
-				values = (val.GetFloat64("energy") / 1000) / (minutesInHour * 2.1) * 100 /*percentage*/ //((val.GetFloat64("power")/1000)/6) / (minutesInHour * 2.1 * totalTurbine)*100
+				// values = (val.GetFloat64("energy") / 1000) / (minutesInHour * 2.1) * 100 /*percentage*/
+				values = (val.GetFloat64("energy") / 1000) / (minutesInHour * 2.1 * totalTurbine) * 100
 				// tk.Printf("minutes : %s \n", val.GetFloat64("minutes"))
 				// tk.Printf("minutesInHour : %s \n", minutesInHour)
 			case "Actual Production":
