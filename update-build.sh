@@ -9,4 +9,4 @@ rm nohup.out
 $GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git-oem"
 
 go build -o wfdemo-git-oem
-nohup ./wfdemo-git-oem
+nohup ./wfdemo-git-oem &
