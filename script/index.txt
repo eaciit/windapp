@@ -42,6 +42,7 @@ db.ScadaDataOEM.createIndex( { "timestamp": 1, "turbine": 1, "power": 1, "powerl
 
 db.MetTower.createIndex( { "timestamp": 1} )
 
+db.EventRaw.createIndex( { turbine: 1 } )
 db.EventRaw.createIndex( { brakeprogram: 1 } )
 db.EventRaw.createIndex( { alarmtoggle: 1 } )
 db.EventRaw.createIndex( { timestamp: 1 } )
