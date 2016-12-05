@@ -1,8 +1,9 @@
 #### for wfdemo-git-prod uncomment below part
 
-git checkout .
-
 sudo pkill wfdemo-git-dev
+
+git reset --hard
+
 rm wfdemo-git-dev
 rm nohup.out
 
