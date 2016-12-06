@@ -193,7 +193,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
 
-	query := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Skip(p.Skip).Take(p.Take)
+	query := DB().Connection.NewQuery().From(new(EventDown).TableName()).Skip(p.Skip).Take(p.Take)
 	query.Where(dbox.And(filter...))
 
 	if len(p.Sort) > 0 {
@@ -213,8 +213,8 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 	}
 	defer csr.Close()
 
-	tmpResult := make([]DowntimeEvent, 0)
-	results := make([]DowntimeEvent, 0)
+	tmpResult := make([]EventDown, 0)
+	results := make([]EventDown, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 	// tk.Printf("FILTER : %s \n", filter)
 
@@ -227,7 +227,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 		results = append(results, val)
 	}
 
-	queryC := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Where(dbox.And(filter...))
+	queryC := DB().Connection.NewQuery().From(new(EventDown).TableName()).Where(dbox.And(filter...))
 	ccount, e := queryC.Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -239,7 +239,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 
 	aggrData := []tk.M{}
 
-	queryAggr := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).
+	queryAggr := DB().Connection.NewQuery().From(new(EventDown).TableName()).
 		Aggr(dbox.AggrSum, "$duration", "duration").
 		Group("turbine").Where(dbox.And(filter...))
 
@@ -259,7 +259,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data          []DowntimeEvent
+		Data          []EventDown
 		Total         int
 		TotalTurbine  int
 		TotalDuration float64
@@ -287,7 +287,7 @@ func (m *DataBrowserNewController) GetDowntimeEventvailDate(k *knot.WebContext) 
 			arrsort = append(arrsort, "-timestart")
 		}
 
-		query := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Skip(0).Take(1)
+		query := DB().Connection.NewQuery().From(new(EventDown).TableName()).Skip(0).Take(1)
 		query = query.Order(arrsort...)
 
 		csr, e := query.Cursor(nil)
@@ -296,7 +296,7 @@ func (m *DataBrowserNewController) GetDowntimeEventvailDate(k *knot.WebContext) 
 		}
 		defer csr.Close()
 
-		Result := make([]DowntimeEvent, 0)
+		Result := make([]EventDown, 0)
 		e = csr.Fetch(&Result, 0, false)
 
 		if e != nil {
