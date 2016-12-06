@@ -225,7 +225,8 @@ var Data = {
                         }
                         $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
-                        $('#totalprodoem').html(kendo.toString(res.data.TotalProduction / 1000, 'n0') + ' MWh');
+                        $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
+                        $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
                         $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                         return res.data.Total;
                     }
@@ -492,7 +493,8 @@ var Data = {
                         }
                         $('#totalturbineCustom').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldataCustom').html(kendo.toString(res.data.Total, 'n0'));
-                        $('#totalprodCustom').html(kendo.toString(res.data.TotalProduction / 1000, 'n0') + ' MWh');
+                        $('#totalactivepowerCustom').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
+                        $('#totalprodCustom').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
                         $('#avgwindspeedCustom').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                         return res.data.Total;
                     },
