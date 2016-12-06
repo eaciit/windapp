@@ -123,6 +123,8 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		"totaltimestamp":  tk.M{"$sum": 1},
 		"available":       tk.M{"$sum": "$available"},
 		"minutes":         tk.M{"$sum": "$minutes"},
+		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
+		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
 	}
 
 	if rowsBreakdown == "Project" {
@@ -172,9 +174,44 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine float64
 
 		// totalTurbine = tk.ToFloat64(len(p.Turbine), 0, tk.RoundingAuto)
-		totalTurbine = 1.0
+		// totalTurbine = 1.0
 
-		minutesInHour := val.GetFloat64("minutes") / 60.0
+		if len(p.Turbine) == 0 {
+			totalTurbine = 24.0
+		} else {
+			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
+		}
+
+		var minDate, maxDate time.Time
+
+		startStr := tStart.Format("0601")
+		endStr := tEnd.Format("0601")
+
+		minDate = val.Get("mindate").(time.Time)
+		minDateStr := minDate.Format("0601")
+
+		maxDate = val.Get("maxdate").(time.Time)
+		maxDateStr := maxDate.Format("0601")
+
+		if startStr == minDateStr {
+			minDate = tStart
+		} else {
+			minDate, _ = time.Parse("060102", minDateStr+"01")
+		}
+
+		if endStr != maxDateStr {
+			daysInMonth := helper.GetDayInYear(maxDate.Year())
+			maxDate, _ = time.Parse("060102", maxDateStr+tk.ToString(daysInMonth.GetInt(tk.ToString(int(maxDate.Month())))))
+		}
+
+		start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
+		end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
+
+		// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
+
+		hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+
+		// hourValue := val.GetFloat64("minutes") / 60.0
 		okTime := val.GetFloat64("oktime")
 		power := val.GetFloat64("power") / 1000.0
 		energy := val.GetFloat64("energy") / 1000 //power / 6
@@ -183,11 +220,11 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		gDownTime := val.GetFloat64("griddowntime") / 3600.0
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 
-		plf = energy / (totalTurbine * minutesInHour * 2.1) * 100
-		trueAvail = (okTime / 3600) / (totalTurbine * minutesInHour) * 100
-		machineAvail = (minutesInHour - mDownTime) / (totalTurbine * minutesInHour) * 100
-		gridAvail = (minutesInHour - gDownTime) / (totalTurbine * minutesInHour) * 100
-		dataAvail = (sumTimeStamp * 10 / 60) / (minutesInHour * totalTurbine) * 100
+		plf = energy / (totalTurbine * hourValue * 2.1) * 100
+		trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
+		machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
+		gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100
+		dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
 		prod = energy
 		revenue = power * 5.740 * 1000
 

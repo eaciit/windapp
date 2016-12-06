@@ -198,8 +198,10 @@ wd.showHideLegend = function (index) {
 
 wd.setPeriod = function(){		
 	var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), 6, 23, 0, 0, 0, 0));
-    var lastEndDate = new Date(Date.UTC(moment(maxDateData).get('year'), 6+1, 0, 0, 0, 0, 0));
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), 8, 23, 0, 0, 0, 0));
+    var lastEndDate = new Date(Date.UTC(moment(maxDateData).get('year'), 8+1, 0, 0, 0, 0, 0));
+    $('#availabledatestartmettower').html(kendo.toString(moment.utc(lastStartDate).format('DD-MMMM-YYYY')));
+    $('#availabledateendmettower').html(kendo.toString(moment.utc(lastEndDate).format('DD-MMMM-YYYY')));
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
@@ -225,16 +227,18 @@ wd.checkPeriod = function(){
 	var period = $('#periodList').data('kendoDropDownList').value();
     var monthNames = moment.months();
 
-    var currentDateData = moment(new Date(2016, 6 + 1, 0)).format("YYYY-MM-DD");
+    var currentDateData = moment(new Date(2016, 8 + 1, 0)).format("YYYY-MM-DD");
     var today = moment().format('YYYY-MM-DD');
     var thisMonth = moment().get('month');
-    var firstDayMonth = moment(new Date(2016, 6, 1)).format("YYYY-MM-DD");
-    var lastDayMonth = moment(new Date(2016, 6 + 1, 0)).format("YYYY-MM-DD");
+    var firstDayMonth = moment(new Date(2016, 8, 1)).format("YYYY-MM-DD");
+    var lastDayMonth = moment(new Date(2016, 8 + 1, 0)).format("YYYY-MM-DD");
     var firstDayYear = moment().startOf('year').format('YYYY-MM-DD');
     var endDayYear = moment().endOf('year').format('YYYY-MM-DD');
 
     var dateStart = moment(fa.dateStart).format('YYYY-MM-DD');
     var dateEnd = moment(fa.dateEnd).format('YYYY-MM-DD');
+    $('#availabledatestartmettower').html(kendo.toString(moment.utc(dateStart).format('DD-MMMM-YYYY')));
+    $('#availabledateendmettower').html(kendo.toString(moment.utc(dateEnd).format('DD-MMMM-YYYY')));
 
     if (period === 'custom') {
         if ((dateEnd > currentDateData) && (dateStart > currentDateData)) {
@@ -251,7 +255,7 @@ wd.checkPeriod = function(){
             fa.infoPeriodRange("");
         }
     } else if (period === 'annual') {
-        if ((moment(fa.dateEnd).get('year') == moment(new Date(2016, 6 + 1, 0)).get('year')) && (currentDateData < today)) {
+        if ((moment(fa.dateEnd).get('year') == moment(new Date(2016, 8 + 1, 0)).get('year')) && (currentDateData < today)) {
             fa.infoPeriodIcon(true);
             fa.infoPeriodRange("* Incomplete period range in end year");
         } else {

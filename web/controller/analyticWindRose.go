@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-
 	c "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
@@ -222,7 +221,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-07-31 23:59")
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-09-30 23:59")
 	k.SetSession("custom_lastdate", lastDateData.UTC())
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 	if e != nil {
