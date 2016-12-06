@@ -182,9 +182,27 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
 		}
 
-		// minDate := val.Get("mindate").(time.Time)
-		minDate := tStart
-		maxDate := val.Get("maxdate").(time.Time)
+		var minDate, maxDate time.Time
+
+		startStr := tStart.Format("0601")
+		endStr := tEnd.Format("0601")
+
+		minDate = val.Get("mindate").(time.Time)
+		minDateStr := minDate.Format("0601")
+
+		maxDate = val.Get("maxdate").(time.Time)
+		maxDateStr := maxDate.Format("0601")
+
+		if startStr == minDateStr {
+			minDate = tStart
+		} else {
+			minDate, _ = time.Parse("060102", minDateStr+"01")
+		}
+
+		if endStr != maxDateStr {
+			daysInMonth := helper.GetDayInYear(maxDate.Year())
+			maxDate, _ = time.Parse("060102", maxDateStr+tk.ToString(daysInMonth.GetInt(tk.ToString(int(maxDate.Month())))))
+		}
 
 		start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
 		end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")

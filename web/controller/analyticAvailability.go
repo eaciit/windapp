@@ -135,17 +135,32 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 		for _, val := range list {
 			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
 			var totalTurbine float64
+			var minDate, maxDate time.Time
 
-			// hourValue := val.GetFloat64("minutes") / 60.0
+			startStr := tStart.Format("0601")
+			endStr := tEnd.Format("0601")
 
-			// minDate := val.Get("mindate").(time.Time)
-			minDate := tStart
-			maxDate := val.Get("maxdate").(time.Time)
+			minDate = val.Get("mindate").(time.Time)
+			minDateStr := minDate.Format("0601")
+
+			maxDate = val.Get("maxdate").(time.Time)
+			maxDateStr := maxDate.Format("0601")
+
+			if startStr == minDateStr {
+				minDate = tStart
+			} else {
+				minDate, _ = time.Parse("060102", minDateStr+"01")
+			}
+
+			if endStr != maxDateStr {
+				daysInMonth := helper.GetDayInYear(maxDate.Year())
+				maxDate, _ = time.Parse("060102", maxDateStr+tk.ToString(daysInMonth.GetInt(tk.ToString(int(maxDate.Month())))))
+			}
 
 			start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
 			end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
 
-			log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
+			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
 
 			hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
 			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
@@ -190,6 +205,8 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			prod = energy
 
 			// log.Printf("%v | %v \n", hourValue, totalTurbine)
+
+			log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
 
 			_ = duration
 
