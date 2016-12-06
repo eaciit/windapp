@@ -114,6 +114,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	sMachineavail := 0.0
 	sTrueavail := 0.0
 
+	scadaDataAvailable := true
+
 	if len(list) > 0 {
 		scada := list[0]
 		sPower = scada.GetFloat64("power") / 1000 // in KWh
@@ -127,6 +129,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 
 		sMachineavail = (sMinutesInHour - (scada.GetFloat64("machinedowntime") / 3600)) / (24 * 24 * duration) * 100
 		sGridavail = (sMinutesInHour - (scada.GetFloat64("griddowntime") / 3600)) / (24 * 24 * duration) * 100
+	} else {
+		scadaDataAvailable = false
 	}
 
 	scadaItem.power = sPower
@@ -187,6 +191,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	sMachineavail = 0.0
 	sTrueavail = 0.0
 
+	dgrDataAvailable := true
+
 	if len(list) > 0 {
 		dgr := list[0]
 		sEnergy = tk.ToFloat64(dgr["genkwhday"], 2, tk.RoundingAuto) / 1000
@@ -198,6 +204,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		sPower = sEnergy * 6
 		// sTrueavail = (sOktime) / (duration * 24 * 24)
 		sTrueavail = (sOktime) / (duration * 24 * 24) * 100
+	} else {
+		dgrDataAvailable = false
 	}
 
 	dgrItem.power = sPower
@@ -240,6 +248,18 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	result = append(result, tk.M{"desc": "Grid Availability", "dgr": dgrItem.gridavail, "scada": scadaItem.gridavail, "difference": varItem.gridavail})
 	result = append(result, tk.M{"desc": "Machine Availability", "dgr": dgrItem.machineavail, "scada": scadaItem.machineavail, "difference": varItem.machineavail})
 	result = append(result, tk.M{"desc": "True Availability", "dgr": dgrItem.trueavail, "scada": scadaItem.trueavail, "difference": varItem.trueavail})
+
+	if scadaDataAvailable == false {
+		for _, val := range result {
+			val["scada"] = "N/A"
+		}
+	}
+
+	if dgrDataAvailable == false {
+		for _, val := range result {
+			val["dgr"] = "N/A"
+		}
+	}
 
 	return helper.CreateResult(true, result, "success")
 }

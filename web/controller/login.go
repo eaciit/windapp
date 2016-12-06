@@ -121,7 +121,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// add by ams, 2016-10-04
 
 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
-	
+
 	csr, e := query.Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -140,7 +140,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 		lastDateData = val.TimeStamp.UTC()
 	}
 
-		toolkit.Printf("Result : %s \n", lastDateData)
+	// toolkit.Printf("Result : %s \n", lastDateData)
 	lastDateData = lastDateData.UTC()
 	r.SetSession("lastdate_data", lastDateData)
 
