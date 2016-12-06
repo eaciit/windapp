@@ -74,17 +74,19 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
-	totalProduction := 0.0
+	totalActivePower := 0.0
 	avgWindSpeed := 0.0
 	totalTurbine := 0
+	totalEnergy := 0.0
 
 	aggrData := []tk.M{}
 
 	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
-		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalProduction").
+		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalActivePower").
 		Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$energy", "TotalEnergy").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -100,27 +102,30 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 	for _, val := range aggrData {
 		totalPower += val.GetFloat64("TotalPower")
 		totalPowerLost += val.GetFloat64("TotalPowerLost")
-		totalProduction += val.GetFloat64("TotalProduction")
+		totalActivePower += val.GetFloat64("TotalActivePower")
 		avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+		totalEnergy += val.GetFloat64("TotalEnergy")
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data            []ScadaDataOEM
-		Total           int
-		TotalPower      float64
-		TotalPowerLost  float64
-		TotalProduction float64
-		AvgWindSpeed    float64
-		TotalTurbine    int
+		Data             []ScadaDataOEM
+		Total            int
+		TotalPower       float64
+		TotalPowerLost   float64
+		TotalActivePower float64
+		AvgWindSpeed     float64
+		TotalTurbine     int
+		TotalEnergy      float64
 	}{
-		Data:            results,
-		Total:           ccount.Count(),
-		TotalPower:      totalPower,
-		TotalPowerLost:  totalPowerLost,
-		TotalProduction: totalProduction,
-		AvgWindSpeed:    avgWindSpeed / float64(ccount.Count()),
-		TotalTurbine:    totalTurbine,
+		Data:             results,
+		Total:            ccount.Count(),
+		TotalPower:       totalPower,
+		TotalPowerLost:   totalPowerLost,
+		TotalActivePower: totalActivePower,
+		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		TotalTurbine:     totalTurbine,
+		TotalEnergy:      totalEnergy,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -499,17 +504,19 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
-	totalProduction := 0.0
+	totalActivePower := 0.0
 	avgWindSpeed := 0.0
 	totalTurbine := 0
+	totalEnergy := 0.0
 
 	aggrData := []tk.M{}
 
 	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
-		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalProduction").
+		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalActivePower").
 		Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$energy", "TotalEnergy").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -525,27 +532,30 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 	for _, val := range aggrData {
 		totalPower += val.GetFloat64("TotalPower")
 		totalPowerLost += val.GetFloat64("TotalPowerLost")
-		totalProduction += val.GetFloat64("TotalProduction")
+		totalActivePower += val.GetFloat64("TotalActivePower")
 		avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+		totalEnergy += val.GetFloat64("TotalEnergy")
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data            []tk.M
-		Total           int
-		TotalPower      float64
-		TotalPowerLost  float64
-		TotalProduction float64
-		AvgWindSpeed    float64
-		TotalTurbine    int
+		Data             []tk.M
+		Total            int
+		TotalPower       float64
+		TotalPowerLost   float64
+		TotalActivePower float64
+		AvgWindSpeed     float64
+		TotalTurbine     int
+		TotalEnergy      float64
 	}{
-		Data:            results,
-		Total:           ccount.Count(),
-		TotalPower:      totalPower,
-		TotalPowerLost:  totalPowerLost,
-		TotalProduction: totalProduction,
-		AvgWindSpeed:    avgWindSpeed / float64(ccount.Count()),
-		TotalTurbine:    totalTurbine,
+		Data:             results,
+		Total:            ccount.Count(),
+		TotalPower:       totalPower,
+		TotalPowerLost:   totalPowerLost,
+		TotalActivePower: totalActivePower,
+		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		TotalTurbine:     totalTurbine,
+		TotalEnergy:      totalEnergy,
 	}
 
 	return helper.CreateResult(true, data, "success")
