@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"log"
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -62,6 +63,8 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 		"totaltimestamp":  tk.M{"$sum": 1},
 		"available":       tk.M{"$sum": "$available"},
 		"minutes":         tk.M{"$sum": "$minutes"},
+		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
+		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
 	}
 
 	if project != "" {
@@ -132,8 +135,36 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 		for _, val := range list {
 			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
 			var totalTurbine float64
+			var minDate, maxDate time.Time
 
-			minutesInHour := val.GetFloat64("minutes") / 60.0
+			startStr := tStart.Format("0601")
+			endStr := tEnd.Format("0601")
+
+			minDate = val.Get("mindate").(time.Time)
+			minDateStr := minDate.Format("0601")
+
+			maxDate = val.Get("maxdate").(time.Time)
+			maxDateStr := maxDate.Format("0601")
+
+			if startStr == minDateStr {
+				minDate = tStart
+			} else {
+				minDate, _ = time.Parse("060102", minDateStr+"01")
+			}
+
+			if endStr != maxDateStr {
+				daysInMonth := helper.GetDayInYear(maxDate.Year())
+				maxDate, _ = time.Parse("060102", maxDateStr+tk.ToString(daysInMonth.GetInt(tk.ToString(int(maxDate.Month())))))
+			}
+
+			start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
+			end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
+
+			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
+
+			hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
+
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
 			energy := power / 6
@@ -146,26 +177,36 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			if breakDown == "Month" {}
 			if breakDown == "Year" {}
 			if breakDown == "Project" {}*/
-			if breakDown == "Turbine" || breakDown == "Date" || breakDown == "Month" || breakDown == "Year" {
+			/*if breakDown == "Turbine" || breakDown == "Date" || breakDown == "Month" || breakDown == "Year" {
 				totalTurbine = 1.0
 			} else {
 				totalTurbine = tk.ToFloat64(len(turbine), 0, tk.RoundingAuto)
+			}*/
+
+			if len(turbine) == 0 {
+				totalTurbine = 24.0
+			} else {
+				totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
 			}
 
 			/*plf = energy / (totalTurbine * duration * 24.0 * 2100) * 100 * 1000
 			trueAvail = (okTime / 3600) / (duration * totalTurbine * 24.0) * 100
-			machineAvail = (minutesInHour - mDownTime) / (totalTurbine * 24.0 * duration) * 100
-			gridAvail = (minutesInHour - gDownTime) / (totalTurbine * 24.0 * duration) * 100
+			machineAvail = (hourValue - mDownTime) / (totalTurbine * 24.0 * duration) * 100
+			gridAvail = (hourValue - gDownTime) / (totalTurbine * 24.0 * duration) * 100
 			dataAvail = sumTimeStamp / (144 * duration * totalTurbine) * 100
 			// prod = energy / totalEnergy * 100
 			prod = energy*/
 
-			plf = energy / (totalTurbine * minutesInHour * 2100) * 100 * 1000
-			trueAvail = (okTime / 3600) / (totalTurbine * minutesInHour) * 100
-			machineAvail = (minutesInHour - mDownTime) / (totalTurbine * minutesInHour) * 100
-			gridAvail = (minutesInHour - gDownTime) / (totalTurbine * minutesInHour) * 100
-			dataAvail = (sumTimeStamp * 10 / 60) / (minutesInHour * totalTurbine) * 100
+			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
+			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
+			machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
+			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100
+			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
 			prod = energy
+
+			// log.Printf("%v | %v \n", hourValue, totalTurbine)
+
+			log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
 
 			_ = duration
 

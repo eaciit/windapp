@@ -539,13 +539,13 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 				turbineDataAlarm.Set("type", "scatter")
 				turbineDataAlarm.Set("color", downColor[idx])
 				turbineDataAlarm.Set("markers", tk.M{
-					"size":       10,
+					"size":       2,
 					"type":       "triangle",
 					"background": downColor[idx],
-					"border" : tk.M{
-						"width" : 2, 
-						"color" : "red",
-					},
+					// "border" : tk.M{
+					// 	"width" : 2, 
+					// 	"color" : "red",
+					// },
 				})
 
 				var datasDown [][]float64
