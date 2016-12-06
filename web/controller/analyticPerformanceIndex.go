@@ -71,7 +71,6 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	// filter, _ := p.ParseFilter()
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 	if e != nil {
@@ -96,7 +95,6 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 	projectname := ""
 
 	for i := 0; i < 5; i++ {
-		// var filter []*dbox.Filter
 		query = []tk.M{}
 		pipes = []tk.M{}
 
