@@ -128,7 +128,7 @@
         </li>
         <!-- /ko -->
         <!-- ko if: $data.submenu.length>0 -->
-        <li data-bind="css:{active:(vm.currentMenu() == $data.title)}" class="dropdown">
+        <li data-bind="css:{active:(vm.currentMenu() == $data.title)}" class="dropdown testing" onclick="vm.setWidth(this)">
         	<a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }" style="cursor:pointer" class="dropdown-toggle" data-toggle="dropdown">
 				<i data-bind="css: vm.menuIcon($data)"></i>&nbsp;
 				<span data-bind="text: $data.title"></span>
