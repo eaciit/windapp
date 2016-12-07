@@ -46,31 +46,33 @@ func (d *ConvScadaDataOEM) Generate(base *BaseController) {
 				os.Exit(0)
 			}
 
-			for _, sheet := range file.Sheet {
-				errorLine = tk.M{}
-				for idx, row := range sheet.Rows {
-					errorList := []error{}
-					if idx > 0 { //&& idx < 5 { //&& len(row.Cells) == 35 {
-						data, errorList := ConstructScadaDataOEMExcel(row)
-						data.Line = idx + 1
-						data.ProjectName = project
-						data.Turbine = turbine
+			for sIdx, sheet := range file.Sheet {
+				if sIdx == "Sheet1" {
+					errorLine = tk.M{}
+					for idx, row := range sheet.Rows {
+						errorList := []error{}
+						if idx > 0 { //&& idx < 5 { //&& len(row.Cells) == 35 {
+							data, errorList := ConstructScadaDataOEMExcel(row)
+							data.Line = idx + 1
+							data.ProjectName = project
+							data.Turbine = turbine
 
-						if len(errorList) > 0 {
-							errorLine.Set(tk.ToString(idx+1), errorList)
-						} else {
-							e = ctx.Insert(data)
-							ErrorHandler(e, "Saving")
-							count++
-							if count == 1000 {
-								total += count
-								tk.Printf("count: %v \n", total)
-								count = 0
+							if len(errorList) > 0 {
+								errorLine.Set(tk.ToString(idx+1), errorList)
+							} else {
+								e = ctx.Insert(data)
+								ErrorHandler(e, "Saving")
+								count++
+								if count == 1000 {
+									total += count
+									tk.Printf("count: %v \n", total)
+									count = 0
+								}
 							}
-						}
-					} else {
-						if idx != 0 {
-							errorLine.Set(tk.ToString(idx+1), errorList)
+						} else {
+							if idx != 0 {
+								errorLine.Set(tk.ToString(idx+1), errorList)
+							}
 						}
 					}
 				}
