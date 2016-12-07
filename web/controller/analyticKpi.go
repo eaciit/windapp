@@ -222,8 +222,14 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 
 		plf = energy / (totalTurbine * hourValue * 2.1) * 100
 		trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-		machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
-		gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100
+
+		/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
+		gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
+
+		minutes := val.GetFloat64("minutes") / 60
+		machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
+		gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
+
 		dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
 		prod = energy
 		revenue = power * 5.740 * 1000
