@@ -81,6 +81,8 @@ func init() {
 	app.Register(controller.CreateTimeSeriesController())
 	app.Register(controller.CreateDiyViewController())
 
+	app.Register(controller.CreateReportingController())
+
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")
 	// 	rURL := r.Request.URL.String()
