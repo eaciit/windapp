@@ -1915,6 +1915,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	group.Set("maxlossenergy", tk.M{"$max": "$lostenergy"})
 	group.Set("gridavail", tk.M{"$avg": "$gridavail"})
 	group.Set("totalavail", tk.M{"$avg": "$totalavail"})
+	group.Set("maxDate", tk.M{"$max": "$dateinfo.dateid"})
 
 	pipe := []tk.M{
 		{"$match": matches},
@@ -2004,13 +2005,14 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 			maxCapacity := turbineMW * totalHours
 			result[idx].Set("maxcapacity", maxCapacity)
+			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 		} else {
 			result[idx].Set("name", dt.GetString("_id"))
 			result[idx].Set("noofwtg", totalTurbine.GetInt(result[idx].GetString("name")))
 
 			maxCapacity := turbineMW * totalTurbine.GetFloat64(result[idx].GetString("name")) * totalHours
 			result[idx].Set("maxcapacity", maxCapacity)
-
+			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 			// ---- lowestplf
 
 			pipeSub := []tk.M{
