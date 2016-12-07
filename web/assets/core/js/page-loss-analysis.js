@@ -10,6 +10,9 @@ pg.isDetailDTTop = ko.observable(false);
 pg.periodDesc = ko.observable();
 
 pg.breakDown = ko.observableArray([]);
+pg.typeChart = ko.observable();
+pg.dataSource = ko.observableArray();
+var height = $(".content").width() * 0.125;
 
 pg.breakDownList = ko.observableArray([
     { "value": "dateinfo.dateid", "text": "Date" },
@@ -681,6 +684,405 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
     });
 }
 
+pg.ChartAvailability = function () {
+    app.loading(true);
+
+    pg.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
+
+    var param = {
+        period: fa.period,
+        dateStart: fa.dateStart,
+        dateEnd: fa.dateEnd,
+        turbine: fa.turbine,
+        project: fa.project,
+        breakDown: pg.breakDownVal,
+    };
+    toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        pg.dataSource(res.data);
+        pg.createChartAvailability(pg.dataSource());
+        pg.createChartProduction(pg.dataSource());
+        app.loading(false);
+
+        if ($("#availabilityChart").data("kendoChart") != null) {
+            $("#availabilityChart").data("kendoChart").refresh();
+        }
+        if ($("#productionChart").data("kendoChart") != null) {
+            $("#productionChart").data("kendoChart").refresh();
+        }
+
+    });
+};
+
+pg.createChartAvailability = function (dataSource) {
+    var series = dataSource.SeriesAvail;
+    var seriesProd = dataSource.SeriesProd;
+    var categories = dataSource.Categories;
+    var max = dataSource.Max;
+    var min = dataSource.Min;
+    colorField[0] = "#944dff";
+
+    $("#availabilityChart").replaceWith('<div id="availabilityChart"></div>');
+    $("#availabilityChart").height(height);
+    $("#availabilityChart").kendoChart({
+        theme: "Flat",
+        legend: {
+            position: "top",
+            visible: true,
+        },
+        series: series,
+        seriesColors: colorField,
+        valueAxes: [{
+            line: {
+                visible: false
+            },
+            max: 100,
+            min: 0,
+            labels: {
+                format: "{0}",
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            name: "availpercentage",
+            title: { text: "Availability (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+        }, {
+            visible: false,
+            line: {
+                visible: false
+            },
+            labels: {
+                format: "{0}",
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            name: "availline",
+            title: { text: "Production (MWh)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+        }],
+        categoryAxis: {
+            categories: categories,
+            title: {
+                text: $("#breakdownlistavail").data("kendoDropDownList").value(),
+                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            axisCrossingValues: [0, 1],
+            justified: true,
+            majorGridLines: {
+                visible: false
+            },
+        },
+        tooltip: {
+            visible: true,
+            shared: true,
+            sharedTemplate: kendo.template($("#template").html()),
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+}
+pg.createChartProduction = function (dataSource) {
+    var seriesProd = dataSource.SeriesProd;
+    var categories = dataSource.Categories;
+    var max = dataSource.Max;
+    var min = dataSource.Min;
+    colorField[0] = "#ff880e";
+
+    $("#productionChart").replaceWith('<div id="productionChart"></div>');
+    $("#productionChart").height(height);
+    $("#productionChart").kendoChart({
+        height: "150px",
+        theme: "Flat",
+        legend: {
+            position: "top",
+            visible: true,
+        },
+        chartArea: {
+            background: "transparent",
+        },
+        series: seriesProd,
+        seriesColors: colorField,
+        valueAxes: [{
+            visible: true,
+            line: {
+                visible: false
+            },
+            labels: {
+                format: "{0}",
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            name: "availline",
+            title: { text: "Production (MWh)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+        }],
+        categoryAxis: {
+            categories: categories,
+            title: {
+                text: $("#breakdownlistavail").data("kendoDropDownList").value(),
+                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            justified: true,
+            majorGridLines: {
+                visible: false
+            },
+        },
+        tooltip: {
+            visible: true,
+            template: "#= series.name # at #= category # : #= kendo.toString(value, 'n2')# MWh",
+            shared: false,
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+
+        },
+    });
+}
+
+pg.ChartWindAvail = function () {
+    fa.getProjectInfo();
+    fa.LoadData();
+    var param = {
+        period: fa.period,
+        dateStart: fa.dateStart,
+        dateEnd: fa.dateEnd,
+        turbine: fa.turbine,
+        project: fa.project
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
+        var data = res.data;
+
+        $("#windAvailabilityChart").html("");
+        $("#windAvailabilityChart").kendoChart({
+            dataSource: {
+                data: data,
+                sort: { field: "WindSpeed", dir: 'asc' }
+            },
+            theme: "Flat",
+            chartArea: {
+                height: 500,
+            },
+            legend: {
+                position: "top",
+                visible: true,
+            },
+            series: [{
+                type: "column",
+                field: "TotalAvail",
+                axis: "windPercentage",
+                name: "Total Availability [%]",
+                opacity: 0.6
+            }, {
+                type: "line",
+                style: "smooth",
+                field: "Time",
+                axis: "windPercentage",
+                name: "Cumulative % of Time",
+                markers: {
+                    visible: false,
+                },
+                width: 3,
+            }, {
+                type: "line",
+                style: "smooth",
+                field: "Energy",
+                axis: "cumProd",
+                name: "Cumulative % of Energy Delivered",
+                markers: {
+                    visible: false,
+                },
+                width: 3,
+            }],
+            seriesColors: colorFields2,
+            valueAxes: [{
+                line: {
+                    visible: false
+                },
+                max: 100,
+                majorUnit: 20,
+                labels: {
+                    format: "{0}%",
+                },
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                name: "windPercentage",
+                title: { text: "Availability (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+            }, {
+                line: {
+                    visible: false
+                },
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                max: 100,
+                labels: {
+                    format: "{0}%",
+                },
+                name: "cumProd",
+                title: { text: "Cumulative Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+            }],
+            categoryAxis: {
+                field: "WindSpeed",
+                title: {
+                    text: "Wind Speed (m/s)",
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                axisCrossingValues: [0, 1000],
+                justified: true,
+                majorGridLines: {
+                    visible: false
+                },
+            },
+            tooltip: {
+                visible: true,
+                shared: true,
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                // template: "#= series.name # : #= kendo.toString(value, 'n2')# at #= category #",
+                template: "#= kendo.toString(value, 'n2')#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            },
+        });
+
+        app.loading(false);
+        $("#windAvailabilityChart").data("kendoChart").refresh();
+    });
+};
+
+pg.DTLEbyType = function (dataSource) {
+    $("#chartDTLEbyType").kendoChart({
+        dataSource: {
+            data: dataSource.source,
+            group: [{ field: "_id.id3" }],
+            sort: { field: "_id.id1", dir: 'asc' }
+        },
+        theme: "flat",
+        title: {
+            text: ""
+        },
+        legend: {
+            position: "top",
+            visible: true,
+        },
+        chartArea: {
+            height: 160
+        },
+        seriesDefaults: {
+            type: "column",
+            stack: true
+        },
+        series: [{
+            type: "column",
+            field: "powerlost",
+            // opacity : 0.7,
+            stacked: true,
+            axis: "PowerLost"
+        },
+        {
+            name: function () {
+                return "Duration";
+            },
+            type: "line",
+            field: "duration",
+            axis: "Duration",
+            markers: {
+                visible: false
+            }
+        },
+        {
+            name: function () {
+                return "Frequency";
+            },
+            type: "line",
+            field: "frequency",
+            axis: "Frequency",
+            markers: {
+                visible: false
+            }
+        }],
+        seriesColor: colorField,
+        valueAxis: [{
+            name: "PowerLost",
+            labels: {
+                step: 2
+            },
+            line: {
+                visible: false
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+        },
+        {
+            name: "Duration",
+            title: { visible: false },
+            visible: false,
+        },
+        {
+            name: "Frequency",
+            title: { visible: false },
+            visible: false,
+        }],
+        categoryAxis: {
+            field: "_id.id2",
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                rotation: -330
+            },
+            majorTickType: "none"
+        },
+        tooltip: {
+            visible: true,
+            format: "{0:n1}",
+            sharedTemplate: kendo.template($("#templateDTLEbyType").html()),
+            background: "rgb(255,255,255, 0.9)",
+            shared: true,
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        },
+        /*seriesClick: function (e) {
+            avail.toDetailDTLostEnergy(e, false, "chartbytype");
+        }*/
+    });
+}
+
 pg.DTTopDetail = function (turbine, type) {
     // app.loading(true);
     // var project = fa.project;
@@ -875,6 +1277,8 @@ pg.loadData = function () {
             pg.type = "Turbine";
         }
 
+        pg.ChartAvailability();
+        pg.ChartWindAvail();
         pg.ChartLoss();
         pg.GridLoss();
 
@@ -904,16 +1308,18 @@ pg.loadData = function () {
             pg.DTFrequency(res.data.frequency);
             pg.TopTurbineLoss(res.data.loss);
             pg.TLossCat('chartLCByLTE', true, res.data.catloss, 'MWh');
+            pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
+            pg.TLossCat('chartLCByDuration', true, res.data.catlossduration, 'Hours');
+            pg.TLossCat('chartLCByFreq', true, res.data.catlossfreq, 'Times');
         });
-
-        // toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
-        //     if (!toolkit.isFine(res)) {
-        //         return;
-        //     }
-
-        // });
-
-
+        var project = $("#projectId").data("kendoDropDownList").value();
+        var paramdown = { ProjectName: project, Date: maxdate };
+        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", paramdown, function (res) {
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            pg.DTLEbyType(res.data.lostenergybytype[0]);
+        });
     }, 100);
 }
 
@@ -931,7 +1337,12 @@ pg.refreshGrid = function () {
         $("#chartTopTurbineLoss").data("kendoChart").refresh();
         $("#chartLCByLTE").data("kendoChart").refresh();
 
-    }, 10);
+        $("#availabilityChart").data("kendoChart").refresh();
+        $("#productionChart").data("kendoChart").refresh();
+
+        $("#windAvailabilityChart").data("kendoChart").refresh();
+
+    }, 30);
 }
 
 pg.SetBreakDown = function () {
@@ -951,12 +1362,18 @@ pg.SetBreakDown = function () {
         if ($("#breakdownlist").data("kendoDropDownList").value() == "") {
             $("#breakdownlist").data("kendoDropDownList").select(0);
         }
+
+        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(fa.GetBreakDown());
+        $("#breakdownlistavail").data("kendoDropDownList").dataSource.query();
+        if ($("#breakdownlistavail").data("kendoDropDownList").value() == "") {
+            $("#breakdownlistavail").data("kendoDropDownList").select(0);
+        }
     }, 1000);
 }
 
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticwindavailability' }]);
+vm.breadcrumb([{ title: 'KPI', href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 
 $(document).ready(function () {
@@ -968,6 +1385,13 @@ $(document).ready(function () {
     });
 
     $('#breakdownlist').kendoDropDownList({
+        data: [],
+        dataValueField: 'value',
+        dataTextField: 'text',
+        change: function () { pg.loadData() },
+    });
+
+    $('#breakdownlistavail').kendoDropDownList({
         data: [],
         dataValueField: 'value',
         dataTextField: 'text',
