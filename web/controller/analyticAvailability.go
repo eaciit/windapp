@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"log"
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -199,14 +198,20 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
 			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-			machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100
+
+			/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
+			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
+
+			minutes := val.GetFloat64("minutes") / 60
+			machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
+			gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
+
 			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
 			prod = energy
 
 			// log.Printf("%v | %v \n", hourValue, totalTurbine)
 
-			log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
+			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
 
 			_ = duration
 
