@@ -1335,13 +1335,15 @@ pg.refreshGrid = function () {
         $("#chartDTDuration").data("kendoChart").refresh();
         $("#chartDTFrequency").data("kendoChart").refresh();
         $("#chartTopTurbineLoss").data("kendoChart").refresh();
-        $("#chartLCByLTE").data("kendoChart").refresh();
 
         $("#availabilityChart").data("kendoChart").refresh();
         $("#productionChart").data("kendoChart").refresh();
 
         $("#windAvailabilityChart").data("kendoChart").refresh();
 
+        $("#chartLCByTEL").data("kendoChart").refresh();
+        $("#chartLCByDuration").data("kendoChart").refresh();
+        $("#chartLCByFreq").data("kendoChart").refresh();
     }, 30);
 }
 
