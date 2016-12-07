@@ -1,0 +1,53 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-turbine-health.js?ANTI_CACHE={{.AntiCache}}"></script>
+<!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-turbine-health.css">-->
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Turbine Health&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+					</div>
+					<div class="panel-body">
+						<ul class="nav nav-tabs " role="tablist">
+							<li id="pitchTab" role="presentation" class="active"><a onclick="" href="#pitch" aria-controls="Pitch" role="tab" data-toggle="tab" class="tab-custom">Pitch/Yaw</a></li>
+                            <li id="gearBoxTab" role="presentation"><a onclick="" href="#gearbox" aria-controls="GearBox" role="tab" data-toggle="tab" class="tab-custom">Gear Box/Bearings</a></li>                            
+                            <li id="rotorBladesTab" role="presentation"><a onclick="" href="#rotorblades" aria-controls="RotorBlades" role="tab" data-toggle="tab" class="tab-custom">Rotor Blades</a></li>
+                            <li id="generatorsTab" role="presentation"><a onclick="" href="#generators" aria-controls="Generators" role="tab" data-toggle="tab" class="tab-custom">Generators</a></li>
+                            <li id="loadAnalysisTab" role="presentation"><a onclick="" href="#loadanalysis" aria-controls="LoadAnalysis" role="tab" data-toggle="tab" class="tab-custom">Load Analysis</a></li>
+						</ul>
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="pitch"></div>
+							<div role="tabpanel" class="tab-pane" id="gearbox"></div>                            
+                            <div role="tabpanel" class="tab-pane" id="rotorblades"></div>							
+                            <div role="tabpanel" class="tab-pane" id="generators"></div>
+                            <div role="tabpanel" class="tab-pane" id="loadanalysis">
+                                <ul class="nav nav-tabs " role="tablist">
+                                    <li id="torqueTab" role="presentation" class="active"><a onclick="" href="#torque" aria-controls="Torque" role="tab" data-toggle="tab" class="tab-custom">Torque</a></li>
+                                    <li id="vibrationTab" role="presentation"><a onclick="" href="#vibration" aria-controls="Vibration" role="tab" data-toggle="tab" class="tab-custom">Vibration</a></li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div role="tabpanel" class="tab-pane active" id="torque"></div>
+                                    <div role="tabpanel" class="tab-pane" id="vibration"></div>
+                                </div>
+                            </div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+    $(document).ready(function () {
+        app.loading(false);
+    });
+</script>
