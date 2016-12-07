@@ -67,14 +67,14 @@ var Data = {
                 this.expandRow(this.tbody.find("tr.k-master-row").first());
             },
             columns       : [
-                { field: "Project", title: "Name", width: 110,headerAttributes: { style: "text-align: center" },attributes: { style: "padding-left: 20px" }},
+                { field: "Project", title: "Name", width: 110,headerAttributes: { style: "text-align: center" },attributes: { style: "padding-left: 20px;border-right:1px solid rgba(128, 128, 128, 0.26)" }},
                 {
                     title: "Performance<br>"+kendo.toString(moment.utc(fa.dateStart).format('DD-MM-YYYY '))+" to " + kendo.toString(moment.utc(fa.dateEnd).format('DD-MM-YYYY')) ,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndex", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PotentialPower", title: "Potential Power <br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "Power", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "Power", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -83,7 +83,7 @@ var Data = {
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" }, format: "{0:n2}"},
                         { field: "PotentialPowerLast24Hours", title: "Potential Power <br>(MWh)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "PowerLast24Hours", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PowerLast24Hours", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -130,14 +130,14 @@ var Data = {
             sortable: false,
             pageable: false,
              columns       : [
-                { field: "Turbine", title: "Name", width: 100,headerAttributes: { style: "text-align: center" },attributes: { style: "padding-left: 30px" }},
+                { field: "Turbine", title: "Name", width: 100,headerAttributes: { style: "text-align: center" },attributes: { style: "padding-left: 30px;border-right:1px solid rgba(128, 128, 128, 0.26)" }},
                 {
                     title: "Performance",
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndex", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
                         { field: "PotentialPower", title: "Potential Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "Power", title: "Actual Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "Power", title: "Actual Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -146,7 +146,7 @@ var Data = {
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right"}, format: "{0:n2}"},
                         { field: "PotentialPowerLast24Hours", title: "Potential Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
-                        { field: "PowerLast24Hours", title: "Actual Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right" },format: "{0:n2}"},
+                        { field: "PowerLast24Hours", title: "Actual Power", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: right;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
