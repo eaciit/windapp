@@ -311,3 +311,10 @@ func (w *PageController) IssueTracking(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-issue-tracking.html"
 	return w.GetParams(r, false)
 }
+
+func (w *PageController) Reporting(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-reporting.html"
+	return w.GetParams(r, false)
+}
