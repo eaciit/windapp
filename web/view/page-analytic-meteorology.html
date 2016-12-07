@@ -35,7 +35,7 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
 								<div class="col-md-12 list">
-									<div class="col-md-4 col-xs-12">
+									<div class="col-md-3 col-xs-12">
 										<label class="control-label keyA-label">Sectors</label>
 										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
 											style="width:50px;">
@@ -43,8 +43,14 @@
 										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
 									</div>
 
-									<div class="col-md-8 col-xs-12">
+									<div class="col-md-5 col-xs-12">
 										<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+										</div>
+									</div>
+
+									<div class="col-md-4 col-xs-12">
+										<div class="period-met pull-right">
+											Met Tower Data Available from: <strong><span id="availabledatestartmettower">-</span></strong> until: <strong><span id="availabledateendmettower">-</span></strong>
 										</div>
 									</div>
 								</div>
