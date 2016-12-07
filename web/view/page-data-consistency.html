@@ -1,0 +1,50 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-data-consistency.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-consistency.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Data Consistency&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+					</div>
+					<div class="panel-body">
+						<ul class="nav nav-tabs " role="tablist">
+							<li id="dgrscadaTab" role="presentation" class="active"><a onclick="pg.refreshGrid();" href="#dgrscada" aria-controls="DgrScada" role="tab" data-toggle="tab" class="tab-custom">DGR vs Scada</a></li>
+
+							<li id="highfreqomTab" role="presentation"><a onclick="pg.refreshGrid();" href="#highfreqom" aria-controls="HighFreqOM" role="tab" data-toggle="tab" class="tab-custom">High Freq 10 min vs O&M 10 min</a></li>
+						</ul>
+
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="dgrscada">
+								<div class="col-md-6 col-md-offset-3" style="text-align:center">
+									<div class="clearfix">&nbsp;</div>
+									<div id="gridSummaryDgrScada"></div>
+									<div class="clearfix">&nbsp;</div>
+								</div>
+								<div class="clearfix">&nbsp;</div>
+			          			<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+							</div>
+							<div role="tabpanel" class="tab-pane active" id="highfreqom">
+								<div id="highfreqom" class="grid-custom"></div>
+							</div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>
