@@ -155,6 +155,12 @@ km.createChart = function (dataSource) {
 			}
 		});
 	});
+
+	setTimeout(function () {
+		// $("#km-chart").data("kendoChart").refresh();
+		app.loading(false);
+		$("#km-chart").data("kendoChart").refresh();
+	}, 1000);
 }
 
 vm.currentMenu('Compare Metrics');
@@ -192,7 +198,7 @@ km.getData = function () {
 	setTimeout(function () {
 		km.setBreakDown();
 		km.createChart();
-		app.loading(false);
+		// app.loading(false);
 	}, 1000);
 }
 
@@ -201,7 +207,7 @@ $(document).ready(function () {
 		app.loading(true);
 		setTimeout(function () {
 			km.getData();
-			app.loading(false);
+			// app.loading(false);
 		}, 200);
 	});
 

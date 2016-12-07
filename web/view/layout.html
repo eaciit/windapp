@@ -11,9 +11,7 @@
 <body class="layout-top-nav skin-black">
   <div class="wrapper">
     <header class="main-header">
-      <nav class="navbar navbar-static-top">
         {{template "_menu.html"}}
-      </nav>
     </header>
     <div class="content-wrapper">
       <section class="content-header">
@@ -26,7 +24,7 @@
                 </div>
             </section>
 
-            <section class="content">
+            <section class="content" id="page">
               <div data-bind="visible: app.isLoading" style="display:none;">
                 {{template "_loader.html"}}
               </div>
