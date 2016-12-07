@@ -1056,7 +1056,7 @@ a:active, a:focus, a:hover {
     background-color: #ea5b19;
 }
 
-@media (min-width:768px) { 
+/*@media (min-width:768px) { 
   .skin-black .main-header>.navbar {
         background-color: #ea5b19;
   }
@@ -1086,12 +1086,11 @@ a:active, a:focus, a:hover {
         height: 0px;
         width: 100%;
         position: absolute;
-        /*top: 50px;*/
         background: #fff;
         transition: all .5s ease-in-out;
     }
 
-    .menu-open .nav-bg { height: 30px } /* change to your height of the child menu */
+    .menu-open .nav-bg { height: 30px }
   
     .menu-open #page {
         padding-top:20px;
@@ -1129,4 +1128,4 @@ a:active, a:focus, a:hover {
 
 .navbar-nav .dropdown.active ul {display:inline;}  
   
-}
+}*/
