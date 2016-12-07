@@ -74,6 +74,7 @@ func init() {
 
 	app.Register(controller.CreateDataEntryPowerCurveController())
 	app.Register(controller.CreateAnalyticPerformanceIndexController())
+	app.Register(controller.CreateAnalyticMeteorologyController())
 
 	app.Register(controller.CreateTurbineHealthController())
 	app.Register(controller.CreateDataSensorGovernanceController())
