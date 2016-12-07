@@ -82,13 +82,15 @@ vm.prepareFilterToggle = function () {
 };
 
 vm.setWidth = function(el){
-    $(el).find($(".dropdown-menu")).css("width",($(window).width() - $(el).offset().left));
+    // $(el).find($(".dropdown-menu")).css("width",($(window).width() - $(el).offset().left));
+    return false;
 }
 
 vm.setWidthUser = function(e){
-    $(e).find($(".dropdown-menu")).css("width",($(window).width() - $(e).offset().left) + 50);
-    // .navbar-nav.nav .dropdown-menu > li { float: left }
-    $(e).find($(".dropdown-menu li")).css("float" , "none");
+    // $(e).find($(".dropdown-menu")).css("width",($(window).width() - $(e).offset().left) + 50);
+    // // .navbar-nav.nav .dropdown-menu > li { float: left }
+    // $(e).find($(".dropdown-menu li")).css("float" , "none");
+    return false;
 }
 
 vm.adjustLayout = function () {
