@@ -260,3 +260,45 @@ func (w *PageController) Home(r *knot.WebContext) interface{} {
 	http.Redirect(r.Writer, r.Request, "dashboard", http.StatusTemporaryRedirect)
 	return w.GetParams(r, false)
 }
+
+func (w *PageController) TurbineHealth(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-turbine-health.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) DataSensorGovernance(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-data-sensor-governance.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) TimeSeries(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-time-series.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) DIYView(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-diy-view.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) SCMManagement(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-scm.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) IssueTracking(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-issue-tracking.html"
+	return w.GetParams(r, false)
+}
