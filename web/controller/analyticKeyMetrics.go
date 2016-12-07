@@ -218,12 +218,15 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
 
 			hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+			minutes := val.GetFloat64("minutes") / 60
 
 			switch key {
 			case "Machine Availability":
-				values = (hourValue - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
+				// values = (hourValue - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
+				values = (minutes - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
 			case "Grid Availability":
-				values = (hourValue - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
+				// values = (hourValue - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
+				values = (minutes - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
 			case "Total Availability":
 				values = ((val.GetFloat64("oktime") / 3600) / (totalTurbine * hourValue)) * 100
 				//values = (val.GetFloat64("oktime") / (tk.ToFloat64(duration, 2, tk.RoundingAuto) * 86400 * totalTurbine)) * 100 /*percentage*/
