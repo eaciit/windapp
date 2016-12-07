@@ -204,9 +204,9 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
     }, 100);
 }
 
-vm.currentMenu('Data Histogram');
-vm.currentTitle('Data Histogram');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Data Histogram', href: viewModel.appName + 'page/analyticdatahistogram' }]);
+vm.currentMenu('Histograms');
+vm.currentTitle('Histograms');
+vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
 
 km.getData = function () {
     fa.getProjectInfo();
