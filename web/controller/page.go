@@ -172,6 +172,15 @@ func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, true)
 }
+
+func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-meteorology.html"
+
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) AnalyticComparison(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
