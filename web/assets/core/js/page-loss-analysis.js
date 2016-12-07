@@ -1312,8 +1312,8 @@ pg.loadData = function () {
             pg.TLossCat('chartLCByDuration', true, res.data.catlossduration, 'Hours');
             pg.TLossCat('chartLCByFreq', true, res.data.catlossfreq, 'Times');
         });
-        var project = $("#projectId").data("kendoDropDownList").value();
-        var paramdown = { ProjectName: project, Date: maxdate };
+        // var project = $("#projectId").data("kendoDropDownList").value();
+        var paramdown = { ProjectName: fa.project, Date: maxdate };
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", paramdown, function (res) {
             if (!toolkit.isFine(res)) {
                 return;
