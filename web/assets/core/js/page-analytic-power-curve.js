@@ -70,7 +70,7 @@ page.ExportPowerCurveDetailPdf = function () {
 
 vm.currentMenu('Power Curve');
 vm.currentTitle('Power Curve');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Power Curve', href: viewModel.appName + 'page/analyticpowercurve' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Power Curve', href: viewModel.appName + 'page/analyticpowercurve' }]);
 
 var dataPowerCurve
 var dataTurbine
