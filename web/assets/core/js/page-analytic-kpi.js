@@ -409,7 +409,7 @@ page.setBreakDown = function () {
 
 vm.currentMenu('KPI Table');
 vm.currentTitle('KPI Table');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'KPI Table', href: viewModel.appName + 'page/analytickpi' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'KPI Table', href: viewModel.appName + 'page/analytickpi' }]);
 
 $(function () {
     page.columnsBreakdown('Daily');
