@@ -136,7 +136,7 @@ pg.SetBreakDown = function () {
 
 vm.currentMenu('Data Consistency');
 vm.currentTitle('Data Consistency');
-vm.breadcrumb([{ title: 'KPI', href: '#' }, { title: 'Data Consistency', href: viewModel.appName + 'page/analyticwindavailability' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Consistency', href: viewModel.appName + 'page/analyticwindavailability' }]);
 
 
 $(document).ready(function () {

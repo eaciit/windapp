@@ -40,7 +40,7 @@ pm.loadData = function () {
 
 vm.currentMenu('Meteorology');
 vm.currentTitle('Meteorology');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Meteorology', href: viewModel.appName + 'page/analyticmeteorology' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Meteorology', href: viewModel.appName + 'page/analyticmeteorology' }]);
 
 // ============================ WINDROSE ====================================
 
