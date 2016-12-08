@@ -685,6 +685,7 @@ page.refreshFilter = function (id) {
 						}
 					});
 				});
+				$('#btn-refresh-'+id).button("reset");
 			});
 			if (isAllTurbine) {
 				param.Turbine = ["All Turbine"];
@@ -693,8 +694,7 @@ page.refreshFilter = function (id) {
 			filterList.push(param);
 			page.checkCompleteDate(id);
 		}
-		$("#btn-refresh-"+id).button("reset");
-	},300);
+	});
 }
 
 page.refreshAll = function () {
@@ -836,7 +836,7 @@ page.ShowModal = function (modalId, showhide) {
 
 vm.currentMenu('Analytics Studio');
 vm.currentTitle('Analytics Studio');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Analytics Studio', href: viewModel.appName + 'page/analyticavailability' }]);
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Analytics Studio', href: viewModel.appName + 'page/analyticavailability' }]);
 
 $(document).ready(function () {
 	$('#btnSaveView').on('click', function () {
