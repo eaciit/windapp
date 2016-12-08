@@ -1010,7 +1010,7 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 160
+            height: 220
         },
         seriesDefaults: {
             type: "column",
@@ -1084,7 +1084,7 @@ pg.DTLEbyType = function (dataSource) {
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            sharedTemplate: kendo.template($("#templateDTLEbyType").html()),
+            // sharedTemplate: kendo.template($("#templateDTLEbyType").html()),
             background: "rgb(255,255,255, 0.9)",
             shared: true,
             color: "#58666e",
@@ -1368,7 +1368,7 @@ pg.refreshGrid = function () {
         $("#chartLCByFreq").data("kendoChart").refresh();
 
         $("#chartDTLEbyType").data("kendoChart").refresh();
-    }, 30);
+    }, 1000);
 }
 
 pg.SetBreakDown = function () {
