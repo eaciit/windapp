@@ -115,16 +115,10 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 				totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
 			}
 
-			// minDate := val.Get("mindate").(time.Time)
-			minDate := tStart
+			minDate := val.Get("mindate").(time.Time)
 			maxDate := val.Get("maxdate").(time.Time)
 
-			start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
-			end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
-
-			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
-
-			hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+			hourValue := helper.GetHourValue(tStart, tEnd, minDate, maxDate)
 
 			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
 			// hourValue := tk.ToFloat64(maxDate.Sub(tStart).Hours()/24, 1, tk.RoundingUp) * 24.0
