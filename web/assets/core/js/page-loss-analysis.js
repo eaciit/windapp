@@ -183,7 +183,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(Hours)", field: "Production", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
+                        { title: "(MWh)", field: "Production", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
                     ]
                 }, {
                     title: "Lost Energy",
@@ -272,7 +272,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(MWh)", field: "PCDeviation", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
+                        { title: "(MW)", field: "PCDeviation", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
                     ]
                     // field: "PCDeviation",
                     // width: 100,
@@ -1399,7 +1399,7 @@ pg.SetBreakDown = function () {
 
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
-vm.breadcrumb([{ title: 'KPI', href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 
 $(document).ready(function () {
