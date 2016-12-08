@@ -190,34 +190,10 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		var values float64
 		categories = []string{}
 		for listCount, val := range list {
-			var minDate, maxDate time.Time
+			minDate := val.Get("mindate").(time.Time)
+			maxDate := val.Get("maxdate").(time.Time)
 
-			startStr := tStart.Format("0601")
-			endStr := tEnd.Format("0601")
-
-			minDate = val.Get("mindate").(time.Time)
-			minDateStr := minDate.Format("0601")
-
-			maxDate = val.Get("maxdate").(time.Time)
-			maxDateStr := maxDate.Format("0601")
-
-			if startStr == minDateStr {
-				minDate = tStart
-			} else {
-				minDate, _ = time.Parse("060102", minDateStr+"01")
-			}
-
-			if endStr != maxDateStr {
-				daysInMonth := helper.GetDayInYear(maxDate.Year())
-				maxDate, _ = time.Parse("060102", maxDateStr+tk.ToString(daysInMonth.GetInt(tk.ToString(int(maxDate.Month())))))
-			}
-
-			start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
-			end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
-
-			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
-
-			hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+			hourValue := helper.GetHourValue(tStart, tEnd, minDate, maxDate)
 			minutes := val.GetFloat64("minutes") / 60
 
 			switch key {
