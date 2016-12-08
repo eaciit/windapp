@@ -206,7 +206,7 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
 
 vm.currentMenu('Histograms');
 vm.currentTitle('Histograms');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
 
 km.getData = function () {
     fa.getProjectInfo();
