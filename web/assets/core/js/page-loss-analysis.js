@@ -45,7 +45,6 @@ pg.ChartLoss = function () {
             app.loading(false);
             return;
         }
-        // console.log(res)
         var cSeries = res.data.Series
         var cCategories = res.data.Categories;
 
@@ -143,7 +142,6 @@ pg.GridLoss = function () {
             app.loading(false);
             return;
         }
-        // console.log(res)
         var gData = res.data.Data
 
         $('#lossGrid').html("");
@@ -185,7 +183,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(Hours)", field: "Production", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
+                        { title: "(MWh)", field: "Production", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
                     ]
                 }, {
                     title: "Lost Energy",
@@ -274,7 +272,7 @@ pg.GridLoss = function () {
                         style: "text-align:center;"
                     },
                     columns: [
-                        { title: "(MWh)", field: "PCDeviation", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
+                        { title: "(MW)", field: "PCDeviation", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
                     ]
                     // field: "PCDeviation",
                     // width: 100,
@@ -613,6 +611,24 @@ pg.TopTurbineLoss = function (dataSource) {
 }
 
 pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
+    var gapVal = 1
+    switch (dataSource.length) {
+        case 1:
+            gapVal = 5;
+            break;
+        case 2:
+            gapVal = 3;
+            break;
+        case 3:
+            gapVal = 1;
+            break;
+        case 4:
+            gapVal = 1;
+            break;
+        case 5:
+            gapVal = 1;
+            break;
+    } 
 
     $('#' + id).html("");
     $('#' + id).kendoChart({
@@ -632,6 +648,7 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
         },
         seriesDefaults: {
             type: "column",
+            gap: gapVal,
         },
         series: [{
             type: "column",
@@ -980,7 +997,7 @@ pg.ChartWindAvail = function () {
 pg.DTLEbyType = function (dataSource) {
     $("#chartDTLEbyType").kendoChart({
         dataSource: {
-            data: dataSource.source,
+            data: dataSource,
             group: [{ field: "_id.id3" }],
             sort: { field: "_id.id1", dir: 'asc' }
         },
@@ -993,7 +1010,7 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 160
+            height: 220
         },
         seriesDefaults: {
             type: "column",
@@ -1067,7 +1084,7 @@ pg.DTLEbyType = function (dataSource) {
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            sharedTemplate: kendo.template($("#templateDTLEbyType").html()),
+            // sharedTemplate: kendo.template($("#templateDTLEbyType").html()),
             background: "rgb(255,255,255, 0.9)",
             shared: true,
             color: "#58666e",
@@ -1307,18 +1324,23 @@ pg.loadData = function () {
             pg.DTDuration(res.data.duration);
             pg.DTFrequency(res.data.frequency);
             pg.TopTurbineLoss(res.data.loss);
-            pg.TLossCat('chartLCByLTE', true, res.data.catloss, 'MWh');
+            // pg.TLossCat('chartLCByLTE', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByDuration', true, res.data.catlossduration, 'Hours');
             pg.TLossCat('chartLCByFreq', true, res.data.catlossfreq, 'Times');
         });
-        // var project = $("#projectId").data("kendoDropDownList").value();
-        var paramdown = { ProjectName: fa.project, Date: maxdate };
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", paramdown, function (res) {
+        var paramdown = {
+            Period: fa.period,
+            DateStart: fa.dateStart,
+            DateEnd: fa.dateEnd,
+            Turbine: fa.turbine,
+            Project: fa.project
+        };
+        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeloss", paramdown, function (res) {
             if (!toolkit.isFine(res)) {
                 return;
             }
-            pg.DTLEbyType(res.data.lostenergybytype[0]);
+            pg.DTLEbyType(res.data);
         });
     }, 100);
 }
@@ -1344,7 +1366,9 @@ pg.refreshGrid = function () {
         $("#chartLCByTEL").data("kendoChart").refresh();
         $("#chartLCByDuration").data("kendoChart").refresh();
         $("#chartLCByFreq").data("kendoChart").refresh();
-    }, 30);
+
+        $("#chartDTLEbyType").data("kendoChart").refresh();
+    }, 1000);
 }
 
 pg.SetBreakDown = function () {
@@ -1375,7 +1399,7 @@ pg.SetBreakDown = function () {
 
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
-vm.breadcrumb([{ title: 'KPI', href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 
 $(document).ready(function () {

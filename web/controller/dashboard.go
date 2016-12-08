@@ -544,6 +544,96 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	machinedown, _ := getMachineDownType()
+	projectList := []string{}
+	if p.Project == "" {
+		projectList, e = getProject()
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+	} else {
+		projectList = []string{p.Project}
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	var pipes []tk.M
+	match := tk.M{}
+
+	match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+
+	if len(p.Turbine) != 0 {
+		match.Set("turbine", tk.M{"$in": p.Turbine})
+	}
+	result := []tk.M{}
+
+	for _, project := range projectList {
+		for field, mdName := range machinedown {
+			pipes = []tk.M{}
+			match.Set("projectname", project)
+			match.Set(field, true)
+			pipes = append(pipes, tk.M{"$match": match})
+			groups := tk.M{
+				"_id": tk.M{
+					"id1": mdName,
+					"id2": mdName,
+					"id3": project,
+				},
+				"powerlost": tk.M{"$sum": "$powerlost"},
+				"duration":  tk.M{"$sum": "$duration"},
+				"frequency": tk.M{"$sum": 1},
+			}
+			pipes = append(pipes, tk.M{"$group": groups})
+
+			csr, e := DB().Connection.NewQuery().
+				From(new(Alarm).TableName()).
+				Command("pipe", pipes).
+				Cursor(nil)
+
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
+
+			tmpRes := []tk.M{}
+			e = csr.Fetch(&tmpRes, 0, false)
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
+			csr.Close()
+
+			found := false
+			if tk.SliceLen(tmpRes) > 0 {
+				found = true
+				tmpRes[0]["powerlost"] = tmpRes[0].GetFloat64("powerlost") / 1000
+				result = append(result, tmpRes[0])
+			}
+
+			if !found {
+				emptyRes := tk.M{}
+				emptyRes.Set("_id", tk.M{"id1": mdName, "id2": mdName, "id3": tk.ToString(project)})
+				emptyRes.Set("powerlost", 0)
+				emptyRes.Set("duration", 0)
+				emptyRes.Set("frequency", 0)
+
+				result = append(result, emptyRes)
+			}
+			match.Unset(field)
+		}
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
 func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
