@@ -199,15 +199,15 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			switch key {
 			case "Machine Availability":
 				// values = (hourValue - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
-				values = (minutes - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
+				values = tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Grid Availability":
 				// values = (hourValue - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
-				values = (minutes - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
+				values = tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Total Availability":
-				values = ((val.GetFloat64("oktime") / 3600) / (totalTurbine * hourValue)) * 100
+				values = tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
 				//values = (val.GetFloat64("oktime") / (tk.ToFloat64(duration, 2, tk.RoundingAuto) * 86400 * totalTurbine)) * 100 /*percentage*/
 			case "Data Availability":
-				values = (tk.ToFloat64((val.GetInt("countdata") * 10 / 60), 6, tk.RoundingAuto)) / (hourValue * totalTurbine) * 100
+				values = tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
 				// values = tk.ToFloat64((((val.GetInt("countdata") / totalData) /
 				// 	(duration * 144 )) * 100),
 				// 	6, tk.RoundingAuto) /*percentage*/
@@ -217,9 +217,9 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				ids, _ := tk.ToM(val["_id"])
 				days, _ := tk.ToM(monthDay[tk.ToString(ids.GetInt("monthid"))])
 				if !strings.Contains(breakDown, "dateid") {
-					values = (val.GetFloat64("energy") / 1000) / (days.GetFloat64("days") * 24 * 2.1 * totalTurbine) * 100
+					values = tk.Div((val.GetFloat64("energy")/1000), (days.GetFloat64("days")*24*2.1*totalTurbine)) * 100
 				} else {
-					values = (val.GetFloat64("energy") / 1000) / (24 * 2.1 * totalTurbine) * 100
+					values = tk.Div((val.GetFloat64("energy")/1000), (24*2.1*totalTurbine)) * 100
 				}
 			case "Actual Production":
 				values = val.GetFloat64("energy") / 1000 /*MWh*/
@@ -296,7 +296,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					for iCat := range categories {
 						_ = iCat
 						if strings.Contains(key, "PLF") {
-							values /= tk.ToFloat64(durationMonths, 0, tk.RoundingAuto)
+							values = tk.Div(values, tk.ToFloat64(durationMonths, 0, tk.RoundingAuto))
 							datas = append(datas, values)
 
 							if i == 0 {
@@ -306,12 +306,12 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 								minKey2 = values
 							}
 						} else {
-							datas = append(datas, values/jumCat)
+							datas = append(datas, tk.Div(values, jumCat))
 							if i == 0 {
-								maxKey1 = values / jumCat
+								maxKey1 = tk.Div(values, jumCat)
 							} else {
-								maxKey2 = values / jumCat
-								minKey2 = values / jumCat
+								maxKey2 = tk.Div(values, jumCat)
+								minKey2 = tk.Div(values, jumCat)
 							}
 						}
 					}

@@ -165,7 +165,7 @@ km.createChart = function (dataSource) {
 
 vm.currentMenu('Compare Metrics');
 vm.currentTitle('Compare Metrics');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Compare Metrics', href: viewModel.appName + 'page/analytickeymetrics' }]);
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Compare Metrics', href: viewModel.appName + 'page/analytickeymetrics' }]);
 
 km.setBreakDown = function () {
 	km.breakdownList = [];
