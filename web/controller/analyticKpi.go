@@ -185,7 +185,7 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		minDate := val.Get("mindate").(time.Time)
 		maxDate := val.Get("maxdate").(time.Time)
 
-		hourValue := helper.GetHourValue(tStart, tEnd, minDate, maxDate)
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
 		// hourValue := val.GetFloat64("minutes") / 60.0
 		okTime := val.GetFloat64("oktime")
@@ -463,6 +463,28 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		}
 	}
 
+	//Based Date=============
+	_basedcolsdata := []tk.M{}
+	if colBreakdown == "Date" {
+		for i := 0; i < (tk.ToInt(tEnd.Format("20060102"), "") - tk.ToInt(tStart.Format("20060102"), "") + 1); i++ {
+			tmpCol := tk.M{}
+			tmpCol.Set("KeyA", 0.0)
+			tmpCol.Set("KeyB", 0.0)
+			tmpCol.Set("KeyC", 0.0)
+
+			loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("20060102"), "")+i), "YYYYMMdd").UTC()
+
+			tmpCol.Set("Name", tk.ToString(loopmonth.Format("02 Jan 2006")))
+			tmpCol.Set("TitleKeyA", "MWh")
+			tmpCol.Set("TitleKeyB", "%")
+			tmpCol.Set("TitleKeyC", "Lacs")
+			tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("20060102")))
+
+			_basedcolsdata = append(_basedcolsdata, tmpCol)
+		}
+	}
+	//=============
+
 	for row, column := range result {
 		tmpRes := tk.M{}
 		tmpRes.Set("Row", row)
@@ -506,7 +528,26 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			tmpCol = append(tmpCol, col)
 		}
 
-		tmpRes.Set("Column", tmpCol)
+		if colBreakdown == "Date" && len(tmpCol) != len(_basedcolsdata) {
+			_tmpCol := []tk.M{}
+			ix := 0
+			for _, _val := range _basedcolsdata {
+				// tk.Printfn(">>> %s - %s | %d >>>", _val.GetString("Name"), tmpCol[ix].GetString("Name"), len(tmpCol))
+				if _val.GetString("Name") == tmpCol[ix].GetString("Name") {
+					_tmpCol = append(_tmpCol, tmpCol[ix])
+					ix += 1
+					if ix >= len(tmpCol)-1 {
+						ix = len(tmpCol) - 1
+					}
+				} else {
+					_tmpCol = append(_tmpCol, _val)
+				}
+			}
+			tmpRes.Set("Column", _tmpCol)
+		} else {
+			tmpRes.Set("Column", tmpCol)
+		}
+
 		kpiAnalysisResult = append(kpiAnalysisResult, tmpRes)
 	}
 

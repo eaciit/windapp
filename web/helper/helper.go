@@ -2,7 +2,6 @@ package helper
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	"eaciit/wfdemo/web/helper"
 	"errors"
 	"io"
 	"os"
@@ -578,7 +577,7 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 	}
 
 	if endStr != maxDateStr {
-		daysInMonth := helper.GetDayInYear(maxDate.Year())
+		daysInMonth := GetDayInYear(maxDate.Year())
 		maxDate, _ = time.Parse("060102", maxDateStr+toolkit.ToString(daysInMonth.GetInt(toolkit.ToString(int(maxDate.Month())))))
 	}
 
