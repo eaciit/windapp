@@ -646,7 +646,7 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	}
 
 	downtimeDatas := getDownTimeLostEnergy("project", p)
-	tk.Printf("Payload => %#v\n", p)
+	// tk.Printf("Payload => %#v\n", p)
 	// tk.Printf("Data LostEnergy ==> %#v\n", downtimeDatas)
 	result.Set("lostenergy", downtimeDatas)
 
@@ -720,6 +720,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		matchDown.Set(strings.Replace(strings.ToLower(p.Type), " ", "", 1), true)
 	}
 
+	machinedown, e := getMachineDownType()
 	pipes = append(pipes, tk.M{"$match": match})
 
 	if p.ProjectName != "Fleet" {
@@ -766,17 +767,37 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				},
 			)
 		} else {
-			pipes = append(pipes,
+			/*pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{"_id": tk.M{"id1": "$type", "id2": "$type", "id3": "$projectname"},
 						"powerlost": tk.M{"$sum": "$powerlost"},
+					},
+				},
+			)*/
+
+			pipeIds := tk.M{
+				"id1": "tipe",
+				"id2": "tipe",
+				"id3": "$projectname",
+			}
+
+			for mcd := range machinedown {
+				pipeIds.Set(mcd, "$"+mcd)
+			}
+
+			pipes = append(pipes,
+				tk.M{
+					"$group": tk.M{
+						"_id":       pipeIds,
+						"powerlost": tk.M{"$sum": "$powerlost"},
+						"duration":  tk.M{"$sum": "$duration"},
+						"frequency": tk.M{"$sum": 1},
 					},
 				},
 			)
 		}
 	}
 
-	machinedown, e := getMachineDownType()
 	if e != nil {
 		return nil
 	}
@@ -784,9 +805,9 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	if p.DateStr == "" && tipe != "fleetdowntime" {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
-		for _, pip := range pipes {
+		/*for _, pip := range pipes {
 			log.Printf("%#v \n", pip)
-		}
+		}*/
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(Alarm).TableName()).
@@ -828,7 +849,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 
 		dt, _ := time.Parse("2006-01-02 15:04:05", fromDate.UTC().Format("2006-01")+"-01 00:00:00")
-		lineData := tk.M{}
+		// lineData := tk.M{}
 
 		for _, title := range stack {
 			if tipe != "type" {
@@ -867,6 +888,63 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				}
 			} else if tipe == "type" {
 				source := []tk.M{}
+				var bigPower, bigDuration float64
+				var bigFreq int
+
+				for field, mdName := range machinedown {
+					found := false
+					for _, val := range tmpResult {
+						id := val.Get("_id").(tk.M)
+						id3 := id.GetString("id3")
+
+						found = id.Get(field).(bool)
+						if found && id3 == tk.ToString(title) {
+							powerlost := val.GetFloat64("powerlost") * 0.001
+							duration := val.GetFloat64("duration")
+							frequency := val.GetInt("frequency")
+
+							if powerlost > bigPower {
+								bigPower = powerlost
+							}
+							if duration > bigDuration {
+								bigDuration = duration
+							}
+							if frequency > bigFreq {
+								bigFreq = frequency
+							}
+
+							foundRes := tk.M{}
+							foundRes.Set("_id", tk.M{"id1": mdName, "id2": mdName, "id3": tk.ToString(title)})
+							foundRes.Set("powerlost", powerlost)
+							foundRes.Set("duration", duration)
+							foundRes.Set("frequency", frequency)
+
+							source = append(source, foundRes)
+							break
+						}
+					}
+					if !found {
+						emptyRes := tk.M{}
+						emptyRes.Set("_id", tk.M{"id1": mdName, "id2": mdName, "id3": tk.ToString(title)})
+						emptyRes.Set("powerlost", 0)
+						emptyRes.Set("duration", 0)
+						emptyRes.Set("frequency", 0)
+
+						source = append(source, emptyRes)
+					}
+				}
+
+				data := tk.M{
+					"maxPowerLost": bigPower * 3,
+					"minPowerLost": 0,
+					"maxDuration":  bigDuration * 3,
+					"minDuration":  bigDuration - (bigDuration * 3),
+					"maxFreq":      bigFreq * 2,
+					"minFreq":      bigFreq - (bigFreq * 2),
+					"source":       source}
+				result = append(result, data)
+
+				/*source := []tk.M{}
 				groups := tk.M{
 					"_id":       "$projectname",
 					"duration":  tk.M{"$sum": "$duration"},
@@ -949,7 +1027,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 					"maxFreq":      bigFreq * 2,
 					"minFreq":      bigFreq - (bigFreq * 2),
 					"source":       source}
-				result = append(result, data)
+				result = append(result, data)*/
 			}
 		}
 	} else {
@@ -1513,7 +1591,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 			scada.Unset("minutes")
 		}
 	}
-	tk.Println()
+	// tk.Println()
 	return
 }
 
