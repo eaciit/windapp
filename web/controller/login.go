@@ -59,6 +59,7 @@ func (l *LoginController) GetMenuList(r *knot.WebContext) interface{} {
 	if err := r.GetPayload(&payload); err != nil {
 		return helper.CreateResult(false, "", err.Error())
 	}
+
 	maxURLLen := 4
 	urlSplit := strings.SplitN(payload.GetString("url"), "/", maxURLLen)
 	if len(urlSplit) == maxURLLen {
@@ -75,12 +76,48 @@ func (l *LoginController) GetMenuList(r *knot.WebContext) interface{} {
 				isFound = true
 			}
 			if !isFound {
+
 				return helper.CreateResult(false, "", "You don't have access to this page")
 			}
 		}
 	}
 
 	return helper.CreateResult(true, menuList, "")
+}
+
+func getMenus(r *knot.WebContext) (interface{}, error) {
+	menuList, err := GetListOfMenu(toolkit.ToString(r.Session("sessionid", "")))
+	if err != nil {
+		return nil, err
+	}
+
+	payload := toolkit.M{}
+	if err := r.GetPayload(&payload); err != nil {
+		return nil, err
+	}
+
+	maxURLLen := 4
+	urlSplit := strings.SplitN(payload.GetString("url"), "/", maxURLLen)
+	if len(urlSplit) == maxURLLen {
+		url := "/" + urlSplit[maxURLLen-1]
+
+		isFound := false
+		if len(MenuList) > 0 {
+			for _, val := range MenuList {
+				if val == url {
+					isFound = true
+				}
+			}
+			if url == "/web/page/login" {
+				isFound = true
+			}
+			if !isFound {
+				return nil, err
+			}
+		}
+	}
+
+	return menuList, err
 }
 
 func (l *LoginController) GetUserName(r *knot.WebContext) interface{} {
@@ -110,13 +147,14 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 		return helper.CreateResult(false, "", err.Error())
 	}
 	MenuList = []string{}
-	menulis, sessid, err := LoginProcess(payload)
+	menus, sessid, err := LoginProcess(payload)
 	if err != nil {
 		return helper.CreateResult(false, "", err.Error())
 	}
 	WriteLog(sessid, "login", r.Request.URL.String())
 	r.SetSession("sessionid", sessid)
-	MenuList = menulis
+	r.SetSession("menus", menus)
+	MenuList = menus
 
 	// temporary add last date hardcode, then will change to get it from database automatically
 	// add by ams, 2016-10-04

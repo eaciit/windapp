@@ -1374,37 +1374,48 @@ func getLossCategoriesTop(topType string, p *PayloadDashboard) (result []tk.M) {
 func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 	var fromDate time.Time
 	match := tk.M{}
+	totalTurbine := 24.0
 
 	if p.DateStr == "" {
-		fromDate = p.Date.AddDate(0, -13, 0)
+		fromDate = p.Date.AddDate(0, -12, 0)
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
-
-		group := tk.M{}
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
 		}
 
-		group.Set("_id", tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"})
+		group := tk.M{
+			"_id":     tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
+			"minutes": tk.M{"$sum": "$minutes"},
+			"maxdate": tk.M{"$max": "$dateinfo.dateid"},
+			"mindate": tk.M{"$min": "$dateinfo.dateid"},
+		}
 
 		if availType == "machine" {
-			group.Set("result", tk.M{"$avg": "$machineavail"})
+			group.Set("result", tk.M{"$sum": "$machinedowntime"})
+			// group.Set("result", tk.M{"$avg": "$machineavail"})
 		} else if availType == "grid" {
-			group.Set("result", tk.M{"$avg": "$gridavail"})
+			group.Set("result", tk.M{"$sum": "$griddowntime"})
+			// group.Set("result", tk.M{"$avg": "$gridavail"})
 		}
 
 		pipe := []tk.M{
 			{"$match": match},
 			{"$group": group},
-			{"$sort": tk.M{"result": -1}},
-			{"$limit": 10},
+			{"$sort": tk.M{"_id.id1": -1}},
+			{"$limit": 12},
 		}
 
 		// tk.Printf("pipe: %#v \n", pipe)
 
+		/*csr, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryDaily).TableName()).
+		Command("pipe", pipe).
+		Cursor(nil)*/
+
 		csr, e := DB().Connection.NewQuery().
-			From(new(ScadaSummaryDaily).TableName()).
+			From(new(ScadaData).TableName()).
 			Command("pipe", pipe).
 			Cursor(nil)
 
@@ -1431,7 +1442,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 		// dayInYear := tk.M{}
 		tmpFromDate := fromDate.AddDate(0, 1, 0)
 		dateInfoTo := GetDateInfo(p.Date)
-
+		tk.Println(availType)
 		for _, project := range projects {
 
 		done:
@@ -1449,12 +1460,13 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 
 				for _, res := range tmpResult {
 					id := res.Get("_id").(tk.M)
+					// log.Printf("LOOP: %#v | %#v %v \n", id, dateInfoFrom, project)
 					if dateInfoFrom.MonthId == id.GetInt("id1") && project == id.GetString("id3") {
 						exist = res
 						break existData
 					}
 				}
-
+				tk.Println()
 				if exist != nil {
 					// resVal := exist.GetFloat64("result") / tk.ToFloat64(days, 0, tk.RoundingAuto)
 					// exist.Set("result", resVal)
@@ -1477,9 +1489,27 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 				tmpFromDate = tmpFromDate.AddDate(0, 1, 0)
 			}
 		}
+		for _, scada := range result {
+			res := scada.GetFloat64("result")
+			if res != 0.00 {
+				minDate := scada.Get("mindate").(time.Time)
+				maxDate := scada.Get("maxdate").(time.Time)
+				minutes := scada.GetFloat64("minutes") / 60
 
+				hourValue := helper.GetHourValue(fromDate.UTC(), p.Date.UTC(), minDate.UTC(), maxDate.UTC())
+				avail := (minutes - (res / 3600.0)) / (totalTurbine * hourValue)
+				scada.Set("result", avail)
+
+				// log.Printf("SCADA: %v | %v | %v | %v = %v | %v - %v - %v - %v \n", minutes, res/3600.0, totalTurbine, hourValue, tk.ToFloat64(avail, 2, tk.RoundingAuto), fromDate.UTC().String(), p.Date.UTC().String(), minDate.UTC().String(), maxDate.UTC().String())
+			} else {
+				// log.Printf("SCADA_X: %v | %#v \n", res, scada.Get("_id"))
+			}
+			scada.Unset("maxdate")
+			scada.Unset("mindate")
+			scada.Unset("minutes")
+		}
 	}
-
+	tk.Println()
 	return
 }
 
