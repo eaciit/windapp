@@ -646,7 +646,7 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	}
 
 	downtimeDatas := getDownTimeLostEnergy("project", p)
-	// tk.Printf("Payload => %#v\n", p)
+	tk.Printf("Payload => %#v\n", p)
 	// tk.Printf("Data LostEnergy ==> %#v\n", downtimeDatas)
 	result.Set("lostenergy", downtimeDatas)
 
@@ -706,7 +706,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 	} else {
 		fromDate = p.Date.AddDate(0, -12, 0)
-		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
+		match.Set("startdateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
 	}
 
 	if p.ProjectName != "Fleet" {
@@ -760,8 +760,8 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		if tipe == "project" {
 			pipes = append(pipes,
 				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-						"result": tk.M{"$sum": "$lostenergy"},
+					"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc", "id3": "$projectname"},
+						"result": tk.M{"$sum": "$powerlost"},
 					},
 				},
 			)
@@ -769,7 +769,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{"_id": tk.M{"id1": "$type", "id2": "$type", "id3": "$projectname"},
-						"powerlost": tk.M{"$sum": "$lostenergy"},
+						"powerlost": tk.M{"$sum": "$powerlost"},
 					},
 				},
 			)
@@ -784,8 +784,12 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	if p.DateStr == "" && tipe != "fleetdowntime" {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
+		for _, pip := range pipes {
+			log.Printf("%#v \n", pip)
+		}
+
 		csr, e := DB().Connection.NewQuery().
-			From(new(AlarmSummaryByMonth).TableName()).
+			From(new(Alarm).TableName()).
 			Command("pipe", pipes).
 			Cursor(nil)
 
@@ -1442,7 +1446,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 		// dayInYear := tk.M{}
 		tmpFromDate := fromDate.AddDate(0, 1, 0)
 		dateInfoTo := GetDateInfo(p.Date)
-		tk.Println(availType)
+		// tk.Println(availType)
 		for _, project := range projects {
 
 		done:
@@ -1466,7 +1470,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 						break existData
 					}
 				}
-				tk.Println()
+				// tk.Println()
 				if exist != nil {
 					// resVal := exist.GetFloat64("result") / tk.ToFloat64(days, 0, tk.RoundingAuto)
 					// exist.Set("result", resVal)
