@@ -36,6 +36,16 @@ pm.loadData = function () {
         // app.loading(false);
 
     }, 100);
+    
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+        var minDatetemp = new Date(res.ScadaData[0]);
+        var maxDatetemp = new Date(res.ScadaData[1]);
+        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+        $('#availabledatestartscada2').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendscada2').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+    })
 }
 
 vm.currentMenu('Meteorology');
