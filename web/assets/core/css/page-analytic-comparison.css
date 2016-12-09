@@ -55,8 +55,8 @@
     .column-filter-form{
         max-width: 235px!important;
         min-width: 235px!important;
-        height: 221px!important;
-        max-height: 350px!important;
+        height: 222px;
+        max-height: 220px!important;
         overflow-x: auto;
         padding: 5px;
         border-bottom: 3px solid #ff5722;
@@ -104,4 +104,13 @@
         font-size: 10px;
         font-style: italic;
         font-weight: bold;
+    }
+
+    .databrowser-date-info{
+        background: #ea5b19;
+        margin-bottom: 10px;
+        padding: 5px 10px;
+        color: #fff;
+        font-size: 12px;
+        border-radius: 3px;
     }
