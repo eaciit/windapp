@@ -396,13 +396,13 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	}
 
 	r.SetSession("scadaavaildate", Scadaresults)
-	r.SetSession("alarmavaildate", Scadaresults)
-	r.SetSession("jmravaildate", Scadaresults)
-	r.SetSession("metavaildate", Scadaresults)
-	r.SetSession("durationavaildate", Scadaresults)
-	r.SetSession("scadaanomalyavaildate", Scadaresults)
-	r.SetSession("alarmoverlappingavaildate", Scadaresults)
-	r.SetSession("alarmscadaanomalyavaildate", Scadaresults)
+	r.SetSession("alarmavaildate", Alarmresults)
+	r.SetSession("jmravaildate", JMRresults)
+	r.SetSession("metavaildate", METresults)
+	r.SetSession("durationavaildate", Durationresults)
+	r.SetSession("scadaanomalyavaildate", ScadaAnomalyresults)
+	r.SetSession("alarmoverlappingavaildate", AlarmOverlappingresults)
+	r.SetSession("alarmscadaanomalyavaildate", AlarmScadaAnomalyresults)
 
 	data := toolkit.M{
 		"status":    true,
