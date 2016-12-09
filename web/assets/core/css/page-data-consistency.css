@@ -144,3 +144,12 @@ label.summary-number {
     border-color: #F0F3F4;
     font-weight: 700;
 }
+
+.databrowser-date-info{
+    background: #ea5b19;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    color: #fff;
+    font-size: 12px;
+    border-radius: 3px;
+}
