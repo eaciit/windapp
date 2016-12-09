@@ -54,7 +54,6 @@ var isFirst = true;
 
 var Data = {
     LoadData: function () {
-        fa.DateChange();
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -66,9 +65,6 @@ var Data = {
         var keyA = $('#key1').val();
         var keyB = $('#key2').val();
         var keyC = $('#key3').val();
-
-        fa.dateStart = new Date(Date.UTC(fa.dateStart.getFullYear(), fa.dateStart.getMonth(), fa.dateStart.getDate(), 0, 0, 0));
-        fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
 
         var param = {
             period: fa.period,
