@@ -655,7 +655,8 @@ $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
         app.loading(true);
         setTimeout(function () {
-            Data.LoadData();
+            Data.InitLinePowerCurve()
+            // Data.LoadData();
             // Data.InitLinePowerCurve();
             // if (page.sScater()) { 
             //     Data.getPowerCurve(); 
