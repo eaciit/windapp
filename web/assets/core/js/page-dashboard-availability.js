@@ -34,11 +34,11 @@ avail.loadData = function () {
                 avail.TopTurbineByLoss(res.data.loss);
                 avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh');
                 avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times');
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hrs');
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours');
             }else{
                 avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh');
                 avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times');
-                avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hrs');
+                avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours');
             }
 
             avail.projectMachAvail(res.data.machineAvailability);
@@ -53,9 +53,9 @@ avail.loadData = function () {
                 avail.getMDTypeList();
             }
 
-            setTimeout(function () {
+            /*setTimeout(function () {
                 avail.refreshChart();
-            }, 50);
+            }, 10000);*/
         });
 
         app.loading(false);

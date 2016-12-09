@@ -79,6 +79,9 @@ var Data = {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         if ($("#turbineMulti").data("kendoMultiSelect").value() == "") {
             $('#turbineMulti').data('kendoMultiSelect').value(["All Turbine"])
         }
@@ -252,6 +255,10 @@ var Data = {
     InitGrid: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -432,6 +439,10 @@ var Data = {
     InitGridExceptionTimeDuration: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -597,6 +608,10 @@ var Data = {
     InitGridAnomalies: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -754,6 +769,10 @@ var Data = {
     InitGridAlarm: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -837,6 +856,10 @@ var Data = {
     InitGridAlarmAnomalies: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -919,6 +942,10 @@ var Data = {
     InitOverlapDetail: function (e) {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -996,6 +1023,10 @@ var Data = {
     InitGridAlarmOverlapping: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -1276,6 +1307,10 @@ var Data = {
     InitMet: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var param = {};
 
         $('#dataGridMet').html("");

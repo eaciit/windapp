@@ -138,7 +138,7 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			minDate := val.Get("mindate").(time.Time)
 			maxDate := val.Get("maxdate").(time.Time)
 
-			hourValue := helper.GetHourValue(tStart, tEnd, minDate, maxDate)
+			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
 
 			okTime := val.GetFloat64("oktime")
