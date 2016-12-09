@@ -55,8 +55,8 @@
     .column-filter-form{
         max-width: 235px!important;
         min-width: 235px!important;
-        height: 221px!important;
-        max-height: 350px!important;
+        height: 222px;
+        max-height: 220px!important;
         overflow-x: auto;
         padding: 5px;
         border-bottom: 3px solid #ff5722;
