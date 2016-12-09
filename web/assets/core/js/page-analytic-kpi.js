@@ -79,7 +79,6 @@ var Data = {
             keyC: keyC,
         };
 
-
         if ((new Date(dateStart).getTime() > new Date(dateEnd).getTime())) {
             toolkit.showError("Invalid Date Range Selection");
             return;
@@ -407,9 +406,9 @@ page.setBreakDown = function () {
     }, 1000);
 }
 
-vm.currentMenu('KPI');
-vm.currentTitle('KPI');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'KPI', href: viewModel.appName + 'page/analytickpi' }]);
+vm.currentMenu('KPI Table');
+vm.currentTitle('KPI Table');
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'KPI Table', href: viewModel.appName + 'page/analytickpi' }]);
 
 $(function () {
     page.columnsBreakdown('Daily');

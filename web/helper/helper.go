@@ -518,7 +518,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 		}
 	}
 
-	r.SetSession("custom_lastdate", nil)
+	// r.SetSession("custom_lastdate", nil)
 	return
 }
 
@@ -558,6 +558,35 @@ func GetTurbineList() (result []string, e error) {
 		result = append(result, val.GetString("turbineid"))
 	}
 	sort.Strings(result)
+
+	return
+}
+
+func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate time.Time) (hourValue float64) {
+	startStr := tStart.Format("0601")
+	endStr := tEnd.Format("0601")
+
+	minDateStr := minDate.Format("0601")
+
+	maxDateStr := maxDate.Format("0601")
+
+	if startStr == minDateStr {
+		minDate = tStart
+	} else {
+		minDate, _ = time.Parse("060102", minDateStr+"01")
+	}
+
+	if endStr != maxDateStr {
+		daysInMonth := GetDayInYear(maxDate.Year())
+		maxDate, _ = time.Parse("060102", maxDateStr+toolkit.ToString(daysInMonth.GetInt(toolkit.ToString(int(maxDate.Month())))))
+	}
+
+	start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
+	end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
+
+	// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
+
+	hourValue = toolkit.ToFloat64(end.Sub(start).Hours(), 0, toolkit.RoundingUp)
 
 	return
 }

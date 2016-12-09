@@ -122,7 +122,7 @@ func getDirection(windDir float64, breakDown int) (int, int) {
 		}
 	}
 
-	//dirCalc := math.Mod(windDir, 360.0) /*modulus 360 ben lek dibagi 'divider' hasil e <= section*/
+	//dirCalc := math.Mod(windDir, 360.0) /*modulus 360 biar kalo dibagi 'divider' hasilnya <= section*/
 	dirNo = int(toolkit.RoundingAuto64(toolkit.Div(windDir, float64(divider)), 0))
 
 	if dirNo > (breakDown - 1) {

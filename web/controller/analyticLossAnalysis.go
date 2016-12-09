@@ -460,6 +460,16 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catloss", catloss)
+	catlossduration, e := getCatLossTopFiltered("duration", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("catlossduration", catlossduration)
+	catlossfreq, e := getCatLossTopFiltered("frequency", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("catlossfreq", catlossfreq)
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -521,6 +531,18 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 				pipes = append(pipes,
 					tk.M{
 						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$powerlost"}},
+					},
+				)
+			} else if topType == "duration" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$duration"}},
+					},
+				)
+			} else if topType == "frequency" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": 1}},
 					},
 				)
 			}

@@ -138,15 +138,10 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		sPower = scada.GetFloat64("power") / 1000 // in KWh
 		// hourValue := scada.GetFloat64("minutes") / 60.0
 
-		minDate := tStart
+		minDate := scada.Get("mindate").(time.Time)
 		maxDate := scada.Get("maxdate").(time.Time)
 
-		start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
-		end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
-
-		// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
-
-		hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
 		sEnergy = sPower / 6
 		sOktime = scada.GetFloat64("oktime")

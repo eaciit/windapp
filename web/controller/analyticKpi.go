@@ -182,34 +182,10 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
 		}
 
-		var minDate, maxDate time.Time
+		minDate := val.Get("mindate").(time.Time)
+		maxDate := val.Get("maxdate").(time.Time)
 
-		startStr := tStart.Format("0601")
-		endStr := tEnd.Format("0601")
-
-		minDate = val.Get("mindate").(time.Time)
-		minDateStr := minDate.Format("0601")
-
-		maxDate = val.Get("maxdate").(time.Time)
-		maxDateStr := maxDate.Format("0601")
-
-		if startStr == minDateStr {
-			minDate = tStart
-		} else {
-			minDate, _ = time.Parse("060102", minDateStr+"01")
-		}
-
-		if endStr != maxDateStr {
-			daysInMonth := helper.GetDayInYear(maxDate.Year())
-			maxDate, _ = time.Parse("060102", maxDateStr+tk.ToString(daysInMonth.GetInt(tk.ToString(int(maxDate.Month())))))
-		}
-
-		start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
-		end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
-
-		// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
-
-		hourValue := tk.ToFloat64(end.Sub(start).Hours(), 0, tk.RoundingUp)
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
 		// hourValue := val.GetFloat64("minutes") / 60.0
 		okTime := val.GetFloat64("oktime")
@@ -487,6 +463,28 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		}
 	}
 
+	//Based Date=============
+	_basedcolsdata := []tk.M{}
+	if colBreakdown == "Date" {
+		for i := 0; i < (tk.ToInt(tEnd.Format("20060102"), "") - tk.ToInt(tStart.Format("20060102"), "") + 1); i++ {
+			tmpCol := tk.M{}
+			tmpCol.Set("KeyA", 0.0)
+			tmpCol.Set("KeyB", 0.0)
+			tmpCol.Set("KeyC", 0.0)
+
+			loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("20060102"), "")+i), "YYYYMMdd").UTC()
+
+			tmpCol.Set("Name", tk.ToString(loopmonth.Format("02 Jan 2006")))
+			tmpCol.Set("TitleKeyA", "MWh")
+			tmpCol.Set("TitleKeyB", "%")
+			tmpCol.Set("TitleKeyC", "Lacs")
+			tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("20060102")))
+
+			_basedcolsdata = append(_basedcolsdata, tmpCol)
+		}
+	}
+	//=============
+
 	for row, column := range result {
 		tmpRes := tk.M{}
 		tmpRes.Set("Row", row)
@@ -530,7 +528,26 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			tmpCol = append(tmpCol, col)
 		}
 
-		tmpRes.Set("Column", tmpCol)
+		if colBreakdown == "Date" && len(tmpCol) != len(_basedcolsdata) {
+			_tmpCol := []tk.M{}
+			ix := 0
+			for _, _val := range _basedcolsdata {
+				// tk.Printfn(">>> %s - %s | %d >>>", _val.GetString("Name"), tmpCol[ix].GetString("Name"), len(tmpCol))
+				if _val.GetString("Name") == tmpCol[ix].GetString("Name") {
+					_tmpCol = append(_tmpCol, tmpCol[ix])
+					ix += 1
+					if ix >= len(tmpCol)-1 {
+						ix = len(tmpCol) - 1
+					}
+				} else {
+					_tmpCol = append(_tmpCol, _val)
+				}
+			}
+			tmpRes.Set("Column", _tmpCol)
+		} else {
+			tmpRes.Set("Column", tmpCol)
+		}
+
 		kpiAnalysisResult = append(kpiAnalysisResult, tmpRes)
 	}
 
