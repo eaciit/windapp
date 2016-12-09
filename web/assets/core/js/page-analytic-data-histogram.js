@@ -213,6 +213,14 @@ km.getData = function () {
     fa.LoadData();
     app.loading(true);
 
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+        console.log(res);
+        var minDatetemp = new Date(res.ScadaData[0]);
+        var maxDatetemp = new Date(res.ScadaData[1]);
+        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+    })
+
     $(document).ajaxStop(function () {
         app.loading(false);
         $("#dh-chart").data("kendoChart").refresh();

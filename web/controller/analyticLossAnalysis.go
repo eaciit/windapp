@@ -1162,3 +1162,9 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 	return helper.CreateResult(true, data, "success")
 }
+
+func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	return k.Session("availdate", "")
+}

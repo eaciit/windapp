@@ -72,7 +72,7 @@ var Data = {
                     title: "Performance<br>"+kendo.toString(moment.utc(fa.dateStart).format('DD-MM-YYYY '))+" to " + kendo.toString(moment.utc(fa.dateEnd).format('DD-MM-YYYY')) ,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
-                        { field: "PerformanceIndex", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "PerformanceIndex", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPower", title: "Potential Power <br>(MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "Power", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
@@ -81,7 +81,7 @@ var Data = {
                     title: "Last 24 Hours",
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
-                        { field: "PerformanceIndexLast24Hours", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" }, format: "{0:n2}"},
+                        { field: "PerformanceIndexLast24Hours", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" }, format: "{0:n2}"},
                         { field: "PotentialPowerLast24Hours", title: "Potential Power <br>(MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PowerLast24Hours", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
@@ -90,7 +90,7 @@ var Data = {
                     title: "Last Week",
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
-                        { field: "PerformanceIndexLastWeek", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "PerformanceIndexLastWeek", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPowerLastWeek", title: "Potential Power <br>(MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PowerLastWeek", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
@@ -99,7 +99,7 @@ var Data = {
                     title: "MTD",
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
-                        { field: "PerformanceIndexMTD", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "PerformanceIndexMTD", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPowerMTD", title: "Potential Power <br>(MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PowerMTD", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
@@ -108,7 +108,7 @@ var Data = {
                     title: "YTD",
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
-                        { field: "PerformanceIndexYTD", title: "PI <br> (%)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "PerformanceIndexYTD", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPowerYTD", title: "Potential Power<br>(MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PowerYTD", title: "Actual Power <br> (MW)", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
