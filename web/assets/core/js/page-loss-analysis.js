@@ -176,7 +176,7 @@ pg.GridLoss = function () {
                     headerAttributes: {
                         style: "text-align:center;"
                     },
-                    footerTemplate: "<center>Total</center>"
+                    footerTemplate: "<center>Total (All Turbines)</center>"
                 }, {
                     title: "Production",
                     headerAttributes: {
