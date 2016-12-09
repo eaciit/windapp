@@ -137,6 +137,7 @@ pg.GridLoss = function () {
         turbine: fa.turbine,
         project: fa.project,
     };
+
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
         if (!app.isFine(res)) {
             app.loading(false);
@@ -1314,6 +1315,24 @@ pg.loadData = function () {
 
         // console.log(param);
         pg.getPeriodDesc();
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+            var minDatetemp = new Date(res.ScadaData[0]);
+            var maxDatetemp = new Date(res.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+            $('#availabledatestartscada2').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada2').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+            $('#availabledatestartalarm').html(kendo.toString(moment.utc(res.Alarm[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendalarm').html(kendo.toString(moment.utc(res.Alarm[1]).format('DD-MMMM-YYYY')));
+
+            $('#availabledatestartscada3').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada3').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+            $('#availabledatestartalarm2').html(kendo.toString(moment.utc(res.Alarm[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendalarm2').html(kendo.toString(moment.utc(res.Alarm[1]).format('DD-MMMM-YYYY')));
+        })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
             // console.log(res);
@@ -1343,6 +1362,13 @@ pg.loadData = function () {
             pg.DTLEbyType(res.data);
         });
     }, 100);
+    console.log(app.dateAvail);
+    var tes = app.dateAvail;
+    for(var key in tes){
+        // The key is key
+        // The value is obj[key]
+        console.log(key);
+    }
 }
 
 pg.refreshGrid = function () {
