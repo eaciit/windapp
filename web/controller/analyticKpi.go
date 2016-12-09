@@ -185,7 +185,7 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		minDate := val.Get("mindate").(time.Time)
 		maxDate := val.Get("maxdate").(time.Time)
 
-		hourValue := helper.GetHourValue(tStart, tEnd, minDate, maxDate)
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
 		// hourValue := val.GetFloat64("minutes") / 60.0
 		okTime := val.GetFloat64("oktime")
