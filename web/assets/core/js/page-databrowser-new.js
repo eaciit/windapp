@@ -92,6 +92,9 @@ var Data = {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         if ($("#turbineMulti").data("kendoMultiSelect").value() == "") {
             $('#turbineMulti').data('kendoMultiSelect').value(["All Turbine"])
         }
@@ -178,6 +181,10 @@ var Data = {
     InitScadaGrid: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -412,6 +419,10 @@ var Data = {
 	InitCustomGrid: function(){
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -552,6 +563,10 @@ var Data = {
     InitDEgrid: function() {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+        
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
