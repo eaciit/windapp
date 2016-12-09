@@ -1,0 +1,146 @@
+label.control-label {
+	padding: 3.9px 30px 6px 6px;
+	display: inline-block;
+	height: 27.5px;
+	font-weight: bold;
+}
+label.summary-header {
+	padding: 5px 0px 0px 5px;
+	font-size: 14px;
+	color: #585555;
+	text-align:center;	
+}
+label.summary-number {
+	padding: 0px 0px 5px 5px;
+	font-size: 22px;
+	color: #585555 ;
+	text-align:center;
+	margin-top: -5px;
+}
+
+.control-input {
+	padding: 0px 0px 0px 4px;
+	background: transparent;
+}
+
+.control-tab {
+	padding: 10px 0px 0px 0px;
+	background: transparent;
+}
+
+.control-summary {
+	/*border-radius: 3%;*/
+	padding: 0px 0px 0px 0px;
+	width: 200px;
+	height: 60px;
+	margin: 0px 15px 15px 0px;
+	/*box-shadow: 5px 7px 5px #888888;*/
+	overflow: hidden;
+	text-align: center;
+	border: 1px solid #dedeec;
+}
+.control-summary-img {
+	size:50%;
+	float:left;
+	content:url("{{BaseUrl}}res/img/chart.png");
+}
+
+.left-border-org{
+	background-color: #ffffff; 
+	float: left;
+	border-left: 4px solid #eb5b19;
+}
+.left-border-org-no-float{
+	background-color: #ffffff;
+	border-left: 4px solid #eb5b19;
+}
+.left-border-green{
+	background-color: #ffffff; 
+	float: left;
+	border-left: 4px solid #74b841;
+}
+.left-border-green-no-float{
+	background-color: #ffffff;
+	border-left: 4px solid #74b841;
+}
+/*.grid-custom tbody tr:hover {
+    background: #ea5b19;
+    opacity: 0.5;
+    color: white;
+}*/
+.middle-header{
+	padding-top: 10px;
+}
+
+.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-locked>table>thead>tr{
+	height: 74px;
+}
+.back-btn{
+    margin-bottom: 15px;
+}
+
+.turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.turbine-chk{
+	width: 20px;
+    height: 20px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.turbine-chk:hover{
+    color: #fff;
+}
+.turbine-chk:active{
+    color: #fff;
+}
+.custom-header{
+	margin-top: -35px;
+	padding-left: 2px;
+}
+#showHideChk, #isCleanDiv{
+	margin-top: -5px;
+	margin-left: -18px;
+}
+
+.radio-filter {
+	width: 100px !important;
+	margin-bottom: 2px !important;
+}
+
+.detaildowntime{
+	padding-top: 42px;
+}
+
+/*div.k-tooltip.k-chart-tooltip{
+	margin-top: -100px!important;
+}*/
+
+#chartCustomTooltip {
+	margin-top: -100px !important;
+	display: none;
+	background: rgb(255, 255, 255) !important;
+	color : "#58666e";
+	font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+	border: 2px solid #eee;
+	padding: 10px;
+	z-index:11;
+	opacity: 1;
+	width: 170px!important;
+}
+
+#lossChart{
+	padding-top: 15px;
+}
+.k-grid-footer td, .k-group-footer td, .k-grouping-row td {
+    color: #585555;
+    border-color: #F0F3F4;
+    font-weight: 700;
+}

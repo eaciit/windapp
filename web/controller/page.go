@@ -28,6 +28,8 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 	w.Params.Set("AntiCache", toolkit.RandomString(20))
 	w.Params.Set("CurrentDateData", helper.GetLastDateData(r))
 
+	// w.Params.Set("Menus", r.Session("menus", []string{}))
+
 	if isAnalyst {
 		projectList, _ := helper.GetProjectList()
 		turbineList, _ := helper.GetTurbineList()
@@ -76,47 +78,47 @@ func (w *PageController) DataBrowserNew(r *knot.WebContext) interface{} {
 	return w.GetParams(r, false).Set("ColumnList", GetCustomFieldList())
 }
 
-func (w *PageController) AnalyticWindDistribution(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticWindDistribution(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-wind-distribution.html"
 	return w.GetParams(r, true)
-}
+}*/
 
-func (w *PageController) AnalyticWindAvailability(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticWindAvailability(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-wind-availability-analysis.html"
 	return w.GetParams(r, true)
-}
+}*/
 
-func (w *PageController) AnalyticWindRose(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticWindRose(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-wind-rose.html"
 	return w.GetParams(r, true)
-}
+}*/
 
-func (w *PageController) AnalyticWindRoseDetail(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticWindRoseDetail(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-wind-rose-detail.html"
 	return w.GetParams(r, true)
-}
+}*/
 
-func (w *PageController) AnalyticWindRoseFlexi(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticWindRoseFlexi(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-wind-rose-flexi.html"
 	return w.GetParams(r, true)
-}
+}*/
 
-func (w *PageController) AnalyticWRFlexiDetail(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticWRFlexiDetail(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-wr-flexi-detail.html"
 	return w.GetParams(r, true)
-}
+}*/
 
 func (w *PageController) AnalyticPerformanceIndex(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
@@ -134,12 +136,12 @@ func (w *PageController) AnalyticPowerCurve(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
-func (w *PageController) AnalyticDgrScada(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticDgrScada(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-dgr-scada.html"
 	return w.GetParams(r, true)
-}
+}*/
 
 func (w *PageController) AnalyticKeyMetrics(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
@@ -157,13 +159,13 @@ func (w *PageController) AnalyticKpi(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
-func (w *PageController) AnalyticAvailability(r *knot.WebContext) interface{} {
+/*func (w *PageController) AnalyticAvailability(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-availability-analysis.html"
 
 	return w.GetParams(r, true)
-}
+}*/
 
 func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
@@ -172,6 +174,23 @@ func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, true)
 }
+
+func (w *PageController) AnalyticDataConsistency(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-data-consistency.html"
+
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-meteorology.html"
+
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) AnalyticComparison(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
@@ -258,5 +277,54 @@ func (w *PageController) Dashboard(r *knot.WebContext) interface{} {
 
 func (w *PageController) Home(r *knot.WebContext) interface{} {
 	http.Redirect(r.Writer, r.Request, "dashboard", http.StatusTemporaryRedirect)
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) TurbineHealth(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-turbine-health.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) DataSensorGovernance(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-data-sensor-governance.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) TimeSeries(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-time-series.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) DIYView(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-diy-view.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) SCMManagement(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-scm.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) IssueTracking(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-issue-tracking.html"
+	return w.GetParams(r, false)
+}
+
+func (w *PageController) Reporting(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-reporting.html"
 	return w.GetParams(r, false)
 }
