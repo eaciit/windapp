@@ -86,6 +86,13 @@ var Data = {
     InitLinePowerCurve: function () {
         page.deviationVal($("#deviationValue").val());
 
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+            var minDatetemp = new Date(res.ScadaData[0]);
+            var maxDatetemp = new Date(res.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        })
+
         var link = "analyticpowercurve/getlistpowercurvescada"
 
         app.loading(true);
