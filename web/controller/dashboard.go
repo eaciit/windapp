@@ -700,13 +700,15 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		dateInfo := GetDateInfo(date)
 
 		if tipe == "fleetdowntime" {
-			matchDown.Set("startdateinfo.monthid", dateInfo.MonthId)
+			matchDown.Set("detail.detaildateinfo.monthid", dateInfo.MonthId)
 		} else {
 			match.Set("dateinfo.monthid", dateInfo.MonthId)
 		}
 	} else {
 		fromDate = p.Date.AddDate(0, -12, 0)
-		match.Set("startdateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
+		match.Set("detail.detaildateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
+		tk.Println("From Date: ", fromDate)
+		tk.Println("PayLoad Date: ", p.Date)
 	}
 
 	if p.ProjectName != "Fleet" {
@@ -759,10 +761,11 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 	} else {
 		if tipe == "project" {
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
 			pipes = append(pipes,
 				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc", "id3": "$projectname"},
-						"result": tk.M{"$sum": "$powerlost"},
+					"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$projectname"},
+						"result": tk.M{"$sum": "$detail.powerlost"},
 					},
 				},
 			)
@@ -785,12 +788,13 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				pipeIds.Set(mcd, "$"+mcd)
 			}
 
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
 			pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{
 						"_id":       pipeIds,
-						"powerlost": tk.M{"$sum": "$powerlost"},
-						"duration":  tk.M{"$sum": "$duration"},
+						"powerlost": tk.M{"$sum": "$detail.powerlost"},
+						"duration":  tk.M{"$sum": "$detail.duration"},
 						"frequency": tk.M{"$sum": 1},
 					},
 				},
@@ -805,9 +809,9 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	if p.DateStr == "" && tipe != "fleetdowntime" {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
-		/*for _, pip := range pipes {
+		for _, pip := range pipes {
 			log.Printf("%#v \n", pip)
-		}*/
+		}
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(Alarm).TableName()).
