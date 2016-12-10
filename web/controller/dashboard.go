@@ -1573,7 +1573,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 		}
 		for _, scada := range result {
 			res := scada.GetFloat64("result")
-			if res != 0.00 {
+			if scada.Get("mindate") != nil {
 				minDate := scada.Get("mindate").(time.Time)
 				maxDate := scada.Get("maxdate").(time.Time)
 				minutes := scada.GetFloat64("minutes") / 60
