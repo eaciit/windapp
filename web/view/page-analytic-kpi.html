@@ -92,6 +92,14 @@
 		background-color: #fff;
 		color: #585555;
 	}
+	.databrowser-date-info{
+	    background: #ea5b19;
+	    margin-bottom: 10px;
+	    padding: 5px 10px;
+	    color: #fff;
+	    font-size: 12px;
+	    border-radius: 3px;
+	}
 </style>
 <div class="row">
 	{{template "_filter-analytic.html"}}
@@ -108,6 +116,9 @@
 					</div>
 				</div>
 				<div class="panel-body MB20">
+					<div class="databrowser-date-info">
+                        Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                    </div>
 					<div class="col-md-12 col-sm-12 list">
 						<label class="col-md-1 col-sm-1 control-label keyA-label">Key A</label>
 						<select class="col-md-1 col-sm-1" id="key1" name="table" data-bind="kendoDropDownList: { data: page.key1, dataValueField: 'value', dataTextField: 'text', suggest: true}"
