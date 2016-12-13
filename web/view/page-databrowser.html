@@ -38,13 +38,16 @@
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="Main">
                             <ul class="nav nav-tabs" role="tablist">
-                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#Generation" aria-controls="Generation" role="tab" data-toggle="tab" class="tab-custom">Scada Data</a></li>
-                                <li id="alarmTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#Alarm" aria-controls="Alarm" role="tab" data-toggle="tab" class="tab-custom">Alarm Data</a></li>
-                                <li id="jmrTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
+                               <!--  <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#Generation" aria-controls="Generation" role="tab" data-toggle="tab" class="tab-custom">Scada Data</a></li>
+                                <li id="alarmTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#Alarm" aria-controls="Alarm" role="tab" data-toggle="tab" class="tab-custom">Alarm Data</a></li> -->
+                                <li id="jmrTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
                                 <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
+                                <li id="scadaTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#scada" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
+                                <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
+                                <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
                             </ul>
                             <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane active" id="Generation">
+                               <!--  <div role="tabpanel" class="tab-pane active" id="Generation">
                                     <div class="databrowser-date-info">
                                         Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
                                     </div>
@@ -115,8 +118,8 @@
                                     <div class="tab-pane-content">
                                         <div id="dataGridAlarm" class="grid-custom"></div>
                                     </div>
-                                </div>
-                                <div role="tabpanel" class="tab-pane" id="JMR">
+                                </div> -->
+                                <div role="tabpanel" class="tab-pane active" id="JMR">
                                     <div class="databrowser-date-info">
                                         Data Available from: <strong><span id="availabledatestartjmr">-</span></strong> until: <strong><span id="availabledateendjmr">-</span></strong>
                                     </div>
@@ -140,6 +143,86 @@
                                         <div id="dataGridMet" class="grid-met"></div>
                                     </div>
                                 </div>
+
+                                 <div role="tabpanel" class="tab-pane " id="scada">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartscadadataoem">-</span></strong> until: <strong><span id="availabledateendscadadataoem">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbine" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldata" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Active Power</label><br />
+                                        <label id="totalactivepower" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green">
+                                        <label class="summary-header">Total Production</label><br />
+                                        <label id="totalprodoem" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Average Wind Speed</label><br />
+                                        <label id="avgwindspeedoem" class="summary-number">0</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div id="scadaGrid" class="grid-custom-db-new"></div>
+                                    </div>
+                                </div>
+
+                                <div role="tabpanel" class="tab-pane" id="downtimeevent">
+                                    <div class="databrowser-date-info">
+                                        Data Available from: <strong><span id="availabledatestartDE">-</span></strong> until: <strong><span id="availabledateendDE">-</span></strong>
+                                    </div>
+                                    <div class="control-summary left-border-org">
+                                        <label class="summary-header">Total Turbine</label><br />
+                                        <label id="totalturbineDE" class="summary-number">0</label>
+                                    </div>
+                                    <div class="control-summary left-border-green">
+                                        <label class="summary-header">Total Data</label><br />
+                                        <label id="totaldataDE" class="summary-number">0</label>
+                                    </div>
+                                    <div class="tab-pane-content">
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div id="DEgrid" class="grid-custom-db-new"></div>
+                                    </div>
+                                </div>
+
+                                 <div role="tabpanel" class="tab-pane" id="custom">
+                                     <div class="tab-pane-content">
+                                        <div class="databrowser-date-info">
+                                            Data Available from: <strong><span id="availabledatestartCustom">-</span></strong> until: <strong><span id="availabledateendCustom">-</span></strong>
+                                        </div>
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Total Turbine</label><br />
+                                            <label id="totalturbineCustom" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-green">
+                                            <label class="summary-header">Total Data</label><br />
+                                            <label id="totaldataCustom" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Total Active Power</label><br />
+                                            <label id="totalactivepowerCustom" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-green">
+                                            <label class="summary-header">Total Production</label><br />
+                                            <label id="totalprodCustom" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Average Wind Speed</label><br />
+                                            <label id="avgwindspeedCustom" class="summary-number">0</label>
+                                        </div>
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div id="customGrid" class="grid-custom-db-new"></div>
+                                    </div>
+                                 </div>
+
+
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="Exception">
@@ -284,3 +367,44 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalShowHide" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span>Show Hide Column</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-5">
+                    <div id="columnList"></div>
+                </div>
+                <div class="col-md-2 div-control">
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToRight" data-bind="click:function() {dbr.selectRow()}"><i class="fa fa-angle-double-left"></i></button>
+                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToLeft" data-bind="click:function() {dbr.unselectRow()}"><i class="fa fa-angle-double-right"></i></button>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div id="selectedList"></div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">
+                    Cancel
+                </button>
+                <button class="btn btn-sm btn-primary" onclick="dbr.showColumn()">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+<script>
+    dbr.ColumnList({{.ColumnList}});
+</script>
