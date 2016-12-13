@@ -1180,7 +1180,7 @@ func (m *DataBrowserController) GetJMRAvailDate(k *knot.WebContext) interface{} 
 			arrsort = append(arrsort, "-dateinfo.dateid")
 		}
 
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
+		query := DB().Connection.NewQuery().From(new(JMR).TableName()).Skip(0).Take(1)
 		query = query.Order(arrsort...)
 
 		csr, e := query.Cursor(nil)
@@ -1268,7 +1268,8 @@ func (m *DataBrowserController) GetDurationAvailDate(k *knot.WebContext) interfa
 			arrsort = append(arrsort, "-timestamp")
 		}
 
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(dbox.Eq("isvalidtimeduration", false))).Skip(0).Take(1)
+		// query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(dbox.Eq("isvalidtimeduration", false))).Skip(0).Take(1)
+		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
 		query = query.Order(arrsort...)
 
 		csr, e := query.Cursor(nil)
