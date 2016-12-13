@@ -98,8 +98,15 @@ pg.loadData = function () {
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
         var minDatetemp = new Date(res.ScadaData[0]);
         var maxDatetemp = new Date(res.ScadaData[1]);
+
+        var dgrMinDatetemp = new Date(res.DGRData[0]);
+        var dgrMaxDatetemp = new Date(res.DGRData[1]);
+
         $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+        $('#availabledatestartdgr').html(kendo.toString(moment.utc(dgrMinDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendsdgr').html(kendo.toString(moment.utc(dgrMaxDatetemp).format('DD-MMMM-YYYY')));
     }),
     fa.getProjectInfo();
     setTimeout(function () {

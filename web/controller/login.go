@@ -184,257 +184,29 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	r.SetSession("lastdate_data", lastDateData)
 
 	// Get Available Date All Collection
-	Scadaresults := make([]time.Time, 0)
-	Alarmresults := make([]time.Time, 0)
-	JMRresults := make([]time.Time, 0)
-	METresults := make([]time.Time, 0)
-	Durationresults := make([]time.Time, 0)
-	ScadaAnomalyresults := make([]time.Time, 0)
-	AlarmOverlappingresults := make([]time.Time, 0)
-	AlarmScadaAnomalyresults := make([]time.Time, 0)
+	scadaResults := make([]time.Time, 2)
+	dgrResults := make([]time.Time, 2)
+	alarmResults := make([]time.Time, 2)
+	jmrResults := make([]time.Time, 2)
+	metResults := make([]time.Time, 2)
+	durationResults := make([]time.Time, 2)
+	scadaAnomalyresults := make([]time.Time, 2)
+	alarmOverlappingresults := make([]time.Time, 2)
+	alarmScadaAnomalyresults := make([]time.Time, 2)
 
-	// Scada Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Scadaresults = append(Scadaresults, val.TimeStamp.UTC())
-		}
-	}
-
-	// Alarm Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "startdate")
-		} else {
-			arrsort = append(arrsort, "-startdate")
-		}
-
-		query := DB().Connection.NewQuery().From(new(Alarm).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]Alarm, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Alarmresults = append(Alarmresults, val.StartDate.UTC())
-		}
-	}
-
-	// JMR Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "dateinfo.dateid")
-		} else {
-			arrsort = append(arrsort, "-dateinfo.dateid")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			JMRresults = append(JMRresults, val.DateInfo.DateId.UTC())
-		}
-	}
-
-	// MET Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(MetTower).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]MetTower, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			METresults = append(METresults, val.TimeStamp.UTC())
-		}
-	}
-
-	// Duration Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(dbox.Eq("isvalidtimeduration", false))).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Durationresults = append(Durationresults, val.TimeStamp.UTC())
-		}
-	}
-
-	// Anomaly Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(dbox.Eq("isvalidtimeduration", true))).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			ScadaAnomalyresults = append(ScadaAnomalyresults, val.TimeStamp.UTC())
-		}
-	}
-
-	// AlarmOverlapping Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "startdate")
-		} else {
-			arrsort = append(arrsort, "-startdate")
-		}
-
-		query := DB().Connection.NewQuery().From(new(AlarmOverlapping).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]AlarmOverlapping, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			AlarmOverlappingresults = append(AlarmOverlappingresults, val.StartDate.UTC())
-		}
-	}
-
-	// AlarmScadaAnomaly Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "startdate")
-		} else {
-			arrsort = append(arrsort, "-startdate")
-		}
-
-		query := DB().Connection.NewQuery().From(new(AlarmScadaAnomaly).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]AlarmScadaAnomaly, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			AlarmScadaAnomalyresults = append(AlarmScadaAnomalyresults, val.StartDate.UTC())
-		}
-	}
+	scadaResults[0], scadaResults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "timestamp", nil)
+	dgrResults[0], dgrResults[1], e = helper.GetDataDateAvailable(new(DGRModel).TableName(), "dateinfo.dateid", nil)
+	alarmResults[0], alarmResults[1], e = helper.GetDataDateAvailable(new(Alarm).TableName(), "startdate", nil)
+	alarmOverlappingresults[0], alarmOverlappingresults[1], e = helper.GetDataDateAvailable(new(AlarmOverlapping).TableName(), "startdate", nil)
+	alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = helper.GetDataDateAvailable(new(AlarmScadaAnomaly).TableName(), "startdate", nil)
+	jmrResults[0], jmrResults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", nil)
+	metResults[0], metResults[1], e = helper.GetDataDateAvailable(new(MetTower).TableName(), "timestamp", nil)
+	durationResults[0], durationResults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false)))
+	scadaAnomalyresults[0], scadaAnomalyresults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true)))
 
 	availdatedata := struct {
 		ScadaData         []time.Time
+		DGRData           []time.Time
 		Alarm             []time.Time
 		JMR               []time.Time
 		MET               []time.Time
@@ -443,14 +215,15 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 		AlarmOverlapping  []time.Time
 		AlarmScadaAnomaly []time.Time
 	}{
-		ScadaData:         Scadaresults,
-		Alarm:             Alarmresults,
-		JMR:               JMRresults,
-		MET:               METresults,
-		Duration:          Durationresults,
-		ScadaAnomaly:      ScadaAnomalyresults,
-		AlarmOverlapping:  AlarmOverlappingresults,
-		AlarmScadaAnomaly: AlarmScadaAnomalyresults,
+		ScadaData:         scadaResults,
+		DGRData:           dgrResults,
+		Alarm:             alarmResults,
+		JMR:               jmrResults,
+		MET:               metResults,
+		Duration:          durationResults,
+		ScadaAnomaly:      scadaAnomalyresults,
+		AlarmOverlapping:  alarmOverlappingresults,
+		AlarmScadaAnomaly: alarmScadaAnomalyresults,
 	}
 
 	r.SetSession("availdate", availdatedata)
