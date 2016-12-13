@@ -2546,7 +2546,8 @@ var Data = {
             filterable: false
         },
         { title: "Alarm Description", field: "AlarmDescription", width: 100, filterable: false },
-        { title: "Duration (Second)", field: "Duration", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+        { title: "Duration (Second)", field: "Duration",  template: '#= kendo.toString(secondsToHms(Duration)) #',  width: 90, attributes: { class: "align-right" },  filterable: false },
+
 
         ]
     });
@@ -2694,6 +2695,16 @@ dbr.showColumn = function(){
     Data.InitCustomGrid();
 
     $('#modalShowHide').modal("hide");
+}
+
+function secondsToHms(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+    var res = ((h > 0 ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (s < 10 ? "0" : "") + s)
+
+    return res;
 }
 
 
