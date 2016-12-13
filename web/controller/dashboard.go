@@ -707,8 +707,8 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	} else {
 		fromDate = p.Date.AddDate(0, -12, 0)
 		match.Set("detail.detaildateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
-		tk.Println("From Date: ", fromDate)
-		tk.Println("PayLoad Date: ", p.Date)
+		/*tk.Println("From Date: ", fromDate)
+		tk.Println("PayLoad Date: ", p.Date)*/
 	}
 
 	if p.ProjectName != "Fleet" {
@@ -809,9 +809,9 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	if p.DateStr == "" && tipe != "fleetdowntime" {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
-		for _, pip := range pipes {
+		/*for _, pip := range pipes {
 			log.Printf("%#v \n", pip)
-		}
+		}*/
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(Alarm).TableName()).
@@ -1040,12 +1040,14 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 
 		if p.Type != "" && p.Type != "All Types" {
+			pipesDown = []tk.M{}
+			pipesDown = append(pipesDown, tk.M{"$unwind": "$detail"})
 			pipesDown = append(pipesDown, tk.M{"$match": matchDown})
 			pipesX := pipesDown
 			pipesX = append(pipesX,
 				tk.M{
 					"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc", "id3": p.Type},
-						"result": tk.M{"$sum": "$powerlost"},
+						"result": tk.M{"$sum": "$detail.powerlost"},
 					},
 				},
 			)
@@ -1098,16 +1100,19 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				doneField = append(doneField, field)
 				matchX.Set(field, true)
 
+				pipesDown = []tk.M{}
+				pipesDown = append(pipesDown, tk.M{"$unwind": "$detail"})
 				pipesDown = append(pipesDown, tk.M{"$match": matchX})
 				pipesX := pipesDown
-
 				pipesX = append(pipesX,
 					tk.M{
 						"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc", "id3": field},
-							"result": tk.M{"$sum": "$powerlost"},
+							"result": tk.M{"$sum": "$detail.powerlost"},
 						},
 					},
 				)
+
+				// tk.Printf("\n%#v \n\n", pipesX)
 
 				csr, e := DB().Connection.NewQuery().
 					From(new(Alarm).TableName()).
@@ -1873,6 +1878,8 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 
 func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
+	pipes := []tk.M{}
+	match := []tk.M{}
 
 	p := new(PayloadDashboard)
 	e := k.GetPayload(&p)
@@ -1911,21 +1918,38 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	var filter []*dbox.Filter
 
 	if p.DateStr != "fleet date" {
-		filter = append(filter, dbox.Eq("startdateinfo.monthid", dateInfo.MonthId))
+		match = append(match, tk.M{"startdateinfo.monthid": dateInfo.MonthId})
+		filter = append(filter, dbox.Eq("detail.detaildateinfo.monthid", dateInfo.MonthId))
 	} else {
 		filter = append(filter, dbox.Gte("startdateinfo.monthid", dateInfo.MonthId))
 		filter = append(filter, dbox.Lte("startdateinfo.monthid", dateInfo2.MonthId))
+
+		match = append(match, tk.M{"detail.detaildateinfo.monthid": tk.M{"$gte": dateInfo.MonthId, "$lte": dateInfo2.MonthId}})
 		// tk.Println(dateInfo.MonthId)
 		// tk.Println(dateInfo2.MonthId)
 	}
 	if p.ProjectName != "Fleet" {
 		if p.Type != "" && p.Type != "All Types" {
 			filter = append(filter, dbox.Eq(strings.ToLower(strings.Replace(p.Type, " ", "", 1)), true))
+			match = append(match, tk.M{strings.ToLower(strings.Replace(p.Type, " ", "", 1)): true})
 		}
+
+		filter = append(filter, dbox.Eq("projectname", p.ProjectName))
+		match = append(match, tk.M{"projectname": p.ProjectName})
 	}
 
+	pipes = append(pipes, tk.M{"$unwind": "$detail"})
+	pipes = append(pipes, tk.M{"$match": match})
+
+	/*query := DB().Connection.NewQuery().
+	From(new(Alarm).TableName()).Where(filter...).
+	Skip(p.Skip).Take(p.Take)*/
+
+	// log.Printf("pipes: %#v \n", pipes)
+
 	query := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).Where(filter...).
+		From(new(Alarm).TableName()).
+		Command("pipes", pipes).
 		Skip(p.Skip).Take(p.Take)
 
 	if len(p.Sort) > 0 {
