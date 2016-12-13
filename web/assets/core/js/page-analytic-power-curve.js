@@ -650,7 +650,7 @@ page.HideforScatter = function () {
         }
     } else {
         $('#showHideChk').show();
-        $('#showHideAll').prop('checked', true);
+        $('#showHideAll').prop('checked', false); /*can be harcoded because max turbine is 3*/
     }
 }
 
