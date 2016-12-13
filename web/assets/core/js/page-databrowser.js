@@ -2490,9 +2490,52 @@ var Data = {
             title: "Time Start",
             field: "TimeStart",
             template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-            width: 130,
+            width: 100,
             filterable: false
         }, 
+
+        {
+            title: "Time End",
+            field: "TimeEnd",
+            template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
+            width: 100
+        }, {
+            title: "Grid Down",
+            field: "DownGrid",
+            width: 80,
+            sortable: false,
+            template: '# if (DownGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+            headerAttributes: {
+                style: "text-align: center"
+            },
+            attributes: {
+                style: "text-align:center;"
+            }
+        },  {
+            title: "Machine Down",
+            field: "DownMachine",
+            width: 80,
+            sortable: false,
+            template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+            headerAttributes: {
+                style: "text-align: center"
+            },
+            attributes: {
+                style: "text-align:center;"
+            }
+        }, {
+            title: "Environment Down",
+            field: "DownEnvironment",
+            width: 80,
+            sortable: false,
+            template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+            headerAttributes: {
+                style: "text-align: center"
+            },
+            attributes: {
+                style: "text-align:center;"
+            }
+        },
         {
             title: "Turbine",
             field: "Turbine",
