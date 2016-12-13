@@ -53,12 +53,11 @@ avail.loadData = function () {
                 avail.getMDTypeList();
             }
 
-            /*setTimeout(function () {
+            app.loading(false);
+            setTimeout(function () {
                 avail.refreshChart();
-            }, 10000);*/
+            }, 100);
         });
-
-        app.loading(false);
     }
 };
 
