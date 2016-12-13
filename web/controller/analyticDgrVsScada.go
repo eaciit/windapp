@@ -94,6 +94,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 			"minutes":         tk.M{"$sum": "$minutes"},
 			"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
 			"mindate":         tk.M{"$min": "$dateinfo.dateid"},
+			"unknowntime":     tk.M{"$sum": "$unknowntime"},
 		}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
@@ -146,7 +147,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		sEnergy = sPower / 6
 		sOktime = scada.GetFloat64("oktime")
 		// log.Printf("sOkTime: %v \n", sOktime/3600)
-		sDowntime = (hourValue * totalTurbine) - (sOktime / 3600)
+		// sDowntime = (hourValue * totalTurbine) - (sOktime / 3600)
+		sDowntime = tk.Div(scada.GetFloat64("unknowntime")+scada.GetFloat64("machinedowntime")+scada.GetFloat64("griddowntime"), 3600)
 		sWindspeed = scada.GetFloat64("windspeed")
 		sPlf = sEnergy / (totalTurbine * hourValue * 2100) * 100 * 1000
 		sTrueavail = (sOktime / 3600) / (totalTurbine * hourValue) * 100
