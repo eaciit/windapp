@@ -590,3 +590,40 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 
 	return
 }
+
+func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
+	q := DB().Connection.
+		NewQuery().
+		From(collectionName)
+
+	if where != nil {
+		q.Where(where)
+	}
+
+	csr, err := q.
+		Aggr(dbox.AggrMin, "$"+timestampColumn, "min").
+		Aggr(dbox.AggrMax, "$"+timestampColumn, "max").
+		Group("enable").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if err != nil {
+		csr.Close()
+		return
+	}
+
+	data := []toolkit.M{}
+	err = csr.Fetch(&data, 0, false)
+
+	if err != nil || len(data) == 0 {
+		csr.Close()
+		return
+	}
+
+	min = data[0].Get("min").(time.Time)
+	max = data[0].Get("max").(time.Time)
+
+	csr.Close()
+	return
+}
