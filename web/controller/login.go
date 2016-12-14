@@ -4,11 +4,12 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"errors"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/eaciit/acl/v1.0"
-	"github.com/eaciit/dbox"
+	// "github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
 
@@ -165,10 +166,11 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	Result := make([]ScadaData, 0)
 	e = csr.Fetch(&Result, 0, false)
+
+	csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -184,27 +186,18 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	r.SetSession("lastdate_data", lastDateData)
 
 	// Get Available Date All Collection
-	scadaResults := make([]time.Time, 2)
-	dgrResults := make([]time.Time, 2)
-	alarmResults := make([]time.Time, 2)
-	jmrResults := make([]time.Time, 2)
-	metResults := make([]time.Time, 2)
-	durationResults := make([]time.Time, 2)
-	scadaAnomalyresults := make([]time.Time, 2)
-	alarmOverlappingresults := make([]time.Time, 2)
-	alarmScadaAnomalyresults := make([]time.Time, 2)
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e = DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	scadaResults[0], scadaResults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "timestamp", nil)
-	dgrResults[0], dgrResults[1], e = helper.GetDataDateAvailable(new(DGRModel).TableName(), "dateinfo.dateid", nil)
-	alarmResults[0], alarmResults[1], e = helper.GetDataDateAvailable(new(Alarm).TableName(), "startdate", nil)
-	alarmOverlappingresults[0], alarmOverlappingresults[1], e = helper.GetDataDateAvailable(new(AlarmOverlapping).TableName(), "startdate", nil)
-	alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = helper.GetDataDateAvailable(new(AlarmScadaAnomaly).TableName(), "startdate", nil)
-	jmrResults[0], jmrResults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", nil)
-	metResults[0], metResults[1], e = helper.GetDataDateAvailable(new(MetTower).TableName(), "timestamp", nil)
-	durationResults[0], durationResults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false)))
-	scadaAnomalyresults[0], scadaAnomalyresults[1], e = helper.GetDataDateAvailable(new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true)))
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
 
-	availdatedata := struct {
+	toolkit.Println(latestDataPeriods)
+
+	type availdatedata struct {
 		ScadaData         []time.Time
 		DGRData           []time.Time
 		Alarm             []time.Time
@@ -214,19 +207,20 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 		ScadaAnomaly      []time.Time
 		AlarmOverlapping  []time.Time
 		AlarmScadaAnomaly []time.Time
-	}{
-		ScadaData:         scadaResults,
-		DGRData:           dgrResults,
-		Alarm:             alarmResults,
-		JMR:               jmrResults,
-		MET:               metResults,
-		Duration:          durationResults,
-		ScadaAnomaly:      scadaAnomalyresults,
-		AlarmOverlapping:  alarmOverlappingresults,
-		AlarmScadaAnomaly: alarmScadaAnomalyresults,
 	}
 
-	r.SetSession("availdate", availdatedata)
+	datePeriod := new(availdatedata)
+	xdp := reflect.ValueOf(datePeriod).Elem()
+	for _, d := range latestDataPeriods {
+		f := xdp.FieldByName(d.Type)
+		if f.IsValid() {
+			if f.CanSet() {
+				f.Set(reflect.ValueOf(d.Data))
+			}
+		}
+	}
+
+	r.SetSession("availdate", datePeriod)
 
 	data := toolkit.M{
 		"status":    true,
