@@ -203,7 +203,7 @@ func processFile(filePath string, com []Command) {
 		time.Sleep(100 * time.Millisecond)
 		e := unzip(filePath, conf.Draft)
 		if e != nil {
-			log.Printf("%s - %s", filepath, e.Error())
+			log.Printf("%s - %s", filePath, e.Error())
 			_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Errors))
 		} else {
 			fmt.Println("Unzip Done")
