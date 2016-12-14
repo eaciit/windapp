@@ -7,12 +7,11 @@ import (
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
+	"github.com/pkelchte/spline"
 	"math"
 	"os"
-	"os/exec"
+	"strings"
 	"time"
-
-	"github.com/pkelchte/spline"
 )
 
 // UpdateScadaMinutes
@@ -109,7 +108,6 @@ func (d *UpdateScadaMinutes) Generate(base *BaseController) {
 }
 
 func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
-	exec.Command("name", "aksjdkasd").Output()
 
 	funcName := "UpdateScadaDensity Data"
 	count := 0
@@ -126,6 +124,21 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 			os.Exit(0)
 		}
 
+		// get ref
+		turbines := []TurbineMaster{}
+		csrt, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).Cursor(nil)
+
+		e = csrt.Fetch(&turbines, 0, false)
+		ErrorHandler(e, funcName)
+		csrt.Close()
+
+		dataTurbines := tk.M{}
+		if len(turbines) > 0 {
+			for _, t := range turbines {
+				dataTurbines.Set(t.TurbineId, t)
+			}
+		}
+
 		scadas := []ScadaData{}
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
 			Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
@@ -138,14 +151,6 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 
 			// tk.Println("Processing data for " + data.Turbine + " on " + data.ID.String())
 
-			turbines := []TurbineMaster{}
-			csrt, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
-				Where(dbox.Eq("turbineid", data.Turbine)).Cursor(nil)
-
-			e = csrt.Fetch(&turbines, 0, false)
-			ErrorHandler(e, funcName)
-			csrt.Close()
-
 			energy := tk.Div(data.Power, 6)
 			estimatedEnergy := tk.Div(data.EstimatedPower, 6)
 			energyLost := tk.Div(data.PowerLost, 6)
@@ -153,9 +158,43 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 			pH := 0.0
 			elevation := 0.0
 			temperature := data.NacelleTemperature
-			//tk.Printf("Temp : #%v\n", temperature)
-			if turbines != nil {
-				elevation = turbines[0].Elevation
+
+			turbine := strings.TrimSpace(data.Turbine)
+			numTurbine := 0
+			nolnya := ""
+			if strings.Contains(turbine, "HBR") && len(turbine) < 6 {
+				numTurbine = tk.ToInt(strings.Replace(turbine, "HBR", "", 1), "0")
+				nolnya = ""
+				for i := 0; i < (3 - len(tk.ToString(numTurbine))); i++ {
+					nolnya += "0"
+				}
+				turbine = "HBR" + nolnya + tk.ToString(numTurbine)
+			} else if strings.Contains(turbine, "SSE") && len(turbine) < 6 {
+				numTurbine = tk.ToInt(strings.Replace(turbine, "SSE", "", 1), "0")
+				nolnya = ""
+				for i := 0; i < (3 - len(tk.ToString(numTurbine))); i++ {
+					nolnya += "0"
+				}
+				turbine = "SSE" + nolnya + tk.ToString(numTurbine)
+			} else if strings.Contains(turbine, "TJW") && len(turbine) < 6 {
+				numTurbine = tk.ToInt(strings.Replace(turbine, "TJW", "", 1), "0")
+				nolnya = ""
+				for i := 0; i < (3 - len(tk.ToString(numTurbine))); i++ {
+					nolnya += "0"
+				}
+				turbine = "TJW" + nolnya + tk.ToString(numTurbine)
+			} else if strings.Contains(turbine, "TJ") && len(turbine) < 5 {
+				numTurbine = tk.ToInt(strings.Replace(turbine, "TJ", "", 1), "0")
+				nolnya = ""
+				for i := 0; i < (3 - len(tk.ToString(numTurbine))); i++ {
+					nolnya += "0"
+				}
+				turbine = "TJ" + nolnya + tk.ToString(numTurbine)
+			}
+
+			if dataTurbines.Has(turbine) {
+				tbns := dataTurbines.Get(turbine).(TurbineMaster)
+				elevation = tbns.Elevation
 				//tk.Printf("Elev : #%v\n", elevation)
 				exponen := (-(9.80665) * 28.9644 * elevation) / (8314.32 * 288.15)
 				//tk.Printf("Exp : #%v\n", exponen)
@@ -173,18 +212,21 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 			avgWs := data.AvgWindSpeed
 			adjWs := data.AdjWindSpeed
 			// tk.Printf("Ws scd = %v\n", avgWs)
-			pcValue, retavgws, _ := GetPowerCurve(ctx, avgWs)
-			pcValueAdj, retadjws, _ := GetPowerCurve(ctx, adjWs)
+			pcValue, _ := GetPowerCurveCubicInterpolation(ctx, "Tejuva", avgWs)
+			pcValueAdj, _ := GetPowerCurveCubicInterpolation(ctx, "Tejuva", adjWs)
 			pcDeviation := pcValue - data.Power
+
+			retavgws := tk.RoundingAuto64(avgWs, 1)
+			retadjws := tk.RoundingAuto64(adjWs, 1)
 
 			denWs = avgWs * math.Pow((density/1.225), (1.0/3.0))
 			adjDenWs = tk.RoundingDown64(denWs, 0)
 			if denWs < 3.75 && denWs >= 3.5 {
 				adjDenWs = 3.5
 			}
-			denPower, _, _ = GetPowerCurve(ctx, denWs)
+			denPower, _ = GetPowerCurveCubicInterpolation(ctx, "Tejuva", denWs)
 
-			denPcValue, _, _ := GetPowerCurve(ctx, denWs)
+			denPcValue, _ := GetPowerCurveCubicInterpolation(ctx, "Tejuva", denWs)
 			denPcDeviation := denPcValue - denPower
 
 			deviationPct := 0.0
@@ -253,28 +295,29 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 			e = ctx.NewQuery().Update().From(new(ScadaData).TableName()).
 				Where(dbox.Eq("_id", data.ID)).
 				Exec(tk.M{}.Set("data", tk.M{}.
-					Set("totalavail", totalavail).
-					Set("machineavail", machineavail).
-					Set("gridavail", gridavail).
-					Set("wsadjforpc", retadjws).
-					Set("wsavgforpc", retavgws).
-					Set("pcdeviation", pcDeviation).
-					Set("pcvalue", pcValue).
-					Set("pcvalueadj", pcValueAdj).
-					Set("estimatedenergy", estimatedEnergy).
-					Set("energylost", energyLost).
-					Set("energy", energy).
-					Set("denvalue", density).
-					Set("denph", pH).
-					Set("denadjwindspeed", adjDenWs).
-					Set("denwindspeed", denWs).
-					Set("denpower", denPower).
-					Set("denpcdeviation", denPcDeviation).
-					Set("dendeviationpct", denDeviationPct).
-					Set("denpcvalue", denPcValue).
-					Set("deviationpct", deviationPct).
-					Set("mttr", mttr).
-					Set("mttf", mttf)))
+				Set("turbine", turbine).
+				Set("totalavail", totalavail).
+				Set("machineavail", machineavail).
+				Set("gridavail", gridavail).
+				Set("wsadjforpc", retadjws).
+				Set("wsavgforpc", retavgws).
+				Set("pcdeviation", pcDeviation).
+				Set("pcvalue", pcValue).
+				Set("pcvalueadj", pcValueAdj).
+				Set("estimatedenergy", estimatedEnergy).
+				Set("energylost", energyLost).
+				Set("energy", energy).
+				Set("denvalue", density).
+				Set("denph", pH).
+				Set("denadjwindspeed", adjDenWs).
+				Set("denwindspeed", denWs).
+				Set("denpower", denPower).
+				Set("denpcdeviation", denPcDeviation).
+				Set("dendeviationpct", denDeviationPct).
+				Set("denpcvalue", denPcValue).
+				Set("deviationpct", deviationPct).
+				Set("mttr", mttr).
+				Set("mttf", mttf)))
 			if e != nil {
 				tk.Printf("Update fail: %s", e.Error())
 			}
@@ -301,56 +344,58 @@ func GetPowerCurve(ctx dbox.IConnection, avgWs float64) (float64, float64, float
 	wsret := 0.0
 	wsavgret := tk.RoundingAuto64(avgWs, 1)
 
-	if avgWs >= 3.5 && avgWs < 3.75 {
-		wsf0 = 3.5
-		wsf1 = 4
-		wsret = 3.5
-	} else if avgWs >= 3 && avgWs < 3.5 {
-		wsf0 = 3
-		wsf1 = 3.5
-		wsret = 3
-	} else {
-		wsf0 = avgWs
-		wsf1 = avgWs
-		wsret = tk.RoundingAuto64(avgWs, 0)
-	}
-	// tk.Printf("%v-%v-%v\n", avgWs, wsf0, wsf1)
+	if avgWs >= 3.5 {
+		if avgWs >= 3.5 && avgWs < 3.75 {
+			wsf0 = 3.5
+			wsf1 = 4
+			wsret = 3.5
+		} else if avgWs >= 3 && avgWs < 3.5 {
+			wsf0 = 3
+			wsf1 = 3.5
+			wsret = 3
+		} else {
+			wsf0 = avgWs
+			wsf1 = avgWs
+			wsret = tk.RoundingAuto64(avgWs, 0)
+		}
+		// tk.Printf("%v-%v-%v\n", avgWs, wsf0, wsf1)
 
-	pcs0 := []PowerCurveModel{}
-	pcs1 := []PowerCurveModel{}
-	csrps0, e := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
-		Where(dbox.Lte("windspeed", wsf0)).
-		Order("-windspeed").Take(1).Skip(0).Cursor(nil)
-	e = csrps0.Fetch(&pcs0, 0, false)
-	ErrorHandler(e, funcName)
-	csrps0.Close()
-	// tk.Printf("%v\n", pcs0)
-	csrps1, e := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
-		Where(dbox.Gte("windspeed", wsf1)).
-		Order("windspeed").Take(1).Skip(0).Cursor(nil)
-	e = csrps1.Fetch(&pcs1, 0, false)
-	ErrorHandler(e, funcName)
-	csrps1.Close()
-	// tk.Printf("%v\n", pcs1)
+		pcs0 := []PowerCurveModel{}
+		pcs1 := []PowerCurveModel{}
+		csrps0, e := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
+			Where(dbox.Lte("windspeed", wsf0)).
+			Order("-windspeed").Take(1).Skip(0).Cursor(nil)
+		e = csrps0.Fetch(&pcs0, 0, false)
+		ErrorHandler(e, funcName)
+		csrps0.Close()
+		// tk.Printf("%v\n", pcs0)
+		csrps1, e := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
+			Where(dbox.Gte("windspeed", wsf1)).
+			Order("windspeed").Take(1).Skip(0).Cursor(nil)
+		e = csrps1.Fetch(&pcs1, 0, false)
+		ErrorHandler(e, funcName)
+		csrps1.Close()
+		// tk.Printf("%v\n", pcs1)
 
-	ws0 := 0.0
-	power0 := 0.0
-	if len(pcs0) > 0 {
-		power0 = pcs0[0].Power1
-		ws0 = pcs0[0].WindSpeed
-	}
+		ws0 := 0.0
+		power0 := 0.0
+		if len(pcs0) > 0 {
+			power0 = pcs0[0].Power1
+			ws0 = pcs0[0].WindSpeed
+		}
 
-	ws1 := 0.0
-	power1 := 0.0
-	if len(pcs1) > 0 {
-		power1 = pcs1[0].Power1
-		ws1 = pcs1[0].WindSpeed
-	}
+		ws1 := 0.0
+		power1 := 0.0
+		if len(pcs1) > 0 {
+			power1 = pcs1[0].Power1
+			ws1 = pcs1[0].WindSpeed
+		}
 
-	if ws1-ws0 > 0 {
-		totalPower = power0 + (avgWs-ws0)*(power1-power0)/(ws1-ws0)
-	} else {
-		totalPower = power0
+		if ws1-ws0 > 0 {
+			totalPower = power0 + (avgWs-ws0)*(power1-power0)/(ws1-ws0)
+		} else {
+			totalPower = power0
+		}
 	}
 
 	return totalPower, wsret, wsavgret

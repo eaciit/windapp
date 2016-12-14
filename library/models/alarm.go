@@ -129,6 +129,7 @@ type Alarm struct {
 	Line             int
 	ProjectName      string
 	PowerLost        float64
+	Detail           []AlarmDetail
 }
 
 func (m *Alarm) New() *Alarm {
@@ -142,6 +143,23 @@ func (m *Alarm) RecordID() interface{} {
 
 func (m *Alarm) TableName() string {
 	return "Alarm"
+}
+
+type AlarmDetail struct {
+	StartDate        time.Time
+	EndDate          time.Time
+	DetailDateInfo   DateInfo
+	AlertDescription string
+	Duration         float64
+	Power            float64
+	PowerLost        float64
+	ExternalStop     bool
+	GridDown         bool
+	InternalGrid     bool
+	MachineDown      bool
+	AEbOK            bool
+	Unknown          bool
+	WeatherStop      bool
 }
 
 type AlarmScadaAnomaly struct {
