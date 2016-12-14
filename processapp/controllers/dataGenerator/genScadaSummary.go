@@ -30,18 +30,6 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			os.Exit(0)
 		}
 
-		/*csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			Where(dbox.Gte("power", 0)).
-			Aggr(dbox.AggrSum, "$power", "totalpower").
-			Aggr(dbox.AggrSum, "$powerlost", "totalpowerlost").
-			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
-			Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
-			Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
-			Aggr(dbox.AggrSum, 1, "totaltimestamp").
-			Group("dateinfo.monthid").
-			Cursor(nil)
-		defer csr.Close()*/
-
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
 			//Where(dbox.Gte("power", 0)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
@@ -60,8 +48,6 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 		datas := []tk.M{}
 		e = csr.Fetch(&datas, 0, false)
-
-		tk.Println(datas)
 
 		budgetMonths := []float64{
 			5911.8744,
@@ -231,12 +217,12 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			revenueInLacs := revenue / 100000
 			trueAvail := oktime / (24 * float64(maxdate.Day()) * float64(noOfTurbine)) * 100
 			scadaAvail := float64(totaldata) / (float64(maxdate.Day()) * float64(noOfTurbine) * noOfTimeStamp) * 100
-			tk.Println(totaldata)
-			tk.Println(maxdate.Day())
-			tk.Println(noOfTurbine)
-			tk.Println(noOfTimeStamp)
-			tk.Println(scadaAvail)
-			tk.Println(trueAvail)
+			// tk.Println(totaldata)
+			// tk.Println(maxdate.Day())
+			// tk.Println(noOfTurbine)
+			// tk.Println(noOfTimeStamp)
+			// tk.Println(scadaAvail)
+			// tk.Println(trueAvail)
 			if scadaAvail > 100 {
 				scadaAvail = 100
 			}
@@ -502,6 +488,9 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 		endDate, _ := time.Parse("2006-01-02", "2016-11-26")
 
 		durationInMonth := Round(endDate.Sub(startDate).Hours() / 24)
+
+		tk.Println(durationInMonth)
+
 		noOfTurbine := 24.0
 
 		mdl := new(ScadaSummaryByProject).New()
@@ -685,6 +674,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			dt.PCDeviation = pcdeviation
 			dt.Revenue = power * revenueMultiplier
 			dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
+			dt.OkTime = oktime
 			dt.TrueAvail = tk.Div(oktime, 144*600)
 			dt.ScadaAvail = tk.Div(float64(totalts), 144.0)
 			dt.MachineAvail = tk.Div(((600.0 * 144.0) - machinedowntime), 144.0*600.0)
