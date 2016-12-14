@@ -5,15 +5,16 @@
         {{template "_head.html"}}
         <script src="{{BaseUrl}}res/core/js/page-login.js"></script>
         <link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout.css" />
+
+        <style type="text/css">
+            .login-bg{
+              background: url('{{BaseUrl}}res/img/login_bg.jpg') no-repeat left top;
+              background-size: cover;
+              position:relative;
+              z-index:500;
+            }
+        </style>
     </head>
-    <style type="text/css">
-        .login-bg{
-          background: url('{{BaseUrl}}res/img/login_bg.jpg') no-repeat left top;
-          background-size: cover;
-          position:relative;
-          z-index:500;
-        }
-    </style>
     <body class="is-loading">
         <div class="login-body">    
             <div class="container-fluid">
@@ -120,7 +121,7 @@
                 </section>
             </div>
         </div>
+        <script>ko.applyBindings(viewModel)</script>
     </body>
-    <script>ko.applyBindings(viewModel)</script>
 </html>
 
