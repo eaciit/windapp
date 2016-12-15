@@ -29,14 +29,14 @@ var (
 )
 
 type PayloadsDB struct {
-	Turbine         []interface{}
-	DateStart       time.Time
-	DateEnd         time.Time
-	Skip   int
-	Take   int
-	Sort   []Sorting
-	Filter *FilterJS `json:"filter"`
-	Misc   toolkit.M `json:"misc"`
+	Turbine   []interface{}
+	DateStart time.Time
+	DateEnd   time.Time
+	Skip      int
+	Take      int
+	Sort      []Sorting
+	Filter    *FilterJS `json:"filter"`
+	Misc      toolkit.M `json:"misc"`
 }
 
 type Payloads struct {
@@ -466,7 +466,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			} else {
 				endDate, _ = time.Parse("2006-01-02 15:04:05", tEnd.UTC().Format("2006-01-02")+" 23:59:59")
 			}*/
-			endDate, _ = time.Parse("2006-01-02 15:04:05", tEnd.UTC().Format("2006-01-02")+" 23:59:59")
+			endDate, _ = time.Parse("2006-01-02 15:04:05.00", tEnd.UTC().Format("2006-01-02")+" 23:59:59.99")
 		} else {
 			err = errors.New("Date Cannot be Less Than 2013")
 		}
@@ -482,7 +482,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
 		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
 			endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
-				59, 59, 0, time.UTC)
+				59, 59, 999999999, time.UTC)
 		}
 
 		switch period {
@@ -502,14 +502,14 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 				}*/
 				/*dari end date frontend ditambah 1 bulan trus dikurangi 1 hari untuk dapet max day di bulan tsb*/
 				t := time.Date(tEnd.Year(), tEnd.Month()+1, 1, 0, 0, 0, 0, time.UTC)
-				endDate = time.Date(tEnd.Year(), tEnd.Month(), t.Add(-24*time.Hour).Day(), 23, 59, 59, 0, time.UTC)
+				endDate = time.Date(tEnd.Year(), tEnd.Month(), t.Add(-24*time.Hour).Day(), 23, 59, 59, 999999999, time.UTC)
 			} else {
 				err = errors.New("Date Cannot be Less Than 2013")
 			}
 		case "annual":
 			if tStart.Year() > 2012 || tEnd.Year() > 2012 {
 				if tEnd.Year() != endDate.Year() {
-					endDate = time.Date(tEnd.Year(), 12, 31, 23, 59, 59, 0, time.UTC)
+					endDate = time.Date(tEnd.Year(), 12, 31, 23, 59, 59, 999999999, time.UTC)
 				}
 				startDate = time.Date(tStart.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 			} else {
@@ -518,7 +518,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 		}
 	}
 
-	r.SetSession("custom_lastdate", nil)
+	// r.SetSession("custom_lastdate", nil)
 	return
 }
 
@@ -559,5 +559,71 @@ func GetTurbineList() (result []string, e error) {
 	}
 	sort.Strings(result)
 
+	return
+}
+
+func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate time.Time) (hourValue float64) {
+	startStr := tStart.Format("0601")
+	endStr := tEnd.Format("0601")
+
+	minDateStr := minDate.Format("0601")
+
+	maxDateStr := maxDate.Format("0601")
+
+	if startStr == minDateStr {
+		minDate = tStart
+	} else {
+		minDate, _ = time.Parse("060102", minDateStr+"01")
+	}
+
+	if endStr != maxDateStr {
+		daysInMonth := GetDayInYear(maxDate.Year())
+		maxDate, _ = time.Parse("060102", maxDateStr+toolkit.ToString(daysInMonth.GetInt(toolkit.ToString(int(maxDate.Month())))))
+	}
+
+	start, _ := time.Parse("060102150405", minDate.Format("060102")+"000000")
+	end, _ := time.Parse("060102150405", maxDate.Format("060102")+"235959")
+
+	// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
+
+	hourValue = toolkit.ToFloat64(end.Sub(start).Hours(), 0, toolkit.RoundingUp)
+
+	return
+}
+
+func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
+	q := DB().Connection.
+		NewQuery().
+		From(collectionName)
+
+	if where != nil {
+		q.Where(where)
+	}
+
+	csr, err := q.
+		Aggr(dbox.AggrMin, "$"+timestampColumn, "min").
+		Aggr(dbox.AggrMax, "$"+timestampColumn, "max").
+		Group("enable").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if err != nil {
+		csr.Close()
+		return
+	}
+
+	data := []toolkit.M{}
+	err = csr.Fetch(&data, 0, false)
+
+	if err != nil || len(data) == 0 {
+		csr.Close()
+		return
+	}
+
+	min = data[0].Get("min").(time.Time)
+	max = data[0].Get("max").(time.Time)
+
+	csr.Close()
 	return
 }

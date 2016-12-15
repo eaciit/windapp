@@ -60,6 +60,12 @@ var turbineval = [];
 
 page.getData = function () {
 	$.when(
+		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+	        var minDatetemp = new Date(res.ScadaData[0]);
+	        var maxDatetemp = new Date(res.ScadaData[1]);
+	        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+	        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+	    }),
 		app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
 			if (!app.isFine(res)) {
 				return;
@@ -536,7 +542,7 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 			'</div>'+
 			'<div class="col-md-5">'+
 				'<div class="pull-right" style="margin-top:10px;">' +
-					'<button class="btn btn-sm btn-primary tooltipster tooltipstered" id="btn-refresh-' + id + '" onClick="page.refreshFilter(\'' + id + '\')" title="Refresh Filter"><i class="fa fa-refresh"></i></button>&nbsp;' +
+					'<button class="btn btn-sm btn-primary tooltipster tooltipstered" id="btn-refresh-' + id + '" onClick="page.refreshFilter(\'' + id + '\')" title="Refresh Filter" data-loading-text="<i class=\'fa fa-circle-o-notch fa-spin\'></i> Loading"><i class="fa fa-refresh"></i></button>&nbsp;' +
 					'<button class="btn btn-sm btn-danger tooltipster tooltipstered" onClick="page.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (id == 1 ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
 				'</div>' +
 			'</div>'+
@@ -631,79 +637,88 @@ page.removeFilter = function (id) {
 }
 
 page.refreshFilter = function (id) {
-	var startdate = $('#dateStart-' + id).data('kendoDatePicker').value();
-	var enddata = $('#dateEnd-' + id).data('kendoDatePicker').value();
-	var period = $('#periodList-' + id).data('kendoDropDownList').value();
-	if (startdate > enddata) {
-		toolkit.showError("Invalid Date Range Selection");
-		return;
-	} else {
-		var turbine = [];
-		var isAllTurbine = false;
-
-		if ($("#turbineList-" + id).data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-			isAllTurbine = true;
-			// $.each($("#turbineList-" + id).data("kendoMultiSelect").dataSource.options.data, function (idx, val) {
-			// 	if (val.value != "All Turbine") {
-			// 		turbine.push(val.value);
-			// 	}
-			// })
-			turbine = [];
+	$('#btn-refresh-'+id).button("loading");
+	setTimeout(function(){
+		var startdate = $('#dateStart-' + id).data('kendoDatePicker').value();
+		var enddata = $('#dateEnd-' + id).data('kendoDatePicker').value();
+		var period = $('#periodList-' + id).data('kendoDropDownList').value();
+		if (startdate > enddata) {
+			toolkit.showError("Invalid Date Range Selection");
+			return;
 		} else {
-			turbine = $("#turbineList-" + id).data("kendoMultiSelect").value();
-		}
+			var turbine = [];
+			var isAllTurbine = false;
 
-		var param = {
-			period: period,
-			DateStart: $('#dateStart-' + id).data('kendoDatePicker').value(),
-			DateEnd: $('#dateEnd-' + id).data('kendoDatePicker').value(),
-			Turbine: turbine,
-			Project: $("#projectList-" + id).data("kendoDropDownList").value(),
-			Keys: page.selectedKeys(),
-		};
-
-		toolkit.ajaxPost(viewModel.appName + "analyticcomparison/getdata", param, function (res) {
-			if (!app.isFine(res)) {
-				return;
+			if ($("#turbineList-" + id).data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+				isAllTurbine = true;
+				// $.each($("#turbineList-" + id).data("kendoMultiSelect").dataSource.options.data, function (idx, val) {
+				// 	if (val.value != "All Turbine") {
+				// 		turbine.push(val.value);
+				// 	}
+				// })
+				turbine = [];
+			} else {
+				turbine = $("#turbineList-" + id).data("kendoMultiSelect").value();
 			}
 
-			$.each(res.data, function (idx, val) {
-				$.each(keys, function (iSel, valSel) {
-					if (valSel.value == idx) {
-						if (valSel.value == "Revenue") {
-							if (val < 100000) {
-								$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.unit);
+			var param = {
+				period: period,
+				DateStart: $('#dateStart-' + id).data('kendoDatePicker').value(),
+				DateEnd: $('#dateEnd-' + id).data('kendoDatePicker').value(),
+				Turbine: turbine,
+				Project: $("#projectList-" + id).data("kendoDropDownList").value(),
+				Keys: page.selectedKeys(),
+			};
+
+			toolkit.ajaxPost(viewModel.appName + "analyticcomparison/getdata", param, function (res) {
+				if (!app.isFine(res)) {
+					return;
+				}
+
+				$.each(res.data, function (idx, val) {
+					$.each(keys, function (iSel, valSel) {
+						if (valSel.value == idx) {
+							if (valSel.value == "Revenue") {
+								if (val < 100000) {
+									$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.unit);
+								} else {
+									val = val / 100000
+									$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.altUnit);
+								}
 							} else {
-								val = val / 100000
-								$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.altUnit);
+								$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.unit);
 							}
-						} else {
-							$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.unit);
 						}
-					}
+					});
 				});
+				$('#btn-refresh-'+id).button("reset");
 			});
-		});
-		if (isAllTurbine) {
-			param.Turbine = ["All Turbine"];
+			if (isAllTurbine) {
+				param.Turbine = ["All Turbine"];
+			}
+			param.Period = $("#periodList-" + id).data("kendoDropDownList").value();
+			filterList.push(param);
+			page.checkCompleteDate(id);
 		}
-		param.Period = $("#periodList-" + id).data("kendoDropDownList").value();
-		filterList.push(param);
-		page.checkCompleteDate(id);
-	}
+	});
 }
 
 page.refreshAll = function () {
-	filterList = [];
-	$.each($('button[id^=btn-refresh-]'), function (idx, btn) {
-		btn.click();
-	})
-	paramViews = {
-		OldName: page.selectedView.Name,
-		Name: $("#inputViewName").val(),
-		Keys: page.selectedKeys(),
-		Filters: filterList
-	}
+	$(".refresh-all").button('loading');
+	setTimeout(function(){
+		filterList = [];
+		$.each($('button[id^=btn-refresh-]'), function (idx, btn) {
+			btn.click();
+		})
+		paramViews = {
+			OldName: page.selectedView.Name,
+			Name: $("#inputViewName").val(),
+			Keys: page.selectedKeys(),
+			Filters: filterList
+		}
+		$(".refresh-all").button('reset');
+	},500);
+	
 }
 
 page.loadView = function () {
@@ -827,7 +842,7 @@ page.ShowModal = function (modalId, showhide) {
 
 vm.currentMenu('Analytics Studio');
 vm.currentTitle('Analytics Studio');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Analytics Studio', href: viewModel.appName + 'page/analyticavailability' }]);
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Analytics Studio', href: viewModel.appName + 'page/analyticavailability' }]);
 
 $(document).ready(function () {
 	$('#btnSaveView').on('click', function () {

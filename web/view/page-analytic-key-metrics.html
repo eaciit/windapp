@@ -23,14 +23,19 @@
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
 					</div>
 					<div class="panel-body">
+						<div class="databrowser-date-info">
+	                         Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+	                    </div>
 						<div class="col-md-9">
 							<a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf" data-bind="click: km.ExportKeyMetrics" style="margin-top: -45px;margin-right: 20px;cursor:pointer">
 								<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
 							</a>
 							<div id="km-chart"></div>
 							<div class="clearfix">&nbsp;</div>
+							<div class="clearfix">&nbsp;</div>
           					<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
 						</div>
+						<br><br>
 						{{template "_filter-right.html"}}
 					</div>
 				</div>

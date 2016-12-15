@@ -10,7 +10,6 @@ import (
 
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
-
 	"strconv"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
@@ -22,7 +21,7 @@ import (
 var (
 	separatorRaw = string(os.PathSeparator)
 	// mutex           = &sync.Mutex{}
-	countPerProcessRaw = 2
+	countPerProcessRaw = 1
 )
 
 type EventRawConversion struct {
@@ -106,95 +105,100 @@ func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, b
 	for _, sheet := range xls.Sheet {
 		for idx, row := range sheet.Rows {
 			if idx > 0 {
-				affectedItem, _ := row.Cells[3].String()
-				// eventType, _ := row.Cells[1].String()
-				if strings.TrimSpace(affectedItem) != "" { //&& strings.ToUpper(eventType) == "ALARMCHANGED" {
-					alarmIdx := 0
-					alarmDesc := affectedItem
-					if strings.Contains(affectedItem, ")") {
-						alarms := strings.Split(affectedItem, ")")
-						if len(alarms) > 0 {
-							alarmIdx = tk.ToInt(strings.TrimSpace(strings.Replace(alarms[0], "(", "", 1)), "0")
-							if len(alarms) > 1 {
-								alarmDesc = strings.TrimSpace(alarms[1])
+				if len(row.Cells) > 0 {
+					affectedItem, _ := row.Cells[3].String()
+					// eventType, _ := row.Cells[1].String()
+					if strings.TrimSpace(affectedItem) != "" { //&& strings.ToUpper(eventType) == "ALARMCHANGED" {
+						alarmIdx := 0
+						alarmDesc := affectedItem
+						if strings.Contains(affectedItem, ")") {
+							alarms := strings.Split(affectedItem, ")")
+							if len(alarms) > 0 {
+								alarmIdx = tk.ToInt(strings.TrimSpace(strings.Replace(alarms[0], "(", "", 1)), "0")
+								if len(alarms) > 1 {
+									alarmDesc = strings.TrimSpace(alarms[1])
+								}
 							}
 						}
-					}
 
-					var brakeProgram int
-					var brakeType string
-					brakeProgram = brakes[alarmIdx].BrakeProgram
-					brakeType = brakes[alarmIdx].Type
+						var brakeProgram int
+						var brakeType string
+						brakeProgram = brakes[alarmIdx].BrakeProgram
+						brakeType = brakes[alarmIdx].Type
 
-					sTurbineStatus, _ := row.Cells[7].String()
-					turbineStatus := ""
-					if sTurbineStatus != "" {
-						arrTurbineStatus := strings.Split(sTurbineStatus, " ")
-						if len(arrTurbineStatus) > 1 {
-							turbineStatus = arrTurbineStatus[1]
-						}
-					}
-
-					rawdata := new(EventRaw)
-					rawdata.ProjectName = project
-					rawdata.Turbine = turbine
-					sTimeStamp, _ := row.Cells[0].String()
-					// rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
-					//rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05-07:00", strings.Replace(sTimeStamp, "T", " ", 1))
-					rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05.000", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
-
-					// rawdata.TimeStampUTC = rawdata.TimeStamp.UTC()
-
-					milistr := tk.ToString(rawdata.TimeStamp.Nanosecond() / 1000000)
-					timeStampStr := rawdata.TimeStamp.Format("060102150405") + milistr
-
-					rawdata.TimeStampInt, _ = strconv.ParseInt(timeStampStr, 10, 64)
-
-					// log.Printf("%v | %v || %v \n", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", " ", 1), sTimeStamp, rawdata.TimeStamp.String())
-					// log.Printf("%v | %v || %v \n", rawdata.TimeStamp.String(), rawdata.TimeStampUTC.String(), strings.Replace(sTimeStamp, "T", " ", 1))
-
-					sEventType, _ := row.Cells[1].String()
-					rawdata.EventType = strings.TrimSpace(sEventType)
-
-					rawdata.BrakeProgram = brakeProgram
-					rawdata.DateInfo = GetDateInfo(rawdata.TimeStamp)
-					// rawdata.DateInfoUTC = GetDateInfo(rawdata.TimeStampUTC)
-					rawdata.AlarmDescription = alarmDesc
-					rawdata.AlarmId = alarmIdx
-					rawdata.TurbineStatus = strings.TrimSpace(turbineStatus)
-					rawdata.BrakeType = brakeType
-					sAlarmToggle, _ := row.Cells[2].String()
-
-					if strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "TRUE" || strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "1" {
-						rawdata.AlarmToggle = true
-					} else {
-						rawdata.AlarmToggle = false
-					}
-
-					// var tmpResult orm.IModel
-					// tmpResult = rawdata
-
-					// result = append(result, tmpResult)
-					count := 0
-					for {
-						rawdata = rawdata.New()
-						e := ev.Ctx.Insert(rawdata)
-						if e != nil {
-							log.Printf("error: %v \n", e.Error())
-							if count == 0 {
-								total++
+						sTurbineStatus, _ := row.Cells[7].String()
+						turbineStatus := ""
+						if sTurbineStatus != "" {
+							arrTurbineStatus := strings.Split(sTurbineStatus, " ")
+							if len(arrTurbineStatus) > 1 {
+								turbineStatus = arrTurbineStatus[1]
 							}
+						}
+
+						rawdata := new(EventRaw)
+						rawdata.ProjectName = project
+						rawdata.Turbine = turbine
+						sTimeStamp, _ := row.Cells[0].String()
+						// rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+						//rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05-07:00", strings.Replace(sTimeStamp, "T", " ", 1))
+						rawdata.TimeStamp, _ = time.Parse("2006-01-02 15:04:05.000", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", "", 1))
+
+						// rawdata.TimeStampUTC = rawdata.TimeStamp.UTC()
+
+						milistr := tk.ToString(rawdata.TimeStamp.Nanosecond() / 1000000)
+						timeStampStr := rawdata.TimeStamp.Format("060102150405") + milistr
+
+						rawdata.TimeStampInt, _ = strconv.ParseInt(timeStampStr, 10, 64)
+
+						// log.Printf("%v | %v || %v \n", strings.Replace(strings.Replace(sTimeStamp, "T", " ", 1), "+05:30", " ", 1), sTimeStamp, rawdata.TimeStamp.String())
+						// log.Printf("%v | %v || %v \n", rawdata.TimeStamp.String(), rawdata.TimeStampUTC.String(), strings.Replace(sTimeStamp, "T", " ", 1))
+
+						sEventType, _ := row.Cells[1].String()
+						rawdata.EventType = strings.TrimSpace(sEventType)
+
+						rawdata.BrakeProgram = brakeProgram
+						rawdata.DateInfo = GetDateInfo(rawdata.TimeStamp)
+						// rawdata.DateInfoUTC = GetDateInfo(rawdata.TimeStampUTC)
+						rawdata.AlarmDescription = alarmDesc
+						rawdata.AlarmId = alarmIdx
+						rawdata.TurbineStatus = strings.TrimSpace(turbineStatus)
+						rawdata.BrakeType = brakeType
+						sAlarmToggle, _ := row.Cells[2].String()
+
+						if strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "TRUE" || strings.TrimSpace(strings.ToUpper(sAlarmToggle)) == "1" {
+							rawdata.AlarmToggle = true
 						} else {
-							break
+							rawdata.AlarmToggle = false
 						}
 
-						if count == 2 {
-							break
+						// var tmpResult orm.IModel
+						// tmpResult = rawdata
+
+						// result = append(result, tmpResult)
+						count := 0
+						for {
+							rawdata = rawdata.New()
+							e := ev.Ctx.Insert(rawdata)
+							if e != nil {
+								log.Printf("error: %v \n", e.Error())
+								if count == 0 {
+									total++
+								}
+							} else {
+								break
+							}
+
+							if count == 2 {
+								break
+							}
+							count++
 						}
-						count++
+					} else {
+						total++
 					}
 				} else {
 					total++
+					log.Printf("%v | %#v \n", idx, row.Cells)
 				}
 			}
 		}

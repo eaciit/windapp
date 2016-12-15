@@ -376,8 +376,10 @@ fa.GetBreakDown = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
     fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
-    var result = [];
+    fa.dateStart = new Date(Date.UTC(fa.dateStart.getFullYear(), fa.dateStart.getMonth(), fa.dateStart.getDate(), 0, 0, 0));
+    fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
 
+    var result = [];
 
     if (fa.periodType == "last24hours" || fa.periodType == "last7days") {
         result.push({ "value": "Date", "text": "Date" });
@@ -404,6 +406,9 @@ fa.GetBreakDown = function () {
 fa.DateChange = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
     fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+    fa.dateStart = new Date(Date.UTC(fa.dateStart.getFullYear(), fa.dateStart.getMonth(), fa.dateStart.getDate(), 0, 0, 0));
+    fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
 }
 
 fa.checkCompleteDate = function () {

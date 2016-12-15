@@ -366,7 +366,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		for _, val := range exist {
 			// tk.Printf("%#v\n", filter)
 			idD := val.Get("_id").(tk.M)
-			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production") }) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
+			
+			datas = append(datas, []float64{ idD.GetFloat64("colId") , val.GetFloat64("production") }) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 		}
 
 		if len(datas) > 0 {
@@ -460,6 +461,14 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		turbineData.Set("yField", "Power")
 		turbineData.Set("colorField", "valueColor")
 		turbineData.Set("type", "scatter")
+		// turbineData.Set("markers", tk.M{
+		// 			"size":       10,
+		// 			"type":       "triangle",
+		// 			"border" : tk.M{
+		// 				"width" : 2, 
+		// 			"color" : "red",
+		// 			},
+		// 		})
 		turbineData.Set("markers", tk.M{"size": 2})
 
 		datas := tk.M{}
@@ -531,7 +540,12 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 				turbineDataAlarm.Set("color", downColor[idx])
 				turbineDataAlarm.Set("markers", tk.M{
 					"size":       2,
+					"type":       "triangle",
 					"background": downColor[idx],
+					// "border" : tk.M{
+					// 	"width" : 2, 
+					// 	"color" : "red",
+					// },
 				})
 
 				var datasDown [][]float64

@@ -13,7 +13,15 @@
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
 					</div>
 					<div class="panel-body">
+						<div class="databrowser-date-info">
+                            Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                        </div>
+						<div class="row pi-note">
+							<div class="pull-right">*Potential Power is calculated using density adjusted Wind Speed</div>
+						</div>
 						<div id="performance-grid"></div>
+						<div class="clearfix">&nbsp;</div>
+          				<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
 					</div>
 				</div>
 			</div>

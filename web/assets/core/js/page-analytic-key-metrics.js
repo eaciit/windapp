@@ -155,11 +155,17 @@ km.createChart = function (dataSource) {
 			}
 		});
 	});
+
+	setTimeout(function () {
+		// $("#km-chart").data("kendoChart").refresh();
+		app.loading(false);
+		$("#km-chart").data("kendoChart").refresh();
+	}, 1000);
 }
 
 vm.currentMenu('Compare Metrics');
 vm.currentTitle('Compare Metrics');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Compare Metrics', href: viewModel.appName + 'page/analytickeymetrics' }]);
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Compare Metrics', href: viewModel.appName + 'page/analytickeymetrics' }]);
 
 km.setBreakDown = function () {
 	km.breakdownList = [];
@@ -187,12 +193,18 @@ km.setBreakDown = function () {
 
 km.getData = function () {
 	app.loading(true);
+	toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+        var minDatetemp = new Date(res.ScadaData[0]);
+        var maxDatetemp = new Date(res.ScadaData[1]);
+        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+    });
 	fa.getProjectInfo();
 	fa.LoadData();
 	setTimeout(function () {
 		km.setBreakDown();
 		km.createChart();
-		app.loading(false);
+		// app.loading(false);
 	}, 1000);
 }
 
@@ -201,7 +213,7 @@ $(document).ready(function () {
 		app.loading(true);
 		setTimeout(function () {
 			km.getData();
-			app.loading(false);
+			// app.loading(false);
 		}, 200);
 	});
 

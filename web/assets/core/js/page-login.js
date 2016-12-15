@@ -37,9 +37,12 @@ lg.getLogin = function () {
 		return;
 	}
 
+	lg.showLoader(true);
+
 	var param = ko.mapping.toJS(lg.configLogin);
 	toolkit.ajaxPost(viewModel.appName + "login/processlogin", param, function (res) {
 		if (!toolkit.isFine(res)) {
+			lg.showLoader(false);
 			return;
 		}
 
@@ -48,6 +51,8 @@ lg.getLogin = function () {
 		if (res.message == "Login Success") {
 			window.location = viewModel.appName + "page/dashboard";
 		}
+
+		lg.showLoader(false);
 	});
 };
 
@@ -111,7 +116,18 @@ lg.checkSession = function () {
 	});
 }
 
+lg.showLoader = function(visible) {
+	if(visible) {
+		$('div.loader').show();
+		$('div.login-form-bg').hide();
+	} else {
+		$('div.loader').hide();
+		$('div.login-form-bg').show();
+	}
+}
+
 $(function () {
+	lg.showLoader(false);
 	// lg.checkSession();
 	// setTimeout(function() {
 	//        $('#loginForm').height($(window).height());

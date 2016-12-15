@@ -1,0 +1,101 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-meteorology.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-meteorology.css">
+<script id="templateChart" type="text/x-kendo-template">
+   <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important"># if ( points[i].series.name  == "PC Deviation" || points[i].series.name  == "Electrical Losses" ) {##= points[i].value # MWh#} else {# #= points[i].value # %  #}#</span></div>
+  # } #
+</script>
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Meteorology&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+					</div>
+					<div class="panel-body">
+						<ul class="nav nav-tabs " role="tablist">
+							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" class="tab-custom">Average Wind Speed</a></li>
+							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
+							<li id="winddistributionTab" role="presentation"><a onclick="wd.RefreshChart()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
+							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
+							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
+						</ul>
+
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="avgwindspeed">
+								
+							</div>
+							<div role="tabpanel" class="tab-pane" id="windrose">
+								<div class="databrowser-date-info">
+                                    Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                                </div>
+								<div class="col-md-12 list">
+									<div class="col-md-3 col-xs-12">
+										<label class="control-label keyA-label">Sectors</label>
+										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
+											style="width:50px;">
+		                                </select>&nbsp;
+										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
+									</div>
+
+									<div class="col-md-5 col-xs-12">
+										<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+										</div>
+									</div>
+
+									<div class="col-md-4 col-xs-12">
+										<div class="period-met pull-right">
+<!-- 											Met Tower Data Available from: <strong><span id="availabledatestartmettower">-</span></strong> until: <strong><span id="availabledateendmettower">-</span></strong> -->
+										</div>
+									</div>
+								</div>
+
+								<div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+									<div class="col-md-3 col-xs-12 windrose-item">
+										<div data-bind="attr:{id: 'chart-' + Name}"></div>
+									</div>
+								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="winddistribution">
+								<div class="databrowser-date-info">
+                                    Data Available from: <strong><span id="availabledatestartscada2">-</span></strong> until: <strong><span id="availabledateendscada2">-</span></strong>
+                                </div>
+								<div class="col-md-9">
+									<div id="windDistribution"></div>
+									<div class="clearfix">&nbsp;</div>
+								</div>
+								<div class="col-md-3 turList">
+									<!-- <div class="panel-heading custom-header">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show detail"></i></div> -->
+									<div class="clearfix">&nbsp;</div>
+									<div class="checkbox" id="showHideChk"></div>
+									<div class="col-md-12 col-sm-12" id="right-turbine-list"></div>
+								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="turbulenceintencity">
+								
+							</div>
+							<div role="tabpanel" class="tab-pane" id="temperature">
+								
+							</div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>
