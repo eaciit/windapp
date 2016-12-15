@@ -43,7 +43,7 @@
                                 <li id="scadaTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#scada" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
                                 <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
                                 <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
-                                <li class="hide" id="eventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
+                                <li id="eventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
                             </ul>
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active" id="JMR">
@@ -176,22 +176,27 @@
 
 
                                  <div role="tabpanel" class="tab-pane" id="eventraw">
-                                     <div class="tab-pane-content">
-                                        <div class="databrowser-date-info">
-                                            Data Available from: <strong><span id="eventdatestart">-</span></strong> until: <strong><span id="eventdateend">-</span></strong>
+                                     <div data-bind="visible:dbr.eventrawvis()">
+                                        {{template "_loader.html"}}
+                                     </div>
+                                     <div data-bind="visible:!dbr.eventrawvis()">
+                                         <div class="tab-pane-content">
+                                            <div class="databrowser-date-info">
+                                                Data Available from: <strong><span id="eventdatestart">-</span></strong> until: <strong><span id="eventdateend">-</span></strong>
+                                            </div>
+                                            <div class="control-summary left-border-org">
+                                                <label class="summary-header">Total Turbine</label><br />
+                                                <label id="totalturbineEvent" class="summary-number">0</label>
+                                            </div>
+                                            <div class="control-summary left-border-green">
+                                                <label class="summary-header">Total Data</label><br />
+                                                <label id="totaldataEvent" class="summary-number">0</label>
+                                            </div>
+                                            
+                                            <div class="clearfix">&nbsp;</div>
+                                            <div id="EventGrid" class="grid-custom-db-new"></div>
                                         </div>
-                                        <div class="control-summary left-border-org">
-                                            <label class="summary-header">Total Turbine</label><br />
-                                            <label id="totalturbineEvent" class="summary-number">0</label>
-                                        </div>
-                                        <div class="control-summary left-border-green">
-                                            <label class="summary-header">Total Data</label><br />
-                                            <label id="totaldataEvent" class="summary-number">0</label>
-                                        </div>
-                                        
-                                        <div class="clearfix">&nbsp;</div>
-                                        <div id="EventGrid" class="grid-custom-db-new"></div>
-                                    </div>
+                                     </div>
                                  </div>
 
 
