@@ -1383,7 +1383,7 @@ avail.DTLostEnergyDetail = function (dataSource) {
 avail.DTTopDetail = function (turbine, type) {
     app.loading(true);
     var project = $("#projectId").data("kendoDropDownList").value();
-    var date = new Date(Date.UTC(2016, 5, 30, 23, 59, 59, 0));
+    var date = maxdate;
     var param = { ProjectName: project, Date: date, Type: type, Turbine: turbine };
 
     var templateTooltip = "#: category # : #:  kendo.toString(value, 'n1') #"
@@ -1533,7 +1533,7 @@ avail.DTTopDetail = function (turbine, type) {
 
 avail.DTTurbines = function () {
     var project = $("#projectId").data("kendoDropDownList").value();
-    var date = new Date(Date.UTC(2016, 5, 30, 23, 50, 0, 0));
+    var date = maxdate;//new Date(Date.UTC(2016, 5, 30, 23, 50, 0, 0));
     var param = { ProjectName: project, Date: date };
 
     $("#dtturbines").html("");
@@ -1601,12 +1601,12 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
             } else if (source == "ddl") {
                 if (avail.LEFleetByDown() == true) {
                     method = "getdowntimefleetbydown";
-                    paramChart = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
+                    paramChart = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType , IsDetail: true };
                 } else {
                     if (dtType == "") {
                         dtType = "All Types"
                     }
-                    paramChart = { ProjectName: projectSelected, Date: lastParamChart.Date, Type: dtType };
+                    paramChart = { ProjectName: projectSelected, Date: lastParamChart.Date, Type: dtType , IsDetail: true };
                 }
 
                 param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
@@ -1633,13 +1633,13 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
 
             if (source == "chart") {
                 $("#mdTypeListFleet").data("kendoDropDownList").value(0);
-                paramChart = { ProjectName: projectSelected, DateStr: e.category };
+                paramChart = { ProjectName: projectSelected, DateStr: e.category, IsDetail: true };
                 param = { ProjectName: projectSelected, DateStr: e.category };
 
                 method = "getdowntimefleetbydown";
             } else {
                 $("#mdTypeListFleet").data("kendoDropDownList").value(e.category);
-                paramChart = { ProjectName: projectSelected, Date: maxdate, Type: e.category };
+                paramChart = { ProjectName: projectSelected, Date: maxdate, Type: e.category, IsDetail: true };
                 param = { ProjectName: projectSelected, DateStr: "fleet date", Type: e.category };
             }
 
