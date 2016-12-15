@@ -1686,13 +1686,15 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	for _, v := range pipes {
+	/*for _, v := range pipes {
 		log.Printf("pipes: %#v \n", v)
 	}
 
+	log.Printf("date: %v | %v \n", fromDate.UTC().String(), p.Date.UTC().String())*/
+
 	csr, e := DB().Connection.NewQuery().
 		From(new(Alarm).TableName()).
-		Command("pipes", pipes).
+		Command("pipe", pipes).
 		Cursor(nil)
 
 	if e != nil {
@@ -1710,6 +1712,8 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	// log.Printf("len: %v \n", len(tmpResult))
+
 	for _, val := range tmpResult {
 		val.Set("isdown", false)
 		if val.GetFloat64("result") > 24 {
@@ -1718,6 +1722,8 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 
 		result = append(result, val)
 	}
+
+	// log.Printf("lenResult: %v \n", len(result))
 
 	return helper.CreateResult(true, result, "success")
 }

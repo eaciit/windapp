@@ -18,7 +18,13 @@ avail.projectItem = ko.observableArray([]);
 
 avail.loadData = function () {
     var project = $("#projectId").data("kendoDropDownList").value();
-    var param = { ProjectName: project, Date: maxdate };
+    var param = {};
+
+    if (project == "Fleet"){
+        param = { ProjectName: project, Date: maxdate };
+    }else{
+        param = { ProjectName: project, Date: maxdate, Type: "All Types" };
+    }
 
     if (lgd.isAvailability()) {
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
@@ -47,7 +53,10 @@ avail.loadData = function () {
             avail.DTLoss(res.data.loss);
             avail.DTDuration(res.data.duration);
             avail.DTFrequency(res.data.frequency);
-            avail.DTTurbines();
+            
+            if (project == "Fleet"){
+                avail.DTTurbines();
+            }            
 
             if (avail.mdTypeList.length == 0) {
                 avail.getMDTypeList();
