@@ -803,6 +803,103 @@ func (m *DataBrowserController) GetMETList(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
+
+func (m *DataBrowserController) GetEventList(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	var filter []*dbox.Filter
+
+	p := new(helper.PayloadsDB)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	turbine := p.Turbine
+
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+
+
+	query := DB().Connection.NewQuery().From(new(EventRaw).TableName()).Skip(p.Skip).Take(p.Take)
+	query.Where(dbox.And(filter...))
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(val.Field))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]EventRaw, 0)
+	results := make([]EventRaw, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for _, val := range tmpResult {
+		val.TimeStamp = val.TimeStamp.UTC()
+		results = append(results, val)
+	}
+
+	totalTurbine := 0
+	countData := 0.0
+
+	aggrData := []tk.M{}
+
+	queryAggr := DB().Connection.NewQuery().From(new(EventRaw).TableName()).
+		Aggr(dbox.AggrSum, 1, "countData").
+		Group("turbine").Where(dbox.And(filter...))
+
+	caggr, e := queryAggr.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer caggr.Close()
+	e = caggr.Fetch(&aggrData, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for _, val := range aggrData {
+		countData += val.GetFloat64("countData")
+	}
+	totalTurbine = tk.SliceLen(aggrData)
+
+	data := struct {
+		Data            []EventRaw
+		Total           float64
+		TotalTurbine    int
+	}{
+		Data:            results,
+		Total:           countData,
+		TotalTurbine:    totalTurbine,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+
+// Get date info each tab
+
 func (m *DataBrowserController) GetAvailDate(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -1426,6 +1523,50 @@ func (m *DataBrowserController) GetAlarmScadaAnomalyAvailDate(k *knot.WebContext
 		AlarmScadaAnomaly []time.Time
 	}{
 		AlarmScadaAnomaly: AlarmScadaAnomalyresults,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataBrowserController) GetEventAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	EventDateresults := make([]time.Time, 0)
+
+	// AlarmScadaAnomaly Data
+	for i := 0; i < 2; i++ {
+		var arrsort []string
+		if i == 0 {
+			arrsort = append(arrsort, "timestamp")
+		} else {
+			arrsort = append(arrsort, "-timestamp")
+		}
+
+		query := DB().Connection.NewQuery().From(new(EventRaw).TableName()).Skip(0).Take(1)
+		query = query.Order(arrsort...)
+
+		csr, e := query.Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer csr.Close()
+
+		Result := make([]EventRaw, 0)
+		e = csr.Fetch(&Result, 0, false)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		for _, val := range Result {
+			EventDateresults = append(EventDateresults, val.TimeStamp.UTC())
+		}
+	}
+
+	data := struct {
+		EventDate []time.Time
+	}{
+		EventDate: EventDateresults,
 	}
 
 	return helper.CreateResult(true, data, "success")
