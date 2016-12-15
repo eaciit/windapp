@@ -13,6 +13,12 @@ dbr.projectList = ko.observableArray([
     { "value": 2, "text": "WindFarm-02" },
 ]);
 
+dbr.jmrvis = ko.observable(true);
+dbr.mettowervis = ko.observable(true);
+dbr.oemvis = ko.observable(true);
+dbr.downeventvis = ko.observable(true);
+dbr.customvis = ko.observable(true);
+
 dbr.gridColumnsScada = ko.observableArray([]);
 dbr.gridColumnsScadaException = ko.observableArray([]);
 dbr.gridColumnsScadaAnomaly = ko.observableArray([]);
@@ -324,7 +330,7 @@ var Data = {
             $('#scadaGrid').data('kendoGrid').refresh();
             $('#customGrid').data('kendoGrid').refresh();
             $('#DEgrid').data('kendoGrid').refresh();
-        }, 200);
+        }, 5);
     },
     InitGrid: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -1171,6 +1177,7 @@ var Data = {
         });
     },
     InitGridJMR: function () {
+        dbr.jmrvis(true);
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -1249,12 +1256,13 @@ var Data = {
                 schema: {
                     data: function (res) {
                         if (!app.isFine(res)) {
+                            dbr.jmrvis(false);
                             return;
                         }
+                        dbr.jmrvis(false);
                         return res.data.Data
                     },
                     total: function (res) {
-                        // console.log(res);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -1264,7 +1272,6 @@ var Data = {
                 },
                 sort: [
 						{ field: 'DateInfo.DateId', dir: 'asc' },
-						// { field: 'Turbine', dir: 'asc' }
 					],
             },
             groupable: false,
@@ -1273,10 +1280,8 @@ var Data = {
             pageable: true,
             detailInit: Data.InitJMRDetail,
             columns: [
-                // { title: "Month", field: "DateInfo.MonthDesc", width: 150, attributes: { style: "text-align:center;" } },
                  { title: "Month", field: "DateInfo.DateId", attributes: { style: "text-align: center" }, template: "#= kendo.toString(moment.utc(DateInfo.DateId).format('MMMM YYYY'), 'dd-MMM-yyyy') #" },
                 { title: "Description", field: "Description" },
-                // { title: "", field: "DateInfo.MonthId", hidden: true}
             ]
         });
     },
@@ -1379,6 +1384,7 @@ var Data = {
         });
     },
     InitMet: function () {
+        dbr.mettowervis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -1690,10 +1696,12 @@ var Data = {
                         }
                     },
                     data: function (res) {
-                        app.loading(false);
                         if (!app.isFine(res)) {
+                            dbr.mettowervis(false);
                             return;
                         }
+
+                        dbr.mettowervis(false);
                         return res.data.Data
                     },
                     total: function (res) {
@@ -2035,6 +2043,7 @@ var Data = {
         });*/
     },
     InitScadaGrid: function () {
+        dbr.oemvis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -2077,6 +2086,7 @@ var Data = {
                 schema: {
                     data: function (res) {
                         app.loading(false);
+                        dbr.oemvis(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -2273,6 +2283,7 @@ var Data = {
         });
     },
     InitCustomGrid: function(){
+        dbr.customvis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -2346,6 +2357,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
+                        dbr.customvis(false);
                         app.loading(false);
                         if (!app.isFine(res)) {
                             return;
@@ -2417,6 +2429,7 @@ var Data = {
         });
     },
     InitDEgrid: function() {
+        dbr.downeventvis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -2456,6 +2469,7 @@ var Data = {
             schema: {
                 data: function(ress) {
                     app.loading(false);
+                    dbr.downeventvis(false);
                     if (!app.isFine(ress)) {
                         return;
                     }
@@ -2669,9 +2683,7 @@ var Data = {
                         }
                         $('#totalturbineEvent').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldataEvent').html(kendo.toString(res.data.Total, 'n0'));
-                        // $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
-                        // $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
-                        // $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
+                      
                         return res.data.Total;
                     }
                 },
