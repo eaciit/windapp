@@ -195,7 +195,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	e = csr.Fetch(&latestDataPeriods, 0, false)
 	csr.Close()
 
-	toolkit.Println(latestDataPeriods)
+	// toolkit.Println(latestDataPeriods)
 
 	type availdatedata struct {
 		ScadaData         []time.Time
