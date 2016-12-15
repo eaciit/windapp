@@ -17,9 +17,6 @@ import (
 	"github.com/eaciit/orm"
 	"github.com/fsnotify/fsnotify"
 	// "github.com/metakeule/fmtdate"
-
-	. "eaciit/wfdemo-git/processapp/watcher/controllers"
-
 	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
 	"archive/tar"
 	"archive/zip"
@@ -147,7 +144,7 @@ func main() {
 func processFile(filePath string, com []Command) {
 	// dt := time.Now()
 	// dtStr := fmtdate.Format(TIME_FORMAT_STR, dt)
-	fmt.Println("Process")
+	fmt.Println(" >>> Process : ", filePath)
 	for true {
 		byteOut, err := runCMD("lsof " + filePath)
 		if err != nil {
@@ -206,10 +203,12 @@ func processFile(filePath string, com []Command) {
 		time.Sleep(100 * time.Millisecond)
 		e := unzip(filePath, conf.Draft)
 		if e != nil {
-			panic(e)
+			log.Printf("%s - %s", filePath, e.Error())
+			_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Errors))
+		} else {
+			fmt.Println("Unzip Done")
+			_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
 		}
-		fmt.Println("Unzip Done")
-		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
 	}
 }
 
@@ -303,7 +302,10 @@ func runCMD(cmdStr string) (out []byte, err error) {
 
 	}
 
-	fmt.Println("sh", "-c", cmdStr)
+	if !strings.Contains(cmdStr, "lsof") {
+		fmt.Println("sh", "-c", cmdStr)
+	}
+
 	var errBuff bytes.Buffer
 	cmd := exec.Command("sh", "-c", cmdStr)
 	cmd.Stderr = &errBuff
