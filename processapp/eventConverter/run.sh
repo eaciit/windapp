@@ -18,3 +18,12 @@ go run main.go
 
 cp conf/app6.conf conf/app.conf
 go run main.go
+
+cp conf/app7.conf conf/app.conf
+go run main.go
+
+cp conf/app8.conf conf/app.conf
+go run main.go
+
+cp conf/app8.conf conf/app.conf
+go run main.go
