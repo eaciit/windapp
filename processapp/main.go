@@ -2,8 +2,8 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
-	// . "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
-	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
+	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	// . "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 
 	"os"
 	"runtime"
@@ -73,7 +73,32 @@ func main() {
 		met.Generate(base)
 		met.GenerateWindRose(base)*/
 
-		new(ConvScadaDataOEM).Generate(base)
+		// new(ConvScadaDataOEM).Generate(base)
+
+		// =========================================================================================== //
+		// step to prepare data for the application
+		// =========================================================================================== //
+
+		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+
+		// NewUpdateOEMToScada(base).RunMapping() // step 1
+
+		// NewEventToAlarm(base).ConvertEventToAlarm() // step 2
+
+		// new(GenAlarmSummary).Generate(base) // step 3
+
+		// NewGenDataPeriod(base).Generate() // step 4
+
+		// new(GenScadaLast24).Generate(base) // step 5
+
+		// new(GenScadaSummary).Generate(base) // step 6
+		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
+		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
+		// new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
+
+		// =========================================================================================== //
+		// step to prepare data for the application
+		// =========================================================================================== //
 	}
 
 	tk.Println("Application Close..")

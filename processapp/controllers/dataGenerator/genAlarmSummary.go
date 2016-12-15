@@ -41,14 +41,20 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 
 			var pipes []tk.M
 
+			pipes = append(pipes,
+				tk.M{"$unwind": "$detail"},
+			)
 			pipes = append(pipes, tk.M{"$match": tk.M{field: true}})
 			pipes = append(pipes,
 				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc", "id3": title.(string)},
+					"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": title.(string)},
 						"result": tk.M{"$sum": "$powerlost"},
 					},
 				},
 			)
+
+			tk.Println("====================pipes===========================")
+			tk.Println(pipes)
 
 			/*csr, e := ctx.NewQuery().
 			From(new(Alarm).TableName()).
@@ -56,7 +62,7 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 			Cursor(nil)*/
 
 			csr, e := ctx.NewQuery().
-				From(new(AlarmClean).TableName()).
+				From(new(Alarm).TableName()).
 				Command("pipe", pipes).
 				Cursor(nil)
 
@@ -67,45 +73,51 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 
 			ErrorHandler(e, "Generate Alarm Summary")
 
+			tk.Println("====================result===========================")
+			tk.Println(result)
+
 			for _, val := range result {
 
 				id := val.Get("_id").(tk.M)
 
 				// tk.Printf("%v \n", id)
 
-				monthid := strconv.Itoa(id.GetInt("id1"))
-				year := monthid[0:4]
-				month := monthid[4:6]
-				day := "01"
+				monthid := tk.ToString(id.GetInt("id1"))
+				if monthid != "101" {
+					year := monthid[0:4]
+					month := monthid[4:6]
+					day := "01"
 
-				iMonth, _ := strconv.Atoi(string(month))
-				iMonth = iMonth - 1
+					iMonth, _ := strconv.Atoi(string(month))
+					iMonth = iMonth - 1
 
-				dtStr := year + "-" + month + "-" + day
-				dtId, _ := time.Parse("2006-01-02", dtStr)
-				dtinfo := GetDateInfo(dtId)
+					dtStr := year + "-" + month + "-" + day
+					dtId, _ := time.Parse("2006-01-02", dtStr)
+					dtinfo := GetDateInfo(dtId)
 
-				mdl := new(AlarmSummaryByMonth)
-				mdl.ProjectName = "Tejuva"
-				mdl.DateInfo = dtinfo
-				mdl.LostEnergy = val.GetFloat64("result")
-				mdl.Type = title.(string)
-				mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
+					mdl := new(AlarmSummaryByMonth)
+					mdl.ProjectName = "Tejuva"
+					mdl.DateInfo = dtinfo
+					tk.Println(val.GetFloat64("result"))
+					mdl.LostEnergy = val.GetFloat64("result")
+					mdl.Type = title.(string)
+					mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
 
-				if mdl != nil {
-					d.BaseController.Ctx.Insert(mdl)
+					if mdl != nil {
+						d.BaseController.Ctx.Insert(mdl)
+					}
+
+					/*mdl = new(AlarmSummaryByMonth)
+					mdl.ProjectName = "Fleet"
+					mdl.DateInfo = dtinfo
+					mdl.LostEnergy = val.GetFloat64("result")
+					mdl.Type = title.(string)
+					mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
+
+					if mdl != nil {
+						d.BaseController.Ctx.Insert(mdl)
+					}*/
 				}
-
-				/*mdl = new(AlarmSummaryByMonth)
-				mdl.ProjectName = "Fleet"
-				mdl.DateInfo = dtinfo
-				mdl.LostEnergy = val.GetFloat64("result")
-				mdl.Type = title.(string)
-				mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
-
-				if mdl != nil {
-					d.BaseController.Ctx.Insert(mdl)
-				}*/
 
 			}
 		}
