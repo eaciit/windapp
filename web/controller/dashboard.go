@@ -41,6 +41,7 @@ type PayloadDashboard struct {
 	Type        string
 	Date        time.Time
 	DateStr     string
+	IsDetail    bool
 	Skip        int
 	Take        int
 	Sort        []Sorting
@@ -650,20 +651,22 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	// tk.Printf("Data LostEnergy ==> %#v\n", downtimeDatas)
 	result.Set("lostenergy", downtimeDatas)
 
-	if p.Type == "" && p.ProjectName == "Fleet" {
-		result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
+	if !p.IsDetail {
+
+		if p.Type == "" && p.ProjectName == "Fleet" {
+			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
+		}
+		result.Set("duration", getTurbineDownTimeTop("duration", p))
+		result.Set("frequency", getTurbineDownTimeTop("frequency", p))
+		result.Set("loss", getTurbineDownTimeTop("loss", p))
+
+		result.Set("lossCatDuration", getLossCategoriesTop("duration", p))
+		result.Set("lossCatFrequency", getLossCategoriesTop("frequency", p))
+		result.Set("lossCatLoss", getLossCategoriesTop("loss", p))
+
+		result.Set("machineAvailability", getAvailability("machine", p))
+		result.Set("gridAvailability", getAvailability("grid", p))
 	}
-	result.Set("duration", getTurbineDownTimeTop("duration", p))
-	result.Set("frequency", getTurbineDownTimeTop("frequency", p))
-	result.Set("loss", getTurbineDownTimeTop("loss", p))
-
-	result.Set("lossCatDuration", getLossCategoriesTop("duration", p))
-	result.Set("lossCatFrequency", getLossCategoriesTop("frequency", p))
-	result.Set("lossCatLoss", getLossCategoriesTop("loss", p))
-
-	result.Set("machineAvailability", getAvailability("machine", p))
-	result.Set("gridAvailability", getAvailability("grid", p))
-
 	return helper.CreateResult(true, result, "success")
 }
 
@@ -689,6 +692,15 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	var fromDate time.Time
 	match := tk.M{}
 	matchDown := tk.M{}
+	machinedown, e := getMachineDownType()
+	var typeX string
+
+	for i, v := range machinedown {
+		if v == p.Type {
+			typeX = i
+			break
+		}
+	}
 
 	if p.DateStr != "" {
 		dateStr := strings.Split(p.DateStr, " ")
@@ -717,12 +729,11 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	}
 
 	if p.Type != "" && tipe != "fleetdowntime" && p.Type != "All Types" {
-		match.Set("type", p.Type)
+		match.Set(typeX, true)
 	} else if p.Type != "" && tipe == "fleetdowntime" {
 		matchDown.Set(strings.Replace(strings.ToLower(p.Type), " ", "", 1), true)
 	}
 
-	machinedown, e := getMachineDownType()
 	pipes = append(pipes, tk.M{"$match": match})
 
 	if p.ProjectName != "Fleet" {
@@ -731,20 +742,44 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		// add by ams on 20161003
 		if tipe == "project" {
 			if p.Type == "All Types" {
+				pipeIds := tk.M{
+					"id1": "$detail.detaildateinfo.monthid",
+					"id2": "$detail.detaildateinfo.monthdesc",
+					"id3": p.Type,
+				}
+
+				for mcd := range machinedown {
+					pipeIds.Set(mcd, "$"+mcd)
+				}
+
+				pipes = append(pipes, tk.M{"$unwind": "$detail"})
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$type"},
-							"result": tk.M{"$sum": "$lostenergy"},
+						"$group": tk.M{
+							"_id":    pipeIds,
+							"result": tk.M{"$sum": "$detail.powerlost"},
 						},
 					},
 				)
 			} else {
+				// pipes = append(pipes,
+				// 	tk.M{
+				// 		/*"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
+				// 		"result": tk.M{"$sum": "$lostenergy"},*/
+				// 		"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$type"},
+				// 			"result": tk.M{"$sum": "$lostenergy"}, /*changed from by project to by MD type per 11 Oct 16 [RS]*/
+				// 		},
+				// 	},
+				// )
+
+				pipes = append(pipes, tk.M{"$unwind": "$detail"})
 				pipes = append(pipes,
 					tk.M{
-						/*"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-						"result": tk.M{"$sum": "$lostenergy"},*/
-						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$type"},
-							"result": tk.M{"$sum": "$lostenergy"}, /*changed from by project to by MD type per 11 Oct 16 [RS]*/
+						"$group": tk.M{"_id": tk.M{
+							"id1": "$detail.detaildateinfo.monthid",
+							"id2": "$detail.detaildateinfo.monthdesc",
+							"id3": typeX},
+							"result": tk.M{"$sum": "$detail.powerlost"},
 						},
 					},
 				)
@@ -855,8 +890,12 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		dt, _ := time.Parse("2006-01-02 15:04:05", fromDate.UTC().Format("2006-01")+"-01 00:00:00")
 		// lineData := tk.M{}
 
-		for _, title := range stack {
+		for field, title := range stack {
 			if tipe != "type" {
+				/*for _, val := range tmpResult {
+					log.Printf("val: %#v \n", val)
+				}*/
+
 				for i := 1; i < 13; i++ {
 					currDate := dt.AddDate(0, i, 0)
 					dateInfo := GetDateInfo(currDate)
@@ -866,20 +905,40 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 						id := val.Get("_id").(tk.M)
 						id1 := id.GetInt("id1")
 						id3 := id.GetString("id3")
+						if p.Type == "All Types" && id.Get(field) != nil {
+							// log.Printf("id: %#v || %v \n", id, field)
+							idDown := id.Get(field).(bool)
+							if id1 == dateInfo.MonthId && idDown {
+								found = true
+								val.Set("_id", tk.M{
+									"id1": id1,
+									"id2": dateInfo.MonthDesc,
+									"id3": tk.ToString(title),
+								})
+								val.Set("result", val.GetFloat64("result")*0.001)
+								result = append(result, val)
+								break
+							}
 
+						} else {
+							if id1 == dateInfo.MonthId && (id3 == tk.ToString(title) || id3 == tk.ToString(field)) {
+								found = true
+								val.Set("_id", tk.M{
+									"id1": id1,
+									"id2": dateInfo.MonthDesc,
+									"id3": tk.ToString(title),
+								})
+								val.Set("result", val.GetFloat64("result")*0.001)
+								result = append(result, val)
+								break
+							}
+						}
 						// tk.Printf("ID 1 => %#v\n", id1)
 						// tk.Printf("MonthId => %#v\n", dateInfo.MonthId)
 						// tk.Printf("ID 3 => %#v\n", id3)
 						// tk.Printf("Title => %#v\n", tk.ToString(title))
 						// tk.Printf("Value => %#v\n", val.GetFloat64("result"))
 
-						if id1 == dateInfo.MonthId && id3 == tk.ToString(title) {
-							found = true
-
-							val.Set("result", val.GetFloat64("result")*0.001)
-							result = append(result, val)
-							break
-						}
 					}
 
 					if !found {
@@ -947,91 +1006,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 					"minFreq":      bigFreq - (bigFreq * 2),
 					"source":       source}
 				result = append(result, data)
-
-				/*source := []tk.M{}
-				groups := tk.M{
-					"_id":       "$projectname",
-					"duration":  tk.M{"$sum": "$duration"},
-					"frequency": tk.M{"$sum": 1},
-				}
-				var bigPower, bigDuration float64
-				var bigFreq int
-				for field, mdName := range machinedown {
-					matchX := tk.M{field: true}
-					pipesX := []tk.M{{"$match": matchX}, {"$group": groups}}
-
-					csr, e := DB().Connection.NewQuery().
-						From(new(Alarm).TableName()).
-						Command("pipe", pipesX).
-						Cursor(nil)
-
-					if e != nil {
-						return
-					}
-
-					tmpRes := []tk.M{}
-					e = csr.Fetch(&tmpRes, 0, false)
-					// add by ams, 2016-10-07
-					csr.Close()
-
-					if e != nil {
-						return
-					}
-
-					if len(tmpRes) > 0 {
-						tmp := tmpRes[0]
-						ids := tmp.GetString("_id")
-						lineData.Set(mdName+"_"+ids, tk.M{"duration": tmp.GetFloat64("duration"),
-							"frequency": tmp.GetInt("frequency")})
-					}
-
-					found := false
-					for _, val := range tmpResult {
-						id := val.Get("_id").(tk.M)
-						id1 := id.GetString("id1")
-						id3 := id.GetString("id3")
-						if id1 == mdName && id3 == tk.ToString(title) {
-							line := lineData[mdName+"_"+title].(tk.M)
-							found = true
-							powerlost := val.GetFloat64("powerlost") * 0.001
-							duration := line.GetFloat64("duration")
-							frequency := line.GetInt("frequency")
-
-							if powerlost > bigPower {
-								bigPower = powerlost
-							}
-							if duration > bigDuration {
-								bigDuration = duration
-							}
-							if frequency > bigFreq {
-								bigFreq = frequency
-							}
-							val.Set("powerlost", powerlost)
-							val.Set("duration", duration)
-							val.Set("frequency", frequency)
-							source = append(source, val)
-							break
-						}
-					}
-					if !found {
-						emptyRes := tk.M{}
-						emptyRes.Set("_id", tk.M{"id1": mdName, "id2": mdName, "id3": tk.ToString(title)})
-						emptyRes.Set("powerlost", 0)
-						emptyRes.Set("duration", 0)
-						emptyRes.Set("frequency", 0)
-
-						source = append(source, emptyRes)
-					}
-				}
-				data := tk.M{
-					"maxPowerLost": bigPower * 3,
-					"minPowerLost": 0,
-					"maxDuration":  bigDuration * 3,
-					"minDuration":  bigDuration - (bigDuration * 3),
-					"maxFreq":      bigFreq * 2,
-					"minFreq":      bigFreq - (bigFreq * 2),
-					"source":       source}
-				result = append(result, data)*/
 			}
 		}
 	} else {
@@ -1712,6 +1686,12 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
+	/*for _, v := range pipes {
+		log.Printf("pipes: %#v \n", v)
+	}
+
+	log.Printf("date: %v | %v \n", fromDate.UTC().String(), p.Date.UTC().String())*/
+
 	csr, e := DB().Connection.NewQuery().
 		From(new(Alarm).TableName()).
 		Command("pipe", pipes).
@@ -1732,6 +1712,8 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	// log.Printf("len: %v \n", len(tmpResult))
+
 	for _, val := range tmpResult {
 		val.Set("isdown", false)
 		if val.GetFloat64("result") > 24 {
@@ -1740,6 +1722,8 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 
 		result = append(result, val)
 	}
+
+	// log.Printf("lenResult: %v \n", len(result))
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -1887,6 +1871,16 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	machinedown, e := getMachineDownType()
+	var typeX string
+
+	for i, v := range machinedown {
+		if v == p.Type {
+			typeX = i
+			break
+		}
+	}
+
 	result := tk.M{}
 
 	dateStr := []string{}
@@ -1896,10 +1890,13 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 		dateStr = strings.Split(p.DateStr, " ")
 		date, e = time.Parse("Jan 2006 02 15:04:05", dateStr[0][0:3]+" "+dateStr[1]+" 01 00:00:00")
 	} else {
-		dateStr = strings.Split("Jul 2015", " ")
+		date2 = helper.GetLastDateData(k)
+		date = date2.AddDate(0, -12, 0)
+
+		/*dateStr = strings.Split("Jul 2015", " ")
 		dateStr2 := strings.Split("Jun 2016", " ")
 		date, e = time.Parse("Jan 2006 02 15:04:05", dateStr[0][0:3]+" "+dateStr[1]+" 01 00:00:00")
-		date2, e = time.Parse("Jan 2006 02 15:04:05", dateStr2[0][0:3]+" "+dateStr2[1]+" 01 00:00:00")
+		date2, e = time.Parse("Jan 2006 02 15:04:05", dateStr2[0][0:3]+" "+dateStr2[1]+" 01 00:00:00")*/
 	}
 
 	if e != nil {
@@ -1918,39 +1915,37 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	var filter []*dbox.Filter
 
 	if p.DateStr != "fleet date" {
-		match = append(match, tk.M{"startdateinfo.monthid": dateInfo.MonthId})
+		match = append(match, tk.M{"detail.detaildateinfo.monthid": dateInfo.MonthId})
 		filter = append(filter, dbox.Eq("detail.detaildateinfo.monthid", dateInfo.MonthId))
 	} else {
 		filter = append(filter, dbox.Gte("startdateinfo.monthid", dateInfo.MonthId))
 		filter = append(filter, dbox.Lte("startdateinfo.monthid", dateInfo2.MonthId))
 
-		match = append(match, tk.M{"detail.detaildateinfo.monthid": tk.M{"$gte": dateInfo.MonthId, "$lte": dateInfo2.MonthId}})
+		match = append(match, tk.M{"detail.detaildateinfo.monthid": tk.M{"$gt": dateInfo.MonthId, "$lte": dateInfo2.MonthId}})
 		// tk.Println(dateInfo.MonthId)
 		// tk.Println(dateInfo2.MonthId)
 	}
 	if p.ProjectName != "Fleet" {
 		if p.Type != "" && p.Type != "All Types" {
-			filter = append(filter, dbox.Eq(strings.ToLower(strings.Replace(p.Type, " ", "", 1)), true))
-			match = append(match, tk.M{strings.ToLower(strings.Replace(p.Type, " ", "", 1)): true})
+			filter = append(filter, dbox.Eq("detail."+typeX, true))
+			match = append(match, tk.M{"detail." + typeX: true})
 		}
 
 		filter = append(filter, dbox.Eq("projectname", p.ProjectName))
 		match = append(match, tk.M{"projectname": p.ProjectName})
 	}
 
-	pipes = append(pipes, tk.M{"$unwind": "$detail"})
 	pipes = append(pipes, tk.M{"$match": match})
-
-	/*query := DB().Connection.NewQuery().
-	From(new(Alarm).TableName()).Where(filter...).
-	Skip(p.Skip).Take(p.Take)*/
-
-	// log.Printf("pipes: %#v \n", pipes)
+	pipes = append(pipes, tk.M{"$unwind": "$detail"})
 
 	query := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).
-		Command("pipes", pipes).
+		From(new(Alarm).TableName()).Where(filter...).
 		Skip(p.Skip).Take(p.Take)
+
+	/*query := DB().Connection.NewQuery().
+	From(new(Alarm).TableName()).
+	Command("pipes", pipes).
+	Skip(p.Skip).Take(p.Take)*/
 
 	if len(p.Sort) > 0 {
 		var arrsort []string
@@ -1983,6 +1978,11 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 		From(new(Alarm).TableName()).Where(filter...).
 		Cursor(nil)
 
+	/*csr, e = DB().Connection.NewQuery().
+	From(new(Alarm).TableName()).
+	Command("pipes", pipes).
+	Cursor(nil)*/
+
 	// add by ams, 2016-10-07
 	defer csr.Close()
 
@@ -1991,6 +1991,14 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	}
 
 	total := csr.Count()
+
+	/*for _, v := range pipes {
+		log.Printf("pipes: %#v \n", v)
+	}
+
+	if len(resTable) > 0 {
+		log.Printf("resTable: %#v \n", resTable[0])
+	}*/
 
 	result.Set("data", resTable)
 	result.Set("total", total)

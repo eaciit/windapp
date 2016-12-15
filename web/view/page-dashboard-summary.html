@@ -64,7 +64,7 @@
 					Production (kWh) - Last 24 Hours
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartProduction').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartProduction').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.ProductionChart(sum.dataSource().Productions)">
@@ -86,7 +86,7 @@
         		<span class="tools pull-right">
         			  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.dataSourceScada())">
@@ -106,7 +106,7 @@
 					Cumulative Production (GWh) - Month to Date
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid('n1')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.CumProduction(sum.dataSource().CummulativeProductions)">
@@ -127,7 +127,7 @@
 				Lost Energy (GWh) - Last 12 Months
 				<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartLostEnergy').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartLostEnergy').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.LostEnergy(sum.dataSourceScada())">
@@ -190,7 +190,7 @@
 					Production (GWh) - Last 12 Months
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonth').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonth').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth(sum.dataSourceScada())">
@@ -211,7 +211,7 @@
 					PLF (%) Comparison for all Projects - Last 12 Months
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartPLF').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartPLF').kendoChart2Grid('n0')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.PLF(sum.dataSourceScada())">
@@ -254,7 +254,7 @@
 					Production (GWh) - Current Year & Last Year
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLast').kendoChart2Grid()">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLast').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast(sum.dataSourceScada())">

@@ -10,8 +10,8 @@ import (
 )
 
 type ScadaDataOEM struct {
-	orm.ModelBase                            `bson:"-",json:"-"`
-	ID                                       bson.ObjectId ` bson:"_id" , json:"_id" `
+	orm.ModelBase                            `bson:"-" json:"-"`
+	ID                                       bson.ObjectId `bson:"_id" json:"_id"`
 	TimeStamp                                time.Time
 	TimeStampUTC                             time.Time
 	DateInfo                                 DateInfo
@@ -166,6 +166,35 @@ type ScadaDataOEM struct {
 	AI_YawBrake_TempRise3                    float64
 	AI_YawBrake_TempRise4                    float64
 	AI_intern_NacelleDrill_at_NorthPosSensor float64
+
+	Energy           float64 // new added on Sep 14, 2016 by ams
+	EnergyLost       float64 // new added on Sep 14, 2016 by ams
+	TurbineElevation float64 // new added on Sep 14, 2016 by ams
+	DenValue         float64 // new added on Sep 14, 2016 by ams
+	DenPh            float64 // new added on Sep 14, 2016 by ams
+	DenWindSpeed     float64 // new added on Sep 14, 2016 by ams
+	DenAdjWindSpeed  float64 // new added on Sep 14, 2016 by ams
+	DenPower         float64 // new added on Sep 14, 2016 by ams
+	DenEnergy        float64 // new added on Sep 14, 2016 by ams
+	PCValue          float64 // new added on Sep 15, 2016 by ams
+	PCValueAdj       float64 // new added on Sep 15, 2016 by ams
+	PCDeviation      float64 // new added on Sep 15, 2016 by ams
+	WSAdjForPC       float64 // new added on Sep 16, 2016 by ams
+	WSAvgForPC       float64 // new added on Sep 16, 2016 by ams
+	TotalAvail       float64 // new added on Sep 27, 2016 by ams
+	MachineAvail     float64 // new added on Sep 27, 2016 by ams
+	GridAvail        float64 // new added on Sep 27, 2016 by ams
+	DenPcDeviation   float64 // new added on Sep 27, 2016 by ams
+	DenDeviationPct  float64 // new added on Sep 27, 2016 by ams
+	DenPcValue       float64 // new added on Sep 27, 2016 by ams
+	DeviationPct     float64 // new added on Sep 27, 2016 by ams
+	MTTR             float64
+	MTTF             float64
+	PerformanceIndex float64
+	PowerLost        float64
+	GridDowntime     float64
+	MachineDowntime  float64
+	UnknownDowntime  float64
 }
 
 func (m *ScadaDataOEM) New() *ScadaDataOEM {
