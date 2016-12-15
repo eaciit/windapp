@@ -135,7 +135,7 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		Total:           countData,
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
-		TotalProduction: totalProduction / 6,
+		TotalProduction: totalProduction,// / 6,
 		AvgWindSpeed:    sumWindSpeed / countData,
 		TotalTurbine:    totalTurbine,
 	}
