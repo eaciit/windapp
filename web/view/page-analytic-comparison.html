@@ -45,23 +45,27 @@
                                 <tbody>
                                     <tr>
                                         <td class="column-keys">
-                                            <div data-bind="foreach: page.keyComparison">
-                                                <div class="col-md-6">
-                                                    <div class="checkbox key-list">
-                                                        <label>
-                                                        <input type="checkbox" class="chkbox" data-bind="{checked: status ,value: value ,attr:{id: 'chk-key-'+$index(),onchange:'page.ChangeKeyList(this)', text: text}}">
-                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                                                        <span data-bind="text:text"></span>
-                                                      </label>
+                                            <table>
+                                                <tbody>
+                                                    <div data-bind="foreach: page.keyComparison">
+                                                        <div class="col-md-6">
+                                                            <div class="checkbox key-list">
+                                                                <label>
+                                                                <input type="checkbox" class="chkbox" data-bind="{checked: status ,value: value ,attr:{id: 'chk-key-'+$index(),onchange:'page.ChangeKeyList(this)', text: text}}">
+                                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                                <span data-bind="text:text"></span>
+                                                              </label>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                            <div class="clearfix">&nbsp;</div>
-                                            <div class="clearfix">&nbsp;</div>
-                                            <div class="key-label">
-                                                <div class="pull-left">Selected Keys </div>
-                                                <div class="pull-right btn-refresh-all"><button class="refresh-all btn btn-sm btn-primary" onclick="page.refreshAll()" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Loading"><i class="fa fa-refresh"></i> &nbsp;All </button></div>
-                                            </div>
+                                                    <div class="clearfix">&nbsp;</div>
+                                                    <div class="clearfix">&nbsp;</div>
+                                                    <div class="key-label">
+                                                        <div class="pull-left">Selected Keys </div>
+                                                        <div class="pull-right btn-refresh-all"><button class="refresh-all btn btn-sm btn-primary" onclick="page.refreshAll()" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Loading"><i class="fa fa-refresh"></i> &nbsp;All </button></div>
+                                                    </div>
+                                                </tbody>
+                                            </table>
                                         </td>
                                         <td class="td-scrollable">
                                             <table>
