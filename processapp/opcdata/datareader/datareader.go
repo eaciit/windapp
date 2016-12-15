@@ -26,6 +26,7 @@ type DataReader struct {
 	PathUpload   string
 	SSHUser		 string
 	SSHServer	 string
+	ZipName		 string
 }
 
 var (
@@ -233,15 +234,16 @@ func (c *DataReader) readFile(fileName string,beginIndex int)int {
 	tk.Println("OOOOO",successFile,fName)
 	
 	tk.Println("Finish created log file")
-	fZip := c.createZip(fName)
-	tk.Println("Start sending file: " + fZip)
-	c.sendFile(fZip)
+	c.ZipName = c.createZip(fName)
+	
+	//tk.Println("Start sending file: " + fZip)
+	//c.sendFile(fZip)
 	c.writeConfig(fileName, endIndex)
 	
 	return countData
 }
 
-func (c *DataReader) sendFile(filename string) {
+func (c *DataReader) SendFile(filename string) {
 	locationTarget := c.PathUpload
 
 	ssh := new(SshSetting)

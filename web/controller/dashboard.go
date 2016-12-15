@@ -652,7 +652,6 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	result.Set("lostenergy", downtimeDatas)
 
 	if !p.IsDetail {
-
 		if p.Type == "" && p.ProjectName == "Fleet" {
 			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
 		}
@@ -664,8 +663,13 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 		result.Set("lossCatFrequency", getLossCategoriesTop("frequency", p))
 		result.Set("lossCatLoss", getLossCategoriesTop("loss", p))
 
-		result.Set("machineAvailability", getAvailability("machine", p))
-		result.Set("gridAvailability", getAvailability("grid", p))
+		/*result.Set("machineAvailability", getAvailability("machine", p))
+		result.Set("gridAvailability", getAvailability("grid", p))*/
+
+		machAvail, gridAvail := getMGAvailability(p)
+
+		result.Set("machineAvailability", machAvail)
+		result.Set("gridAvailability", gridAvail)
 	}
 	return helper.CreateResult(true, result, "success")
 }
@@ -1335,6 +1339,229 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 	return
 }
 
+// func getTurbineDownTimeTopAll(p *PayloadDashboard) (duration []tk.M, frequency []tk.M, loss []tk.M) {
+// 	var pipes []tk.M
+// 	var fromDate time.Time
+// 	match := tk.M{}
+
+// 	if p.DateStr == "" {
+// 		fromDate = p.Date.AddDate(0, -12, 0)
+
+// 		match.Set("startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+
+// 		if p.ProjectName != "Fleet" {
+// 			match.Set("projectname", p.ProjectName)
+// 		}
+
+// 		pipes = append(pipes, tk.M{"$match": match})
+
+// 		if topType == "duration" {
+// 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
+// 		} else if topType == "frequency" {
+// 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": 1}}})
+// 		} else if topType == "loss" {
+// 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$powerlost"}}})
+// 		}
+
+// 		pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
+
+// 		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+// 		pipes = append(pipes, tk.M{"$limit": 10})
+
+// 		// get the top 10
+
+// 		csr, e := DB().Connection.NewQuery().
+// 			Select("_id").
+// 			From(new(Alarm).TableName()).
+// 			Command("pipe", pipes).
+// 			Cursor(nil)
+
+// 		if e != nil {
+// 			return
+// 		}
+
+// 		top10Turbines := []tk.M{}
+// 		e = csr.Fetch(&top10Turbines, 0, false)
+// 		// add by ams, 2016-10-07
+// 		csr.Close()
+
+// 		if e != nil {
+// 			return
+// 		}
+
+// 		// get the downtime
+
+// 		turbines := []string{}
+// 		turbinesVal := tk.M{}
+
+// 		for _, turbine := range top10Turbines {
+// 			turbines = append(turbines, turbine.Get("_id").(string))
+// 			turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result"))
+// 		}
+
+// 		// tk.Printf("topType: \n%#v \n", topType)
+// 		// tk.Printf("turbines: %#v \n", turbines)
+
+// 		match.Set("turbine", tk.M{"$in": turbines})
+
+// 		down, e := getMachineDownType()
+// 		downCause := tk.M{}
+
+// 		for f, v := range down {
+// 			downCause.Set(f, v)
+// 		}
+
+// 		/*downCause.Set("aebok", "AEBOK")
+// 		downCause.Set("externalstop", "External Stop")
+// 		downCause.Set("griddown", "Grid Down")
+// 		downCause.Set("internalgrid", "Internal Grid")
+// 		downCause.Set("machinedown", "Machine Down")
+// 		downCause.Set("unknown", "Unknown")
+// 		downCause.Set("weatherstop", "Weather Stop")*/
+
+// 		tmpResult := []tk.M{}
+// 		downDone := []string{}
+
+// 		for f, t := range downCause {
+// 			pipes = []tk.M{}
+// 			loopMatch := match
+// 			field := tk.ToString(f)
+// 			title := tk.ToString(t)
+
+// 			downDone = append(downDone, field)
+
+// 			for _, done := range downDone {
+// 				match.Unset(done)
+// 			}
+
+// 			loopMatch.Set(field, true)
+
+// 			// tk.Printf("%#v \n", match)
+
+// 			pipes = append(pipes, tk.M{"$match": loopMatch})
+// 			if topType == "duration" {
+// 				pipes = append(pipes,
+// 					tk.M{
+// 						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$turbine", "id4": title},
+// 							"result": tk.M{"$sum": "$duration"},
+// 						},
+// 					},
+// 				)
+// 			} else if topType == "frequency" {
+// 				pipes = append(pipes,
+// 					tk.M{
+// 						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$turbine", "id4": title},
+// 							"result": tk.M{"$sum": 1},
+// 						},
+// 					},
+// 				)
+// 			} else if topType == "loss" {
+// 				pipes = append(pipes,
+// 					tk.M{
+// 						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$turbine", "id4": title},
+// 							"result": tk.M{"$sum": "$powerlost"},
+// 						},
+// 					},
+// 				)
+// 			}
+
+// 			pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+
+// 			/*tk.Println()
+// 			tk.Println(tk.ToString(title))
+// 			for _, val := range pipes {
+// 				tk.Printf("pipes: %v \n", val)
+// 			}*/
+
+// 			csr, e := DB().Connection.NewQuery().
+// 				From(new(Alarm).TableName()).
+// 				Command("pipe", pipes).
+// 				Cursor(nil)
+
+// 			if e != nil {
+// 				return
+// 			}
+
+// 			resLoop := []tk.M{}
+// 			e = csr.Fetch(&resLoop, 0, false)
+
+// 			// add by ams, 2016-10-07
+// 			csr.Close()
+
+// 			// tk.Printf("resLoop: %v - %#v \n", tk.ToString(title), resLoop)
+
+// 			for _, res := range resLoop {
+// 				tmpResult = append(tmpResult, res)
+// 			}
+// 		}
+
+// 		/*tk.Printf("len: %v \n", len(tmpResult))
+// 		tk.Printf("%#v \n", tmpResult)*/
+
+// 		/*for _, val := range tmpResult {
+// 			tk.Printf("tmpResult: %v \n", val)
+// 		}*/
+
+// 		resY := []tk.M{}
+
+// 		for _, t := range downCause {
+// 			// field := tk.ToString(f)
+// 			title := tk.ToString(t)
+
+// 			for _, turbine := range turbines {
+// 				resX := tk.M{}
+// 				resX.Set("_id", tk.M{"id3": turbine, "id4": title})
+// 				resX.Set("result", 0)
+
+// 			out:
+// 				for _, res := range tmpResult {
+// 					id3 := res.Get("_id").(tk.M).GetString("id3")
+// 					id4 := res.Get("_id").(tk.M).GetString("id4")
+
+// 					if id3 == turbine && id4 == title {
+// 						resX = res
+// 						break out
+// 					}
+// 				}
+
+// 				// if title == "External Stop" {
+// 				resY = append(resY, resX)
+// 				// }
+// 			}
+// 		}
+
+// 		for _, turbine := range turbines {
+// 			resVal := tk.M{}
+// 			resVal.Set("_id", turbine)
+
+// 			for _, val := range resY {
+// 				valTurbine := val.Get("_id").(tk.M).GetString("id3")
+// 				valResult := val.GetFloat64("result")
+// 				valTitle := ""
+
+// 				splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
+
+// 				if len(splitTitle) > 1 {
+// 					valTitle = splitTitle[0] + "" + splitTitle[1]
+// 				} else {
+// 					valTitle = splitTitle[0]
+// 				}
+
+// 				if turbine == valTurbine && valResult != 0 {
+// 					resVal.Set(valTitle, valResult)
+// 				} else if resVal.Get(valTitle) == nil {
+// 					resVal.Set(valTitle, 0)
+// 				}
+// 			}
+
+// 			resVal.Set("Total", turbinesVal.GetFloat64(turbine))
+// 			result = append(result, resVal)
+// 		}
+// 	}
+
+// 	return
+// }
+
 func getLossCategoriesTop(topType string, p *PayloadDashboard) (result []tk.M) {
 	var pipes []tk.M
 	var fromDate time.Time
@@ -1574,6 +1801,157 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 			scada.Unset("minutes")
 		}
 	}
+	// tk.Println()
+	return
+}
+
+func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []tk.M) {
+	result := []tk.M{}
+	var fromDate time.Time
+	match := tk.M{}
+	totalTurbine := 24.0
+
+	if p.DateStr == "" {
+		fromDate = p.Date.AddDate(0, -12, 0)
+
+		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+
+		if p.ProjectName != "Fleet" {
+			match.Set("projectname", p.ProjectName)
+		}
+
+		group := tk.M{
+			"_id":     tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
+			"minutes": tk.M{"$sum": "$minutes"},
+			"maxdate": tk.M{"$max": "$dateinfo.dateid"},
+			"mindate": tk.M{"$min": "$dateinfo.dateid"},
+		}
+
+		group.Set("machine", tk.M{"$sum": "$machinedowntime"})
+		group.Set("grid", tk.M{"$sum": "$griddowntime"})
+
+		pipe := []tk.M{
+			{"$match": match},
+			{"$group": group},
+			{"$sort": tk.M{"_id.id1": -1}},
+			{"$limit": 12},
+		}
+
+		// tk.Printf("pipe: %#v \n", pipe)
+
+		/*csr, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryDaily).TableName()).
+		Command("pipe", pipe).
+		Cursor(nil)*/
+
+		csr, e := DB().Connection.NewQuery().
+			From(new(ScadaData).TableName()).
+			Command("pipe", pipe).
+			Cursor(nil)
+
+		if e != nil {
+			return
+		}
+		defer csr.Close()
+
+		tmpResult := []tk.M{}
+
+		e = csr.Fetch(&tmpResult, 0, false)
+		if e != nil {
+			return
+		}
+
+		// get project list, for now just using Tejuva
+		// project list should come from ref_project collection
+
+		projects := []string{}
+		projects = append(projects, "Tejuva")
+
+		// --------------
+
+		// dayInYear := tk.M{}
+		tmpFromDate := fromDate.AddDate(0, 1, 0)
+		dateInfoTo := GetDateInfo(p.Date)
+		// tk.Println(availType)
+		for _, project := range projects {
+
+		done:
+
+			for {
+				dateInfoFrom := GetDateInfo(tmpFromDate)
+				// if dayInYear.Get(tk.ToString(dateInfoFrom.Year)) == nil {
+				// 	dayInYear.Set(tk.ToString(dateInfoFrom.Year), GetDayInYear(dateInfoFrom.Year))
+				// }
+				// days := dayInYear.Get(tk.ToString(dateInfoFrom.Year)).(tk.M).GetInt(tk.ToString(int(tmpFromDate.Month())))
+
+				var exist tk.M
+
+			existData:
+
+				for _, res := range tmpResult {
+					id := res.Get("_id").(tk.M)
+					// log.Printf("LOOP: %#v | %#v %v \n", id, dateInfoFrom, project)
+					if dateInfoFrom.MonthId == id.GetInt("id1") && project == id.GetString("id3") {
+						exist = res
+						break existData
+					}
+				}
+				// tk.Println()
+				if exist != nil {
+					// resVal := exist.GetFloat64("result") / tk.ToFloat64(days, 0, tk.RoundingAuto)
+					// exist.Set("result", resVal)
+					result = append(result, exist)
+				} else {
+					result = append(result, tk.M{
+						"_id": tk.M{
+							"id1": dateInfoFrom.MonthId,
+							"id2": dateInfoFrom.MonthDesc,
+							"id3": project,
+						},
+						"machineResult": 0.00,
+						"gridResult":    0.00,
+					})
+				}
+
+				if dateInfoFrom.MonthId == dateInfoTo.MonthId {
+					break done
+				}
+
+				tmpFromDate = tmpFromDate.AddDate(0, 1, 0)
+			}
+		}
+		for _, scada := range result {
+			m := scada.GetFloat64("machineResult")
+			g := scada.GetFloat64("gridResult")
+			if scada.Get("mindate") != nil {
+				minDate := scada.Get("mindate").(time.Time)
+				maxDate := scada.Get("maxdate").(time.Time)
+				minutes := scada.GetFloat64("minutes") / 60
+
+				hourValue := helper.GetHourValue(fromDate.UTC(), p.Date.UTC(), minDate.UTC(), maxDate.UTC())
+				mAvail := (minutes - (m / 3600.0)) / (totalTurbine * hourValue)
+				gAvail := (minutes - (g / 3600.0)) / (totalTurbine * hourValue)
+
+				scada.Set("machineResult", mAvail)
+				scada.Set("gridResult", gAvail)
+
+				// log.Printf("SCADA: %v | %v | %v | %v = %v | %v - %v - %v - %v \n", minutes, res/3600.0, totalTurbine, hourValue, tk.ToFloat64(avail, 2, tk.RoundingAuto), fromDate.UTC().String(), p.Date.UTC().String(), minDate.UTC().String(), maxDate.UTC().String())
+			} else {
+				// log.Printf("SCADA_X: %v | %#v \n", res, scada.Get("_id"))
+			}
+			scada.Unset("maxdate")
+			scada.Unset("mindate")
+			scada.Unset("minutes")
+		}
+	}
+
+	for _, res := range result {
+		id := res.Get("_id")
+
+		machineResult = append(machineResult, tk.M{"_id": id, "result": res.GetFloat64("machineResult")})
+		gridResult = append(gridResult, tk.M{"_id": id, "result": res.GetFloat64("gridResult")})
+	}
+
 	// tk.Println()
 	return
 }
