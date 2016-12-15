@@ -62,7 +62,7 @@ func FileWatcher() {
 	var e bool
 	now := time.Now()
 	indx:=6
-	
+	arrDataReader := []d.DataReader{}
 	for ;indx>=0;indx--{
 		prev:=now.Add(time.Duration(-indx)*time.Hour)
 		year,month,day:=prev.Date()
@@ -85,7 +85,9 @@ func FileWatcher() {
 			fmt.Println(lastModTimeLog.Format("02-Jan-2006 15:04:05"),modifiedTimeFS.Format("02-Jan-2006 15:04:05"))
 			if modifiedTimeFS.After(lastModTimeLog){
 				fmt.Println("File ",targetFileName,"Modified")
-				_,e,start,end,rows:=d.NewDataReader(dirSources+"\\"+targetFileName, dirProcess, wd,scpDir,sshUser,sshServer).Start(0)
+				dr := d.NewDataReader(dirSources+"\\"+targetFileName, dirProcess, wd,scpDir,sshUser,sshServer)
+				_,e,start,end,rows:=dr.Start(0)
+				arrDataReader = append(arrDataReader,*dr)
 				if e==nil{
 					modified[targetFileName]=modifiedTimeFS.Format("02-Jan-2006 15:04:05")
 					newPf:=processed[targetFileName]
@@ -100,8 +102,9 @@ func FileWatcher() {
 				fmt.Println(lastModTimeLog.Nanosecond(),modifiedTimeFS.Nanosecond())
 			}
 		}else{
-			
-			_,e,start,end,rows:=d.NewDataReader(dirSources+"\\"+targetFileName, dirProcess, wd,scpDir,sshUser,sshServer).Start(0)
+			dr := d.NewDataReader(dirSources+"\\"+targetFileName, dirProcess, wd,scpDir,sshUser,sshServer)
+			_,e,start,end,rows:=dr.Start(0)
+			arrDataReader = append(arrDataReader,*dr)
 			if e==nil{
 				modified[targetFileName]=modifiedTimeFS.Format("02-Jan-2006 15:04:05")
 				newPf:=new(model.ProcessedLog)
@@ -113,9 +116,13 @@ func FileWatcher() {
 			}
 			
 		}
+		
 		WriteModified(modFileName)
 		WriteProcessed(modFileName)
 		
+	}
+	for oo:=len(arrDataReader)-1;oo>=0;oo--{
+		arrDataReader[oo].SendFile(arrDataReader[oo].ZipName)
 	}
 	
 	//watcher.StartWatcher()
