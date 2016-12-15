@@ -249,10 +249,10 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 				if idx == 0 {
 					tmpRes.Set("KeyA", res)
 					tmpRes.Set("TitleKeyA", unit)
-				} else if idx == 1 {
+				} else if idx == 1 && strings.ToLower(p.KeyB) != "none" {
 					tmpRes.Set("KeyB", res)
 					tmpRes.Set("TitleKeyB", unit)
-				} else if idx == 2 {
+				} else if idx == 2 && strings.ToLower(p.KeyC) != "none" {
 					tmpRes.Set("KeyC", res)
 					tmpRes.Set("TitleKeyC", unit)
 				}
@@ -462,6 +462,13 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			}
 		}
 	}
+	resVal := tk.M{}
+	resVal.Set("MachineAvailabilityUnit", "%")
+	resVal.Set("ProductionUnit", "MWh")
+	resVal.Set("TotalAvailabilityUnit", "%")
+	resVal.Set("PLFUnit", "%")
+	resVal.Set("GridAvailabilityUnit", "%")
+	resVal.Set("DataAvailabilityUnit", "%")
 
 	//Based Date=============
 	_basedcolsdata := []tk.M{}
@@ -469,15 +476,23 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		for i := 0; i < (tk.ToInt(tEnd.Format("20060102"), "") - tk.ToInt(tStart.Format("20060102"), "") + 1); i++ {
 			tmpCol := tk.M{}
 			tmpCol.Set("KeyA", 0.0)
-			tmpCol.Set("KeyB", 0.0)
-			tmpCol.Set("KeyC", 0.0)
+			if strings.ToLower(p.KeyB) != "none" {
+				tmpCol.Set("KeyB", 0.0)
+			}
+			if strings.ToLower(p.KeyC) != "none" {
+				tmpCol.Set("KeyC", 0.0)
+			}
 
 			loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("20060102"), "")+i), "YYYYMMdd").UTC()
 
 			tmpCol.Set("Name", tk.ToString(loopmonth.Format("02 Jan 2006")))
-			tmpCol.Set("TitleKeyA", "MWh")
-			tmpCol.Set("TitleKeyB", "%")
-			tmpCol.Set("TitleKeyC", "Lacs")
+			tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+			if strings.ToLower(p.KeyB) != "none" {
+				tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+			}
+			if strings.ToLower(p.KeyC) != "none" {
+				tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+			}
 			tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("20060102")))
 
 			_basedcolsdata = append(_basedcolsdata, tmpCol)
@@ -558,9 +573,9 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			for key, val := range col {
 				if key == "TitleKeyA" {
 					units[0] = val.(string)
-				} else if key == "TitleKeyB" {
+				} else if key == "TitleKeyB" && strings.ToLower(p.KeyB) != "none" {
 					units[1] = val.(string)
-				} else if key == "TitleKeyC" {
+				} else if key == "TitleKeyC" && strings.ToLower(p.KeyC) != "none" {
 					units[2] = val.(string)
 				}
 			}
@@ -574,24 +589,37 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		)
 
 		var unit []string
-		unit = append(unit, "MWh")
-		unit = append(unit, "%")
-		unit = append(unit, "Lacs")
+
+		unit = append(unit, resVal.GetString(p.KeyA+"Unit"))
+		if strings.ToLower(p.KeyB) != "none" {
+			unit = append(unit, resVal.GetString(p.KeyB+"Unit"))
+		}
+		if strings.ToLower(p.KeyC) != "none" {
+			unit = append(unit, resVal.GetString(p.KeyC+"Unit"))
+		}
 
 		tmpColArr := []tk.M{}
 		if colBreakdown == "Date" {
 			for i := 0; i < (tk.ToInt(tEnd.Format("20060102"), "") - tk.ToInt(tStart.Format("20060102"), "") + 1); i++ {
 				tmpCol := tk.M{}
 				tmpCol.Set("KeyA", 0.0)
-				tmpCol.Set("KeyB", 0.0)
-				tmpCol.Set("KeyC", 0.0)
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("KeyB", 0.0)
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("KeyC", 0.0)
+				}
 
 				loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("20060102"), "")+i), "YYYYMMdd").UTC()
 
 				tmpCol.Set("Name", tk.ToString(loopmonth.Format("02 January 2006")))
-				tmpCol.Set("TitleKeyA", "MWh")
-				tmpCol.Set("TitleKeyB", "%")
-				tmpCol.Set("TitleKeyC", "Lacs")
+				tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+				}
 				tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("20060102")))
 
 				tmpColArr = append(tmpColArr, tmpCol)
@@ -600,15 +628,23 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			for i := 0; i < (tk.ToInt(tEnd.Format("200601"), "") - tk.ToInt(tStart.Format("200601"), "") + 1); i++ {
 				tmpCol := tk.M{}
 				tmpCol.Set("KeyA", 0.0)
-				tmpCol.Set("KeyB", 0.0)
-				tmpCol.Set("KeyC", 0.0)
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("KeyB", 0.0)
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("KeyC", 0.0)
+				}
 
 				loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("200601"), "")+i), "YYYYMM").UTC()
 
 				tmpCol.Set("Name", tk.ToString(loopmonth.Format("January 2006"))+" <br/> "+periodDivider.GetString(tk.ToString(loopmonth.Format("200601"))))
-				tmpCol.Set("TitleKeyA", "MWh")
-				tmpCol.Set("TitleKeyB", "%")
-				tmpCol.Set("TitleKeyC", "Lacs")
+				tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+				}
 				tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("200601")))
 
 				tmpColArr = append(tmpColArr, tmpCol)
@@ -617,15 +653,23 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			for i := 0; i < (tk.ToInt(tEnd.Format("2006"), "") - tk.ToInt(tStart.Format("2006"), "") + 1); i++ {
 				tmpCol := tk.M{}
 				tmpCol.Set("KeyA", 0.0)
-				tmpCol.Set("KeyB", 0.0)
-				tmpCol.Set("KeyC", 0.0)
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("KeyB", 0.0)
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("KeyC", 0.0)
+				}
 
 				loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("2006"), "")+i), "YYYY").UTC()
 
 				tmpCol.Set("Name", tk.ToString(loopmonth.Format("2006"))+" <br/> "+periodDivider.GetString(tk.ToString(loopmonth.Format("2006"))))
-				tmpCol.Set("TitleKeyA", "MWh")
-				tmpCol.Set("TitleKeyB", "%")
-				tmpCol.Set("TitleKeyC", "Lacs")
+				tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+				}
 				tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("2006"))+"00")
 
 				tmpColArr = append(tmpColArr, tmpCol)

@@ -21,6 +21,26 @@ var Data = {
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
         })
+        var hideLast24 = false;
+        var hideLastWeek = false;
+        var hideMTD = false;
+        var hideYTD = false;
+        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+        var maxDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0, 0));
+        var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+        var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+        var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+        var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+        
+        if(fa.dateStart.getTime() === last24hours.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideLast24 = true;
+        } else if(fa.dateStart.getTime() === lastweek.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideLastWeek = true;
+        } else if(fa.dateStart.getTime() === startMonthDate.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideMTD = true;
+        } else if(fa.dateStart.getTime() === startYearDate.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideYTD = true;
+        }
 
         var param = {
             period: fa.period,
@@ -85,6 +105,7 @@ var Data = {
                 },
                 {
                     title: "Last 24 Hours",
+                    hidden: hideLast24,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" }, format: "{0:n2}"},
@@ -94,6 +115,7 @@ var Data = {
                 },
                 {
                     title: "Last Week",
+                    hidden: hideLastWeek,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLastWeek", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
@@ -103,6 +125,7 @@ var Data = {
                 },
                 {
                     title: "MTD",
+                    hidden: hideMTD,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexMTD", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
@@ -112,6 +135,7 @@ var Data = {
                 },
                 {
                     title: "YTD",
+                    hidden: hideYTD,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexYTD", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
@@ -123,6 +147,26 @@ var Data = {
         });
     },
     InitGridDetail: function (e) {
+        var hideLast24 = false;
+        var hideLastWeek = false;
+        var hideMTD = false;
+        var hideYTD = false;
+        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+        var maxDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0, 0));
+        var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+        var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+        var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+        var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+        
+        if(fa.dateStart.getTime() === last24hours.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideLast24 = true;
+        } else if(fa.dateStart.getTime() === lastweek.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideLastWeek = true;
+        } else if(fa.dateStart.getTime() === startMonthDate.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideMTD = true;
+        } else if(fa.dateStart.getTime() === startYearDate.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideYTD = true;
+        }
         $("<div/>").appendTo(e.detailCell).kendoGrid({
             selectable: "multiple",
             dataSource: {
@@ -148,6 +192,7 @@ var Data = {
                 },
                 {
                     title: "Last 24 Hours",
+                    hidden: hideLast24,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center"}, format: "{0:n2}"},
@@ -157,6 +202,7 @@ var Data = {
                 },
                 {
                     title: "Last Week",
+                    hidden: hideLastWeek,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexLastWeek", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
@@ -166,6 +212,7 @@ var Data = {
                 },
                 {
                     title: "MTD",
+                    hidden: hideMTD,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexMTD", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
@@ -175,6 +222,7 @@ var Data = {
                 },
                 {
                     title: "YTD",
+                    hidden: hideYTD,
                     headerAttributes: { style: 'font-weight: bold; text-align: center;' },
                     columns: [
                         { field: "PerformanceIndexYTD", title: "PI", width: 100,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},

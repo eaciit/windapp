@@ -102,6 +102,7 @@ type ScadaSummaryDaily struct {
 	PCDeviation        float64
 	Revenue            float64
 	RevenueInLacs      float64
+	OkTime             float64
 	TrueAvail          float64
 	ScadaAvail         float64
 	MachineAvail       float64
