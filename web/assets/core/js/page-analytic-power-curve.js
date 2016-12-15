@@ -70,7 +70,7 @@ page.ExportPowerCurveDetailPdf = function () {
 
 vm.currentMenu('Power Curve');
 vm.currentTitle('Power Curve');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Power Curve', href: viewModel.appName + 'page/analyticpowercurve' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Power Curve', href: viewModel.appName + 'page/analyticpowercurve' }]);
 
 var dataPowerCurve
 var dataTurbine
@@ -85,6 +85,13 @@ var Data = {
     },
     InitLinePowerCurve: function () {
         page.deviationVal($("#deviationValue").val());
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+            var minDatetemp = new Date(res.ScadaData[0]);
+            var maxDatetemp = new Date(res.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        })
 
         var link = "analyticpowercurve/getlistpowercurvescada"
 
@@ -643,7 +650,7 @@ page.HideforScatter = function () {
         }
     } else {
         $('#showHideChk').show();
-        $('#showHideAll').prop('checked', true);
+        $('#showHideAll').prop('checked', false); /*can be harcoded because max turbine is 3*/
     }
 }
 
@@ -655,7 +662,8 @@ $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
         app.loading(true);
         setTimeout(function () {
-            Data.LoadData();
+            Data.InitLinePowerCurve()
+            // Data.LoadData();
             // Data.InitLinePowerCurve();
             // if (page.sScater()) { 
             //     Data.getPowerCurve(); 

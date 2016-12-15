@@ -123,6 +123,8 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		"totaltimestamp":  tk.M{"$sum": 1},
 		"available":       tk.M{"$sum": "$available"},
 		"minutes":         tk.M{"$sum": "$minutes"},
+		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
+		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
 	}
 
 	if rowsBreakdown == "Project" {
@@ -172,9 +174,20 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine float64
 
 		// totalTurbine = tk.ToFloat64(len(p.Turbine), 0, tk.RoundingAuto)
-		totalTurbine = 1.0
+		// totalTurbine = 1.0
 
-		minutesInHour := val.GetFloat64("minutes") / 60.0
+		if len(p.Turbine) == 0 {
+			totalTurbine = 24.0
+		} else {
+			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
+		}
+
+		minDate := val.Get("mindate").(time.Time)
+		maxDate := val.Get("maxdate").(time.Time)
+
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+
+		// hourValue := val.GetFloat64("minutes") / 60.0
 		okTime := val.GetFloat64("oktime")
 		power := val.GetFloat64("power") / 1000.0
 		energy := val.GetFloat64("energy") / 1000 //power / 6
@@ -183,11 +196,17 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		gDownTime := val.GetFloat64("griddowntime") / 3600.0
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 
-		plf = energy / (totalTurbine * minutesInHour * 2.1) * 100
-		trueAvail = (okTime / 3600) / (totalTurbine * minutesInHour) * 100
-		machineAvail = (minutesInHour - mDownTime) / (totalTurbine * minutesInHour) * 100
-		gridAvail = (minutesInHour - gDownTime) / (totalTurbine * minutesInHour) * 100
-		dataAvail = (sumTimeStamp * 10 / 60) / (minutesInHour * totalTurbine) * 100
+		plf = energy / (totalTurbine * hourValue * 2.1) * 100
+		trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
+
+		/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
+		gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
+
+		minutes := val.GetFloat64("minutes") / 60
+		machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
+		gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
+
+		dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
 		prod = energy
 		revenue = power * 5.740 * 1000
 
@@ -230,10 +249,10 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 				if idx == 0 {
 					tmpRes.Set("KeyA", res)
 					tmpRes.Set("TitleKeyA", unit)
-				} else if idx == 1 {
+				} else if idx == 1 && strings.ToLower(p.KeyB) != "none" {
 					tmpRes.Set("KeyB", res)
 					tmpRes.Set("TitleKeyB", unit)
-				} else if idx == 2 {
+				} else if idx == 2 && strings.ToLower(p.KeyC) != "none" {
 					tmpRes.Set("KeyC", res)
 					tmpRes.Set("TitleKeyC", unit)
 				}
@@ -443,6 +462,43 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			}
 		}
 	}
+	resVal := tk.M{}
+	resVal.Set("MachineAvailabilityUnit", "%")
+	resVal.Set("ProductionUnit", "MWh")
+	resVal.Set("TotalAvailabilityUnit", "%")
+	resVal.Set("PLFUnit", "%")
+	resVal.Set("GridAvailabilityUnit", "%")
+	resVal.Set("DataAvailabilityUnit", "%")
+
+	//Based Date=============
+	_basedcolsdata := []tk.M{}
+	if colBreakdown == "Date" {
+		for i := 0; i < (tk.ToInt(tEnd.Format("20060102"), "") - tk.ToInt(tStart.Format("20060102"), "") + 1); i++ {
+			tmpCol := tk.M{}
+			tmpCol.Set("KeyA", 0.0)
+			if strings.ToLower(p.KeyB) != "none" {
+				tmpCol.Set("KeyB", 0.0)
+			}
+			if strings.ToLower(p.KeyC) != "none" {
+				tmpCol.Set("KeyC", 0.0)
+			}
+
+			loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("20060102"), "")+i), "YYYYMMdd").UTC()
+
+			tmpCol.Set("Name", tk.ToString(loopmonth.Format("02 Jan 2006")))
+			tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+			if strings.ToLower(p.KeyB) != "none" {
+				tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+			}
+			if strings.ToLower(p.KeyC) != "none" {
+				tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+			}
+			tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("20060102")))
+
+			_basedcolsdata = append(_basedcolsdata, tmpCol)
+		}
+	}
+	//=============
 
 	for row, column := range result {
 		tmpRes := tk.M{}
@@ -487,7 +543,26 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			tmpCol = append(tmpCol, col)
 		}
 
-		tmpRes.Set("Column", tmpCol)
+		if colBreakdown == "Date" && len(tmpCol) != len(_basedcolsdata) {
+			_tmpCol := []tk.M{}
+			ix := 0
+			for _, _val := range _basedcolsdata {
+				// tk.Printfn(">>> %s - %s | %d >>>", _val.GetString("Name"), tmpCol[ix].GetString("Name"), len(tmpCol))
+				if _val.GetString("Name") == tmpCol[ix].GetString("Name") {
+					_tmpCol = append(_tmpCol, tmpCol[ix])
+					ix += 1
+					if ix >= len(tmpCol)-1 {
+						ix = len(tmpCol) - 1
+					}
+				} else {
+					_tmpCol = append(_tmpCol, _val)
+				}
+			}
+			tmpRes.Set("Column", _tmpCol)
+		} else {
+			tmpRes.Set("Column", tmpCol)
+		}
+
 		kpiAnalysisResult = append(kpiAnalysisResult, tmpRes)
 	}
 
@@ -498,9 +573,9 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			for key, val := range col {
 				if key == "TitleKeyA" {
 					units[0] = val.(string)
-				} else if key == "TitleKeyB" {
+				} else if key == "TitleKeyB" && strings.ToLower(p.KeyB) != "none" {
 					units[1] = val.(string)
-				} else if key == "TitleKeyC" {
+				} else if key == "TitleKeyC" && strings.ToLower(p.KeyC) != "none" {
 					units[2] = val.(string)
 				}
 			}
@@ -514,24 +589,37 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		)
 
 		var unit []string
-		unit = append(unit, "MWh")
-		unit = append(unit, "%")
-		unit = append(unit, "Lacs")
+
+		unit = append(unit, resVal.GetString(p.KeyA+"Unit"))
+		if strings.ToLower(p.KeyB) != "none" {
+			unit = append(unit, resVal.GetString(p.KeyB+"Unit"))
+		}
+		if strings.ToLower(p.KeyC) != "none" {
+			unit = append(unit, resVal.GetString(p.KeyC+"Unit"))
+		}
 
 		tmpColArr := []tk.M{}
 		if colBreakdown == "Date" {
 			for i := 0; i < (tk.ToInt(tEnd.Format("20060102"), "") - tk.ToInt(tStart.Format("20060102"), "") + 1); i++ {
 				tmpCol := tk.M{}
 				tmpCol.Set("KeyA", 0.0)
-				tmpCol.Set("KeyB", 0.0)
-				tmpCol.Set("KeyC", 0.0)
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("KeyB", 0.0)
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("KeyC", 0.0)
+				}
 
 				loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("20060102"), "")+i), "YYYYMMdd").UTC()
 
 				tmpCol.Set("Name", tk.ToString(loopmonth.Format("02 January 2006")))
-				tmpCol.Set("TitleKeyA", "MWh")
-				tmpCol.Set("TitleKeyB", "%")
-				tmpCol.Set("TitleKeyC", "Lacs")
+				tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+				}
 				tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("20060102")))
 
 				tmpColArr = append(tmpColArr, tmpCol)
@@ -540,15 +628,23 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			for i := 0; i < (tk.ToInt(tEnd.Format("200601"), "") - tk.ToInt(tStart.Format("200601"), "") + 1); i++ {
 				tmpCol := tk.M{}
 				tmpCol.Set("KeyA", 0.0)
-				tmpCol.Set("KeyB", 0.0)
-				tmpCol.Set("KeyC", 0.0)
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("KeyB", 0.0)
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("KeyC", 0.0)
+				}
 
 				loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("200601"), "")+i), "YYYYMM").UTC()
 
 				tmpCol.Set("Name", tk.ToString(loopmonth.Format("January 2006"))+" <br/> "+periodDivider.GetString(tk.ToString(loopmonth.Format("200601"))))
-				tmpCol.Set("TitleKeyA", "MWh")
-				tmpCol.Set("TitleKeyB", "%")
-				tmpCol.Set("TitleKeyC", "Lacs")
+				tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+				}
 				tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("200601")))
 
 				tmpColArr = append(tmpColArr, tmpCol)
@@ -557,15 +653,23 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			for i := 0; i < (tk.ToInt(tEnd.Format("2006"), "") - tk.ToInt(tStart.Format("2006"), "") + 1); i++ {
 				tmpCol := tk.M{}
 				tmpCol.Set("KeyA", 0.0)
-				tmpCol.Set("KeyB", 0.0)
-				tmpCol.Set("KeyC", 0.0)
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("KeyB", 0.0)
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("KeyC", 0.0)
+				}
 
 				loopmonth := tk.String2Date(tk.ToString(tk.ToInt(tStart.Format("2006"), "")+i), "YYYY").UTC()
 
 				tmpCol.Set("Name", tk.ToString(loopmonth.Format("2006"))+" <br/> "+periodDivider.GetString(tk.ToString(loopmonth.Format("2006"))))
-				tmpCol.Set("TitleKeyA", "MWh")
-				tmpCol.Set("TitleKeyB", "%")
-				tmpCol.Set("TitleKeyC", "Lacs")
+				tmpCol.Set("TitleKeyA", resVal.GetString(p.KeyA+"Unit"))
+				if strings.ToLower(p.KeyB) != "none" {
+					tmpCol.Set("TitleKeyB", resVal.GetString(p.KeyB+"Unit"))
+				}
+				if strings.ToLower(p.KeyC) != "none" {
+					tmpCol.Set("TitleKeyC", resVal.GetString(p.KeyC+"Unit"))
+				}
 				tmpCol.Set("YearMonth", tk.ToString(loopmonth.Format("2006"))+"00")
 
 				tmpColArr = append(tmpColArr, tmpCol)

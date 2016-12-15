@@ -74,17 +74,19 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
-	totalProduction := 0.0
+	totalActivePower := 0.0
 	avgWindSpeed := 0.0
 	totalTurbine := 0
+	totalEnergy := 0.0
 
 	aggrData := []tk.M{}
 
 	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
-		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalProduction").
-		Aggr(dbox.AggrAvr, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalActivePower").
+		Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$energy", "TotalEnergy").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -100,27 +102,30 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 	for _, val := range aggrData {
 		totalPower += val.GetFloat64("TotalPower")
 		totalPowerLost += val.GetFloat64("TotalPowerLost")
-		totalProduction += val.GetFloat64("TotalProduction")
+		totalActivePower += val.GetFloat64("TotalActivePower")
 		avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+		totalEnergy += val.GetFloat64("TotalEnergy")
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data            []ScadaDataOEM
-		Total           int
-		TotalPower      float64
-		TotalPowerLost  float64
-		TotalProduction float64
-		AvgWindSpeed    float64
-		TotalTurbine    int
+		Data             []ScadaDataOEM
+		Total            int
+		TotalPower       float64
+		TotalPowerLost   float64
+		TotalActivePower float64
+		AvgWindSpeed     float64
+		TotalTurbine     int
+		TotalEnergy      float64
 	}{
-		Data:            results,
-		Total:           ccount.Count(),
-		TotalPower:      totalPower,
-		TotalPowerLost:  totalPowerLost,
-		TotalProduction: totalProduction,
-		AvgWindSpeed:    avgWindSpeed,
-		TotalTurbine:    totalTurbine,
+		Data:             results,
+		Total:            ccount.Count(),
+		TotalPower:       totalPower,
+		TotalPowerLost:   totalPowerLost,
+		TotalActivePower: totalActivePower,
+		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		TotalTurbine:     totalTurbine,
+		TotalEnergy:      totalEnergy,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -193,7 +198,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
 
-	query := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Skip(p.Skip).Take(p.Take)
+	query := DB().Connection.NewQuery().From(new(EventDown).TableName()).Skip(p.Skip).Take(p.Take)
 	query.Where(dbox.And(filter...))
 
 	if len(p.Sort) > 0 {
@@ -213,8 +218,8 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 	}
 	defer csr.Close()
 
-	tmpResult := make([]DowntimeEvent, 0)
-	results := make([]DowntimeEvent, 0)
+	tmpResult := make([]EventDown, 0)
+	results := make([]EventDown, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 	// tk.Printf("FILTER : %s \n", filter)
 
@@ -227,7 +232,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 		results = append(results, val)
 	}
 
-	queryC := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Where(dbox.And(filter...))
+	queryC := DB().Connection.NewQuery().From(new(EventDown).TableName()).Where(dbox.And(filter...))
 	ccount, e := queryC.Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -239,7 +244,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 
 	aggrData := []tk.M{}
 
-	queryAggr := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).
+	queryAggr := DB().Connection.NewQuery().From(new(EventDown).TableName()).
 		Aggr(dbox.AggrSum, "$duration", "duration").
 		Group("turbine").Where(dbox.And(filter...))
 
@@ -259,7 +264,7 @@ func (m *DataBrowserNewController) GetDowntimeEventList(k *knot.WebContext) inte
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data          []DowntimeEvent
+		Data          []EventDown
 		Total         int
 		TotalTurbine  int
 		TotalDuration float64
@@ -287,7 +292,7 @@ func (m *DataBrowserNewController) GetDowntimeEventvailDate(k *knot.WebContext) 
 			arrsort = append(arrsort, "-timestart")
 		}
 
-		query := DB().Connection.NewQuery().From(new(DowntimeEvent).TableName()).Skip(0).Take(1)
+		query := DB().Connection.NewQuery().From(new(EventDown).TableName()).Skip(0).Take(1)
 		query = query.Order(arrsort...)
 
 		csr, e := query.Cursor(nil)
@@ -296,7 +301,7 @@ func (m *DataBrowserNewController) GetDowntimeEventvailDate(k *knot.WebContext) 
 		}
 		defer csr.Close()
 
-		Result := make([]DowntimeEvent, 0)
+		Result := make([]EventDown, 0)
 		e = csr.Fetch(&Result, 0, false)
 
 		if e != nil {
@@ -499,17 +504,19 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
-	totalProduction := 0.0
+	totalActivePower := 0.0
 	avgWindSpeed := 0.0
 	totalTurbine := 0
+	totalEnergy := 0.0
 
 	aggrData := []tk.M{}
 
 	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
 		Aggr(dbox.AggrSum, "$power", "TotalPower").
 		Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
-		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalProduction").
-		Aggr(dbox.AggrAvr, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalActivePower").
+		Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
+		Aggr(dbox.AggrSum, "$energy", "TotalEnergy").
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -525,27 +532,30 @@ func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{}
 	for _, val := range aggrData {
 		totalPower += val.GetFloat64("TotalPower")
 		totalPowerLost += val.GetFloat64("TotalPowerLost")
-		totalProduction += val.GetFloat64("TotalProduction")
+		totalActivePower += val.GetFloat64("TotalActivePower")
 		avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+		totalEnergy += val.GetFloat64("TotalEnergy")
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data            []tk.M
-		Total           int
-		TotalPower      float64
-		TotalPowerLost  float64
-		TotalProduction float64
-		AvgWindSpeed    float64
-		TotalTurbine    int
+		Data             []tk.M
+		Total            int
+		TotalPower       float64
+		TotalPowerLost   float64
+		TotalActivePower float64
+		AvgWindSpeed     float64
+		TotalTurbine     int
+		TotalEnergy      float64
 	}{
-		Data:            results,
-		Total:           ccount.Count(),
-		TotalPower:      totalPower,
-		TotalPowerLost:  totalPowerLost,
-		TotalProduction: totalProduction,
-		AvgWindSpeed:    avgWindSpeed,
-		TotalTurbine:    totalTurbine,
+		Data:             results,
+		Total:            ccount.Count(),
+		TotalPower:       totalPower,
+		TotalPowerLost:   totalPowerLost,
+		TotalActivePower: totalActivePower,
+		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		TotalTurbine:     totalTurbine,
+		TotalEnergy:      totalEnergy,
 	}
 
 	return helper.CreateResult(true, data, "success")

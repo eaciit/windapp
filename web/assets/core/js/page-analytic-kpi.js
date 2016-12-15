@@ -59,6 +59,13 @@ var Data = {
 
         fa.LoadData();
 
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+            var minDatetemp = new Date(res.ScadaData[0]);
+            var maxDatetemp = new Date(res.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        })
+
         var columnBreakdown = $('#columnsBreakdown').val();
         var rowBreakdown = $('#rowsBreakdown').val();
 
@@ -78,7 +85,6 @@ var Data = {
             keyB: keyB,
             keyC: keyC,
         };
-
 
         if ((new Date(dateStart).getTime() > new Date(dateEnd).getTime())) {
             toolkit.showError("Invalid Date Range Selection");
@@ -407,9 +413,9 @@ page.setBreakDown = function () {
     }, 1000);
 }
 
-vm.currentMenu('KPI');
-vm.currentTitle('KPI');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'KPI', href: viewModel.appName + 'page/analytickpi' }]);
+vm.currentMenu('KPI Table');
+vm.currentTitle('KPI Table');
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'KPI Table', href: viewModel.appName + 'page/analytickpi' }]);
 
 $(function () {
     page.columnsBreakdown('Daily');

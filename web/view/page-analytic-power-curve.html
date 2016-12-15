@@ -14,10 +14,13 @@
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
 					</div>
 					<div class="panel-body">
+						<a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportPowerCurvePdf">
+							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
+						</a>
+						<div class="databrowser-date-info">
+                            Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                        </div>
 						<div class="col-md-9">
-							<a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportPowerCurvePdf">
-								<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-							</a>
 							<div class="power-curve-chart">
 								<div id="powerCurve"></div>
 							</div>
@@ -27,7 +30,7 @@
 									<label class="btn btn-sm btn-primary active radio-filter">
                                         <input type="radio" name="isAvg" id="avg" autocomplete="off" value="true" checked> Avg Wind Speed
                                     </label>
-									<label class="btn btn-sm btn-primary radio-filter">
+									<label class="btn btn-sm btn-primary radio-filter hidden">
                                         <input type="radio" name="isAvg" id="adj" autocomplete="off" value="false"> Adj Wind Speed
                                     </label>
 									<label class="btn btn-sm btn-primary radio-filter">

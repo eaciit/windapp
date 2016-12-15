@@ -7,6 +7,12 @@
 		if (self.data('kendoGrid') != undefined) {
 			return
 		}
+		var decimal = ''
+		if(options != undefined) {
+			decimal = options;
+		} else {
+			decimal = 'n2';
+		}
 		
 		var chart = self.data('kendoChart')
 		var isUsingDataSource = false
@@ -50,8 +56,7 @@
 				if (isUsingDataSource) {
 					value = e[d.field]
 				}
-
-				data[j][columnField] = value
+				data[j][columnField] = kendo.toString(value, decimal);
 			})
 		})
 

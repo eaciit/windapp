@@ -92,6 +92,9 @@ var Data = {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         if ($("#turbineMulti").data("kendoMultiSelect").value() == "") {
             $('#turbineMulti').data('kendoMultiSelect').value(["All Turbine"])
         }
@@ -178,6 +181,10 @@ var Data = {
     InitScadaGrid: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -225,7 +232,8 @@ var Data = {
                         }
                         $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
-                        $('#totalprodoem').html(kendo.toString(res.data.TotalProduction / 1000, 'n0') + ' MWh');
+                        $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
+                        $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
                         $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                         return res.data.Total;
                     }
@@ -411,6 +419,10 @@ var Data = {
 	InitCustomGrid: function(){
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -492,7 +504,8 @@ var Data = {
                         }
                         $('#totalturbineCustom').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldataCustom').html(kendo.toString(res.data.Total, 'n0'));
-                        $('#totalprodCustom').html(kendo.toString(res.data.TotalProduction / 1000, 'n0') + ' MWh');
+                        $('#totalactivepowerCustom').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
+                        $('#totalprodCustom').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
                         $('#avgwindspeedCustom').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                         return res.data.Total;
                     },
@@ -550,6 +563,10 @@ var Data = {
     InitDEgrid: function() {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+        
         var turbine = [];
         if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
             turbine = turbineval;
@@ -631,7 +648,7 @@ var Data = {
             filterable: false
         },
         { title: "Alarm Description", field: "AlarmDescription", width: 100, filterable: false },
-        { title: "Duration", field: "Duration", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+        { title: "Duration (Second)", field: "Duration", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
 
         ]
     });

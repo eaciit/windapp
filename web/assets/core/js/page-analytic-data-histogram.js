@@ -204,14 +204,21 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
     }, 100);
 }
 
-vm.currentMenu('Data Histogram');
-vm.currentTitle('Data Histogram');
-vm.breadcrumb([{ title: 'Analysis', href: '#' }, { title: 'Data Histogram', href: viewModel.appName + 'page/analyticdatahistogram' }]);
+vm.currentMenu('Histograms');
+vm.currentTitle('Histograms');
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
 
 km.getData = function () {
     fa.getProjectInfo();
     fa.LoadData();
     app.loading(true);
+
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+        var minDatetemp = new Date(res.ScadaData[0]);
+        var maxDatetemp = new Date(res.ScadaData[1]);
+        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+    })
 
     $(document).ajaxStop(function () {
         app.loading(false);

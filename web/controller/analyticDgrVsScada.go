@@ -5,6 +5,7 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"math"
+	"time"
 	// "time"
 
 	tk "github.com/eaciit/toolkit"
@@ -24,7 +25,7 @@ func CreateAnalyticDgrScadaController() *AnalyticDgrScadaController {
 
 func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
-
+	var totalTurbine float64
 	type DataItem struct {
 		power        float64
 		energy       float64
@@ -74,10 +75,27 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	}
 
 	if len(turbine) != 0 {
+		totalTurbine = tk.ToFloat64(len(turbine), 0, tk.RoundingUp)
 		filter = append(filter, dbox.In("turbine", turbine...))
+	} else {
+		totalTurbine = 24.0
 	}
 
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$projectname", "power": tk.M{"$sum": "$power"}, "windspeed": tk.M{"$avg": "$avgwindspeed"}, "oktime": tk.M{"$sum": "$oktime"}, "griddowntime": tk.M{"$sum": "$griddowntime"}, "powerlost": tk.M{"$sum": "$powerlost"}, "totaltimestamp": tk.M{"$sum": 1}, "machinedowntime": tk.M{"$sum": "$machinedowntime"}, "available": tk.M{"$sum": "$available"}, "minutes": tk.M{"$sum": "$minutes"}}})
+	pipes = append(pipes,
+		tk.M{"$group": tk.M{"_id": "$projectname",
+			"power":           tk.M{"$sum": "$power"},
+			"windspeed":       tk.M{"$avg": "$avgwindspeed"},
+			"oktime":          tk.M{"$sum": "$oktime"},
+			"griddowntime":    tk.M{"$sum": "$griddowntime"},
+			"powerlost":       tk.M{"$sum": "$powerlost"},
+			"totaltimestamp":  tk.M{"$sum": 1},
+			"machinedowntime": tk.M{"$sum": "$machinedowntime"},
+			"available":       tk.M{"$sum": "$available"},
+			"minutes":         tk.M{"$sum": "$minutes"},
+			"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
+			"mindate":         tk.M{"$min": "$dateinfo.dateid"},
+			"unknowntime":     tk.M{"$sum": "$unknowntime"},
+		}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -114,19 +132,32 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	sMachineavail := 0.0
 	sTrueavail := 0.0
 
+	scadaDataAvailable := true
+
 	if len(list) > 0 {
 		scada := list[0]
 		sPower = scada.GetFloat64("power") / 1000 // in KWh
-		sMinutesInHour := scada.GetFloat64("minutes") / 60.0
+		// hourValue := scada.GetFloat64("minutes") / 60.0
+
+		minDate := scada.Get("mindate").(time.Time)
+		maxDate := scada.Get("maxdate").(time.Time)
+
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+
 		sEnergy = sPower / 6
 		sOktime = scada.GetFloat64("oktime")
-		sDowntime = ((24 * duration * 144 * 600) - sOktime) / 3600
+		// log.Printf("sOkTime: %v \n", sOktime/3600)
+		// sDowntime = (hourValue * totalTurbine) - (sOktime / 3600)
+		sDowntime = tk.Div(scada.GetFloat64("unknowntime")+scada.GetFloat64("machinedowntime")+scada.GetFloat64("griddowntime"), 3600)
 		sWindspeed = scada.GetFloat64("windspeed")
-		sPlf = sEnergy / (24 * duration * 24 * 2100) * 100 * 1000
-		sTrueavail = (sOktime / 3600) / (duration * 24 * 24) * 100
+		sPlf = sEnergy / (totalTurbine * hourValue * 2100) * 100 * 1000
+		sTrueavail = (sOktime / 3600) / (totalTurbine * hourValue) * 100
 
-		sMachineavail = (sMinutesInHour - (scada.GetFloat64("machinedowntime") / 3600)) / (24 * 24 * duration) * 100
-		sGridavail = (sMinutesInHour - (scada.GetFloat64("griddowntime") / 3600)) / (24 * 24 * duration) * 100
+		minutes := scada.GetFloat64("minutes") / 60
+		sMachineavail = (minutes - (scada.GetFloat64("machinedowntime"))/3600) / (totalTurbine * hourValue) * 100
+		sGridavail = (minutes - (scada.GetFloat64("griddowntime"))/3600) / (totalTurbine * hourValue) * 100
+	} else {
+		scadaDataAvailable = false
 	}
 
 	scadaItem.power = sPower
@@ -187,6 +218,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	sMachineavail = 0.0
 	sTrueavail = 0.0
 
+	dgrDataAvailable := true
+
 	if len(list) > 0 {
 		dgr := list[0]
 		sEnergy = tk.ToFloat64(dgr["genkwhday"], 2, tk.RoundingAuto) / 1000
@@ -198,6 +231,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		sPower = sEnergy * 6
 		// sTrueavail = (sOktime) / (duration * 24 * 24)
 		sTrueavail = (sOktime) / (duration * 24 * 24) * 100
+	} else {
+		dgrDataAvailable = false
 	}
 
 	dgrItem.power = sPower
@@ -240,6 +275,18 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	result = append(result, tk.M{"desc": "Grid Availability", "dgr": dgrItem.gridavail, "scada": scadaItem.gridavail, "difference": varItem.gridavail})
 	result = append(result, tk.M{"desc": "Machine Availability", "dgr": dgrItem.machineavail, "scada": scadaItem.machineavail, "difference": varItem.machineavail})
 	result = append(result, tk.M{"desc": "True Availability", "dgr": dgrItem.trueavail, "scada": scadaItem.trueavail, "difference": varItem.trueavail})
+
+	if scadaDataAvailable == false {
+		for _, val := range result {
+			val["scada"] = "N/A"
+		}
+	}
+
+	if dgrDataAvailable == false {
+		for _, val := range result {
+			val["dgr"] = "N/A"
+		}
+	}
 
 	return helper.CreateResult(true, result, "success")
 }

@@ -46,6 +46,20 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		datas := []tk.M{}
 		e = csr.Fetch(&datas, 0, false)
 
+		budgetMonths := []float64{
+			5911.8744,
+			6023.419200000001,
+			7027.3224,
+			8588.9496,
+			14389.2792,
+			16954.8096,
+			15727.8168,
+			12046.8384,
+			9704.3976,
+			5688.784799999999,
+			3569.4336,
+			5911.8744}
+
 		//tk.Printf("#%v", datas)
 
 		if datas != nil {
@@ -53,6 +67,10 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			dtInfo := GetDateInfo(dateId)
 			maxTimeStamp := datas[0]["timestamp"].(time.Time).UTC()
 			//startTime := maxTimeStamp.Add(-24 * time.Hour)
+
+			budgetCurrMonths := budgetMonths[int(dateId.Month())] * 1000.0
+			noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
+			budgetCurrMonthDaily := tk.Div(budgetCurrMonths, noOfDay)
 
 			mdl := new(ScadaLastUpdate).New()
 			mdl.ID = "SCADALASTUPDATE_FLEET"
@@ -90,6 +108,8 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					Where(dbox.And(dbox.Gt("timestamp", timeHrStart), dbox.Lte("timestamp", timeHr), dbox.Gte("power", 0))).
 					Aggr(dbox.AggrSum, "$power", "totalpower").
 					Aggr(dbox.AggrSum, "$powerlost", "totalpowerlost").
+					Aggr(dbox.AggrSum, "$energylost", "energylost").
+					Aggr(dbox.AggrSum, "$denpower", "denpower").
 					Aggr(dbox.AggrSum, "$oktime", "totaloktime").
 					Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
 					Aggr(dbox.AggrAvr, "$windspeed", "avgwindspeed").
@@ -118,25 +138,37 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 						power = ipower.(float64)
 					}
 
-					powerlost := 0.0
-					pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("$and", tk.M{}.Set("enddate", tk.M{}.Set("$lte", timeHr)).Set("startdate", tk.M{}.Set("$gt", timeHrStart)))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
-					csr1, _ := ctx.NewQuery().
-						Command("pipe", pipe).
-						From(new(Alarm).TableName()).
-						Cursor(nil)
-					defer csr1.Close()
+					// ienergylost := data["energylost"]
+					// energylost := 0.0
+					// if ienergylost != nil {
+					// 	energylost = ienergylost.(float64)
+					// }
 
-					alarms := []tk.M{}
-					e = csr1.Fetch(&alarms, 0, false)
-
-					if len(alarms) > 0 {
-						alarm := alarms[0]
-
-						ipowerlost := alarm["powerlost"]
-						if ipowerlost != nil {
-							powerlost = ipowerlost.(float64)
-						}
+					ipotentialpower := data["denpower"]
+					potentialpower := 0.0
+					if ipotentialpower != nil {
+						potentialpower = ipotentialpower.(float64)
 					}
+
+					// powerlost := 0.0
+					// pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("$and", tk.M{}.Set("enddate", tk.M{}.Set("$lte", timeHr)).Set("startdate", tk.M{}.Set("$gt", timeHrStart)))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+					// csr1, _ := ctx.NewQuery().
+					// 	Command("pipe", pipe).
+					// 	From(new(Alarm).TableName()).
+					// 	Cursor(nil)
+					// defer csr1.Close()
+
+					// alarms := []tk.M{}
+					// e = csr1.Fetch(&alarms, 0, false)
+
+					// if len(alarms) > 0 {
+					// 	alarm := alarms[0]
+
+					// 	ipowerlost := alarm["powerlost"]
+					// 	if ipowerlost != nil {
+					// 		powerlost = ipowerlost.(float64)
+					// 	}
+					// }
 
 					iwindspeed := data["avgwindspeed"]
 					windspeed := 0.0
@@ -148,8 +180,8 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					last.AvgWindSpeed = windspeed
 					last.PowerKw = power
 					last.EnergyKwh = power / 6
-					last.Potential = power + (powerlost * 6)
-					last.PotentialKwh = last.EnergyKwh + powerlost
+					last.Potential = potentialpower
+					last.PotentialKwh = potentialpower / 6
 					last.TrueAvail = trueAvail
 					last.GridAvail = gridAvail
 				} else {
@@ -220,14 +252,14 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 				dateData = data["_id"].(time.Time)
 				// dateData = id["dateinfo_dateid"].(time.Time)
 
-				tk.Printf("#%v\n", dateData)
+				//tk.Printf("#%v\n", dateData)
 
 				var last30 Last30Days
 				last30.DateId = dateData
 				last30.DayNo = dateData.Day()
 
 				currProd := 0.0
-				currBudget := 565160.32
+				currBudget := budgetCurrMonthDaily // 565160.32
 				if data != nil {
 					ipower := data["totalpower"]
 					power := 0.0

@@ -5,15 +5,16 @@
         {{template "_head.html"}}
         <script src="{{BaseUrl}}res/core/js/page-login.js"></script>
         <link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout.css" />
+
+        <style type="text/css">
+            .login-bg{
+              background: url('{{BaseUrl}}res/img/login_bg.jpg') no-repeat left top;
+              background-size: cover;
+              position:relative;
+              z-index:500;
+            }
+        </style>
     </head>
-    <style type="text/css">
-        .login-bg{
-          background: url('{{BaseUrl}}res/img/login_bg.jpg') no-repeat left top;
-          background-size: cover;
-          position:relative;
-          z-index:500;
-        }
-    </style>
     <body class="is-loading">
         <div class="login-body">    
             <div class="container-fluid">
@@ -23,12 +24,14 @@
                         <div class="col-sm-12">
                             <div class="login-form col-md-3 col-xs-12" id="loginForm">
                                 <!-- create process loader here -->
-                                
+
                                     <form class="form form-horizontal fh" id="login-form" novalidate>
                                         <center id="head-top">
                                             <div class="login-logo"><img  src="{{BaseUrl}}res/img/logo.png" /></div>
                                             <div data-bind="html: lg.ErrorMessage, visible:(lg.errorMessage != '')" id="error-message"></div>
                                          </center>
+
+                                         {{template "_loader.html"}}
 
                                         <div class="login-form-bg">
                                             <div class="form-group login-form-group">
@@ -118,7 +121,7 @@
                 </section>
             </div>
         </div>
+        <script>ko.applyBindings(viewModel)</script>
     </body>
-    <script>ko.applyBindings(viewModel)</script>
 </html>
 

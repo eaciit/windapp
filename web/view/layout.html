@@ -4,17 +4,14 @@
 <head>
   {{template "_head.html"}}
 </head>
-
 <!-- show numeric in grid filter -->
 <!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.common.min.css" rel="stylesheet"> -->
 
 <body class="layout-top-nav skin-black">
   <div class="wrapper">
     <header class="main-header">
-      <nav class="navbar navbar-static-top">
         {{template "_menu.html"}}
-      </nav>
-    </header>
+    </header>    
     <div class="content-wrapper">
       <section class="content-header">
         <div class="breadcrumb pull-right" data-bind="{visible : (vm.isDashboard() == true) }">
@@ -26,7 +23,7 @@
                 </div>
             </section>
 
-            <section class="content">
+            <section class="content" id="page">
               <div data-bind="visible: app.isLoading" style="display:none;">
                 {{template "_loader.html"}}
               </div>

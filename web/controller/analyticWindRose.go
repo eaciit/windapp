@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-
 	c "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
@@ -222,58 +221,56 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-07-31 23:59")
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-09-30 23:59")
 	k.SetSession("custom_lastdate", lastDateData.UTC())
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	bufferTurbine := []string{}
-	for _, val := range p.Turbine {
-		bufferTurbine = append(bufferTurbine, val.(string))
-	}
 	degree = toolkit.ToInt(p.BreakDown, toolkit.RoundingAuto)
 	section = degree
 	getFullWSCategory()
 
 	coId := 0
-	sort.Strings(bufferTurbine)
-	turbine := []string{"MetTower"}
-	turbine = append(turbine, bufferTurbine...)
-	var filter []*dbox.Filter
 
-	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
-	if len(p.Turbine) > 0 {
-		filter = append(filter, dbox.In("turbine", p.Turbine...))
+	query := []toolkit.M{}
+	pipes := []toolkit.M{}
+	query = append(query, toolkit.M{"_id": toolkit.M{"$ne": nil}})
+	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
+	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
+	if p.Project != "" {
+		query = append(query, toolkit.M{"projectname": p.Project})
 	}
-	filter = append(filter, dbox.Ne("_id", ""))
 
-	scadas := []MiniScada{}
-
-	csr, _ := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-		Where(dbox.And(filter...)).Cursor(nil) //.Order("turbine")
-
-	e = csr.Fetch(&scadas, 0, false)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer csr.Close()
-
+	turbine := []string{}
 	if len(p.Turbine) == 0 {
-		for _, scadaVal := range scadas {
-			exist := false
-			for _, val := range turbine {
-				if scadaVal.Turbine == val {
-					exist = true
-				}
+		pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": query}})
+		pipes = append(pipes, toolkit.M{"$group": toolkit.M{"_id": "$turbine"}})
+
+		csr, _ := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
+			Command("pipe", pipes).Cursor(nil)
+		_turbine := map[string]string{}
+		for {
+			e = csr.Fetch(&_turbine, 1, false)
+			if e != nil {
+				break
 			}
-			if exist == false {
-				turbine = append(turbine, scadaVal.Turbine)
-			}
+			turbine = append(turbine, _turbine["_id"])
 		}
+		csr.Close()
+	} else {
+		bufferTurbine := []string{}
+		for _, val := range p.Turbine {
+			bufferTurbine = append(bufferTurbine, val.(string))
+		}
+		turbine = append(turbine, bufferTurbine...)
 	}
+	sort.Strings(turbine)
+	turbine = append([]string{"MetTower"}, turbine...)
+
+	data := []MiniScada{}
+	_data := MiniScada{}
 
 	for _, turbineVal := range turbine {
 		coId++
@@ -282,12 +279,23 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		groupdata.Set("Name", turbineVal)
 
 		if turbineVal != "MetTower" {
+			pipes = []toolkit.M{}
+			data = []MiniScada{}
+			queryT := query
+			queryT = append(queryT, toolkit.M{"turbine": turbineVal})
+			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryT}})
+			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"naceldirection": 1, "avgwindspeed": 1}})
+			csr, _ := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
+				Command("pipe", pipes).Cursor(nil)
 
-			data := c.From(&scadas).Where(func(x interface{}) interface{} {
-				y := x.(MiniScada)
-
-				return y.Turbine == turbineVal
-			}).Exec().Result.Data().([]MiniScada)
+			for {
+				e = csr.Fetch(&_data, 1, false)
+				if e != nil {
+					break
+				}
+				data = append(data, _data)
+			}
+			csr.Close()
 
 			if toolkit.SliceLen(data) > 0 {
 				totalDuration := float64(len(data)) /* Tot data * 2 for get total minutes*/
@@ -351,9 +359,9 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 
 				results := dts.Result.Data().([]DataItemsResult)
 				wsCategoryList := []string{}
-				for _, data := range results {
-					wsCategoryList = append(wsCategoryList, toolkit.ToString(data.DirectionNo)+
-						"_"+toolkit.ToString(data.WsCategoryNo)+"_"+data.WsCategoryDesc)
+				for _, dataRes := range results {
+					wsCategoryList = append(wsCategoryList, toolkit.ToString(dataRes.DirectionNo)+
+						"_"+toolkit.ToString(dataRes.WsCategoryNo)+"_"+dataRes.WsCategoryDesc)
 				}
 				splitCatList := []string{}
 				for _, wsCat := range fullWSCatList {
@@ -390,7 +398,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 				WindRoseResult = append(WindRoseResult, groupdata)
 			}
 		} else {
-			data := []MiniMetTower{}
+			/*data := []MiniMetTower{}
 
 			var metTowerFilter []*dbox.Filter
 			metTowerFilter = append(metTowerFilter, dbox.Gte("dateinfo.dateid", tStart))
@@ -403,11 +411,32 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
-			defer csrMet.Close()
+			defer csrMet.Close()*/
+			pipes = []toolkit.M{}
+			queryT := []toolkit.M{}
+			dataMetTower := []MiniMetTower{}
+			_dataMetTower := MiniMetTower{}
+			queryT = append(queryT, toolkit.M{"_id": toolkit.M{"$ne": nil}})
+			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
+			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
 
-			if toolkit.SliceLen(data) > 0 {
-				totalDuration := float64(len(data)) // * 10.0 /* Tot data * 2 for get total minutes*/
-				datas := c.From(&data).Apply(func(x interface{}) interface{} {
+			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryT}})
+			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"vhubws90mavg": 1, "dhubwd88mavg": 1}})
+			csrMet, _ := DB().Connection.NewQuery().From(new(MetTower).TableName()).
+				Command("pipe", pipes).Cursor(nil)
+
+			for {
+				e = csrMet.Fetch(&_dataMetTower, 1, false)
+				if e != nil {
+					break
+				}
+				dataMetTower = append(dataMetTower, _dataMetTower)
+			}
+			csrMet.Close()
+
+			if toolkit.SliceLen(dataMetTower) > 0 {
+				totalDuration := float64(len(dataMetTower)) // * 10.0 /* Tot data * 2 for get total minutes*/
+				datas := c.From(&dataMetTower).Apply(func(x interface{}) interface{} {
 					dt := x.(MiniMetTower)
 					var di DataItems
 
@@ -466,9 +495,9 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 
 				results := dts.Result.Data().([]DataItemsResult)
 				wsCategoryList := []string{}
-				for _, data := range results {
-					wsCategoryList = append(wsCategoryList, toolkit.ToString(data.DirectionNo)+
-						"_"+toolkit.ToString(data.WsCategoryNo)+"_"+data.WsCategoryDesc)
+				for _, dataRes := range results {
+					wsCategoryList = append(wsCategoryList, toolkit.ToString(dataRes.DirectionNo)+
+						"_"+toolkit.ToString(dataRes.WsCategoryNo)+"_"+dataRes.WsCategoryDesc)
 				}
 				splitCatList := []string{}
 				for _, wsCat := range fullWSCatList {
@@ -536,7 +565,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		maxValue = 10
 	}
 
-	data := struct {
+	datas := struct {
 		WindRose toolkit.Ms
 		MaxValue float64
 	}{
@@ -544,6 +573,6 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		MaxValue: maxValue,
 	}
 
-	return helper.CreateResult(true, data, "success")
+	return helper.CreateResult(true, datas, "success")
 
 }

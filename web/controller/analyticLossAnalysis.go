@@ -92,20 +92,22 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	e = csr.Fetch(&resultScada, 0, false)
 
 	LossAnalysisResult := []tk.M{}
+
 	for _, val := range resultScada {
 		// dummyRes := []tk.M{}
-		val.Set("Id", val.GetString("_id"))
-		val.Set("Production", val.GetFloat64("Production")/1000)
-		val.Set("EnergyyMD", val.GetFloat64("MachineDownLoss")/1000)
-		val.Set("EnergyyGD", val.GetFloat64("GridDownLoss")/1000)
-		val.Set("PCDeviation", val.GetFloat64("PCDeviation")/1000)
-		val.Set("ElectricLoss", val.GetFloat64("ElectricalLosses")/1000)
-		val.Set("Others", val.GetFloat64("OtherDownLoss")/1000)
-		val.Set("DownTimeDuration", val.GetFloat64("DownTimeDuration"))
-		val.Set("MachineDownHours", val.GetFloat64("MachineDownHours"))
-		val.Set("GridDownHours", val.GetFloat64("GridDownHours"))
-		val.Set("LossEnergy", val.GetFloat64("LossEnergy")/1000)
-		LossAnalysisResult = append(LossAnalysisResult, val)
+		LossAnalysisResult = append(LossAnalysisResult, tk.M{
+			"Id":               val.GetString("_id"),
+			"Production":       val.GetFloat64("Production") / 1000,
+			"LossEnergy":       val.GetFloat64("LossEnergy") / 1000,
+			"MachineDownHours": val.GetFloat64("MachineDownHours"),
+			"GridDownHours":    val.GetFloat64("GridDownHours"),
+			"EnergyyMD":        val.GetFloat64("MachineDownLoss") / 1000,
+			"EnergyyGD":        val.GetFloat64("GridDownLoss") / 1000,
+			"ElectricLoss":     val.GetFloat64("ElectricalLosses") / 1000,
+			"PCDeviation":      val.GetFloat64("PCDeviation") / 1000,
+			"Others":           val.GetFloat64("OtherDownLoss") / 1000,
+			"DownTimeDuration": val.GetFloat64("DownTimeDuration"),
+		})
 	}
 
 	data := struct {
@@ -458,6 +460,16 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catloss", catloss)
+	catlossduration, e := getCatLossTopFiltered("duration", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("catlossduration", catlossduration)
+	catlossfreq, e := getCatLossTopFiltered("frequency", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("catlossfreq", catlossfreq)
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -519,6 +531,18 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 				pipes = append(pipes,
 					tk.M{
 						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$powerlost"}},
+					},
+				)
+			} else if topType == "duration" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$duration"}},
+					},
+				)
+			} else if topType == "frequency" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": 1}},
 					},
 				)
 			}
@@ -1137,4 +1161,10 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	return k.Session("availdate", "")
 }
