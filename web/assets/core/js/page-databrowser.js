@@ -2096,6 +2096,8 @@ var Data = {
                         if (!app.isFine(res)) {
                             return;
                         }
+
+                        console.log(res.data);
                         $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
                         $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');

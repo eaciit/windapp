@@ -125,7 +125,7 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 		TotalActivePower: totalActivePower,
 		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
-		TotalEnergy:      totalEnergy,
+		TotalEnergy:      totalActivePower / 6,
 	}
 
 	return helper.CreateResult(true, data, "success")
