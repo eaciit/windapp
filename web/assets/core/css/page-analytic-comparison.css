@@ -1,5 +1,5 @@
     .key-list{
-        margin: 2px !important;
+        margin: 3px !important;
         margin-left: -25px !important;
     }
 
@@ -62,6 +62,21 @@
         border-bottom: 3px solid #ff5722;
         border-right: 1.5px solid #ddd;
     }
+
+    @-moz-document url-prefix() {
+        .column-filter-form {
+            max-width: 235px!important;
+            min-width: 235px!important;
+            height: 222px;
+            max-height: 220px!important;
+            overflow: visible;
+            overflow-x: auto;
+            padding: 5px;
+            border-bottom: 3px solid #ff5722;
+            border-right: 1.5px solid #ddd;
+        }
+    }
+
     .column-filter-form .clearfix {
         margin-bottom: 5px;
     }

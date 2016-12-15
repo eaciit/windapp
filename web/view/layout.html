@@ -24,7 +24,7 @@
             </section>
 
             <section class="content" id="page">
-              <div data-bind="visible: app.isLoading" style="display:none;">
+              <div data-bind="visible: app.isLoading" style="display:none;" class="loader-parent">
                 {{template "_loader.html"}}
               </div>
               <div data-bind="visible: app.isContentShow">{{.Content}}</div>
