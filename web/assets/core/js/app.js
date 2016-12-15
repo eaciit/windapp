@@ -431,7 +431,7 @@ app.isLoading = ko.observable(false);
 app.loading = function(status){
     if (status == true || status == false){
         app.isLoading(status);
-        app.isContentShow(!status);
+        app.isContentShow(true);
     }    
 }
 

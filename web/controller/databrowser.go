@@ -818,14 +818,12 @@ func (m *DataBrowserController) GetEventList(k *knot.WebContext) interface{} {
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
 
-
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("timestamp", tStart))
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
-
 
 	query := DB().Connection.NewQuery().From(new(EventRaw).TableName()).Skip(p.Skip).Take(p.Take)
 	query.Where(dbox.And(filter...))
