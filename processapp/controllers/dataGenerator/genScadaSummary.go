@@ -30,26 +30,18 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			os.Exit(0)
 		}
 
-		/*csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			Where(dbox.Gte("power", 0)).
-			Aggr(dbox.AggrSum, "$power", "totalpower").
-			Aggr(dbox.AggrSum, "$powerlost", "totalpowerlost").
-			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
-			Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
-			Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
-			Aggr(dbox.AggrSum, 1, "totaltimestamp").
-			Group("dateinfo.monthid").
-			Cursor(nil)
-		defer csr.Close()*/
-
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			Where(dbox.Gte("power", 0)).
+			//Where(dbox.Gte("power", 0)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
-			Aggr(dbox.AggrSum, "$powerlost", "totalpowerlost").
+			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
 			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
+			Aggr(dbox.AggrSum, "$minutes", "totalminutes").
 			Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
+			Aggr(dbox.AggrSum, "$unknowntime", "totalunknowntime").
+			Aggr(dbox.AggrSum, "$machinedowntime", "totalmachinedowntime").
 			Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
 			Aggr(dbox.AggrSum, 1, "totaltimestamp").
+			Aggr(dbox.AggrMax, "$dateinfo.dateid", "maxdateid").
 			Group("dateinfo.monthid").
 			Cursor(nil)
 		defer csr.Close()
@@ -86,6 +78,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			month := monthid[4:6]
 			day := "01"
 
+			tk.Println(imonthid)
+
 			iMonth, _ := strconv.Atoi(string(month))
 			iMonth = iMonth - 1
 
@@ -119,6 +113,11 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 			duration := 0.0
 			lostEnergy := 0.0
+
+			// ilostEnergy := data["totalenergylost"]
+			// if ilostEnergy != nil {
+			// 	lostEnergy = ilostEnergy.(float64)
+			// }
 			// revenueLoss := 0.0
 
 			ipower := data["totalpower"]
@@ -126,9 +125,22 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			if ipower != nil {
 				power = ipower.(float64)
 			}
+
+			iminutes := data["totalminutes"]
+			minutes := 0.0
+			if iminutes != nil {
+				minutes = float64(iminutes.(int))
+			}
+
+			imaxdate := data["maxdateid"]
+			maxdate := time.Now()
+			if imaxdate != nil {
+				maxdate = imaxdate.(time.Time)
+			}
 			//tk.Printf("#%v\n", (power / 6000000))
 
-			pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("startdateinfo.monthid", imonthid)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
+			pipe := []tk.M{tk.M{}.Set("$unwind", "$detail"),
+				tk.M{}.Set("$match", tk.M{}.Set("detail.detaildateinfo.monthid", imonthid)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$detail.duration")).Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
 			tk.Printf("#%v\n", pipe)
 			csr1, _ := ctx.NewQuery().
 				Command("pipe", pipe).
@@ -152,6 +164,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 					duration = iduration.(float64)
 				}
 			}
+			tk.Println("Lost:", lostEnergy)
+			tk.Println("Duration:", duration)
 
 			powerlastyear := 0.0
 			// powerlost := data["totalpowerlost"].(float64)
@@ -174,6 +188,23 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 				griddowntime = igriddowntime.(float64) / 3600
 			}
 
+			imachinedowntime := data["totalmachinedowntime"]
+			machinedowntime := 0.0
+			if imachinedowntime != nil {
+				machinedowntime = imachinedowntime.(float64) / 3600
+			}
+
+			iunknowntime := data["totalunknowntime"]
+			unknowntime := 0.0
+			if iunknowntime != nil {
+				unknowntime = iunknowntime.(float64) / 3600
+			}
+			_ = machinedowntime
+			_ = griddowntime
+			_ = unknowntime
+
+			//duration = machinedowntime + griddowntime + unknowntime
+
 			expwstimes := 0.133
 			randno := tk.RandInt(5)
 			//tk.Printf("#%v\n", randno)
@@ -184,17 +215,24 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			expWindSpeed := (windspeed + (windspeed * expwstimes))
 			revenue := power * revenueTimes
 			revenueInLacs := revenue / 100000
-			trueAvail := oktime / (durationInMonth * float64(noOfTurbine)) * 100
-			scadaAvail := float64(totaldata) / (noOfDay * float64(noOfTurbine) * noOfTimeStamp) * 100
+			trueAvail := oktime / (24 * float64(maxdate.Day()) * float64(noOfTurbine)) * 100
+			scadaAvail := float64(totaldata) / (float64(maxdate.Day()) * float64(noOfTurbine) * noOfTimeStamp) * 100
+			// tk.Println(totaldata)
+			// tk.Println(maxdate.Day())
+			// tk.Println(noOfTurbine)
+			// tk.Println(noOfTimeStamp)
+			// tk.Println(scadaAvail)
+			// tk.Println(trueAvail)
 			if scadaAvail > 100 {
 				scadaAvail = 100
 			}
 			machineAvail := 0.0 * 100
-			gridAvail := (oktime - griddowntime) / (durationInMonth) * 100
+			gridAvail := (minutes - griddowntime) / (durationInMonth) * 100
 			if gridAvail > 100 {
 				gridAvail = 100
 			}
-			plf := (power / 6) / (float64(noOfTurbine) * durationInMonth * maxCap) * 100
+			plf := (power / 6) / (float64(noOfTurbine) * 24 * float64(maxdate.Day()) * maxCap) * 100
+			// tk.Println(plf)
 			if plf > 100 {
 				plf = 100
 			}
@@ -216,8 +254,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			mdl.AvgWindSpeed = windspeed
 			mdl.ExpWindSpeed = expWindSpeed
 			mdl.DowntimeHours = duration
-			mdl.LostEnergy = lostEnergy / (divider * 1000)
-			mdl.RevenueLoss = (lostEnergy * 6 * revenueTimes)
+			mdl.LostEnergy = lostEnergy / (divider * divider) // convert to giga
+			mdl.RevenueLoss = (lostEnergy * revenueTimes)
 
 			if mdl != nil {
 				d.BaseController.Ctx.Insert(mdl)
@@ -239,8 +277,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			mdl.AvgWindSpeed = windspeed
 			mdl.ExpWindSpeed = expWindSpeed
 			mdl.DowntimeHours = duration
-			mdl.LostEnergy = lostEnergy / (divider * 1000)
-			mdl.RevenueLoss = (lostEnergy * 6 * revenueTimes)
+			mdl.LostEnergy = lostEnergy / (divider * divider) // convert to giga
+			mdl.RevenueLoss = (lostEnergy * revenueTimes)
 
 			if mdl != nil {
 				d.BaseController.Ctx.Insert(mdl)
@@ -264,9 +302,11 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
 			// Where(dbox.Gte("power", 0)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
+			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
 			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
 			Aggr(dbox.AggrSum, "$minutes", "totalminutes").
 			Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
+			Aggr(dbox.AggrSum, "$unknowntime", "totalunknowntime").
 			Aggr(dbox.AggrSum, "$machinedowntime", "totalmachinedowntime").
 			Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
 			Group("turbine").
@@ -276,8 +316,8 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 		datas := []tk.M{}
 		e = csr.Fetch(&datas, 0, false)
 
-		startDate, _ := time.Parse("2006-01-02", "2015-06-01")
-		endDate, _ := time.Parse("2006-01-02", "2016-06-30")
+		startDate, _ := time.Parse("2006-01-02", "2016-05-07")
+		endDate, _ := time.Parse("2006-01-02", "2016-11-26")
 
 		durationInMonth := Round(endDate.Sub(startDate).Hours() / 24)
 		// noOfTurbine := 24.0
@@ -299,13 +339,49 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			iminutes := data["totalminutes"]
 			minutes := 0.0
 			if iminutes != nil {
-				minutes = (iminutes.(float64)) / 60 // divide by 60 secs, result in hours
+				valminutes, ok := iminutes.(float64) // divide by 60 secs, result in hours
+				if !ok {
+					ivalminutes := iminutes.(int)
+					minutes = float64(ivalminutes) / 60.0
+				} else {
+					minutes = valminutes / 60.0
+				}
 			}
+			_ = minutes
 
 			downtimeHours := 0.0
 			lostEnergy := 0.0
 
-			pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("startdateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			ilostEnergy := data["totalenergylost"]
+			if ilostEnergy != nil {
+				lostEnergy = ilostEnergy.(float64)
+			}
+
+			// pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("startdateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			// csr1, _ := ctx.NewQuery().
+			// 	Command("pipe", pipe).
+			// 	From(new(Alarm).TableName()).
+			// 	Cursor(nil)
+			// defer csr1.Close()
+
+			// alarms := []tk.M{}
+			// e = csr1.Fetch(&alarms, 0, false)
+
+			// if len(alarms) > 0 {
+			// 	alarm := alarms[0]
+			// 	iduration := alarm["duration"]
+			// 	if iduration != nil {
+			// 		downtimeHours = iduration.(float64)
+			// 	}
+			// 	ipowerlost := alarm["powerlost"]
+			// 	if ipowerlost != nil {
+			// 		lostEnergy = ipowerlost.(float64)
+			// 	}
+			// }
+
+			pipe := []tk.M{tk.M{}.Set("$unwind", "$detail"),
+				tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").Set("duration", tk.M{}.Set("$sum", "$detail.duration")).Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			tk.Printf("#%v\n", pipe)
 			csr1, _ := ctx.NewQuery().
 				Command("pipe", pipe).
 				From(new(Alarm).TableName()).
@@ -315,15 +391,17 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			alarms := []tk.M{}
 			e = csr1.Fetch(&alarms, 0, false)
 
+			tk.Printf("#%v\n", alarms)
+
 			if len(alarms) > 0 {
 				alarm := alarms[0]
-				iduration := alarm["duration"]
-				if iduration != nil {
-					downtimeHours = iduration.(float64)
-				}
 				ipowerlost := alarm["powerlost"]
 				if ipowerlost != nil {
 					lostEnergy = ipowerlost.(float64)
+				}
+				iduration := alarm["duration"]
+				if iduration != nil {
+					downtimeHours = iduration.(float64)
 				}
 			}
 
@@ -339,6 +417,24 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 				machinedowntime = imachinedowntime.(float64) / 3600
 			}
 
+			igriddowntime := data["totalgriddowntime"]
+			griddowntime := 0.0
+			if igriddowntime != nil {
+				griddowntime = igriddowntime.(float64) / 3600
+			}
+
+			iunknowntime := data["totalunknowntime"]
+			unknowntime := 0.0
+			if iunknowntime != nil {
+				unknowntime = iunknowntime.(float64) / 3600
+			}
+
+			_ = machinedowntime
+			_ = griddowntime
+			_ = unknowntime
+
+			//downtimeHours = machinedowntime + griddowntime + unknowntime
+
 			machineAvail := (minutes - machinedowntime) / (durationInMonth * 24)
 
 			var item ScadaSummaryByProjectItem
@@ -346,7 +442,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			item.Name = turbine
 			item.NoOfWtg = 1
 			item.Production = power / 6
-			item.PLF = power / (durationInMonth * 24 * 2100)
+			item.PLF = (power / 6) / (durationInMonth * 24 * 24 * 2100)
 			item.MachineAvail = machineAvail
 			item.TrueAvail = oktime / (durationInMonth * 24)
 			item.LostEnergy = lostEnergy
@@ -374,9 +470,11 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
 			// Where(dbox.Gte("power", 0)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
+			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
 			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
 			Aggr(dbox.AggrSum, "$minutes", "totalminutes").
 			Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
+			Aggr(dbox.AggrSum, "$unknowntime", "totalunknowntime").
 			Aggr(dbox.AggrSum, "$machinedowntime", "totalmachinedowntime").
 			Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
 			Group("projectname").
@@ -386,10 +484,13 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 		datas := []tk.M{}
 		e = csr.Fetch(&datas, 0, false)
 
-		startDate, _ := time.Parse("2006-01-02", "2015-06-01")
-		endDate, _ := time.Parse("2006-01-02", "2016-06-30")
+		startDate, _ := time.Parse("2006-01-02", "2016-05-07")
+		endDate, _ := time.Parse("2006-01-02", "2016-11-26")
 
 		durationInMonth := Round(endDate.Sub(startDate).Hours() / 24)
+
+		tk.Println(durationInMonth)
+
 		noOfTurbine := 24.0
 
 		mdl := new(ScadaSummaryByProject).New()
@@ -409,13 +510,49 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 			iminutes := data["totalminutes"]
 			minutes := 0.0
 			if iminutes != nil {
-				minutes = (iminutes.(float64)) / 60 // divide by 60 secs, result in hours
+				valminutes, ok := iminutes.(float64) // divide by 60 secs, result in hours
+				if !ok {
+					ivalminutes := iminutes.(int)
+					minutes = float64(ivalminutes) / 60.0
+				} else {
+					minutes = valminutes / 60.0
+				}
 			}
+			_ = minutes
 
 			downtimeHours := 0.0
 			lostEnergy := 0.0
 
-			pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("projectname", tk.M{}.Set("$eq", name)).Set("startdateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			ilostEnergy := data["totalenergylost"]
+			if ilostEnergy != nil {
+				lostEnergy = ilostEnergy.(float64)
+			}
+
+			// pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("projectname", tk.M{}.Set("$eq", name)).Set("startdateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			// csr1, _ := ctx.NewQuery().
+			// 	Command("pipe", pipe).
+			// 	From(new(Alarm).TableName()).
+			// 	Cursor(nil)
+			// defer csr1.Close()
+
+			// alarms := []tk.M{}
+			// e = csr1.Fetch(&alarms, 0, false)
+
+			// if len(alarms) > 0 {
+			// 	alarm := alarms[0]
+			// 	iduration := alarm["duration"]
+			// 	if iduration != nil {
+			// 		downtimeHours = iduration.(float64)
+			// 	}
+			// 	ipowerlost := alarm["powerlost"]
+			// 	if ipowerlost != nil {
+			// 		lostEnergy = ipowerlost.(float64)
+			// 	}
+			// }
+
+			pipe := []tk.M{tk.M{}.Set("$unwind", "$detail"),
+				tk.M{}.Set("$match", tk.M{}.Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$detail.duration")).Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			tk.Printf("#%v\n", pipe)
 			csr1, _ := ctx.NewQuery().
 				Command("pipe", pipe).
 				From(new(Alarm).TableName()).
@@ -425,15 +562,17 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 			alarms := []tk.M{}
 			e = csr1.Fetch(&alarms, 0, false)
 
+			tk.Printf("#%v\n", alarms)
+
 			if len(alarms) > 0 {
 				alarm := alarms[0]
-				iduration := alarm["duration"]
-				if iduration != nil {
-					downtimeHours = iduration.(float64)
-				}
 				ipowerlost := alarm["powerlost"]
 				if ipowerlost != nil {
 					lostEnergy = ipowerlost.(float64)
+				}
+				iduration := alarm["duration"]
+				if iduration != nil {
+					downtimeHours = iduration.(float64)
 				}
 			}
 
@@ -449,6 +588,20 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 				machinedowntime = imachinedowntime.(float64) / 3600
 			}
 
+			igriddowntime := data["totalgriddowntime"]
+			griddowntime := 0.0
+			if igriddowntime != nil {
+				griddowntime = igriddowntime.(float64) / 3600
+			}
+
+			iunknowntime := data["totalunknowntime"]
+			unknowntime := 0.0
+			if iunknowntime != nil {
+				unknowntime = iunknowntime.(float64) / 3600
+			}
+
+			_ = machinedowntime + griddowntime + unknowntime
+
 			machineAvail := (minutes - machinedowntime) / (durationInMonth * 24 * noOfTurbine)
 
 			var item ScadaSummaryByProjectItem
@@ -456,7 +609,7 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 			item.Name = name
 			item.NoOfWtg = int(noOfTurbine)
 			item.Production = power / 6
-			item.PLF = power / (durationInMonth * 24 * 2100 * noOfTurbine)
+			item.PLF = (power / 6) / (durationInMonth * 24 * 2100 * noOfTurbine)
 			item.MachineAvail = machineAvail
 			item.TrueAvail = oktime / (durationInMonth * 24 * noOfTurbine)
 			item.LostEnergy = lostEnergy
@@ -521,10 +674,11 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			dt.PCDeviation = pcdeviation
 			dt.Revenue = power * revenueMultiplier
 			dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
+			dt.OkTime = oktime
 			dt.TrueAvail = tk.Div(oktime, 144*600)
 			dt.ScadaAvail = tk.Div(float64(totalts), 144.0)
-			dt.MachineAvail = tk.Div((oktime - machinedowntime), 144.0*600.0)
-			dt.GridAvail = tk.Div((oktime - griddowntime), 144.0*600.0)
+			dt.MachineAvail = tk.Div(((600.0 * 144.0) - machinedowntime), 144.0*600.0)
+			dt.GridAvail = tk.Div(((600.0 * 144.0) - griddowntime), 144.0*600.0)
 			dt.TotalAvail = dt.TrueAvail
 			dt.PLF = tk.Div(energy, (2100.0 * 24.0))
 
