@@ -42,6 +42,7 @@ lg.getLogin = function () {
 	var param = ko.mapping.toJS(lg.configLogin);
 	toolkit.ajaxPost(viewModel.appName + "login/processlogin", param, function (res) {
 		if (!toolkit.isFine(res)) {
+			lg.showLoader(false);
 			return;
 		}
 
