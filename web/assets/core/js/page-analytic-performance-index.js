@@ -93,7 +93,7 @@ var Data = {
             scrollable: true,
             sortable: true,
             pageable: true,
-            height        : 550,
+            height        : $(".content-wrapper").height() * 0.48,
             detailInit : Data.InitGridDetail,
             dataBound: function () {
                 this.expandRow(this.tbody.find("tr.k-master-row").first());
@@ -247,6 +247,11 @@ $(function(){
     $('#btnRefresh').on('click', function () {
         Data.LoadData();
     });
+
+    $( window ).resize(function() {
+      $('#performance-grid').data('kendoGrid').refresh();
+    });
+
     setTimeout(function(){
         Data.LoadData();
     },100);
