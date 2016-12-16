@@ -383,6 +383,7 @@ page.ShowModal = function (modalId, showhide) {
 }
 
 page.setBreakDown = function () {
+    fa.disableRefreshButton(true);
     page.columnsBreakdownList = [];
     page.rowsBreakdownList = [];
 
@@ -409,8 +410,8 @@ page.setBreakDown = function () {
         } else {
             $("#rowsBreakdown").data("kendoDropDownList").value("Turbine");
         }
-
-    }, 1000);
+        fa.disableRefreshButton(false);
+    }, 500);
 }
 
 vm.currentMenu('KPI Table');
