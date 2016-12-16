@@ -2629,7 +2629,7 @@ var Data = {
                 filterable: false
             },
             { title: "Alarm Description", field: "AlarmDescription", width: 100, filterable: false },
-            { title: "Duration (Second)", field: "Duration",  template: '#= kendo.toString(secondsToHms(Duration)) #',  width: 90, attributes: { class: "align-right" },  filterable: false },
+            { title: "Duration (hh:mm:ss)", field: "Duration",  template: '#= kendo.toString(secondsToHms(Duration)) #',  width: 90, attributes: { class: "align-right" },  filterable: false },
 
 
             ]
@@ -2807,14 +2807,13 @@ var Data = {
             ]
         });
     },
-
     InitDefault: function () {
-    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
-    var lastEndDate = new Date(app.toUTC(maxDateData));
+        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+        var lastEndDate = new Date(app.toUTC(maxDateData));
 
-    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
+        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
 
         setTimeout(function () {
             Data.LoadData();
@@ -2895,7 +2894,8 @@ function secondsToHms(d) {
     var h = Math.floor(d / 3600);
     var m = Math.floor(d % 3600 / 60);
     var s = Math.floor(d % 3600 % 60);
-    var res = ((h > 0 ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (s < 10 ? "0" : "") + s)
+    var res = (h > 0 ? (h < 10 ? "0" + h : h) : "00") + ":" + (m > 0 ? (m < 10 ? "0" + m : m) : "00") + ":" + (s > 0 ? s : "00")
+    //((h > 0 ? h + ":" + (m < 10 ? "00" : "") : "") + m + ":" + (s < 10 ? "00" : "") + s)
 
     return res;
 }

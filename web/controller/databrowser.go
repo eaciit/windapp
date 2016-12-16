@@ -806,7 +806,6 @@ func (m *DataBrowserController) GetMETList(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
-
 func (m *DataBrowserController) GetEventList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	var filter []*dbox.Filter
