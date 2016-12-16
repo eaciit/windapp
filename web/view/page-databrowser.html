@@ -47,9 +47,6 @@
                             </ul>
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active" id="JMR">
-                                    <div data-bind="visible:dbr.jmrvis()">
-                                        {{template "_loader.html"}}
-                                    </div>
                                     <div data-bind="visible:!dbr.jmrvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartjmr">-</span></strong> until: <strong><span id="availabledateendjmr">-</span></strong>
@@ -65,9 +62,6 @@
                                 </div>
 
                                 <div role="tabpanel" class="tab-pane" id="MET">
-                                    <div data-bind="visible:dbr.mettowervis()">
-                                        {{template "_loader.html"}}
-                                    </div>
                                     <div data-bind="visible:!dbr.mettowervis()">
                                         <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
@@ -85,9 +79,6 @@
                                 </div>
 
                                 <div role="tabpanel" class="tab-pane " id="scada">
-                                    <div data-bind="visible:dbr.oemvis()">
-                                        {{template "_loader.html"}}
-                                    </div>
                                     <div data-bind="visible:!dbr.oemvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartscadadataoem">-</span></strong> until: <strong><span id="availabledateendscadadataoem">-</span></strong>
@@ -120,9 +111,6 @@
                                 </div>
 
                                 <div role="tabpanel" class="tab-pane" id="downtimeevent">
-                                    <div data-bind="visible:dbr.downeventvis()">
-                                        {{template "_loader.html"}}
-                                    </div>
                                     <div data-bind="visible:!dbr.downeventvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartDE">-</span></strong> until: <strong><span id="availabledateendDE">-</span></strong>
@@ -143,9 +131,6 @@
                                 </div>
 
                                  <div role="tabpanel" class="tab-pane" id="custom">
-                                    <div data-bind="visible:dbr.customvis()">
-                                        {{template "_loader.html"}}
-                                    </div>
                                     <div data-bind="visible:!dbr.customvis()">
                                         <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
@@ -178,9 +163,6 @@
                                  </div>
 
                                  <div role="tabpanel" class="tab-pane" id="eventraw">
-                                     <div data-bind="visible:dbr.eventrawvis()">
-                                        {{template "_loader.html"}}
-                                     </div>
                                      <div data-bind="visible:!dbr.eventrawvis()">
                                          <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
