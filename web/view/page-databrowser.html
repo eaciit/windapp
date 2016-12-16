@@ -46,7 +46,7 @@
                                 <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
                             </ul>
                             <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane active" id="JMR">
+                                <div role="tabpanel" class="tab-pane " id="JMR">
                                     <div data-bind="visible:!dbr.jmrvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartjmr">-</span></strong> until: <strong><span id="availabledateendjmr">-</span></strong>
@@ -78,7 +78,7 @@
                                     </div>
                                 </div>
 
-                                <div role="tabpanel" class="tab-pane " id="scada">
+                                <div role="tabpanel" class="tab-pane active" id="scada">
                                     <div data-bind="visible:!dbr.oemvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartscadadataoem">-</span></strong> until: <strong><span id="availabledateendscadadataoem">-</span></strong>
