@@ -39,6 +39,9 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 
 
 	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Ne("powerlost", ""))
+	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
+	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
 	filter = append(filter, dbox.Gte("timestamp", tStart))
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	if len(turbine) != 0 {
