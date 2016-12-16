@@ -93,8 +93,8 @@ func main() {
 
 		// new(GenScadaSummary).Generate(base) // step 6
 		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
-		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
-		// new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
+		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
+		new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
 
 		// =========================================================================================== //
 		// step to prepare data for the application
