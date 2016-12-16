@@ -1609,10 +1609,14 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			loopMatch.Set(field, true)
 
 			pipes = append(pipes, tk.M{"$match": loopMatch})
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
 			pipes = append(pipes,
 				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "duration": tk.M{"$sum": "$duration"},
-						"freq": tk.M{"$sum": 1}, "powerlost": tk.M{"$sum": "$powerlost"}},
+					"$group": tk.M{
+						"_id":       tk.M{"id1": "detail." + field, "id2": title},
+						"duration":  tk.M{"$sum": "$detail.duration"},
+						"freq":      tk.M{"$sum": 1},
+						"powerlost": tk.M{"$sum": "$detail.powerlost"}},
 				},
 			)
 
