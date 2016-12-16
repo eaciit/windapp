@@ -187,14 +187,18 @@ label.summary-number {
     padding-left: 0px;
     padding-right: 0px;
 }
-#customGrid div.k-grid-header {
+.k-header{
+    text-align: right;
+}
+/*#customGrid div.k-grid-header {
     background-color: #ffffff;
 }
 #customGrid div.k-header.k-grid-toolbar{
     background-color: #ffffff;
     padding: 4px;
     float: right;
-}
+}*/
+
 .btn-control{
     width: 30px;
 }
