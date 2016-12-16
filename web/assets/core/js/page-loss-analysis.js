@@ -1362,7 +1362,7 @@ pg.loadData = function () {
             pg.DTLEbyType(res.data);
         });
     }, 100);
-    console.log(app.dateAvail);
+    // console.log(app.dateAvail);
     var tes = app.dateAvail;
     for(var key in tes){
         // The key is key
