@@ -387,7 +387,7 @@ fa.GetBreakDown = function () {
         result.push({ "value": "Month", "text": "Month" });
         result.push({ "value": "Year", "text": "Year" });
     } else if (fa.periodType == "custom") {
-        if ((fa.dateEnd - fa.dateStart) / 86400000 + 1 <= 30) {
+        if ((fa.dateEnd - fa.dateStart) / 86400000 + 1 <= 31) {
             result.push({ "value": "Date", "text": "Date" });
         }
         result.push({ "value": "Month", "text": "Month" });
@@ -468,6 +468,15 @@ fa.checkCompleteDate = function () {
         fa.infoPeriodIcon(false);
     }
 
+
+}
+
+fa.disableRefreshButton = function(param){
+    if(param == true){
+        $("#btnRefresh").attr("disabled",true);
+    }else{
+        $("#btnRefresh").removeAttr("disabled");
+    }
 
 }
 
