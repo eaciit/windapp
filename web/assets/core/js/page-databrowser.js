@@ -407,7 +407,7 @@ var Data = {
                         }
                     },
                     data: function (res) {
-                        app.loading(false);
+                        // app.loading(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -2418,7 +2418,7 @@ var Data = {
                 schema: {
                     data: function (res) {
                         dbr.customvis(false);
-                        app.loading(false);
+                        // app.loading(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -2528,7 +2528,7 @@ var Data = {
             pageSize: 10,
             schema: {
                 data: function(ress) {
-                    app.loading(false);
+                    // app.loading(false);
                     dbr.downeventvis(false);
                     if (!app.isFine(ress)) {
                         return;
@@ -2746,7 +2746,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
-                        app.loading(false);
+                        // app.loading(false);
                         dbr.eventrawvis(false);
                         if (!app.isFine(res)) {
                             return;
