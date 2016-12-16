@@ -111,7 +111,7 @@ var Data = {
             toolkit.showError("Invalid Date Range Selection");
             return;
         } else {
-            app.loading(false);
+            app.loading(true);
             // this.InitGrid();
             this.InitGridExceptionTimeDuration();
             this.InitGridAnomalies();
@@ -2905,7 +2905,7 @@ vm.currentTitle('Data Browser');
 vm.breadcrumb([{ title: 'Data Browser', href: viewModel.appName + 'page/databrowser' }]);
 
 $(document).ready(function () {
-    app.loading(false);
+    app.loading(true);
     dbr.populateTurbine();
     $('.k-grid-showHideColumn').on("click", function(){
         $("#modalShowHide").modal();

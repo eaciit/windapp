@@ -387,7 +387,7 @@ fa.GetBreakDown = function () {
         result.push({ "value": "Month", "text": "Month" });
         result.push({ "value": "Year", "text": "Year" });
     } else if (fa.periodType == "custom") {
-        if ((fa.dateEnd - fa.dateStart) / 86400000 + 1 <= 30) {
+        if ((fa.dateEnd - fa.dateStart) / 86400000 + 1 <= 31) {
             result.push({ "value": "Date", "text": "Date" });
         }
         result.push({ "value": "Month", "text": "Month" });
@@ -430,13 +430,13 @@ fa.checkCompleteDate = function () {
     if (period === 'custom') {
         if ((dateEnd > currentDateData) && (dateStart > currentDateData)) {
             fa.infoPeriodIcon(true);
-            fa.infoPeriodRange("* Incomplete period range on start date and end date");
+            fa.infoPeriodRange("* Incomplete period data range on start date and end date");
         } else if (dateStart > currentDateData) {
-            fa.infoPeriodRange("* Incomplete period range on start date");
+            fa.infoPeriodRange("* Incomplete period data ange on start date");
             fa.infoPeriodIconmozilla(true);
         } else if (dateEnd > currentDateData) {
             fa.infoPeriodIcon(true);
-            fa.infoPeriodRange("* Incomplete period range on end date");
+            fa.infoPeriodRange("* Incomplete period data range on end date");
         } else {
             fa.infoPeriodIcon(false);
             fa.infoPeriodRange("");
@@ -444,7 +444,7 @@ fa.checkCompleteDate = function () {
     } else if (period === 'annual') {
         if ((moment(fa.dateEnd).get('year') == moment(app.currentDateData).get('year')) && (currentDateData < today)) {
             fa.infoPeriodIcon(true);
-            fa.infoPeriodRange("* Incomplete period range in end year");
+            fa.infoPeriodRange("* Incomplete period data range in end year");
         } else {
             fa.infoPeriodIcon(false);
             fa.infoPeriodRange("");
@@ -452,13 +452,13 @@ fa.checkCompleteDate = function () {
     } else if (period === 'monthly') {
         if ((dateEnd > currentDateData) && (dateStart > currentDateData)) {
             fa.infoPeriodIcon(true);
-            fa.infoPeriodRange("*Incomplete period range in start month and start month");
+            fa.infoPeriodRange("*Incomplete period data range in start month and start month");
         } else if (dateStart > currentDateData) {
             fa.infoPeriodIcon(true);
-            fa.infoPeriodRange("*Incomplete period range in start month");
+            fa.infoPeriodRange("*Incomplete period data range in start month");
         } else if (dateEnd > currentDateData) {
             fa.infoPeriodIcon(true);
-            fa.infoPeriodRange("*Incomplete period range in end month");
+            fa.infoPeriodRange("*Incomplete period data range in end month");
         } else {
             fa.infoPeriodIcon(false);
             fa.infoPeriodRange("");
@@ -468,6 +468,15 @@ fa.checkCompleteDate = function () {
         fa.infoPeriodIcon(false);
     }
 
+
+}
+
+fa.disableRefreshButton = function(param){
+    if(param == true){
+        $("#btnRefresh").attr("disabled",true);
+    }else{
+        $("#btnRefresh").removeAttr("disabled");
+    }
 
 }
 
