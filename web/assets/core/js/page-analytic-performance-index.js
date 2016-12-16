@@ -163,6 +163,10 @@ var Data = {
         var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
         var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
         var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+        var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 11, 31, 0, 0, 0, 0));
+        if (fa.period == "annual") {
+            fa.dateEnd = new Date(Date.UTC(moment(fa.dateEnd).get('year'), 11, 31, 0, 0, 0, 0));
+        }
         
         if(fa.dateStart.getTime() === last24hours.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
             hideLast24 = true;
@@ -171,6 +175,8 @@ var Data = {
         } else if(fa.dateStart.getTime() === startMonthDate.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
             hideMTD = true;
         } else if(fa.dateStart.getTime() === startYearDate.getTime() && fa.dateEnd.getTime() === maxDate.getTime()) {
+            hideYTD = true;
+        } else if(fa.dateStart.getTime() === startYearDate.getTime() && fa.dateEnd.getTime() === endYearDate.getTime()) {
             hideYTD = true;
         }
         $("<div/>").appendTo(e.detailCell).kendoGrid({
