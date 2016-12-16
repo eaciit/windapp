@@ -442,7 +442,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			item.Name = turbine
 			item.NoOfWtg = 1
 			item.Production = power / 6
-			item.PLF = (power / 6) / (durationInMonth * 24 * 24 * 2100)
+			item.PLF = (power / 6) / (durationInMonth * 24 * 2100)
 			item.MachineAvail = machineAvail
 			item.TrueAvail = oktime / (durationInMonth * 24)
 			item.LostEnergy = lostEnergy

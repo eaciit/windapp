@@ -18,6 +18,7 @@ dbr.mettowervis = ko.observable(true);
 dbr.oemvis = ko.observable(true);
 dbr.downeventvis = ko.observable(true);
 dbr.customvis = ko.observable(true);
+dbr.eventrawvis = ko.observable(true);
 
 dbr.gridColumnsScada = ko.observableArray([]);
 dbr.gridColumnsScadaException = ko.observableArray([]);
@@ -123,7 +124,7 @@ var Data = {
             this.InitScadaGrid();
             this.InitDEgrid();
             this.InitCustomGrid();
-            // this.InitEventGrid();
+            this.InitEventGrid();
         }
 
     },
@@ -314,6 +315,24 @@ var Data = {
                 }
             }  
         });
+
+        app.ajaxPost(viewModel.appName + "/databrowser/geteventavaildate", {}, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+
+            //EventDate Data
+            if (res.data.EventDate.length == 0) {
+                res.data.EventDate = [];
+            } else {
+                if (res.data.EventDate.length > 0) {
+                    var minDatetemp = new Date(res.data.EventDate[0]);
+                    var maxDatetemp = new Date(res.data.EventDate[1]);
+                    $('#eventdatestart').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+                    $('#eventdateend').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+                }
+            }  
+        });
     },
     RefreshGrid: function () {
         setTimeout(function () {
@@ -330,6 +349,7 @@ var Data = {
             $('#scadaGrid').data('kendoGrid').refresh();
             $('#customGrid').data('kendoGrid').refresh();
             $('#DEgrid').data('kendoGrid').refresh();
+            $('#EventGrid').data('kendoGrid').refresh();
         }, 5);
     },
     InitGrid: function () {
@@ -387,7 +407,7 @@ var Data = {
                         }
                     },
                     data: function (res) {
-                        app.loading(false);
+                        // app.loading(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -599,6 +619,14 @@ var Data = {
                     { field: 'Turbine', dir: 'asc' }
                 ],
             },
+            toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Scada Exception Time Duration.xlsx",
+                filterable: true,
+                allPages: true
+            },
             selectable: "multiple",
             groupable: false,
             sortable: true,
@@ -760,6 +788,14 @@ var Data = {
                     { field: 'TimeStamp', dir: 'asc' },
                     { field: 'Turbine', dir: 'asc' }
                 ],
+            },
+            toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Scada Anomaly.xlsx",
+                filterable: true,
+                allPages: true
             },
             groupable: false,
             sortable: true,
@@ -930,8 +966,6 @@ var Data = {
                 { title: "Weather Stop", field: "WeatherStop", width: 80, sortable: false, template: '# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             ]
         });
-
-
     },
     InitGridAlarmAnomalies: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -994,6 +1028,14 @@ var Data = {
                     { field: 'StartDate', dir: 'asc' },
                     { field: 'Turbine', dir: 'asc' }
                 ],
+            },
+            toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Alarm Anomalies.xlsx",
+                filterable: true,
+                 allPages: true
             },
             groupable: false,
             sortable: true,
@@ -1716,6 +1758,14 @@ var Data = {
                     { field: 'TimeStamp', dir: 'asc' }
                 ],
             },
+            toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Permanent Met Tower Data.xlsx",
+                filterable: true,
+                 allPages: true
+            },
             selectable: "multiple",
             groupable: false,
             sortable: true,
@@ -2079,6 +2129,7 @@ var Data = {
                         contentType: "application/json; charset=utf-8"
                     },
                     parameterMap: function (options) {
+                        dbr.oemvis(true);
                         return JSON.stringify(options);
                     }
                 },
@@ -2097,7 +2148,6 @@ var Data = {
                             return;
                         }
 
-                        console.log(res.data);
                         $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
                         $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
@@ -2110,6 +2160,14 @@ var Data = {
                     { field: 'TimeStamp', dir: 'asc' },
                     { field: 'Turbine', dir: 'asc' }
                 ],
+            },
+            toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Scada Data OEM.xlsx",
+                filterable: true,
+                allPages: true
             },
             selectable: "multiple",
             groupable: false,
@@ -2360,7 +2418,7 @@ var Data = {
                 schema: {
                     data: function (res) {
                         dbr.customvis(false);
-                        app.loading(false);
+                        // app.loading(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -2385,7 +2443,7 @@ var Data = {
                     { field: 'Turbine', dir: 'asc' }
                 ],
             },
-             toolbar: [
+            toolbar: [
                 "excel",
                 {
                     text: "Show Hide Columns",
@@ -2470,7 +2528,7 @@ var Data = {
             pageSize: 10,
             schema: {
                 data: function(ress) {
-                    app.loading(false);
+                    // app.loading(false);
                     dbr.downeventvis(false);
                     if (!app.isFine(ress)) {
                         return;
@@ -2498,84 +2556,92 @@ var Data = {
                 dir: 'asc'
             }],
         },
+        toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Downtime Event.xlsx",
+                filterable: true,
+                allPages: true
+            },
         selectable: "multiple",
         groupable: false,
         sortable: true,
         pageable: true,
         columns: [
-        {
-            title: "Time Start",
-            field: "TimeStart",
-            template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-            width: 100,
-            filterable: false
-        }, 
+            {
+                title: "Time Start",
+                field: "TimeStart",
+                template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
+                width: 100,
+                filterable: false
+            }, 
 
-        {
-            title: "Time End",
-            field: "TimeEnd",
-            template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-            width: 100
-        }, {
-            title: "Grid Down",
-            field: "DownGrid",
-            width: 80,
-            sortable: false,
-            template: '# if (DownGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-            headerAttributes: {
-                style: "text-align: center"
+            {
+                title: "Time End",
+                field: "TimeEnd",
+                template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
+                width: 100
+            }, {
+                title: "Grid Down",
+                field: "DownGrid",
+                width: 80,
+                sortable: false,
+                template: '# if (DownGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "text-align:center;"
+                }
+            },  {
+                title: "Machine Down",
+                field: "DownMachine",
+                width: 80,
+                sortable: false,
+                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "text-align:center;"
+                }
+            }, {
+                title: "Environment Down",
+                field: "DownEnvironment",
+                width: 80,
+                sortable: false,
+                template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "text-align:center;"
+                }
             },
-            attributes: {
-                style: "text-align:center;"
-            }
-        },  {
-            title: "Machine Down",
-            field: "DownMachine",
-            width: 80,
-            sortable: false,
-            template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-            headerAttributes: {
-                style: "text-align: center"
+            {
+                title: "Turbine",
+                field: "Turbine",
+                attributes: {
+                    class: "align-center"
+                },
+                width: 90,
+                filterable: false
             },
-            attributes: {
-                style: "text-align:center;"
-            }
-        }, {
-            title: "Environment Down",
-            field: "DownEnvironment",
-            width: 80,
-            sortable: false,
-            template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-            headerAttributes: {
-                style: "text-align: center"
-            },
-            attributes: {
-                style: "text-align:center;"
-            }
-        },
-        {
-            title: "Turbine",
-            field: "Turbine",
-            attributes: {
-                class: "align-center"
-            },
-            width: 90,
-            filterable: false
-        },
-        { title: "Alarm Description", field: "AlarmDescription", width: 100, filterable: false },
-        { title: "Duration (Second)", field: "Duration",  template: '#= kendo.toString(secondsToHms(Duration)) #',  width: 90, attributes: { class: "align-right" },  filterable: false },
+            { title: "Alarm Description", field: "AlarmDescription", width: 100, filterable: false },
+            { title: "Duration (hh:mm:ss)", field: "Duration",  template: '#= kendo.toString(secondsToHms(Duration)) #',  width: 90, attributes: { class: "align-right" },  filterable: false },
 
 
-        ]
-    });
+            ]
+        });
     },
     InitDefault: function () {
-    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
-    var lastEndDate = new Date(app.toUTC(maxDateData));
+        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+        var lastEndDate = new Date(app.toUTC(maxDateData));
 
-    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
+        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
 
         setTimeout(function () {
             Data.LoadData();
@@ -2632,6 +2698,7 @@ var Data = {
         });
     },
     InitEventGrid: function () {
+        dbr.eventrawvis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -2645,22 +2712,28 @@ var Data = {
             turbine = $("#turbineMulti").data("kendoMultiSelect").value();
         }
 
-        var param = {};
+        var param = {
+            DateStart: dateStart,
+            DateEnd: dateEnd,
+            Turbine: turbine,
+        };
+
 
         $('#EventGrid').html("");
         $('#EventGrid').kendoGrid({
             dataSource: {
-                filter: [
-                    { field: "timestamp", operator: "gte", value: dateStart },
-                    { field: "timestamp", operator: "lte", value: dateEnd },
-                    { field: "turbine", operator: "in", value: turbine }
-                ],
+                // filter: [
+                //     { field: "timestamp", operator: "gte", value: dateStart },
+                //     { field: "timestamp", operator: "lte", value: dateEnd },
+                //     { field: "turbine", operator: "in", value: turbine }
+                // ],
                 serverPaging: true,
                 serverSorting: true,
                 serverFiltering: true,
                 transport: {
                     read: {
-                        url: viewModel.appName + "databrowsernew/geteventlist",
+                        // url: viewModel.appName + "databrowsernew/geteventlist",
+                         url: viewModel.appName + "databrowser/geteventlist",
                         type: "POST",
                         data: param,
                         dataType: "json",
@@ -2673,7 +2746,8 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
-                        app.loading(false);
+                        // app.loading(false);
+                        dbr.eventrawvis(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -2683,6 +2757,7 @@ var Data = {
                         if (!app.isFine(res)) {
                             return;
                         }
+
                         $('#totalturbineEvent').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldataEvent').html(kendo.toString(res.data.Total, 'n0'));
                       
@@ -2694,24 +2769,32 @@ var Data = {
                     { field: 'Turbine', dir: 'asc' }
                 ],
             },
+            toolbar: [
+                "excel"
+            ],
+            excel: {
+                fileName: "Event Raw.xlsx",
+                filterable: true,
+                 allPages: true
+            },
             selectable: "multiple",
             groupable: false,
             sortable: true,
             pageable: true,
             columns: [
-                { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, locked: true, filterable: false },
-                { title: "Project Name", field: "ProjectName", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Event Type", field: "EventType", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Alarm Description", field: "AlarmDescription", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Turbine Status", field: "TurbineStatus", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Brake Type", field: "BrakeType", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Brake Program", field: "BrakeProgram", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Alarm Id", field: "AlarmId", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+                { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, filterable: false },
+                { title: "Project Name", field: "ProjectName", attributes: { class: "align-center" }, width: 90, filterable: false },
+                { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90,  filterable: false },
+                { title: "Event Type", field: "EventType", attributes: { class: "align-center" }, width: 100, filterable: false },
+                { title: "Alarm Description", field: "AlarmDescription", attributes: { class: "align-center" }, width: 150,  filterable: false },
+                { title: "Turbine Status", field: "TurbineStatus", attributes: { class: "align-center" }, width: 120, filterable: false },
+                { title: "Brake Type", field: "BrakeType", attributes: { class: "align-center" }, width: 150, filterable: false },
+                { title: "Brake Program", field: "BrakeProgram", width: 120, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+                { title: "Alarm Id", field: "AlarmId", width: 120, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
                 {
                     title: "Alarm Toggle",
                     field: "AlarmToggle",
-                    width: 80,
+                    width: 120,
                     sortable: false,
                     template: '# if (AlarmToggle == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
                     headerAttributes: {
@@ -2723,23 +2806,20 @@ var Data = {
                 },        
             ]
         });
-
     },
-
     InitDefault: function () {
-    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
-    var lastEndDate = new Date(app.toUTC(maxDateData));
+        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+        var lastEndDate = new Date(app.toUTC(maxDateData));
 
-    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
+        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
 
         setTimeout(function () {
             Data.LoadData();
         }, 500);
     }
 };
-
 
 dbr.selectRow = function(){
     var grid1 = $('#columnList').data('kendoGrid');
@@ -2814,11 +2894,11 @@ function secondsToHms(d) {
     var h = Math.floor(d / 3600);
     var m = Math.floor(d % 3600 / 60);
     var s = Math.floor(d % 3600 % 60);
-    var res = ((h > 0 ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (s < 10 ? "0" : "") + s)
+    var res = (h > 0 ? (h < 10 ? "0" + h : h) : "00") + ":" + (m > 0 ? (m < 10 ? "0" + m : m) : "00") + ":" + (s > 0 ? s : "00")
+    //((h > 0 ? h + ":" + (m < 10 ? "00" : "") : "") + m + ":" + (s < 10 ? "00" : "") + s)
 
     return res;
 }
-
 
 vm.currentMenu('Data Browser');
 vm.currentTitle('Data Browser');
