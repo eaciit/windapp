@@ -108,12 +108,6 @@ km.createChart = function () {
         }
     });
 
-    setTimeout(function () {
-        $("#dh-chart").data("kendoChart").refresh();
-
-        // add this function after chart created
-        // $('#dh-chart').kendoChartToGrid();
-    }, 100);
 }
 
 km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
@@ -196,12 +190,7 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
             }
         }
     });
-    setTimeout(function () {
-        $("#dhprod-chart").data("kendoChart").refresh();
 
-        // add this function after chart created
-        // $('#dhprod-chart').kendoChartToGrid();
-    }, 100);
 }
 
 vm.currentMenu('Histograms');
@@ -220,12 +209,6 @@ km.getData = function () {
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
     })
 
-    $(document).ajaxStop(function () {
-        app.loading(false);
-        $("#dh-chart").data("kendoChart").refresh();
-        $("#dhprod-chart").data("kendoChart").refresh();
-    });
-    // setTimeout(function() {
     var paramFilter = {
         period: fa.period,
         Turbine: fa.turbine,
@@ -240,7 +223,7 @@ km.getData = function () {
         BinValue: parseInt(km.BinValueWindSpeed()),
         Filter: paramFilter
     };
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
+    var requestHistogram = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -260,7 +243,7 @@ km.getData = function () {
         BinValue: parseInt(km.BinValue()),
         Filter: paramFilter
     };
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
+    var requestProduction  = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -274,7 +257,14 @@ km.getData = function () {
             km.createChartProduction();
         }
     });
+
+    $.when(requestHistogram, requestProduction).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+        },500);
+    });
     // }, 750);
+    // app.loading(false);
 }
 
 km.SubmitValues = function () {
@@ -309,9 +299,7 @@ km.SubmitValues = function () {
     // });
 }
 
-// function getRandomInt(min, max) {
-//     return Math.floor(Math.random() * (max - min + 1)) + min;
-// }
+
 $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
         setTimeout(function () {

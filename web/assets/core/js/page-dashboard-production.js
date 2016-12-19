@@ -9,8 +9,11 @@ var prod = viewModel.production;
 
 prod.loadData = function () {
     if (lgd.isProduction()) {
-        prod.periodTypeProdChange();
-        app.loading(false);
+        $.when(prod.periodTypeProdChange()).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },500);
+        })
     }
 };
 
