@@ -407,7 +407,7 @@ var Data = {
                         }
                     },
                     data: function (res) {
-                        // app.loading(false);
+                        app.loading(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -1758,14 +1758,14 @@ var Data = {
                     { field: 'TimeStamp', dir: 'asc' }
                 ],
             },
-            toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Permanent Met Tower Data.xlsx",
-                filterable: true,
-                 allPages: true
-            },
+            // toolbar: [
+            //     "excel"
+            // ],
+            // excel: {
+            //     fileName: "Permanent Met Tower Data.xlsx",
+            //     filterable: true,
+            //      allPages: true
+            // },
             selectable: "multiple",
             groupable: false,
             sortable: true,
@@ -2161,14 +2161,6 @@ var Data = {
                     { field: 'Turbine', dir: 'asc' }
                 ],
             },
-            toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Scada Data OEM.xlsx",
-                filterable: true,
-                allPages: true
-            },
             selectable: "multiple",
             groupable: false,
             sortable: true,
@@ -2556,14 +2548,6 @@ var Data = {
                 dir: 'asc'
             }],
         },
-        toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Downtime Event.xlsx",
-                filterable: true,
-                allPages: true
-            },
         selectable: "multiple",
         groupable: false,
         sortable: true,
@@ -2769,14 +2753,14 @@ var Data = {
                     { field: 'Turbine', dir: 'asc' }
                 ],
             },
-            toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Event Raw.xlsx",
-                filterable: true,
-                 allPages: true
-            },
+            // toolbar: [
+            //     "excel"
+            // ],
+            // excel: {
+            //     fileName: "Event Raw.xlsx",
+            //     filterable: true,
+            //      allPages: true
+            // },
             selectable: "multiple",
             groupable: false,
             sortable: true,
@@ -2806,18 +2790,6 @@ var Data = {
                 },        
             ]
         });
-    },
-    InitDefault: function () {
-        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
-        var lastEndDate = new Date(app.toUTC(maxDateData));
-
-        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-
-        setTimeout(function () {
-            Data.LoadData();
-        }, 500);
     }
 };
 
@@ -2900,6 +2872,38 @@ function secondsToHms(d) {
     return res;
 }
 
+function ExportExcelScadaOem(functionName) {
+    app.loading(true);
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+    dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+    dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
+    var turbine = [];
+    if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+        turbine = turbineval;
+    } else {
+        turbine = $("#turbineMulti").data("kendoMultiSelect").value();
+    }
+
+    var Filter = {
+        DateStart: dateStart,
+        DateEnd: dateEnd,
+        Turbine: turbine,
+    };
+
+    app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function (res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+} 
+
+
 vm.currentMenu('Data Browser');
 vm.currentTitle('Data Browser');
 vm.breadcrumb([{ title: 'Data Browser', href: viewModel.appName + 'page/databrowser' }]);
@@ -2925,3 +2929,4 @@ $(document).ready(function () {
     }, 1000);
     Data.LoadAvailDate();
 });
+
