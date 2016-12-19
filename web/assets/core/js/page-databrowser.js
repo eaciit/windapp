@@ -407,7 +407,7 @@ var Data = {
                         }
                     },
                     data: function (res) {
-                        // app.loading(false);
+                        app.loading(false);
                         if (!app.isFine(res)) {
                             return;
                         }
