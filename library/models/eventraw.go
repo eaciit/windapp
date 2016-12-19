@@ -1,10 +1,8 @@
 package models
 
 import (
-
 	. "eaciit/wfdemo-git/library/helper"
 
-	
 	"math/rand"
 
 	"time"
@@ -65,7 +63,7 @@ type EventRaw struct {
 func (m *EventRaw) New() *EventRaw {
 	milistr := tk.ToString(m.TimeStamp.Nanosecond() / 1000000)
 	timeStampStr := m.TimeStamp.Format("060102_150405") + "_" + milistr
-	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine + "#" + tk.ToString(m.AlarmId) + "#" + time.Now().Format("060102150405_000000000") + "_" + tk.ToString(rand.Intn(100000))
+	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine + "#" + tk.ToString(m.AlarmId) + "#" + m.EventType + "#" + time.Now().Format("060102150405_000000000") + "_" + tk.ToString(rand.Intn(999999))
 	return m
 }
 
