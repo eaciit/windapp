@@ -86,7 +86,7 @@ type EventDownDetail struct {
 func (m *EventDown) New() *EventDown {
 	milistr := tk.ToString(m.TimeStart.Nanosecond() / 1000000)
 	timeStampStr := m.TimeStart.Format("060102_150405") + "_" + milistr
-	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine + "#" + time.Now().Format("060102150405_000000000") + "_" + tk.ToString(rand.Intn(100000))
+	m.ID = timeStampStr + "#" + m.ProjectName + "#" + m.Turbine + "#" + time.Now().Format("060102150405_000000000") + "_" + tk.ToString(rand.Intn(999999))
 	return m
 }
 
