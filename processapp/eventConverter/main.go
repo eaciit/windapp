@@ -46,6 +46,9 @@ func main() {
 	down := NewDownConversion(ctx, dir)
 	down.Run()
 
+	down := NewDownConversion(ctx, dir)
+	down.Run()
+
 	log.Println("End processing event data to down...")
 }
 
