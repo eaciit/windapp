@@ -93,7 +93,7 @@ var Data = {
             scrollable: true,
             sortable: true,
             pageable: true,
-            height        : $(".content-wrapper").height() * 0.48,
+            height        : ($(".content-wrapper").innerWidth() < 1225 ? $(".content-wrapper").height() * 0.5 : $(".content-wrapper").height() * 0.7),
             detailInit : Data.InitGridDetail,
             dataBound: function () {
                 this.expandRow(this.tbody.find("tr.k-master-row").first());
@@ -255,11 +255,12 @@ $(function(){
     });
 
     $( window ).resize(function() {
-      $('#performance-grid').data('kendoGrid').refresh();
+      vm.adjustLayout()
+      $("#performance-grid").data("kendoGrid").resize();
     });
-
     setTimeout(function(){
         Data.LoadData();
-    },100);
+        vm.adjustLayout();
+    },500);
     
 })  

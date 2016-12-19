@@ -27,7 +27,7 @@ avail.loadData = function () {
     }
 
     if (lgd.isAvailability()) {
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
+        var request = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
             if (!toolkit.isFine(res)) {
                 return;
             }
@@ -62,10 +62,14 @@ avail.loadData = function () {
                 avail.getMDTypeList();
             }
 
-            app.loading(false);
-            setTimeout(function () {
-                avail.refreshChart();
-            }, 100);
+            // app.loading(false);
+            // avail.refreshChart();S
+        });
+
+        $.when(request).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },300)
         });
     }
 };
