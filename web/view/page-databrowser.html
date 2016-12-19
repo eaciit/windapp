@@ -38,15 +38,15 @@
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="Main">
                             <ul class="nav nav-tabs" role="tablist">
-                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scada" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
-                                <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
+                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
+                                <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
                                 <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
                                 <li id="eventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
-                                <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
+                                <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="MET" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
                                 <li id="jmrTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
                             </ul>
                             <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane active" id="scada">
+                                <div role="tabpanel" class="tab-pane active" id="scadaoem">
                                     <div data-bind="visible:!dbr.oemvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartscadadataoem">-</span></strong> until: <strong><span id="availabledateendscadadataoem">-</span></strong>
@@ -74,7 +74,7 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexcelscadaoem')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexcelscadaoem')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
                                             </div>
                                             <div id="scadaGrid" class="grid-custom-db-new"></div>
                                         </div>
@@ -97,14 +97,14 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexceldowntimeevent')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexceldowntimeevent')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
                                             </div>
                                             <div id="DEgrid" class="grid-custom-db-new"></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                 <div role="tabpanel" class="tab-pane" id="custom">
+                                <div role="tabpanel" class="tab-pane" id="custom">
                                     <div data-bind="visible:!dbr.customvis()">
                                         <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
@@ -153,7 +153,7 @@
                                             
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexceleventraw')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexceleventraw')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
                                             </div>
                                             <div id="EventGrid" class="grid-custom-db-new"></div>
                                         </div>
@@ -172,7 +172,7 @@
                                             </div>
                                             <div class="tab-pane-content">
                                                 <div class="etoExcel">
-                                                    <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexcelmet')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                    <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexcelmet')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
                                                 </div>
                                                 <div id="dataGridMet" class="grid-custom-db-new"></div>
                                             </div>
@@ -180,7 +180,7 @@
                                     </div>
                                 </div>
 
-                                 <div role="tabpanel" class="tab-pane " id="JMR">
+                                <div role="tabpanel" class="tab-pane " id="JMR">
                                     <div data-bind="visible:!dbr.jmrvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartjmr">-</span></strong> until: <strong><span id="availabledateendjmr">-</span></strong>
