@@ -138,9 +138,8 @@ pg.GridLoss = function () {
         project: fa.project,
     };
 
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
+    var requestGridLoss = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
         if (!app.isFine(res)) {
-            app.loading(false);
             return;
         }
         var gData = res.data.Data
@@ -303,7 +302,12 @@ pg.GridLoss = function () {
                     // }
                 }]
         })
-        app.loading(false);
+    });
+    
+    $.when(requestGridLoss).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+        },500)
     });
 };
 
@@ -1372,7 +1376,8 @@ pg.loadData = function () {
 }
 
 pg.refreshGrid = function () {
-    setTimeout(function () {
+    app.loading(true);
+    var refresh = setTimeout(function () {
         if ($("#gridLoss").data("kendoGrid") != null) {
             $("#gridLoss").data("kendoGrid").refresh();
         }
@@ -1380,20 +1385,47 @@ pg.refreshGrid = function () {
             $("#lossChart").data("kendoChart").refresh();
         }
 
-        $("#chartDTDuration").data("kendoChart").refresh();
-        $("#chartDTFrequency").data("kendoChart").refresh();
-        $("#chartTopTurbineLoss").data("kendoChart").refresh();
+        if ($("#chartDTDuration").data("kendoChart") != null) {
+            $("#chartDTDuration").data("kendoChart").refresh();
+        }
 
-        $("#availabilityChart").data("kendoChart").refresh();
-        $("#productionChart").data("kendoChart").refresh();
+        if ($("#chartDTFrequency").data("kendoChart") != null) {
+            $("#chartDTFrequency").data("kendoChart").refresh();
+        }
 
-        $("#windAvailabilityChart").data("kendoChart").refresh();
+        if ($("#chartTopTurbineLoss").data("kendoChart") != null) {
+            $("#chartTopTurbineLoss").data("kendoChart").refresh();
+        }
 
-        $("#chartLCByTEL").data("kendoChart").refresh();
-        $("#chartLCByDuration").data("kendoChart").refresh();
-        $("#chartLCByFreq").data("kendoChart").refresh();
+        if ($("#availabilityChart").data("kendoChart") != null) {
+            $("#availabilityChart").data("kendoChart").refresh();
+        }
 
-        $("#chartDTLEbyType").data("kendoChart").refresh();
+        if ($("#chartLCByTEL").data("kendoChart") != null) {
+            $("#chartLCByTEL").data("kendoChart").refresh();
+        }
+
+        if ($("#chartLCByDuration").data("kendoChart") != null) {
+            $("#chartLCByDuration").data("kendoChart").refresh();
+        }
+
+        if ($("#chartLCByFreq").data("kendoChart") != null) {
+            $("#chartLCByFreq").data("kendoChart").refresh();
+        }
+
+        if ($("#chartDTLEbyType").data("kendoChart") != null) {
+            $("#chartDTLEbyType").data("kendoChart").refresh();
+        }
+
+        if ($("#windAvailabilityChart").data("kendoChart") != null) {
+            $("#windAvailabilityChart").data("kendoChart").refresh();
+        }
+        
+       if ($("#productionChart").data("kendoChart") != null) {
+            $("#productionChart").data("kendoChart").refresh();
+        }
+
+        app.loading(false);
     }, 1000);
 }
 

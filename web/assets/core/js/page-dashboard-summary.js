@@ -26,7 +26,7 @@ sum.loadData = function () {
         var project = $("#projectId").data("kendoDropDownList").value();
         var param = { ProjectName: project, Date: maxdate };
 
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
+        var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
             if (!toolkit.isFine(res)) {
                 return;
             }
@@ -47,7 +47,7 @@ sum.loadData = function () {
             sum.SummaryData(project);
         });
 
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
+        var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
             if (!toolkit.isFine(res)) {
                 return;
             }
@@ -58,14 +58,18 @@ sum.loadData = function () {
             sum.ProdMonth(res.data);
             sum.AvailabilityChart(res.data);
             sum.ProdCurLast(res.data);
+            sum.indiaMap(project);
+            sum.isDetailProd(false);
+            sum.isDetailProdByProject(false);
         });
 
-        sum.indiaMap(project);
 
-        sum.isDetailProd(false);
-        sum.isDetailProdByProject(false);
 
-        app.loading(false);
+        $.when(ajax1, ajax2).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },200);        
+        })
     }
 };
 
