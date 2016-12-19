@@ -2,7 +2,6 @@ package conversion
 
 import (
 	"log"
-	"os"
 	"sync"
 	"time"
 
@@ -14,18 +13,6 @@ import (
 
 	tk "github.com/eaciit/toolkit"
 )
-
-var (
-	separator       = string(os.PathSeparator)
-	mutex           = &sync.Mutex{}
-	countPerProcess = 1
-)
-
-type GroupResult struct {
-	Project           string
-	Turbine           string
-	LatestProcessTime time.Time
-}
 
 type AlarmConversion struct {
 	Ctx      *orm.DataContext
