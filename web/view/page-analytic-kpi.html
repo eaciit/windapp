@@ -145,13 +145,8 @@
 					</div>
 					<div class="clearfix">&nbsp;</div>
 					<div class="col-md-12">
-						<div data-bind="visible: page.isLoading()">
-							{{template "_loader.html"}}
-						</div>
-						<div data-bind="visible:!page.isLoading()">
-							<div id="gridKpiAnalysis" class="grid-custom"></div>
-							<div class="clearfix">&nbsp;</div>
-						</div>
+						<div id="gridKpiAnalysis" class="grid-custom"></div>
+						<div class="clearfix">&nbsp;</div>
 					</div>
 					<div class="clearfix">&nbsp;</div>
           			<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
