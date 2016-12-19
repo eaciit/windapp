@@ -94,8 +94,8 @@ vm.setWidthUser = function(e){
 }
 
 vm.adjustLayout = function () {
-    var height = window.innerHeight - $('.app-top').height();
-    $('.app-container').css('min-height', height);
+    var height = window.innerHeight - $('.main-header').height();
+    $('.content-wrapper').css('min-height', height);
 };
 vm.showFilterCallback = toolkit.noop;
 vm.showFilter = function () {
