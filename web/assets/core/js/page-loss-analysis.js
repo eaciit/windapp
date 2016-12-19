@@ -1420,6 +1420,10 @@ pg.refreshGrid = function () {
         if ($("#windAvailabilityChart").data("kendoChart") != null) {
             $("#windAvailabilityChart").data("kendoChart").refresh();
         }
+        
+       if ($("#productionChart").data("kendoChart") != null) {
+            $("#productionChart").data("kendoChart").refresh();
+        }
 
         app.loading(false);
     }, 1000);

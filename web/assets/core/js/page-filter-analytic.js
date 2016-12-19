@@ -380,6 +380,11 @@ fa.GetBreakDown = function () {
     fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
 
     var result = [];
+    var monthyearStart = 0;
+    var monthyearEnd = 0;
+
+    monthyearStart = fa.dateStart.getFullYear() + fa.dateStart.getMonth();
+    monthyearEnd = fa.dateEnd.getFullYear() + fa.dateEnd.getMonth();
 
     if (fa.periodType == "last24hours" || fa.periodType == "last7days") {
         result.push({ "value": "Date", "text": "Date" });
@@ -387,9 +392,16 @@ fa.GetBreakDown = function () {
         result.push({ "value": "Month", "text": "Month" });
         result.push({ "value": "Year", "text": "Year" });
     } else if (fa.periodType == "custom") {
-        if ((fa.dateEnd - fa.dateStart) / 86400000 + 1 <= 31) {
-            result.push({ "value": "Date", "text": "Date" });
+        if (fa.dateStart.getDate() == 1){
+            if (monthyearStart == monthyearEnd){
+                result.push({ "value": "Date", "text": "Date" });
+            }
+        }else{
+            if ((fa.dateEnd - fa.dateStart) / 86400000 + 1 <= 31) {
+                result.push({ "value": "Date", "text": "Date" });
+            }
         }
+        
         result.push({ "value": "Month", "text": "Month" });
         result.push({ "value": "Year", "text": "Year" });
     }
