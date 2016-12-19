@@ -44,7 +44,6 @@ pg.initSummaryGrid = function () {
         Project: fa.project
     };
 
-    app.loading(true);
     $("#gridSummaryDgrScada").kendoGrid({
         theme: "flat",
         columns: [
@@ -91,11 +90,12 @@ pg.initSummaryGrid = function () {
             },
         }
     });
-    app.loading(false);
 }
 
 pg.loadData = function () {
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+    app.loading(true);
+
+    var request = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
         var minDatetemp = new Date(res.ScadaData[0]);
         var maxDatetemp = new Date(res.ScadaData[1]);
 
@@ -107,9 +107,9 @@ pg.loadData = function () {
 
         $('#availabledatestartdgr').html(kendo.toString(moment.utc(dgrMinDatetemp).format('DD-MMMM-YYYY')));
         $('#availabledateendsdgr').html(kendo.toString(moment.utc(dgrMaxDatetemp).format('DD-MMMM-YYYY')));
-    }),
-    fa.getProjectInfo();
-    setTimeout(function () {
+    });
+
+    var dgrScada = setTimeout(function () {
         // pg.SetBreakDown();
 
         if (fa.project == "") {
@@ -153,7 +153,7 @@ vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Consistency', href:
 
 
 $(document).ready(function () {
-    app.loading(true);
+    
     fa.LoadData();
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
