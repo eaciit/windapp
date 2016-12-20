@@ -99,9 +99,6 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 
 
 	filter = append(filter, dbox.Ne("_id", ""))
-	// filter = append(filter, dbox.Ne("powerlost", ""))
-	// filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
-	// filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
 	filter = append(filter, dbox.Gte("timestamp", tStart))
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	if len(turbine) != 0 {
@@ -130,16 +127,10 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]ScadaData, 0)
-	results := make([]ScadaData, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.TimeStamp = val.TimeStamp.UTC()
-		results = append(results, val)
 	}
 
 	totalPower := 0.0
@@ -148,6 +139,7 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	totalProduction := 0.0
 	sumWindSpeed := 0.0
 	countData := 0.0
+	AvgWindSpeed := 0.0
 
 	aggrData := []tk.M{}
 
@@ -178,6 +170,10 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if(countData>0.0){
+		AvgWindSpeed = sumWindSpeed / countData
+	}
+
 	data := struct {
 		Data            []ScadaData
 		Total           float64
@@ -187,12 +183,12 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		AvgWindSpeed    float64
 		TotalTurbine    int
 	}{
-		Data:            results,
+		Data:            tmpResult,
 		Total:           countData,
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalProduction,// / 6,
-		AvgWindSpeed:    sumWindSpeed / countData,
+		AvgWindSpeed:    AvgWindSpeed,//sumWindSpeed / countData,
 		TotalTurbine:    totalTurbine,
 	}
 
@@ -231,16 +227,10 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	defer csr.Close()
 
 	tmpResult := make([]ScadaAlarmAnomaly, 0)
-	results := make([]ScadaAlarmAnomaly, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.TimeStamp = val.TimeStamp.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(ScadaAlarmAnomaly).TableName()).Where(dbox.And(filter...))
@@ -252,9 +242,9 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
-	// totalProduction := 0.0
 	sumWindSpeed := 0.0
 	totalTurbine := 0
+	AvgWS :=  0.0
 
 	aggrData := []tk.M{}
 
@@ -281,6 +271,10 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if( ccount.Count()>0.0){
+		AvgWS = sumWindSpeed / float64(ccount.Count())
+	}
+
 	data := struct {
 		Data            []ScadaAlarmAnomaly
 		Total           int
@@ -290,12 +284,12 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 		AvgWindSpeed    float64
 		TotalTurbine    int
 	}{
-		Data:            results,
+		Data:            tmpResult,
 		Total:           ccount.Count(),
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalPower / 6,
-		AvgWindSpeed:    sumWindSpeed / float64(ccount.Count()),
+		AvgWindSpeed:    AvgWS, //sumWindSpeed / float64(ccount.Count()),
 		TotalTurbine:    totalTurbine,
 	}
 
@@ -335,17 +329,10 @@ func (m *DataBrowserController) GetAlarmList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]Alarm, 0)
-	results := make([]Alarm, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(Alarm).TableName()).Where(dbox.And(filter...))
@@ -379,7 +366,7 @@ func (m *DataBrowserController) GetAlarmList(k *knot.WebContext) interface{} {
 		Total        int
 		TotalTurbine int
 	}{
-		Data:         results,
+		Data:         tmpResult,
 		Total:        ccount.Count(),
 		TotalTurbine: totalTurbine,
 	}
@@ -420,17 +407,10 @@ func (m *DataBrowserController) GetAlarmScadaAnomalyList(k *knot.WebContext) int
 	defer csr.Close()
 
 	tmpResult := make([]AlarmScadaAnomaly, 0)
-	results := make([]AlarmScadaAnomaly, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(AlarmScadaAnomaly).TableName()).
@@ -465,7 +445,7 @@ func (m *DataBrowserController) GetAlarmScadaAnomalyList(k *knot.WebContext) int
 		Total        int
 		TotalTurbine int
 	}{
-		Data:         results,
+		Data:         tmpResult,
 		Total:        ccount.Count(),
 		TotalTurbine: totalTurbine,
 	}
@@ -506,17 +486,10 @@ func (m *DataBrowserController) GetAlarmOverlappingList(k *knot.WebContext) inte
 	defer csr.Close()
 
 	tmpResult := make([]AlarmOverlapping, 0)
-	results := make([]AlarmOverlapping, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(AlarmOverlapping).TableName()).
@@ -551,7 +524,7 @@ func (m *DataBrowserController) GetAlarmOverlappingList(k *knot.WebContext) inte
 		Total        int
 		TotalTurbine int
 	}{
-		Data:         results,
+		Data:         tmpResult,
 		Total:        ccount.Count(),
 		TotalTurbine: totalTurbine,
 	}
@@ -616,17 +589,10 @@ func (m *DataBrowserController) GetAlarmOverlappingDetails(k *knot.WebContext) i
 	defer csr.Close()
 
 	tmpResult := make([]Alarm, 0)
-	results := make([]Alarm, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	ccount, e := queryCount.Cursor(nil)
@@ -639,7 +605,7 @@ func (m *DataBrowserController) GetAlarmOverlappingDetails(k *knot.WebContext) i
 		Data  []Alarm
 		Total int
 	}{
-		Data:  results,
+		Data:  tmpResult,
 		Total: ccount.Count(),
 	}
 
@@ -677,16 +643,10 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]JMR, 0)
-	results := make([]JMR, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.Sections = nil
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(JMR).TableName()).Where(dbox.And(filter...))
@@ -700,7 +660,7 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 		Data  []JMR
 		Total int
 	}{
-		Data:  results,
+		Data:  tmpResult,
 		Total: ccount.Count(),
 	}
 
@@ -829,16 +789,10 @@ func (m *DataBrowserController) GetMETList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]MetTower, 0)
-	results := make([]MetTower, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.TimeStamp = val.TimeStamp.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(MetTower).TableName()).Where(dbox.And(filter...))
@@ -852,7 +806,7 @@ func (m *DataBrowserController) GetMETList(k *knot.WebContext) interface{} {
 		Data  []MetTower
 		Total int
 	}{
-		Data:  results,
+		Data:  tmpResult,
 		Total: ccount.Count(),
 	}
 
@@ -900,18 +854,12 @@ func (m *DataBrowserController) GetEventList(k *knot.WebContext) interface{} {
 	}
 	defer csr.Close()
 
-	// tmpResult := make([]EventRaw, 0)
 	results := make([]EventRaw, 0)
 	e = csr.Fetch(&results, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
-	// for _, val := range tmpResult {
-	// 	val.TimeStamp = val.TimeStamp.UTC()
-	// 	results = append(results, val)
-	// }
 
 	totalTurbine := 0
 	countData := 0.0
@@ -1000,6 +948,7 @@ func (m *DataBrowserController) GetScadaOemList(k *knot.WebContext) interface{} 
 	avgWindSpeed := 0.0
 	totalTurbine := 0
 	totalEnergy := 0.0
+	AvgWS := 0.0
 
 	aggrData := []tk.M{}
 
@@ -1030,6 +979,11 @@ func (m *DataBrowserController) GetScadaOemList(k *knot.WebContext) interface{} 
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if( ccount.Count()>0.0){
+		AvgWS = avgWindSpeed / float64(ccount.Count())
+	}
+
+
 	data := struct {
 		Data             []ScadaDataOEM
 		Total            int
@@ -1045,7 +999,7 @@ func (m *DataBrowserController) GetScadaOemList(k *knot.WebContext) interface{} 
 		TotalPower:       totalPower,
 		TotalPowerLost:   totalPowerLost,
 		TotalActivePower: totalActivePower,
-		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
 		TotalEnergy:      totalActivePower / 6,
 	}
@@ -1104,7 +1058,6 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 	defer csr.Close()
 
-	// tmpResult := make([]ScadaDataOEM, 0)
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
 
@@ -1181,6 +1134,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	avgWindSpeed := 0.0
 	totalTurbine := 0
 	totalEnergy := 0.0
+	AvgWS := 0.0
 
 	aggrData := []tk.M{}
 
@@ -1211,6 +1165,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if( ccount.Count()>0.0){
+		AvgWS = avgWindSpeed / float64(ccount.Count())
+	}
+
 	data := struct {
 		Data             []tk.M
 		Total            int
@@ -1226,7 +1184,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		TotalPower:       totalPower,
 		TotalPowerLost:   totalPowerLost,
 		TotalActivePower: totalActivePower,
-		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
 		TotalEnergy:      totalEnergy,
 	}
