@@ -19,7 +19,7 @@
                 <li>
                     <label class="control-label col-md-1 col-sm-1 label-turbine" style="width:80px;">Turbine</label>
                     <select class="col-md-1 col-sm-1 turbine-multi" id="turbineMulti" data-bind="kendoMultiSelect: { data: dbr.turbineList, dataValueField: 'value', dataTextField: 'text', filter: 'contains', suggest: true, change: function() {dbr.checkTurbine()} }" style="width:120px;">
-					</select>
+                    </select>
                 </li>
                 <li>
                     <button type="button" id="btnRefresh" class="btn btn-sm btn-primary" style="margin-left: 10px;"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
@@ -39,7 +39,7 @@
                         <div role="tabpanel" class="tab-pane active" id="Main">
                             <ul class="nav nav-tabs" role="tablist">
                                 <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
-                                <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
+                                <li id="downtimeeventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
                                 <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
                                 <li id="eventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
                                 <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="MET" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
@@ -134,11 +134,11 @@
                                             <div id="customGrid" class="grid-custom-db-new"></div>
                                         </div>
                                     </div>
-                                 </div>
+                                </div>
 
-                                 <div role="tabpanel" class="tab-pane" id="eventraw">
-                                     <div data-bind="visible:!dbr.eventrawvis()">
-                                         <div class="tab-pane-content">
+                                <div role="tabpanel" class="tab-pane" id="eventraw">
+                                    <div data-bind="visible:!dbr.eventrawvis()">
+                                        <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
                                                 Data Available from: <strong><span id="eventdatestart">-</span></strong> until: <strong><span id="eventdateend">-</span></strong>
                                             </div>
@@ -150,15 +150,15 @@
                                                 <label class="summary-header">Total Data</label><br />
                                                 <label id="totaldataEvent" class="summary-number">0</label>
                                             </div>
-                                            
+
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
                                                 <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexceleventraw')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
                                             </div>
                                             <div id="EventGrid" class="grid-custom-db-new"></div>
                                         </div>
-                                     </div>
-                                 </div>
+                                    </div>
+                                </div>
 
                                 <div role="tabpanel" class="tab-pane" id="MET">
                                     <div data-bind="visible:!dbr.mettowervis()">
@@ -192,7 +192,7 @@
                                         <div class="tab-pane-content">
                                             <div id="dataGridJMR"></div>
                                         </div>
-                                    </div>                                    
+                                    </div>
                                 </div>
 
                             </div>
@@ -240,10 +240,10 @@
                                                 <div class="col-md-2">
                                                     <div class="checkbox">
                                                         <label>
-											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-exception-'+$index()} , click: dbr.ShowHideColumnScada('dataGridExceptionTimeDuration',field, 'chk-grid-scada-exception-'+$index(),$index())}">
-											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-											            <span data-bind="text:title"></span>
-											          </label>
+                                                        <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-exception-'+$index()} , click: dbr.ShowHideColumnScada('dataGridExceptionTimeDuration',field, 'chk-grid-scada-exception-'+$index(),$index())}">
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span data-bind="text:title"></span>
+                                                      </label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -288,10 +288,10 @@
                                                 <div class="col-md-2">
                                                     <div class="checkbox">
                                                         <label>
-											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-anomaly-'+$index()} , click: dbr.ShowHideColumnScada('dataGridAnomalies',field, 'chk-grid-scada-anomaly-'+$index(),$index())}">
-											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-											            <span data-bind="text:title"></span>
-											          </label>
+                                                        <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-anomaly-'+$index()} , click: dbr.ShowHideColumnScada('dataGridAnomalies',field, 'chk-grid-scada-anomaly-'+$index(),$index())}">
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span data-bind="text:title"></span>
+                                                      </label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -359,8 +359,8 @@
                 </div>
                 <div class="col-md-2 div-control">
                     <div class="btn-group">
-                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToRight" data-bind="click:function() {dbr.selectRow()}"><i class="fa fa-angle-double-left"></i></button>
-                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToLeft" data-bind="click:function() {dbr.unselectRow()}"><i class="fa fa-angle-double-right"></i></button>
+                        <button type="button" class="btn btn-default btn-sm btn-control" id="moveToRight" data-bind="click:function() {dbr.selectRow()}"><i class="fa fa-angle-double-left"></i></button>
+                        <button type="button" class="btn btn-default btn-sm btn-control" id="moveToLeft" data-bind="click:function() {dbr.unselectRow()}"><i class="fa fa-angle-double-right"></i></button>
                     </div>
                 </div>
                 <div class="col-md-5">
