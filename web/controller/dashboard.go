@@ -742,7 +742,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		matchDown.Set(strings.Replace(strings.ToLower(p.Type), " ", "", 1), true)
 	}
 
-	pipes = append(pipes, tk.M{"$match": match})
+	// pipes = append(pipes, tk.M{"$match": match})
 
 	if p.ProjectName != "Fleet" {
 		// add a condition to check the type is project
@@ -761,6 +761,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				}
 
 				pipes = append(pipes, tk.M{"$unwind": "$detail"})
+				pipes = append(pipes, tk.M{"$match": match})
 				pipes = append(pipes,
 					tk.M{
 						"$group": tk.M{
@@ -781,6 +782,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				// )
 
 				pipes = append(pipes, tk.M{"$unwind": "$detail"})
+				pipes = append(pipes, tk.M{"$match": match})
 				pipes = append(pipes,
 					tk.M{
 						"$group": tk.M{"_id": tk.M{
@@ -794,6 +796,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			}
 
 		} else {
+			pipes = append(pipes, tk.M{"$match": match})
 			pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$type"},
@@ -805,6 +808,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	} else {
 		if tipe == "project" {
 			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": match})
 			pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$projectname"},
@@ -832,6 +836,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			}
 
 			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": match})
 			pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{
@@ -1608,8 +1613,8 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 
 			loopMatch.Set(field, true)
 
-			pipes = append(pipes, tk.M{"$match": loopMatch})
 			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": loopMatch})
 			pipes = append(pipes,
 				tk.M{
 					"$group": tk.M{
@@ -2449,8 +2454,8 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 		match = append(match, tk.M{"projectname": p.ProjectName})
 	}
 
-	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$unwind": "$detail"})
+	pipes = append(pipes, tk.M{"$match": match})
 
 	query := DB().Connection.NewQuery().
 		From(new(Alarm).TableName()).Where(filter...).
