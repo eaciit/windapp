@@ -112,24 +112,25 @@ var Data = {
             return;
         } else {
             app.loading(true);
-            // this.InitGrid();
-            this.InitGridExceptionTimeDuration();
-            this.InitGridAnomalies();
-            // this.InitGridAlarm();
-            this.InitGridAlarmOverlapping();
-            this.InitGridAlarmAnomalies();
-            this.InitGridJMR();
-            this.InitMet();
 
+            // MAIN
             this.InitScadaGrid();
             this.InitDEgrid();
             this.InitCustomGrid();
             this.InitEventGrid();
+            this.InitMet();
+            this.InitGridJMR();
+
+            // Exception
+            this.InitGridExceptionTimeDuration();
+            this.InitGridAnomalies();
+            this.InitGridAlarmOverlapping();
+            this.InitGridAlarmAnomalies();
         }
 
     },
     LoadAvailDate: function () {
-        app.ajaxPost(viewModel.appName + "/databrowsernew/getcustomavaildate", {}, function (res) {
+        app.ajaxPost(viewModel.appName + "/databrowser/getcustomavaildate", {}, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
@@ -146,7 +147,7 @@ var Data = {
                 }
             }         
         });
-        app.ajaxPost(viewModel.appName + "/databrowsernew/getscadadataoemavaildate", {}, function (res) {
+        app.ajaxPost(viewModel.appName + "/databrowser/getscadadataoemavaildate", {}, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
@@ -163,7 +164,7 @@ var Data = {
                 }
             }         
         });
-        app.ajaxPost(viewModel.appName + "/databrowsernew/getdowntimeeventvaildate", {}, function (res) {
+        app.ajaxPost(viewModel.appName + "/databrowser/getdowntimeeventvaildate", {}, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
@@ -351,190 +352,6 @@ var Data = {
             $('#DEgrid').data('kendoGrid').refresh();
             $('#EventGrid').data('kendoGrid').refresh();
         }, 5);
-    },
-    InitGrid: function () {
-        var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
-
-        var turbine = [];
-        if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-            turbine = turbineval;
-        } else {
-            turbine = $("#turbineMulti").data("kendoMultiSelect").value();
-        }
-
-        var param = {
-            DateStart: dateStart,
-            DateEnd: dateEnd,
-            Turbine: turbine,
-        };
-
-        $('#dataGrid').html("");
-        $('#dataGrid').kendoGrid({
-            dataSource: {
-                // filter: [
-                //     { field: "timestamp", operator: "gte", value: dateStart },
-                //     { field: "timestamp", operator: "lte", value: dateEnd },
-                //     // { field: "isvalidtimeduration", operator: "eq", value: true },
-                //     { field: "turbine", operator: "in", value: turbine }
-                // ],
-                serverPaging: true,
-                serverSorting: true,
-                serverFiltering: true,
-                transport: {
-                    read: {
-                        url: viewModel.appName + "databrowser/getscadalist",
-                        type: "POST",
-                        data: param,
-                        dataType: "json",
-                        contentType: "application/json; charset=utf-8"
-                    },
-                    parameterMap: function (options) {
-                        return JSON.stringify(options);
-                    }
-                },
-                pageSize: 10,
-                schema: {
-                    model: {
-                        fields: {
-                            AlarmOkTime: { type: "number" },
-                            OkTime: { type: "number" },
-                            Power: { type: "number" },
-                            PowerLost: { type: "number" },
-                        }
-                    },
-                    data: function (res) {
-                        // app.loading(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-                        return res.data.Data
-                    },
-                    total: function (res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-                        $('#totalpower').html(kendo.toString(res.data.TotalPower / 1000, 'n2') + ' MW');
-                        $('#totalpowerlost').html(kendo.toString(res.data.TotalPowerLost / 1000, 'n2') + ' MW');
-                        $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
-                        $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
-                        $('#totalprod').html(kendo.toString(res.data.TotalProduction/ 1000, 'n2') + ' MWh');
-                        $('#avgwindspeed').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
-
-                        //For Alarm
-                        $('#totalprodalarm').html(kendo.toString(res.data.TotalProduction/ 1000, 'n2') + ' MWh');
-                        $('#avgwindspeedalarm').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
-                        return res.data.Total;
-                    }
-                },
-                sort: [
-                    { field: 'TimeStamp', dir: 'asc' },
-                    { field: 'Turbine', dir: 'asc' }
-                ],
-            },
-            selectable: "multiple",
-            groupable: false,
-            sortable: true,
-            filterable: {
-                extra: false,
-                operators: {
-                    string: {
-                        eq: "Is equal to",
-                        neq: "Is not equal to",
-                        gt: "Is greater than",
-                        gte: "Is greater than or equal to",
-                        lt: "Is less than",
-                        lte: "Is less than or equal to"
-                    }
-                }
-            },
-            filterMenuInit: function (e) {
-                e.container.data("kendoPopup").bind("open", function () {
-                    // console.log(e.container);
-                    if (e.container.is(".k-grid-filter")) {
-                        e.container.find("form").removeClass("k-state-border-up");
-                        e.container.find("form").addClass("k-state-border-down");
-                        // console.log(e.container[0]);
-                    } else {
-                        // console.log("test");
-                    }
-
-
-                });
-            },
-            pageable: true,
-            //resizable: true,
-            
-            columns: [
-                { title: "Date", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80, locked: true, filterable: false },
-                { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-                { title: "Start Time", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('HH:mm:ss'), 'HH:mm:ss') #", width: 65, locked: true, attributes: { style: "text-align:center;" }, filterable: false },
-                { title: "Grid Frequency", field: "GridFrequency", template: '# if (GridFrequency < -99998 ) { # - # } else {#' + '#: GridFrequency #' + '#}#', width: 90, attributes: { class: "align-right" }, filterable: false },
-                { title: "Reactive Power", field: "ReactivePower", width: 90, attributes: { class: "align-right" }, filterable: false },
-                {
-                    title: "Alarm",
-                    headerAttributes: {
-                        style: 'font-weight: bold; text-align: center;'
-                    },
-                    columns: [
-                        { title: "Alarm Ext Stop Time", field: "AlarmExtStopTime", width: 90, template: '# if (AlarmExtStopTime < -99998 ) { # - # } else {#' + '#: AlarmExtStopTime #' + '#}#', attributes: { class: "align-right" }, filterable: false },
-                        { title: "Alarm Grid Down Time", field: "AlarmGridDownTime", template: '# if (AlarmGridDownTime < -99998 ) { # - # } else {#' + '#: AlarmGridDownTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Alarm Inter Line Down", field: "AlarmInterLineDown", template: '# if (AlarmInterLineDown < -99998 ) { # - # } else {#' + '#: AlarmInterLineDown #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Alarm Mach Down Time", field: "AlarmMachDownTime", template: '# if (AlarmMachDownTime < -99998 ) { # - # } else {#' + '#: AlarmMachDownTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Alarm OK Time", field: "AlarmOkTime", template: '# if (AlarmOkTime < -99998 ) { # - # } else {#' + '#: AlarmOkTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: true, headerAttributes: { class: 'gridAlarmOkTime' } },
-                        { title: "Alarm Unknown Time", field: "AlarmUnknownTime", template: '# if (AlarmUnknownTime < -99998 ) { # - # } else {#' + '#: AlarmUnknownTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Alarm Weather Stop", field: "AlarmWeatherStop", template: '# if (AlarmWeatherStop < -99998 ) { # - # } else {#' + '#: AlarmWeatherStop #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false }
-                    ]
-                },
-                {
-                    title: "Time",
-                    headerAttributes: {
-                        style: 'font-weight: bold; text-align: center;'
-                    },
-                    columns: [
-                        { title: "Ext Stop Time", field: "ExternalStopTime", template: '# if (ExternalStopTime < -99998 ) { # - # } else {#' + '#: ExternalStopTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Grid Down Time", field: "GridDownTime", template: '# if (GridDownTime < -99998 ) { # - # } else {#' + '#: GridDownTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Grid OK Secs", field: "GridOkSecs", template: '# if (GridOkSecs < -99998 ) { # - # } else {#' + '#: GridOkSecs #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Internal Line Down", field: "InternalLineDown", template: '# if (InternalLineDown < -99998 ) { # - # } else {#' + '#: InternalLineDown #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "Machine Down Time", field: "MachineDownTime", template: '# if (MachineDownTime < -99998 ) { # - # } else {#' + '#: MachineDownTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "OK Secs", field: "OkSecs", template: '# if (OkSecs < -99998 ) { # - # } else {#' + '#: OkSecs #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                        { title: "OK Time", field: "OkTime", template: '# if (OkTime < -99998 ) { # - # } else {#' + '#: OkTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: true },
-                        { title: "Unknown Time", field: "UnknownTime", template: '# if (UnknownTime < -99998 ) { # - # } else {#' + '#: UnknownTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false }
-                    ]
-                },
-                { title: "Total Time", field: "TotalTime", template: '# if (TotalTime < -99998 ) { # - # } else {#' + '#: TotalTime #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Generator RPM", field: "GeneratorRPM", template: '# if (GeneratorRPM < -99998 ) { # - # } else {#' + '#: GeneratorRPM #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Nacelle Yaw Position Untwist", field: "NacelleYawPositionUntwist", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Nacelle Temperature", field: "NacelleTemperature", template: '# if (NacelleTemperature < -99998 ) { # - # } else {#' + '#: NacelleTemperature #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Adj Wind Speed", field: "AdjWindSpeed", template: '# if (AdjWindSpeed < -99998 ) { # - # } else {#' + '#: AdjWindSpeed #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Ambient Temperature", field: "AmbientTemperature", template: '# if (AmbientTemperature < -99998 ) { # - # } else {#' + '#: AmbientTemperature #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Avg Blade Angle", field: "AvgBladeAngle", template: '# if (AvgBladeAngle < -99998 ) { # - # } else {#' + '#: AvgBladeAngle #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Avg Wind Speed", field: "AvgWindSpeed", template: '# if (AvgWindSpeed < -99998 ) { # - # } else {#' + '#: AvgWindSpeed #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Units Generated", field: "UnitsGenerated", template: '# if (UnitsGenerated < -99998 ) { # - # } else {#' + '#: UnitsGenerated #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Estimated Power", field: "EstimatedPower", template: '# if (EstimatedPower < -99998 ) { # - # } else {#' + '#: EstimatedPower #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Nacel Direction", field: "NacelDirection", template: '# if (NacelDirection < -99998 ) { # - # } else {#' + '#: NacelDirection #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Power", field: "Power", template: '# if (Power < -99998 ) { # - # } else {#' + '#: Power #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: true },
-                { title: "Power Lost", field: "PowerLost", template: '# if (PowerLost < -99998 ) { # - # } else {#' + '#: PowerLost #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: true, headerAttributes: { class: 'gridPowerLost' } },
-                { title: "Rotor RPM", field: "RotorRPM", template: '# if (RotorRPM < -99998 ) { # - # } else {#' + '#: RotorRPM #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Wind Direction", field: "WindDirection", template: '# if (WindDirection < -99998 ) { # - # } else {#' + '#: WindDirection #' + '#}#', width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false }
-            ]
-        });
-
-        var grid = $('#dataGrid').data('kendoGrid');
-        var columns = grid.columns;
-        dbr.gridColumnsScada([]);
-        $.each(columns, function (i, val) {
-            $('#dataGrid').data("kendoGrid").showColumn(val.field);
-            var result = {
-                field: val.field,
-                title: val.title,
-                value: true
-            }
-            dbr.gridColumnsScada.push(result);
-        });
     },
     InitGridExceptionTimeDuration: function () {
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -880,91 +697,6 @@ var Data = {
                 value: true
             }
             dbr.gridColumnsScadaAnomaly.push(result);
-        });
-    },
-    InitGridAlarm: function () {
-        var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
-
-        var turbine = [];
-        if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-            turbine = turbineval;
-        } else {
-            turbine = $("#turbineMulti").data("kendoMultiSelect").value();
-        }
-
-        var filters = [
-            { field: "startdate", operator: "gte", value: dateStart },
-            { field: "startdate", operator: "lte", value: dateEnd },
-            { field: "turbine", operator: "in", value: turbine },
-        ];
-        var filter = { filters: filters }
-        var param = { filter: filter };
-
-        $('#dataGridAlarm').html("");
-        $('#dataGridAlarm').kendoGrid({
-            selectable: "multiple",
-            dataSource: {
-                serverPaging: true,
-                serverSorting: true,
-                transport: {
-                    read: {
-                        url: viewModel.appName + "databrowser/getalarmlist",
-                        type: "POST",
-                        data: param,
-                        dataType: "json",
-                        contentType: "application/json; charset=utf-8"
-                    },
-                    parameterMap: function (options) {
-                        return JSON.stringify(options);
-                    }
-                },
-                pageSize: 10,
-                schema: {
-                    data: function (res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-                        return res.data.Data
-                    },
-                    total: function (res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-                        $('#totalturbinealarm').html(kendo.toString(res.data.TotalTurbine, 'n0'));
-                        $('#totaldataalarm').html(kendo.toString(res.data.Total, 'n0'));
-                        return res.data.Total;
-                    }
-                },
-                sort: [
-                    { field: 'StartDate', dir: 'asc' },
-                    { field: 'Turbine', dir: 'asc' }
-                ],
-            },
-            groupable: false,
-            sortable: true,
-            filterable: false,
-            pageable: true,
-            //resizable: true,
-            columns: [
-                { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
-                { title: "Turbine", field: "Turbine", width: 90, attributes: { style: "text-align:center;" } },
-                { title: "Start Time", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 75, attributes: { style: "text-align:center;" } },
-                /*{ title: "Farm", field: "Farm", width: 100 },*/
-                { title: "End Date", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
-                { title: "End Time", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 70, attributes: { style: "text-align:center;" } },
-                { title: "Alert Description", field: "AlertDescription", width: 200 },
-                { title: "External Stop", field: "ExternalStop", width: 80, sortable: false, template: '# if (ExternalStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-                { title: "Grid Down", field: "GridDown", width: 80, sortable: false, template: '# if (GridDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-                { title: "Internal Grid", field: "InternalGrid", width: 80, sortable: false, template: '# if (InternalGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-                { title: "Machine Down", field: "MachineDown", width: 80, sortable: false, template: '# if (MachineDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-                { title: "AEbOK", field: "AEbOK", width: 80, sortable: false, template: '# if (AEbOK == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-                { title: "Unknown", field: "Unknown", width: 80, sortable: false, template: '# if (Unknown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-                { title: "Weather Stop", field: "WeatherStop", width: 80, sortable: false, template: '# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            ]
         });
     },
     InitGridAlarmAnomalies: function () {
@@ -1758,14 +1490,14 @@ var Data = {
                     { field: 'TimeStamp', dir: 'asc' }
                 ],
             },
-            toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Permanent Met Tower Data.xlsx",
-                filterable: true,
-                 allPages: true
-            },
+            // toolbar: [
+            //     "excel"
+            // ],
+            // excel: {
+            //     fileName: "Permanent Met Tower Data.xlsx",
+            //     filterable: true,
+            //      allPages: true
+            // },
             selectable: "multiple",
             groupable: false,
             sortable: true,
@@ -2122,7 +1854,7 @@ var Data = {
                 serverFiltering: true,
                 transport: {
                     read: {
-                        url: viewModel.appName + "databrowsernew/getscadalist",
+                        url: viewModel.appName + "databrowser/getscadaoemlist",
                         type: "POST",
                         data: param,
                         dataType: "json",
@@ -2160,14 +1892,6 @@ var Data = {
                     { field: 'TimeStamp', dir: 'asc' },
                     { field: 'Turbine', dir: 'asc' }
                 ],
-            },
-            toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Scada Data OEM.xlsx",
-                filterable: true,
-                allPages: true
             },
             selectable: "multiple",
             groupable: false,
@@ -2404,7 +2128,7 @@ var Data = {
                 serverFiltering: true,
                 transport: {
                     read: {
-                        url: viewModel.appName + "databrowsernew/getcustomlist",
+                        url: viewModel.appName + "databrowser/getcustomlist",
                         type: "POST",
                         data: param,
                         dataType: "json",
@@ -2488,6 +2212,102 @@ var Data = {
             return false;
         });
     },
+    InitEventGrid: function () {
+        dbr.eventrawvis(true);
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
+        var turbine = [];
+        if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+            turbine = turbineval;
+        } else {
+            turbine = $("#turbineMulti").data("kendoMultiSelect").value();
+        }
+
+        var param = {
+            DateStart: dateStart,
+            DateEnd: dateEnd,
+            Turbine: turbine,
+        };
+
+
+        $('#EventGrid').html("");
+        $('#EventGrid').kendoGrid({
+            dataSource: {
+                serverPaging: true,
+                serverSorting: true,
+                serverFiltering: true,
+                transport: {
+                    read: {
+                         url: viewModel.appName + "databrowser/geteventlist",
+                        type: "POST",
+                        data: param,
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8"
+                    },
+                    parameterMap: function (options) {
+                        return JSON.stringify(options);
+                    }
+                },
+                pageSize: 10,
+                schema: {
+                    data: function (res) {
+                        // app.loading(false);
+                        dbr.eventrawvis(false);
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+                        return res.data.Data
+                    },
+                    total: function (res) {
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+
+                        $('#totalturbineEvent').html(kendo.toString(res.data.TotalTurbine, 'n0'));
+                        $('#totaldataEvent').html(kendo.toString(res.data.Total, 'n0'));
+                      
+                        return res.data.Total;
+                    }
+                },
+                sort: [
+                    { field: 'TimeStamp', dir: 'asc' },
+                    { field: 'Turbine', dir: 'asc' }
+                ],
+            },
+            selectable: "multiple",
+            groupable: false,
+            sortable: true,
+            pageable: true,
+            columns: [
+                { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, filterable: false },
+                { title: "Project Name", field: "ProjectName", attributes: { class: "align-center" }, width: 90, filterable: false },
+                { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90,  filterable: false },
+                { title: "Event Type", field: "EventType", attributes: { class: "align-center" }, width: 100, filterable: false },
+                { title: "Alarm Description", field: "AlarmDescription", attributes: { class: "align-center" }, width: 150,  filterable: false },
+                { title: "Turbine Status", field: "TurbineStatus", attributes: { class: "align-center" }, width: 120, filterable: false },
+                { title: "Brake Type", field: "BrakeType", attributes: { class: "align-center" }, width: 150, filterable: false },
+                { title: "Brake Program", field: "BrakeProgram", width: 120, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+                { title: "Alarm Id", field: "AlarmId", width: 120, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+                {
+                    title: "Alarm Toggle",
+                    field: "AlarmToggle",
+                    width: 120,
+                    sortable: false,
+                    template: '# if (AlarmToggle == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                    headerAttributes: {
+                        style: "text-align: center"
+                    },
+                    attributes: {
+                        style: "text-align:center;"
+                    }
+                },        
+            ]
+        });
+    },
     InitDEgrid: function() {
         dbr.downeventvis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -2515,7 +2335,7 @@ var Data = {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowsernew/getdowntimeeventlist",
+                    url: viewModel.appName + "databrowser/getdowntimeeventlist",
                     type: "POST",
                     data: param,
                     dataType: "json",
@@ -2556,14 +2376,6 @@ var Data = {
                 dir: 'asc'
             }],
         },
-        toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Downtime Event.xlsx",
-                filterable: true,
-                allPages: true
-            },
         selectable: "multiple",
         groupable: false,
         sortable: true,
@@ -2696,128 +2508,6 @@ var Data = {
                 dbr.gridMoveTo(grid2, grid1, false);
             },
         });
-    },
-    InitEventGrid: function () {
-        dbr.eventrawvis(true);
-        var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-        dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-        dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
-
-        var turbine = [];
-        if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-            turbine = turbineval;
-        } else {
-            turbine = $("#turbineMulti").data("kendoMultiSelect").value();
-        }
-
-        var param = {
-            DateStart: dateStart,
-            DateEnd: dateEnd,
-            Turbine: turbine,
-        };
-
-
-        $('#EventGrid').html("");
-        $('#EventGrid').kendoGrid({
-            dataSource: {
-                // filter: [
-                //     { field: "timestamp", operator: "gte", value: dateStart },
-                //     { field: "timestamp", operator: "lte", value: dateEnd },
-                //     { field: "turbine", operator: "in", value: turbine }
-                // ],
-                serverPaging: true,
-                serverSorting: true,
-                serverFiltering: true,
-                transport: {
-                    read: {
-                        // url: viewModel.appName + "databrowsernew/geteventlist",
-                         url: viewModel.appName + "databrowser/geteventlist",
-                        type: "POST",
-                        data: param,
-                        dataType: "json",
-                        contentType: "application/json; charset=utf-8"
-                    },
-                    parameterMap: function (options) {
-                        return JSON.stringify(options);
-                    }
-                },
-                pageSize: 10,
-                schema: {
-                    data: function (res) {
-                        // app.loading(false);
-                        dbr.eventrawvis(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-                        return res.data.Data
-                    },
-                    total: function (res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-
-                        $('#totalturbineEvent').html(kendo.toString(res.data.TotalTurbine, 'n0'));
-                        $('#totaldataEvent').html(kendo.toString(res.data.Total, 'n0'));
-                      
-                        return res.data.Total;
-                    }
-                },
-                sort: [
-                    { field: 'TimeStamp', dir: 'asc' },
-                    { field: 'Turbine', dir: 'asc' }
-                ],
-            },
-            toolbar: [
-                "excel"
-            ],
-            excel: {
-                fileName: "Event Raw.xlsx",
-                filterable: true,
-                 allPages: true
-            },
-            selectable: "multiple",
-            groupable: false,
-            sortable: true,
-            pageable: true,
-            columns: [
-                { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, filterable: false },
-                { title: "Project Name", field: "ProjectName", attributes: { class: "align-center" }, width: 90, filterable: false },
-                { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90,  filterable: false },
-                { title: "Event Type", field: "EventType", attributes: { class: "align-center" }, width: 100, filterable: false },
-                { title: "Alarm Description", field: "AlarmDescription", attributes: { class: "align-center" }, width: 150,  filterable: false },
-                { title: "Turbine Status", field: "TurbineStatus", attributes: { class: "align-center" }, width: 120, filterable: false },
-                { title: "Brake Type", field: "BrakeType", attributes: { class: "align-center" }, width: 150, filterable: false },
-                { title: "Brake Program", field: "BrakeProgram", width: 120, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                { title: "Alarm Id", field: "AlarmId", width: 120, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
-                {
-                    title: "Alarm Toggle",
-                    field: "AlarmToggle",
-                    width: 120,
-                    sortable: false,
-                    template: '# if (AlarmToggle == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-                    headerAttributes: {
-                        style: "text-align: center"
-                    },
-                    attributes: {
-                        style: "text-align:center;"
-                    }
-                },        
-            ]
-        });
-    },
-    InitDefault: function () {
-        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
-        var lastEndDate = new Date(app.toUTC(maxDateData));
-
-        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-
-        setTimeout(function () {
-            Data.LoadData();
-        }, 500);
     }
 };
 
@@ -2900,6 +2590,37 @@ function secondsToHms(d) {
     return res;
 }
 
+function DataBrowserExporttoExcel(functionName) {
+    app.loading(true);
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+
+    dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+    dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+
+    var turbine = [];
+    if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+        turbine = turbineval;
+    } else {
+        turbine = $("#turbineMulti").data("kendoMultiSelect").value();
+    }
+
+    var Filter = {
+        DateStart: dateStart,
+        DateEnd: dateEnd,
+        Turbine: turbine,
+    };
+
+    app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function (res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+} 
+
 vm.currentMenu('Data Browser');
 vm.currentTitle('Data Browser');
 vm.breadcrumb([{ title: 'Data Browser', href: viewModel.appName + 'page/databrowser' }]);
@@ -2925,3 +2646,4 @@ $(document).ready(function () {
     }, 1000);
     Data.LoadAvailDate();
 });
+
