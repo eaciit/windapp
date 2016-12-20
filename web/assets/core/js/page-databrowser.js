@@ -1142,7 +1142,7 @@ var Data = {
                     columns: [
                         { title: "KWh Export", field: "BoLExport", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoLExport==0){#  #}else {# #: kendo.toString(BoLExport, 'n2') # #}#" },
                         { title: "KWh Import", field: "BoLImport", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoLImport==0){#  #}else {# #: kendo.toString(BoLImport, 'n2') # #}#" },
-                        { title: "KWh Net", field: "BoLNet", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoLImport==0){#  #}else {# #: kendo.toString(BoLImport, 'n2') # #}#" },
+                        { title: "KWh Net", field: "BoLNet", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoLNet==0){#  #}else {# #: kendo.toString(BoLNet, 'n2') # #}#" },
                     ]
                 },
                 {
@@ -1151,7 +1151,7 @@ var Data = {
                     columns: [
                         { title: "KWh Export", field: "BoE2Export", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoE2Export==0){#  #}else {# #: kendo.toString(BoE2Export, 'n2') # #}#" },
                         { title: "KWh Import", field: "BoE2Import", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoE2Import==0){#  #}else {# #: kendo.toString(BoE2Import, 'n2') # #}#" },
-                        { title: "KWh Net", field: "BoE2Net", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoE2Import==0){#  #}else {# #: kendo.toString(BoE2Import, 'n2') # #}#" },
+                        { title: "KWh Net", field: "BoE2Net", format: "{0:n2}", width: 100, attributes: { style: "text-align: center" }, sortable: false, headerAttributes: { style: "text-align: center" }, template: "#if(BoE2Net==0){#  #}else {# #: kendo.toString(BoE2Net, 'n2') # #}#" },
                     ]
                 },
             ]
