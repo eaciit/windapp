@@ -1,5 +1,3 @@
-#### for wfdemo-git-prod uncomment below part
-
 sudo pkill wfdemo-git-oem
 
 git reset --hard
