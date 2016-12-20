@@ -526,8 +526,8 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 
 			loopMatch.Set("detail."+field, true)
 
-			pipes = append(pipes, tk.M{"$match": loopMatch})
 			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": loopMatch})
 			if topType == "loss" {
 				pipes = append(pipes,
 					tk.M{
@@ -616,8 +616,8 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
 
-		pipes = append(pipes, tk.M{"$match": match})
 		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.duration"}}})
 		} else if topType == "frequency" {
@@ -629,7 +629,9 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
 		pipes = append(pipes, tk.M{"$limit": 10})
 
-		/*for _, v := range pipes {
+		/*log.Printf("date: %v | %v \n", tStart, tEnd)
+
+		for _, v := range pipes {
 			log.Printf("pipes: %#v \n", v)
 		}*/
 
@@ -691,8 +693,8 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 
 			loopMatch.Set("detail."+field, true)
 
-			pipes = append(pipes, tk.M{"$match": loopMatch})
 			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": loopMatch})
 			if topType == "duration" {
 				pipes = append(pipes,
 					tk.M{

@@ -10,10 +10,10 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
-	"time"
-	"os"
 	x "github.com/tealeg/xlsx"
+	"os"
 	"strconv"
+	"time"
 	// f "path/filepath"
 )
 
@@ -25,7 +25,6 @@ func CreateDataBrowserController() *DataBrowserController {
 	var controller = new(DataBrowserController)
 	return controller
 }
-
 
 func GetCustomFieldList() []tk.M {
 	atkm := []tk.M{}
@@ -97,17 +96,12 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
 
-
 	filter = append(filter, dbox.Ne("_id", ""))
-	// filter = append(filter, dbox.Ne("powerlost", ""))
-	// filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
-	// filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
 	filter = append(filter, dbox.Gte("timestamp", tStart))
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
-
 
 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(p.Skip).Take(p.Take)
 	query.Where(dbox.And(filter...))
@@ -130,16 +124,10 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]ScadaData, 0)
-	results := make([]ScadaData, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.TimeStamp = val.TimeStamp.UTC()
-		results = append(results, val)
 	}
 
 	totalPower := 0.0
@@ -148,6 +136,7 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	totalProduction := 0.0
 	sumWindSpeed := 0.0
 	countData := 0.0
+	AvgWindSpeed := 0.0
 
 	aggrData := []tk.M{}
 
@@ -178,6 +167,10 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if countData > 0.0 {
+		AvgWindSpeed = sumWindSpeed / countData
+	}
+
 	data := struct {
 		Data            []ScadaData
 		Total           float64
@@ -187,12 +180,12 @@ func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 		AvgWindSpeed    float64
 		TotalTurbine    int
 	}{
-		Data:            results,
+		Data:            tmpResult,
 		Total:           countData,
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
-		TotalProduction: totalProduction,// / 6,
-		AvgWindSpeed:    sumWindSpeed / countData,
+		TotalProduction: totalProduction, // / 6,
+		AvgWindSpeed:    AvgWindSpeed,    //sumWindSpeed / countData,
 		TotalTurbine:    totalTurbine,
 	}
 
@@ -231,16 +224,10 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	defer csr.Close()
 
 	tmpResult := make([]ScadaAlarmAnomaly, 0)
-	results := make([]ScadaAlarmAnomaly, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.TimeStamp = val.TimeStamp.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(ScadaAlarmAnomaly).TableName()).Where(dbox.And(filter...))
@@ -252,9 +239,9 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
-	// totalProduction := 0.0
 	sumWindSpeed := 0.0
 	totalTurbine := 0
+	AvgWS := 0.0
 
 	aggrData := []tk.M{}
 
@@ -281,6 +268,10 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if ccount.Count() > 0.0 {
+		AvgWS = sumWindSpeed / float64(ccount.Count())
+	}
+
 	data := struct {
 		Data            []ScadaAlarmAnomaly
 		Total           int
@@ -290,12 +281,12 @@ func (m *DataBrowserController) GetScadaAnomalyList(k *knot.WebContext) interfac
 		AvgWindSpeed    float64
 		TotalTurbine    int
 	}{
-		Data:            results,
+		Data:            tmpResult,
 		Total:           ccount.Count(),
 		TotalPower:      totalPower,
 		TotalPowerLost:  totalPowerLost,
 		TotalProduction: totalPower / 6,
-		AvgWindSpeed:    sumWindSpeed / float64(ccount.Count()),
+		AvgWindSpeed:    AvgWS, //sumWindSpeed / float64(ccount.Count()),
 		TotalTurbine:    totalTurbine,
 	}
 
@@ -335,17 +326,10 @@ func (m *DataBrowserController) GetAlarmList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]Alarm, 0)
-	results := make([]Alarm, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(Alarm).TableName()).Where(dbox.And(filter...))
@@ -379,7 +363,7 @@ func (m *DataBrowserController) GetAlarmList(k *knot.WebContext) interface{} {
 		Total        int
 		TotalTurbine int
 	}{
-		Data:         results,
+		Data:         tmpResult,
 		Total:        ccount.Count(),
 		TotalTurbine: totalTurbine,
 	}
@@ -420,17 +404,10 @@ func (m *DataBrowserController) GetAlarmScadaAnomalyList(k *knot.WebContext) int
 	defer csr.Close()
 
 	tmpResult := make([]AlarmScadaAnomaly, 0)
-	results := make([]AlarmScadaAnomaly, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(AlarmScadaAnomaly).TableName()).
@@ -465,7 +442,7 @@ func (m *DataBrowserController) GetAlarmScadaAnomalyList(k *knot.WebContext) int
 		Total        int
 		TotalTurbine int
 	}{
-		Data:         results,
+		Data:         tmpResult,
 		Total:        ccount.Count(),
 		TotalTurbine: totalTurbine,
 	}
@@ -506,17 +483,10 @@ func (m *DataBrowserController) GetAlarmOverlappingList(k *knot.WebContext) inte
 	defer csr.Close()
 
 	tmpResult := make([]AlarmOverlapping, 0)
-	results := make([]AlarmOverlapping, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(AlarmOverlapping).TableName()).
@@ -551,7 +521,7 @@ func (m *DataBrowserController) GetAlarmOverlappingList(k *knot.WebContext) inte
 		Total        int
 		TotalTurbine int
 	}{
-		Data:         results,
+		Data:         tmpResult,
 		Total:        ccount.Count(),
 		TotalTurbine: totalTurbine,
 	}
@@ -616,17 +586,10 @@ func (m *DataBrowserController) GetAlarmOverlappingDetails(k *knot.WebContext) i
 	defer csr.Close()
 
 	tmpResult := make([]Alarm, 0)
-	results := make([]Alarm, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.StartDate = val.StartDate.UTC()
-		val.EndDate = val.EndDate.UTC()
-		results = append(results, val)
 	}
 
 	ccount, e := queryCount.Cursor(nil)
@@ -639,7 +602,7 @@ func (m *DataBrowserController) GetAlarmOverlappingDetails(k *knot.WebContext) i
 		Data  []Alarm
 		Total int
 	}{
-		Data:  results,
+		Data:  tmpResult,
 		Total: ccount.Count(),
 	}
 
@@ -677,16 +640,10 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]JMR, 0)
-	results := make([]JMR, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.Sections = nil
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(JMR).TableName()).Where(dbox.And(filter...))
@@ -700,7 +657,7 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 		Data  []JMR
 		Total int
 	}{
-		Data:  results,
+		Data:  tmpResult,
 		Total: ccount.Count(),
 	}
 
@@ -829,16 +786,10 @@ func (m *DataBrowserController) GetMETList(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	tmpResult := make([]MetTower, 0)
-	results := make([]MetTower, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range tmpResult {
-		val.TimeStamp = val.TimeStamp.UTC()
-		results = append(results, val)
 	}
 
 	queryC := DB().Connection.NewQuery().From(new(MetTower).TableName()).Where(dbox.And(filter...))
@@ -852,7 +803,7 @@ func (m *DataBrowserController) GetMETList(k *knot.WebContext) interface{} {
 		Data  []MetTower
 		Total int
 	}{
-		Data:  results,
+		Data:  tmpResult,
 		Total: ccount.Count(),
 	}
 
@@ -900,18 +851,12 @@ func (m *DataBrowserController) GetEventList(k *knot.WebContext) interface{} {
 	}
 	defer csr.Close()
 
-	// tmpResult := make([]EventRaw, 0)
 	results := make([]EventRaw, 0)
 	e = csr.Fetch(&results, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
-	// for _, val := range tmpResult {
-	// 	val.TimeStamp = val.TimeStamp.UTC()
-	// 	results = append(results, val)
-	// }
 
 	totalTurbine := 0
 	countData := 0.0
@@ -938,13 +883,13 @@ func (m *DataBrowserController) GetEventList(k *knot.WebContext) interface{} {
 	totalTurbine = tk.SliceLen(aggrData)
 
 	data := struct {
-		Data            []EventRaw
-		Total           float64
-		TotalTurbine    int
+		Data         []EventRaw
+		Total        float64
+		TotalTurbine int
 	}{
-		Data:            results,
-		Total:           countData,
-		TotalTurbine:    totalTurbine,
+		Data:         results,
+		Total:        countData,
+		TotalTurbine: totalTurbine,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1000,6 +945,7 @@ func (m *DataBrowserController) GetScadaOemList(k *knot.WebContext) interface{} 
 	avgWindSpeed := 0.0
 	totalTurbine := 0
 	totalEnergy := 0.0
+	AvgWS := 0.0
 
 	aggrData := []tk.M{}
 
@@ -1030,6 +976,10 @@ func (m *DataBrowserController) GetScadaOemList(k *knot.WebContext) interface{} 
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if ccount.Count() > 0.0 {
+		AvgWS = avgWindSpeed / float64(ccount.Count())
+	}
+
 	data := struct {
 		Data             []ScadaDataOEM
 		Total            int
@@ -1045,7 +995,7 @@ func (m *DataBrowserController) GetScadaOemList(k *knot.WebContext) interface{} 
 		TotalPower:       totalPower,
 		TotalPowerLost:   totalPowerLost,
 		TotalActivePower: totalActivePower,
-		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
 		TotalEnergy:      totalActivePower / 6,
 	}
@@ -1104,7 +1054,6 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 	defer csr.Close()
 
-	// tmpResult := make([]ScadaDataOEM, 0)
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
 
@@ -1181,6 +1130,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	avgWindSpeed := 0.0
 	totalTurbine := 0
 	totalEnergy := 0.0
+	AvgWS := 0.0
 
 	aggrData := []tk.M{}
 
@@ -1211,6 +1161,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 	totalTurbine = tk.SliceLen(aggrData)
 
+	if ccount.Count() > 0.0 {
+		AvgWS = avgWindSpeed / float64(ccount.Count())
+	}
+
 	data := struct {
 		Data             []tk.M
 		Total            int
@@ -1226,7 +1180,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		TotalPower:       totalPower,
 		TotalPowerLost:   totalPowerLost,
 		TotalActivePower: totalActivePower,
-		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
+		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
 		TotalEnergy:      totalEnergy,
 	}
@@ -2401,8 +2355,7 @@ func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDat
 
 	file := x.NewFile()
 	sheet, _ := file.AddSheet("Sheet1")
-	header := []string{"TimeStamp","Turbine","AI intern R PidAngleOut","AI intern ActivPower ","AI intern I1 ","AI intern I2","AI intern I3","AI intern NacelleDrill ","AI intern NacellePos ","AI intern PitchAkku V1 ","AI intern PitchAkku V2 ","AI intern PitchAkku V3 ","AI intern PitchAngle1 ","AI intern PitchAngle2 ","AI intern PitchAngle3 ","AI intern PitchConv Current1 ","AI intern PitchConv Current2 ","AI intern PitchConv Current3 ","AI intern PitchAngleSP Diff1 ","AI intern PitchAngleSP Diff2 ","AI intern PitchAngleSP Diff3 ","AI intern ReactivPower ","AI intern RpmDiff ","AI intern U1 ","AI intern U2 ","AI intern U3 ","AI intern WindDirection ","AI intern WindSpeed ","AI Intern WindSpeedDif ","AI speed RotFR ","AI WindSpeed1 ","AI WindSpeed2 ","AI WindVane1 ","AI WindVane2 ","AI internCurrentAsym ","Temp GearBox IMS NDE ","AI intern WindVaneDiff ","C intern SpeedGenerator ","C intern SpeedRotor ","AI intern Speed RPMDiff FR1 RotCNT ","AI intern Frequency Grid ","Temp GearBox HSS NDE ","AI DrTrVibValue ","AI intern InLastErrorConv1 ","AI intern InLastErrorConv2 ","AI intern InLastErrorConv3 ","AI intern TempConv1 ","AI intern TempConv2 ","AI intern TempConv3 ","AI intern PitchSpeed2","Temp YawBrake 1 ","Temp YawBrake 2 ","Temp G1L1 ","Temp G1L2 ","Temp G1L3 ","Temp YawBrake 4","AI HydrSystemPressure ","Temp BottomControlSection Low ","Temp GearBox HSS DE ","Temp GearOilSump ","Temp GeneratorBearing DE ","Temp GeneratorBearing NDE ","Temp MainBearing ","Temp GearBox IMS DE ","Temp Nacelle ","Temp Outdoor ","AI TowerVibValueAxial ","AI intern DiffGenSpeedSPToAct ","Temp YawBrake 5","AI intern SpeedGenerator Proximity ","AI intern SpeedDiff Encoder Proximity ","AI GearOilPressure ","Temp CabinetTopBox Low ","Temp CabinetTopBox ","Temp BottomControlSection ","Temp BottomPowerSection ","Temp BottomPowerSection Low ","AI intern Pitch1 Status High ","AI intern Pitch2 Status High ","AI intern Pitch3 Status High ","AI intern InPosition1 ch3","AI intern InPosition2 ch3","AI intern InPosition3 ch3","AI intern Temp Brake Blade1 ","AI intern Temp Brake Blade2 ","AI intern Temp Brake Blade3 ","AI intern Temp PitchMotor Blade1 ","AI intern Temp PitchMotor Blade2 ","AI intern Temp PitchMotor Blade3 ","AI intern Temp Hub Additional1 ","AI intern Temp Hub Additional2 ","AI intern Temp Hub Additional3 ","AI intern Pitch1 Status Low ","AI intern Pitch2 Status Low ","AI intern Pitch3 Status Low ","AI intern Battery VoltageBlade1 center ","AI intern Battery VoltageBlade2 center ","AI intern Battery VoltageBlade3 center ","AI intern Battery ChargingCur Blade1 ","AI intern Battery ChargingCur Blade2 ","AI intern Battery ChargingCur Blade3 ","AI intern Battery DischargingCur Blade1 ","AI intern Battery DischargingCur Blade2 ","AI intern Battery DischargingCur Blade3 ","AI intern PitchMotor BrakeVoltage Blade1 ","AI intern PitchMotor BrakeVoltage Blade2 ","AI intern PitchMotor BrakeVoltage Blade3 ","AI intern PitchMotor BrakeCurrent Blade1 ","AI intern PitchMotor BrakeCurrent Blade2 ","AI intern PitchMotor BrakeCurrent Blade3 ","AI intern Temp HubBox Blade1 ","AI intern Temp HubBox Blade2 ","AI intern Temp HubBox Blade3 ","AI intern Temp Pitch1 HeatSink ","AI intern Temp Pitch2 HeatSink ","AI intern Temp Pitch3 HeatSink ","AI intern ErrorStackBlade1 ","AI intern ErrorStackBlade2 ","AI intern ErrorStackBlade3 ","AI intern Temp BatteryBox Blade1 ","AI intern Temp BatteryBox Blade2 ","AI intern Temp BatteryBox Blade3 ","AI intern DC LinkVoltage1 ","AI intern DC LinkVoltage2 ","AI intern DC LinkVoltage3 ","Temp Yaw Motor1 ","Temp Yaw Motor2 ","Temp Yaw Motor3 ","Temp Yaw Motor4 ","AO DFIG Power Setpiont ","AO DFIG Q Setpoint ","AI DFIG Torque actual ","AI DFIG SpeedGenerator Encoder ","AI intern DFIG DC Link Voltage actual ","AI intern DFIG MSC current ","AI intern DFIG Main voltage ","AI intern DFIG Main current ","AI intern DFIG active power actual ","AI intern DFIG reactive power actual ","AI intern DFIG active power actual LSC ","AI intern DFIG LSC current ","AI intern DFIG Data log number ","AI intern Damper OscMagnitude ","AI intern Damper PassbandFullLoad ","AI YawBrake TempRise1 ","AI YawBrake TempRise2 ","AI YawBrake TempRise3 ","AI YawBrake TempRise4 ","AI intern NacelleDrill at NorthPosSensor ",
-	}
+	header := []string{"TimeStamp", "Turbine", "AI intern R PidAngleOut", "AI intern ActivPower ", "AI intern I1 ", "AI intern I2", "AI intern I3", "AI intern NacelleDrill ", "AI intern NacellePos ", "AI intern PitchAkku V1 ", "AI intern PitchAkku V2 ", "AI intern PitchAkku V3 ", "AI intern PitchAngle1 ", "AI intern PitchAngle2 ", "AI intern PitchAngle3 ", "AI intern PitchConv Current1 ", "AI intern PitchConv Current2 ", "AI intern PitchConv Current3 ", "AI intern PitchAngleSP Diff1 ", "AI intern PitchAngleSP Diff2 ", "AI intern PitchAngleSP Diff3 ", "AI intern ReactivPower ", "AI intern RpmDiff ", "AI intern U1 ", "AI intern U2 ", "AI intern U3 ", "AI intern WindDirection ", "AI intern WindSpeed ", "AI Intern WindSpeedDif ", "AI speed RotFR ", "AI WindSpeed1 ", "AI WindSpeed2 ", "AI WindVane1 ", "AI WindVane2 ", "AI internCurrentAsym ", "Temp GearBox IMS NDE ", "AI intern WindVaneDiff ", "C intern SpeedGenerator ", "C intern SpeedRotor ", "AI intern Speed RPMDiff FR1 RotCNT ", "AI intern Frequency Grid ", "Temp GearBox HSS NDE ", "AI DrTrVibValue ", "AI intern InLastErrorConv1 ", "AI intern InLastErrorConv2 ", "AI intern InLastErrorConv3 ", "AI intern TempConv1 ", "AI intern TempConv2 ", "AI intern TempConv3 ", "AI intern PitchSpeed2", "Temp YawBrake 1 ", "Temp YawBrake 2 ", "Temp G1L1 ", "Temp G1L2 ", "Temp G1L3 ", "Temp YawBrake 4", "AI HydrSystemPressure ", "Temp BottomControlSection Low ", "Temp GearBox HSS DE ", "Temp GearOilSump ", "Temp GeneratorBearing DE ", "Temp GeneratorBearing NDE ", "Temp MainBearing ", "Temp GearBox IMS DE ", "Temp Nacelle ", "Temp Outdoor ", "AI TowerVibValueAxial ", "AI intern DiffGenSpeedSPToAct ", "Temp YawBrake 5", "AI intern SpeedGenerator Proximity ", "AI intern SpeedDiff Encoder Proximity ", "AI GearOilPressure ", "Temp CabinetTopBox Low ", "Temp CabinetTopBox ", "Temp BottomControlSection ", "Temp BottomPowerSection ", "Temp BottomPowerSection Low ", "AI intern Pitch1 Status High ", "AI intern Pitch2 Status High ", "AI intern Pitch3 Status High ", "AI intern InPosition1 ch3", "AI intern InPosition2 ch3", "AI intern InPosition3 ch3", "AI intern Temp Brake Blade1 ", "AI intern Temp Brake Blade2 ", "AI intern Temp Brake Blade3 ", "AI intern Temp PitchMotor Blade1 ", "AI intern Temp PitchMotor Blade2 ", "AI intern Temp PitchMotor Blade3 ", "AI intern Temp Hub Additional1 ", "AI intern Temp Hub Additional2 ", "AI intern Temp Hub Additional3 ", "AI intern Pitch1 Status Low ", "AI intern Pitch2 Status Low ", "AI intern Pitch3 Status Low ", "AI intern Battery VoltageBlade1 center ", "AI intern Battery VoltageBlade2 center ", "AI intern Battery VoltageBlade3 center ", "AI intern Battery ChargingCur Blade1 ", "AI intern Battery ChargingCur Blade2 ", "AI intern Battery ChargingCur Blade3 ", "AI intern Battery DischargingCur Blade1 ", "AI intern Battery DischargingCur Blade2 ", "AI intern Battery DischargingCur Blade3 ", "AI intern PitchMotor BrakeVoltage Blade1 ", "AI intern PitchMotor BrakeVoltage Blade2 ", "AI intern PitchMotor BrakeVoltage Blade3 ", "AI intern PitchMotor BrakeCurrent Blade1 ", "AI intern PitchMotor BrakeCurrent Blade2 ", "AI intern PitchMotor BrakeCurrent Blade3 ", "AI intern Temp HubBox Blade1 ", "AI intern Temp HubBox Blade2 ", "AI intern Temp HubBox Blade3 ", "AI intern Temp Pitch1 HeatSink ", "AI intern Temp Pitch2 HeatSink ", "AI intern Temp Pitch3 HeatSink ", "AI intern ErrorStackBlade1 ", "AI intern ErrorStackBlade2 ", "AI intern ErrorStackBlade3 ", "AI intern Temp BatteryBox Blade1 ", "AI intern Temp BatteryBox Blade2 ", "AI intern Temp BatteryBox Blade3 ", "AI intern DC LinkVoltage1 ", "AI intern DC LinkVoltage2 ", "AI intern DC LinkVoltage3 ", "Temp Yaw Motor1 ", "Temp Yaw Motor2 ", "Temp Yaw Motor3 ", "Temp Yaw Motor4 ", "AO DFIG Power Setpiont ", "AO DFIG Q Setpoint ", "AI DFIG Torque actual ", "AI DFIG SpeedGenerator Encoder ", "AI intern DFIG DC Link Voltage actual ", "AI intern DFIG MSC current ", "AI intern DFIG Main voltage ", "AI intern DFIG Main current ", "AI intern DFIG active power actual ", "AI intern DFIG reactive power actual ", "AI intern DFIG active power actual LSC ", "AI intern DFIG LSC current ", "AI intern DFIG Data log number ", "AI intern Damper OscMagnitude ", "AI intern Damper PassbandFullLoad ", "AI YawBrake TempRise1 ", "AI YawBrake TempRise2 ", "AI YawBrake TempRise3 ", "AI YawBrake TempRise4 ", "AI intern NacelleDrill at NorthPosSensor "}
 
 	for i, each := range data {
 		if i == 0 {
@@ -2423,446 +2376,446 @@ func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDat
 		cell.Value = each.Turbine
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_R_PidAngleOut , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_R_PidAngleOut, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_ActivPower  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_ActivPower, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_I1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_I1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_I2 , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_I2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_I3 , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_I3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_NacelleDrill  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_NacelleDrill, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_NacellePos  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_NacellePos, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAkku_V1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAkku_V1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAkku_V2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAkku_V2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAkku_V3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAkku_V3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngle1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngle1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngle2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngle2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngle3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngle3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchConv_Current1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchConv_Current1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchConv_Current2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchConv_Current2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchConv_Current3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchConv_Current3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngleSP_Diff1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngleSP_Diff1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngleSP_Diff2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngleSP_Diff2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngleSP_Diff3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchAngleSP_Diff3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_ReactivPower  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_ReactivPower, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_RpmDiff  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_RpmDiff, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_U1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_U1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_U2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_U2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_U3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_U3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_WindDirection  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_WindDirection, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_WindSpeed  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_WindSpeed, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_Intern_WindSpeedDif  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_Intern_WindSpeedDif, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_speed_RotFR  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_speed_RotFR, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_WindSpeed1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_WindSpeed1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_WindSpeed2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_WindSpeed2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_WindVane1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_WindVane1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_WindVane2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_WindVane2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_internCurrentAsym  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_internCurrentAsym, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GearBox_IMS_NDE  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GearBox_IMS_NDE, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_WindVaneDiff  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_WindVaneDiff, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C_intern_SpeedGenerator  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.C_intern_SpeedGenerator, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C_intern_SpeedRotor  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.C_intern_SpeedRotor, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Speed_RPMDiff_FR1_RotCNT  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Speed_RPMDiff_FR1_RotCNT, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Frequency_Grid  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Frequency_Grid, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GearBox_HSS_NDE  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GearBox_HSS_NDE, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_DrTrVibValue  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_DrTrVibValue, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_InLastErrorConv1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_InLastErrorConv1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_InLastErrorConv2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_InLastErrorConv2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_InLastErrorConv3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_InLastErrorConv3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_TempConv1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_TempConv1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_TempConv2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_TempConv2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_TempConv3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_TempConv3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchSpeed1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchSpeed1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_G1L1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_G1L1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_G1L2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_G1L2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_G1L3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_G1L3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_HydrSystemPressure  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_HydrSystemPressure, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_BottomControlSection_Low  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_BottomControlSection_Low, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GearBox_HSS_DE  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GearBox_HSS_DE, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GearOilSump  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GearOilSump, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GeneratorBearing_DE  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GeneratorBearing_DE, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GeneratorBearing_NDE  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GeneratorBearing_NDE, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_MainBearing  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_MainBearing, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_GearBox_IMS_DE  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_GearBox_IMS_DE, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_Nacelle  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_Nacelle, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_Outdoor  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_Outdoor, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_TowerVibValueAxial  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_TowerVibValueAxial, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DiffGenSpeedSPToAct  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DiffGenSpeedSPToAct, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_4  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_YawBrake_4, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_SpeedGenerator_Proximity  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_SpeedGenerator_Proximity, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_SpeedDiff_Encoder_Proximity  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_SpeedDiff_Encoder_Proximity, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_GearOilPressure  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_GearOilPressure, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_CabinetTopBox_Low  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_CabinetTopBox_Low, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_CabinetTopBox  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_CabinetTopBox, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_BottomControlSection  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_BottomControlSection, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_BottomPowerSection  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_BottomPowerSection, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_BottomPowerSection_Low  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_BottomPowerSection_Low, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch1_Status_High  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch1_Status_High, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch2_Status_High  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch2_Status_High, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch3_Status_High  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch3_Status_High, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_InPosition1_ch2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_InPosition1_ch2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_InPosition2_ch2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_InPosition2_ch2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_InPosition3_ch2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_InPosition3_ch2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Brake_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Brake_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Brake_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Brake_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Brake_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Brake_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_PitchMotor_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_PitchMotor_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_PitchMotor_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_PitchMotor_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_PitchMotor_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_PitchMotor_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Hub_Additional1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Hub_Additional1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Hub_Additional2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Hub_Additional2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Hub_Additional3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Hub_Additional3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch1_Status_Low  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch1_Status_Low, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch2_Status_Low  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch2_Status_Low, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch3_Status_Low  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Pitch3_Status_Low, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_VoltageBlade1_center  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_VoltageBlade1_center, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_VoltageBlade2_center  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_VoltageBlade2_center, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_VoltageBlade3_center  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_VoltageBlade3_center, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_ChargingCur_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_ChargingCur_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_ChargingCur_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_ChargingCur_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_ChargingCur_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_ChargingCur_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_DischargingCur_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_DischargingCur_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_DischargingCur_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_DischargingCur_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_DischargingCur_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Battery_DischargingCur_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeVoltage_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeVoltage_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeVoltage_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeVoltage_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeVoltage_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeVoltage_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeCurrent_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeCurrent_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeCurrent_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeCurrent_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeCurrent_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_PitchMotor_BrakeCurrent_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_HubBox_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_HubBox_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_HubBox_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_HubBox_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_HubBox_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_HubBox_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Pitch1_HeatSink  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Pitch1_HeatSink, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Pitch2_HeatSink  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Pitch2_HeatSink, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Pitch3_HeatSink  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_Pitch3_HeatSink, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_ErrorStackBlade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_ErrorStackBlade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_ErrorStackBlade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_ErrorStackBlade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_ErrorStackBlade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_ErrorStackBlade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_BatteryBox_Blade1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_BatteryBox_Blade1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_BatteryBox_Blade2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_BatteryBox_Blade2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_BatteryBox_Blade3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Temp_BatteryBox_Blade3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DC_LinkVoltage1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DC_LinkVoltage1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DC_LinkVoltage2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DC_LinkVoltage2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DC_LinkVoltage3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DC_LinkVoltage3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor4  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Temp_Yaw_Motor4, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AO_DFIG_Power_Setpiont  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AO_DFIG_Power_Setpiont, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AO_DFIG_Q_Setpoint  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AO_DFIG_Q_Setpoint, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_DFIG_Torque_actual  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_DFIG_Torque_actual, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_DFIG_SpeedGenerator_Encoder  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_DFIG_SpeedGenerator_Encoder, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_DC_Link_Voltage_actual  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_DC_Link_Voltage_actual, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_MSC_current  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_MSC_current, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_Main_voltage  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_Main_voltage, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_Main_current  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_Main_current, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_active_power_actual  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_active_power_actual, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_reactive_power_actual  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_reactive_power_actual, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_active_power_actual_LSC  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_active_power_actual_LSC, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_LSC_current  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_LSC_current, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_Data_log_number  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_DFIG_Data_log_number, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Damper_OscMagnitude  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Damper_OscMagnitude, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_Damper_PassbandFullLoad  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_Damper_PassbandFullLoad, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise1  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise1, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise2  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise2, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise3  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise3, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise4  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_YawBrake_TempRise4, 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AI_intern_NacelleDrill_at_NorthPosSensor  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.AI_intern_NacelleDrill_at_NorthPosSensor, 'f', -1, 64)
+
 	}
 
 	tk.Println(filename)
@@ -2882,7 +2835,7 @@ func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateT
 
 	file := x.NewFile()
 	sheet, _ := file.AddSheet("Sheet1")
-	header := []string{"Turbine","TimeStart","TimeEnd","Down Grid","Down Environment","Down Machine","Alarm Description","Duration (Second)"}
+	header := []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration (Second)"}
 
 	for i, each := range data {
 		if i == 0 {
@@ -2915,11 +2868,11 @@ func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateT
 		cell.Value = strconv.FormatBool(each.DownMachine)
 
 		cell = rowContent.AddCell()
-		cell.Value = each.AlarmDescription//strconv.FormatFloat(each.AI_intern_R_PidAngleOut , 'f', -1, 64) 
-		 
+		cell.Value = each.AlarmDescription //strconv.FormatFloat(each.AI_intern_R_PidAngleOut , 'f', -1, 64)
+
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Duration  , 'f', -1, 64) 
-		 
+		cell.Value = strconv.FormatFloat(each.Duration, 'f', -1, 64)
+
 	}
 
 	err := file.Save(filename)
@@ -2937,7 +2890,7 @@ func DeserializeEventRaw(data []EventRaw, j int, typeExcel string, CreateDateTim
 
 	file := x.NewFile()
 	sheet, _ := file.AddSheet("Sheet1")
-	header := []string{"TimeStamp","Project Name","Turbine", "Event Type","Alarm Description", "Turbine Status", "Brake Type", "Brake Program", "Alarm Id", "Alarm Toggle"}
+	header := []string{"TimeStamp", "Project Name", "Turbine", "Event Type", "Alarm Description", "Turbine Status", "Brake Type", "Brake Program", "Alarm Id", "Alarm Toggle"}
 
 	for i, each := range data {
 		if i == 0 {
@@ -2973,10 +2926,10 @@ func DeserializeEventRaw(data []EventRaw, j int, typeExcel string, CreateDateTim
 		cell.Value = each.BrakeType
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.Itoa(each.BrakeProgram)//strconv.Formatint(each.BrakeProgram , 'f', -1, 64) 
+		cell.Value = strconv.Itoa(each.BrakeProgram) //strconv.Formatint(each.BrakeProgram , 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.Itoa(each.AlarmId)//strconv.Formatint(each.AlarmId , 'f', -1, 64) 
+		cell.Value = strconv.Itoa(each.AlarmId) //strconv.Formatint(each.AlarmId , 'f', -1, 64)
 
 		cell = rowContent.AddCell()
 		cell.Value = strconv.FormatBool(each.AlarmToggle)
@@ -3022,797 +2975,796 @@ func DeserializeMetTower(data []MetTower, j int, typeExcel string, CreateDateTim
 		cell.Value = each.WSCategoryDesc
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VHubWS90mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VHubWS90mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VHubWS90mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VHubWS90mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VHubWS90mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VHubWS90mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VHubWS90mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VHubWS90mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VHubWS90mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VHubWS90mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VRefWS88mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VRefWS88mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VRefWS88mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VRefWS88mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VRefWS88mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VRefWS88mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VRefWS88mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VRefWS88mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VRefWS88mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VRefWS88mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VTipWS42mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VTipWS42mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VTipWS42mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VTipWS42mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VTipWS42mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VTipWS42mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VTipWS42mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VTipWS42mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VTipWS42mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VTipWS42mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DHubWD88mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DHubWD88mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DHubWD88mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DHubWD88mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DHubWD88mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DHubWD88mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DHubWD88mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DHubWD88mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DHubWD88mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DHubWD88mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DRefWD86mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DRefWD86mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DRefWD86mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DRefWD86mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DRefWD86mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DRefWD86mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DRefWD86mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DRefWD86mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.DRefWD86mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.DRefWD86mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubHumid855mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefHumid855mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.THubHHubTemp855mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.TRefHRefTemp855mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.BaroAirPress855mAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.BaroAirPress855mAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.BaroAirPress855mMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.BaroAirPress855mMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.BaroAirPress855mMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.BaroAirPress855mMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.BaroAirPress855mStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.BaroAirPress855mStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.BaroAirPress855mCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.BaroAirPress855mCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.YawAngleVoltageAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.YawAngleVoltageAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.YawAngleVoltageMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.YawAngleVoltageMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.YawAngleVoltageMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.YawAngleVoltageMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.YawAngleVoltageStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.YawAngleVoltageStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.YawAngleVoltageCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.YawAngleVoltageCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI3Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensorVoltageAI4Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.GenRPMCurrentAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.GenRPMCurrentAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.GenRPMCurrentMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.GenRPMCurrentMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.GenRPMCurrentMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.GenRPMCurrentMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.GenRPMCurrentStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.GenRPMCurrentStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.GenRPMCurrentCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.GenRPMCurrentCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentStdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentStdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.WS_SCSCurrentCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.RainStatusCount , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.RainStatusCount, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.RainStatusSum , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.RainStatusSum, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO3Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO4Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.OtherSensor2StatusIO5Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A3Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A3Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A3Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A3Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A3Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A3Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A3StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A3StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A3Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A3Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A4Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A4Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A4Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A4Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A4Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A4Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A4StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A4StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A4Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A4Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A5Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A5Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A5Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A5Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A5Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A5Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A5StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A5StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A5Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A5Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A6Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A6Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A6Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A6Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A6Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A6Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A6StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A6StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A6Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A6Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A7Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A7Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A7Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A7Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A7Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A7Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A7StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A7StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A7Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A7Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A8Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A8Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A8Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A8Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A8Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A8Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A8StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A8StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A8Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A8Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A9Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A9Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A9Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A9Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A9Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A9Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A9StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A9StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A9Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A9Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A10Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A10Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A10Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A10Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A10Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A10Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A10StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A10StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.A10Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.A10Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.AC2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.AC2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C3Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C3Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C3Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C3Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C3Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C3Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C3StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C3StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.C3Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.C3Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.D1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.D1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.D1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.D1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.D1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.D1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.D1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.D1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_3Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_3Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_3Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_3Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_3Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_3Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_3StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_3StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_3Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_3Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_4Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_4Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_4Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_4Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_4Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_4Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_4StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_4StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_4Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_4Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_5Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_5Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_5Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_5Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_5Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_5Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_5StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_5StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M1_5Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M1_5Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_1Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_1Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_1Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_1Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_1Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_1Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_1StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_1StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_1Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_1Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_2Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_2Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_2Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_2Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_2Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_2Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_2StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_2StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_2Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_2Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_3Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_3Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_3Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_3Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_3Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_3Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_3StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_3StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_3Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_3Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_4Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_4Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_4Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_4Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_4Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_4Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_4StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_4StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_4Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_4Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_5Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_5Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_5Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_5Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_5Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_5Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_5StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_5StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_5Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_5Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_6Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_6Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_6Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_6Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_6Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_6Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_6StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_6StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_6Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_6Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_7Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_7Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_7Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_7Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_7Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_7Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_7StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_7StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_7Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_7Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_8Avg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_8Avg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_8Max , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_8Max, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_8Min , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_8Min, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_8StdDev , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_8StdDev, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.M2_8Count , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.M2_8Count, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.VMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.VMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.IAvg , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.IAvg, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.IMax , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.IMax, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.IMin , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.IMin, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.T , 'f', -1, 64) 
+		cell.Value = strconv.FormatFloat(each.T, 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Addr , 'f', -1, 64) 
-
+		cell.Value = strconv.FormatFloat(each.Addr, 'f', -1, 64)
 
 	}
 
@@ -3824,3 +3776,122 @@ func DeserializeMetTower(data []MetTower, j int, typeExcel string, CreateDateTim
 	return nil
 }
 
+func (m *DataBrowserController) GetScadaDataHFDAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	ScadaDataHFDresults := make([]time.Time, 0)
+
+	// ScadaDataHFD Data
+	for i := 0; i < 2; i++ {
+		var arrsort []string
+		if i == 0 {
+			arrsort = append(arrsort, "timestamp")
+		} else {
+			arrsort = append(arrsort, "-timestamp")
+		}
+
+		query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(0).Take(1)
+		query = query.Order(arrsort...)
+
+		csr, e := query.Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer csr.Close()
+
+		Result := make([]ScadaDataHFD, 0)
+		e = csr.Fetch(&Result, 0, false)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		for _, val := range Result {
+			ScadaDataHFDresults = append(ScadaDataHFDresults, val.TimeStamp.UTC())
+		}
+	}
+
+	data := struct {
+		ScadaDataHFD []time.Time
+	}{
+		ScadaDataHFD: ScadaDataHFDresults,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataBrowserController) GetScadaHFDList(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	filter, _ := p.ParseFilter()
+
+	query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(p.Skip).Take(p.Take)
+	query.Where(dbox.And(filter...))
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(val.Field))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]ScadaDataHFD, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	queryC := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Where(dbox.And(filter...))
+	ccount, e := queryC.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer ccount.Close()
+
+	totalTurbine := 0
+
+	aggrData := []tk.M{}
+
+	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).
+		Group("turbine").Where(dbox.And(filter...))
+
+	caggr, e := queryAggr.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer caggr.Close()
+	e = caggr.Fetch(&aggrData, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	totalTurbine = tk.SliceLen(aggrData)
+
+	data := struct {
+		Data         []ScadaDataHFD
+		Total        int
+		TotalTurbine int
+	}{
+		Data:         tmpResult,
+		Total:        ccount.Count(),
+		TotalTurbine: totalTurbine,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
