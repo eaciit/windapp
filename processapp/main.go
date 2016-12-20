@@ -79,22 +79,22 @@ func main() {
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
-		// NewUpdateOEMToScada(base).RunMapping() // step 1
+		NewUpdateOEMToScada(base).RunMapping() // step 1
 
-		// NewEventToAlarm(base).ConvertEventToAlarm() // step 2
+		NewEventToAlarm(base).ConvertEventToAlarm() // step 2
 
-		// new(GenAlarmSummary).Generate(base) // step 3
+		new(GenAlarmSummary).Generate(base) // step 3
 
-		// NewGenDataPeriod(base).Generate() // step 4
+		NewGenDataPeriod(base).Generate() // step 4
 
-		// new(GenScadaLast24).Generate(base) // step 5
+		new(GenScadaLast24).Generate(base) // step 5
 
-		// new(GenScadaSummary).Generate(base) // step 6
-		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
-		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
-		new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
+		new(GenScadaSummary).Generate(base)                 // step 6
+		new(GenScadaSummary).GenerateSummaryByFleet(base)   // step 7
+		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
+		new(GenScadaSummary).GenerateSummaryDaily(base)     // step 9
 
 		// =========================================================================================== //
 		// step to prepare data for the application
