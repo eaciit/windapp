@@ -121,9 +121,9 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 			Where(dbox.And(
 				dbox.Eq("projectname", "Tejuva"),
 				dbox.Eq("turbine", event.Turbine),
-				dbox.Gte("timestamp", timeStartWhr),
-				dbox.Lte("timestamp", timeEndWhr))).
-			Order("timestamp").
+				dbox.Gte("timestamputc", timeStartWhr),
+				dbox.Lte("timestamputc", timeEndWhr))).
+			Order("timestamputc").
 			Cursor(nil)
 
 		e = csr2.Fetch(&scadas, 0, false)
@@ -135,117 +135,119 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		currMonthId := 0
 		detail := new(AlarmDetail)
 
-		totalPower := 0.0
-		durationTS := 0.0
-		for _, scada := range scadas {
-			if event.TimeStart.Sub(scada.TimeStamp) <= 0 {
-				if scada.DenPower > scada.AI_intern_ActivPower {
-					power, err := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", scada.AI_intern_WindSpeed)
-					if err != nil {
-						power = 0.0
-					}
-
-					if currMonthId != scada.DateInfo.MonthId {
-						if detail.AlertDescription != "" {
-							details = append(details, detail)
+		if len(scadas) > 0 {
+			totalPower := 0.0
+			durationTS := 0.0
+			for _, scada := range scadas {
+				if event.TimeStart.Sub(scada.TimeStamp) <= 0 {
+					if scada.DenPower > scada.AI_intern_ActivPower {
+						power, err := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", scada.AI_intern_WindSpeed)
+						if err != nil {
+							power = 0.0
 						}
 
-						detail = new(AlarmDetail)
+						if currMonthId != scada.DateInfo.MonthId {
+							if detail.AlertDescription != "" {
+								details = append(details, detail)
+							}
 
-						startTime := scada.TimeStamp
-						strDate0 := tk.Sprintf("%v-%v-%v %v:%v:%v", scada.DateInfo.Year, int(scada.DateInfo.DateId.Month()), "01", "00", "00", "00")
-						//tk.Println(strDate0)
-						startDate, _ := time.Parse("2006-1-02 15:04:05", strDate0)
-						//tk.Println(startDate)
+							detail = new(AlarmDetail)
 
-						if currMonthId > 0 {
-							startTime = startDate
+							startTime := scada.TimeStamp
+							strDate0 := tk.Sprintf("%v-%v-%v %v:%v:%v", scada.DateInfo.Year, int(scada.DateInfo.DateId.Month()), "01", "00", "00", "00")
+							//tk.Println(strDate0)
+							startDate, _ := time.Parse("2006-1-02 15:04:05", strDate0)
+							//tk.Println(startDate)
+
+							if currMonthId > 0 {
+								startTime = startDate
+							}
+
+							detail.StartDate = startTime
+
+							detail.AlertDescription = event.AlarmDescription
+							detail.AEbOK = false
+							detail.ExternalStop = false
+							detail.InternalGrid = false
+							detail.WeatherStop = false
+							detail.GridDown = event.DownGrid
+							detail.MachineDown = event.DownMachine
+							detail.Unknown = event.DownEnvironment
+							detail.Power = 0.0
+							detail.Duration = 0.0
+							detail.PowerLost = 0.0
+
+							currMonthId = scada.DateInfo.MonthId
 						}
 
-						detail.StartDate = startTime
+						detail.EndDate = scada.TimeStamp
 
-						detail.AlertDescription = event.AlarmDescription
-						detail.AEbOK = false
-						detail.ExternalStop = false
-						detail.InternalGrid = false
-						detail.WeatherStop = false
-						detail.GridDown = event.DownGrid
-						detail.MachineDown = event.DownMachine
-						detail.Unknown = event.DownEnvironment
-						detail.Power = 0.0
-						detail.Duration = 0.0
-						detail.PowerLost = 0.0
+						// lastDateNo := daysIn(detail.EndDate.UTC().Month(), detail.EndDate.UTC().Year())
+						// strDate := tk.Sprintf("%v-%v-%v %v:%v:%v", detail.EndDate.UTC().Year(), int(detail.EndDate.UTC().Month()), lastDateNo, 23, 59, 59)
+						// lastDate, _ := time.Parse("2006-1-2 15:04:05", strDate)
 
-						currMonthId = scada.DateInfo.MonthId
+						durationTS = tk.Div(10.0, 60.0)
+						if detail.EndDate.Sub(event.TimeEnd) >= 0 {
+							detail.EndDate = event.TimeEnd
+							durationTS = event.TimeEnd.Sub(scada.TimeStamp.Add(-10 * time.Minute)).Hours()
+						}
+
+						if scada.TimeStamp.Sub(event.TimeStart) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeStart) <= 0 {
+							durationTS = scada.TimeStamp.Sub(event.TimeStart).Hours()
+							detail.StartDate = event.TimeStart
+						}
+						if scada.TimeStamp.Sub(event.TimeEnd) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
+							durationTS = event.TimeEnd.Sub(scada.TimeStamp.Add(-10 * time.Minute)).Hours()
+							detail.EndDate = event.TimeEnd
+						}
+						if scada.TimeStamp.Sub(event.TimeStart) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeStart) <= 0 && scada.TimeStamp.Sub(event.TimeEnd) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
+							durationTS = event.TimeEnd.Sub(event.TimeStart).Hours()
+						}
+
+						detail.Duration += durationTS
+						detail.PowerLost += (power * durationTS)
+						detail.Power += power
+
+						//tk.Println(idx, detail)
+
+						totalPower += power
 					}
-
-					detail.EndDate = scada.TimeStamp
-
-					// lastDateNo := daysIn(detail.EndDate.UTC().Month(), detail.EndDate.UTC().Year())
-					// strDate := tk.Sprintf("%v-%v-%v %v:%v:%v", detail.EndDate.UTC().Year(), int(detail.EndDate.UTC().Month()), lastDateNo, 23, 59, 59)
-					// lastDate, _ := time.Parse("2006-1-2 15:04:05", strDate)
-
-					durationTS = tk.Div(10.0, 60.0)
-					if detail.EndDate.Sub(event.TimeEnd) >= 0 {
-						detail.EndDate = event.TimeEnd
-						durationTS = event.TimeEnd.Sub(scada.TimeStamp.Add(-10 * time.Minute)).Hours()
-					}
-
-					if scada.TimeStamp.Sub(event.TimeStart) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeStart) <= 0 {
-						durationTS = scada.TimeStamp.Sub(event.TimeStart).Hours()
-						detail.StartDate = event.TimeStart
-					}
-					if scada.TimeStamp.Sub(event.TimeEnd) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
-						durationTS = event.TimeEnd.Sub(scada.TimeStamp.Add(-10 * time.Minute)).Hours()
-						detail.EndDate = event.TimeEnd
-					}
-					if scada.TimeStamp.Sub(event.TimeStart) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeStart) <= 0 && scada.TimeStamp.Sub(event.TimeEnd) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
-						durationTS = event.TimeEnd.Sub(event.TimeStart).Hours()
-					}
-
-					detail.Duration += durationTS
-					detail.PowerLost += (power * durationTS)
-					detail.Power += power
-
-					//tk.Println(idx, detail)
-
-					totalPower += power
 				}
 			}
+			details = append(details, detail)
+
+			powerLost := 0.0
+			newDuration := 0.0
+
+			detailResults := make([]AlarmDetail, 0)
+			for _, dt := range details {
+				var dtl AlarmDetail
+				dtl.AEbOK = dt.AEbOK
+				dtl.AlertDescription = dt.AlertDescription
+				dtl.DetailDateInfo = GetDateInfo(dt.StartDate)
+				dtl.StartDate = dt.StartDate
+				dtl.EndDate = dt.EndDate
+				dtl.Duration = dt.Duration
+				dtl.Power = dt.Power
+				dtl.PowerLost = dt.PowerLost
+				dtl.ExternalStop = dt.ExternalStop
+				dtl.GridDown = dt.GridDown
+				dtl.InternalGrid = dt.InternalGrid
+				dtl.MachineDown = dt.MachineDown
+				dtl.Unknown = dt.Unknown
+				dtl.WeatherStop = dt.WeatherStop
+
+				powerLost += dt.PowerLost
+				newDuration += dt.Duration
+				// tk.Println(dtl)
+
+				detailResults = append(detailResults, dtl)
+			}
+
+			alarm.Duration = newDuration
+			alarm.PowerLost = powerLost
+			alarm.Detail = detailResults
 		}
-		details = append(details, detail)
-
-		powerLost := 0.0
-		newDuration := 0.0
-
-		detailResults := make([]AlarmDetail, 0)
-		for _, dt := range details {
-			var dtl AlarmDetail
-			dtl.AEbOK = dt.AEbOK
-			dtl.AlertDescription = dt.AlertDescription
-			dtl.DetailDateInfo = GetDateInfo(dt.StartDate)
-			dtl.StartDate = dt.StartDate
-			dtl.EndDate = dt.EndDate
-			dtl.Duration = dt.Duration
-			dtl.Power = dt.Power
-			dtl.PowerLost = dt.PowerLost
-			dtl.ExternalStop = dt.ExternalStop
-			dtl.GridDown = dt.GridDown
-			dtl.InternalGrid = dt.InternalGrid
-			dtl.MachineDown = dt.MachineDown
-			dtl.Unknown = dt.Unknown
-			dtl.WeatherStop = dt.WeatherStop
-
-			powerLost += dt.PowerLost
-			newDuration += dt.Duration
-			// tk.Println(dtl)
-
-			detailResults = append(detailResults, dtl)
-		}
-
-		alarm.Duration = newDuration
-		alarm.PowerLost = powerLost
-		alarm.Detail = detailResults
 
 		ctx.Insert(alarm)
 	}
