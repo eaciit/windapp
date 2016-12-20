@@ -155,7 +155,6 @@ var Data = {
             this.InitGridAlarmOverlapping();
             this.InitGridAlarmAnomalies();
         }
-
     },
     LoadAvailDate: function() {
         app.ajaxPost(viewModel.appName + "/databrowser/getcustomavaildate", {}, function(res) {
@@ -401,7 +400,8 @@ var Data = {
     },
 
     // INIT GRID MAIN
-        InitScadaHFDGrid: function () {
+
+    InitScadaHFDGrid: function () {
         dbr.hfdvis(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
@@ -445,8 +445,6 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
-                        app.loading(false);
-                        dbr.hfdvis(false);
                         if (!app.isFine(res)) {
                             return;
                         }
@@ -460,9 +458,6 @@ var Data = {
 
                         $('#totalturbinehfd').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldatahfd').html(kendo.toString(res.data.Total, 'n0'));
-                        // $('#totalactivepowerhfd').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
-                        // $('#totalprodhfd').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
-                        // $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                         return res.data.Total;
                     }
                 },
@@ -6362,10 +6357,6 @@ var Data = {
                         $('#totalpowerlostExceptionTimeDuration').html(kendo.toString(res.data.TotalPowerLost / 1000, 'n2') + ' MW');
                         $('#totalturbineExceptionTimeDuration').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                         $('#totaldataExceptionTimeDuration').html(kendo.toString(res.data.Total, 'n0'));
-
-                        // $('#totprodExceptionTimeDuration').html(kendo.toString(res.data.totalProduction / 1000, 'n2') + ' MWh');
-                        // $('#avgwindspeedExceptionTimeDuration').html(kendo.toString(res.data.avgWindSpeed, 'n2') + ' m/s');
-
                         $('#totprodExceptionTimeDuration').html(kendo.toString(res.data.TotalProduction / 1000, 'n2') + ' MWh');
                         $('#avgwindspeedExceptionTimeDuration').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
                         return res.data.Total;
@@ -6378,14 +6369,6 @@ var Data = {
                     field: 'Turbine',
                     dir: 'asc'
                 }],
-            },
-            // toolbar: [
-            //     "excel"
-            // ],
-            excel: {
-                fileName: "Scada Exception Time Duration.xlsx",
-                filterable: true,
-                allPages: true
             },
             selectable: "multiple",
             groupable: false,

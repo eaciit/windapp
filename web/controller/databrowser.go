@@ -82,6 +82,8 @@ func GetCustomFieldList() []tk.M {
 	return atkm
 }
 
+// GET DATA
+
 func (m *DataBrowserController) GetScadaList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	var filter []*dbox.Filter
@@ -1283,6 +1285,82 @@ func (m *DataBrowserController) GetDowntimeEventList(k *knot.WebContext) interfa
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *DataBrowserController) GetScadaHFDList(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	filter, _ := p.ParseFilter()
+
+	query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(p.Skip).Take(p.Take)
+	query.Where(dbox.And(filter...))
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(val.Field))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]ScadaDataHFD, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	queryC := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Where(dbox.And(filter...))
+	ccount, e := queryC.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer ccount.Close()
+
+	totalTurbine := 0
+
+	aggrData := []tk.M{}
+
+	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).
+		Group("turbine").Where(dbox.And(filter...))
+
+	caggr, e := queryAggr.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer caggr.Close()
+	e = caggr.Fetch(&aggrData, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	totalTurbine = tk.SliceLen(aggrData)
+
+	data := struct {
+		Data         []ScadaDataHFD
+		Total        int
+		TotalTurbine int
+	}{
+		Data:         tmpResult,
+		Total:        ccount.Count(),
+		TotalTurbine: totalTurbine,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 // Get date info each tab
 
 func (m *DataBrowserController) GetAvailDate(k *knot.WebContext) interface{} {
@@ -2100,6 +2178,50 @@ func (m *DataBrowserController) GetDowntimeEventvailDate(k *knot.WebContext) int
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *DataBrowserController) GetScadaDataHFDAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	ScadaDataHFDresults := make([]time.Time, 0)
+
+	// ScadaDataHFD Data
+	for i := 0; i < 2; i++ {
+		var arrsort []string
+		if i == 0 {
+			arrsort = append(arrsort, "timestamp")
+		} else {
+			arrsort = append(arrsort, "-timestamp")
+		}
+
+		query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(0).Take(1)
+		query = query.Order(arrsort...)
+
+		csr, e := query.Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer csr.Close()
+
+		Result := make([]ScadaDataHFD, 0)
+		e = csr.Fetch(&Result, 0, false)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		for _, val := range Result {
+			ScadaDataHFDresults = append(ScadaDataHFDresults, val.TimeStamp.UTC())
+		}
+	}
+
+	data := struct {
+		ScadaDataHFD []time.Time
+	}{
+		ScadaDataHFD: ScadaDataHFDresults,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 // Generate excel
 
 func (m *DataBrowserController) GenExcelScadaOem(k *knot.WebContext) interface{} {
@@ -2346,7 +2468,64 @@ func (m *DataBrowserController) GenExcelMet(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, pathDownload, "success")
 }
 
-// // Deserialize
+func (m *DataBrowserController) GenExcelScada(k *knot.WebContext) interface{} {
+
+	k.Config.OutputType = knot.OutputJson
+
+	var filter []*dbox.Filter
+
+	p := new(helper.PayloadsDB)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	turbine := p.Turbine
+
+	var pathDownload string
+	typeExcel := "ScadaData"
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := typeExcel + TimeCreate
+
+	if err := os.RemoveAll("web/assets/Excel/" + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+
+	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...))
+
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]ScadaData, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
+	}
+
+	DeserializeScadaData(tmpResult, 0, typeExcel, CreateDateTime)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
+// Deserialize
 
 func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDateTime string) error {
 	//savecipo += 1
@@ -3776,122 +3955,218 @@ func DeserializeMetTower(data []MetTower, j int, typeExcel string, CreateDateTim
 	return nil
 }
 
-func (m *DataBrowserController) GetScadaDataHFDAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
+func DeserializeScadaData(data []ScadaData, j int, typeExcel string, CreateDateTime string) error {
+	//savecipo += 1
+	filename := ""
+	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
-	ScadaDataHFDresults := make([]time.Time, 0)
+	file := x.NewFile()
+	sheet, _ := file.AddSheet("Sheet1")
+	header := []string{"TimeStamp","ProjectName", "Turbine", "Minutes",  "TotalTime  ", "GridFrequency  ", "ReactivePower  ", "AlarmExtStopTime ", "AlarmGridDownTime  ", "AlarmInterLineDown ", "AlarmMachDownTime  ", "AlarmOkTime  ", "AlarmUnknownTime ", "AlarmWeatherStop ", "ExternalStopTime ", "GridDownTime ", "GridOkSecs ", "InternalLineDown ", "MachineDownTime  ", "OkSecs ", "OkTime ", "UnknownTime  ", "WeatherStopTime  ", "GeneratorRPM ", "NacelleYawPositionUntwist  ", "NacelleTemperature ", "AdjWindSpeed ", "AmbientTemperature ", "AvgBladeAngle  ", "AvgWindSpeed ", "UnitsGenerated ", "EstimatedPower ", "EstimatedEnergy", "NacelDirection ", "Power  ", "PowerLost  ", "Energy  ", "EnergyLost  ", "RotorRPM ", "WindDirection  ", "DenValue  ", "DenPh", "DenWindSpeed  ", "DenAdjWindSpeed", "DenPower  ", "DenEnergy", "PCValue", "PCValueAdj  ", "PCDeviation", "WSAdjForPC  ", "WSAvgForPC  ", "TotalAvail  ", "MachineAvail  ", "GridAvail", "DenPcDeviation  ", "DenDeviationPct", "DenPcValue  ", "DeviationPct  ", "MTTR ", "MTTF ", "PerformanceIndex"}
 
-	// ScadaDataHFD Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
+	for i, each := range data {
 		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
 
-		query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaDataHFD, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			ScadaDataHFDresults = append(ScadaDataHFDresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		ScadaDataHFD []time.Time
-	}{
-		ScadaDataHFD: ScadaDataHFDresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetScadaHFDList(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	p := new(helper.Payloads)
-	e := k.GetPayload(&p)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	filter, _ := p.ParseFilter()
-
-	query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(p.Skip).Take(p.Take)
-	query.Where(dbox.And(filter...))
-
-	if len(p.Sort) > 0 {
-		var arrsort []string
-		for _, val := range p.Sort {
-			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
-			} else {
-				arrsort = append(arrsort, strings.ToLower(val.Field))
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
 			}
 		}
-		query = query.Order(arrsort...)
+
+		rowContent := sheet.AddRow()
+
+		cell := rowContent.AddCell()
+		cell.Value = each.TimeStamp.Format("2006-01-02 15:04:05")
+
+		cell = rowContent.AddCell()
+		cell.Value = each.ProjectName
+
+		cell = rowContent.AddCell()
+		cell.Value = each.Turbine
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Minutes) 
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.TotalTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.GridFrequency   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.ReactivePower   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmExtStopTime  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmGridDownTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmInterLineDown  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmMachDownTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmOkTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmUnknownTime  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AlarmWeatherStop  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.ExternalStopTime  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.GridDownTime  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.GridOkSecs  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.InternalLineDown  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.MachineDownTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.OkSecs  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.OkTime  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.UnknownTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.WeatherStopTime   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.GeneratorRPM  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.NacelleYawPositionUntwist   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.NacelleTemperature  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AdjWindSpeed  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AmbientTemperature  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AvgBladeAngle   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.AvgWindSpeed  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.UnitsGenerated  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.EstimatedPower  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.EstimatedEnergy , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.NacelDirection  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Power   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.PowerLost   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Energy   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.EnergyLost   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.RotorRPM  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.WindDirection   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenValue   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenPh , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenWindSpeed   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenAdjWindSpeed , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenPower   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenEnergy , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.PCValue , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.PCValueAdj   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.PCDeviation , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.WSAdjForPC   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.WSAvgForPC   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.TotalAvail   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.MachineAvail   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.GridAvail , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenPcDeviation   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenDeviationPct , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DenPcValue   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.DeviationPct   , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.MTTR  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.MTTF  , 'f', -1, 64) 
+
+		cell =  rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.PerformanceIndex , 'f', -1, 64) 
+
 	}
-	csr, e := query.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer csr.Close()
 
-	tmpResult := make([]ScadaDataHFD, 0)
-	e = csr.Fetch(&tmpResult, 0, false)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+	err := file.Save(filename)
+	if err != nil {
+		return err
 	}
 
-	queryC := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Where(dbox.And(filter...))
-	ccount, e := queryC.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer ccount.Close()
-
-	totalTurbine := 0
-
-	aggrData := []tk.M{}
-
-	queryAggr := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).
-		Group("turbine").Where(dbox.And(filter...))
-
-	caggr, e := queryAggr.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer caggr.Close()
-	e = caggr.Fetch(&aggrData, 0, false)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	totalTurbine = tk.SliceLen(aggrData)
-
-	data := struct {
-		Data         []ScadaDataHFD
-		Total        int
-		TotalTurbine int
-	}{
-		Data:         tmpResult,
-		Total:        ccount.Count(),
-		TotalTurbine: totalTurbine,
-	}
-
-	return helper.CreateResult(true, data, "success")
+	return nil
 }
+
+
