@@ -4,13 +4,14 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/controllers"
-	"github.com/eaciit/dbox"
-	_ "github.com/eaciit/dbox/dbc/mongo"
-	tk "github.com/eaciit/toolkit"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+	tk "github.com/eaciit/toolkit"
 )
 
 type EventToAlarm struct {
@@ -41,7 +42,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm() {
 		os.Exit(0)
 	}
 
-	csr, e := ctx.NewQuery().From(new(DowntimeEvent).TableName()).
+	csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
 		Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
 
 	defer csr.Close()
@@ -52,7 +53,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm() {
 	countPerProcess := 1000
 
 	for !isDone && countData > 0 {
-		events := []*DowntimeEvent{}
+		events := []*EventDown{}
 
 		// do process here
 		e = csr.Fetch(&events, countPerProcess, false)
@@ -63,7 +64,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm() {
 		}
 
 		wg.Add(1)
-		go func(datas []*DowntimeEvent, counter int) {
+		go func(datas []*EventDown, counter int) {
 			tk.Println("starting process ", countPerProcess*(counter+1))
 			for _, d := range datas {
 
@@ -87,7 +88,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm() {
 	tk.Println("End process converting Event to Alarm...")
 }
 
-func (ev *EventToAlarm) doConversion(event *DowntimeEvent) {
+func (ev *EventToAlarm) doConversion(event *EventDown) {
 	if event.Turbine != "" {
 		ctx := ev.Ctx
 		counterRow++
@@ -118,10 +119,10 @@ func (ev *EventToAlarm) doConversion(event *DowntimeEvent) {
 		scadas := make([]ScadaDataOEM, 0)
 		csr2, e := ctx.Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
 			Where(dbox.And(
-			dbox.Eq("projectname", "Tejuva"),
-			dbox.Eq("turbine", event.Turbine),
-			dbox.Gte("timestamp", timeStartWhr),
-			dbox.Lte("timestamp", timeEndWhr))).
+				dbox.Eq("projectname", "Tejuva"),
+				dbox.Eq("turbine", event.Turbine),
+				dbox.Gte("timestamp", timeStartWhr),
+				dbox.Lte("timestamp", timeEndWhr))).
 			Order("timestamp").
 			Cursor(nil)
 
