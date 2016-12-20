@@ -39,6 +39,7 @@
                         <div role="tabpanel" class="tab-pane active" id="Main">
                             <ul class="nav nav-tabs" role="tablist">
                                 <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
+                                <li id="scadahfdTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#scadahfd" aria-controls="scadahfd" role="tab" data-toggle="tab" class="tab-custom">Scada Data HFD</a></li>
                                 <li id="downtimeeventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
                                 <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
                                 <li id="eventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
@@ -77,6 +78,29 @@
                                                 <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexcelscadaoem')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
                                             </div>
                                             <div id="scadaGrid" class="grid-custom-db-new"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div role="tabpanel" class="tab-pane" id="scadahfd">
+                                    <div data-bind="visible:!dbr.hfdvis()">
+                                        <div class="databrowser-date-info">
+                                            Data Available from: <strong><span id="availabledatestartscadadatahfd">-</span></strong> until: <strong><span id="availabledateendscadadatahfd">-</span></strong>
+                                        </div>
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Total Turbine</label><br />
+                                            <label id="totalturbinehfd" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-green">
+                                            <label class="summary-header">Total Data</label><br />
+                                            <label id="totaldatahfd" class="summary-number">0</label>
+                                        </div>
+                                        <div class="tab-pane-content">
+                                            <div class="clearfix">&nbsp;</div>
+                                            <div class="etoExcel">
+                                                <button type="button" class="btn btn-sm btn-default" onclick="DataBrowserExporttoExcel('genexcelscadahfd')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                            </div>
+                                            <div id="scadahfdGrid" class="grid-custom-db-new"></div>
                                         </div>
                                     </div>
                                 </div>
