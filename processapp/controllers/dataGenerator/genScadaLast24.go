@@ -67,10 +67,13 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			dtInfo := GetDateInfo(dateId)
 			maxTimeStamp := datas[0]["timestamp"].(time.Time).UTC()
 			//startTime := maxTimeStamp.Add(-24 * time.Hour)
+			var budgetCurrMonthDaily float64
 
-			budgetCurrMonths := budgetMonths[int(dateId.Month())] * 1000.0
-			noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
-			budgetCurrMonthDaily := tk.Div(budgetCurrMonths, noOfDay)
+			if len(budgetMonths)-1 >= int(dateId.Month()) {
+				budgetCurrMonths := budgetMonths[int(dateId.Month())] * 1000.0
+				noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
+				budgetCurrMonthDaily = tk.Div(budgetCurrMonths, noOfDay)
+			}
 
 			mdl := new(ScadaLastUpdate).New()
 			mdl.ID = "SCADALASTUPDATE_FLEET"
