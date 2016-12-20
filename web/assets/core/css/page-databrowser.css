@@ -16,7 +16,8 @@
 
 .etoExcel{
     text-align: right;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
+    margin-top: -50px;
 }
 
 label.control-label {
@@ -136,7 +137,7 @@ label.summary-number {
 }
 
 .content-showhide {
-    padding-top: 30px;
+    padding-top: 20px;
 }
 
 .grid-met>.k-grid-header>.k-grid-header-locked>table>thead>tr {
