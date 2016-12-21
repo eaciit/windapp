@@ -247,6 +247,24 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 			alarm.Duration = newDuration
 			alarm.PowerLost = powerLost
 			alarm.Detail = detailResults
+		} else {
+			detail := AlarmDetail{}
+			detail.StartDate = alarm.StartDate
+			detail.DetailDateInfo = GetDateInfo(alarm.StartDate)
+			detail.EndDate = alarm.EndDate
+			detail.Duration = alarm.Duration
+			detail.AlertDescription = alarm.AlertDescription
+			detail.ExternalStop = alarm.ExternalStop
+			// detail.Power = alarm.Power
+			detail.PowerLost = alarm.PowerLost
+			detail.GridDown = alarm.GridDown
+			detail.InternalGrid = alarm.InternalGrid
+			detail.MachineDown = alarm.MachineDown
+			detail.AEbOK = alarm.AEbOK
+			detail.Unknown = alarm.Unknown
+			detail.WeatherStop = alarm.WeatherStop
+
+			alarm.Detail = append(alarm.Detail, detail)
 		}
 
 		ctx.Insert(alarm)
