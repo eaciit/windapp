@@ -2525,6 +2525,63 @@ func (m *DataBrowserController) GenExcelScada(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, pathDownload, "success")
 }
 
+func (m *DataBrowserController) GenExcelScadaHFD(k *knot.WebContext) interface{} {
+
+	k.Config.OutputType = knot.OutputJson
+
+	var filter []*dbox.Filter
+
+	p := new(helper.PayloadsDB)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	turbine := p.Turbine
+
+	var pathDownload string
+	typeExcel := "ScadaDataHFD"
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := typeExcel + TimeCreate
+
+	if err := os.RemoveAll("web/assets/Excel/" + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+
+	query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Where(dbox.And(filter...))
+
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]ScadaDataHFD, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
+	}
+
+	DeserializeScadaDataHFD(tmpResult, 0, typeExcel, CreateDateTime)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
 // Deserialize
 
 func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDateTime string) error {
@@ -4168,5 +4225,1366 @@ func DeserializeScadaData(data []ScadaData, j int, typeExcel string, CreateDateT
 
 	return nil
 }
+
+func DeserializeScadaDataHFD(data []ScadaDataHFD, j int, typeExcel string, CreateDateTime string) error {
+	//savecipo += 1
+	filename := ""
+	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	file := x.NewFile()
+	sheet, _ := file.AddSheet("Sheet1")
+	header := []string{"TimeStamp","ProjectName", "Turbine", "Fast_ActivePower_kW", "Fast_ActivePower_kW_StdDev", "Fast_ActivePower_kW_Min", "Fast_ActivePower_kW_Max", "Fast_ActivePower_kW_Count", "Fast_WindSpeed_ms", "Fast_WindSpeed_ms_StdDev", "Fast_WindSpeed_ms_Min", "Fast_WindSpeed_ms_Max", "Fast_WindSpeed_ms_Count", "Slow_NacellePos", "Slow_NacellePos_StdDev", "Slow_NacellePos_Min", "Slow_NacellePos_Max", "Slow_NacellePos_Count", "Slow_WindDirection", "Slow_WindDirection_StdDev", "Slow_WindDirection_Min", "Slow_WindDirection_Max", "Slow_WindDirection_Count", "Fast_CurrentL3", "Fast_CurrentL3_StdDev", "Fast_CurrentL3_Min", "Fast_CurrentL3_Max", "Fast_CurrentL3_Count", "Fast_CurrentL1", "Fast_CurrentL1_StdDev", "Fast_CurrentL1_Min", "Fast_CurrentL1_Max", "Fast_CurrentL1_Count", "Fast_ActivePowerSetpoint_kW", "Fast_ActivePowerSetpoint_kW_StdDev", "Fast_ActivePowerSetpoint_kW_Min", "Fast_ActivePowerSetpoint_kW_Max", "Fast_ActivePowerSetpoint_kW_Count", "Fast_CurrentL2", "Fast_CurrentL2_StdDev", "Fast_CurrentL2_Min", "Fast_CurrentL2_Max", "Fast_CurrentL2_Count", "Fast_DrTrVibValue", "Fast_DrTrVibValue_StdDev", "Fast_DrTrVibValue_Min", "Fast_DrTrVibValue_Max", "Fast_DrTrVibValue_Count", "Fast_GenSpeed_RPM", "Fast_GenSpeed_RPM_StdDev", "Fast_GenSpeed_RPM_Min", "Fast_GenSpeed_RPM_Max", "Fast_GenSpeed_RPM_Count", "Fast_PitchAccuV1", "Fast_PitchAccuV1_StdDev", "Fast_PitchAccuV1_Min", "Fast_PitchAccuV1_Max", "Fast_PitchAccuV1_Count", "Fast_PitchAngle", "Fast_PitchAngle_StdDev", "Fast_PitchAngle_Min", "Fast_PitchAngle_Max", "Fast_PitchAngle_Count", "Fast_PitchAngle3", "Fast_PitchAngle3_StdDev", "Fast_PitchAngle3_Min", "Fast_PitchAngle3_Max", "Fast_PitchAngle3_Count", "Fast_PitchAngle2", "Fast_PitchAngle2_StdDev", "Fast_PitchAngle2_Min", "Fast_PitchAngle2_Max", "Fast_PitchAngle2_Count", "Fast_PitchConvCurrent1", "Fast_PitchConvCurrent1_StdDev", "Fast_PitchConvCurrent1_Min", "Fast_PitchConvCurrent1_Max", "Fast_PitchConvCurrent1_Count", "Fast_PitchConvCurrent3", "Fast_PitchConvCurrent3_StdDev", "Fast_PitchConvCurrent3_Min", "Fast_PitchConvCurrent3_Max", "Fast_PitchConvCurrent3_Count", "Fast_PitchConvCurrent2", "Fast_PitchConvCurrent2_StdDev", "Fast_PitchConvCurrent2_Min", "Fast_PitchConvCurrent2_Max", "Fast_PitchConvCurrent2_Count", "Fast_PowerFactor", "Fast_PowerFactor_StdDev", "Fast_PowerFactor_Min", "Fast_PowerFactor_Max", "Fast_PowerFactor_Count", "Fast_ReactivePowerSetpointPPC_kVA", "Fast_ReactivePowerSetpointPPC_kVA_StdDev", "Fast_ReactivePowerSetpointPPC_kVA_Min", "Fast_ReactivePowerSetpointPPC_kVA_Max", "Fast_ReactivePowerSetpointPPC_kVA_Count", "Fast_ReactivePower_kVAr", "Fast_ReactivePower_kVAr_StdDev", "Fast_ReactivePower_kVAr_Min", "Fast_ReactivePower_kVAr_Max", "Fast_ReactivePower_kVAr_Count", "Fast_RotorSpeed_RPM", "Fast_RotorSpeed_RPM_StdDev", "Fast_RotorSpeed_RPM_Min", "Fast_RotorSpeed_RPM_Max", "Fast_RotorSpeed_RPM_Count", "Fast_VoltageL1", "Fast_VoltageL1_StdDev", "Fast_VoltageL1_Min", "Fast_VoltageL1_Max", "Fast_VoltageL1_Count", "Fast_VoltageL2", "Fast_VoltageL2_StdDev", "Fast_VoltageL2_Min", "Fast_VoltageL2_Max", "Fast_VoltageL2_Count", "Slow_CapableCapacitiveReactPwr_kVAr", "Slow_CapableCapacitiveReactPwr_kVAr_StdDev", "Slow_CapableCapacitiveReactPwr_kVAr_Min", "Slow_CapableCapacitiveReactPwr_kVAr_Max", "Slow_CapableCapacitiveReactPwr_kVAr_Count", "Slow_CapableInductiveReactPwr_kVAr", "Slow_CapableInductiveReactPwr_kVAr_StdDev", "Slow_CapableInductiveReactPwr_kVAr_Min", "Slow_CapableInductiveReactPwr_kVAr_Max", "Slow_CapableInductiveReactPwr_kVAr_Count", "Slow_DateTime_Sec", "Slow_DateTime_Sec_StdDev", "Slow_DateTime_Sec_Min", "Slow_DateTime_Sec_Max", "Slow_DateTime_Sec_Count", "Fast_PitchAngle1", "Fast_PitchAngle1_StdDev", "Fast_PitchAngle1_Min", "Fast_PitchAngle1_Max", "Fast_PitchAngle1_Count", "Fast_VoltageL3", "Fast_VoltageL3_StdDev", "Fast_VoltageL3_Min", "Fast_VoltageL3_Max", "Fast_VoltageL3_Count", "Slow_CapableCapacitivePwrFactor", "Slow_CapableCapacitivePwrFactor_StdDev", "Slow_CapableCapacitivePwrFactor_Min", "Slow_CapableCapacitivePwrFactor_Max", "Slow_CapableCapacitivePwrFactor_Count", "Fast_Total_Production_kWh", "Fast_Total_Production_kWh_StdDev", "Fast_Total_Production_kWh_Min", "Fast_Total_Production_kWh_Max", "Fast_Total_Production_kWh_Count", "Fast_Total_Prod_Day_kWh", "Fast_Total_Prod_Day_kWh_StdDev", "Fast_Total_Prod_Day_kWh_Min", "Fast_Total_Prod_Day_kWh_Max", "Fast_Total_Prod_Day_kWh_Count", "Fast_Total_Prod_Month_kWh", "Fast_Total_Prod_Month_kWh_StdDev", "Fast_Total_Prod_Month_kWh_Min", "Fast_Total_Prod_Month_kWh_Max", "Fast_Total_Prod_Month_kWh_Count", "Fast_ActivePowerOutPWCSell_kW", "Fast_ActivePowerOutPWCSell_kW_StdDev", "Fast_ActivePowerOutPWCSell_kW_Min", "Fast_ActivePowerOutPWCSell_kW_Max", "Fast_ActivePowerOutPWCSell_kW_Count", "Fast_Frequency_Hz", "Fast_Frequency_Hz_StdDev", "Fast_Frequency_Hz_Min", "Fast_Frequency_Hz_Max", "Fast_Frequency_Hz_Count", "Slow_TempG1L2", "Slow_TempG1L2_StdDev", "Slow_TempG1L2_Min", "Slow_TempG1L2_Max", "Slow_TempG1L2_Count", "Slow_TempG1L3", "Slow_TempG1L3_StdDev", "Slow_TempG1L3_Min", "Slow_TempG1L3_Max", "Slow_TempG1L3_Count", "Slow_TempGearBoxHSSDE", "Slow_TempGearBoxHSSDE_StdDev", "Slow_TempGearBoxHSSDE_Min", "Slow_TempGearBoxHSSDE_Max", "Slow_TempGearBoxHSSDE_Count", "Slow_TempGearBoxIMSNDE", "Slow_TempGearBoxIMSNDE_StdDev", "Slow_TempGearBoxIMSNDE_Min", "Slow_TempGearBoxIMSNDE_Max", "Slow_TempGearBoxIMSNDE_Count", "Slow_TempOutdoor", "Slow_TempOutdoor_StdDev", "Slow_TempOutdoor_Min", "Slow_TempOutdoor_Max", "Slow_TempOutdoor_Count", "Fast_PitchAccuV3", "Fast_PitchAccuV3_StdDev", "Fast_PitchAccuV3_Min", "Fast_PitchAccuV3_Max", "Fast_PitchAccuV3_Count", "Slow_TotalTurbineActiveHours", "Slow_TotalTurbineActiveHours_StdDev", "Slow_TotalTurbineActiveHours_Min", "Slow_TotalTurbineActiveHours_Max", "Slow_TotalTurbineActiveHours_Count", "Slow_TotalTurbineOKHours", "Slow_TotalTurbineOKHours_StdDev", "Slow_TotalTurbineOKHours_Min", "Slow_TotalTurbineOKHours_Max", "Slow_TotalTurbineOKHours_Count", "Slow_TotalTurbineTimeAllHours", "Slow_TotalTurbineTimeAllHours_StdDev", "Slow_TotalTurbineTimeAllHours_Min", "Slow_TotalTurbineTimeAllHours_Max", "Slow_TotalTurbineTimeAllHours_Count", "Slow_TempG1L1", "Slow_TempG1L1_StdDev", "Slow_TempG1L1_Min", "Slow_TempG1L1_Max", "Slow_TempG1L1_Count", "Slow_TempGearBoxOilSump", "Slow_TempGearBoxOilSump_StdDev", "Slow_TempGearBoxOilSump_Min", "Slow_TempGearBoxOilSump_Max", "Slow_TempGearBoxOilSump_Count", "Fast_PitchAccuV2", "Fast_PitchAccuV2_StdDev", "Fast_PitchAccuV2_Min", "Fast_PitchAccuV2_Max", "Fast_PitchAccuV2_Count", "Slow_TotalGridOkHours", "Slow_TotalGridOkHours_StdDev", "Slow_TotalGridOkHours_Min", "Slow_TotalGridOkHours_Max", "Slow_TotalGridOkHours_Count", "Slow_TotalActPowerOut_kWh", "Slow_TotalActPowerOut_kWh_StdDev", "Slow_TotalActPowerOut_kWh_Min", "Slow_TotalActPowerOut_kWh_Max", "Slow_TotalActPowerOut_kWh_Count", "Fast_YawService", "Fast_YawService_StdDev", "Fast_YawService_Min", "Fast_YawService_Max", "Fast_YawService_Count", "Fast_YawAngle", "Fast_YawAngle_StdDev", "Fast_YawAngle_Min", "Fast_YawAngle_Max", "Fast_YawAngle_Count", "Slow_CapableInductivePwrFactor", "Slow_CapableInductivePwrFactor_StdDev", "Slow_CapableInductivePwrFactor_Min", "Slow_CapableInductivePwrFactor_Max", "Slow_CapableInductivePwrFactor_Count", "Slow_TempGearBoxHSSNDE", "Slow_TempGearBoxHSSNDE_StdDev", "Slow_TempGearBoxHSSNDE_Min", "Slow_TempGearBoxHSSNDE_Max", "Slow_TempGearBoxHSSNDE_Count", "Slow_TempHubBearing", "Slow_TempHubBearing_StdDev", "Slow_TempHubBearing_Min", "Slow_TempHubBearing_Max", "Slow_TempHubBearing_Count", "Slow_TotalG1ActiveHours", "Slow_TotalG1ActiveHours_StdDev", "Slow_TotalG1ActiveHours_Min", "Slow_TotalG1ActiveHours_Max", "Slow_TotalG1ActiveHours_Count", "Slow_TotalActPowerOutG1_kWh", "Slow_TotalActPowerOutG1_kWh_StdDev", "Slow_TotalActPowerOutG1_kWh_Min", "Slow_TotalActPowerOutG1_kWh_Max", "Slow_TotalActPowerOutG1_kWh_Count", "Slow_TotalReactPowerInG1_kVArh", "Slow_TotalReactPowerInG1_kVArh_StdDev", "Slow_TotalReactPowerInG1_kVArh_Min", "Slow_TotalReactPowerInG1_kVArh_Max", "Slow_TotalReactPowerInG1_kVArh_Count", "Slow_NacelleDrill", "Slow_NacelleDrill_StdDev", "Slow_NacelleDrill_Min", "Slow_NacelleDrill_Max", "Slow_NacelleDrill_Count", "Slow_TempGearBoxIMSDE", "Slow_TempGearBoxIMSDE_StdDev", "Slow_TempGearBoxIMSDE_Min", "Slow_TempGearBoxIMSDE_Max", "Slow_TempGearBoxIMSDE_Count", "Fast_Total_Operating_hrs", "Fast_Total_Operating_hrs_StdDev", "Fast_Total_Operating_hrs_Min", "Fast_Total_Operating_hrs_Max", "Fast_Total_Operating_hrs_Count", "Slow_TempNacelle", "Slow_TempNacelle_StdDev", "Slow_TempNacelle_Min", "Slow_TempNacelle_Max", "Slow_TempNacelle_Count", "Fast_Total_Grid_OK_hrs", "Fast_Total_Grid_OK_hrs_StdDev", "Fast_Total_Grid_OK_hrs_Min", "Fast_Total_Grid_OK_hrs_Max", "Fast_Total_Grid_OK_hrs_Count", "Fast_Total_WTG_OK_hrs", "Fast_Total_WTG_OK_hrs_StdDev", "Fast_Total_WTG_OK_hrs_Min", "Fast_Total_WTG_OK_hrs_Max", "Fast_Total_WTG_OK_hrs_Count", "Slow_TempCabinetTopBox", "Slow_TempCabinetTopBox_StdDev", "Slow_TempCabinetTopBox_Min", "Slow_TempCabinetTopBox_Max", "Slow_TempCabinetTopBox_Count", "Slow_TempGeneratorBearingNDE", "Slow_TempGeneratorBearingNDE_StdDev", "Slow_TempGeneratorBearingNDE_Min", "Slow_TempGeneratorBearingNDE_Max", "Slow_TempGeneratorBearingNDE_Count", "Fast_Total_Access_hrs", "Fast_Total_Access_hrs_StdDev", "Fast_Total_Access_hrs_Min", "Fast_Total_Access_hrs_Max", "Fast_Total_Access_hrs_Count", "Slow_TempBottomPowerSection", "Slow_TempBottomPowerSection_StdDev", "Slow_TempBottomPowerSection_Min", "Slow_TempBottomPowerSection_Max", "Slow_TempBottomPowerSection_Count", "Slow_TempGeneratorBearingDE", "Slow_TempGeneratorBearingDE_StdDev", "Slow_TempGeneratorBearingDE_Min", "Slow_TempGeneratorBearingDE_Max", "Slow_TempGeneratorBearingDE_Count", "Slow_TotalReactPowerIn_kVArh", "Slow_TotalReactPowerIn_kVArh_StdDev", "Slow_TotalReactPowerIn_kVArh_Min", "Slow_TotalReactPowerIn_kVArh_Max", "Slow_TotalReactPowerIn_kVArh_Count", "Slow_TempBottomControlSection", "Slow_TempBottomControlSection_StdDev", "Slow_TempBottomControlSection_Min", "Slow_TempBottomControlSection_Max", "Slow_TempBottomControlSection_Count", "Slow_TempConv1", "Slow_TempConv1_StdDev", "Slow_TempConv1_Min", "Slow_TempConv1_Max", "Slow_TempConv1_Count", "Fast_ActivePowerRated_kW", "Fast_ActivePowerRated_kW_StdDev", "Fast_ActivePowerRated_kW_Min", "Fast_ActivePowerRated_kW_Max", "Fast_ActivePowerRated_kW_Count", "Fast_NodeIP", "Fast_NodeIP_StdDev", "Fast_NodeIP_Min", "Fast_NodeIP_Max", "Fast_NodeIP_Count", "Fast_PitchSpeed1", "Fast_PitchSpeed1_StdDev", "Fast_PitchSpeed1_Min", "Fast_PitchSpeed1_Max", "Fast_PitchSpeed1_Count", "Slow_CFCardSize", "Slow_CFCardSize_StdDev", "Slow_CFCardSize_Min", "Slow_CFCardSize_Max", "Slow_CFCardSize_Count", "Slow_CPU_Number", "Slow_CPU_Number_StdDev", "Slow_CPU_Number_Min", "Slow_CPU_Number_Max", "Slow_CPU_Number_Count", "Slow_CFCardSpaceLeft", "Slow_CFCardSpaceLeft_StdDev", "Slow_CFCardSpaceLeft_Min", "Slow_CFCardSpaceLeft_Max", "Slow_CFCardSpaceLeft_Count", "Slow_TempBottomCapSection", "Slow_TempBottomCapSection_StdDev", "Slow_TempBottomCapSection_Min", "Slow_TempBottomCapSection_Max", "Slow_TempBottomCapSection_Count", "Slow_RatedPower", "Slow_RatedPower_StdDev", "Slow_RatedPower_Min", "Slow_RatedPower_Max", "Slow_RatedPower_Count", "Slow_TempConv3", "Slow_TempConv3_StdDev", "Slow_TempConv3_Min", "Slow_TempConv3_Max", "Slow_TempConv3_Count", "Slow_TempConv2", "Slow_TempConv2_StdDev", "Slow_TempConv2_Min", "Slow_TempConv2_Max", "Slow_TempConv2_Count", "Slow_TotalActPowerIn_kWh", "Slow_TotalActPowerIn_kWh_StdDev", "Slow_TotalActPowerIn_kWh_Min", "Slow_TotalActPowerIn_kWh_Max", "Slow_TotalActPowerIn_kWh_Count", "Slow_TotalActPowerInG1_kWh", "Slow_TotalActPowerInG1_kWh_StdDev", "Slow_TotalActPowerInG1_kWh_Min", "Slow_TotalActPowerInG1_kWh_Max", "Slow_TotalActPowerInG1_kWh_Count", "Slow_TotalActPowerInG2_kWh", "Slow_TotalActPowerInG2_kWh_StdDev", "Slow_TotalActPowerInG2_kWh_Min", "Slow_TotalActPowerInG2_kWh_Max", "Slow_TotalActPowerInG2_kWh_Count", "Slow_TotalActPowerOutG2_kWh", "Slow_TotalActPowerOutG2_kWh_StdDev", "Slow_TotalActPowerOutG2_kWh_Min", "Slow_TotalActPowerOutG2_kWh_Max", "Slow_TotalActPowerOutG2_kWh_Count", "Slow_TotalG2ActiveHours", "Slow_TotalG2ActiveHours_StdDev", "Slow_TotalG2ActiveHours_Min", "Slow_TotalG2ActiveHours_Max", "Slow_TotalG2ActiveHours_Count", "Slow_TotalReactPowerInG2_kVArh", "Slow_TotalReactPowerInG2_kVArh_StdDev", "Slow_TotalReactPowerInG2_kVArh_Min", "Slow_TotalReactPowerInG2_kVArh_Max", "Slow_TotalReactPowerInG2_kVArh_Count", "Slow_TotalReactPowerOut_kVArh", "Slow_TotalReactPowerOut_kVArh_StdDev", "Slow_TotalReactPowerOut_kVArh_Min", "Slow_TotalReactPowerOut_kVArh_Max", "Slow_TotalReactPowerOut_kVArh_Count", "Slow_UTCoffset_int", "Slow_UTCoffset_int_StdDev", "Slow_UTCoffset_int_Min", "Slow_UTCoffset_int_Max", "Slow_UTCoffset_int_Count"}
+
+	for i, each := range data {
+		if i == 0 {
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
+
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
+			}
+		}
+
+		rowContent := sheet.AddRow()
+
+		cell := rowContent.AddCell()
+		cell.Value = each.TimeStamp.Format("2006-01-02 15:04:05")
+
+		cell = rowContent.AddCell()
+		cell.Value = each.ProjectName
+
+		cell = rowContent.AddCell()
+		cell.Value = each.Turbine
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePower_kW , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePower_kW_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePower_kW_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePower_kW_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_ActivePower_kW_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_WindSpeed_ms , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_WindSpeed_ms_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_WindSpeed_ms_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_WindSpeed_ms_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_WindSpeed_ms_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacellePos , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacellePos_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacellePos_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacellePos_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_NacellePos_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_WindDirection , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_WindDirection_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_WindDirection_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_WindDirection_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_WindDirection_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_CurrentL3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_CurrentL1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerSetpoint_kW , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerSetpoint_kW_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerSetpoint_kW_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerSetpoint_kW_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_ActivePowerSetpoint_kW_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_CurrentL2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_CurrentL2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_DrTrVibValue , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_DrTrVibValue_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_DrTrVibValue_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_DrTrVibValue_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_DrTrVibValue_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_GenSpeed_RPM , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_GenSpeed_RPM_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_GenSpeed_RPM_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_GenSpeed_RPM_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_GenSpeed_RPM_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAccuV1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAngle_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAngle3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAngle2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchConvCurrent1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchConvCurrent3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchConvCurrent2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchConvCurrent2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PowerFactor , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PowerFactor_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PowerFactor_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PowerFactor_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PowerFactor_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePowerSetpointPPC_kVA , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePowerSetpointPPC_kVA_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePowerSetpointPPC_kVA_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePowerSetpointPPC_kVA_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_ReactivePowerSetpointPPC_kVA_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePower_kVAr , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePower_kVAr_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePower_kVAr_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ReactivePower_kVAr_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_ReactivePower_kVAr_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_RotorSpeed_RPM , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_RotorSpeed_RPM_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_RotorSpeed_RPM_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_RotorSpeed_RPM_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_RotorSpeed_RPM_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_VoltageL1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_VoltageL2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitiveReactPwr_kVAr , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitiveReactPwr_kVAr_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitiveReactPwr_kVAr_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitiveReactPwr_kVAr_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CapableCapacitiveReactPwr_kVAr_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductiveReactPwr_kVAr , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductiveReactPwr_kVAr_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductiveReactPwr_kVAr_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductiveReactPwr_kVAr_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CapableInductiveReactPwr_kVAr_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_DateTime_Sec , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_DateTime_Sec_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_DateTime_Sec_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_DateTime_Sec_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_DateTime_Sec_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAngle1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAngle1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_VoltageL3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_VoltageL3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitivePwrFactor , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitivePwrFactor_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitivePwrFactor_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableCapacitivePwrFactor_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CapableCapacitivePwrFactor_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Production_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Production_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Production_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Production_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_Production_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Day_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Day_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Day_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Day_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_Prod_Day_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Month_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Month_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Month_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Prod_Month_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_Prod_Month_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerOutPWCSell_kW , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerOutPWCSell_kW_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerOutPWCSell_kW_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerOutPWCSell_kW_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_ActivePowerOutPWCSell_kW_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Frequency_Hz , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Frequency_Hz_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Frequency_Hz_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Frequency_Hz_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Frequency_Hz_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempG1L2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempG1L3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSDE , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSDE_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSDE_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSDE_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGearBoxHSSDE_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSNDE , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSNDE_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSNDE_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSNDE_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGearBoxIMSNDE_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempOutdoor , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempOutdoor_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempOutdoor_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempOutdoor_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempOutdoor_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAccuV3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineActiveHours , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineActiveHours_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineActiveHours_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineActiveHours_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalTurbineActiveHours_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineOKHours , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineOKHours_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineOKHours_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineOKHours_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalTurbineOKHours_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineTimeAllHours , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineTimeAllHours_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineTimeAllHours_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalTurbineTimeAllHours_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalTurbineTimeAllHours_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempG1L1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempG1L1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxOilSump , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxOilSump_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxOilSump_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxOilSump_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGearBoxOilSump_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchAccuV2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchAccuV2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalGridOkHours , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalGridOkHours_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalGridOkHours_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalGridOkHours_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalGridOkHours_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOut_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOut_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOut_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOut_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalActPowerOut_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawService , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawService_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawService_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawService_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_YawService_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawAngle , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawAngle_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawAngle_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_YawAngle_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_YawAngle_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductivePwrFactor , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductivePwrFactor_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductivePwrFactor_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CapableInductivePwrFactor_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CapableInductivePwrFactor_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSNDE , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSNDE_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSNDE_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxHSSNDE_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGearBoxHSSNDE_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempHubBearing , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempHubBearing_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempHubBearing_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempHubBearing_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempHubBearing_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG1ActiveHours , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG1ActiveHours_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG1ActiveHours_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG1ActiveHours_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalG1ActiveHours_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG1_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG1_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG1_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG1_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalActPowerOutG1_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG1_kVArh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG1_kVArh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG1_kVArh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG1_kVArh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalReactPowerInG1_kVArh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacelleDrill , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacelleDrill_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacelleDrill_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_NacelleDrill_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_NacelleDrill_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSDE , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSDE_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSDE_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGearBoxIMSDE_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGearBoxIMSDE_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Operating_hrs , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Operating_hrs_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Operating_hrs_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Operating_hrs_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_Operating_hrs_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempNacelle , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempNacelle_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempNacelle_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempNacelle_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempNacelle_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Grid_OK_hrs , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Grid_OK_hrs_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Grid_OK_hrs_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Grid_OK_hrs_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_Grid_OK_hrs_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_WTG_OK_hrs , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_WTG_OK_hrs_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_WTG_OK_hrs_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_WTG_OK_hrs_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_WTG_OK_hrs_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempCabinetTopBox , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempCabinetTopBox_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempCabinetTopBox_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempCabinetTopBox_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempCabinetTopBox_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingNDE , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingNDE_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingNDE_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingNDE_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGeneratorBearingNDE_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Access_hrs , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Access_hrs_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Access_hrs_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_Total_Access_hrs_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_Total_Access_hrs_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomPowerSection , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomPowerSection_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomPowerSection_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomPowerSection_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempBottomPowerSection_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingDE , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingDE_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingDE_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempGeneratorBearingDE_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempGeneratorBearingDE_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerIn_kVArh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerIn_kVArh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerIn_kVArh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerIn_kVArh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalReactPowerIn_kVArh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomControlSection , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomControlSection_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomControlSection_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomControlSection_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempBottomControlSection_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempConv1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerRated_kW , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerRated_kW_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerRated_kW_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_ActivePowerRated_kW_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_ActivePowerRated_kW_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_NodeIP , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_NodeIP_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_NodeIP_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_NodeIP_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_NodeIP_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchSpeed1 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchSpeed1_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchSpeed1_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Fast_PitchSpeed1_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Fast_PitchSpeed1_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSize , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSize_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSize_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSize_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CFCardSize_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CPU_Number , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CPU_Number_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CPU_Number_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CPU_Number_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CPU_Number_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSpaceLeft , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSpaceLeft_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSpaceLeft_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_CFCardSpaceLeft_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_CFCardSpaceLeft_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomCapSection , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomCapSection_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomCapSection_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempBottomCapSection_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempBottomCapSection_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_RatedPower , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_RatedPower_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_RatedPower_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_RatedPower_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_RatedPower_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv3 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv3_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv3_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv3_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempConv3_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv2 , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv2_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv2_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TempConv2_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TempConv2_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerIn_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerIn_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerIn_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerIn_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalActPowerIn_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG1_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG1_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG1_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG1_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalActPowerInG1_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG2_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG2_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG2_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerInG2_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalActPowerInG2_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG2_kWh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG2_kWh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG2_kWh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalActPowerOutG2_kWh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalActPowerOutG2_kWh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG2ActiveHours , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG2ActiveHours_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG2ActiveHours_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalG2ActiveHours_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalG2ActiveHours_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG2_kVArh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG2_kVArh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG2_kVArh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerInG2_kVArh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalReactPowerInG2_kVArh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerOut_kVArh , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerOut_kVArh_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerOut_kVArh_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_TotalReactPowerOut_kVArh_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_TotalReactPowerOut_kVArh_Count)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_UTCoffset_int , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_UTCoffset_int_StdDev , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_UTCoffset_int_Min , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.FormatFloat(each.Slow_UTCoffset_int_Max , 'f', -1, 64)
+
+		cell = rowContent.AddCell()
+		cell.Value = strconv.Itoa(each.Slow_UTCoffset_int_Count)
+
+	}
+
+	err := file.Save(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 
 
