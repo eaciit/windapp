@@ -25,5 +25,8 @@ go run main.go
 cp conf/app8.conf conf/app.conf
 go run main.go
 
-cp conf/app8.conf conf/app.conf
+cp conf/app9.conf conf/app.conf
+go run main.go
+
+cp conf/app10.conf conf/app.conf
 go run main.go

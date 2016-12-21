@@ -125,7 +125,7 @@ func (m *DataBrowserNewController) GetScadaList(k *knot.WebContext) interface{} 
 		TotalActivePower: totalActivePower,
 		AvgWindSpeed:     avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
-		TotalEnergy:      totalEnergy,
+		TotalEnergy:      totalActivePower / 6,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -322,61 +322,61 @@ func (m *DataBrowserNewController) GetDowntimeEventvailDate(k *knot.WebContext) 
 	return helper.CreateResult(true, data, "success")
 }
 
-func GetCustomFieldList() []tk.M {
-	atkm := []tk.M{}
+// func GetCustomFieldList() []tk.M {
+// 	atkm := []tk.M{}
 
-	_ascadaoem_label := []string{"Ai Dfig Torque Actual", "Ai Dr Tr Vib Value", "Ai Gear Oil Pressure", "Ai Hydr System Pressure", "Ai Intern Active Power",
-		"Ai Intern Dfig Active Power Actual", "Ai Intern Nacelle Drill", "Ai Intern Nacelle Drill At North Pos Sensor", "Ai Intern Nacelle Pos", "Ai Intern Pitch Angle1",
-		"Ai Intern Pitch Angle2", "Ai Intern Pitch Angle3", "Ai Intern Pitch Speed1", "Ai Intern Reactive Power", "Ai Intern Wind Direction",
-		"Ai Intern Wind Speed", "Ai Intern Wind Speed Dif", "Ai Tower Vib Value Axial", "Ai Wind Speed1", "Ai Wind Speed2",
-		"Ai Wind Vane1", "Ai Wind Vane2", "C Intern Speed Generator", "C Intern Speed Rotor", "Temp Bottom Control Section",
-		"Temp Bottom Control Section Low", "Temp Bottom Power Section", "Temp Cabinet Top Box", "Temp Gearbox Hss De", "Temp Gear Box Hss Nde",
-		"Temp Gear Box Ims De", "Temp Gear Box Ims Nde", "Temp Gear Oil Sump", "Temp Generator Bearing De", "Temp Generator Bearing Nde",
-		"Temp Main Bearing", "Temp Nacelle", "Temp Outdoor", "Time Stamp", "Turbine",
-	}
+// 	_ascadaoem_label := []string{"Ai Dfig Torque Actual", "Ai Dr Tr Vib Value", "Ai Gear Oil Pressure", "Ai Hydr System Pressure", "Ai Intern Active Power",
+// 		"Ai Intern Dfig Active Power Actual", "Ai Intern Nacelle Drill", "Ai Intern Nacelle Drill At North Pos Sensor", "Ai Intern Nacelle Pos", "Ai Intern Pitch Angle1",
+// 		"Ai Intern Pitch Angle2", "Ai Intern Pitch Angle3", "Ai Intern Pitch Speed1", "Ai Intern Reactive Power", "Ai Intern Wind Direction",
+// 		"Ai Intern Wind Speed", "Ai Intern Wind Speed Dif", "Ai Tower Vib Value Axial", "Ai Wind Speed1", "Ai Wind Speed2",
+// 		"Ai Wind Vane1", "Ai Wind Vane2", "C Intern Speed Generator", "C Intern Speed Rotor", "Temp Bottom Control Section",
+// 		"Temp Bottom Control Section Low", "Temp Bottom Power Section", "Temp Cabinet Top Box", "Temp Gearbox Hss De", "Temp Gear Box Hss Nde",
+// 		"Temp Gear Box Ims De", "Temp Gear Box Ims Nde", "Temp Gear Oil Sump", "Temp Generator Bearing De", "Temp Generator Bearing Nde",
+// 		"Temp Main Bearing", "Temp Nacelle", "Temp Outdoor", "Time Stamp", "Turbine",
+// 	}
 
-	_ascadaoem_field := []string{"ai_dfig_torque_actual", "ai_drtrvibvalue", "ai_gearoilpressure", "ai_hydrsystempressure", "ai_intern_activpower",
-		"ai_intern_dfig_active_power_actual", "ai_intern_nacelledrill", "ai_intern_nacelledrill_at_northpossensor", "ai_intern_nacellepos", "ai_intern_pitchangle1",
-		"ai_intern_pitchangle2", "ai_intern_pitchangle3", "ai_intern_pitchspeed1", "ai_intern_reactivpower", "ai_intern_winddirection",
-		"ai_intern_windspeed", "ai_intern_windspeeddif", "ai_towervibvalueaxial", "ai_windspeed1", "ai_windspeed2",
-		"ai_windvane1", "ai_windvane2", "c_intern_speedgenerator", "c_intern_speedrotor", "temp_bottomcontrolsection",
-		"temp_bottomcontrolsection_low", "temp_bottompowersection", "temp_cabinettopbox", "temp_gearbox_hss_de", "temp_gearbox_hss_nde",
-		"temp_gearbox_ims_de", "temp_gearbox_ims_nde", "temp_gearoilsump", "temp_generatorbearing_de", "temp_generatorbearing_nde",
-		"temp_mainbearing", "temp_nacelle", "temp_outdoor", "timestamp", "turbine",
-	}
+// 	_ascadaoem_field := []string{"ai_dfig_torque_actual", "ai_drtrvibvalue", "ai_gearoilpressure", "ai_hydrsystempressure", "ai_intern_activpower",
+// 		"ai_intern_dfig_active_power_actual", "ai_intern_nacelledrill", "ai_intern_nacelledrill_at_northpossensor", "ai_intern_nacellepos", "ai_intern_pitchangle1",
+// 		"ai_intern_pitchangle2", "ai_intern_pitchangle3", "ai_intern_pitchspeed1", "ai_intern_reactivpower", "ai_intern_winddirection",
+// 		"ai_intern_windspeed", "ai_intern_windspeeddif", "ai_towervibvalueaxial", "ai_windspeed1", "ai_windspeed2",
+// 		"ai_windvane1", "ai_windvane2", "c_intern_speedgenerator", "c_intern_speedrotor", "temp_bottomcontrolsection",
+// 		"temp_bottomcontrolsection_low", "temp_bottompowersection", "temp_cabinettopbox", "temp_gearbox_hss_de", "temp_gearbox_hss_nde",
+// 		"temp_gearbox_ims_de", "temp_gearbox_ims_nde", "temp_gearoilsump", "temp_generatorbearing_de", "temp_generatorbearing_nde",
+// 		"temp_mainbearing", "temp_nacelle", "temp_outdoor", "timestamp", "turbine",
+// 	}
 
-	_amettower_label := []string{"Time Stamp", "V Hub WS 90m Avg", "V Hub WS 90m Std Dev", "V Ref WS 88m Avg", "V Ref WS 88m Std Dev",
-		"V Tip WS 42m Avg", "V Tip WS 42m Std Dev", "D Hub WD 88m Avg", "D Hub WD 88m Std Dev", "D Ref WD 86m Avg",
-		"D Ref WD 86m Std Dev", "T Hub & H Hub Humid 85m Avg", "T Hub & H Hub Humid 85m Std Dev", "T Ref & H Ref Humid 85.5m Avg", "T Ref & H Ref Humid 85.5m Std Dev",
-		"T Hub & H Hub Temp 85.5m Avg", "T Hub & H Hub Temp 85.5m Std Dev", "T Ref & H Ref Temp 85.5 Avg", "T Ref & H Ref Temp 85.5 Std Dev", "Baro Air Pressure 85.5m Avg", "Baro Air Pressure 85.5m Std Dev",
-	}
+// 	_amettower_label := []string{"Time Stamp", "V Hub WS 90m Avg", "V Hub WS 90m Std Dev", "V Ref WS 88m Avg", "V Ref WS 88m Std Dev",
+// 		"V Tip WS 42m Avg", "V Tip WS 42m Std Dev", "D Hub WD 88m Avg", "D Hub WD 88m Std Dev", "D Ref WD 86m Avg",
+// 		"D Ref WD 86m Std Dev", "T Hub & H Hub Humid 85m Avg", "T Hub & H Hub Humid 85m Std Dev", "T Ref & H Ref Humid 85.5m Avg", "T Ref & H Ref Humid 85.5m Std Dev",
+// 		"T Hub & H Hub Temp 85.5m Avg", "T Hub & H Hub Temp 85.5m Std Dev", "T Ref & H Ref Temp 85.5 Avg", "T Ref & H Ref Temp 85.5 Std Dev", "Baro Air Pressure 85.5m Avg", "Baro Air Pressure 85.5m Std Dev",
+// 	}
 
-	_amettower_field := []string{"vhubws90mavg", "vhubws90mstddev", "vrefws88mavg", "vrefws88mstddev", "vtipws42mavg",
-		"vtipws42mstddev", "dhubwd88mavg", "dhubwd88mstddev", "drefwd86mavg", "drefwd86mstddev",
-		"thubhhubhumid855mavg", "thubhhubhumid855mstddev", "trefhrefhumid855mavg", "trefhrefhumid855mstddev", "thubhhubtemp855mavg",
-		"thubhhubtemp855mstddev", "trefhreftemp855mavg", "trefhreftemp855mstddev", "baroairpress855mavg", "baroairpress855mstddev",
-	}
+// 	_amettower_field := []string{"vhubws90mavg", "vhubws90mstddev", "vrefws88mavg", "vrefws88mstddev", "vtipws42mavg",
+// 		"vtipws42mstddev", "dhubwd88mavg", "dhubwd88mstddev", "drefwd86mavg", "drefwd86mstddev",
+// 		"thubhhubhumid855mavg", "thubhhubhumid855mstddev", "trefhrefhumid855mavg", "trefhrefhumid855mstddev", "thubhhubtemp855mavg",
+// 		"thubhhubtemp855mstddev", "trefhreftemp855mavg", "trefhreftemp855mstddev", "baroairpress855mavg", "baroairpress855mstddev",
+// 	}
 
-	for i, str := range _ascadaoem_field {
-		tkm := tk.M{}.
-			Set("_id", str).
-			Set("label", _ascadaoem_label[i]).
-			Set("source", "ScadaDataOEM")
+// 	for i, str := range _ascadaoem_field {
+// 		tkm := tk.M{}.
+// 			Set("_id", str).
+// 			Set("label", _ascadaoem_label[i]).
+// 			Set("source", "ScadaDataOEM")
 
-		atkm = append(atkm, tkm)
-	}
+// 		atkm = append(atkm, tkm)
+// 	}
 
-	for i, str := range _amettower_field {
-		tkm := tk.M{}.
-			Set("_id", str).
-			Set("label", _amettower_label[i]).
-			Set("source", "MetTower")
+// 	for i, str := range _amettower_field {
+// 		tkm := tk.M{}.
+// 			Set("_id", str).
+// 			Set("label", _amettower_label[i]).
+// 			Set("source", "MetTower")
 
-		atkm = append(atkm, tkm)
-	}
+// 		atkm = append(atkm, tkm)
+// 	}
 
-	return atkm
-}
+// 	return atkm
+// }
 
 func (m *DataBrowserNewController) GetCustomList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson

@@ -27,7 +27,7 @@ avail.loadData = function () {
     }
 
     if (lgd.isAvailability()) {
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
+        var request = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
             if (!toolkit.isFine(res)) {
                 return;
             }
@@ -62,10 +62,14 @@ avail.loadData = function () {
                 avail.getMDTypeList();
             }
 
-            app.loading(false);
-            setTimeout(function () {
-                avail.refreshChart();
-            }, 100);
+            // app.loading(false);
+            // avail.refreshChart();S
+        });
+
+        $.when(request).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },300)
         });
     }
 };
@@ -1552,7 +1556,10 @@ avail.DTTurbines = function () {
             return;
         }
 
-        $.each(res.data, function (idx, val) {
+        if (res.data.length == 0){
+            $("#dtturbines").html("<center><h2>NONE</h2></center>");
+        }else{
+            $.each(res.data, function (idx, val) {
             var btn = "btn-success";
             var turbine = val._id;
             var value = val.result.toFixed(2);
@@ -1565,7 +1572,8 @@ avail.DTTurbines = function () {
                 '<button type="button" class="btn btn-sm ' + btn + '">' + turbine + '</button>' +
                 '<button type="button" class="btn btn-sm btn-warning">' + value + '</button>' +
                 '</div>');
-        });
+            });
+        }        
     });
 }
 
