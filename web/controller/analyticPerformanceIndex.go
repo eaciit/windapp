@@ -24,6 +24,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 	k.Config.OutputType = knot.OutputJson
 
 	type PerformanceDetail struct {
+		Project                     string
 		Turbine                     string
 		PerformanceIndex            float64 //power / den power
 		PerformanceIndexLast24Hours float64
@@ -198,6 +199,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				results[len(results)-1].EndDate = tEnd
 				results[len(results)-1].Details = append(results[len(results)-1].Details, resultdetailtemp)
 				results[len(results)-1].Details[idxChild].Turbine = turbinename
+				results[len(results)-1].Details[idxChild].Project = projectname
 				indexTurbine[turbinename] = idxChild
 				results[len(results)-1].Details[indexTurbine[turbinename]].PerformanceIndexYTD = tk.Div(val.GetFloat64("totalPower")/1000, val.GetFloat64("totaldenPower")/1000) * 100
 				results[len(results)-1].Details[indexTurbine[turbinename]].PotentialPowerYTD = val.GetFloat64("totaldenPower") / 1000

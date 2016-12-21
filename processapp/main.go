@@ -79,9 +79,9 @@ func main() {
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
-		NewUpdateOEMToScada(base).RunMapping() // step 1
+		// NewUpdateOEMToScada(base).RunMapping() // step 1
 
 		NewEventToAlarm(base).ConvertEventToAlarm() // step 2
 
