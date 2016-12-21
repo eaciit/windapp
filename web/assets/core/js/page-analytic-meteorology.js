@@ -432,7 +432,7 @@ var Data = {
                     visible: false
                 },
                 chartArea: {
-                    height: 500
+                    height: 450
                 },
                 series: [{
                     type: "line",
