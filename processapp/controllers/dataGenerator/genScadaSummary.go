@@ -4,12 +4,13 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/controllers"
-	"github.com/eaciit/dbox"
-	_ "github.com/eaciit/dbox/dbc/mongo"
-	tk "github.com/eaciit/toolkit"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+	tk "github.com/eaciit/toolkit"
 )
 
 type GenScadaSummary struct {
@@ -634,7 +635,24 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			os.Exit(0)
 		}
 
-		pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("projectname", "Tejuva")), tk.M{}.Set("$group", tk.M{}.Set("_id", tk.M{}.Set("projectname", "$projectname").Set("turbine", "$turbine").Set("dateinfo", "$dateinfo")).Set("totaltime", tk.M{}.Set("$sum", "$totaltime")).Set("power", tk.M{}.Set("$sum", "$power")).Set("energy", tk.M{}.Set("$sum", "$energy")).Set("pcvalue", tk.M{}.Set("$sum", "$pcvalue")).Set("pcdeviation", tk.M{}.Set("$sum", "$pcdeviation")).Set("oktime", tk.M{}.Set("$sum", "$oktime")).Set("totalts", tk.M{}.Set("$sum", 1)).Set("griddowntime", tk.M{}.Set("$sum", "$griddowntime")).Set("machinedowntime", tk.M{}.Set("$sum", "$machinedowntime")).Set("avgwindspeed", tk.M{}.Set("$avg", "$avgwindspeed")))}
+		pipe := []tk.M{tk.M{}.
+			Set("$match", tk.M{}.Set("projectname", "Tejuva")),
+			tk.M{}.Set("$group", tk.M{}.
+				Set("_id", tk.M{}.
+					Set("projectname", "$projectname").
+					Set("turbine", "$turbine").
+					Set("dateinfo", "$dateinfo")).
+				Set("totaltime", tk.M{}.Set("$sum", "$totaltime")).
+				Set("power", tk.M{}.Set("$sum", "$power")).
+				Set("energy", tk.M{}.Set("$sum", "$energy")).
+				Set("pcvalue", tk.M{}.Set("$sum", "$pcvalue")).
+				Set("pcdeviation", tk.M{}.Set("$sum", "$pcdeviation")).
+				Set("oktime", tk.M{}.Set("$sum", "$oktime")).
+				Set("totalts", tk.M{}.Set("$sum", 1)).
+				Set("griddowntime", tk.M{}.Set("$sum", "$griddowntime")).
+				Set("machinedowntime", tk.M{}.Set("$sum", "$machinedowntime")).
+				Set("avgwindspeed", tk.M{}.Set("$avg", "$avgwindspeed")))}
+
 		csr, _ := ctx.NewQuery().
 			Command("pipe", pipe).
 			From(new(ScadaData).TableName()).
