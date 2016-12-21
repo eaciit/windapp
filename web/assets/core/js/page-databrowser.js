@@ -384,18 +384,23 @@ var Data = {
     },
     RefreshGrid: function() {
         setTimeout(function() {
+            // MAIN 
+
+            $('#scadaGrid').data('kendoGrid').refresh();
+            $('#scadahfdGrid').data('kendoGrid').refresh();
+            $('#DEgrid').data('kendoGrid').refresh();
+            $('#customGrid').data('kendoGrid').refresh();
+            $('#EventGrid').data('kendoGrid').refresh();
+            $('#dataGridJMR').data('kendoGrid').refresh();
+            $('#dataGridMet').data('kendoGrid').refresh();
+
+            // EXCEPTION
             $('#dataGridExceptionTimeDuration').data('kendoGrid').refresh();
             $('#dataGridAnomalies').data('kendoGrid').refresh();
             $('#dataGridAlarmOverlapping').data('kendoGrid').refresh();
             $('#dataGridAlarmAnomalies').data('kendoGrid').refresh();
 
-            $('#dataGridJMR').data('kendoGrid').refresh();
-            $('#dataGridMet').data('kendoGrid').refresh();
 
-            $('#scadaGrid').data('kendoGrid').refresh();
-            $('#customGrid').data('kendoGrid').refresh();
-            $('#DEgrid').data('kendoGrid').refresh();
-            $('#EventGrid').data('kendoGrid').refresh();
         }, 5);
     },
 
@@ -421,11 +426,19 @@ var Data = {
         $('#scadahfdGrid').html("");
         $('#scadahfdGrid').kendoGrid({
             dataSource: {
-                filter: [
-                    { field: "timestamp", operator: "gte", value: dateStart },
-                    { field: "timestamp", operator: "lte", value: dateEnd },
-                    { field: "turbine", operator: "in", value: turbine }
-                ],
+                filter: [{
+                    field: "timestamp",
+                    operator: "gte",
+                    value: dateStart
+                }, {
+                    field: "timestamp",
+                    operator: "lte",
+                    value: dateEnd
+                }, {
+                    field: "turbine",
+                    operator: "in",
+                    value: turbine
+                }],
                 serverPaging: true,
                 serverSorting: true,
                 serverFiltering: true,
@@ -445,10 +458,10 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
+                         dbr.hfdvis(false);
                         if (!app.isFine(res)) {
                             return;
                         }
-                        console.log(res);
                         return res.data.Data
                     },
                     total: function (res) {
@@ -991,10 +1004,7 @@ var Data = {
                         return res.data.Data
                     },
                     total: function(res) {
-                        console.log(res);
                         if (!app.isFine(res)) {
-
-                        console.log(res);
                             return;
                         }
 
@@ -3734,20 +3744,17 @@ var Data = {
             },
             filterMenuInit: function(e) {
                 e.container.data("kendoPopup").bind("open", function() {
-                    // console.log(e.container);
                     if (e.container.is(".k-grid-filter")) {
                         e.container.find("form").removeClass("k-state-border-up");
                         e.container.find("form").addClass("k-state-border-down");
-                        // console.log(e.container[0]);
                     } else {
-                        // console.log("test");
+
                     }
 
 
                 });
             },
             pageable: true,
-            //resizable: true,
             columns: [{
                     title: "Date",
                     field: "TimeStamp",
