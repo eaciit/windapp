@@ -61,7 +61,7 @@ db.EventDown.createIndex( { timestamp: 1 } )
 db.EventDown.createIndex( { brakeprogram: -1 } )
 db.EventDown.createIndex( { alarmtoggle: -1 } )
 db.EventDown.createIndex( { timestamp: -1 } )
-db.EventDown.createIndex( { timestamp: 1 , "dateinfostart.monthid":1, "timestart":1, "timepend":1} )
+db.EventDown.createIndex( { timestamp: 1 , "dateinfostart.monthid":1, "timestart":1, "timeend":1} )
 
 db.JMR.createIndex( { "dateinfo.monthid": 1, "sections.turbine": 1, "dateinfo.dateid":1} )
 db.JMR.createIndex( { "dateinfo.monthid": -1, "sections.turbine": -1, "dateinfo.dateid":-1} )
