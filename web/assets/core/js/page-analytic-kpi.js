@@ -40,8 +40,6 @@ page.views = ko.observableArray([]);
 page.viewList = ko.observableArray([]);
 page.selectedView = ko.observable();
 
-page.isLoading = ko.observable(false);
-
 page.key1 = ko.observableArray([]);
 page.key2 = ko.observableArray([]);
 page.key3 = ko.observableArray([]);
@@ -54,6 +52,7 @@ var isFirst = true;
 
 var Data = {
     LoadData: function () {
+        app.loading(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
@@ -90,7 +89,6 @@ var Data = {
             toolkit.showError("Invalid Date Range Selection");
             return;
         } else {
-            page.isLoading(true);
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "analytickpi/getscadasummarylist", param, function (res) {
                     page.dataSource(res.data.Data);
@@ -99,7 +97,7 @@ var Data = {
                 fa.getProjectInfo();
             }, 200);
         }
-        app.loading(false);
+        // app.loading(false);
     }
 }
 
@@ -171,7 +169,7 @@ page.generateGrid = function () {
     });
 
 
-    page.isLoading(false);
+    app.loading(false);
     $('#gridKpiAnalysis').html("");
     $('#gridKpiAnalysis').kendoGrid(config);
     $('#gridKpiAnalysis').data('kendoGrid').refresh();
@@ -383,6 +381,7 @@ page.ShowModal = function (modalId, showhide) {
 }
 
 page.setBreakDown = function () {
+    fa.disableRefreshButton(true);
     page.columnsBreakdownList = [];
     page.rowsBreakdownList = [];
 
@@ -409,8 +408,8 @@ page.setBreakDown = function () {
         } else {
             $("#rowsBreakdown").data("kendoDropDownList").value("Turbine");
         }
-
-    }, 1000);
+        fa.disableRefreshButton(false);
+    }, 500);
 }
 
 vm.currentMenu('KPI Table');

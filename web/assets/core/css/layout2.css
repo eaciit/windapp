@@ -6,8 +6,29 @@
     text-align: right!important;
 }
 
-.loader .wrapper .sk-cube-grid .sk-cube {
+.wrapper .sk-cube-grid .sk-cube {
     background-color: #ea5b19;
+}
+
+.loader-parent{
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: -70px;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    height: 100%;
+    width: 100%;
+    background: rgba(255,255,255,0.69);
+}
+
+.loader > .wrapper {
+    background-color: transparent !important;
+}
+
+.loader{
+    height: 50%;
 }
 
 #loginForm {

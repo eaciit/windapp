@@ -488,7 +488,7 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 			return result, e
 		}
 
-		match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
 			match.Set("projectname", p.Project)
@@ -521,22 +521,23 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 			downDone = append(downDone, field)
 
 			for _, done := range downDone {
-				match.Unset(done)
+				match.Unset("detail." + done)
 			}
 
-			loopMatch.Set(field, true)
+			loopMatch.Set("detail."+field, true)
 
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
 			pipes = append(pipes, tk.M{"$match": loopMatch})
 			if topType == "loss" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$powerlost"}},
+						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$detail.powerlost"}},
 					},
 				)
 			} else if topType == "duration" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$duration"}},
+						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$detail.duration"}},
 					},
 				)
 			} else if topType == "frequency" {
@@ -546,6 +547,10 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 					},
 				)
 			}
+
+			/*for _, v := range pipes {
+				log.Printf("pipes: %#v \n", v)
+			}*/
 
 			csr, e := DB().Connection.NewQuery().
 				From(new(Alarm).TableName()).
@@ -601,7 +606,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			return result, e
 		}
 
-		match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
 			match.Set("projectname", p.Project)
@@ -611,18 +616,24 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
 
+		pipes = append(pipes, tk.M{"$unwind": "$detail"})
 		pipes = append(pipes, tk.M{"$match": match})
-
 		if topType == "duration" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.duration"}}})
 		} else if topType == "frequency" {
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": 1}}})
 		} else if topType == "loss" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$powerlost"}}})
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
 		}
 
 		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
 		pipes = append(pipes, tk.M{"$limit": 10})
+
+		/*log.Printf("date: %v | %v \n", tStart, tEnd)
+
+		for _, v := range pipes {
+			log.Printf("pipes: %#v \n", v)
+		}*/
 
 		// get the top 10
 		csr, e := DB().Connection.NewQuery().
@@ -677,24 +688,25 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			downDone = append(downDone, field)
 
 			for _, done := range downDone {
-				match.Unset(done)
+				match.Unset("detail." + done)
 			}
 
-			loopMatch.Set(field, true)
+			loopMatch.Set("detail."+field, true)
 
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
 			pipes = append(pipes, tk.M{"$match": loopMatch})
 			if topType == "duration" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": "$duration"},
+						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$turbine", "id4": title},
+							"result": tk.M{"$sum": "$detail.duration"},
 						},
 					},
 				)
 			} else if topType == "frequency" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$turbine", "id4": title},
+						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$turbine", "id4": title},
 							"result": tk.M{"$sum": 1},
 						},
 					},
@@ -702,8 +714,8 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			} else if topType == "loss" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": "$powerlost"},
+						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$turbine", "id4": title},
+							"result": tk.M{"$sum": "$detail.powerlost"},
 						},
 					},
 				)

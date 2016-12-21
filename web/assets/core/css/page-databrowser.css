@@ -14,6 +14,12 @@
     white-space: inherit;
 }
 
+.etoExcel{
+    text-align: right;
+    margin-bottom: 15px;
+    margin-top: -50px;
+}
+
 label.control-label {
     padding: 3.9px 30px 6px 6px;
     display: inline-block;
@@ -131,7 +137,7 @@ label.summary-number {
 }
 
 .content-showhide {
-    padding-top: 30px;
+    padding-top: 20px;
 }
 
 .grid-met>.k-grid-header>.k-grid-header-locked>table>thead>tr {
@@ -187,14 +193,18 @@ label.summary-number {
     padding-left: 0px;
     padding-right: 0px;
 }
-#customGrid div.k-grid-header {
+.k-header{
+    text-align: right;
+}
+/*#customGrid div.k-grid-header {
     background-color: #ffffff;
 }
 #customGrid div.k-header.k-grid-toolbar{
     background-color: #ffffff;
     padding: 4px;
     float: right;
-}
+}*/
+
 .btn-control{
     width: 30px;
 }
