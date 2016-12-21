@@ -4,8 +4,12 @@ import (
 	"bufio"
 	. "eaciit/wfdemo-git/library/models"
 	"encoding/csv"
-	"io"
 	"errors"
+	"fmt"
+	_ "github.com/eaciit/orm"
+	. "github.com/eaciit/sshclient"
+	tk "github.com/eaciit/toolkit"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,10 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"fmt"
-	_ "github.com/eaciit/orm"
-	. "github.com/eaciit/sshclient"
-	tk "github.com/eaciit/toolkit"
 )
 
 type DataReader struct {
@@ -24,9 +24,10 @@ type DataReader struct {
 	PathProcess  string
 	PathRoot     string
 	PathUpload   string
-	SSHUser		 string
-	SSHServer	 string
-	ZipName		 string
+	SSHUser      string
+	SSHServer    string
+	ZipName      string
+	FileName     string
 }
 
 var (
@@ -35,21 +36,20 @@ var (
 	mutexData        = &sync.Mutex{}
 	idx              = 0
 	FileCount        = 0
-	FileName	  	 = ""
 	DraftDir         = "Draft"
 	ProcessDir       = "Process"
 	SuccessDir       = "Success"
 	ReaderConfigFile = "conf/reader.conf"
 )
 
-func NewDataReader(fileLocation string, pathProcess string, pathRoot string,pathUpload,sshuser,sshserver string) *DataReader {
+func NewDataReader(fileLocation string, pathProcess string, pathRoot string, pathUpload, sshuser, sshserver string) *DataReader {
 	dr := new(DataReader)
 	dr.FileLocation = fileLocation
 	dr.PathProcess = pathProcess
 	dr.PathRoot = pathRoot
 	dr.PathUpload = pathUpload
 	dr.SSHServer = sshserver
-	dr.SSHUser =sshuser
+	dr.SSHUser = sshuser
 	return dr
 }
 
@@ -107,10 +107,10 @@ func (c *DataReader) writeConfig(lastFileName string, lastIndex int) {
 	}
 }
 
-func (c *DataReader) Start(beginIndex int)(float64,error,time.Time,time.Time,int) {
+func (c *DataReader) Start(beginIndex int) (float64, error, time.Time, time.Time, int) {
 	//time.Sleep(5000*time.Millisecond)
-	tk.Println(">>>>>",c.PathProcess)
-	
+	tk.Println(">>> Process Path : ", c.PathProcess)
+
 	fileToProcess := c.copyFile(c.FileLocation, c.PathProcess+"\\"+DraftDir)
 	if fileToProcess != "" {
 		if fileExists(fileToProcess) {
@@ -119,11 +119,11 @@ func (c *DataReader) Start(beginIndex int)(float64,error,time.Time,time.Time,int
 
 			DataTranspose = tk.M{}
 			FileCount++
-			FileName = file.Name()
-			countData := c.readFile(file.Name(),beginIndex)
+			c.FileName = file.Name()
+			countData := c.readFile(file.Name(), beginIndex)
 			//fName := c.createLog()
 			//tk.Println("Finish created log file")
-			
+
 			//fZip := c.createZip(c.PathProcess+"\\"+DraftDir+"\\"+file.Name())
 			//tk.Println("Start sending file: " + fZip)
 			//c.sendFile(fZip)
@@ -131,20 +131,20 @@ func (c *DataReader) Start(beginIndex int)(float64,error,time.Time,time.Time,int
 			kk := time.Now()
 			duration := kk.Sub(start).Seconds()
 			tk.Println(tk.Sprintf("Loading file %v data about %v sec(s)", file.Name(), duration))
-			return duration,nil,start,kk,countData
-		}else{
+			return duration, nil, start, kk, countData
+		} else {
 			tk.Println("File not exists")
-			return -1.0,errors.New("File not exists"),time.Time{},time.Time{},0
+			return -1.0, errors.New("File not exists"), time.Time{}, time.Time{}, 0
 		}
-	}else{
+	} else {
 		tk.Println("No file to process")
-		return -1.0,errors.New("No file to process"),time.Time{},time.Time{},0
+		return -1.0, errors.New("No file to process"), time.Time{}, time.Time{}, 0
 	}
 }
 
-func (c *DataReader) readFile(fileName string,beginIndex int)int {
+func (c *DataReader) readFile(fileName string, beginIndex int) int {
 	var wg sync.WaitGroup
-	
+
 	conf := c.readerConfig()
 	lastFileName := conf["LastFileName"]
 	//lastIndex := tk.ToInt(conf["LastIndex"], "0")
@@ -162,7 +162,7 @@ func (c *DataReader) readFile(fileName string,beginIndex int)int {
 	draftFile := c.PathProcess + "\\" + DraftDir + "\\" + fileName
 	processFile := c.PathProcess + "\\" + ProcessDir + "\\" + fileName
 	successFile := c.PathProcess + "\\" + SuccessDir + "\\" + fileName
-	
+
 	err := os.Rename(draftFile, processFile)
 	if err != nil {
 		tk.Println("Error Move Draft File : ", err.Error())
@@ -228,22 +228,32 @@ func (c *DataReader) readFile(fileName string,beginIndex int)int {
 		tk.Println("Error Move Process File : ", err.Error())
 	}
 
-	
 	tk.Println("Start create log file...")
 	fName := c.createLog(countData)
-	tk.Println("OOOOO",successFile,fName)
-	
+
+	tk.Println(">>> OOOOO")
+	tk.Println(successFile)
+	tk.Println(fName)
+	tk.Println(">>> OOOOO")
+
 	tk.Println("Finish created log file")
 	c.ZipName = c.createZip(fName)
-	
+
+	//Remove file after zip
+	//===========
+	_ = os.Remove(successFile)
+	_ = os.Remove(fName)
+	//===========
+
 	//tk.Println("Start sending file: " + fZip)
 	//c.sendFile(fZip)
 	c.writeConfig(fileName, endIndex)
-	
+
 	return countData
 }
 
 func (c *DataReader) SendFile(filename string) {
+	_t0 := time.Now()
 	locationTarget := c.PathUpload
 
 	ssh := new(SshSetting)
@@ -261,7 +271,7 @@ func (c *DataReader) SendFile(filename string) {
 	}
 
 	file, err := os.Open(filename)
-	defer file.Close()
+	// defer file.Close()
 	if err != nil {
 		tk.Println("Error opening file: " + err.Error())
 		os.Exit(1)
@@ -272,16 +282,30 @@ func (c *DataReader) SendFile(filename string) {
 		tk.Println("Error opening file: " + err.Error())
 		os.Exit(1)
 	}
-	for true{
+	for true {
 		err = ssh.SshCopyByFile(file, fileStat.Size(), fileStat.Mode().Perm(), filepath.Base(fileStat.Name()), locationTarget)
 		if err != nil {
+			_, _ = ssh.Connect()
 			tk.Println("Error: ", err.Error())
 		} else {
+			arrname := strings.Split(file.Name(), "\\")
+			_lnote := tk.Sprintf("%v;%s;%v;%s \r\n", time.Now().UTC(), arrname[len(arrname)-1], fileStat.Size(), time.Since(_t0).String())
+			c.WriteFileSend(_lnote)
+			tk.Println(_lnote)
+
 			tk.Println("Sending file successfully")
+			file.Close()
+			_ = os.Remove(filename)
 			break
 		}
 	}
-	
+
+}
+
+func (c *DataReader) WriteFileSend(_txt string) {
+	f, _ := os.OpenFile(c.PathRoot+"\\"+"filesend.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	defer f.Close()
+	_, _ = f.WriteString(_txt)
 }
 
 func (c *DataReader) copyFile(src string, pathTarget string) string {
@@ -330,7 +354,7 @@ func (c *DataReader) createLog(rowcount int) string {
 		}
 	}
 
-	f, _ := os.Create(c.PathProcess + "\\Results\\result_" +fmt.Sprintf("%010d",rowcount)+"_"+ FileName)
+	f, _ := os.Create(c.PathProcess + "\\Results\\result_" + fmt.Sprintf("%010d", rowcount) + "_" + c.FileName)
 	defer f.Close()
 
 	f.WriteString(content + "\n")
@@ -368,11 +392,11 @@ func (c *DataReader) createLog(rowcount int) string {
 }
 
 func (c *DataReader) createZip(fileName string) string {
-	filenameRaw := strings.Split(fileName,"\\")
+	filenameRaw := strings.Split(fileName, "\\")
 	filenameAA := filenameRaw[len(filenameRaw)-1]
-	
-	filetarget := c.PathProcess + "\\Results\\" +  filenameAA[:len(filenameAA)-4]+ ".zip"
-	tk.Println("ZIPPING",fileName, filetarget)
+
+	filetarget := c.PathProcess + "\\Results\\" + filenameAA[:len(filenameAA)-4] + ".zip"
+	tk.Println("ZIPPING", fileName, filetarget)
 	err := tk.ZipCompress(fileName, filetarget)
 	if err != nil {
 		tk.Println("Error compressing file: ", err.Error())
@@ -410,8 +434,8 @@ func parseContent(contents []string) {
 
 	if DataTranspose.Get(id) == nil {
 		//tk.Println(DataTranspose,id,project,turbine,time1,time2,date1,date2,thour,tminute,tsecond,tminutevalue)
-		u:=tk.M{}.Set("Id", id).Set("ProjectName", project).Set("Turbine", turbine).Set("TimeStamp1", time1).Set("TimeStamp2", time2).Set("DateId1", date1).Set("DateId2", date2).Set("THour", thour).Set("TMinute", tminute).Set("TSecond", tsecond).Set("TMinuteValue", tminutevalue).Set("TMinuteCategory", tminutecategory).Set("TimeStampConverted", timestampconverted).Set(column, value)
-		//tk.Println("Add",id)		
+		u := tk.M{}.Set("Id", id).Set("ProjectName", project).Set("Turbine", turbine).Set("TimeStamp1", time1).Set("TimeStamp2", time2).Set("DateId1", date1).Set("DateId2", date2).Set("THour", thour).Set("TMinute", tminute).Set("TSecond", tsecond).Set("TMinuteValue", tminutevalue).Set("TMinuteCategory", tminutecategory).Set("TimeStampConverted", timestampconverted).Set(column, value)
+		//tk.Println("Add",id)
 		DataTranspose.Set(id, u)
 	} else {
 		newData := DataTranspose.Get(id).(tk.M)
