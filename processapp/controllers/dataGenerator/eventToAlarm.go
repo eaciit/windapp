@@ -50,7 +50,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm() {
 	counter := 0
 	countData := csr.Count()
 	isDone := false
-	countPerProcess := 1000
+	countPerProcess := 500
 
 	for !isDone && countData > 0 {
 		events := []*EventDown{}
