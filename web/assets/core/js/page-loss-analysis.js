@@ -164,6 +164,7 @@ pg.GridLoss = function () {
             groupable: false,
             sortable: true,
             filterable: false,
+            height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
             pageable: true,
             columns: [
                 { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
@@ -249,7 +250,7 @@ pg.DTDuration = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -349,7 +350,7 @@ pg.DTFrequency = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -451,7 +452,7 @@ pg.TopTurbineLoss = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -570,7 +571,7 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             visible: true
         },
         chartArea: {
-            height: 220
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
         },
         seriesDefaults: {
             type: "column",
@@ -822,7 +823,7 @@ pg.ChartWindAvail = function () {
             },
             theme: "Flat",
             chartArea: {
-                height: 500,
+                height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
             },
             legend: {
                 position: "top",
@@ -936,7 +937,7 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
         },
         seriesDefaults: {
             type: "column",
