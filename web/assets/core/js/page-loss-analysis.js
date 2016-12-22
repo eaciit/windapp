@@ -164,6 +164,7 @@ pg.GridLoss = function () {
             groupable: false,
             sortable: true,
             filterable: false,
+            height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
             pageable: true,
             columns: [
                 { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
@@ -249,7 +250,7 @@ pg.DTDuration = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -349,7 +350,7 @@ pg.DTFrequency = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -451,7 +452,7 @@ pg.TopTurbineLoss = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -570,7 +571,7 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             visible: true
         },
         chartArea: {
-            height: 220
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
         },
         seriesDefaults: {
             type: "column",
@@ -669,7 +670,6 @@ pg.createChartAvailability = function (dataSource) {
     colorField[0] = "#944dff";
 
     $("#availabilityChart").replaceWith('<div id="availabilityChart"></div>');
-    $("#availabilityChart").height(height);
     $("#availabilityChart").kendoChart({
         theme: "Flat",
         legend: {
@@ -678,11 +678,16 @@ pg.createChartAvailability = function (dataSource) {
         },
         series: series,
         seriesColors: colorField,
+        chartArea :{
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            padding: 0,
+            // background: "ransparent",
+        },
         valueAxes: [{
             line: {
                 visible: false
             },
-            max: 100,
+            max: max,
             min: 0,
             labels: {
                 format: "{0}",
@@ -752,12 +757,16 @@ pg.createChartProduction = function (dataSource) {
             position: "top",
             visible: true,
         },
-        chartArea: {
+        chartArea :{
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            margin : 0,
+            padding: 0,
             background: "transparent",
         },
         series: seriesProd,
         seriesColors: colorField,
         valueAxes: [{
+            max: max,
             visible: true,
             line: {
                 visible: false
@@ -822,7 +831,7 @@ pg.ChartWindAvail = function () {
             },
             theme: "Flat",
             chartArea: {
-                height: 500,
+                height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
             },
             legend: {
                 position: "top",
@@ -936,7 +945,7 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
         },
         seriesDefaults: {
             type: "column",
