@@ -93,7 +93,8 @@ var Data = {
             scrollable: true,
             sortable: true,
             pageable: true,
-            height        : ($(".content-wrapper").innerWidth() < 1225 ? $(".content-wrapper").height() * 0.5 : $(".content-wrapper").height() * 0.7),
+            // height        : ($(".content-wrapper").innerWidth() < 1225 ? $(".content-wrapper").height() * 0.5 : $(".content-wrapper").height() * 0.5),
+            height        : $(".content-wrapper").height() - ($("#filter-analytic").height()+167),
             detailInit : Data.InitGridDetail,
             dataBound: function () {
                 this.expandRow(this.tbody.find("tr.k-master-row").first());
