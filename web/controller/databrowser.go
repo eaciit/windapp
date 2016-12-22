@@ -424,7 +424,7 @@ func (m *DataBrowserController) GetAlarmScadaAnomalyList(k *knot.WebContext) int
 	totalTurbine := 0
 	aggrData := []tk.M{}
 
-	queryAggr := DB().Connection.NewQuery().From(new(Alarm).TableName()).
+	queryAggr := DB().Connection.NewQuery().From(new(AlarmScadaAnomaly).TableName()).
 		Group("turbine").Where(dbox.And(filter...))
 
 	caggr, e := queryAggr.Cursor(nil)
