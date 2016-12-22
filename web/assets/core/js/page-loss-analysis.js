@@ -670,7 +670,6 @@ pg.createChartAvailability = function (dataSource) {
     colorField[0] = "#944dff";
 
     $("#availabilityChart").replaceWith('<div id="availabilityChart"></div>');
-    $("#availabilityChart").height(height);
     $("#availabilityChart").kendoChart({
         theme: "Flat",
         legend: {
@@ -679,11 +678,16 @@ pg.createChartAvailability = function (dataSource) {
         },
         series: series,
         seriesColors: colorField,
+        chartArea :{
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            padding: 0,
+            // background: "ransparent",
+        },
         valueAxes: [{
             line: {
                 visible: false
             },
-            max: 100,
+            max: max,
             min: 0,
             labels: {
                 format: "{0}",
@@ -753,12 +757,16 @@ pg.createChartProduction = function (dataSource) {
             position: "top",
             visible: true,
         },
-        chartArea: {
+        chartArea :{
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            margin : 0,
+            padding: 0,
             background: "transparent",
         },
         series: seriesProd,
         seriesColors: colorField,
         valueAxes: [{
+            max: max,
             visible: true,
             line: {
                 visible: false
