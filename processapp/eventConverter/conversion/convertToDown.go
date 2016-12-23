@@ -210,6 +210,70 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 								endIdx = idx
 								break reloop
 							}
+						} else if data.TurbineStatus == "Production" {
+							trueFound = map[int]EventDownDetail{}
+							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
+							if len(trueFound) == 0 || trueFound == nil {
+								if idx > 0 {
+									end = loopData[idx-1]
+								}
+
+								down := new(EventDown).New()
+
+								down.ProjectName = loop.Project
+								down.Turbine = loop.Turbine
+
+								down.TimeStart = start.TimeStamp.UTC()
+								down.TimeStartInt = start.TimeStampInt
+								down.DateInfoStart = start.DateInfo
+
+								down.TimeEnd = end.TimeStamp.UTC()
+								down.TimeEndInt = end.TimeStampInt
+								down.DateInfoEnd = end.DateInfo
+
+								down.AlarmDescription = start.AlarmDescription
+								down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
+
+								down.Detail = details
+
+								if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
+									mutex.Lock()
+									brakeType := start.BrakeType
+									if strings.Contains(strings.ToLower(brakeType), "grid") {
+										down.DownGrid = true
+									}
+									if strings.Contains(strings.ToLower(brakeType), "environment") {
+										down.DownEnvironment = true
+									}
+									if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
+										down.DownMachine = true
+									}
+
+									down := down.New()
+									count := 0
+									for {
+										e := ev.Ctx.Insert(down)
+										if e != nil {
+											log.Printf("error: %v \n", e.Error())
+											down = down.New()
+										} else {
+											break
+										}
+
+										if count == 2 {
+											break
+										}
+										count++
+									}
+
+									mutex.Unlock()
+									// log.Print("Insert Event Down")
+								}
+
+								details = []EventDownDetail{}
+								endIdx = idx - 1
+								break reloop
+							}
 						}
 					}
 				}
