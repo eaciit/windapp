@@ -108,7 +108,10 @@ page.generateGrid = function () {
             pageSize: 10,
             sort: ({ field: "Row", dir: "asc" })
         },
-        pageable: true,
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
         scrollable: true,
         sortable: true,
         columns: [

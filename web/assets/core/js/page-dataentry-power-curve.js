@@ -40,7 +40,10 @@ var Data = {
 	      groupable: false,
 	      sortable: true,
 	      filterable: false,
-	      pageable: true,
+	      pageable: {
+                pageSize: 10,
+                input: true, 
+          },
 	      scrollable: false,
 	      columns: [
 	        { title: "Model", field: "Model", width: 120 },

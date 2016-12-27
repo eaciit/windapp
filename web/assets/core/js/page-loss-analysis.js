@@ -165,7 +165,10 @@ pg.GridLoss = function () {
             sortable: true,
             filterable: false,
             height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input: true, 
+            },
             columns: [
                 { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
                 { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
