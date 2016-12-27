@@ -8139,7 +8139,6 @@ var Data = {
             }, ]
         });
     },
-
     InitDefault: function() {
         var maxDateData = new Date(app.getUTCDate(app.currentDateData));
         var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
