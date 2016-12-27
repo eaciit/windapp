@@ -73,7 +73,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		"brakeprogram": tk.M{"$gt": 0},
 	}
 
-	if loop.LatestFrom == "Alarm" {
+	if loop.LatestFrom == "Raw" {
 		match.Set("timestamp", tk.M{"$gte": loop.LatestProcessTime})
 	} else {
 		match.Set("timestamp", tk.M{"$gt": loop.LatestProcessTime})
@@ -445,7 +445,7 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		tmp.Project = id.GetString("project")
 		tmp.Turbine = id.GetString("turbine")
 		tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
-		tmp.LatestFrom = "Alarm"
+		tmp.LatestFrom = "Raw"
 		result = append(result, tmp)
 	}
 	csr.Close()
