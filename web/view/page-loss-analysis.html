@@ -20,12 +20,30 @@
   #     }
     } #
 </script>
-
+<style type="text/css">
+	.tab-content {
+	    padding: 10px 0px;
+	    margin-bottom: -10px; 
+	}
+	.margin-bottom-25{
+		   margin-bottom: -25px;
+	}
+	.margin-bottom-30{
+		   margin-bottom: -30px;
+	}
+	.margin-top-10{
+		margin-top: -10px;
+	}
+	.ontop{
+		position: relative;
+		z-index: 999999
+	}
+</style>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-12 col-sm-12 hardcore landing" style="margin-bottom: -20px;">
+			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
 						Losses and Efficiency&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
@@ -50,9 +68,9 @@
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="staticView">
-								<div class="databrowser-date-info">
+								<!-- <div class="databrowser-date-info">
                                     Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
-                                </div>
+                                </div> -->
 								<div id="lossGrid" class="grid-custom"></div>
 							</div>
  
@@ -72,18 +90,18 @@
 								<div id="reliabilitykpi" class="grid-custom"></div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windspeedavail">
-								<div class="databrowser-date-info">
+								<!-- <div class="databrowser-date-info">
                                     Data Available from: <strong><span id="availabledatestartscada2">-</span></strong> until: <strong><span id="availabledateendscada2">-</span></strong>
-                                </div>
+                                </div> -->
 								<div class="col-md-12">
 									<div id="windAvailabilityChart"></div>
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="lostenergy">
-								<div class="databrowser-date-info">
+								<!-- <div class="databrowser-date-info">
                                     Data Available from: <strong><span id="availabledatestartalarm">-</span></strong> until: <strong><span id="availabledateendalarm">-</span></strong>
-                                </div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+                                </div> -->
+								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
 									<div class="panel ez no-padding hardcore">
 										<div class="panel-heading ph-availability">Lost Energy (MWh) by Down Time Type</div>
 										<div class="panel-body">
@@ -92,7 +110,7 @@
 										</div>
 									</div>
 								</div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
 									<div class="panel ez no-padding hardcore">
 										<div class="panel-heading">Top 10 Loss Categories by Total Energy Loss (MWh)</div>
 										<div class="panel-body">
@@ -100,7 +118,7 @@
 										</div>
 									</div>
 								</div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+								<div class="col-md-6 margin-bottom-30 margin-top-10" data-bind="visible:pg.isDetailDTTop()==false">
 									<div class="panel ez no-padding hardcore">
 										<div class="panel-heading">Top 10 Loss Categories by Duration (Hours)</div>
 										<div class="panel-body">
@@ -108,7 +126,7 @@
 										</div>
 									</div>
 								</div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+								<div class="col-md-6 margin-bottom-30 margin-top-10" data-bind="visible:pg.isDetailDTTop()==false">
 									<div class="panel ez no-padding hardcore">
 										<div class="panel-heading">Top 10 Loss Categories by Frequency</div>
 										<div class="panel-body">
@@ -118,78 +136,79 @@
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="availability">
-								<div class="databrowser-date-info">
+								<!-- <div class="databrowser-date-info">
                                     Data Available from: <strong><span id="availabledatestartscada3">-</span></strong> until: <strong><span id="availabledateendscada3">-</span></strong>
-                                </div>
-								<div class="col-md-12 pull-right">
-									<span class="pull-right" style="position:relative;z-index:999999">
+                                </div> -->
+								<div class="col-md-12 pull-right ontop">
+									<span class="pull-right">
                                         <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
 									<select class="form-control input-sm" id="breakdownlistavail"></select>
 									</span>
 								</div>
 								<div class="col-md-12"> 
 									<div class="clearfix">&nbsp;</div>
-									<span class="tools pull-right">
-		                                  <div class="btn-group" data-toggle="buttons" style="position:relative;z-index:999999">
-		                                      <label class="btn btn-primary btn-xs" onclick="pg.totable('availabilityChart')">
+									<!-- <span class="tools pull-right">
+		                                  <div class="btn-group ontop" data-toggle="buttons">
+		                                      <label class="btn btn-primary btn-xs" onclick="$('#availabilityChart').kendoChart2Grid()">
 		                                          <input type="radio" name="convert" id="totable" value="totable" checked><i class="fa fa-table"></i>
 		                                      </label>
 		                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartAvailability(pg.dataSource())">
 		                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
 		                                      </label>
 		                                  </div>
-		                            </span>
+		                            </span> -->
 									<br>
 									<div id="availabilityChart"></div>
 								</div>
-								<hr style="border:1px solid #eee">
 								<div class="col-md-12">
 									<div class="clearfix">&nbsp;</div>
-									<span class="tools pull-right">
-		                                  <div class="btn-group" data-toggle="buttons" style="position:relative;z-index:999999;margin-top: -45px;">
-		                                      <label class="btn btn-primary btn-xs" onclick="pg.totable('productionChart')">
+									<!-- <span class="tools pull-right">
+		                                  <div class="btn-group ontop" data-toggle="buttons">
+		                                      <label class="btn btn-primary btn-xs" onclick="$('#productionChart').kendoChart2Grid()">
 		                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
 		                                      </label>
 		                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartProduction(pg.dataSource())">
 		                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
 		                                      </label>
 		                                  </div>
-		                            </span>
+		                            </span> -->
 									<br>
 									<div id="productionChart"></div>
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="top10downtime">
-								<div class="databrowser-date-info">
+							<!-- 	<div class="databrowser-date-info">
                                     Data Available from: <strong><span id="availabledatestartalarm2">-</span></strong> until: <strong><span id="availabledateendalarm2">-</span></strong>
+                                </div> -->
+                                <div class="col-md-12">
+	 								<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading">Top 10 Turbine Downtime by Duration (Hours)</div>
+											<div class="panel-body">
+												<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+												<div id="chartDTDuration"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading">Top 10 Turbine Downtime by Frequency</div>
+											<div class="panel-body">
+												<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+												<div id="chartDTFrequency"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading">Top 10 Turbine Downtime by Losses (MWh)</div>
+											<div class="panel-body">
+												<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
+												<div id="chartTopTurbineLoss"></div>
+											</div>
+										</div>
+									</div>                               	
                                 </div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Turbine Downtime by Duration (Hours)</div>
-										<div class="panel-body">
-											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
-											<div id="chartDTDuration"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Turbine Downtime by Frequency</div>
-										<div class="panel-body">
-											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
-											<div id="chartDTFrequency"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false" style="margin-top: -30px;">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Turbine Downtime by Losses (MWh)</div>
-										<div class="panel-body">
-											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
-											<div id="chartTopTurbineLoss"></div>
-										</div>
-									</div>
-								</div>
 								<div class="row" data-bind="visible:pg.isDetailDTTop">
 									<div class="col-md-12 col-sm-12 ez panel-content">
 										<div class="col-md-12 col-sm-12">
@@ -223,8 +242,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="clearfix">&nbsp;</div>
-						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+						<!-- <div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div> -->
 					</div>
 				</div>
 			</div>
