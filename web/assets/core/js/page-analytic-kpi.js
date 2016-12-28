@@ -59,8 +59,11 @@ var Data = {
         fa.LoadData();
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            var minDatetemp = new Date(res.ScadaData[0]);
-            var maxDatetemp = new Date(res.ScadaData[1]);
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
         })
@@ -91,6 +94,9 @@ var Data = {
         } else {
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "analytickpi/getscadasummarylist", param, function (res) {
+                    if (!toolkit.isFine(res)) {
+                        return;
+                    }
                     page.dataSource(res.data.Data);
                     page.generateGrid();
                 });
@@ -332,8 +338,11 @@ page.saveView = function () {
     }
 
     app.ajaxPost(viewModel.appName + "userpreferences/savekpi", param, function (res) {
-        if (!app.isFine(res) || res.data == null) {
-            toolkit.showError("Error Occure when save the KPI");
+        if (!toolkit.isFine(res)) {
+            return;
+        }
+        if (res.data == null) {
+            toolkit.showError("Error Occur when save the KPI");
             return;
         }
 

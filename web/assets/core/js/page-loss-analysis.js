@@ -825,6 +825,9 @@ pg.ChartWindAvail = function () {
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
+        if (!toolkit.isFine(res)) {
+            return;
+        }
         var data = res.data;
 
         $("#windAvailabilityChart").html("");
@@ -1253,22 +1256,25 @@ pg.loadData = function () {
         // console.log(param);
         pg.getPeriodDesc();
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            var minDatetemp = new Date(res.ScadaData[0]);
-            var maxDatetemp = new Date(res.ScadaData[1]);
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
             $('#availabledatestartscada2').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada2').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartalarm').html(kendo.toString(moment.utc(res.Alarm[0]).format('DD-MMMM-YYYY')));
-            $('#availabledateendalarm').html(kendo.toString(moment.utc(res.Alarm[1]).format('DD-MMMM-YYYY')));
+            $('#availabledatestartalarm').html(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendalarm').html(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
 
             $('#availabledatestartscada3').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada3').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartalarm2').html(kendo.toString(moment.utc(res.Alarm[0]).format('DD-MMMM-YYYY')));
-            $('#availabledateendalarm2').html(kendo.toString(moment.utc(res.Alarm[1]).format('DD-MMMM-YYYY')));
+            $('#availabledatestartalarm2').html(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendalarm2').html(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
         })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
