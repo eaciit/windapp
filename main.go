@@ -55,10 +55,15 @@ func main() {
 				if !active {
 					r.SetSession("sessionid", "")
 					urlSplit := strings.Split(rURL, "/")
-					if urlSplit[2] == "page" {
-						http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
+
+					if len(urlSplit) > 2 {
+						if urlSplit[2] == "page" {
+							http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
+						} else {
+							helper.WC = r
+						}
 					} else {
-						helper.WC = r
+						http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
 					}
 				}
 			}
