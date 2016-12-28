@@ -25,7 +25,7 @@
 	<div class="row">
 		{{template "_filter-analytic.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="col-md-12 col-sm-12 hardcore landing" style="margin-bottom: -20px;">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
 						Losses and Efficiency&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
@@ -122,16 +122,16 @@
                                     Data Available from: <strong><span id="availabledatestartscada3">-</span></strong> until: <strong><span id="availabledateendscada3">-</span></strong>
                                 </div>
 								<div class="col-md-12 pull-right">
-									<span class="pull-right">
+									<span class="pull-right" style="position:relative;z-index:999999">
                                         <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
 									<select class="form-control input-sm" id="breakdownlistavail"></select>
 									</span>
 								</div>
-								<div class="col-md-12">
+								<div class="col-md-12"> 
 									<div class="clearfix">&nbsp;</div>
 									<span class="tools pull-right">
-		                                  <div class="btn-group" data-toggle="buttons">
-		                                      <label class="btn btn-primary btn-xs" onclick="$('#availabilityChart').kendoChart2Grid()">
+		                                  <div class="btn-group" data-toggle="buttons" style="position:relative;z-index:999999">
+		                                      <label class="btn btn-primary btn-xs" onclick="pg.totable('availabilityChart')">
 		                                          <input type="radio" name="convert" id="totable" value="totable" checked><i class="fa fa-table"></i>
 		                                      </label>
 		                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartAvailability(pg.dataSource())">
@@ -142,11 +142,12 @@
 									<br>
 									<div id="availabilityChart"></div>
 								</div>
+								<hr style="border:1px solid #eee">
 								<div class="col-md-12">
 									<div class="clearfix">&nbsp;</div>
 									<span class="tools pull-right">
-		                                  <div class="btn-group" data-toggle="buttons">
-		                                      <label class="btn btn-primary btn-xs" onclick="$('#productionChart').kendoChart2Grid()">
+		                                  <div class="btn-group" data-toggle="buttons" style="position:relative;z-index:999999;margin-top: -45px;">
+		                                      <label class="btn btn-primary btn-xs" onclick="pg.totable('productionChart')">
 		                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
 		                                      </label>
 		                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartProduction(pg.dataSource())">
@@ -180,7 +181,7 @@
 										</div>
 									</div>
 								</div>
-								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false">
+								<div class="col-md-6" data-bind="visible:pg.isDetailDTTop()==false" style="margin-top: -30px;">
 									<div class="panel ez no-padding hardcore">
 										<div class="panel-heading">Top 10 Turbine Downtime by Losses (MWh)</div>
 										<div class="panel-body">
