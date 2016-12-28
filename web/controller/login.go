@@ -48,7 +48,7 @@ func (l *LoginController) GetMenuList(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 	menuList, err := GetListOfMenu(toolkit.ToString(r.Session("sessionid", "")))
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResult(false, "", err.Error())
 	}
 
 	// remarked by ams, 2016-10-15
@@ -83,7 +83,7 @@ func (l *LoginController) GetMenuList(r *knot.WebContext) interface{} {
 		}
 	}
 
-	return helper.CreateResult(true, menuList, "")
+	return helper.CreateResult(true, menuList, "success")
 }
 
 func getMenus(r *knot.WebContext) (interface{}, error) {

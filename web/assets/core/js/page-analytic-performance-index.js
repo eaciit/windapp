@@ -22,8 +22,11 @@ var Data = {
     },
     InitGrid : function(){
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            var minDatetemp = new Date(res.ScadaData[0]);
-            var maxDatetemp = new Date(res.ScadaData[1]);
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
         })

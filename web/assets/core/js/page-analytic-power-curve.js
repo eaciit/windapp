@@ -111,8 +111,11 @@ var Data = {
         page.deviationVal($("#deviationValue").val());
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-            var minDatetemp = new Date(res.ScadaData[0]);
-            var maxDatetemp = new Date(res.ScadaData[1]);
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
         })
@@ -301,6 +304,9 @@ var Data = {
             ViewSession: page.viewSession()
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
+            if (!toolkit.isFine(res)) {
+                return;
+            }
 
             var dataPowerCurves = res.data.Data;
             var dtSeries = new Array();
