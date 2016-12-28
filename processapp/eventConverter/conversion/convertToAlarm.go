@@ -11,6 +11,8 @@ import (
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 
+	"math"
+
 	tk "github.com/eaciit/toolkit"
 )
 
@@ -31,16 +33,21 @@ func (ev *AlarmConversion) Run() {
 	// _ = ev.getLatest()
 	var wg sync.WaitGroup
 	loops := ev.getLatest()
+	maxRun := 2
 
-	for _, loop := range loops {
+	for idx, loop := range loops {
 		// if loop.Turbine == "SSE017" {
 		// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
 		wg.Add(1)
 		go ev.processTurbine(loop, &wg)
 		// }
-	}
 
-	wg.Wait()
+		div := math.Mod(tk.ToFloat64(idx, 0, tk.RoundingAuto), tk.ToFloat64(maxRun, 0, tk.RoundingAuto))
+
+		if div == 0 || idx == len(loops)-1 {
+			wg.Wait()
+		}
+	}
 }
 
 func (ev *AlarmConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
@@ -52,12 +59,19 @@ func (ev *AlarmConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) 
 	pipes := []tk.M{}
 
 	match := tk.M{
-		"projectname":  loop.Project,
-		"turbine":      loop.Turbine,
-		"eventtype":    tk.M{"$ne": "000"},
-		"timestamp":    tk.M{"$gt": loop.LatestProcessTime},
+		"projectname": loop.Project,
+		"turbine":     loop.Turbine,
+		"eventtype":   "alarmchanged",
+		// "eventtype":    tk.M{"$ne": "000"},
 		"brakeprogram": 0,
 	}
+
+	if loop.LatestFrom == "Raw" {
+		match.Set("timestamp", tk.M{"$gte": loop.LatestProcessTime})
+	} else {
+		match.Set("timestamp", tk.M{"$gt": loop.LatestProcessTime})
+	}
+
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
 
@@ -278,7 +292,7 @@ func (ev *AlarmConversion) getLatest() []GroupResult {
 			tmp.Project = id.GetString("project")
 			tmp.Turbine = id.GetString("turbine")
 			tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
-
+			tmp.LatestFrom = "Alarm"
 			result = append(result, tmp)
 		}
 	}
@@ -293,7 +307,7 @@ func (ev *AlarmConversion) getLatest() []GroupResult {
 
 	match := tk.M{}
 	pipes = []tk.M{}
-	match = tk.M{"eventtype": "alarmchanged", "brakeprogram": tk.M{"$gt": 0}}
+	match = tk.M{"eventtype": "alarmchanged", "brakeprogram": 0}
 
 	if len(turbines) > 0 {
 		// checking new turbine that not in eventdown yet
@@ -341,12 +355,11 @@ func (ev *AlarmConversion) getLatest() []GroupResult {
 	// log.Printf("len(eventRaws): %v \n", len(eventRaws))
 	for _, val := range eventRaws {
 		id := val.Get("_id").(tk.M)
-
 		tmp := GroupResult{}
 		tmp.Project = id.GetString("project")
 		tmp.Turbine = id.GetString("turbine")
 		tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
-
+		tmp.LatestFrom = "Raw"
 		result = append(result, tmp)
 	}
 	csr.Close()
