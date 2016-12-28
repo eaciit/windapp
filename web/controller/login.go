@@ -155,6 +155,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	WriteLog(sessid, "login", r.Request.URL.String())
 	r.SetSession("sessionid", sessid)
 	r.SetSession("menus", menus)
+	helper.WC = r
 	MenuList = menus
 
 	// temporary add last date hardcode, then will change to get it from database automatically
