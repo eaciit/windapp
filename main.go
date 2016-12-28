@@ -5,8 +5,10 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web"
 	. "eaciit/wfdemo-git/web/controller"
+	"eaciit/wfdemo-git/web/helper"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/knot/knot.v1"
@@ -45,13 +47,19 @@ func main() {
 
 			rURL := r.Request.URL.String()
 			sessionid := r.Session("sessionid", "")
+			helper.WC = r
 
 			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
 
 				if !active {
 					r.SetSession("sessionid", "")
-					http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
+					urlSplit := strings.Split(rURL, "/")
+					if urlSplit[2] == "page" {
+						http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
+					} else {
+						helper.WC = r
+					}
 				}
 			}
 			return true
