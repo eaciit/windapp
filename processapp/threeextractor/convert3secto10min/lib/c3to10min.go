@@ -382,6 +382,7 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 			break
 		} else {
 			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
 		}
 	}
 	defer workerconn.Close()
