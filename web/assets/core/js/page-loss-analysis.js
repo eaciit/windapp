@@ -159,7 +159,8 @@ pg.GridLoss = function () {
             groupable: false,
             sortable: true,
             filterable: false,
-            height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+            // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+            height: 399,
             pageable: {
                 pageSize: 10,
                 input: true, 
@@ -249,7 +250,7 @@ pg.DTDuration = function (dataSource) {
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 250, 
+            height: 300, 
             padding: 0,
             margin: 0
         },
@@ -350,7 +351,7 @@ pg.DTFrequency = function (dataSource) {
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 250,
+            height: 300,
             padding: 0,
             margin: 0
         },
@@ -453,7 +454,7 @@ pg.TopTurbineLoss = function (dataSource) {
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 250, 
+            height: 300, 
             padding: 0,
             margin: 0
         },
@@ -572,7 +573,8 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             visible: true
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            height: 163,
         },
         seriesDefaults: {
             type: "column",
@@ -678,7 +680,7 @@ pg.createChartAvailability = function (dataSource) {
         seriesColors: colorField,
         chartArea :{
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
-            height: 250,
+            height: 200,
             padding: 0,
             background: "transparent",
         },
@@ -739,7 +741,7 @@ pg.createChartAvailability = function (dataSource) {
             }
         }
     });
-    $("#availabilityChart").css("top",-40);
+    $("#availabilityChart").css("top",-60);
     $("#availabilityChart").css("margin-bottom",-25);
 }
 pg.createChartProduction = function (dataSource) {
@@ -760,7 +762,7 @@ pg.createChartProduction = function (dataSource) {
         },
         chartArea :{
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
-            height: 250, 
+            height: 200, 
             margin : 0,
             padding: 0,
             background: "transparent",
@@ -809,8 +811,8 @@ pg.createChartProduction = function (dataSource) {
 
         },
     });
-     $("#productionChart").css("top",-45);
-     $("#productionChart").css("margin-bottom",-55);
+     $("#productionChart").css("top",-60);
+     $("#productionChart").css("margin-bottom",-60);
 }
 
 pg.ChartWindAvail = function () {
@@ -838,7 +840,8 @@ pg.ChartWindAvail = function () {
             },
             theme: "Flat",
             chartArea: {
-                height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+                // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+                height: 400,
             },
             legend: {
                 position: "top",
@@ -951,7 +954,8 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            height: 163,
         },
         seriesDefaults: {
             type: "column",
@@ -1394,12 +1398,12 @@ pg.SetBreakDown = function () {
     }, 1000);
 }
 
-pg.totable = function(id){
-    $('#'+id).kendoChart2Grid();
-    $("#"+id).css("top",10);
-     $("#"+id).css("height",210);
-    $("#"+id).css("margin-bottom",30);
-}
+// pg.totable = function(id){
+//     $('#'+id).kendoChart2Grid();
+//     $("#"+id).css("top",10);
+//      $("#"+id).css("height",210);
+//     $("#"+id).css("margin-bottom",30);
+// }
 
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
