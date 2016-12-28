@@ -139,7 +139,8 @@ var Data = {
                     columns: [
                         { width: 110, field: "PerformanceIndex", title: "PI",headerAttributes: { style: "text-align: center" },format: "{0:n2}",attributes:{ style: "text-align: center" },},
                         { field: "PotentialPower", title: "Pot. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
-                        { field: "Power", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
+                        { field: "Power", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "ProductionIndex", title: "Production Index (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -149,7 +150,8 @@ var Data = {
                     columns: [
                         { field: "PerformanceIndexLast24Hours", title: "PI", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" }, format: "{0:n2}"},
                         { field: "PotentialPowerLast24Hours", title: "Pot. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
-                        { field: "PowerLast24Hours", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
+                        { field: "PowerLast24Hours", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "ProductionIndexLast24Hours", title: "Production Index (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -159,7 +161,8 @@ var Data = {
                     columns: [
                         { field: "PerformanceIndexLastWeek", title: "PI", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPowerLastWeek", title: "Pot. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
-                        { field: "PowerLastWeek", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
+                        { field: "PowerLastWeek", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "ProductionIndexLastWeek", title: "Production Index (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -169,7 +172,8 @@ var Data = {
                     columns: [
                         { field: "PerformanceIndexMTD", title: "PI", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPowerMTD", title: "Pot. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
-                        { field: "PowerMTD", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
+                        { field: "PowerMTD", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "ProductionIndexMTD", title: "Production Index (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
                 {
@@ -179,7 +183,8 @@ var Data = {
                     columns: [
                         { field: "PerformanceIndexYTD", title: "PI", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
                         { field: "PotentialPowerYTD", title: "Pot. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
-                        { field: "PowerYTD", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
+                        { field: "PowerYTD", title: "Act. Power (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center" },format: "{0:n2}"},
+                        { field: "ProductionIndexYTD", title: "Production Index (MW)", width: 110,headerAttributes: { style: "text-align: center" },attributes:{ style: "text-align: center;border-right:1px solid rgba(128, 128, 128, 0.26)" },format: "{0:n2}"},
                     ]
                 },
             ],
@@ -207,11 +212,13 @@ var Data = {
                     $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PerformanceIndex, "n2")+'</td>');
                     $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PotentialPower, "n2")+'</td>');
                     $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.Power, "n2")+'</td>');
+                    $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndex, "n2")+'</td>');
 
                     if(hideLast24 == false){
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PerformanceIndexLast24Hours, "n2")+'</td>');
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PotentialPowerLast24Hours, "n2")+'</td>'); 
-                        $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PowerLast24Hours, "n2")+'</td>');                       
+                        $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PowerLast24Hours, "n2")+'</td>');
+                        $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndexLast24Hours, "n2")+'</td>');                          
                     }
 
 
@@ -219,6 +226,7 @@ var Data = {
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PerformanceIndexLastWeek, "n2")+'</td>');
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PotentialPowerLastWeek, "n2")+'</td>'); 
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PowerLastWeek, "n2")+'</td>');  
+                        $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndexLastWeek, "n2")+'</td>');  
                     }
      
 
@@ -226,14 +234,15 @@ var Data = {
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PerformanceIndexMTD, "n2")+'</td>');
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PotentialPowerMTD, "n2")+'</td>'); 
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PowerMTD, "n2")+'</td>');  
+                        $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndexMTD, "n2")+'</td>');  
                     }
      
                     if(hideYTD == false){
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PerformanceIndexYTD, "n2")+'</td>');
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PotentialPowerYTD, "n2")+'</td>'); 
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.PowerYTD, "n2")+'</td>'); 
+                        $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndexYTD, "n2")+'</td>');  
                     }
-
 
                 }else{console.log("tidak ada")}
             })
