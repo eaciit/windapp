@@ -28,7 +28,6 @@ pg.dummyData = ko.observableArray([
 ]);
 
 pg.ChartLoss = function () {
-    app.loading(true);
     var breakDownVal = $("#breakdownlist").data("kendoDropDownList").value();
 
     var param = {
@@ -42,7 +41,6 @@ pg.ChartLoss = function () {
 
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarychart", param, function (res) {
         if (!app.isFine(res)) {
-            app.loading(false);
             return;
         }
         var cSeries = res.data.Series
@@ -123,13 +121,10 @@ pg.ChartLoss = function () {
             }
         }, 10);
 
-        app.loading(false);
     });
 };
 
 pg.GridLoss = function () {
-    app.loading(true);
-
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
@@ -253,7 +248,8 @@ pg.DTDuration = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            height: 250, 
             padding: 0,
             margin: 0
         },
@@ -353,7 +349,8 @@ pg.DTFrequency = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            height: 250,
             padding: 0,
             margin: 0
         },
@@ -455,7 +452,8 @@ pg.TopTurbineLoss = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            height: 250, 
             padding: 0,
             margin: 0
         },
@@ -632,7 +630,6 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
 }
 
 pg.ChartAvailability = function () {
-    app.loading(true);
 
     pg.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
 
@@ -646,13 +643,11 @@ pg.ChartAvailability = function () {
     };
     toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
         if (!app.isFine(res)) {
-            app.loading(false);
             return;
         }
         pg.dataSource(res.data);
         pg.createChartAvailability(pg.dataSource());
         pg.createChartProduction(pg.dataSource());
-        app.loading(false);
 
         if ($("#availabilityChart").data("kendoChart") != null) {
             $("#availabilityChart").data("kendoChart").refresh();
@@ -682,9 +677,10 @@ pg.createChartAvailability = function (dataSource) {
         series: series,
         seriesColors: colorField,
         chartArea :{
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            height: 250,
             padding: 0,
-            // background: "ransparent",
+            background: "transparent",
         },
         valueAxes: [{
             line: {
@@ -743,6 +739,8 @@ pg.createChartAvailability = function (dataSource) {
             }
         }
     });
+    $("#availabilityChart").css("top",-40);
+    $("#availabilityChart").css("margin-bottom",-25);
 }
 pg.createChartProduction = function (dataSource) {
     var seriesProd = dataSource.SeriesProd;
@@ -761,7 +759,8 @@ pg.createChartProduction = function (dataSource) {
             visible: true,
         },
         chartArea :{
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            height: 250, 
             margin : 0,
             padding: 0,
             background: "transparent",
@@ -810,6 +809,8 @@ pg.createChartProduction = function (dataSource) {
 
         },
     });
+     $("#productionChart").css("top",-45);
+     $("#productionChart").css("margin-bottom",-55);
 }
 
 pg.ChartWindAvail = function () {
@@ -927,7 +928,6 @@ pg.ChartWindAvail = function () {
             },
         });
 
-        app.loading(false);
         $("#windAvailabilityChart").data("kendoChart").refresh();
     });
 };
@@ -1310,7 +1310,7 @@ pg.loadData = function () {
 
 pg.refreshGrid = function () {
     app.loading(true);
-    var refresh = setTimeout(function () {
+    setTimeout(function () {
         if ($("#gridLoss").data("kendoGrid") != null) {
             $("#gridLoss").data("kendoGrid").refresh();
         }
@@ -1359,7 +1359,7 @@ pg.refreshGrid = function () {
         }
 
         app.loading(false);
-    }, 1000);
+    },1500);
 }
 
 pg.SetBreakDown = function () {
@@ -1388,13 +1388,19 @@ pg.SetBreakDown = function () {
     }, 1000);
 }
 
+pg.totable = function(id){
+    $('#'+id).kendoChart2Grid();
+    $("#"+id).css("top",10);
+     $("#"+id).css("height",210);
+    $("#"+id).css("margin-bottom",30);
+}
+
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 
 $(document).ready(function () {
-    app.loading(true);
     fa.LoadData();
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
