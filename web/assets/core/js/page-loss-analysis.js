@@ -28,7 +28,6 @@ pg.dummyData = ko.observableArray([
 ]);
 
 pg.ChartLoss = function () {
-    app.loading(true);
     var breakDownVal = $("#breakdownlist").data("kendoDropDownList").value();
 
     var param = {
@@ -42,7 +41,6 @@ pg.ChartLoss = function () {
 
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarychart", param, function (res) {
         if (!app.isFine(res)) {
-            app.loading(false);
             return;
         }
         var cSeries = res.data.Series
@@ -123,13 +121,10 @@ pg.ChartLoss = function () {
             }
         }, 10);
 
-        app.loading(false);
     });
 };
 
 pg.GridLoss = function () {
-    app.loading(true);
-
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
@@ -164,8 +159,12 @@ pg.GridLoss = function () {
             groupable: false,
             sortable: true,
             filterable: false,
-            height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
-            pageable: true,
+            // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+            height: 399,
+            pageable: {
+                pageSize: 10,
+                input: true, 
+            },
             columns: [
                 { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
                 { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
@@ -250,7 +249,8 @@ pg.DTDuration = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            height: 300, 
             padding: 0,
             margin: 0
         },
@@ -350,7 +350,8 @@ pg.DTFrequency = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            height: 300,
             padding: 0,
             margin: 0
         },
@@ -452,7 +453,8 @@ pg.TopTurbineLoss = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
+            height: 300, 
             padding: 0,
             margin: 0
         },
@@ -571,7 +573,8 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             visible: true
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            height: 163,
         },
         seriesDefaults: {
             type: "column",
@@ -629,7 +632,6 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
 }
 
 pg.ChartAvailability = function () {
-    app.loading(true);
 
     pg.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
 
@@ -643,13 +645,11 @@ pg.ChartAvailability = function () {
     };
     toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
         if (!app.isFine(res)) {
-            app.loading(false);
             return;
         }
         pg.dataSource(res.data);
         pg.createChartAvailability(pg.dataSource());
         pg.createChartProduction(pg.dataSource());
-        app.loading(false);
 
         if ($("#availabilityChart").data("kendoChart") != null) {
             $("#availabilityChart").data("kendoChart").refresh();
@@ -679,9 +679,10 @@ pg.createChartAvailability = function (dataSource) {
         series: series,
         seriesColors: colorField,
         chartArea :{
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            height: 200,
             padding: 0,
-            // background: "ransparent",
+            background: "transparent",
         },
         valueAxes: [{
             line: {
@@ -740,6 +741,8 @@ pg.createChartAvailability = function (dataSource) {
             }
         }
     });
+    $("#availabilityChart").css("top",-60);
+    $("#availabilityChart").css("margin-bottom",-25);
 }
 pg.createChartProduction = function (dataSource) {
     var seriesProd = dataSource.SeriesProd;
@@ -758,7 +761,8 @@ pg.createChartProduction = function (dataSource) {
             visible: true,
         },
         chartArea :{
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            height: 200, 
             margin : 0,
             padding: 0,
             background: "transparent",
@@ -807,6 +811,8 @@ pg.createChartProduction = function (dataSource) {
 
         },
     });
+     $("#productionChart").css("top",-60);
+     $("#productionChart").css("margin-bottom",-60);
 }
 
 pg.ChartWindAvail = function () {
@@ -821,6 +827,9 @@ pg.ChartWindAvail = function () {
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
+        if (!toolkit.isFine(res)) {
+            return;
+        }
         var data = res.data;
 
         $("#windAvailabilityChart").html("");
@@ -831,7 +840,8 @@ pg.ChartWindAvail = function () {
             },
             theme: "Flat",
             chartArea: {
-                height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+                // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
+                height: 400,
             },
             legend: {
                 position: "top",
@@ -924,7 +934,6 @@ pg.ChartWindAvail = function () {
             },
         });
 
-        app.loading(false);
         $("#windAvailabilityChart").data("kendoChart").refresh();
     });
 };
@@ -945,7 +954,8 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            height: 163,
         },
         seriesDefaults: {
             type: "column",
@@ -1250,22 +1260,25 @@ pg.loadData = function () {
         // console.log(param);
         pg.getPeriodDesc();
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            var minDatetemp = new Date(res.ScadaData[0]);
-            var maxDatetemp = new Date(res.ScadaData[1]);
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
             $('#availabledatestartscada2').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada2').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartalarm').html(kendo.toString(moment.utc(res.Alarm[0]).format('DD-MMMM-YYYY')));
-            $('#availabledateendalarm').html(kendo.toString(moment.utc(res.Alarm[1]).format('DD-MMMM-YYYY')));
+            $('#availabledatestartalarm').html(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendalarm').html(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
 
             $('#availabledatestartscada3').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada3').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartalarm2').html(kendo.toString(moment.utc(res.Alarm[0]).format('DD-MMMM-YYYY')));
-            $('#availabledateendalarm2').html(kendo.toString(moment.utc(res.Alarm[1]).format('DD-MMMM-YYYY')));
+            $('#availabledatestartalarm2').html(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendalarm2').html(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
         })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
@@ -1307,7 +1320,7 @@ pg.loadData = function () {
 
 pg.refreshGrid = function () {
     app.loading(true);
-    var refresh = setTimeout(function () {
+    setTimeout(function () {
         if ($("#gridLoss").data("kendoGrid") != null) {
             $("#gridLoss").data("kendoGrid").refresh();
         }
@@ -1356,7 +1369,7 @@ pg.refreshGrid = function () {
         }
 
         app.loading(false);
-    }, 1000);
+    },1500);
 }
 
 pg.SetBreakDown = function () {
@@ -1385,13 +1398,19 @@ pg.SetBreakDown = function () {
     }, 1000);
 }
 
+// pg.totable = function(id){
+//     $('#'+id).kendoChart2Grid();
+//     $("#"+id).css("top",10);
+//      $("#"+id).css("height",210);
+//     $("#"+id).css("margin-bottom",30);
+// }
+
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 
 $(document).ready(function () {
-    app.loading(true);
     fa.LoadData();
     $('#btnRefresh').on('click', function () {
         fa.LoadData();

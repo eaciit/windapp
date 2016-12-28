@@ -8,6 +8,7 @@ import (
 
 	// "fmt"
 	"time"
+	"sort"
 
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
@@ -253,6 +254,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		filter     []*dbox.Filter
 		list       []tk.M
 		dataSeries []tk.M
+		sortTurbines []string
 	)
 
 	p := new(PayloadAnalyticPC)
@@ -344,7 +346,12 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		}
 	}
 
-	for _, turbineX := range turbine {
+	for _, turX := range turbine {
+		sortTurbines= append(sortTurbines, turX.(string))
+	}
+	sort.Strings(sortTurbines)
+
+	for _, turbineX := range sortTurbines {
 
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
@@ -362,6 +369,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("markers", tk.M{"visible": false})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorField[selArr])
+		turbineData.Set("idxseries", selArr)
 
 		for _, val := range exist {
 			// tk.Printf("%#v\n", filter)

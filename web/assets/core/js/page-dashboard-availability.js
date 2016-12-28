@@ -1524,7 +1524,10 @@ avail.DTTopDetail = function (turbine, type) {
         groupable: false,
         sortable: true,
         filterable: false,
-        pageable: true,
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
         //resizable: true,
         columns: [
             { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
@@ -1765,7 +1768,10 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
         groupable: false,
         sortable: true,
         filterable: false,
-        pageable: true,
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
         //resizable: true,
         columns: [
             { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
