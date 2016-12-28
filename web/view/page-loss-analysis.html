@@ -20,25 +20,6 @@
   #     }
     } #
 </script>
-<style type="text/css">
-	.tab-content {
-	    padding: 10px 0px;
-	    margin-bottom: -10px; 
-	}
-	.margin-bottom-25{
-		   margin-bottom: -25px;
-	}
-	.margin-bottom-30{
-		   margin-bottom: -30px;
-	}
-	.margin-top-10{
-		margin-top: -10px;
-	}
-	.ontop{
-		position: relative;
-		z-index: 999999
-	}
-</style>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -48,29 +29,31 @@
 					<div class="panel-heading">
 						Losses and Efficiency&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+						<div class="pull-right">
+								<div class="databrowser-date-info">
+                                    Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
+                                </div>
+						</div>
 					</div>
 					<div class="panel-body">
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.refreshGrid();" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
+							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.refreshGrid('staticView');" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
 
-							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.refreshGrid();" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
+							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.refreshGrid('top10downtime');" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
 <!-- 
 							<li id="analysisTab" role="presentation"><a onclick="pg.refreshGrid();" href="#analysis" aria-controls="Analysis" role="tab" data-toggle="tab" class="tab-custom">Analysis</a></li>
  -->
-							<li id="availabilityTab" role="presentation"><a onclick="pg.refreshGrid();" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
+							<li id="availabilityTab" role="presentation"><a onclick="pg.refreshGrid('availability');" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
 
-							<li id="lostenergyTab" role="presentation"><a onclick="pg.refreshGrid();" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
+							<li id="lostenergyTab" role="presentation"><a onclick="pg.refreshGrid('lostenergy');" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
 
-							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.refreshGrid();" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
+							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.refreshGrid('reliabilitykpi');" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
 
-							<li id="windspeedavailTab" role="presentation"><a onclick="pg.refreshGrid();" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
+							<li id="windspeedavailTab" role="presentation"><a onclick="pg.refreshGrid('windspeedavail');" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
 						</ul>
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="staticView">
-								<!-- <div class="databrowser-date-info">
-                                    Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
-                                </div> -->
 								<div id="lossGrid" class="grid-custom"></div>
 							</div>
  
@@ -90,22 +73,15 @@
 								<div id="reliabilitykpi" class="grid-custom"></div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windspeedavail">
-								<!-- <div class="databrowser-date-info">
-                                    Data Available from: <strong><span id="availabledatestartscada2">-</span></strong> until: <strong><span id="availabledateendscada2">-</span></strong>
-                                </div> -->
 								<div class="col-md-12">
 									<div id="windAvailabilityChart"></div>
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="lostenergy">
-								<!-- <div class="databrowser-date-info">
-                                    Data Available from: <strong><span id="availabledatestartalarm">-</span></strong> until: <strong><span id="availabledateendalarm">-</span></strong>
-                                </div> -->
 								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
 									<div class="panel ez no-padding hardcore">
 										<div class="panel-heading ph-availability">Lost Energy (MWh) by Down Time Type</div>
 										<div class="panel-body">
-											<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
 											<div id="chartDTLEbyType"></div>
 										</div>
 									</div>
@@ -136,9 +112,7 @@
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="availability">
-								<!-- <div class="databrowser-date-info">
-                                    Data Available from: <strong><span id="availabledatestartscada3">-</span></strong> until: <strong><span id="availabledateendscada3">-</span></strong>
-                                </div> -->
+
 								<div class="col-md-12 pull-right ontop">
 									<span class="pull-right">
                                         <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
@@ -177,9 +151,6 @@
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="top10downtime">
-							<!-- 	<div class="databrowser-date-info">
-                                    Data Available from: <strong><span id="availabledatestartalarm2">-</span></strong> until: <strong><span id="availabledateendalarm2">-</span></strong>
-                                </div> -->
                                 <div class="col-md-12">
 	 								<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
 										<div class="panel ez no-padding hardcore">
@@ -242,7 +213,6 @@
 								</div>
 							</div>
 						</div>
-						<!-- <div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div> -->
 					</div>
 				</div>
 			</div>
