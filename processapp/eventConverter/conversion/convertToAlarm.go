@@ -11,6 +11,8 @@ import (
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 
+	"math"
+
 	tk "github.com/eaciit/toolkit"
 )
 
@@ -31,16 +33,21 @@ func (ev *AlarmConversion) Run() {
 	// _ = ev.getLatest()
 	var wg sync.WaitGroup
 	loops := ev.getLatest()
+	maxRun := 2
 
-	for _, loop := range loops {
+	for idx, loop := range loops {
 		// if loop.Turbine == "SSE017" {
 		// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
 		wg.Add(1)
 		go ev.processTurbine(loop, &wg)
 		// }
-	}
 
-	wg.Wait()
+		div := math.Mod(tk.ToFloat64(idx, 0, tk.RoundingAuto), tk.ToFloat64(maxRun, 0, tk.RoundingAuto))
+
+		if div == 0 || idx == len(loops)-1 {
+			wg.Wait()
+		}
+	}
 }
 
 func (ev *AlarmConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
