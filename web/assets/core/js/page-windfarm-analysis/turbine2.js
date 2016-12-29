@@ -8,7 +8,7 @@ wfa.Turbine2Analysis = {
 			project:  $('#projectTurbine1List').data('kendoDropDownList').value(),
 			turbines: turbines
 		};
-		toolkit.ajaxPost(viewModel.appName + "windfarmanalysis/getdatabyturbine1", param, function (data) {
+		toolkit.ajaxPost(viewModel.appName + "windfarmanalysis/getdatabyturbine2", param, function (data) {
             wfa.Turbine2Analysis.GenerateGrid(data.data);
         });
 	},
@@ -22,9 +22,6 @@ wfa.Turbine2Analysis = {
 			pageable: true,
 			scrollable: true,
 			columns: [
-				{ title: "Turbine", field: "Turbine", headerAttributes: { class: "align-center" }, 
-					attributes: { class: "align-left row-custom" }, 
-					width: 180, locked: true, template: '<span class="grid-group">#: data.Turbine #</span>' },
 				{ title: "Data Point", field: "Key", headerAttributes: { class: "align-center" }, attributes: { class: "align-left row-custom" }, 
 					width: 180, locked: true, template: '<span class="cp-datapoint"></span>' },
 				{ 
@@ -60,19 +57,11 @@ wfa.Turbine2Analysis = {
 	CreateRowChart: function(arg) {
 		var obj = $('#gridTurbine2').data('kendoGrid');
 		if(obj.dataSource.data.length > 0) {
-			var fieldGroup1Before = '';
 			$('#gridTurbine2').find('tr').each(function(){
 				var $this = $(this);
 				var data = obj.dataItem($this);
 
 				if (data!=null) {
-					var fieldGroup1 = $(this).find('.grid-group');
-					if(fieldGroup1.text()!=fieldGroup1Before) {
-						fieldGroup1Before = fieldGroup1.text();
-					} else {
-						fieldGroup1.text('');
-					}
-					
 					var title = $(this).find('.cp-datapoint');
 					var chart1 = $(this).find('.cp-roll12days');
 					var chart2 = $(this).find('.cp-roll12weeks');
@@ -82,7 +71,7 @@ wfa.Turbine2Analysis = {
 					// var chart6 = $(this).find('.cp-custom2');
 
 					var rows = wfa.GetKeyValues(data.Key);
-					title.html(rows.text.replace('(GW','(MW'));
+					title.html(rows.text); //.replace('(GW','(MW'));
 
 					var rowSelected = {};
 					rowSelected.text = rows.text;

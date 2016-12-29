@@ -61,15 +61,11 @@ func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) inter
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tk.Println("Turbines: ", p.Turbines)
-
 	tQry := make([]*dbox.Filter, 0)
 	tQry = append(tQry, dbox.Eq("projectname", p.Project))
 	if len(p.Turbines) > 0 {
 		tQry = append(tQry, dbox.In("turbine", p.Turbines...))
 	}
-
-	tk.Println(tQry)
 
 	csr, e := DB().Connection.NewQuery().From(new(GWFAnalysisByTurbine1).TableName()).
 		Where(dbox.And(tQry...)).Order([]string{"turbine", "orderno"}...).Cursor(nil)
@@ -93,6 +89,12 @@ func (c *WindFarmAnalysisController) GetDataByTurbine2(k *knot.WebContext) inter
 		Turbines []string
 	}{}
 
+	colors := []string{
+		"#ED1C24", "#A3238E", "#00A65D", "#F58220", "#0066B3", "#5C2D91", "#FFF200", "#579835", "#CF3834", "#00B274", "#74489D",
+		"#C06616", "#5565AF", "#CCBE00", "#390A5D", "#006D6F", "#65C295", "#F04E4D", "#407927", "#00599D", "#A09600", "#0D1F63",
+		"#C38312", "#003D73", "#454FA1", "#BC312E",
+	}
+
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -102,6 +104,20 @@ func (c *WindFarmAnalysisController) GetDataByTurbine2(k *knot.WebContext) inter
 	tQry = append(tQry, dbox.Eq("projectname", p.Project))
 	if len(p.Turbines) > 0 {
 		tQry = append(tQry, dbox.In("turbine", p.Turbines))
+	} else {
+		turbines := make([]TurbineMaster, 0)
+		csrt, et := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).
+			Where(dbox.And(dbox.Eq("project", p.Project))).Order("turbineid").Cursor(nil)
+
+		if et != nil {
+			tk.Println(et.Error())
+		}
+		et = csrt.Fetch(&turbines, 0, false)
+		csrt.Close()
+
+		for _, t := range turbines {
+			p.Turbines = append(p.Turbines, t.TurbineId)
+		}
 	}
 
 	csr, e := DB().Connection.NewQuery().From(new(GWFAnalysisByTurbine2).TableName()).
@@ -111,9 +127,25 @@ func (c *WindFarmAnalysisController) GetDataByTurbine2(k *knot.WebContext) inter
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	chartSeries := []tk.M{}
+	chartSeries = append(chartSeries, tk.M{
+		"field": "Average",
+		"name":  "Average",
+		"color": colors[0],
+	})
+	for idx, t := range p.Turbines {
+		chartSeries = append(chartSeries, tk.M{
+			"field": t,
+			"name":  t,
+			"color": colors[(idx + 1)],
+		})
+	}
+
 	datas := make([]GWFAnalysisByTurbine2, 0)
 	e = csr.Fetch(&datas, 0, false)
 	csr.Close()
 
-	return helper.CreateResult(true, datas, "success")
+	retVal := tk.M{}.Set("ChartSeries", chartSeries).Set("ChartData", datas)
+
+	return helper.CreateResult(true, retVal, "success")
 }
