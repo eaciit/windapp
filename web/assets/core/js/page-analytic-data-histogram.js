@@ -315,6 +315,9 @@ $(document).ready(function () {
     });
 
     setTimeout(function () {
+        if(fa.turbineList().length > 1){
+            $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+        }
         km.getData();
     }, 800);
 });
