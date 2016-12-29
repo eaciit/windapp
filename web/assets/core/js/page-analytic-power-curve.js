@@ -247,8 +247,9 @@ var Data = {
                         color: "#eee",
                         width: "2px",
                     },
-
-                }
+                },
+                pannable: true,
+                zoomable: true
             });
             app.loading(false);
             $("#powerCurve").data("kendoChart").refresh();
@@ -400,7 +401,9 @@ var Data = {
                             },
                         }
                     },
-                }
+                },
+                pannable: true,
+                zoomable: true
             });
 
             app.loading(false);
