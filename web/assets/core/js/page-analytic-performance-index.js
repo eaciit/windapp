@@ -244,7 +244,9 @@ var Data = {
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndexYTD, "n2")+'</td>');  
                     }
 
-                }else{console.log("tidak ada")}
+                } else {
+                    console.log("data not found");
+                }
             })
     }
 }

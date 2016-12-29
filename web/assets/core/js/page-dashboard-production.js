@@ -93,13 +93,11 @@ prod.gridProduction = function (project, enddate) {
             pageSize: 10,
             schema: {
                 data: function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    return res.data.Data
+                    toolkit.isFine(res);
+                    return res.data.Data;
                 },
                 total: function (res) {
-                    if (!app.isFine(res)) {
+                    if (!toolkit.isFine(res)) {
                         return;
                     }
                     return res.data.Total;

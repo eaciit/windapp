@@ -238,9 +238,10 @@ ac.generateGrid = function () {
             },
             schema: {
                 data: function data(res) {
+                    toolkit.isFine(res);
                     ac.selectedTableID("show");
                     ac.contentIsLoading(false);
-                    return res.data.Datas;
+                    return res.data.Data;
                 },
                 total: "data.total"
             },
