@@ -190,7 +190,7 @@ lgd.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
                 lastParamChart = paramChart;
             }
             toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
-                if (!toolkit.isFine(res)) {
+                if (!app.isFine(res)) {
                     return;
                 }
 
@@ -223,7 +223,7 @@ lgd.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
             lastParamChart = paramChart;
 
             toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
-                if (!toolkit.isFine(res)) {
+                if (!app.isFine(res)) {
                     return;
                 }
 
@@ -274,7 +274,7 @@ lgd.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
         }
 
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -441,7 +441,7 @@ lgd.LoadData = function () {
     setTimeout(function () {
 
         toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -461,7 +461,7 @@ lgd.LoadData = function () {
         });
 
         toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -474,7 +474,7 @@ lgd.LoadData = function () {
         });
 
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -1315,7 +1315,7 @@ lgd.indiaMap = function (project) {
     var param = { projectname: project }
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getmapdata", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -1381,7 +1381,7 @@ lgd.DetailProd = function (e) {
     var param = { 'project': project, 'date': bulan };
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var dataSource = res.data;
@@ -2230,7 +2230,7 @@ lgd.DTTopDetail = function (turbine, type) {
 
     var template = (type == 'Hours' ? "#: category # : #:  kendo.toString(value, 'n1') #" : "#: category # : #:  kendo.toString(value, 'n0') #")
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimetopdetail", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -2374,7 +2374,7 @@ lgd.DTTurbines = function () {
     $("#dtturbines").html("");
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeturbines", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 

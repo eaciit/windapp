@@ -111,7 +111,7 @@ var Data = {
         page.deviationVal($("#deviationValue").val());
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -308,7 +308,7 @@ var Data = {
             ViewSession: page.viewSession()
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 

@@ -290,7 +290,7 @@ rpt.filter.forEach(function (d) {
 
 rpt.getOtherMasterData = function () {
 	toolkit.ajaxPost(viewModel.appName + 'report/getdatasubchannel', {}, function (res) {
-		if (!toolkit.isFine(res)) {
+		if (!app.isFine(res)) {
             return;
         }
 
@@ -391,7 +391,7 @@ rpt.filterMultiSelect = function (d) {
 		}
 
 		toolkit.ajaxPost(viewModel.appName + ('report/getdata' + d.from.toLowerCase()), {}, function (res) {
-			if (!toolkit.isFine(res)) {
+			if (!app.isFine(res)) {
 	            return;
 	        }
 
@@ -414,7 +414,7 @@ rpt.filterMultiSelect = function (d) {
 
 		if (d.from == 'Region') {
 			toolkit.ajaxPost(viewModel.appName + 'report/getdatahgeographi', {}, function (res) {
-				if (!toolkit.isFine(res)) {
+				if (!app.isFine(res)) {
 		            return;
 		        }
 
@@ -476,7 +476,7 @@ rpt.toggleFilter = function () {
 
 // rpt.getIdeas = () => {
 // 	toolkit.ajaxPost(viewModel.appName + 'report/getdataanalysisidea', { }, (res) => {
-// 		if (!toolkit.isFine(res)) {
+// 		if (!app.isFine(res)) {
 // 			return
 // 		}
 

@@ -140,7 +140,7 @@ ac.newData = function () {
 ac.editData = function (id) {
     ac.isNew(false);
     toolkit.ajaxPost(viewModel.appName + 'access/editaccess', { _id: id }, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         $('#modalUpdate').modal('show');
@@ -164,7 +164,7 @@ ac.saveChanges = function () {
     ac.config.Index( $("#ddlIndex").data("kendoDropDownList").value());
     ac.config.ParentId( $("#ddlParent").data("kendoDropDownList").value());
     toolkit.ajaxPost(viewModel.appName + 'access/saveaccess', ko.mapping.toJS(ac.config), function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -206,7 +206,7 @@ ac.deleteaccess = function () {
         }, function () {
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "access/deleteaccess", { _id: ac.tempCheckIdDelete() }, function (res) {
-                    if (!toolkit.isFine(res)) {
+                    if (!app.isFine(res)) {
                         return;
                     }
                     ac.refreshDataBrowser();
@@ -238,7 +238,7 @@ ac.generateGrid = function () {
             },
             schema: {
                 data: function data(res) {
-                    toolkit.isFine(res);
+                    app.isFine(res);
                     ac.selectedTableID("show");
                     ac.contentIsLoading(false);
                     return res.data.Data;

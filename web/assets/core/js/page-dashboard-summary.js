@@ -27,7 +27,7 @@ sum.loadData = function () {
         var param = { ProjectName: project, Date: maxdate };
 
         var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -48,7 +48,7 @@ sum.loadData = function () {
         });
 
         var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             sum.dataSourceScada(res.data);
@@ -674,7 +674,7 @@ sum.indiaMap = function (project) {
     var param = { projectname: project }
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getmapdata", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -929,7 +929,7 @@ sum.DetailProd = function (e) {
     var param = { 'project': project, 'date': bulan };
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var dataSource = res.data;
