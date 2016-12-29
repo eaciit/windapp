@@ -45,6 +45,9 @@ at.gridConfig = {
 at.refreshData = function () {
     at.contentIsLoading(true);
     toolkit.ajaxPost(viewModel.appName + "report/getplcollections", {}, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
         at.gridData(res.Data);
         at.contentIsLoading(false);
     });
@@ -64,6 +67,9 @@ at.clearcollection = function () {
     }, function () {
         setTimeout(function () {
             toolkit.ajaxPost(viewModel.appName + "report/deleteplcollection", { _id: allTables }, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
                 at.refreshData();
             });
         }, 1000);
@@ -82,6 +88,9 @@ at.deletecollection = function (idtable) {
     }, function () {
         setTimeout(function () {
             toolkit.ajaxPost(viewModel.appName + "report/deleteplcollection", { _id: [idtable] }, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
                 at.refreshData();
             });
         }, 1000);

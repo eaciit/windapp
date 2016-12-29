@@ -36,6 +36,8 @@ type DateInfo struct {
 	MonthDesc string
 	QtrId     int
 	QtrDesc   string
+	WeekId    int    `bson:"weekid,omitempty" json:"weekid,omitempty"`
+	WeekDesc  string `bson:"weekdesc,omitempty" json:"weekdesc,omitempty"`
 	Year      int
 }
 
@@ -70,6 +72,11 @@ func GetDateInfo(t time.Time) DateInfo {
 	di.MonthId, _ = strconv.Atoi(monthid)
 	di.QtrDesc = qtrdesc
 	di.QtrId, _ = strconv.Atoi(qtrid)
+
+	_, week := di.DateId.ISOWeek()
+	weekid := strconv.Itoa(year) + LeftPad2Len(strconv.Itoa(week), "0", 2)
+	di.WeekId, _ = strconv.Atoi(weekid)
+	di.WeekDesc = tk.Sprintf("W %v", weekid)
 
 	return di
 }
@@ -378,4 +385,106 @@ func ReadJson(source string, result interface{}) {
 	} else {
 		tk.Println(err.Error())
 	}
+}
+
+func GetDaysNoByQuarter(year int, qtr int, lastDate time.Time) int {
+	totalDays := 0
+	lastMonth := qtr * 3
+	for i := 1; i <= lastMonth; i++ {
+		date, _ := time.Parse("2006-01-02", tk.Sprintf("%v-%v-%v", year, i, 1))
+		dateMonth := time.Date(date.Year(), date.Month(), 0, 0, 0, 0, 0, time.UTC)
+		if dateMonth.Month() != lastDate.Month() && dateMonth.Year() != lastDate.Year() {
+			totalDays += dateMonth.Day()
+		} else {
+			totalDays += lastDate.Day()
+		}
+	}
+	// tk.Println(totalDays, lastMonth, year, qtr)
+
+	return totalDays
+}
+
+// periodType:
+//		YEAR => in Years
+//		QTR => in Quarters
+//		MONTH => in Months
+//		WEEK => in Weeks
+//		DAY	=> in Days
+func GetPeriodBackByDate(periodType string, lastDate time.Time, noPeriodBack int) time.Time {
+	var ret time.Time
+
+	exactNoPeriodBack := noPeriodBack - 1
+	dateLayout := "2006-01-02"
+	lastMonth := int(lastDate.Month())
+	lastYear := lastDate.Year()
+	switch periodType {
+	case "YEAR":
+		startYear := lastYear - exactNoPeriodBack
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, 1, 1))
+	case "QTR":
+		lastQtr := 0
+		if lastMonth%3 > 0 {
+			lastQtr = int(math.Ceil(float64(lastMonth / 3)))
+			lastQtr = lastQtr + 1
+		} else {
+			lastQtr = lastMonth / 3
+		}
+		startQtr := lastQtr
+		startYear := lastYear
+		for i := lastQtr; i > 0; i-- {
+			startQtr--
+			if startQtr == 0 {
+				startQtr = 4
+				startYear--
+			}
+		}
+
+		startMonthOfStartQtr := (startQtr * 3) - 2
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, startMonthOfStartQtr, 1))
+	case "MONTH":
+		startMonth := lastMonth
+		startYear := lastYear
+		for i := lastMonth; i > 0; i-- {
+			startMonth--
+			if startMonth == 0 {
+				startMonth = 12
+				startYear--
+			}
+		}
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, startMonth, 1))
+	case "WEEK":
+		lastYear, lastWeek := lastDate.ISOWeek()
+		startWeek := lastWeek
+		startYear := lastYear
+		for i := lastWeek; i > 0; i-- {
+			startWeek--
+			if startWeek == 0 {
+				startWeek = 52
+				startYear--
+			}
+		}
+		ret = FirstDayOfISOWeek(startYear, startWeek, time.UTC)
+	case "DAY":
+		ret = lastDate.AddDate(0, 0, -1*exactNoPeriodBack)
+	}
+
+	return ret
+}
+
+func FirstDayOfISOWeek(year int, week int, timezone *time.Location) time.Time {
+	date := time.Date(year, 0, 0, 0, 0, 0, 0, timezone)
+	isoYear, isoWeek := date.ISOWeek()
+	for date.Weekday() != time.Monday { // iterate back to Monday
+		date = date.AddDate(0, 0, -1)
+		isoYear, isoWeek = date.ISOWeek()
+	}
+	for isoYear < year { // iterate forward to the first day of the first week
+		date = date.AddDate(0, 0, 1)
+		isoYear, isoWeek = date.ISOWeek()
+	}
+	for isoWeek < week { // iterate forward to the first day of the given week
+		date = date.AddDate(0, 0, 1)
+		isoYear, isoWeek = date.ISOWeek()
+	}
+	return date
 }

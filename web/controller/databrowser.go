@@ -3071,7 +3071,7 @@ func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateT
 
 	file := x.NewFile()
 	sheet, _ := file.AddSheet("Sheet1")
-	header := []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration (Second)"}
+	header := []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration"}
 
 	for i, each := range data {
 		if i == 0 {
@@ -3107,7 +3107,7 @@ func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateT
 		cell.Value = each.AlarmDescription //strconv.FormatFloat(each.AI_intern_R_PidAngleOut , 'f', -1, 64)
 
 		cell = rowContent.AddCell()
-		cell.Value = strconv.FormatFloat(each.Duration, 'f', -1, 64)
+		cell.Value = SecondsToHms(each.Duration) //strconv.FormatFloat(each.Duration, 'f', -1, 64)
 
 	}
 
@@ -5586,5 +5586,53 @@ func DeserializeScadaDataHFD(data []ScadaDataHFD, j int, typeExcel string, Creat
 	return nil
 }
 
+// FUNCTION 
 
 
+func SecondsToHms(d float64) string {
+
+	duration := tk.ToInt(d, tk.RoundingUp)
+
+    var h = duration / 3600
+    var m = duration % 3600 / 60
+    var s = duration % 3600 % 60
+	res := ""
+	hstring := ""
+	mstring := ""
+	sstring := ""
+
+	if(h > 0 ){
+		if(h < 10){
+			hstring = "0" +  tk.ToString(h)
+		}else{
+			hstring = tk.ToString(h)
+		}
+	}else{
+		hstring = "00"
+	}
+
+	if(m > 0 ){
+		if(m < 10){
+			mstring = "0" + tk.ToString(m)
+		}else{
+			mstring = tk.ToString(m)
+		}
+	}else{
+		mstring = "00"
+	}
+
+	if(s > 0 ){
+		if(s < 10){
+			sstring = "0" + tk.ToString(s)
+		}else{
+			sstring = tk.ToString(s)
+		}
+	}else{
+		sstring = "00"
+	}
+
+
+    res = hstring + ":" + mstring + ":" + sstring
+
+    return res;
+}

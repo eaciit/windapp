@@ -178,6 +178,18 @@ app.showError = function (message) {
     return sweetAlert('Warning', message, 'error');
 };
 app.isFine = function (res) {
+    if (!res.success && res.message.indexOf('expired') > -1) {
+        swal({
+            title: "Warning",
+            type: "warning",
+            text: res.message,
+        }, function () {
+            setTimeout(function () {
+                location.href = viewModel.appName + 'page/login';
+            }, 200);
+        });
+        return false;
+    }
     if (!res.success) {
         sweetAlert('Warning', res.message, 'error');
         return false;

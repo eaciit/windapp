@@ -458,10 +458,8 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
-                         dbr.hfdvis(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        dbr.hfdvis(false);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function (res) {
@@ -482,7 +480,10 @@ var Data = {
             selectable: "multiple",
             groupable: false,
             sortable: true,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             columns: [
                 { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, locked: true, filterable: false },
                 { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
@@ -998,9 +999,7 @@ var Data = {
                     data: function(res) {
                         app.loading(false);
                         dbr.oemvis(false);
-                        if (!app.isFine(res)) {   
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -1027,7 +1026,10 @@ var Data = {
             selectable: "multiple",
             groupable: false,
             sortable: true,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             columns: [{
                 title: "Time Stamp",
                 field: "TimeStamp",
@@ -2428,9 +2430,7 @@ var Data = {
                     data: function(ress) {
                         // app.loading(false);
                         dbr.downeventvis(false);
-                        if (!app.isFine(ress)) {
-                            return;
-                        }
+                        app.isFine(ress);
                         return ress.data.Data
                     },
                     total: function(res) {
@@ -2455,7 +2455,10 @@ var Data = {
             selectable: "multiple",
             groupable: false,
             sortable: true,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             columns: [{
                     title: "Time Start",
                     field: "TimeStart",
@@ -2620,10 +2623,6 @@ var Data = {
                     data: function(res) {
                         dbr.customvis(false);
                         // app.loading(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-
                         return res.data.Data
                     },
                     total: function(res) {
@@ -2663,7 +2662,10 @@ var Data = {
             reorderable: true,
             groupable: false,
             sortable: true,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             filterable: true,
             scrollable: true,
             columns: columns,
@@ -2736,9 +2738,6 @@ var Data = {
                     data: function(res) {
                         // app.loading(false);
                         dbr.eventrawvis(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
                         return res.data.Data
                     },
                     total: function(res) {
@@ -2763,7 +2762,10 @@ var Data = {
             selectable: "multiple",
             groupable: false,
             sortable: true,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             columns: [{
                 title: "Time Stamp",
                 field: "TimeStamp",
@@ -3754,7 +3756,10 @@ var Data = {
 
                 });
             },
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             columns: [{
                     title: "Date",
                     field: "TimeStamp",
@@ -6253,10 +6258,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            dbr.jmrvis(false);
-                            return;
-                        }
+                        app.isFine(res);
                         dbr.jmrvis(false);
                         return res.data.Data
                     },
@@ -6276,7 +6278,10 @@ var Data = {
             groupable: false,
             sortable: true,
             filterable: false,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             detailInit: Data.InitJMRDetail,
             columns: [{
                 title: "Month",
@@ -6393,8 +6398,10 @@ var Data = {
                     }
                 }
             },
-            pageable: true,
-            //resizable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
 
             columns: [{
                 title: "Date",
@@ -6841,9 +6848,7 @@ var Data = {
                         }
                     },
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -6888,7 +6893,10 @@ var Data = {
                     }
                 }
             },
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             resizable: true,
 
             columns: [{
@@ -7320,9 +7328,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -7353,7 +7359,10 @@ var Data = {
             groupable: false,
             sortable: true,
             filterable: false,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             resizable: true,
             columns: [{
                     title: "Date",
@@ -7568,7 +7577,10 @@ var Data = {
             },
             scrollable: true,
             sortable: false,
-            pageable: false,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             //resizable: true,
             columns: [{
                     title: "Date",
@@ -7776,9 +7788,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -7801,7 +7811,10 @@ var Data = {
             groupable: false,
             sortable: true,
             filterable: false,
-            pageable: true,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             detailInit: Data.InitOverlapDetail,
             columns: [{
                     title: "Date",
@@ -7926,7 +7939,10 @@ var Data = {
             },
             scrollable: true,
             sortable: false,
-            pageable: false,
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
             columns: [{
                 title: "Description",
                 field: "Description",
@@ -8101,7 +8117,6 @@ var Data = {
             }, ]
         });
     },
-
     InitDefault: function() {
         var maxDateData = new Date(app.getUTCDate(app.currentDateData));
         var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));

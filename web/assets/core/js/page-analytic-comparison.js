@@ -61,8 +61,11 @@ var turbineval = [];
 page.getData = function () {
 	$.when(
 		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-	        var minDatetemp = new Date(res.ScadaData[0]);
-	        var maxDatetemp = new Date(res.ScadaData[1]);
+			if (!app.isFine(res)) {
+	            return;
+	        }
+	        var minDatetemp = new Date(res.data.ScadaData[0]);
+	        var maxDatetemp = new Date(res.data.ScadaData[1]);
 	        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
 	        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 	    }),
@@ -789,10 +792,12 @@ page.saveView = function () {
 	paramViews.Name = $("#inputViewName").val();
 
 	app.ajaxPost(viewModel.appName + "userpreferences/saveanalysisstudioviews", paramViews, function (res) {
-		if (!app.isFine(res) || res.data == null) {
-			toolkit.showError("Error Occur when save the KPI");
-			return;
-		}
+		if (!app.isFine(res)) {
+            return;
+        }
+        if (res.data == null) {
+        	toolkit.showError("Error Occur when save views");
+        }
 
 		page.viewList = [];
 		page.viewList.push({

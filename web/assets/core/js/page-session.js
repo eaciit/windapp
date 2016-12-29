@@ -31,18 +31,18 @@ ss.setexpired = function (_id, username) {
     var activesession = '';
 
     toolkit.ajaxPost(viewModel.appName + "login/getsession", {}, function (ses) {
-        if (!toolkit.isFine(ses)) {
+        if (!app.isFine(ses)) {
             return;
         }
         activesession = ses.data;
         toolkit.ajaxPost(viewModel.appName + "session/setexpired", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
             if(param._id == activesession) {
                 toolkit.ajaxPost(viewModel.appName + "login/logout", {}, function (pes) {
-                    if (!toolkit.isFine(pes)) {
+                    if (!app.isFine(pes)) {
                         return;
                     }
 
@@ -79,7 +79,8 @@ ss.generateGrid = function () {
                 data: function data(res) {
                     ss.selectedTableID("show");
                     ss.contentIsLoading(false);
-                    return res.data.Datas;
+                    app.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },
