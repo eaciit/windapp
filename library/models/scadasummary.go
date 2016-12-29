@@ -166,3 +166,101 @@ func (m *ScadaSummaryByProject) RecordID() interface{} {
 func (m *ScadaSummaryByProject) TableName() string {
 	return "rpt_scadasummarybyproject"
 }
+
+type GWFAnalysisByProject struct {
+	orm.ModelBase  `bson:"-",json:"-"`
+	ID             bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName    string
+	Key            string
+	OrderNo        int
+	Roll12Days     GWFAnalysisValue
+	Roll12Weeks    GWFAnalysisValue
+	Roll12Months   GWFAnalysisValue
+	Roll12Quarters GWFAnalysisValue
+}
+
+func (m *GWFAnalysisByProject) New() *GWFAnalysisByProject {
+	m.ID = bson.NewObjectId()
+	return m
+}
+
+func (m *GWFAnalysisByProject) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *GWFAnalysisByProject) TableName() string {
+	return "GWFAnalaysisByProject"
+}
+
+type GWFAnalysisByTurbine1 struct {
+	orm.ModelBase  `bson:"-",json:"-"`
+	ID             bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName    string
+	Turbine        string
+	Key            string
+	OrderNo        int
+	Roll12Days     GWFAnalysisValue
+	Roll12Weeks    GWFAnalysisValue
+	Roll12Months   GWFAnalysisValue
+	Roll12Quarters GWFAnalysisValue
+}
+
+func (m *GWFAnalysisByTurbine1) New() *GWFAnalysisByTurbine1 {
+	m.ID = bson.NewObjectId()
+	return m
+}
+
+func (m *GWFAnalysisByTurbine1) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *GWFAnalysisByTurbine1) TableName() string {
+	return "GWFAnalaysisByTurbine1"
+}
+
+type GWFAnalysisByTurbine2 struct {
+	orm.ModelBase  `bson:"-",json:"-"`
+	ID             bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName    string
+	Key            string
+	OrderNo        int
+	Roll12Days     []GWFAnalysisItem2
+	Roll12Weeks    []GWFAnalysisItem2
+	Roll12Months   []GWFAnalysisItem2
+	Roll12Quarters []GWFAnalysisItem2
+}
+
+func (m *GWFAnalysisByTurbine2) New() *GWFAnalysisByTurbine2 {
+	m.ID = bson.NewObjectId()
+	return m
+}
+
+func (m *GWFAnalysisByTurbine2) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *GWFAnalysisByTurbine2) TableName() string {
+	return "GWFAnalaysisByTurbine2"
+}
+
+type GWFAnalysisValue struct {
+	DateText string
+	ValueAvg []GWFAnalysisItem
+	ValueMin []GWFAnalysisItem // used only for turbine 2 analysis
+	ValueMax []GWFAnalysisItem // used only for turbine 2 analysis
+}
+
+type GWFAnalysisItem struct {
+	DataId  string
+	Title   string
+	OrderNo int
+	Value   float64
+}
+
+type GWFAnalysisItem2 struct {
+	Turbine string
+	DataId  string
+	Title   string
+	OrderNo int
+	Value   float64
+}
