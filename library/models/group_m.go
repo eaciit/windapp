@@ -73,7 +73,7 @@ func SearchGroup(payload toolkit.M) (toolkit.M, error) {
 		return nil, err
 	}
 
-	data.Set("Datas", arrm)
+	data.Set("Data", arrm)
 	data.Set("total", c.Count())
 
 	return data, nil

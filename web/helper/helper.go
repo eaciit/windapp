@@ -301,8 +301,14 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
-	if toolkit.ToString(sessionid) == "" {
-		data = nil
+	if toolkit.ToString(sessionid) == "" || (!success && data == nil) {
+		dataX := struct {
+			Data []toolkit.M
+		}{
+			Data: []toolkit.M{},
+		}
+
+		data = dataX
 		success = false
 		message = "Your session has expired, please login"
 	}

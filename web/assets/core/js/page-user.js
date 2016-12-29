@@ -362,7 +362,8 @@ us.generateGrid = function () {
                 data: function data(res) {
                     us.selectedTableID("show");
                     us.contentIsLoading(false);
-                    return res.data.Datas;
+                    toolkit.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },

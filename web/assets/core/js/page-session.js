@@ -79,7 +79,8 @@ ss.generateGrid = function () {
                 data: function data(res) {
                     ss.selectedTableID("show");
                     ss.contentIsLoading(false);
-                    return res.data.Datas;
+                    toolkit.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },

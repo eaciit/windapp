@@ -236,7 +236,8 @@ gr.generateGrid = function () {
                 data: function data(res) {
                     gr.selectedTableID("show");
                     gr.contentIsLoading(false);
-                    return res.data.Datas;
+                    toolkit.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },
