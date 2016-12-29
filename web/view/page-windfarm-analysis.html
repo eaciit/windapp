@@ -1,0 +1,78 @@
+<script>
+    var availableDate = {{.AvailableDate}};
+
+    var projects = {{.ProjectList}};
+    var turbines = {{.TurbineList}};
+    turbines.unshift("All Turbines");
+
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-windfarm-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-windfarm-analysis/project.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-windfarm-analysis/turbine1.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-windfarm-analysis/turbine2.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style>
+#panel-windfarm-analysis {
+	margin-top: 15px;
+}
+.wfa-content {
+	padding: 10px;
+}
+.wfa-content .row {
+	margin-bottom: 20px;
+}
+.k-grid table tbody tr:not(.k-detail-row):hover {
+    background: transparent;
+    color: inherit;
+}
+.k-grid-header th.k-header, .k-filter-row th {
+   text-align: center;
+   height: 50px;
+}
+.k-grid-header th.k-header span.k-info, .k-filter-row th span.k-info {
+	font-weight: 500;
+}
+.databrowser-date-info{
+    background: #ea5b19;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    color: #fff;
+    font-size: 12px;
+    border-radius: 3px;
+}
+</style>
+
+<div class="row">
+	<div class="col-md-12 col-sm-12 ez panel-content" id="panel-windfarm-analysis">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+					Wind Farm Analysis&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+					| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+				</div>
+				<div class="panel-body MB20">
+					<div class="databrowser-date-info">
+                        Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                    </div>
+					<ul class="nav nav-tabs" role="tablist">
+                        <li id="tProjectAnalysis" role="presentation" class="active"><a href="#projectAnalysis" aria-controls="projectAnalysis" role="tab" data-toggle="tab" class="tab-custom">Project Analysis</a></li>
+                        <li id="tTurbine1Analysis" role="presentation"><a href="#turbine1Analysis" aria-controls="turbine1Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 1 Analysis</a></li>
+                        <li id="tTurbine2Analysis" role="presentation"><a href="#turbine2Analysis" aria-controls="turbine2Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 2 Analysis</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="projectAnalysis">
+                        	{{template "project.html"}}
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="turbine1Analysis">
+                        	{{template "turbine1.html"}}
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="turbine2Analysis">
+                        	{{template "turbine2.html"}}
+                        </div>
+                    </div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

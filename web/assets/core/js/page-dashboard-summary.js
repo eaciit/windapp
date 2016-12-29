@@ -27,7 +27,7 @@ sum.loadData = function () {
         var param = { ProjectName: project, Date: maxdate };
 
         var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -48,7 +48,7 @@ sum.loadData = function () {
         });
 
         var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             sum.dataSourceScada(res.data);
@@ -119,7 +119,10 @@ sum.SummaryData = function (project) {
         },
         /*serverPaging: true,
         serverSorting: true,*/
-        pageable: true,
+        pageable: {
+            pageSize: 2,
+            input: true, 
+        },
         columns: [
             { title: "Project Name", field: "name", headerAttributes: { style: "text-align:left;" }, attributes: { style: "text-align:left;" } },
             { title: "No. of WTG", field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
@@ -671,7 +674,7 @@ sum.indiaMap = function (project) {
     var param = { projectname: project }
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getmapdata", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -926,7 +929,7 @@ sum.DetailProd = function (e) {
     var param = { 'project': project, 'date': bulan };
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var dataSource = res.data;
@@ -1005,7 +1008,10 @@ sum.DetailProd = function (e) {
         });
         $("#gridDetailProduction").kendoGrid({
             theme: "flat",
-            pageable: true,
+            pageable: {
+                pageSize: 5,
+                input: true, 
+            },
             columns: [
                 { title: "Project Name", field: "project", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
                 { title: "No. of WTG", field: "wtg", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" } },
@@ -1109,7 +1115,10 @@ sum.DetailProdByProject = function (e, month, data) {
 
     $("#gridDetailProdByProject").kendoGrid({
         theme: "flat",
-        pageable: true,
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
         columns: [
             { title: "Turbine Name", field: "turbine", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
             { title: "Production<br>" + measurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" } },

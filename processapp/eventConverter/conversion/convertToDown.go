@@ -26,6 +26,7 @@ type GroupResult struct {
 	Project           string
 	Turbine           string
 	LatestProcessTime time.Time
+	LatestFrom        string
 }
 
 type DownConversion struct {
@@ -69,9 +70,15 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		"projectname":  loop.Project,
 		"turbine":      loop.Turbine,
 		"eventtype":    "alarmchanged",
-		"timestamp":    tk.M{"$gt": loop.LatestProcessTime},
 		"brakeprogram": tk.M{"$gt": 0},
 	}
+
+	if loop.LatestFrom == "Raw" {
+		match.Set("timestamp", tk.M{"$gte": loop.LatestProcessTime})
+	} else {
+		match.Set("timestamp", tk.M{"$gt": loop.LatestProcessTime})
+	}
+
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
 
@@ -111,8 +118,8 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 					// log.Printf("data: %v | %v | %v \n", data.TimeStamp.UTC(), data.AlarmToggle, data.AlarmId)
 					// log.Printf("loopData: %v \n", len(loopData))
 					// log.Printf("trueFound: %v | %#v \n", idx, len(trueFound))
+					// log.Printf("\n\nData: %v | %v | %v | %v | %v \n", data.AlarmToggle, data.AlarmDescription, data.TurbineStatus, data.TimeStamp.String(), data.AlarmId)
 					if data.DateInfo.MonthId != 0 {
-
 						tmp := EventDownDetail{}
 						tmp.AlarmId = data.AlarmId
 						tmp.AlarmToggle = data.AlarmToggle
@@ -125,8 +132,85 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 						// log.Printf("trueFound: %v | %#v \n", idx, len(trueFound))
 
-						if data.AlarmToggle {
-							//log.Printf("x: %v \n", data.AlarmId)
+						var isTrue bool
+
+						if len(trueFound) > 0 {
+							isStartDone := false
+							if trueFound[start.AlarmId].TimeStampInt == 0 {
+								isStartDone = true
+							}
+
+							if start.AlarmDescription != data.AlarmDescription && isStartDone {
+								isTrue = true
+							}
+
+							// log.Printf("condition: %v | %v || %#v \n", tk.IsNilOrEmpty(trueFound[start.AlarmId]), start.AlarmDescription != data.AlarmDescription, trueFound[start.AlarmId].TimeStampInt)
+						}
+
+						if (strings.ToLower(data.TurbineStatus) == "production" || strings.ToLower(data.TurbineStatus) == "waiting for wind") && isTrue {
+							// log.Printf("Production: %#v \n", data)
+							trueFound = map[int]EventDownDetail{}
+							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
+							end = loopData[idx-1]
+
+							down := new(EventDown).New()
+
+							down.ProjectName = loop.Project
+							down.Turbine = loop.Turbine
+
+							down.TimeStart = start.TimeStamp.UTC()
+							down.TimeStartInt = start.TimeStampInt
+							down.DateInfoStart = start.DateInfo
+
+							down.TimeEnd = end.TimeStamp.UTC()
+							down.TimeEndInt = end.TimeStampInt
+							down.DateInfoEnd = end.DateInfo
+
+							down.AlarmDescription = start.AlarmDescription
+							down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
+
+							down.Detail = details
+
+							if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
+								mutex.Lock()
+								brakeType := start.BrakeType
+								if strings.Contains(strings.ToLower(brakeType), "grid") {
+									down.DownGrid = true
+								}
+								if strings.Contains(strings.ToLower(brakeType), "environment") {
+									down.DownEnvironment = true
+								}
+								if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
+									down.DownMachine = true
+								}
+
+								down := down.New()
+								count := 0
+								for {
+									e := ev.Ctx.Insert(down)
+									if e != nil {
+										log.Printf("error: %v \n", e.Error())
+										down = down.New()
+									} else {
+										break
+									}
+
+									if count == 2 {
+										break
+									}
+									count++
+								}
+
+								mutex.Unlock()
+								// log.Print("Insert Event Down")
+							}
+
+							details = []EventDownDetail{}
+							endIdx = idx - 1
+							break reloop
+
+						} else if data.AlarmToggle {
+							// log.Printf("x: %v \n", data.AlarmId)
 
 							if startIdx == -1 {
 								startIdx = idx
@@ -245,6 +329,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 func (ev *DownConversion) getLatest() []GroupResult {
 	pipes := []tk.M{}
 	result := []GroupResult{}
+
 	// get max from down
 	// loop check max, if not exist then check min from eventraw
 
@@ -292,7 +377,7 @@ func (ev *DownConversion) getLatest() []GroupResult {
 			tmp.Project = id.GetString("project")
 			tmp.Turbine = id.GetString("turbine")
 			tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
-
+			tmp.LatestFrom = "Down"
 			result = append(result, tmp)
 		}
 	}
@@ -360,7 +445,7 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		tmp.Project = id.GetString("project")
 		tmp.Turbine = id.GetString("turbine")
 		tmp.LatestProcessTime = val.Get("timestamp").(time.Time).UTC()
-
+		tmp.LatestFrom = "Raw"
 		result = append(result, tmp)
 	}
 	csr.Close()

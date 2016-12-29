@@ -40,7 +40,10 @@ var Data = {
 	      groupable: false,
 	      sortable: true,
 	      filterable: false,
-	      pageable: true,
+	      pageable: {
+                pageSize: 10,
+                input: true, 
+          },
 	      scrollable: false,
 	      columns: [
 	        { title: "Model", field: "Model", width: 120 },
@@ -62,6 +65,9 @@ var Data = {
 	    var $this = this;
 
 		toolkit.ajaxPost(url, param, function(data) {
+			if (!app.isFine(data)) {
+	            return;
+	        }
             page.CurrentData({ ID: data.ID, Model: data.Model, WindSpeed: data.WindSpeed, Power1: data.Power1 });
 			$this.ShowForm('show');
         });
@@ -83,6 +89,9 @@ var Data = {
 	        var param = { id: id };
 
 		    toolkit.ajaxPost(url, param, function(data) {
+		    if (!app.isFine(data)) {
+	            return;
+	        }
 	          swal('Success', 'This data has been deleted!', 'success');
 	          $this.LoadData();
 	          app.isLoading(false);
@@ -106,6 +115,9 @@ var Data = {
 	    var $this = this;
 
 	    toolkit.ajaxPost(url, param, function(data) {
+	    	if (!app.isFine(data)) {
+	            return;
+	        }
             if(data=="") {
 		        $this.ShowForm('hide');
 		        swal('Success', 'Data has been saved successfully!', 'success');

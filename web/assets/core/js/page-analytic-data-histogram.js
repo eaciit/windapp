@@ -203,8 +203,11 @@ km.getData = function () {
     app.loading(true);
 
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        var minDatetemp = new Date(res.ScadaData[0]);
-        var maxDatetemp = new Date(res.ScadaData[1]);
+        if (!app.isFine(res)) {
+            return;
+        }
+        var minDatetemp = new Date(res.data.ScadaData[0]);
+        var maxDatetemp = new Date(res.data.ScadaData[1]);
         $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
     })
@@ -312,6 +315,9 @@ $(document).ready(function () {
     });
 
     setTimeout(function () {
+        if(fa.turbineList().length > 1){
+            $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+        }
         km.getData();
     }, 800);
 });

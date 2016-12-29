@@ -62,7 +62,7 @@ func GetLog(payload toolkit.M) (toolkit.M, error) {
 
 	defer c.Close()
 
-	data.Set("Datas", arrm)
+	data.Set("Data", arrm)
 	data.Set("total", count)
 
 	return data, nil

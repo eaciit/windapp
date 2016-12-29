@@ -51,7 +51,7 @@ func GetSession(payload toolkit.M) (toolkit.M, error) {
 		results = append(results, result[i])
 	}
 
-	data.Set("Datas", results)
+	data.Set("Data", results)
 	data.Set("total", toolkit.SliceLen(result))
 
 	return data, nil
