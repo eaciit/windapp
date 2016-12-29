@@ -459,7 +459,7 @@ var Data = {
                 schema: {
                     data: function (res) {
                         dbr.hfdvis(false);
-                        toolkit.isFine(res);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function (res) {
@@ -999,7 +999,7 @@ var Data = {
                     data: function(res) {
                         app.loading(false);
                         dbr.oemvis(false);
-                        toolkit.isFine(res);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -2430,7 +2430,7 @@ var Data = {
                     data: function(ress) {
                         // app.loading(false);
                         dbr.downeventvis(false);
-                        toolkit.isFine(ress);
+                        app.isFine(ress);
                         return ress.data.Data
                     },
                     total: function(res) {
@@ -6258,7 +6258,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        toolkit.isFine(res);
+                        app.isFine(res);
                         dbr.jmrvis(false);
                         return res.data.Data
                     },
@@ -6848,7 +6848,7 @@ var Data = {
                         }
                     },
                     data: function(res) {
-                        toolkit.isFine(res);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -7328,7 +7328,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        toolkit.isFine(res);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -7788,7 +7788,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        toolkit.isFine(res);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {

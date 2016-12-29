@@ -842,7 +842,7 @@ pg.ChartWindAvail = function () {
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var data = res.data;
@@ -1105,7 +1105,7 @@ pg.loadData = function () {
         // console.log(param);
         pg.getPeriodDesc();
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -1133,7 +1133,7 @@ pg.loadData = function () {
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
             // console.log(res);
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -1153,7 +1153,7 @@ pg.loadData = function () {
             Project: fa.project
         };
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeloss", paramdown, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             pg.DTLEbyType(res.data);

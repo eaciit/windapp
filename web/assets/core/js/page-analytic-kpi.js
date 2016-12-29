@@ -59,7 +59,7 @@ var Data = {
         fa.LoadData();
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -94,7 +94,7 @@ var Data = {
         } else {
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "analytickpi/getscadasummarylist", param, function (res) {
-                    if (!toolkit.isFine(res)) {
+                    if (!app.isFine(res)) {
                         return;
                     }
                     page.dataSource(res.data.Data);
@@ -338,7 +338,7 @@ page.saveView = function () {
     }
 
     app.ajaxPost(viewModel.appName + "userpreferences/savekpi", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         if (res.data == null) {

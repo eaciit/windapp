@@ -203,7 +203,7 @@ km.getData = function () {
     app.loading(true);
 
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var minDatetemp = new Date(res.data.ScadaData[0]);

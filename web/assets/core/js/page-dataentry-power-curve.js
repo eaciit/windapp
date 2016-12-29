@@ -65,7 +65,7 @@ var Data = {
 	    var $this = this;
 
 		toolkit.ajaxPost(url, param, function(data) {
-			if (!toolkit.isFine(data)) {
+			if (!app.isFine(data)) {
 	            return;
 	        }
             page.CurrentData({ ID: data.ID, Model: data.Model, WindSpeed: data.WindSpeed, Power1: data.Power1 });
@@ -89,7 +89,7 @@ var Data = {
 	        var param = { id: id };
 
 		    toolkit.ajaxPost(url, param, function(data) {
-		    if (!toolkit.isFine(data)) {
+		    if (!app.isFine(data)) {
 	            return;
 	        }
 	          swal('Success', 'This data has been deleted!', 'success');
@@ -115,7 +115,7 @@ var Data = {
 	    var $this = this;
 
 	    toolkit.ajaxPost(url, param, function(data) {
-	    	if (!toolkit.isFine(data)) {
+	    	if (!app.isFine(data)) {
 	            return;
 	        }
             if(data=="") {

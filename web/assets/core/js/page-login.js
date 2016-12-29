@@ -41,7 +41,7 @@ lg.getLogin = function () {
 
 	var param = ko.mapping.toJS(lg.configLogin);
 	toolkit.ajaxPost(viewModel.appName + "login/processlogin", param, function (res) {
-		if (!toolkit.isFine(res)) {
+		if (!app.isFine(res)) {
 			lg.showLoader(false);
 			return;
 		}
@@ -73,7 +73,7 @@ lg.getForgetLogin = function () {
 	var param = ko.mapping.toJS(lg.forgetLogin);
 
 	toolkit.ajaxPost(viewModel.appName + "login/resetpassword", param, function (res) {
-		if (!toolkit.isFine(res)) {
+		if (!app.isFine(res)) {
 			return;
 		}
 	});
@@ -99,7 +99,7 @@ lg.getConfirmReset = function () {
 		lg.getConfirReset.newpassword(lg.confirmReset.confirm_pass());
 		var param = ko.mapping.toJS(lg.getConfirReset);
 		toolkit.ajaxPost(viewModel.appName + "login/savepassword", param, function (res) {
-			if (!toolkit.isFine(res)) {
+			if (!app.isFine(res)) {
 				return;
 			}
 
@@ -110,7 +110,7 @@ lg.getConfirmReset = function () {
 
 lg.checkSession = function () {
 	toolkit.ajaxPost(viewModel.appName + 'login/checkcurrentsession', {}, function (res) {
-		if (!toolkit.isFine(res)) {
+		if (!app.isFine(res)) {
             return;
         }
 		if (res.data == true && res.message == "active") {

@@ -176,7 +176,7 @@ vm.logout = function () {
         function (isconfirm) {
             if (isconfirm) {
                 toolkit.ajaxPost(viewModel.appName + 'login/logout', {}, function (res) {
-                    if (!toolkit.isFine(res)) {
+                    if (!app.isFine(res)) {
                         return;
                     }
                 });
@@ -186,7 +186,7 @@ vm.logout = function () {
             }
         });
     // toolkit.ajaxPost(viewModel.appName + 'login/logout', {}, function (res) {
-    // 	if (!toolkit.isFine(res)) {
+    // 	if (!app.isFine(res)) {
     // 		return;
     // 	}
     // 	swal({
