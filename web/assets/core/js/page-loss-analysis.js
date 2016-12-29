@@ -164,47 +164,14 @@ pg.GridLoss = function () {
             groupable: false,
             sortable: true,
             filterable: false,
+            height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
             pageable: true,
             columns: [
+                { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
+                { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
+                { title: "Lost Energy (MWh)",headerAttributes: {style: "text-align:center;"},field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
                 {
-                    title: pg.type,
-                    field: "Id",
-                    width: 100,
-                    attributes: {
-                        style: "text-align:center;"
-                    },
-                    headerAttributes: {
-                        style: "text-align:center;"
-                    },
-                    footerTemplate: "<center>Total (All Turbines)</center>"
-                }, {
-                    title: "Production",
-                    headerAttributes: {
-                        style: "text-align:center;"
-                    },
-                    columns: [
-                        { title: "(MWh)", field: "Production", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                    ]
-                }, {
-                    title: "Lost Energy",
-                    headerAttributes: {
-                        style: "text-align:center;"
-                    },
-                    columns: [
-                        { title: "(MWh)", field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                    ]
-                    // field: "LossEnergy",
-                    // width: 100,
-                    // attributes: {
-                    //     class: "align-right"
-                    // },
-                    // format: "{0:n2}",
-                    // headerAttributes: {
-                    //     style: "text-align:center;"
-                    // }
-                },
-                {
-                    title: "Downtime : Duration",
+                    title: "Downtime : Duration (Hrs)",
                     headerAttributes: {
                         style: 'font-weight: bold; text-align: center;'
                     },
@@ -212,22 +179,16 @@ pg.GridLoss = function () {
                         {
                             title: "Machine",
                             headerAttributes: { style: "text-align:center;" },
-                            columns: [
-                                { title: "(Hours)", field: "MachineDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                            ]
-                            // field: "MachineDownHours", width: 100, attributes: { class: "align-right" },format: "{0:n2}",headerAttributes: { style: "text-align:center;" } 
+                            field: "MachineDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
                         },
                         {
                             title: "Grid",
                             headerAttributes: { style: "text-align:center;" },
-                            columns: [
-                                { title: "(Hours)", field: "GridDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"  },
-                            ]
-                            // field: "GridDownHours", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",headerAttributes: { style: "text-align:center;" }
+                            field: "GridDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
                         },
                     ]
                 }, {
-                    title: "Downtime : Energy Loss",
+                    title: "Downtime : Energy Loss (MWh)",
                     headerAttributes: {
                         style: 'font-weight: bold; text-align: center;'
                     },
@@ -235,71 +196,32 @@ pg.GridLoss = function () {
                         {
                             title: "Machine",
                             headerAttributes: { style: "text-align:center;" },
-                            columns: [
-                                { title: "(MWh)", field: "EnergyyMD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                            ]
-                            // field: "EnergyyMD", width: 100, attributes: { class: "align-right" },format: "{0:n2}",headerAttributes: { style: "text-align:center;" } 
+                            field: "EnergyyMD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
                         },
                         {
                             title: "Grid",
                             headerAttributes: { style: "text-align:center;" },
-                            columns: [
-                                { title: "(MWh)", field: "EnergyyGD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                            ]
-                            // field: "EnergyyGD", width: 100, attributes: { class: "align-right" }, format: "{0:n2}",headerAttributes: { style: "text-align:center;" }
+                            field: "EnergyyGD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
                         },
                     ]
                 }, {
-                    title: "Electrical Losses",
+                    title: "Electrical Losses (MWh)",
                     headerAttributes: {
                         style: "text-align:center;"
                     },
-                    columns: [
-                        { title: "(MWh)", field: "ElectricLoss", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                    ]
-                    // field: "ElectricLoss",
-                    // width: 100,
-                    // attributes: {
-                    //     class: "align-right"
-                    // },
-                    // format: "{0:n2}",
-                    // headerAttributes: {
-                    //     style: "text-align:center;"
-                    // }
+                    field: "ElectricLoss", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
                 }, {
-                    title: "Power Curve Deviation", //Sepertinya ini MW
+                    title: "Power Curve Deviation (MW)", //Sepertinya ini MW
                     headerAttributes: {
                         style: "text-align:center;"
                     },
-                    columns: [
-                        { title: "(MW)", field: "PCDeviation", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
-                    ]
-                    // field: "PCDeviation",
-                    // width: 100,
-                    // attributes: {
-                    //     class: "align-right"
-                    // },
-                    // format: "{0:n2}",
-                    // headerAttributes: {
-                    //     style: "text-align:center;"
-                    // }
+                    field: "PCDeviation", width: 120, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
                 }, {
-                    title: "Others", //Sepertinya ini KWh
+                    title: "Others (MWh)", //Sepertinya ini KWh
                     headerAttributes: {
                         style: "text-align:center;"
                     },
-                    columns: [
-                        { title: "(MWh)", field: "Others", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" },
-                    ]
-                    // field: "Others",
-                    // width: 100,
-                    // attributes: {
-                    //     class: "align-right"
-                    // },
-                    // format: "{0:n2}",
-                    // headerAttributes: {
-                    //     style: "text-align:center;"
-                    // }
+                    field: "Others", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
                 }]
         })
     });
@@ -328,7 +250,7 @@ pg.DTDuration = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -428,7 +350,7 @@ pg.DTFrequency = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -530,7 +452,7 @@ pg.TopTurbineLoss = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220,
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
             padding: 0,
             margin: 0
         },
@@ -649,7 +571,7 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             visible: true
         },
         chartArea: {
-            height: 220
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
         },
         seriesDefaults: {
             type: "column",
@@ -748,7 +670,6 @@ pg.createChartAvailability = function (dataSource) {
     colorField[0] = "#944dff";
 
     $("#availabilityChart").replaceWith('<div id="availabilityChart"></div>');
-    $("#availabilityChart").height(height);
     $("#availabilityChart").kendoChart({
         theme: "Flat",
         legend: {
@@ -757,11 +678,16 @@ pg.createChartAvailability = function (dataSource) {
         },
         series: series,
         seriesColors: colorField,
+        chartArea :{
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            padding: 0,
+            // background: "ransparent",
+        },
         valueAxes: [{
             line: {
                 visible: false
             },
-            max: 100,
+            max: max,
             min: 0,
             labels: {
                 format: "{0}",
@@ -831,12 +757,16 @@ pg.createChartProduction = function (dataSource) {
             position: "top",
             visible: true,
         },
-        chartArea: {
+        chartArea :{
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
+            margin : 0,
+            padding: 0,
             background: "transparent",
         },
         series: seriesProd,
         seriesColors: colorField,
         valueAxes: [{
+            max: max,
             visible: true,
             line: {
                 visible: false
@@ -901,7 +831,7 @@ pg.ChartWindAvail = function () {
             },
             theme: "Flat",
             chartArea: {
-                height: 500,
+                height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
             },
             legend: {
                 position: "top",
@@ -1015,7 +945,7 @@ pg.DTLEbyType = function (dataSource) {
             visible: true,
         },
         chartArea: {
-            height: 220
+            height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
         },
         seriesDefaults: {
             type: "column",
