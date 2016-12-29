@@ -328,3 +328,17 @@ func (w *PageController) Reporting(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-reporting.html"
 	return w.GetParams(r, false)
 }
+
+func (w *PageController) WindFarmAnalysis(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-windfarm-analysis.html"
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"page-windfarm-analysis/project.html",
+		"page-windfarm-analysis/turbine1.html",
+		"page-windfarm-analysis/turbine2.html"}...)
+
+	params := w.GetParams(r, true)
+	params.Set("AvailableDate", r.Session("availdate"))
+
+	return params
+}
