@@ -33,7 +33,7 @@ adm.unselectedAccessGroup = function (index) {
 adm.getAccess = function () {
     var data = [];
     toolkit.ajaxPost(viewModel.appName + "access/getaccessdropdown", {}, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         if (res.data == null) {

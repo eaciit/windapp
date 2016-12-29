@@ -86,7 +86,7 @@ us.selectGrant = ko.observableArray([]);
 us.getGrant = function () {
     var data = [];
     toolkit.ajaxPost(viewModel.appName + "group/getgroup", {}, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         if (res.data == null) {
@@ -114,7 +114,7 @@ us.findGrant = function (e) {
     toolkit.ajaxPost(viewModel.appName + "group/getaccessgroup", {
         _id: e
     }, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         if (res.data == null) {
@@ -232,7 +232,7 @@ us.removeGrant = function (data) {
 us.editData = function (id) {
     us.isNew(false);
     toolkit.ajaxPost(viewModel.appName + 'user/edituser', { _id: id }, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         // for (var i in res.data.Grants){
@@ -286,7 +286,7 @@ us.saveChanges = function () {
         }
     };
     toolkit.ajaxPost(viewModel.appName + 'user/saveuser', postparm, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -328,7 +328,7 @@ us.deleteuser = function () {
         }, function () {
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "user/deleteuser", { _id: us.tempCheckIdDelete() }, function (res) {
-                    if (!toolkit.isFine(res)) {
+                    if (!app.isFine(res)) {
                         return;
                     }
                     us.refreshData();
@@ -362,7 +362,8 @@ us.generateGrid = function () {
                 data: function data(res) {
                     us.selectedTableID("show");
                     us.contentIsLoading(false);
-                    return res.data.Datas;
+                    app.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },

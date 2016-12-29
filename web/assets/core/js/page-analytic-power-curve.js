@@ -111,7 +111,7 @@ var Data = {
         page.deviationVal($("#deviationValue").val());
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -154,6 +154,9 @@ var Data = {
                 legend: {
                     position: "bottom",
                     visible: false,
+                },
+                chartArea: {
+                    height: 375,
                 },
                 seriesDefaults: {
                     type: "scatterLine",
@@ -247,8 +250,9 @@ var Data = {
                         color: "#eee",
                         width: "2px",
                     },
-
-                }
+                },
+                pannable: true,
+                zoomable: true
             });
             app.loading(false);
             $("#powerCurve").data("kendoChart").refresh();
@@ -304,7 +308,7 @@ var Data = {
             ViewSession: page.viewSession()
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -400,7 +404,9 @@ var Data = {
                             },
                         }
                     },
-                }
+                },
+                pannable: true,
+                zoomable: true
             });
 
             app.loading(false);

@@ -100,7 +100,7 @@ gr.removeGrant = function (data) {
 gr.editData = function (id) {
     gr.isNew(false);
     toolkit.ajaxPost(viewModel.appName + 'group/editgroup', { _id: id }, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         for (var i in res.data.Grants) {
@@ -119,7 +119,7 @@ gr.displayAccess = function (e) {
     toolkit.ajaxPost(viewModel.appName + "group/getaccessgroup", {
         _id: e
     }, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         if (res.data == null) {
@@ -159,7 +159,7 @@ gr.saveChanges = function () {
         }
     };
     toolkit.ajaxPost(viewModel.appName + 'group/savegroup', postparm, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -202,7 +202,7 @@ gr.deletegroup = function () {
         }, function () {
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "group/deletegroup", { _id: gr.tempCheckIdDelete() }, function (res) {
-                    if (!toolkit.isFine(res)) {
+                    if (!app.isFine(res)) {
                         return;
                     }
                     gr.refreshData();
@@ -236,7 +236,8 @@ gr.generateGrid = function () {
                 data: function data(res) {
                     gr.selectedTableID("show");
                     gr.contentIsLoading(false);
-                    return res.data.Datas;
+                    app.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },

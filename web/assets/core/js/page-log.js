@@ -48,7 +48,8 @@ log.generateGrid = function () {
                 data: function data(res) {
                     log.selectedTableID("show");
                     log.contentIsLoading(false);
-                    return res.data.Datas;
+                    app.isFine(res);
+                    return res.data.Data;
                 },
                 total: "data.total"
             },

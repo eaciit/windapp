@@ -15,7 +15,7 @@ avb.ChartAvailability = function () {
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var data = res.data;

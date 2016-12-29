@@ -38,7 +38,7 @@ pm.loadData = function () {
     }, 100);
     
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -435,7 +435,7 @@ var Data = {
                     visible: false
                 },
                 chartArea: {
-                    height: 450
+                    height: 360
                 },
                 series: [{
                     type: "line",

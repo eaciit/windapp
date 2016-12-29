@@ -28,7 +28,7 @@ avail.loadData = function () {
 
     if (lgd.isAvailability()) {
         var request = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -1407,7 +1407,7 @@ avail.DTTopDetail = function (turbine, type) {
     }
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimetopdetail", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -1555,7 +1555,7 @@ avail.DTTurbines = function () {
     $("#dtturbines").html("");
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeturbines", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
 
@@ -1634,7 +1634,7 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
                 lastParamChart = paramChart;
             }
             toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
-                if (!toolkit.isFine(res)) {
+                if (!app.isFine(res)) {
                     return;
                 }
 
@@ -1667,7 +1667,7 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
             lastParamChart = paramChart;
 
             toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
-                if (!toolkit.isFine(res)) {
+                if (!app.isFine(res)) {
                     return;
                 }
 
@@ -1718,7 +1718,7 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
         }
 
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
