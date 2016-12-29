@@ -1524,7 +1524,10 @@ avail.DTTopDetail = function (turbine, type) {
         groupable: false,
         sortable: true,
         filterable: false,
-        pageable: true,
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
         //resizable: true,
         columns: [
             { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
@@ -1556,7 +1559,10 @@ avail.DTTurbines = function () {
             return;
         }
 
-        $.each(res.data, function (idx, val) {
+        if (res.data.length == 0){
+            $("#dtturbines").html("<center><h2>NONE</h2></center>");
+        }else{
+            $.each(res.data, function (idx, val) {
             var btn = "btn-success";
             var turbine = val._id;
             var value = val.result.toFixed(2);
@@ -1569,7 +1575,8 @@ avail.DTTurbines = function () {
                 '<button type="button" class="btn btn-sm ' + btn + '">' + turbine + '</button>' +
                 '<button type="button" class="btn btn-sm btn-warning">' + value + '</button>' +
                 '</div>');
-        });
+            });
+        }        
     });
 }
 
@@ -1761,7 +1768,10 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
         groupable: false,
         sortable: true,
         filterable: false,
-        pageable: true,
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
         //resizable: true,
         columns: [
             { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
