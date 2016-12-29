@@ -24,3 +24,4 @@ _testmain.go
 *.prof
 helper.go
 config/configurations.json
+processapp/conf/app.conf
