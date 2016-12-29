@@ -83,7 +83,7 @@ km.createChart = function (dataSource) {
 				visible: true,
 			},
 			chartArea: {
-				// height : 300,
+				height : 370,
 				// width : 900
 			},
 			series: series,
@@ -195,7 +195,7 @@ km.setBreakDown = function () {
 km.getData = function () {
 	app.loading(true);
 	var request = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-		if (!toolkit.isFine(res)) {
+		if (!app.isFine(res)) {
             return;
         }
         var minDatetemp = new Date(res.data.ScadaData[0]);

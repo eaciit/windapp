@@ -61,7 +61,7 @@ var turbineval = [];
 page.getData = function () {
 	$.when(
 		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-			if (!toolkit.isFine(res)) {
+			if (!app.isFine(res)) {
 	            return;
 	        }
 	        var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -792,7 +792,7 @@ page.saveView = function () {
 	paramViews.Name = $("#inputViewName").val();
 
 	app.ajaxPost(viewModel.appName + "userpreferences/saveanalysisstudioviews", paramViews, function (res) {
-		if (!toolkit.isFine(res)) {
+		if (!app.isFine(res)) {
             return;
         }
         if (res.data == null) {

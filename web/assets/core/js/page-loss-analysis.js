@@ -12,6 +12,21 @@ pg.periodDesc = ko.observable();
 pg.breakDown = ko.observableArray([]);
 pg.typeChart = ko.observable();
 pg.dataSource = ko.observableArray();
+
+pg.availabledatestartscada = ko.observable();
+pg.availabledateendscada = ko.observable();
+pg.availabledatestartscada2 = ko.observable();
+pg.availabledateendscada2 = ko.observable();
+
+pg.availabledatestartalarm = ko.observable();
+pg.availabledateendalarm = ko.observable();
+
+pg.availabledatestartscada3 = ko.observable();
+pg.availabledateendscada3 = ko.observable();
+
+pg.availabledatestartalarm2 = ko.observable();
+pg.availabledateendalarm2 = ko.observable();
+
 var height = $(".content").width() * 0.125;
 
 pg.breakDownList = ko.observableArray([
@@ -827,7 +842,7 @@ pg.ChartWindAvail = function () {
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var data = res.data;
@@ -1029,7 +1044,6 @@ pg.DTLEbyType = function (dataSource) {
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            // sharedTemplate: kendo.template($("#templateDTLEbyType").html()),
             background: "rgb(255,255,255, 0.9)",
             shared: true,
             color: "#58666e",
@@ -1039,180 +1053,10 @@ pg.DTLEbyType = function (dataSource) {
                 width: "2px",
             },
         },
-        /*seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, false, "chartbytype");
-        }*/
     });
 }
 
-pg.DTTopDetail = function (turbine, type) {
-    // app.loading(true);
-    // var project = fa.project;
-    // var date = new Date(Date.UTC(2016,5,30,23,59,59,0));
-    // var param = {ProjectName : project, Date: date, Type: type, Turbine: turbine};
-
-    // var template = (type == 'Hours' ? "#: category # : #:  kendo.toString(value, 'n1') #" : "#: category # : #:  kendo.toString(value, 'n0') #")
-    // toolkit.ajaxPost(viewModel.appName +"dashboard/getdowntimetopdetail",param, function (res) {
-    //     if (!toolkit.isFine(res)) {
-    //         return;
-    //     }
-
-    //     var dataSource = res.data
-
-    //     $("#chartDTTopDetail").kendoChart({
-    //         dataSource: {
-    //             data: dataSource,
-    //         },
-    //         theme: "flat",
-    //         title: {
-    //             text: ""
-    //         },
-    //         legend: {
-    //             position: "top",
-    //             visible : false,
-    //         },
-    //         chartArea: {
-    //         height : 160
-    //         },
-    //         seriesDefaults: {
-    //             area: {
-    //                 line: {
-    //                     style: "smooth"
-    //                 }
-    //             }
-    //         },
-    //         series: [{
-    //             // name : "Lost Energy",
-    //             field : "result",
-    //             // opacity : 0.7,
-    //         }],
-    //         seriesColors: colorField,
-    //         valueAxis: {
-    //         //majorUnit: 100,
-    //             labels:{
-    //                 step : 2
-    //             },
-    //             line: {
-    //                 visible: false
-    //             },
-    //             axisCrossingValue: -10,
-    //             majorGridLines: {
-    //                 visible: true,
-    //                 color: "#eee",
-    //                 width: 0.8,
-    //             }
-    //         },
-    //         categoryAxis: {
-    //             field: "_id.id2",
-    //             majorGridLines: {
-    //                 visible: false
-    //             },
-    //             labels:{
-    //                 template: '#=  value.substring(0,3) #'
-    //             },
-    //             majorTickType: "none"
-    //         },
-    //         tooltip: {
-    //             visible: true,
-    //             template : template,
-    //             background: "rgb(255,255,255, 0.9)",
-    //             color : "#58666e",
-    //             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-    //             border : {
-    //                 color : "#eee",
-    //                 width : "2px",
-    //             },
-
-    //         }
-    //     });
-
-    //     app.loading(false);
-    //     $("#chartDTTopDetail").data("kendoChart").refresh();
-    // });
-
-    // $('#gridDTTopDetail').html("");
-    // $('#gridDTTopDetail').kendoGrid({
-    //     dataSource: {
-    //         serverPaging: true,
-    //         serverSorting: true,
-    //         transport: {
-    //             read: {
-    //             url: viewModel.appName + "dashboard/getdowntimetopdetailtable",
-    //             type: "POST",
-    //             data: param,
-    //             dataType: "json",
-    //             contentType: "application/json; charset=utf-8"
-    //             },
-    //             parameterMap: function(options) {
-    //             return JSON.stringify(options);
-    //             }
-    //         },
-    //         pageSize: 10,
-    //         schema: {
-    //             data: function(res){
-    //                 if (!app.isFine(res)) {
-    //                     return;
-    //                 }
-    //                 return res.data.data
-    //             },
-    //             total: function(res){
-    //                 if (!app.isFine(res)) {
-    //                     return;
-    //                 }
-    //                 return res.data.total;
-    //             }
-    //         },
-    //         sort: [
-    //             { field: 'StartDate', dir: 'asc' }
-    //         ],
-    //     },
-    //     groupable: false,
-    //     sortable: true,
-    //     filterable: false,
-    //     pageable: true,
-    //     //resizable: true,
-    //     columns: [
-    //         { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80},
-    //         { title: "Start Time", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 75, attributes:{style:"text-align:center;"} },
-    //         { title: "End Date", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80},
-    //         { title: "End Time", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 70, attributes:{style:"text-align:center;"}},
-    //         { title: "Alert Description", field: "AlertDescription", width: 200 },
-    //         { title: "External Stop", field: "ExternalStop", width: 80 , sortable: false, template:'# if (ExternalStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},
-    //         { title: "Grid Down", field: "GridDown", width: 80 , sortable: false, template:'# if (GridDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},
-    //         { title: "Internal Grid", field: "InternalGrid", width: 80 , sortable: false, template:'# if (InternalGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},
-    //         { title: "Machine Down", field: "MachineDown", width: 80 , sortable: false, template:'# if (MachineDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},
-    //         { title: "AEbOK", field: "AEbOK", width: 80 , sortable: false, template:'# if (AEbOK == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},
-    //         { title: "Unknown", field: "Unknown", width: 80 , sortable: false, template:'# if (Unknown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},
-    //         { title: "Weather Stop", field: "WeatherStop", width: 80 , sortable: false, template:'# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style:"text-align: center" }, attributes:{style:"text-align:center;"}},            
-    //     ]
-    // });
-
-}
-
-pg.toDetailDTTop = function (e, type) {
-    // vm.isDashboard(false);
-
-    // if (type == "Times") {
-    //     pg.detailDTTopTxt("("+e.category+") - Frequency");
-    // }else{
-    //     pg.detailDTTopTxt("("+e.category+") - "+type);
-    // }
-    // pg.isDetailDTTop(true);
-
-    // // get the data and push into the chart    
-    // pg.DTTopDetail(e.category, type);
-}
-
 pg.backToDownTime = function () {
-    // vm.isDashboard(true);
-
-    // pg.isSummary(false);
-    // pg.isProduction(false);
-    // pg.isAvailability(false);
-    // pg.isDowntime(true);
-
-    // pg.isDetailDTLostEnergy(false);
-    // pg.detailDTLostEnergyTxt("Lost Energy for Last 12 months");
 
     pg.isDetailDTTop(false);
     pg.detailDTTopTxt("");
@@ -1229,6 +1073,7 @@ pg.getPeriodDesc = function () {
 }
 
 pg.loadData = function () {
+
     fa.getProjectInfo();
     setTimeout(function () {
         pg.SetBreakDown();
@@ -1260,30 +1105,35 @@ pg.loadData = function () {
         // console.log(param);
         pg.getPeriodDesc();
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             var minDatetemp = new Date(res.data.ScadaData[0]);
             var maxDatetemp = new Date(res.data.ScadaData[1]);
-            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartscada2').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada2').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+            pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartalarm').html(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
-            $('#availabledateendalarm').html(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
+            pg.availabledatestartscada2(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            pg.availabledateendscada2(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartscada3').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada3').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+            pg.availabledatestartalarm(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+            pg.availabledateendalarm(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
 
-            $('#availabledatestartalarm2').html(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
-            $('#availabledateendalarm2').html(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
+            pg.availabledatestartscada3(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            pg.availabledateendscada3(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+            pg.availabledatestartalarm2(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+            pg.availabledateendalarm2(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
+
+            $('#availabledatestart').html(pg.availabledatestartscada());
+            $('#availabledateend').html(pg.availabledateendscada());
+
         })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
             // console.log(res);
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
 
@@ -1303,23 +1153,42 @@ pg.loadData = function () {
             Project: fa.project
         };
         toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeloss", paramdown, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             pg.DTLEbyType(res.data);
         });
     }, 100);
-    // console.log(app.dateAvail);
-    var tes = app.dateAvail;
-    for(var key in tes){
-        // The key is key
-        // The value is obj[key]
-        console.log(key);
-    }
 }
 
-pg.refreshGrid = function () {
+pg.refreshGrid = function (param) {
     app.loading(true);
+    if(param != "undefined"){
+        if(param == "staticView"){
+            $('#availabledatestart').html(pg.availabledatestartscada());
+            $('#availabledateend').html(pg.availabledateendscada());
+        }
+        if(param == 'top10downtime'){
+            $('#availabledatestart').html(pg.availabledatestartalarm2());
+            $('#availabledateend').html(pg.availabledateendalarm2());
+        }
+        if(param == 'availability'){
+            $('#availabledatestart').html(pg.availabledatestartscada3());
+            $('#availabledateend').html(pg.availabledateendscada3());
+        }
+        if(param == 'lostenergy'){
+            $('#availabledatestart').html(pg.availabledatestartalarm());
+            $('#availabledateend').html(pg.availabledateendalarm());
+        }
+        if(param == 'reliabilitykpi'){
+            $('#availabledatestart').html(pg.availabledatestartscada2());
+            $('#availabledateend').html(pg.availabledateendscada2());
+        }
+        if(param == 'windspeedavail'){
+            $('#availabledatestart').html(pg.availabledatestartscada2());
+            $('#availabledateend').html(pg.availabledateendscada2());
+        }
+    }
     setTimeout(function () {
         if ($("#gridLoss").data("kendoGrid") != null) {
             $("#gridLoss").data("kendoGrid").refresh();
@@ -1398,13 +1267,6 @@ pg.SetBreakDown = function () {
     }, 1000);
 }
 
-// pg.totable = function(id){
-//     $('#'+id).kendoChart2Grid();
-//     $("#"+id).css("top",10);
-//      $("#"+id).css("height",210);
-//     $("#"+id).css("margin-bottom",30);
-// }
-
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
@@ -1413,6 +1275,7 @@ vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', 
 $(document).ready(function () {
     fa.LoadData();
     $('#btnRefresh').on('click', function () {
+         app.loading(true);
         fa.LoadData();
         pg.loadData();
     });

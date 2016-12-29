@@ -96,7 +96,7 @@ pg.loadData = function () {
     app.loading(true);
 
     var request = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!toolkit.isFine(res)) {
+        if (!app.isFine(res)) {
             return;
         }
         var minDatetemp = new Date(res.data.ScadaData[0]);

@@ -22,7 +22,7 @@ var Data = {
     },
     InitGrid : function(){
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!toolkit.isFine(res)) {
+            if (!app.isFine(res)) {
                 return;
             }
             var minDatetemp = new Date(res.data.ScadaData[0]);
@@ -244,7 +244,9 @@ var Data = {
                         $(elem).append('<td aria-expanded="true" style="text-align:center">'+kendo.toString(prj.ProductionIndexYTD, "n2")+'</td>');  
                     }
 
-                }else{console.log("tidak ada")}
+                } else {
+                    console.log("data not found");
+                }
             })
     }
 }

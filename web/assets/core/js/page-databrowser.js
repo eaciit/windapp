@@ -458,10 +458,8 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function (res) {
-                         dbr.hfdvis(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        dbr.hfdvis(false);
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function (res) {
@@ -1001,9 +999,7 @@ var Data = {
                     data: function(res) {
                         app.loading(false);
                         dbr.oemvis(false);
-                        if (!app.isFine(res)) {   
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -2434,9 +2430,7 @@ var Data = {
                     data: function(ress) {
                         // app.loading(false);
                         dbr.downeventvis(false);
-                        if (!app.isFine(ress)) {
-                            return;
-                        }
+                        app.isFine(ress);
                         return ress.data.Data
                     },
                     total: function(res) {
@@ -2629,10 +2623,6 @@ var Data = {
                     data: function(res) {
                         dbr.customvis(false);
                         // app.loading(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
-
                         return res.data.Data
                     },
                     total: function(res) {
@@ -2748,9 +2738,6 @@ var Data = {
                     data: function(res) {
                         // app.loading(false);
                         dbr.eventrawvis(false);
-                        if (!app.isFine(res)) {
-                            return;
-                        }
                         return res.data.Data
                     },
                     total: function(res) {
@@ -6271,10 +6258,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            dbr.jmrvis(false);
-                            return;
-                        }
+                        app.isFine(res);
                         dbr.jmrvis(false);
                         return res.data.Data
                     },
@@ -6864,9 +6848,7 @@ var Data = {
                         }
                     },
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -7346,9 +7328,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
@@ -7808,9 +7788,7 @@ var Data = {
                 pageSize: 10,
                 schema: {
                     data: function(res) {
-                        if (!app.isFine(res)) {
-                            return;
-                        }
+                        app.isFine(res);
                         return res.data.Data
                     },
                     total: function(res) {
