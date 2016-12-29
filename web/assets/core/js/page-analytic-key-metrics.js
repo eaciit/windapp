@@ -83,7 +83,7 @@ km.createChart = function (dataSource) {
 				visible: true,
 			},
 			chartArea: {
-				// height : 300,
+				height : 370,
 				// width : 900
 			},
 			series: series,

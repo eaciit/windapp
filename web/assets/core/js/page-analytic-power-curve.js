@@ -155,6 +155,9 @@ var Data = {
                     position: "bottom",
                     visible: false,
                 },
+                chartArea: {
+                    height: 375,
+                },
                 seriesDefaults: {
                     type: "scatterLine",
                     style: "smooth",

@@ -435,7 +435,7 @@ var Data = {
                     visible: false
                 },
                 chartArea: {
-                    height: 450
+                    height: 360
                 },
                 series: [{
                     type: "line",
