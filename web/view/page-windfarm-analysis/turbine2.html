@@ -1,0 +1,21 @@
+<div class="wfa-content">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="form-group">
+				<label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+				<select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+					style="width:120px">
+		        </select>
+				<label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+				<select class="col-md-11 col-sm-6 turbine-list" id="turbine2List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine2List')}, suggest: true }"
+					style="width:320px">
+	            </select>
+	        </div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div id="gridTurbine2" class="grid-custom"></div>		
+		</div>
+	</div>
+</div>
