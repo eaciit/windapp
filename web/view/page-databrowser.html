@@ -19,7 +19,7 @@
                 <li>
                     <label class="control-label col-md-1 col-sm-1 label-turbine" style="width:80px;">Turbine</label>
                     <select class="col-md-1 col-sm-1 turbine-multi" id="turbineMulti" data-bind="kendoMultiSelect: { data: dbr.turbineList, dataValueField: 'value', dataTextField: 'text', filter: 'contains', suggest: true, change: function() {dbr.checkTurbine()} }" style="width:120px;">
-					</select>
+                    </select>
                 </li>
                 <li>
                     <button type="button" id="btnRefresh" class="btn btn-sm btn-primary" style="margin-left: 10px;"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
@@ -38,15 +38,16 @@
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="Main">
                             <ul class="nav nav-tabs" role="tablist">
-                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scada" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
-                                <li id="downtimeeventTab" role="presentation" ><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="scada" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
+                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
+                                <li id="scadahfdTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#scadahfd" aria-controls="scadahfd" role="tab" data-toggle="tab" class="tab-custom">Scada Data HFD</a></li>
+                                <li id="downtimeeventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
                                 <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
                                 <li id="eventTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
-                                <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
+                                <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#MET" aria-controls="MET" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
                                 <li id="jmrTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
                             </ul>
                             <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane active" id="scada">
+                                <div role="tabpanel" class="tab-pane active" id="scadaoem">
                                     <div data-bind="visible:!dbr.oemvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartscadadataoem">-</span></strong> until: <strong><span id="availabledateendscadadataoem">-</span></strong>
@@ -74,13 +75,32 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexcelscadaoem')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelscadaoem')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="scadaGrid" class="grid-custom-db-new"></div>
                                         </div>
                                     </div>
                                 </div>
-
+                                <div role="tabpanel" class="tab-pane" id="scadahfd">
+                                    <div data-bind="visible:!dbr.hfdvis()">
+                                        <div class="databrowser-date-info">
+                                            Data Available from: <strong><span id="availabledatestartscadadatahfd">-</span></strong> until: <strong><span id="availabledateendscadadatahfd">-</span></strong>
+                                        </div>
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Total Turbine</label><br />
+                                            <label id="totalturbinehfd" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-green">
+                                            <label class="summary-header">Total Data</label><br />
+                                            <label id="totaldatahfd" class="summary-number">0</label>
+                                        </div>
+                                        <div class="tab-pane-content">
+                                            <div class="clearfix">&nbsp;</div>
+                                           
+                                            <div id="scadahfdGrid" class="grid-custom-db-new"></div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div role="tabpanel" class="tab-pane" id="downtimeevent">
                                     <div data-bind="visible:!dbr.downeventvis()">
                                         <div class="databrowser-date-info">
@@ -97,14 +117,14 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexceldowntimeevent')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexceldowntimeevent')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="DEgrid" class="grid-custom-db-new"></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                 <div role="tabpanel" class="tab-pane" id="custom">
+                                <div role="tabpanel" class="tab-pane" id="custom">
                                     <div data-bind="visible:!dbr.customvis()">
                                         <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
@@ -131,14 +151,19 @@
                                                 <label id="avgwindspeedCustom" class="summary-number">0</label>
                                             </div>
                                             <div class="clearfix">&nbsp;</div>
+                                            <div class="etoExcel">
+                                                 <a href="#" data-toggle="collapse" class="k-grid-showHideColumn btn btn-sm btn-primary tooltipster tooltipstered" title="Click to show column list"><i class="fa fa-eye-slash"></i></a>&nbsp;&nbsp;
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="dbr.exportToExcel('customGrid')"><i class="fa fa-file-excel-o"></i></button>
+                                               
+                                            </div>
                                             <div id="customGrid" class="grid-custom-db-new"></div>
                                         </div>
                                     </div>
-                                 </div>
+                                </div>
 
-                                 <div role="tabpanel" class="tab-pane" id="eventraw">
-                                     <div data-bind="visible:!dbr.eventrawvis()">
-                                         <div class="tab-pane-content">
+                                <div role="tabpanel" class="tab-pane" id="eventraw">
+                                    <div data-bind="visible:!dbr.eventrawvis()">
+                                        <div class="tab-pane-content">
                                             <div class="databrowser-date-info">
                                                 Data Available from: <strong><span id="eventdatestart">-</span></strong> until: <strong><span id="eventdateend">-</span></strong>
                                             </div>
@@ -150,15 +175,15 @@
                                                 <label class="summary-header">Total Data</label><br />
                                                 <label id="totaldataEvent" class="summary-number">0</label>
                                             </div>
-                                            
+
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexceleventraw')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexceleventraw')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="EventGrid" class="grid-custom-db-new"></div>
                                         </div>
-                                     </div>
-                                 </div>
+                                    </div>
+                                </div>
 
                                 <div role="tabpanel" class="tab-pane" id="MET">
                                     <div data-bind="visible:!dbr.mettowervis()">
@@ -172,15 +197,15 @@
                                             </div>
                                             <div class="tab-pane-content">
                                                 <div class="etoExcel">
-                                                    <button type="button" class="btn btn-sm btn-default" onclick="ExportExcelScadaOem('genexcelmet')"><i class="fa fa-file-excel-o"></i>&nbsp;Export to Excel</button>
-                                                </div>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelmet')"><i class="fa fa-file-excel-o"></i></button>
+                                            </div>
                                                 <div id="dataGridMet" class="grid-custom-db-new"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                 <div role="tabpanel" class="tab-pane " id="JMR">
+                                <div role="tabpanel" class="tab-pane " id="JMR">
                                     <div data-bind="visible:!dbr.jmrvis()">
                                         <div class="databrowser-date-info">
                                             Data Available from: <strong><span id="availabledatestartjmr">-</span></strong> until: <strong><span id="availabledateendjmr">-</span></strong>
@@ -192,7 +217,7 @@
                                         <div class="tab-pane-content">
                                             <div id="dataGridJMR"></div>
                                         </div>
-                                    </div>                                    
+                                    </div>
                                 </div>
 
                             </div>
@@ -205,6 +230,7 @@
                                 <li id="alarmAnomaliesTab" role="presentation"><a onclick="Data.RefreshGrid()" href="#AlarmAnomalies" aria-controls="AlarmAnomalies" role="tab" data-toggle="tab" class="tab-custom">Alarm Anomaly</a></li>
                             </ul>
                             <div class="tab-content">
+
                                 <div role="tabpanel" class="tab-pane active" id="ScadaExceptionTimeDuration">
                                     <div class="databrowser-date-info">
                                         Data Available from: <strong><span id="availabledatestartduration">-</span></strong> until: <strong><span id="availabledateendduration">-</span></strong>
@@ -234,21 +260,24 @@
                                         <label id="avgwindspeedExceptionTimeDuration" class="summary-number">0.00</label>
                                     </div>
                                     <div class="tab-pane-content">
-                                        <a href="#scadaException" data-toggle="collapse" class="pull-right label-showhide tooltipster tooltipstered" title="Click to show column list">Hide / Show Columns</a>
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div class="etoExcel">
+                                                <a href="#" id="scadaExceptionbtn" data-toggle="collapse" class="btn btn-sm btn-primary tooltipster tooltipstered" title="Click to show column list"><i class="fa fa-eye-slash"></i></a>&nbsp;&nbsp;
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelscada')"><i class="fa fa-file-excel-o"></i></button>
+                                        </div>
                                         <div id="scadaException" class="collapse content-showhide">
                                             <div data-bind="foreach: dbr.gridColumnsScadaException">
                                                 <div class="col-md-2">
                                                     <div class="checkbox">
                                                         <label>
-											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-exception-'+$index()} , click: dbr.ShowHideColumnScada('dataGridExceptionTimeDuration',field, 'chk-grid-scada-exception-'+$index(),$index())}">
-											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-											            <span data-bind="text:title"></span>
-											          </label>
+                                                        <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-exception-'+$index()} , click: dbr.ShowHideColumnScada('dataGridExceptionTimeDuration',field, 'chk-grid-scada-exception-'+$index(),$index())}">
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span data-bind="text:title"></span>
+                                                      </label>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="clearfix">&nbsp;</div>
                                         <div id="dataGridExceptionTimeDuration" class="grid-custom"></div>
                                     </div>
                                 </div>
@@ -282,21 +311,25 @@
                                         <label id="avgwindspeedAnomalies" class="summary-number">0.00</label>
                                     </div>
                                     <div class="tab-pane-content">
-                                        <a href="#scadaAnomaly" data-toggle="collapse" class="pull-right label-showhide tooltipster tooltipstered" title="Click to show column list">Hide / Show Columns</a>
+                                        <div class="clearfix">&nbsp;</div>
+                                        <div class="etoExcel">
+                                                 <a href="#scadaAnomaly" id="scadaAnomalybtn" data-toggle="collapse" class="btn btn-sm btn-primary tooltipster tooltipstered" title="Click to show column list"><i class="fa fa-eye-slash"></i></a>&nbsp;&nbsp;
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="dbr.exportToExcel('dataGridAnomalies')"><i class="fa fa-file-excel-o"></i></button>
+                                               
+                                        </div>
                                         <div id="scadaAnomaly" class="collapse content-showhide">
                                             <div data-bind="foreach: dbr.gridColumnsScadaAnomaly">
                                                 <div class="col-md-2">
                                                     <div class="checkbox">
                                                         <label>
-											            <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-anomaly-'+$index()} , click: dbr.ShowHideColumnScada('dataGridAnomalies',field, 'chk-grid-scada-anomaly-'+$index(),$index())}">
-											            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-											            <span data-bind="text:title"></span>
-											          </label>
+                                                        <input type="checkbox" data-bind="{checked: value ,attr:{id: 'chk-grid-scada-anomaly-'+$index()} , click: dbr.ShowHideColumnScada('dataGridAnomalies',field, 'chk-grid-scada-anomaly-'+$index(),$index())}">
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span data-bind="text:title"></span>
+                                                      </label>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="clearfix">&nbsp;</div>
                                         <div id="dataGridAnomalies" class="grid-custom"></div>
                                     </div>
                                 </div>
@@ -331,6 +364,9 @@
                                         <label id="totaldataalarmAnomalies" class="summary-number">0</label>
                                     </div>
                                     <div class="tab-pane-content">
+                                        <div class="etoExcel">
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="dbr.exportToExcel('dataGridAlarmAnomalies')"><i class="fa fa-file-excel-o"></i></button>&nbsp;&nbsp;
+                                        </div>
                                         <div id="dataGridAlarmAnomalies" class="grid-custom"></div>
                                     </div>
                                 </div>
@@ -359,8 +395,8 @@
                 </div>
                 <div class="col-md-2 div-control">
                     <div class="btn-group">
-                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToRight" data-bind="click:function() {dbr.selectRow()}"><i class="fa fa-angle-double-left"></i></button>
-                      <button type="button" class="btn btn-default btn-sm btn-control" id="moveToLeft" data-bind="click:function() {dbr.unselectRow()}"><i class="fa fa-angle-double-right"></i></button>
+                        <button type="button" class="btn btn-default btn-sm btn-control" id="moveToRight" data-bind="click:function() {dbr.selectRow()}"><i class="fa fa-angle-double-left"></i></button>
+                        <button type="button" class="btn btn-default btn-sm btn-control" id="moveToLeft" data-bind="click:function() {dbr.unselectRow()}"><i class="fa fa-angle-double-right"></i></button>
                     </div>
                 </div>
                 <div class="col-md-5">

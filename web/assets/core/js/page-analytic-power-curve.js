@@ -6,10 +6,13 @@ var page = viewModel.AnalyticPowerCurve;
 page.turbineList = ko.observableArray([]);
 page.downList = ko.observableArray([]);
 page.dtLineChart = ko.observableArray([]);
-page.projectList = ko.observableArray([
-    { "value": 1, "text": "WindFarm-01" },
-    { "value": 2, "text": "WindFarm-02" },
-]);
+page.projectList = ko.observableArray([{
+    "value": 1,
+    "text": "WindFarm-01"
+}, {
+    "value": 2,
+    "text": "WindFarm-02"
+}, ]);
 
 page.isMain = ko.observable(true);
 page.isDetail = ko.observable(false);
@@ -26,41 +29,55 @@ page.deviationVal = ko.observable("20");
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
 
-page.backToMain = function () {
+page.backToMain = function() {
     page.isMain(true);
     page.isDetail(false);
 }
-page.toDetail = function (selected) {
+page.toDetail = function(selected) {
     page.isMain(false);
     page.isDetail(true);
     Data.InitCurveDetail(selected);
 }
-page.populateTurbine = function(){
+page.populateTurbine = function() {
     page.turbine([]);
-    if(fa.turbine == ""){
-        $.each(fa.turbineList(), function(i, val){
-            if (i > 0){
+    if (fa.turbine == "") {
+        $.each(fa.turbineList(), function(i, val) {
+            if (i > 0) {
                 page.turbine.push(val.text);
             }
         });
-    }else{
+    } else {
         page.turbine(fa.turbine);
     }
-
 }
-
-page.ExportPowerCurvePdf = function () {
+page.ExportPowerCurvePdf = function() {
     var chart = $("#powerCurve").getKendoChart();
-    chart.exportPDF({ paperSize: "auto", margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" } }).done(function (data) {
+    chart.exportPDF({
+        paperSize: "auto",
+        margin: {
+            left: "1cm",
+            top: "1cm",
+            right: "1cm",
+            bottom: "1cm"
+        }
+    }).done(function(data) {
         kendo.saveAs({
             dataURI: data,
             fileName: "PowerCurve.pdf",
         });
     });
 }
-page.ExportPowerCurveDetailPdf = function () {
+page.ExportPowerCurveDetailPdf = function() {
     var chart = $("#powerCurveDetail").getKendoChart();
-    chart.exportPDF({ paperSize: "auto", margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" } }).done(function (data) {
+    chart.exportPDF({
+        paperSize: "auto",
+        margin: {
+            left: "1cm",
+            top: "1cm",
+            right: "1cm",
+            bottom: "1cm"
+        }
+    }).done(function(data) {
         kendo.saveAs({
             dataURI: data,
             fileName: "DetailPowerCurve.pdf",
@@ -70,25 +87,35 @@ page.ExportPowerCurveDetailPdf = function () {
 
 vm.currentMenu('Power Curve');
 vm.currentTitle('Power Curve');
-vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Power Curve', href: viewModel.appName + 'page/analyticpowercurve' }]);
+vm.breadcrumb([{
+    title: "KPI's",
+    href: '#'
+}, {
+    title: 'Power Curve',
+    href: viewModel.appName + 'page/analyticpowercurve'
+}]);
 
 var dataPowerCurve
 var dataTurbine
 
 var Data = {
-    LoadData: function () {
+    LoadData: function() {
         fa.LoadData();
         fa.getProjectInfo();
         page.populateTurbine();
         this.InitLinePowerCurve();
         this.InitRightTurbineList();
     },
-    InitLinePowerCurve: function () {
+    InitLinePowerCurve: function() {
+        fa.LoadData();
         page.deviationVal($("#deviationValue").val());
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            var minDatetemp = new Date(res.ScadaData[0]);
-            var maxDatetemp = new Date(res.ScadaData[1]);
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
+            if (!toolkit.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
             $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
             $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
         })
@@ -108,7 +135,7 @@ var Data = {
             ViewSession: page.viewSession
         };
 
-        toolkit.ajaxPost(viewModel.appName + link, param, function (res) {
+        toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
             if (!app.isFine(res)) {
                 app.loading(false);
                 return;
@@ -225,30 +252,36 @@ var Data = {
             });
             app.loading(false);
             $("#powerCurve").data("kendoChart").refresh();
-            page.ShowHideAfterInitChart();
+            
             if (page.sScater()) {
                 $('#showDownTime').removeAttr("disabled");
             } else {
+                Data.InitRightTurbineList();
                 $('#showDownTime').attr('checked', false);
                 $('#showDownTime').attr("disabled", "disabled");
             }
-            if (page.sScater()) { 
-                Data.getPowerCurve(); 
+            if (page.sScater()) {
+                Data.getPowerCurve();
             }
+            
+            page.ShowHideAfterInitChart();
         });
     },
-    getPowerCurve: function () {
+    getPowerCurve: function() {
         page.deviationVal($("#deviationValue").val());
         var turbineList = [];
         var kolor = [];
         var kolorDeg = [];
+        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
 
         var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
         for (var a = 0; a < len; a++) {
             var chk = $('input[id*=chk-][type=checkbox]:checked')[a].name;
             turbineList.push(chk);
-            var even = _.find(page.turbineList(), function (nm) { return nm.turbine == chk });
+            var even = _.find(dataTurbine, function(nm) {
+                return nm.name == chk
+            });
             kolor.push(even.color);
             var indOf = colorField.indexOf(even.color);
             kolorDeg.push(colorDegField[indOf]);
@@ -270,7 +303,10 @@ var Data = {
             IsDownTime: page.showDownTime(),
             ViewSession: page.viewSession()
         };
-        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function (res) {
+        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
+            if (!toolkit.isFine(res)) {
+                return;
+            }
 
             var dataPowerCurves = res.data.Data;
             var dtSeries = new Array();
@@ -374,18 +410,19 @@ var Data = {
                 $('#downtime-list').hide();
             }
             page.ShowHideAfterInitChart();
-            // $("#powerCurve").data("kendoChart").refresh(); 
         });
     },
-    InitCurveDetail: function (selected) {
+    InitCurveDetail: function(selected) {
         app.loading(true);
         page.detailTitle(selected);
         page.detailStartDate(fa.dateStart.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateStart.getUTCFullYear());
         page.detailEndDate(fa.dateEnd.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateEnd.getUTCFullYear());
 
         var colorDetail = [];
-        var colD = _.find(page.turbineList(), function(num){ return num.turbine == selected; }).color;
-        if(colD != undefined){
+        var colD = _.find(page.turbineList(), function(num) {
+            return num.turbine == selected;
+        }).color;
+        if (colD != undefined) {
             colorDetail.push(colD);
         }
 
@@ -400,7 +437,7 @@ var Data = {
 
         var dataTurbineDetail
 
-        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdetails", param, function (res) {
+        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdetails", param, function(res) {
             if (!app.isFine(res)) {
                 app.loading(false);
                 return;
@@ -497,16 +534,9 @@ var Data = {
             $("#powerCurveDetail").data("kendoChart").refresh();
         });
     },
-    InitRightTurbineList: function () {
+    InitRightTurbineList: function() {
         page.turbineList([]);
-
-        $.each(page.turbine(), function (i, val) {
-            var data = {
-                color: colorField[i + 1],
-                turbine: val
-            }
-            page.turbineList.push(data);
-        });
+        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
 
         if (page.turbine().length > 1) {
             $("#showHideChk").html('<label>' +
@@ -519,16 +549,18 @@ var Data = {
         }
 
         $("#right-turbine-list").html("");
-        $.each(page.turbineList(), function (idx, val) {
-            $("#right-turbine-list").append('<div class="btn-group">' +
-                '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + (idx + 1) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx + 1) + '"></i></button>' +
-                '<input class="chk-option" type="checkbox" name="' + val.turbine + '" checked id="chk-' + (idx + 1) + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn" onclick="page.toDetail(\'' + val.turbine + '\')" type="button" style="width:70px">' + val.turbine + '</button>' +
+        $.each(dtTurbines, function(idx, val) {
+            if(val.name != "Power Curve"){
+                $("#right-turbine-list").append('<div class="btn-group">' +
+                '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
+                '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
+                '<button class="btn btn-default btn-sm turbine-btn" onclick="page.toDetail(\'' + val.name + '\')" type="button" style="width:70px">' + val.name + '</button>' +
                 '</div>');
+            }
         });
     },
-    InitDownList: function () {
-        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdownlist", "", function (res) {
+    InitDownList: function() {
+        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdownlist", "", function(res) {
             if (!app.isFine(res)) {
                 app.loading(false);
                 return;
@@ -536,7 +568,7 @@ var Data = {
             page.downList(res.data);
 
             $("#downtime-list").html("");
-            $.each(page.downList(), function (idx, val) {
+            $.each(page.downList(), function(idx, val) {
                 $("#downtime-list").append('<div class="btn-group">' +
                     '<button class="btn btn-default btn-sm down-chk" id="down-' + val.down + '" type="button" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-down-' + val.down + '"></i></button>' +
                     '<input class="chk-option" type="checkbox" name="' + val.down + '" checked id="down-check-' + val.down + '" hidden>' +
@@ -548,9 +580,9 @@ var Data = {
             $('#downtime-list').hide();
         });
     },
-    SetDownOnClick: function () {
-        $.each($("#powerCurve").data("kendoChart").options.series, function (idx, val) {
-            $.each($("#downtime-list").find('button[id^="down-"]'), function (idx2, val2) {
+    SetDownOnClick: function() {
+        $.each($("#powerCurve").data("kendoChart").options.series, function(idx, val) {
+            $.each($("#downtime-list").find('button[id^="down-"]'), function(idx2, val2) {
                 if (("down-" + val.name) == val2.id) {
                     $(val2).attr('onclick', 'page.showHideDown(' + idx + ', "' + val.name + '")');
                     $(val2).find('i').css("visibility", "visible")
@@ -562,15 +594,15 @@ var Data = {
 
 };
 
-page.showHideAllLegend = function (e) {
+page.showHideAllLegend = function(e) {
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
-        $.each(page.turbine(), function (i, val) {
+        $.each(page.turbine(), function(i, val) {
             $("#powerCurve").data("kendoChart").options.series[i + 1].visible = true;
         });
         $('#labelShowHide b').text('Select All');
     } else {
-        $.each(page.turbine(), function (i, val) {
+        $.each(page.turbine(), function(i, val) {
             $("#powerCurve").data("kendoChart").options.series[i + 1].visible = false;
         });
         $('.fa-check').css("visibility", 'hidden');
@@ -580,7 +612,7 @@ page.showHideAllLegend = function (e) {
     $("#powerCurve").data("kendoChart").redraw();
 }
 
-page.showHideLegend = function (idx) {
+page.showHideLegend = function(idx) {
     $('#chk-' + idx).trigger('click');
     var chart = $("#powerCurve").data("kendoChart");
     // var datas = $("#powerCurve").data("kendoChart").options.series;
@@ -616,7 +648,7 @@ page.showHideLegend = function (idx) {
     chart._legendItemClick(idx);
 }
 
-page.ShowHideAfterInitChart = function () {
+page.ShowHideAfterInitChart = function() {
     var len = $('input[id*=chk-][type=checkbox]').length;
     var chart = $("#powerCurve").data("kendoChart");
     for (var i = 1; i <= len; i++) {
@@ -627,7 +659,7 @@ page.ShowHideAfterInitChart = function () {
     $("#powerCurve").data("kendoChart").redraw();
 }
 
-page.hideAll = function () {
+page.hideAll = function() {
     // var chart = $("#powerCurve").data("kendoChart");
     var len = $('input[id*=chk-][type=checkbox]').length;
     for (var i = 1; i <= len; i++) {
@@ -636,7 +668,7 @@ page.hideAll = function () {
     }
 }
 
-page.HideforScatter = function () {
+page.HideforScatter = function() {
     var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
     var sScater = page.sScater();
@@ -654,61 +686,59 @@ page.HideforScatter = function () {
     }
 }
 
-
-
-
-
-$(document).ready(function () {
-    $('#btnRefresh').on('click', function () {
+$(document).ready(function() {
+    $('#btnRefresh').on('click', function() {
         app.loading(true);
-        setTimeout(function () {
+        setTimeout(function() {
+            fa.LoadData();
+            if (page.sScater() && $("#turbineList").data("kendoMultiSelect").value().length > 3) {
+                swal('Warning', 'You can only select 3 turbines !', 'warning');
+                return
+            }
             Data.InitLinePowerCurve()
-            // Data.LoadData();
-            // Data.InitLinePowerCurve();
-            // if (page.sScater()) { 
-            //     Data.getPowerCurve(); 
-            // }
-
         }, 1000);
     });
 
     app.loading(true);
-    
-    setTimeout(function () {
+
+    setTimeout(function() {
         Data.LoadData();
     }, 1000);
 
-    $("input[name=isAvg]").on("change", function () {
+    $("input[name=isAvg]").on("change", function() {
         page.viewSession(this.id);
         Data.InitLinePowerCurve();
-
     });
 
-    $('#isClean').on('click', function () {
+    $('#isClean').on('click', function() {
         var isClean = $('#isClean').prop('checked');
         page.isClean(isClean);
+
         Data.InitLinePowerCurve();
     });
 
-    $('#isDeviation').on('click', function () {
+    $('#isDeviation').on('click', function() {
         var isDeviation = $('#isDeviation').prop('checked');
         page.isDeviation(isDeviation);
+
         Data.InitLinePowerCurve();
     });
 
-    $('#sScater').on('click', function () {
+    $('#sScater').on('click', function() {
         var sScater = $('#sScater').prop('checked');
         page.sScater(sScater);
+
         page.HideforScatter();
         Data.InitLinePowerCurve();
     });
 
-    $('#showDownTime').on('click', function () {
+    $('#showDownTime').on('click', function() {
         var isShow = $('#showDownTime').prop('checked');
         page.showDownTime(isShow);
+
         Data.InitLinePowerCurve();
     });
 
     $('#showDownTime').attr("disabled", "disabled");
-    Data.InitDownList();    
+    Data.InitDownList();
 });

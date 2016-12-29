@@ -374,7 +374,17 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 }
 
 func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
-	workerconn, _ := PrepareConnection()
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
 	defer workerconn.Close()
 
 	dtablename := tk.Sprintf("%s", new(ScadaConvTenMin).TableName())

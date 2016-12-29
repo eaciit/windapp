@@ -26,6 +26,7 @@ var (
 		{"down": "unknown", "label": "Unknown"},
 		{"down": "weatherstop", "label": "Weather Stop"},
 	}
+	WC *knot.WebContext
 )
 
 type PayloadsDB struct {
@@ -298,6 +299,12 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		if DebugMode {
 			panic(message)
 		}
+	}
+	sessionid := WC.Session("sessionid", "")
+	if toolkit.ToString(sessionid) == "" {
+		data = nil
+		success = false
+		message = "Your session has expired, please login"
 	}
 
 	return map[string]interface{}{

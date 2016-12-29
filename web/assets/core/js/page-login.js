@@ -110,6 +110,9 @@ lg.getConfirmReset = function () {
 
 lg.checkSession = function () {
 	toolkit.ajaxPost(viewModel.appName + 'login/checkcurrentsession', {}, function (res) {
+		if (!toolkit.isFine(res)) {
+            return;
+        }
 		if (res.data == true && res.message == "active") {
 			window.location = viewModel.appName + "page/dashboard";
 		}

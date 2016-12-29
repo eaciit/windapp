@@ -4,14 +4,15 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/controllers"
-	"github.com/eaciit/dbox"
-	_ "github.com/eaciit/dbox/dbc/mongo"
-	tk "github.com/eaciit/toolkit"
 	"math"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+	tk "github.com/eaciit/toolkit"
 )
 
 // UpdateScadaMinutes
@@ -43,8 +44,8 @@ func (u *UpdateScadaOemMinutes) prepareDataReff() {
 			Set("turbineelevation", t.Elevation))
 	}
 
-	alarms := []DowntimeEvent{}
-	csr2, e := u.Ctx.Connection.NewQuery().From(new(DowntimeEvent).TableName()).
+	alarms := []EventDown{}
+	csr2, e := u.Ctx.Connection.NewQuery().From(new(EventDown).TableName()).
 		Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
 
 	e = csr2.Fetch(&alarms, 0, false)
@@ -52,12 +53,12 @@ func (u *UpdateScadaOemMinutes) prepareDataReff() {
 	csr2.Close()
 
 	refAlarms = tk.M{}
-	details := []DowntimeEvent{}
+	details := []EventDown{}
 	for _, a := range alarms {
 		if refAlarms.Has(a.Turbine) {
-			details = refAlarms.Get(a.Turbine).([]DowntimeEvent)
+			details = refAlarms.Get(a.Turbine).([]EventDown)
 		} else {
-			details = []DowntimeEvent{}
+			details = []EventDown{}
 		}
 
 		details = append(details, a)
@@ -201,9 +202,9 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 
 	// getting mttf in seconds
 	refEvents := refAlarms.Get(turbine)
-	alarms := []DowntimeEvent{}
+	alarms := []EventDown{}
 	if refEvents != nil {
-		dataAlarms := refEvents.([]DowntimeEvent)
+		dataAlarms := refEvents.([]EventDown)
 		for _, a := range dataAlarms {
 			if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
 				alarms = append(alarms, a)
@@ -269,34 +270,34 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	e := ctx.Connection.NewQuery().Update().From(new(ScadaDataOEM).TableName()).
 		Where(dbox.Eq("_id", data.ID)).
 		Exec(tk.M{}.Set("data", tk.M{}.
-		Set("turbine", turbine).
-		Set("totalavail", totalavail).
-		Set("machineavail", machineavail).
-		Set("gridavail", gridavail).
-		Set("turbineelevation", elevation).
-		Set("wsadjforpc", retadjws).
-		Set("wsavgforpc", retavgws).
-		Set("pcdeviation", pcDeviation).
-		Set("pcvalue", pcValue).
-		Set("pcvalueadj", pcValueAdj).
-		Set("powerlost", powerLost).
-		Set("energylost", energyLost).
-		Set("energy", energy).
-		Set("denvalue", density).
-		Set("denph", pH).
-		Set("denadjwindspeed", adjDenWs).
-		Set("denwindspeed", denWs).
-		Set("denpower", denPower).
-		Set("denpcdeviation", denPcDeviation).
-		Set("dendeviationpct", denDeviationPct).
-		Set("denpcvalue", denPcValue).
-		Set("deviationpct", deviationPct).
-		Set("mttr", mttr).
-		Set("mttf", mttf).
-		Set("performanceindex", perfIndex).
-		Set("griddowntime", gridDowntime).
-		Set("machinedowntime", machineDowntime).
-		Set("unknowndowntime", unknownDowntime)))
+			Set("turbine", turbine).
+			Set("totalavail", totalavail).
+			Set("machineavail", machineavail).
+			Set("gridavail", gridavail).
+			Set("turbineelevation", elevation).
+			Set("wsadjforpc", retadjws).
+			Set("wsavgforpc", retavgws).
+			Set("pcdeviation", pcDeviation).
+			Set("pcvalue", pcValue).
+			Set("pcvalueadj", pcValueAdj).
+			Set("powerlost", powerLost).
+			Set("energylost", energyLost).
+			Set("energy", energy).
+			Set("denvalue", density).
+			Set("denph", pH).
+			Set("denadjwindspeed", adjDenWs).
+			Set("denwindspeed", denWs).
+			Set("denpower", denPower).
+			Set("denpcdeviation", denPcDeviation).
+			Set("dendeviationpct", denDeviationPct).
+			Set("denpcvalue", denPcValue).
+			Set("deviationpct", deviationPct).
+			Set("mttr", mttr).
+			Set("mttf", mttf).
+			Set("performanceindex", perfIndex).
+			Set("griddowntime", gridDowntime).
+			Set("machinedowntime", machineDowntime).
+			Set("unknowndowntime", unknownDowntime)))
 
 	if e != nil {
 		tk.Printf("Update fail: %s", e.Error())
