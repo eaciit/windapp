@@ -120,7 +120,7 @@ pg.chartWindSpeed = function(dataSource){
       },
       tooltip: {
             visible: true,
-            template: "#= kendo.tosSvalue #",
+            template: "#= kendo.toString(value,'n2') #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -198,8 +198,7 @@ pg.chartProduction = function(dataSource){
       },
       tooltip: {
             visible: true,
-            format: "{0:n2}",
-            template: "#= value #",
+            template: "#= kendo.toString(value,'n2') #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
