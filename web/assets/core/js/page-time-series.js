@@ -7,9 +7,11 @@ vm.currentMenu('Time Series Plots');
 vm.currentTitle('Time Series Plots');
 vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
 
+pg.availabledatestartscada = ko.observable();
+pg.availabledateendscada = ko.observable();
 
 pg.LoadData = function(){
-	fa.getProjectInfo();
+	// fa.getProjectInfo();
     fa.LoadData();
     app.loading(true);
 
@@ -35,6 +37,22 @@ pg.LoadData = function(){
         },500);
     });
 }
+
+toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+    if (!app.isFine(res)) {
+        return;
+    }
+    var minDatetemp = new Date(res.data.ScadaData[0]);
+    var maxDatetemp = new Date(res.data.ScadaData[1]);
+
+    pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+    pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+    $('#availabledatestart').html(pg.availabledatestartscada());
+    $('#availabledateend').html(pg.availabledateendscada());
+
+})
+
 pg.chartWindSpeed = function(dataSource){
 	$("#chartWindSpeed").kendoStockChart({
 	  title: {
