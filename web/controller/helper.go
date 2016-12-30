@@ -129,7 +129,7 @@ func (m *HelperController) GetProjectList(k *knot.WebContext) interface{} {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid")+" ( 24 | "+val.GetString("totalpower")+")")
+			result = append(result, val.GetString("projectid")+" ( "+val.GetString("totalturbine")+" | "+toolkit.ToString(toolkit.ToFloat64(val.GetFloat64("totalpower"), 2, toolkit.RoundingAuto))+" MWh)")
 		}
 	}
 	sort.Strings(result)

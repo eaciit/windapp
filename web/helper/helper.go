@@ -548,7 +548,7 @@ func GetProjectList() (result []string, e error) {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid"))
+			result = append(result, val.GetString("projectid")+" ( "+val.GetString("totalturbine")+" | "+toolkit.ToString(toolkit.ToFloat64(val.GetFloat64("totalpower"), 2, toolkit.RoundingAuto))+" MWh)")
 		}
 	}
 
