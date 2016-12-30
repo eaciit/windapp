@@ -60,7 +60,7 @@ pg.chartWindSpeed = function(dataSource){
       series: [{
         type: "area",
         field: "value",
-        aggregate: "sum", 
+        aggregate: "avg", 
         color: "#337ab7",
       }],
       navigator: {
@@ -70,13 +70,13 @@ pg.chartWindSpeed = function(dataSource){
         series: [{
           type: "area",
           field: "value",
-          aggregate: "sum",
+          aggregate: "avg",
           color: "#337ab7",
         }]
       },
       valueAxis: {
         title: {
-            text: "Wind Speed",
+            text: "m/s",
             visible: true,
             font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
         },
@@ -154,7 +154,7 @@ pg.chartProduction = function(dataSource){
       },
       valueAxis: {
         title: {
-            text: "Production",
+            text: "MWh",
             visible: true,
             font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
         },
