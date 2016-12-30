@@ -190,7 +190,7 @@ app.isFine = function (res) {
         });
         return false;
     }
-    if (!res.success) {
+    if (!res.success && res.message != "data is empty") {
         sweetAlert('Warning', res.message, 'error');
         return false;
     }

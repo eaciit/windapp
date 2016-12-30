@@ -3,6 +3,7 @@ package helper
 import (
 	. "eaciit/wfdemo-git/library/core"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -301,7 +302,7 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
-	if toolkit.ToString(sessionid) == "" || (!success && data == nil) {
+	if (toolkit.ToString(sessionid) == "" && !success && data == nil) || toolkit.ToString(sessionid) == "" {
 		dataX := struct {
 			Data []toolkit.M
 		}{
@@ -311,6 +312,18 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		data = dataX
 		success = false
 		message = "Your session has expired, please login"
+	}
+
+	if !success && data == nil {
+		dataX := struct {
+			Data []toolkit.M
+		}{
+			Data: []toolkit.M{},
+		}
+
+		data = dataX
+		success = false
+		message = "data is empty"
 	}
 
 	return map[string]interface{}{
@@ -548,7 +561,8 @@ func GetProjectList() (result []string, e error) {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid"))
+			str := fmt.Sprintf("%v (%v | %v MWh)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
+			result = append(result, str)
 		}
 	}
 
