@@ -38,7 +38,7 @@ pg.LoadData = function(){
 pg.chartWindSpeed = function(dataSource){
 	$("#chartWindSpeed").kendoStockChart({
 	  title: {
-        text: "Time Series Plots for Wind Speed",
+        text: "Wind Speed",
         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
@@ -60,7 +60,7 @@ pg.chartWindSpeed = function(dataSource){
       series: [{
         type: "area",
         field: "value",
-        aggregate: "sum", 
+        aggregate: "avg", 
         color: "#337ab7",
       }],
       navigator: {
@@ -70,13 +70,13 @@ pg.chartWindSpeed = function(dataSource){
         series: [{
           type: "area",
           field: "value",
-          aggregate: "sum",
+          aggregate: "avg",
           color: "#337ab7",
         }]
       },
       valueAxis: {
         title: {
-            text: "Wind Speed",
+            text: "m/s",
             visible: true,
             font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
         },
@@ -102,7 +102,7 @@ pg.chartWindSpeed = function(dataSource){
       },
       tooltip: {
             visible: true,
-            template: "#= kendo.tosSvalue #",
+            template: "#= kendo.toString(value,'n2') #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -116,7 +116,7 @@ pg.chartWindSpeed = function(dataSource){
 pg.chartProduction = function(dataSource){
 	$("#chartProduction").kendoStockChart({
 	  title: {
-        text: "Time Series Plots for Production",
+        text: "Production",
         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
@@ -154,7 +154,7 @@ pg.chartProduction = function(dataSource){
       },
       valueAxis: {
         title: {
-            text: "Production",
+            text: "MWh",
             visible: true,
             font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
         },
@@ -180,8 +180,7 @@ pg.chartProduction = function(dataSource){
       },
       tooltip: {
             visible: true,
-            format: "{0:n2}",
-            template: "#= value #",
+            template: "#= kendo.toString(value,'n2') #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
