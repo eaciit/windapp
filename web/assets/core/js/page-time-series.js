@@ -10,7 +10,7 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series 
 pg.chartWindSpeed = function(){
 	$("#chartWindSpeed").kendoStockChart({
 	  title: {
-        text: "Time Series Plots for Wind Speed",
+        text: "Wind Speed",
         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
@@ -2765,7 +2765,7 @@ pg.chartWindSpeed = function(){
 pg.chartProduction = function(){
 	$("#chartProduction").kendoStockChart({
 	  title: {
-        text: "Time Series Plots for Production",
+        text: "Production",
         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
