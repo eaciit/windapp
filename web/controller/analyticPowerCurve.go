@@ -718,6 +718,7 @@ func getPCData(project string) (pcData tk.M, e error) {
 
 	pcData = tk.M{
 		"name":     "Power Curve",
+		"idxseries":  0,
 		"type":     "scatterLine",
 		"dashType": "longDash",
 		"style":    "smooth",
