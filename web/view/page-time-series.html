@@ -9,14 +9,25 @@
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading">
+					<!--<div class="panel-heading">
 						Time Series Plots&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
-					</div>
+						<div class="">
+								<div class="date-info">
+                                    Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
+                                </div>
+						</div>
+					</div>-->
 					<div class="panel-body">
-						
-						<div class="clearfix">&nbsp;</div>
-						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+						<div class="date-info">
+							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
+						</div>
+						<div class="col-md-6">
+							<div id="chartWindSpeed"></div>
+						</div>
+						<div class="col-md-6">
+							<div id="chartProduction"></div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -25,7 +36,6 @@
 </div>
 <div class="clearfix"></div>
 <script>
-    $(document).ready(function () {
-        app.loading(false);
-    });
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
 </script>

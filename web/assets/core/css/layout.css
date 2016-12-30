@@ -1336,3 +1336,12 @@ label.control-label {
 .nav>li>.tab-custom {
     padding: 5px 10px;
 }
+
+.date-info{
+    background: #fff;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    color: #585555;
+    font-size: 12px;
+    border-radius: 3px;
+}
