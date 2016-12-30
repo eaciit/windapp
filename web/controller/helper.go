@@ -3,6 +3,7 @@ package controller
 import (
 	. "eaciit/wfdemo-git/library/core"
 	"eaciit/wfdemo-git/web/helper"
+	"fmt"
 	"sort"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -129,7 +130,9 @@ func (m *HelperController) GetProjectList(k *knot.WebContext) interface{} {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid")+" ( "+val.GetString("totalturbine")+" | "+toolkit.ToString(toolkit.ToFloat64(val.GetFloat64("totalpower"), 2, toolkit.RoundingAuto))+" MWh)")
+			// str := fmt.Sprintf("%v (%v | %v MWh)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
+			str := fmt.Sprintf("%v", val.GetString("projectid"))
+			result = append(result, str)
 		}
 	}
 	sort.Strings(result)
