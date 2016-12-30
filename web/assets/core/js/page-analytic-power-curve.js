@@ -601,15 +601,20 @@ var Data = {
 };
 
 page.showHideAllLegend = function(e) {
+    var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
-        $.each(page.turbine(), function(i, val) {
-            $("#powerCurve").data("kendoChart").options.series[i + 1].visible = true;
+        $.each(dtTurbines, function(i, val) {
+            if(val.idxseries > 0){
+                $("#powerCurve").data("kendoChart").options.series[val.idxseries].visible = true;
+            }
         });
         $('#labelShowHide b').text('Select All');
     } else {
-        $.each(page.turbine(), function(i, val) {
-            $("#powerCurve").data("kendoChart").options.series[i + 1].visible = false;
+        $.each(dtTurbines, function(i, val) {
+            if(val.idxseries > 0){
+                $("#powerCurve").data("kendoChart").options.series[val.idxseries].visible = false;
+            }
         });
         $('.fa-check').css("visibility", 'hidden');
         $('#labelShowHide b').text('Select All');
