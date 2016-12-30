@@ -3,6 +3,7 @@ package helper
 import (
 	. "eaciit/wfdemo-git/library/core"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -560,7 +561,8 @@ func GetProjectList() (result []string, e error) {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid")+" ( "+val.GetString("totalturbine")+" | "+toolkit.ToString(toolkit.ToFloat64(val.GetFloat64("totalpower"), 2, toolkit.RoundingAuto))+" MWh)")
+			str := fmt.Sprintf("%v (%v | %v MWh)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
+			result = append(result, str)
 		}
 	}
 
