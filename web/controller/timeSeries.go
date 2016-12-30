@@ -57,7 +57,7 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 		"windspeed": tk.M{"$avg": "$avgwindspeed"},
 	}
 
-	group.Set("_id", "$dateinfo.dateid")
+	group.Set("_id", "$timestamp")
 
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
@@ -81,11 +81,11 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 		wind := val.GetFloat64("windspeed")
 
 		prod := tk.M{}
-		prod.Set("timestamp", val.Get("_id").(time.Time).Format("2006-01-02 15:04:05"))
+		prod.Set("timestamp", val.Get("_id").(time.Time).UTC().Format("2006-01-02 15:04:05"))
 		prod.Set("value", energy)
 
 		windspeed := tk.M{}
-		windspeed.Set("timestamp", val.Get("_id").(time.Time).Format("2006-01-02 15:04:05"))
+		windspeed.Set("timestamp", val.Get("_id").(time.Time).UTC().Format("2006-01-02 15:04:05"))
 		windspeed.Set("value", wind)
 
 		dataProd = append(dataProd, prod)
