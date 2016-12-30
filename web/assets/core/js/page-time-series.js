@@ -102,7 +102,7 @@ pg.chartWindSpeed = function(dataSource){
       },
       tooltip: {
             visible: true,
-            template: "#= kendo.toString(value,'n2')#",
+            template: "#= kendo.tosSvalue #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -180,7 +180,8 @@ pg.chartProduction = function(dataSource){
       },
       tooltip: {
             visible: true,
-            template: "#= kendo.toString(value,'n2')#",
+            format: "{0:n2}",
+            template: "#= value #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -192,13 +193,11 @@ pg.chartProduction = function(dataSource){
     });
 } 
 $(document).ready(function () {
-    fa.LoadData();
     $('#btnRefresh').on('click', function () {
         pg.LoadData();
     });
 
     setTimeout(function () {
-        fa.LoadData();
         pg.LoadData();
     }, 1000);
 });
