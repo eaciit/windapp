@@ -141,7 +141,8 @@ var Data = {
             app.loading(true);
 
             // MAIN
-            this.InitScadaGrid();
+            // this.InitScadaGrid();
+            dbs.InitScadaGrid();
             this.InitScadaHFDGrid();
             this.InitDEgrid();
             this.InitCustomGrid();
