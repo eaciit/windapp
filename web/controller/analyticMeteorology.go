@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 	"time"
-
+	"log"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 )
@@ -140,6 +140,10 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	p := new(PayloadAvgWindSpeed)
 	e := k.GetPayload(&p)
+
+	log.Printf("error: %v \n", e)
+	log.Printf("p: %#v \n", p)
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -168,13 +172,13 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	groupID := tk.M{}
 
-	if p.TimeBreakDown == "daily" {
+	if strings.ToLower(p.TimeBreakDown) == "date" {
 		groupID.Set("dateid", "$dateinfo.dateid")
-	} else if p.TimeBreakDown == "monthly" {
+	} else if strings.ToLower(p.TimeBreakDown) == "monthly" {
 		groupID.Set("monthdesc", "$dateinfo.monthdesc")
 	}
 
-	if p.SeriesBreakDown == "byturbine" {
+	if strings.ToLower(p.SeriesBreakDown) == "byturbine" {
 		groupID.Set("turbine", "$turbine")
 	}
 
@@ -233,9 +237,9 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	groupID = tk.M{}
 
-	if p.TimeBreakDown == "daily" {
+	if strings.ToLower(p.TimeBreakDown) == "date" {
 		groupID.Set("dateid", "$dateinfo.dateid")
-	} else if p.TimeBreakDown == "monthly" {
+	} else if strings.ToLower(p.TimeBreakDown) == "monthly" {
 		groupID.Set("monthdesc", "$dateinfo.monthdesc")
 	}
 
