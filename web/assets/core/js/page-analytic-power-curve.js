@@ -101,7 +101,7 @@ var dataTurbine
 var Data = {
     LoadData: function() {
         fa.LoadData();
-        fa.getProjectInfo();
+        // fa.getProjectInfo();
         page.populateTurbine();
         this.InitLinePowerCurve();
         this.InitRightTurbineList();
