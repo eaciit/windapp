@@ -101,7 +101,7 @@ var dataTurbine
 var Data = {
     LoadData: function() {
         fa.LoadData();
-        fa.getProjectInfo();
+        // fa.getProjectInfo();
         page.populateTurbine();
         this.InitLinePowerCurve();
         this.InitRightTurbineList();
@@ -425,8 +425,10 @@ var Data = {
         page.detailEndDate(fa.dateEnd.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateEnd.getUTCFullYear());
 
         var colorDetail = [];
-        var colD = _.find(page.turbineList(), function(num) {
-            return num.turbine == selected;
+
+        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
+        var colD = _.find(dtTurbines, function(num) {
+            return num.name == selected;
         }).color;
         if (colD != undefined) {
             colorDetail.push(colD);

@@ -1,3 +1,3 @@
 # UI
 
-By Noval Agung & Arfian Bagus
+By Noval Agung & Arfian Bagus modified by Erlinda Yunilia

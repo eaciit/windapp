@@ -831,7 +831,7 @@ pg.createChartProduction = function (dataSource) {
 }
 
 pg.ChartWindAvail = function () {
-    fa.getProjectInfo();
+    // fa.getProjectInfo();
     fa.LoadData();
     var param = {
         period: fa.period,
@@ -1074,7 +1074,7 @@ pg.getPeriodDesc = function () {
 
 pg.loadData = function () {
 
-    fa.getProjectInfo();
+    // fa.getProjectInfo();
     setTimeout(function () {
         pg.SetBreakDown();
 

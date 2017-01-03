@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
 	// "sort"
 	// "strings"
 	// "time"
@@ -34,8 +35,14 @@ func (c *WindFarmAnalysisController) GetDataByProject(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
 	csr, e := DB().Connection.NewQuery().From(new(GWFAnalysisByProject).TableName()).
-		Where(dbox.And(dbox.Eq("projectname", p.Project))).Order("OrderNo").Cursor(nil)
+		Where(dbox.And(dbox.Eq("projectname", project))).Order("OrderNo").Cursor(nil)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -61,8 +68,14 @@ func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) inter
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
 	tQry := make([]*dbox.Filter, 0)
-	tQry = append(tQry, dbox.Eq("projectname", p.Project))
+	tQry = append(tQry, dbox.Eq("projectname", project))
 	if len(p.Turbines) > 0 {
 		tQry = append(tQry, dbox.In("turbine", p.Turbines...))
 	}
@@ -100,14 +113,20 @@ func (c *WindFarmAnalysisController) GetDataByTurbine2(k *knot.WebContext) inter
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
 	tQry := make([]*dbox.Filter, 0)
-	tQry = append(tQry, dbox.Eq("projectname", p.Project))
+	tQry = append(tQry, dbox.Eq("projectname", project))
 	if len(p.Turbines) > 0 {
 		tQry = append(tQry, dbox.In("turbine", p.Turbines))
 	} else {
 		turbines := make([]TurbineMaster, 0)
 		csrt, et := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).
-			Where(dbox.And(dbox.Eq("project", p.Project))).Order("turbineid").Cursor(nil)
+			Where(dbox.And(dbox.Eq("project", project))).Order("turbineid").Cursor(nil)
 
 		if et != nil {
 			tk.Println(et.Error())

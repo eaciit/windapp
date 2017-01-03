@@ -562,7 +562,13 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 			return helper.CreateResult(false, nil, e.Error())
 		}
 	} else {
-		projectList = []string{p.Project}
+		project := ""
+		if p.Project != "" {
+			anProject := strings.Split(p.Project, "(")
+			project = strings.TrimRight(anProject[0], " ")
+		}
+
+		projectList = []string{project}
 	}
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
