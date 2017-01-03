@@ -16,7 +16,7 @@ var Data = {
     LoadData: function () {
         app.loading(false);
         fa.LoadData();
-        fa.getProjectInfo();
+        // fa.getProjectInfo();
         this.InitGrid();
 
     },
