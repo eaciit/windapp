@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
 
 	"time"
 
@@ -51,6 +52,11 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 	match := tk.M{}
 
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		match.Set("projectname", strings.TrimRight(anProject[0], " "))
+	}
 
 	group := tk.M{
 		"energy":    tk.M{"$sum": "$energy"},

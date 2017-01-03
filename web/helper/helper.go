@@ -178,7 +178,13 @@ func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
 					continue
 				}
 
-				filters = append(filters, dbox.Eq(field, value))
+				if field == "projectname" && value.(string) != "" {
+					anProject := strings.Split(value.(string), "(")
+					project := strings.TrimRight(anProject[0], " ")
+					filters = append(filters, dbox.Eq(field, project))
+				} else {
+					filters = append(filters, dbox.Eq(field, value))
+				}
 			case "neq":
 				value := each.Value
 				filters = append(filters, dbox.Ne(field, value))
@@ -561,8 +567,8 @@ func GetProjectList() (result []string, e error) {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			// str := fmt.Sprintf("%v (%v | %v MWh)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
-			str := fmt.Sprintf("%v", val.GetString("projectid"))
+			str := fmt.Sprintf("%v (%v | %v MWh)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
+			// str := fmt.Sprintf("%v", val.GetString("projectid"))
 			result = append(result, str)
 		}
 	}

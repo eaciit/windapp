@@ -47,7 +47,11 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
@@ -144,7 +148,11 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	breakDown := p.BreakDown
 
 	filter = append(filter, dbox.Ne("_id", ""))
@@ -323,7 +331,11 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 // 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 // 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 // 	turbine := p.Turbine
-// 	project := p.Project
+// 	project := ""
+// if p.Project != "" {
+// 	anProject := strings.Split(p.Project, "(")
+// 	project = strings.TrimRight(anProject[0], " ")
+// }
 
 // 	filter = append(filter, dbox.Ne("_id", ""))
 // 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
@@ -491,7 +503,8 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			match.Set("projectname", p.Project)
+			anProject := strings.Split(p.Project, "(")
+			match.Set("projectname", strings.TrimRight(anProject[0], " "))
 		}
 
 		if len(p.Turbine) != 0 {
@@ -609,7 +622,8 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			match.Set("projectname", p.Project)
+			anProject := strings.Split(p.Project, "(")
+			match.Set("projectname", strings.TrimRight(anProject[0], " "))
 		}
 
 		if len(p.Turbine) != 0 {
@@ -815,7 +829,11 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 // 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 // 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 // 	turbine := p.Turbine
-// 	project := p.Project
+// project := ""
+// 	if p.Project != "" {
+// 		anProject := strings.Split(p.Project, "(")
+// 		project = strings.TrimRight(anProject[0], " ")
+// 	}
 
 // 	match := tk.M{}
 // 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
@@ -914,7 +932,11 @@ func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebConte
 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
@@ -1024,7 +1046,11 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Filter.Turbine
-	project := p.Filter.Project
+	project := ""
+	if p.Filter.Project != "" {
+		anProject := strings.Split(p.Filter.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 
 	categorywindspeed := []string{}
 	valuewindspeed := []float64{}
@@ -1108,7 +1134,11 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Filter.Turbine
-	project := p.Filter.Project
+	project := ""
+	if p.Filter.Project != "" {
+		anProject := strings.Split(p.Filter.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 
 	categoryproduction := []string{}
 	valueproduction := []float64{}
