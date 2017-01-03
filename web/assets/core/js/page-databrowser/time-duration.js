@@ -4,7 +4,6 @@ viewModel.DatabrowserTimeDur = new Object();
 var dbt = viewModel.DatabrowserTimeDur;
 
 dbt.InitGridExceptionTimeDuration = function() {
-	console.log("heeeey");
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
