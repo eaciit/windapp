@@ -16,11 +16,15 @@
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore mb-5">
-					<div class="panel-heading">
+					<!-- <div class="panel-heading">
 						Meteorology&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
-					</div>
+					</div> -->
 					<div class="panel-body">
+						<div class="databrowser-date-info">
+                            Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                         </div>
+                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
 							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" class="tab-custom">Average Wind Speed</a></li>
 							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
@@ -31,12 +35,25 @@
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="avgwindspeed">
-								
+								<div class="col-md-12">
+									<div class="col-md-3 col-xs-12">
+										<label class="control-label keyA-label">Series Breakdown</label>
+										<select id="seriesBreakdown" data-bind="kendoDropDownList: { data: aws.SeriesBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
+											style="width:120px;">
+		                                </select>&nbsp;
+									</div>
+									<div class="col-md-3 col-xs-12">
+										<label class="control-label keyA-label">Time Breakdown</label>
+										<select id="timeBreakdown" data-bind="kendoDropDownList: { data: aws.TimeBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
+											style="width:120px;">
+		                                </select>&nbsp;
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div id="averageWindSpeedChart"></div>
+								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
-								<div class="databrowser-date-info">
-                                    Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
-                                </div>
 								<div class="col-md-12 list">
 									<div class="col-md-3 col-xs-12">
 										<label class="control-label keyA-label">Sectors</label>
@@ -65,9 +82,9 @@
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="winddistribution">
-								<div class="databrowser-date-info">
+<!-- 								<div class="databrowser-date-info">
                                     Data Available from: <strong><span id="availabledatestartscada2">-</span></strong> until: <strong><span id="availabledateendscada2">-</span></strong>
-                                </div>
+                                </div> -->
 								<div class="col-md-9">
 									<div id="windDistribution"></div>
 									<div class="clearfix">&nbsp;</div>

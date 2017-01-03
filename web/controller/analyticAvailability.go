@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -42,7 +43,11 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	breakDown := p.BreakDown
 	duration := tEnd.Sub(tStart).Hours() / 24
 

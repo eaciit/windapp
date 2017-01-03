@@ -193,7 +193,8 @@ fa.populateProject = function (data) {
 
         // override to set the value
         setTimeout(function () {
-            $("#projectList").data("kendoDropDownList").value("Tejuva");
+            // $("#projectList").data("kendoDropDownList").value("Tejuva");
+            $("#projectList").data("kendoDropDownList").select(1);
             fa.project = $("#projectList").data("kendoDropDownList").value();
         }, 300);
     }

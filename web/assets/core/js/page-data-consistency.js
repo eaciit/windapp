@@ -31,7 +31,7 @@ pg.dgrScada = function () {
     setTimeout(function () {
         fa.LoadData();
         pg.initSummaryGrid();
-        fa.getProjectInfo();
+        // fa.getProjectInfo();
     }, 1000);
 }
 

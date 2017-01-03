@@ -4,6 +4,8 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
+
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
@@ -36,7 +38,11 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))

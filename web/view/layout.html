@@ -19,9 +19,11 @@
         </div>
         <div class="pull-right bread-info" data-bind="{visible : (vm.isDashboard() != true) }">
           <span>You are here &nbsp;&nbsp;:&nbsp;&nbsp;<span> 
-                  <ol class="breadcrumb pull-right" data-bind="template:{name:'breadcrumbTemplate', foreach:vm.breadcrumb}"></ol>
-                </div>
-            </section>
+            <strong>
+              <ol class="breadcrumb pull-right" data-bind="template:{name:'breadcrumbTemplate', foreach:vm.breadcrumb}"></ol>
+            </strong>
+        </div>
+      </section>
 
             <section class="content" id="page">
               <div data-bind="visible: app.isLoading" style="display:none;" class="loader-parent">
