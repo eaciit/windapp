@@ -5,10 +5,11 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
 
 	// "fmt"
-	"time"
 	"sort"
+	"time"
 
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
@@ -51,7 +52,11 @@ func (m *AnalyticPowerCurveController) GetList(k *knot.WebContext) interface{} {
 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	isClean := p.IsClean
 	isAverage := p.IsAverage
 
@@ -165,7 +170,11 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
 	// isClean := p.IsClean
@@ -179,7 +188,7 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 	dataSeries = append(dataSeries, pcData)
 
 	// pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$wsclass", "production": tk.M{"$sum": "$production"}, "totaldata": tk.M{"$sum": "$totaldata"}}})
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$denadjwindspeed", "production": tk.M{"$avg": "$denpower"}, "totaldata": tk.M{"$sum": 1}}})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$denadjwindspeed", "production": tk.M{"$avg": "$power"}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	var collName string
@@ -250,10 +259,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipes      []tk.M
-		filter     []*dbox.Filter
-		list       []tk.M
-		dataSeries []tk.M
+		pipes        []tk.M
+		filter       []*dbox.Filter
+		list         []tk.M
+		dataSeries   []tk.M
 		sortTurbines []string
 	)
 
@@ -268,7 +277,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
 	viewSession := p.ViewSession
@@ -280,7 +293,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	switch viewSession {
 	case "density":
 		colId = "$denadjwindspeed"
-		colValue = "$denpower"
+		colValue = "$power"
 		colDeviation = "dendeviationpct"
 	case "adj":
 		colId = "$wsadjforpc"
@@ -347,7 +360,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 
 	for _, turX := range turbine {
-		sortTurbines= append(sortTurbines, turX.(string))
+		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
 
@@ -374,8 +387,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		for _, val := range exist {
 			// tk.Printf("%#v\n", filter)
 			idD := val.Get("_id").(tk.M)
-			
-			datas = append(datas, []float64{ idD.GetFloat64("colId") , val.GetFloat64("production") }) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
+
+			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 		}
 
 		if len(datas) > 0 {
@@ -415,7 +428,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	colors := p.Color
 	colordeg := p.ColorDeg
 	IsDeviation := p.IsDeviation
@@ -473,7 +490,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		// 			"size":       10,
 		// 			"type":       "triangle",
 		// 			"border" : tk.M{
-		// 				"width" : 2, 
+		// 				"width" : 2,
 		// 			"color" : "red",
 		// 			},
 		// 		})
@@ -486,9 +503,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 
 			switch viewSession {
 			case "density":
-				if val.DenWindSpeed > 0 && val.DenPower > 0 {
+				if val.DenWindSpeed > 0 && val.Power > 0 {
 					datas.Set("WindSpeed", val.DenWindSpeed)
-					datas.Set("Power", val.DenPower)
+					datas.Set("Power", val.Power)
 
 					if val.DenDeviationPct <= dVal {
 						datas.Set("valueColor", colordeg[selArr])
@@ -551,7 +568,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					"type":       "triangle",
 					"background": downColor[idx],
 					// "border" : tk.M{
-					// 	"width" : 2, 
+					// 	"width" : 2,
 					// 	"color" : "red",
 					// },
 				})
@@ -638,7 +655,11 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 	colors := p.Color
 
 	pcData, e := getPCData(project)
@@ -717,14 +738,14 @@ func getPCData(project string) (pcData tk.M, e error) {
 	}
 
 	pcData = tk.M{
-		"name":     "Power Curve",
-		"idxseries":  0,
-		"type":     "scatterLine",
-		"dashType": "longDash",
-		"style":    "smooth",
-		"color":    "#ff880e",
-		"markers":  tk.M{"visible": false},
-		"width":    3,
+		"name":      "Power Curve",
+		"idxseries": 0,
+		"type":      "scatterLine",
+		"dashType":  "longDash",
+		"style":     "smooth",
+		"color":     "#ff880e",
+		"markers":   tk.M{"visible": false},
+		"width":     3,
 	}
 
 	if len(datas) > 0 {

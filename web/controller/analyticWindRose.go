@@ -240,7 +240,8 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
 	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
 	if p.Project != "" {
-		query = append(query, toolkit.M{"projectname": p.Project})
+		anProject := strings.Split(p.Project, "(")
+		query = append(query, toolkit.M{"projectname": strings.TrimRight(anProject[0], " ")})
 	}
 
 	turbine := []string{}

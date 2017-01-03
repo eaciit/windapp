@@ -5,6 +5,7 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"math"
+	"strings"
 	"time"
 	// "time"
 
@@ -58,7 +59,11 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 
 	duration := tEnd.Sub(tStart).Hours() / 24 // duration in days
 	turbine := p.Turbine
-	project := p.Project
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
 
 	var (
 		pipes  []tk.M

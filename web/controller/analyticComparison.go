@@ -5,6 +5,7 @@ import (
 	hp "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
 	"time"
 
 	"github.com/eaciit/dbox"
@@ -79,7 +80,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		}
 
 		if p.Project != "" {
-			match.Set("projectname", p.Project)
+			anProject := strings.Split(p.Project, "(")
+			match.Set("projectname", strings.TrimRight(anProject[0], " "))
 			group.Set("_id", "$projectname")
 		} else {
 			group.Set("_id", "all")

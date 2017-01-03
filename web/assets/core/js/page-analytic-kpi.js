@@ -100,7 +100,7 @@ var Data = {
                     page.dataSource(res.data.Data);
                     page.generateGrid();
                 });
-                fa.getProjectInfo();
+                // fa.getProjectInfo();
             }, 200);
         }
         // app.loading(false);
