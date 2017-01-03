@@ -203,7 +203,7 @@ km.getData = function () {
         $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
     });
-	fa.getProjectInfo();
+	// fa.getProjectInfo();
 	fa.LoadData();
 
 	setTimeout(function () {

@@ -198,7 +198,7 @@ vm.currentTitle('Histograms');
 vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
 
 km.getData = function () {
-    fa.getProjectInfo();
+    // fa.getProjectInfo();
     fa.LoadData();
     app.loading(true);
 
