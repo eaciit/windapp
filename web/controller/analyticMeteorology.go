@@ -210,6 +210,12 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		wind := val.GetFloat64("windspeed")
 		turVal.Set("value", wind)
 
+		if p.SeriesBreakDown == "byturbine" {
+			turVal.Set("name", id.GetString("turbine"))
+		} else {
+			turVal.Set("name", "Summary")
+		}
+
 		turbines = append(turbines, turVal)
 	}
 
@@ -264,6 +270,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		}
 
 		wind := val.GetFloat64("windspeed")
+		turVal.Set("name", "Met Tower")
 		turVal.Set("value", wind)
 
 		metTower = append(turbines, turVal)
