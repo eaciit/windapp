@@ -188,7 +188,7 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 	dataSeries = append(dataSeries, pcData)
 
 	// pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$wsclass", "production": tk.M{"$sum": "$production"}, "totaldata": tk.M{"$sum": "$totaldata"}}})
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$denadjwindspeed", "production": tk.M{"$avg": "$denpower"}, "totaldata": tk.M{"$sum": 1}}})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$denadjwindspeed", "production": tk.M{"$avg": "$power"}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	var collName string
@@ -293,7 +293,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	switch viewSession {
 	case "density":
 		colId = "$denadjwindspeed"
-		colValue = "$denpower"
+		colValue = "$power"
 		colDeviation = "dendeviationpct"
 	case "adj":
 		colId = "$wsadjforpc"
@@ -503,9 +503,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 
 			switch viewSession {
 			case "density":
-				if val.DenWindSpeed > 0 && val.DenPower > 0 {
+				if val.DenWindSpeed > 0 && val.Power > 0 {
 					datas.Set("WindSpeed", val.DenWindSpeed)
-					datas.Set("Power", val.DenPower)
+					datas.Set("Power", val.Power)
 
 					if val.DenDeviationPct <= dVal {
 						datas.Set("valueColor", colordeg[selArr])
