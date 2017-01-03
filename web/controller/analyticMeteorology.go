@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"log"
+
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 )
@@ -141,9 +141,6 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 	p := new(PayloadAvgWindSpeed)
 	e := k.GetPayload(&p)
 
-	log.Printf("error: %v \n", e)
-	log.Printf("p: %#v \n", p)
-
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -201,12 +198,14 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	csr.Close()
 
+	// log.Printf("scada: %#v \n", list)
+
 	for _, val := range list {
 		id := val.Get("_id").(tk.M)
 		turVal := tk.M{}
 
-		if id.Get("dateid") == nil {
-			turVal.Set("time", id.Get("dateid").(time.Time))
+		if id.GetString("dateid") == "" {
+			turVal.Set("time", id.Get("dateid").(time.Time).Format("01 Feb 2006"))
 		} else {
 			turVal.Set("time", id.GetString("monthdesc"))
 		}
@@ -223,9 +222,9 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		turbines = append(turbines, turVal)
 	}
 
-	list = []tk.M{}
-
 	// met tower
+
+	list = []tk.M{}
 
 	match = tk.M{}
 
@@ -263,12 +262,14 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	csr.Close()
 
+	// log.Printf("met: %#v \n", list)
+
 	for _, val := range list {
 		id := val.Get("_id").(tk.M)
 		turVal := tk.M{}
 
-		if id.Get("dateid") == nil {
-			turVal.Set("time", id.Get("dateid").(time.Time))
+		if id.GetString("dateid") == "" {
+			turVal.Set("time", id.Get("dateid").(time.Time).Format("01 Feb 2006"))
 		} else {
 			turVal.Set("time", id.GetString("monthdesc"))
 		}
@@ -277,7 +278,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		turVal.Set("name", "Met Tower")
 		turVal.Set("value", wind)
 
-		metTower = append(turbines, turVal)
+		metTower = append(metTower, turVal)
 	}
 
 	data := struct {
