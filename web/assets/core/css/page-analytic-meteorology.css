@@ -123,6 +123,10 @@ label.summary-number {
 	margin-top: -100px!important;
 }*/
 
+.k-grid tr td {
+    border-width: 1px 1px 0;
+}
+
 #chartCustomTooltip {
 	margin-top: -100px !important;
 	display: none;

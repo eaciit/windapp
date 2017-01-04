@@ -179,6 +179,7 @@ app.showError = function (message) {
 };
 app.isFine = function (res) {
     if (!res.success && res.message.indexOf('expired') > -1) {
+        app.isLoading(false);
         swal({
             title: "Warning",
             type: "warning",

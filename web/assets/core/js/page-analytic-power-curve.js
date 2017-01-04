@@ -176,7 +176,7 @@ var Data = {
                 },
                 valueAxis: [{
                     labels: {
-                        format: "N2",
+                        format: "N0",
                     }
                 }],
                 xAxis: {
@@ -191,7 +191,7 @@ var Data = {
                         visible: true,
                         tooltip: {
                             visible: true,
-                            format: "N2",
+                            format: "N1",
                             background: "rgb(255,255,255, 0.9)",
                             color: "#58666e",
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -215,7 +215,7 @@ var Data = {
                         color: "#585555"
                     },
                     labels: {
-                        format: "N2",
+                        format: "N0",
                     },
                     axisCrossingValue: -5,
                     majorGridLines: {
@@ -227,7 +227,7 @@ var Data = {
                         visible: true,
                         tooltip: {
                             visible: true,
-                            format: "N2",
+                            format: "N1",
                             background: "rgb(255,255,255, 0.9)",
                             color: "#58666e",
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
