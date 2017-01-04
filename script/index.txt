@@ -53,6 +53,7 @@ db.EventRaw.createIndex( { timestamp: -1 } )
 db.EventRaw.createIndex( { "dateinfo.monthid": 1, turbine: 1,"dateinfo.monthid": -1, turbine: -1 } )
 db.EventRaw.createIndex( { "timestamp": 1, turbine: 1,"timestamp": -1, turbine: -1 } )
 db.EventRaw.createIndex( { "projectname": 1, turbine: 1, timestamp:1} )
+db.EventRaw.createIndex( { "projectname": -1, turbine: -1, timestamp: -1} )
 db.EventRaw.createIndex( { "projectname": 1, turbine: 1, timestamp:1, eventtype: 1, brakeprogram: 1} )
 
 db.EventDown.createIndex( { brakeprogram: 1 } )
@@ -65,3 +66,12 @@ db.EventDown.createIndex( { timestamp: 1 , "dateinfostart.monthid":1, "timestart
 
 db.JMR.createIndex( { "dateinfo.monthid": 1, "sections.turbine": 1, "dateinfo.dateid":1} )
 db.JMR.createIndex( { "dateinfo.monthid": -1, "sections.turbine": -1, "dateinfo.dateid":-1} )
+
+db.ScadaData.createIndex( { "timestamp": 1} )
+db.ScadaData.createIndex( { "turbine": 1} )
+db.ScadaData.createIndex( { "power": 1} )
+db.ScadaData.createIndex( { "powerlost": 1} )
+db.ScadaData.createIndex( { "avgwindspeed": 1} )
+db.ScadaData.createIndex( { "adjwindspeed": 1} )
+db.ScadaData.createIndex( { "timestamp": 1, "turbine": 1} )
+db.ScadaData.createIndex( { "timestamp": 1, "turbine": 1, "power": 1, "powerlost": 1, "avgwindspeed": 1, "adjwindspeed": 1} )
