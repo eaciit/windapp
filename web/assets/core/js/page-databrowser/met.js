@@ -5,26 +5,22 @@ var dbm = viewModel.DatabrowserMet;
 
 dbm.InitMet = function() {
     dbr.mettowervis(true);
-    var dateStart = $('#dateStart').data('kendoDatePicker').value();
-    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-    dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-    dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 
     var param = {};
+    var filters = [{
+        field: "timestamp",
+        operator: "gte",
+        value: fa.dateStart
+    }, {
+        field: "timestamp",
+        operator: "lte",
+        value: fa.dateEnd
+    }, ];
 
     $('#dataGridMet').html("");
     $('#dataGridMet').kendoGrid({
         dataSource: {
-            filter: [{
-                field: "timestamp",
-                operator: "gte",
-                value: dateStart
-            }, {
-                field: "timestamp",
-                operator: "lte",
-                value: dateEnd
-            }],
+            filter: filters,
             serverPaging: true,
             serverSorting: true,
             serverFiltering: true,

@@ -67,7 +67,7 @@ func (w *PageController) DataBrowser(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-databrowser.html"
-	return w.GetParams(r, false).Set("ColumnList", GetCustomFieldList())
+	return w.GetParams(r, true).Set("ColumnList", GetCustomFieldList())
 }
 
 func (w *PageController) DataBrowserNew(r *knot.WebContext) interface{} {
