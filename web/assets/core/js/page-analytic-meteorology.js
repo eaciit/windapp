@@ -269,7 +269,7 @@ wr.GetData = function () {
                 wr.initChart();
             }
 
-            // app.loading(false)
+            app.loading(false)
 
         })
     }, 300);
@@ -636,7 +636,7 @@ var Data = {
 
             Data.InitRightTurbineList();
 
-            // app.loading(false);
+            app.loading(false);
             $("#windDistribution").data("kendoChart").refresh();
         });
     },
@@ -852,8 +852,12 @@ $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
         pm.loadData();
+
+        //Wind Rose
         wr.GetData();
         wr.checkPeriod();
+
+        //Wind Distribution
         Data.LoadData();
         tc.LoadData();
     });
@@ -895,5 +899,4 @@ $(document).ready(function () {
         $("#dateEnd").change(function () { fa.DateChange(aws.setBreakDown()) });
 
     }, 1500);
-
 });
