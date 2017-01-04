@@ -60,6 +60,82 @@ vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Meteorology', href: view
 
 viewModel.AVGWindSpeed = new Object();
 var aws = viewModel.AVGWindSpeed;
+aws.dataSource = ko.observableArray();
+
+aws.generateGrid = function () {
+    var config = {
+        dataSource: {
+            data: aws.dataSource(),
+            pageSize: 10,
+            sort: ({ field: "Row", dir: "asc" })
+        },
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
+        scrollable: true,
+        sortable: true,
+        columns: [
+            { title: "Turbine(s)", field: "turbine", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+        ],
+    };
+
+    $.each(aws.dataSource()[0].details, function (i, val) {
+        var column = {
+            title: val.time,
+            headerAttributes: {
+                style: 'font-weight: bold; text-align: center;'
+            },
+            columns: []
+        }
+
+        var keyIndex = ["WRA", "Onsite"];
+        var j = 0;
+
+        $.each(keyIndex, function(j, key){
+            var colChild = {
+                title: key,                
+                field: "details["+i+"].col."+ key ,
+                width: 90,
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;',
+                },
+                format: "{0:n2}",
+                filterable: false
+            };
+
+            column.columns.push(colChild);
+        });
+
+        config.columns.push(column);
+    });
+
+    app.loading(false);
+    $('#gridAvgWs').html("");
+    $('#gridAvgWs').kendoGrid(config);
+    $('#gridAvgWs').data('kendoGrid').refresh();
+}
+
+aws.loadData = function() {
+    var param = {
+        period: fa.period,
+        Turbine: fa.turbine,
+        DateStart: fa.dateStart,
+        DateEnd: fa.dateEnd,
+        Project: fa.project
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/averagewindspeed", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        aws.dataSource(res.data.Data.turbine);
+        aws.generateGrid();
+    });
+}
+
+
+/*
 
 aws.SeriesBreakdown = ko.observableArray([
         { "value": "summary", "text": "Summary" },
@@ -199,7 +275,7 @@ aws.getData = function(){
 
         },
     });
-}
+}*/
 
 
 
@@ -750,6 +826,9 @@ $(document).ready(function () {
 
         //Wind Distribution
         Data.LoadData();
+
+        // averagewindspeed
+        aws.loadData();
     });
 
     setTimeout(function () {
@@ -767,13 +846,13 @@ $(document).ready(function () {
         $( "#btnRefresh" ).trigger( "click" );
     }, 300);
 
-    $('#periodList').kendoDropDownList({
+    /*$('#periodList').kendoDropDownList({
         data: fa.periodList,
         dataValueField: 'value',
         dataTextField: 'text',
         suggest: true,
         change: function () { fa.showHidePeriod(aws.setBreakDown()) }
-    });
+    });*/
 
     setTimeout(function () {
         $('#projectList').kendoDropDownList({
@@ -781,18 +860,18 @@ $(document).ready(function () {
             dataValueField: 'value',
             dataTextField: 'text',
             suggest: true,
-            change: function () { aws.setBreakDown() }
+            // change: function () { aws.setBreakDown() }
         });
 
-        $("#dateStart").change(function () { fa.DateChange(aws.setBreakDown()) });
-        $("#dateEnd").change(function () { fa.DateChange(aws.setBreakDown()) });
+        /*$("#dateStart").change(function () { fa.DateChange(aws.setBreakDown()) });
+        $("#dateEnd").change(function () { fa.DateChange(aws.setBreakDown()) });*/
 
     }, 1500);
 
     setTimeout(function () {
         fa.LoadData();
         pm.loadData();
-        aws.getData ();
+        aws.loadData();
 
         // Wind Distribution
         // Data.LoadData();
