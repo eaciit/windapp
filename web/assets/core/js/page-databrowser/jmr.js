@@ -217,10 +217,11 @@ dbj.InitJMRDetail = function(e) {
         },
         scrollable: true,
         sortable: false,
-        pageable: {
+        // pageable: false,
+        /*pageable: {
             pageSize: 10,
             input:true, 
-        },
+        },*/
         columns: [{
             title: "Description",
             field: "Description",
