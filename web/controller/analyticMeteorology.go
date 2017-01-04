@@ -101,7 +101,7 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 				_tkm.Set(arrturbine[i],
 					GetCorrelation(allres.Get(_turbine, tk.M{}).(tk.M), allres.Get(arrturbine[i], tk.M{}).(tk.M)))
 			} else {
-				_tkm.Set(arrturbine[i], "")
+				_tkm.Set(arrturbine[i], "-")
 			}
 		}
 		dataSeries = append(dataSeries, _tkm)
