@@ -1153,9 +1153,9 @@ a:active, a:focus, a:hover {
 
 .date-info{
     background: #fff;
-    margin-bottom: 10px;
+    /*margin-bottom: 10px;
     padding: 5px 10px;
     color: #585555;
     font-size: 12px;
-    border-radius: 3px;
+    border-radius: 3px;*/
 }
