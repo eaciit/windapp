@@ -5,24 +5,35 @@ var dbe = viewModel.DatabrowserEvent;
 
 dbe.InitEventGrid = function() {
     dbr.eventrawvis(true);
-    var dateStart = $('#dateStart').data('kendoDatePicker').value();
-    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-    dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-    dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 
     var turbine = [];
-    if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
         turbine = turbineval;
     } else {
-        turbine = $("#turbineMulti").data("kendoMultiSelect").value();
+        turbine = $("#turbineList").data("kendoMultiSelect").value();
     }
 
-    var param = {
-        DateStart: dateStart,
-        DateEnd: dateEnd,
-        Turbine: turbine,
-    };
+    var filters = [{
+        field: "timestamp",
+        operator: "gte",
+        value: fa.dateStart
+    }, {
+        field: "timestamp",
+        operator: "lte",
+        value: fa.dateEnd
+    }, {
+        field: "turbine",
+        operator: "in",
+        value: turbine
+    }, ];
+
+    if(fa.project != "") {
+        filters.push({
+            field: "projectname",
+            operator: "eq",
+            value: fa.project
+        })
+    }
 
 
     $('#EventGrid').html("");
@@ -31,11 +42,12 @@ dbe.InitEventGrid = function() {
             serverPaging: true,
             serverSorting: true,
             serverFiltering: true,
+            filter: filters,
             transport: {
                 read: {
                     url: viewModel.appName + "databrowser/geteventlist",
                     type: "POST",
-                    data: param,
+                    data: {},
                     dataType: "json",
                     contentType: "application/json; charset=utf-8"
                 },

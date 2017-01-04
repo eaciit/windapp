@@ -4,32 +4,27 @@ viewModel.DatabrowserAlarmAnomaly = new Object();
 var dbaa = viewModel.DatabrowserAlarmAnomaly;
 
 dbaa.InitGridAlarmAnomalies = function() {
-    var dateStart = $('#dateStart').data('kendoDatePicker').value();
-    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-    dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-    dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
-
     var turbine = [];
-    if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
         turbine = turbineval;
     } else {
-        turbine = $("#turbineMulti").data("kendoMultiSelect").value();
+        turbine = $("#turbineList").data("kendoMultiSelect").value();
     }
 
     var filters = [{
         field: "startdate",
         operator: "gte",
-        value: dateStart
+        value: fa.dateStart
     }, {
         field: "startdate",
         operator: "lte",
-        value: dateEnd
+        value: fa.dateEnd
     }, {
         field: "turbine",
         operator: "in",
         value: turbine
     }, ];
+    
     var filter = {
         filters: filters
     }

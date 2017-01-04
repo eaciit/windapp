@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	"errors"
 	"fmt"
+	"gopkg.in/mgo.v2/bson"
 	"io"
 	"os"
 	"path/filepath"
@@ -71,6 +72,7 @@ func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
 		"timestamp",
 		"dateinfo.dateid",
 		"startdate",
+		"timestart",
 	}
 
 	if s != nil {
@@ -182,6 +184,8 @@ func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
 					anProject := strings.Split(value.(string), "(")
 					project := strings.TrimRight(anProject[0], " ")
 					filters = append(filters, dbox.Eq(field, project))
+				} else if field == "_id" && bson.IsObjectIdHex(toolkit.ToString(value)) {
+					filters = append(filters, dbox.Eq(field, bson.ObjectIdHex(toolkit.ToString(value))))
 				} else {
 					filters = append(filters, dbox.Eq(field, value))
 				}
