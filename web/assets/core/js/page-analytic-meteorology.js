@@ -26,7 +26,6 @@ pm.dummyData = ko.observableArray([
 ]);
 
 pm.loadData = function () {
-    fa.getProjectInfo();
     setTimeout(function () {
         if (fa.project == "") {
             pm.type = "Project Name";
@@ -247,7 +246,6 @@ wr.GetData = function () {
     fa.LoadData();
 
     setTimeout(function () {
-        // fa.getProjectInfo();
         var breakDownVal = $("#nosection").data("kendoDropDownList").value();
         var secDer = 360 / breakDownVal;
         wr.sectorDerajat(secDer);
@@ -271,7 +269,7 @@ wr.GetData = function () {
                 wr.initChart();
             }
 
-            app.loading(false)
+            // app.loading(false)
 
         })
     }, 300);
@@ -525,7 +523,6 @@ wd.populateTurbine = function(){
 
 var Data = {
     LoadData: function () {
-        fa.getProjectInfo();
         fa.LoadData();
         wd.populateTurbine();
         this.ChartWindDistributon();
@@ -639,7 +636,7 @@ var Data = {
 
             Data.InitRightTurbineList();
 
-            app.loading(false);
+            // app.loading(false);
             $("#windDistribution").data("kendoChart").refresh();
         });
     },
@@ -851,15 +848,12 @@ tc.RefreshGrid = function(){
 $(document).ready(function () {
     app.loading(true);
     fa.LoadData();
+
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
         pm.loadData();
-
-        //Wind Rose
         wr.GetData();
         wr.checkPeriod();
-
-        //Wind Distribution
         Data.LoadData();
         tc.LoadData();
     });
@@ -902,13 +896,4 @@ $(document).ready(function () {
 
     }, 1500);
 
-    setTimeout(function () {
-        fa.LoadData();
-        pm.loadData();
-        // aws.getData ();
-        tc.LoadData();
-
-        // Wind Distribution
-        // Data.LoadData();
-    }, 1000);
 });
