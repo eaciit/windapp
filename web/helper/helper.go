@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	"errors"
 	"fmt"
+	"gopkg.in/mgo.v2/bson"
 	"io"
 	"os"
 	"path/filepath"
@@ -71,6 +72,7 @@ func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
 		"timestamp",
 		"dateinfo.dateid",
 		"startdate",
+		"timestart",
 	}
 
 	if s != nil {
@@ -182,6 +184,8 @@ func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
 					anProject := strings.Split(value.(string), "(")
 					project := strings.TrimRight(anProject[0], " ")
 					filters = append(filters, dbox.Eq(field, project))
+				} else if field == "_id" && bson.IsObjectIdHex(toolkit.ToString(value)) {
+					filters = append(filters, dbox.Eq(field, bson.ObjectIdHex(toolkit.ToString(value))))
 				} else {
 					filters = append(filters, dbox.Eq(field, value))
 				}
@@ -308,28 +312,30 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
-	if (toolkit.ToString(sessionid) == "" && !success && data == nil) || toolkit.ToString(sessionid) == "" {
-		dataX := struct {
-			Data []toolkit.M
-		}{
-			Data: []toolkit.M{},
+	if toolkit.ToString(sessionid) == "" {
+		if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "Your session has expired, please login"
 		}
+	} else {
+		if !success && data == nil {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
 
-		data = dataX
-		success = false
-		message = "Your session has expired, please login"
-	}
-
-	if !success && data == nil {
-		dataX := struct {
-			Data []toolkit.M
-		}{
-			Data: []toolkit.M{},
+			data = dataX
+			success = false
+			message = "data is empty"
 		}
-
-		data = dataX
-		success = false
-		message = "data is empty"
 	}
 
 	return map[string]interface{}{

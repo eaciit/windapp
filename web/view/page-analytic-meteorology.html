@@ -21,7 +21,7 @@
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
 					</div> -->
 					<div class="panel-body">
-						<div class="databrowser-date-info">
+						<div class="date-info">
                             Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
                          </div>
                          <div class="clearfix">&nbsp;</div>
@@ -31,11 +31,12 @@
 							<li id="winddistributionTab" role="presentation"><a onclick="wd.RefreshChart()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
 							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
+							<li id="turbineCorrelationTab" role="presentation" onclick="tc.RefreshGrid()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
 						</ul>
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="avgwindspeed">
-								<div class="col-md-12">
+								<!--<div class="col-md-12">
 									<div class="col-md-3 col-xs-12">
 										<label class="control-label keyA-label">Series Breakdown</label>
 										<select id="seriesBreakdown" data-bind="kendoDropDownList: { data: aws.SeriesBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
@@ -51,6 +52,11 @@
 								</div>
 								<div class="col-md-12">
 									<div id="averageWindSpeedChart"></div>
+								</div>-->
+								<div class="col-md-12">
+									<div class="clearfix">&nbsp;</div>
+									<div id="gridAvgWs"></div>
+									<div class="clearfix">&nbsp;</div>
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
@@ -82,7 +88,7 @@
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="winddistribution">
-<!-- 								<div class="databrowser-date-info">
+<!-- 								<div class="date-info">
                                     Data Available from: <strong><span id="availabledatestartscada2">-</span></strong> until: <strong><span id="availabledateendscada2">-</span></strong>
                                 </div> -->
 								<div class="col-md-9">
@@ -101,6 +107,9 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="temperature">
 								
+							</div>
+							<div role="tabpanel" class="tab-pane" id="turbineCorrelation">
+								<div id="gridTurbineCorrelation"></div>
 							</div>
 						</div>
 					</div>

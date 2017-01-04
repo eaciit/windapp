@@ -28,14 +28,18 @@ km.ExportKeyMetrics = function () {
 }
 
 km.createChart = function () {
+    $("#totalCountData").html('(Total Count Data: ' + km.dsTotaldataWS() + ')');
+    var turbineData = '';
+    if(fa.turbine.length == 0) {
+        turbineData = 'All Turbines';
+    } else {
+        turbineData = fa.turbine.join(", ");
+    }
+    $("#turbineListTitle").html('for ' + turbineData);
     $("#dh-chart").replaceWith('<div id="dh-chart"></div>');
 
     $("#dh-chart").kendoChart({
         theme: "flat",
-        title: {
-            text: "Histogram for Wind Speed (m/s) \n (Total Count Data: " + km.dsTotaldataWS() + ")",
-            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-        },
         legend: {
             position: "top",
             visible: false
@@ -111,13 +115,17 @@ km.createChart = function () {
 }
 
 km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
+    $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
+    var turbineData = '';
+    if(fa.turbine.length == 0) {
+        turbineData = 'All Turbines';
+    } else {
+        turbineData = fa.turbine.join(", ");
+    }
+    $("#turbineListProd").html('for ' + turbineData);
     $("#dhprod-chart").replaceWith("<div id='dhprod-chart'></div>");
     $("#dhprod-chart").kendoChart({
         theme: "flat",
-        title: {
-            text: "Histogram for Production (MWh) \n (Total Count Data: " + km.dsTotaldataProduction() + ")",
-            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-        },
         legend: {
             position: "top",
             visible: false
