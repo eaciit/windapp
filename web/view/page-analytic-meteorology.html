@@ -31,6 +31,7 @@
 							<li id="winddistributionTab" role="presentation"><a onclick="wd.RefreshChart()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
 							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
+							<li id="turbineCorrelationTab" role="presentation" onclick="tc.RefreshGrid()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -106,6 +107,9 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="temperature">
 								
+							</div>
+							<div role="tabpanel" class="tab-pane" id="turbineCorrelation">
+								<div id="gridTurbineCorrelation"></div>
 							</div>
 						</div>
 					</div>

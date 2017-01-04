@@ -26,7 +26,6 @@ pm.dummyData = ko.observableArray([
 ]);
 
 pm.loadData = function () {
-    fa.getProjectInfo();
     setTimeout(function () {
         if (fa.project == "") {
             pm.type = "Project Name";
@@ -94,9 +93,9 @@ aws.generateGrid = function () {
 
         $.each(keyIndex, function(j, key){
             var colChild = {
-                title: key,                
+                title: key + " (m/s)",                
                 field: "details["+i+"].col."+ key ,
-                width: 90,
+                width: 100,
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;',
                 },
@@ -323,7 +322,6 @@ wr.GetData = function () {
     fa.LoadData();
 
     setTimeout(function () {
-        fa.getProjectInfo();
         var breakDownVal = $("#nosection").data("kendoDropDownList").value();
         var secDer = 360 / breakDownVal;
         wr.sectorDerajat(secDer);
@@ -601,7 +599,6 @@ wd.populateTurbine = function(){
 
 var Data = {
     LoadData: function () {
-        fa.getProjectInfo();
         fa.LoadData();
         wd.populateTurbine();
         this.ChartWindDistributon();
@@ -812,10 +809,122 @@ wd.RefreshChart = function(){
     }, 100);
 }
 
+// ============================ Turbine Correlation ====================================
+viewModel.TurbineCorrelation = new Object();
+var tc = viewModel.TurbineCorrelation;
+
+tc.LoadData = function(){
+    app.loading(true);
+    fa.LoadData();
+    var param = {
+        period: fa.period,
+        dateStart: fa.dateStart,
+        dateEnd: fa.dateEnd,
+        turbine: fa.turbine,
+        project: fa.project
+    };
+    var dataSource;
+    var columns;
+    toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getwindcorrelation", param, function (res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        dataSource = res.data.Data;
+        columns = res.data.Column
+        
+        var schemaModel = {};
+        var columnArray = [];
+
+        $.each(columns, function (index, da) {
+            schemaModel[da] = {type: (da == "Turbine" ? "string" : "int")};
+
+            var column = {
+                title: da,
+                field: da,
+                locked: (da == "Turbine" ? true : false),
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "text-align:center;"
+                },
+                width: 120,
+                template:( da != "Turbine" ? "#= kendo.toString("+da+", 'n2') #" : "#= kendo.toString("+da+") #")
+            }
+
+            columnArray.push(column);
+        });
+
+        var schemaModelNew = kendo.data.Model.define({
+            id: "Turbine",
+            fields: schemaModel,
+        });
+
+        var knownOutagesDataSource = new kendo.data.DataSource({
+            data: dataSource,
+            pageSize: 10,
+            schema: {
+                model: schemaModelNew
+            }
+        });
+        $("#gridTurbineCorrelation").html("");
+        $("#gridTurbineCorrelation").kendoGrid({
+            dataSource: knownOutagesDataSource,
+            columns: columnArray,
+            filterable: false,
+            sortable: true,
+            dataBound: function (e) {
+                if (e.sender._data.length == 0) {
+                    var mgs, col;
+                    mgs = "No results found for";
+                    col = 9;
+                    var contentDiv = this.wrapper.children(".k-grid-content"),
+                 dataTable = contentDiv.children("table");
+                    if (!dataTable.find("tr").length) {
+                        dataTable.children("tbody").append("<tr><td colspan='" + col + "'><div style='color:red;width:500px'>" + mgs + "</div></td></tr>");
+                        if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
+                            dataTable.width(this.wrapper.children(".k-grid-header").find("table").width());
+                            contentDiv.scrollLeft(1);
+                        }
+                    }
+                }
+                app.loading(false);
+            },
+            pageable: {
+                pageSize: 10,
+                input:true, 
+            },
+            scrollable: true,
+            resizable: false
+        });
+        setTimeout(function(){
+            // $("#gridTurbineCorrelation").data("kendoGrid").refresh();
+            $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
+            $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+        },200);
+
+    });
+
+
+
+
+}
+
+tc.RefreshGrid = function(){
+    setTimeout(function(){
+         $("#gridTurbineCorrelation").data("kendoGrid").refresh();
+         $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
+         $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+    },500);
+}
+
+
 
 $(document).ready(function () {
     app.loading(true);
     fa.LoadData();
+
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
         pm.loadData();
@@ -826,10 +935,11 @@ $(document).ready(function () {
 
         //Wind Distribution
         Data.LoadData();
-
-        // averagewindspeed
-        aws.loadData();
+        
+        aws.loadData();        
+        tc.LoadData();
     });
+
 
     setTimeout(function () {
         $("#legend-list").html("");
@@ -867,13 +977,4 @@ $(document).ready(function () {
         $("#dateEnd").change(function () { fa.DateChange(aws.setBreakDown()) });*/
 
     }, 1500);
-
-    setTimeout(function () {
-        fa.LoadData();
-        pm.loadData();
-        aws.loadData();
-
-        // Wind Distribution
-        // Data.LoadData();
-    }, 1000);
 });

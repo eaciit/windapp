@@ -40,6 +40,14 @@
     /*padding-left: 95px;*/
 }
 
+.title-label{
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif;
+    font-size: 13px;
+}
+
 .btn-group {
     padding-top: 5px;
 }
