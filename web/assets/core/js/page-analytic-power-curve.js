@@ -144,10 +144,11 @@ var Data = {
             dataTurbine = res.data.Data;
             localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
             page.dtLineChart(res.data.Data);
-
+            console.log(JSON.stringify(dataTurbine));
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
                 theme: "flat",
+                renderAs: "canvas",
                 title: {
                     text: ""
                 },

@@ -102,7 +102,6 @@ aws.generateGrid = function () {
                 format: "{0:n2}",
                 filterable: false
             };
-
             column.columns.push(colChild);
         });
 
@@ -276,7 +275,91 @@ aws.getData = function(){
     });
 }*/
 
+// ============================ 12/24 Table ====================================
 
+viewModel.Table1224 = new Object();
+var t1224 = viewModel.Table1224;
+t1224.dataSource = ko.observableArray();
+
+t1224.generateGrid = function (datatype) {
+    var config = {
+        dataSource: {
+            data: t1224.dataSource(),
+            pageSize: 10,
+            sort: ({ field: "hours", dir: "asc" })
+        },
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
+        scrollable: true,
+        sortable: true,
+        columns: [
+            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+        ],
+    };
+
+    $.each(t1224.dataSource()[0].details, function (i, val) {
+        var column = {
+            title: val.time,
+            headerAttributes: {
+                style: 'font-weight: bold; text-align: center;'
+            },
+            columns: []
+        }
+        var keyIndex = [];
+        if(datatype == "turbine") {
+            keyIndex = ["WS", "Temp", "Power"];
+        } else {
+            keyIndex = ["WS", "Temp"];
+        }
+
+        $.each(keyIndex, function(j, key){
+            var colChild = {
+                title: key + " (m/s)",                
+                field: "details["+i+"].col."+ key,
+                width: 100,
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;',
+                },
+                format: "{0:n2}",
+                filterable: false
+            };
+            column.columns.push(colChild);
+        });
+
+        config.columns.push(column);
+    });
+
+    app.loading(false);
+    $('#gridTable1224').html('');
+    $('#gridTable1224').kendoGrid(config);
+    $('#gridTable1224').data('kendoGrid').refresh();
+}
+
+t1224.loadData = function(datatype) {
+    var dt = new Date();
+    var param = {
+        DataType: datatype,
+        Turbine: fa.turbine,
+        Project: fa.project,
+        Year: dt.getUTCFullYear()-1
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        t1224.dataSource(res.data.Data);
+        t1224.generateGrid(datatype);
+    });
+}
+
+t1224.RefreshGrid = function() {
+    setTimeout(function(){
+        $("#gridTable1224").data("kendoGrid").refresh();
+    }, 300);
+}
 
 // ============================ WINDROSE ====================================
 
@@ -925,6 +1008,9 @@ $(document).ready(function () {
     app.loading(true);
     fa.LoadData();
 
+    $("input[name=isMet]").on("change", function() {
+        t1224.loadData(this.id);
+    });
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
         pm.loadData();
@@ -936,10 +1022,16 @@ $(document).ready(function () {
         //Wind Distribution
         Data.LoadData();
         
-        aws.loadData();        
+        aws.loadData();
+        var datatype = ''
+        if($("#met").is(':checked')) {
+            datatype = 'met';
+        } else {
+            datatype = 'turbine';
+        }
+        t1224.loadData(datatype);
         tc.LoadData();
     });
-
 
     setTimeout(function () {
         $("#legend-list").html("");

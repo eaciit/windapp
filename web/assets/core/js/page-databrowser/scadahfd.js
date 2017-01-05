@@ -2,6 +2,7 @@
 
 viewModel.DatabrowserScadaHFD = new Object();
 var dbsh = viewModel.DatabrowserScadaHFD;
+dbsh.ColumnList = ko.observableArray([]);
 
 dbsh.InitScadaHFDGrid = function () {
     dbr.hfdvis(true);
@@ -138,6 +139,7 @@ dbsh.InitScadaHFDGrid = function () {
             { title: "Fast DrTrVibValue StdDev", field: "Fast_DrTrVibValue_StdDev", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
             { title: "Fast DrTrVibValue Min", field: "Fast_DrTrVibValue_Min", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
             { title: "Fast DrTrVibValue Max", field: "Fast_DrTrVibValue_Max", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
+            { title: "Fast DrTrVibValue Count", field: "Fast_DrTrVibValue_Count", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
             { title: "Fast GenSpeed RPM", field: "Fast_GenSpeed_RPM", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
             { title: "Fast GenSpeed RPM StdDev", field: "Fast_GenSpeed_RPM_StdDev", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
             { title: "Fast GenSpeed RPM Min", field: "Fast_GenSpeed_RPM_Min", width: 90, attributes: { class: "align-right" }, format: "{0:n2}", filterable: false },
