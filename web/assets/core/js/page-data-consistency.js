@@ -111,8 +111,14 @@ pg.loadData = function () {
         var minDatetemp = new Date(res.data.ScadaData[0]);
         var maxDatetemp = new Date(res.data.ScadaData[1]);
 
+        var minDatetempHfd = new Date(res.data.ScadaDataHFD[0]);
+        var maxDatetempHfd = new Date(res.data.ScadaDataHFD[1]);
+
         var dgrMinDatetemp = new Date(res.data.DGRData[0]);
         var dgrMaxDatetemp = new Date(res.data.DGRData[1]);
+
+        $('#availabledatestartscadahfd').html(kendo.toString(moment.utc(minDatetempHfd).format('DD-MMMM-YYYY')));
+        $('#availabledateendscadahfd').html(kendo.toString(moment.utc(maxDatetempHfd).format('DD-MMMM-YYYY')));
 
         $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
