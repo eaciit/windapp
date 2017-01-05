@@ -4,42 +4,46 @@ viewModel.DatabrowserScadaAnomaly = new Object();
 var dbsa = viewModel.DatabrowserScadaAnomaly;
 
 dbsa.InitGridAnomalies = function() {
-    var dateStart = $('#dateStart').data('kendoDatePicker').value();
-    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-
-    dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
-    dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
-
     var turbine = [];
-    if ($("#turbineMulti").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
         turbine = turbineval;
     } else {
-        turbine = $("#turbineMulti").data("kendoMultiSelect").value();
+        turbine = $("#turbineList").data("kendoMultiSelect").value();
     }
 
     var param = {};
+
+    var filters = [{
+        field: "timestamp",
+        operator: "gte",
+        value: fa.dateStart
+    }, {
+        field: "timestamp",
+        operator: "lte",
+        value: fa.dateEnd
+    }, {
+        field: "isvalidtimeduration",
+        operator: "eq",
+        value: true
+    }, {
+        field: "turbine",
+        operator: "in",
+        value: turbine
+    }, ];
+
+    if(fa.project != "") {
+        filters.push({
+            field: "projectname",
+            operator: "eq",
+            value: fa.project
+        })
+    }
 
     $('#dataGridAnomalies').html("");
     $('#dataGridAnomalies').kendoGrid({
         selectable: "multiple",
         dataSource: {
-            filter: [{
-                field: "timestamp",
-                operator: "gte",
-                value: dateStart
-            }, {
-                field: "timestamp",
-                operator: "lte",
-                value: dateEnd
-            }, {
-                field: "isvalidtimeduration",
-                operator: "eq",
-                value: true
-            }, {
-                field: "turbine",
-                operator: "in",
-                value: turbine
-            }],
+            filter: filters,
             serverPaging: true,
             serverSorting: true,
             serverFiltering: true,
