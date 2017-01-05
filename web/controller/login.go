@@ -208,6 +208,8 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 		ScadaAnomaly      []time.Time
 		AlarmOverlapping  []time.Time
 		AlarmScadaAnomaly []time.Time
+		ScadaDataOEM      []time.Time
+		ScadaDataHFD      []time.Time
 	}
 
 	datePeriod := new(availdatedata)
