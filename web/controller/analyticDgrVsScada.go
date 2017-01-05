@@ -148,7 +148,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		maxDate := scada.Get("maxdate").(time.Time)
 
 		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
-
+		// tk.Println(" >>> hour scada >>> ", hourValue)
 		sEnergy = sPower / 6
 		sOktime = scada.GetFloat64("oktime")
 		// log.Printf("sOkTime: %v \n", sOktime/3600)
@@ -353,9 +353,11 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 
 		minDate := ltkm.Get("midate", time.Time{}).(time.Time)
 		maxDate := ltkm.Get("madate", time.Time{}).(time.Time)
-
+		//(totalTurbine * hourValue * 2100) * 100 * 1000
+		// tk.Println(" >>> ltkm >>> ", ltkm)
 		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
-		scadaHfdItem.plf = tk.Div(scadaHfdItem.energy, (totalTurbine*hourValue*2100)*100*1000)
+		// tk.Println(" >>> hour >>> ", hourValue)
+		scadaHfdItem.plf = tk.Div(scadaHfdItem.energy, (totalTurbine*hourValue*2100)) * 100 * 1000
 	}
 
 	var diffDgrHfd DataItem
