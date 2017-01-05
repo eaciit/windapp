@@ -32,6 +32,7 @@
 							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
 							<li id="turbineCorrelationTab" role="presentation" onclick="tc.RefreshGrid()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
+							<li id="table12-24Tab" role="presentation"><a href="#table12-24" aria-controls="12/24 Table" role="tab" onclick="t1224.RefreshGrid()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -109,6 +110,21 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="turbineCorrelation">
 								<div id="gridTurbineCorrelation"></div>
+							</div>
+							<div role="tabpanel" class="tab-pane" id="table12-24">
+								<div class="col-md-12">
+									<div class="nav-meteor">
+										<div class="btn-group" data-toggle="buttons">
+											<label class="btn btn-sm btn-primary active radio-filter">
+		                                        <input type="radio" name="isMet" id="met" autocomplete="off" value="true" checked> Met Tower
+		                                    </label>
+											<label class="btn btn-sm btn-primary radio-filter">
+		                                        <input type="radio" name="isMet" id="turbine" autocomplete="off" value="false" onclick="return false;"> Turbine
+		                                    </label>
+										</div>
+									</div>
+									<div id="gridTable1224"></div>
+								</div>
 							</div>
 						</div>
 					</div>
