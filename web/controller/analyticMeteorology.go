@@ -329,3 +329,129 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	return helper.CreateResult(true, data, "success")
 }
+
+func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	type Payload1224 struct {
+		DataType string
+		Project  string
+		Turbine  []interface{}
+		Year     int
+	}
+
+	var (
+		pipes []tk.M
+		data  []tk.M
+		list  []tk.M
+	)
+
+	p := new(Payload1224)
+	e := k.GetPayload(&p)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	match := tk.M{"dateinfo.year": p.Year}
+
+	if p.Project != "" && p.DataType == "turbine" {
+		anProject := strings.Split(p.Project, "(")
+		match.Set("projectname", strings.TrimRight(anProject[0], " "))
+	}
+
+	if len(p.Turbine) > 0 && p.DataType == "turbine" {
+		match.Set("turbine", tk.M{"$in": p.Turbine})
+	}
+
+	group := tk.M{}
+	groupID := tk.M{} /*inside _id group*/
+
+	tablename := ""
+	if p.DataType == "turbine" { /*average value*/
+		group = tk.M{
+			"windspeed": tk.M{"$avg": "$avgwindspeed"},
+			"temp":      tk.M{"$avg": "$nacelletemperature"},
+			"power":     tk.M{"$avg": "$power"},
+		}
+		tablename = new(ScadaData).TableName()
+	} else {
+		group = tk.M{
+			"windspeed": tk.M{"$avg": "$vhubws90mavg"},
+			"temp":      tk.M{"$avg": "$thubhhubtemp855mavg"},
+		}
+		tablename = new(MetTower).TableName()
+	}
+
+	groupID.Set("monthid", "$dateinfo.monthid") /*for sorting purpose*/
+	groupID.Set("monthdesc", "$dateinfo.monthdesc")
+	groupID.Set("hours", tk.M{"$dateToString": tk.M{"format": "%H:00", "date": "$timestamp"}}) /*to format HH:MM*/
+	group.Set("_id", groupID)
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": group})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	csr.Close()
+
+	// combine
+
+	tmpRes := tk.M{}
+
+	for _, val := range list {
+		id := val.Get("_id").(tk.M)
+		monthDesc := id.GetString("monthdesc")
+		split := strings.Split(monthDesc, " ")
+		trim := split[0][:3]
+		wind := val.GetFloat64("windspeed")
+		temp := val.GetFloat64("temp")
+		power := 0.0
+		if p.DataType == "turbine" {
+			power = val.GetFloat64("power")
+		}
+
+		hours := id.GetString("hours")
+
+		details := []tk.M{}
+
+		if tmpRes.Get(hours) != nil {
+			details = tmpRes.Get(hours).([]tk.M)
+		}
+
+		time := tk.M{}
+		time.Set("time", strings.ToUpper(trim)+" "+split[1])
+
+		col := tk.M{}
+		col.Set("WS", wind)
+		col.Set("Temp", temp)
+		if p.DataType == "turbine" {
+			col.Set("Power", power)
+		}
+
+		time.Set("col", col)
+
+		details = append(details, time)
+
+		tmpRes.Set(hours, details)
+	}
+
+	for i, v := range tmpRes {
+		data = append(data, tk.M{}.Set("hours", i).Set("details", v.([]tk.M)))
+	}
+	result := tk.M{"Data": data}
+
+	return helper.CreateResult(true, result, "success")
+}
