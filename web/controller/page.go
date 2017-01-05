@@ -67,7 +67,7 @@ func (w *PageController) DataBrowser(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-databrowser.html"
-	return w.GetParams(r, true).Set("ColumnList", GetCustomFieldList())
+	return w.GetParams(r, true).Set("ColumnList", GetCustomFieldList()).Set("HDFColList", GetHFDCustomFieldList())
 }
 
 func (w *PageController) DataBrowserNew(r *knot.WebContext) interface{} {
@@ -75,7 +75,7 @@ func (w *PageController) DataBrowserNew(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-databrowser-new.html"
 
-	return w.GetParams(r, false).Set("ColumnList", GetCustomFieldList())
+	return w.GetParams(r, false).Set("ColumnList", GetCustomFieldList()).Set("HDFColList", GetHFDCustomFieldList())
 }
 
 /*func (w *PageController) AnalyticWindDistribution(r *knot.WebContext) interface{} {
