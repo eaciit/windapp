@@ -322,7 +322,7 @@ t1224.generateGrid = function (datatype) {
             } else if(key == "Temp") {
                 title = key + " (" + String.fromCharCode(176) + "C)";
             } else {
-                title = key + " kWH";
+                title = key + " (kWH)";
             }
             var colChild = {
                 title: title,                
