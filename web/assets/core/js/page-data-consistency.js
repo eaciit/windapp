@@ -48,9 +48,18 @@ pg.initSummaryGrid = function () {
         theme: "flat",
         columns: [
             { title: " ", field: "desc", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-left" }, width: 150 },
-            { title: "DGR", field: "dgr", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else if(desc== 'Grid Availability'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else if(desc== 'Machine Availability'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else if(desc=='True Availability'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else {# #: kendo.toString(dgr, 'N2') # #}#" },
-            { title: "Scada", field: "scada", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else if(desc== 'Grid Availability'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else if(desc== 'Machine Availability'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else if(desc=='True Availability'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else {# #: kendo.toString(scada, 'N2') # #}#" },
-            { title: "Difference", field: "difference", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(difference, 'N2') # % #}else if(desc== 'Grid Availability'){# #: kendo.toString(difference, 'N2') # % #}else if(desc== 'Machine Availability'){# #: kendo.toString(difference, 'N2') # % #}else if(desc=='True Availability'){# #: kendo.toString(difference, 'N2') # % #}else {# #: kendo.toString(difference, 'N2') # #}#" },
+            { title: "DGR", width: 120, field: "dgr", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else if(desc== 'Grid Availability'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else if(desc== 'Machine Availability'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else if(desc=='True Availability'){# #: kendo.toString(dgr, 'N2') # #if(dgr!= 'N/A'){# % #}}else {# #: kendo.toString(dgr, 'N2') # #}#" },
+            { title: "Scada", width: 120,field: "scada", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else if(desc== 'Grid Availability'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else if(desc== 'Machine Availability'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else if(desc=='True Availability'){# #: kendo.toString(scada, 'N2') # #if(scada!= 'N/A'){# % #}}else {# #: kendo.toString(scada, 'N2') # #}#" },
+            { title: "Scada HFD", width: 120,field: "ScadaHFD", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(ScadaHFD, 'N2') # #if(ScadaHFD!= 'N/A'){# % #}}else if(desc== 'Grid Availability'){# #: kendo.toString(ScadaHFD, 'N2') # #if(ScadaHFD!= 'N/A'){# % #}}else if(desc== 'Machine Availability'){# #: kendo.toString(ScadaHFD, 'N2') # #if(ScadaHFD!= 'N/A'){# % #}}else if(desc=='True Availability'){# #: kendo.toString(ScadaHFD, 'N2') # #if(ScadaHFD!= 'N/A'){# % #}}else {# #: kendo.toString(ScadaHFD, 'N2') # #}#" },
+            {
+                title: "Difference",
+                headerAttributes: { style: 'font-weight: bold; text-align: center;' },
+                columns: [
+                    { title: "DGR vs Scada", width: 120,field: "difference", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(difference, 'N2') # % #}else if(desc== 'Grid Availability'){# #: kendo.toString(difference, 'N2') # % #}else if(desc== 'Machine Availability'){# #: kendo.toString(difference, 'N2') # % #}else if(desc=='True Availability'){# #: kendo.toString(difference, 'N2') # % #}else {# #: kendo.toString(difference, 'N2') # #}#" },
+                    { title: "DGR vs Scada HFD", width: 120,field: "diffdgrhfd", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" }, template: "#if(desc== 'PLF'){# #: kendo.toString(diffdgrhfd, 'N2') # % #}else if(desc== 'Grid Availability'){# #: kendo.toString(diffdgrhfd, 'N2') # % #}else if(desc== 'Machine Availability'){# #: kendo.toString(diffdgrhfd, 'N2') # % #}else if(desc=='True Availability'){# #: kendo.toString(diffdgrhfd, 'N2') # % #}else {# #: kendo.toString(diffdgrhfd, 'N2') # #}#" },
+                 ]
+            },
+
         ],
         /*dataSource: {
             data : dataSource,
@@ -102,8 +111,14 @@ pg.loadData = function () {
         var minDatetemp = new Date(res.data.ScadaData[0]);
         var maxDatetemp = new Date(res.data.ScadaData[1]);
 
+        var minDatetempHfd = new Date(res.data.ScadaDataHFD[0]);
+        var maxDatetempHfd = new Date(res.data.ScadaDataHFD[1]);
+
         var dgrMinDatetemp = new Date(res.data.DGRData[0]);
         var dgrMaxDatetemp = new Date(res.data.DGRData[1]);
+
+        $('#availabledatestartscadahfd').html(kendo.toString(moment.utc(minDatetempHfd).format('DD-MMMM-YYYY')));
+        $('#availabledateendscadahfd').html(kendo.toString(moment.utc(maxDatetempHfd).format('DD-MMMM-YYYY')));
 
         $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));

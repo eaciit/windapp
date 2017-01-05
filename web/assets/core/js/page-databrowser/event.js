@@ -149,7 +149,7 @@ dbe.InitEventGrid = function() {
             attributes: {
                 class: "align-right"
             },
-            format: "{0:n2}",
+            format: "{0}",
             filterable: false
         }, {
             title: "Alarm Id",
@@ -158,7 +158,7 @@ dbe.InitEventGrid = function() {
             attributes: {
                 class: "align-right"
             },
-            format: "{0:n2}",
+            format: "{0}",
             filterable: false
         }, {
             title: "Alarm Toggle",
