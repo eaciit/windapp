@@ -37,516 +37,519 @@
         font-size: 10px;
     }
 </style>
-<div class="row">
-    <div class="col-md-12 col-sm-12 ez panel-content">
-        <div class="col-md-12 col-sm-12 hardcore landing">
-            <div class="panel ez no-padding hardcore">
-                <div class="panel-heading">
-                    Monitoring&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="warningrmation"></i>&nbsp;
-                </div>
-                <div class="panel-body" style="text-align:center">
-                    <div class="col-md-12">
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge1" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Tejuva</td>
-                                        <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
-                                        <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
-                                        <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
-                                        <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
-                                        <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
-                                        <td><i class="tooltipster" title="Overall">Ov.</i></td>
-                                        <td><i class="tooltipster" title="Consistency">C.</i></td>
-                                        <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
-                                        <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
-                                        <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
-                                        <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
-                                        <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
-                                        <td><i class="tooltipster" title=">24 Hours">>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>TJW001</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>TJW002</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>TJW003</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>TJW004</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+<div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore mb-5">
+                    <!--<div class="panel-heading">
+                        Monitoring&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="warningrmation"></i>&nbsp;
+                    </div>-->
+                    <div class="panel-body" style="text-align:center">
+                        <i class="fa fa-window-maximize tooltipster tooltipstered pull-right" aria-hidden="true" title="maximize" style="cursor: pointer;"></i>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-sum">
+                                    <thead>
+                                        <tr>
+                                            <td width="20%">WF/Turbines</td>
+                                            <td width="20%">Tot.Capacity</td>
+                                            <td width="20%">Wind Speed Avg.</td>
+                                            <td width="20%">Tot. Prod</td>
+                                            <td class="no-border align-left">Wind Speed</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bold summary">
+                                        <tr>
+                                            <td>1/24</td>
+                                            <td>2.1 MW</td>
+                                            <td>5.7 m/s</td>
+                                            <td>120 MWh</td>
+                                            <td class="no-border">
+                                                <div id="gauge1" class="gauge-custom"></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table class="table table-condensed table-striped">
+                                    <thead class="bold">
+                                        <tr>
+                                            <td width="10%">Tejuva</td>
+                                            <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
+                                            <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
+                                            <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
+                                            <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
+                                            <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
+                                            <td><i class="tooltipster" title="Overall">Ov.</i></td>
+                                            <td><i class="tooltipster" title="Consistency">C.</i></td>
+                                            <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
+                                            <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
+                                            <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
+                                            <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
+                                            <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
+                                            <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
+                                            <td><i class="tooltipster" title=">24 Hours">>24</i></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>TJW001</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>TJW002</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>TJW003</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>TJW004</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-sum">
+                                    <thead>
+                                        <tr>
+                                            <td width="20%">WF/Turbines</td>
+                                            <td width="20%">Tot.Capacity</td>
+                                            <td width="20%">Wind Speed Avg.</td>
+                                            <td width="20%">Tot. Prod</td>
+                                            <td class="no-border align-left">Wind Speed</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bold summary">
+                                        <tr>
+                                            <td>1/24</td>
+                                            <td>2.1 MW</td>
+                                            <td>5.7 m/s</td>
+                                            <td>120 MWh</td>
+                                            <td class="no-border">
+                                                <div id="gauge2" class="gauge-custom"></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table class="table table-condensed table-striped">
+                                    <thead class="bold">
+                                        <tr>
+                                            <td width="10%">Norbury</td>
+                                            <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
+                                            <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
+                                            <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
+                                            <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
+                                            <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
+                                            <td><i class="tooltipster" title="Overall">Ov.</i></td>
+                                            <td><i class="tooltipster" title="Consistency">C.</i></td>
+                                            <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
+                                            <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
+                                            <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
+                                            <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
+                                            <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
+                                            <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
+                                            <td><i class="tooltipster" title=">24 Hours">>24</i></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Norbury1</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Norbury2</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Norbury3</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Norbury4</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                 <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge2" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Norbury</td>
-                                        <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
-                                        <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
-                                        <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
-                                        <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
-                                        <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
-                                        <td><i class="tooltipster" title="Overall">Ov.</i></td>
-                                        <td><i class="tooltipster" title="Consistency">C.</i></td>
-                                        <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
-                                        <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
-                                        <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
-                                        <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
-                                        <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
-                                        <td><i class="tooltipster" title=">24 Hours">>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>Norbury1</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Norbury2</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Norbury3</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Norbury4</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                 <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge3" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Backen</td>
-                                        <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
-                                        <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
-                                        <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
-                                        <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
-                                        <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
-                                        <td><i class="tooltipster" title="Overall">Ov.</i></td>
-                                        <td><i class="tooltipster" title="Consistency">C.</i></td>
-                                        <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
-                                        <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
-                                        <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
-                                        <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
-                                        <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
-                                        <td><i class="tooltipster" title=">24 Hours">>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>Backen1</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Backen2</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Backen3</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Backen4</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                         <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                 <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge4" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Delling</td>
-                                        <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
-                                        <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
-                                        <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
-                                        <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
-                                        <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
-                                        <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
-                                        <td><i class="tooltipster" title="Overall">Ov.</i></td>
-                                        <td><i class="tooltipster" title="Consistency">C.</i></td>
-                                        <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
-                                        <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
-                                        <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
-                                        <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
-                                        <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
-                                        <td><i class="tooltipster" title=">24 Hours">>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>Delling1</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Delling2</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Delling3</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Delling4</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-sum">
+                                    <thead>
+                                        <tr>
+                                            <td width="20%">WF/Turbines</td>
+                                            <td width="20%">Tot.Capacity</td>
+                                            <td width="20%">Wind Speed Avg.</td>
+                                            <td width="20%">Tot. Prod</td>
+                                            <td class="no-border align-left">Wind Speed</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bold summary">
+                                        <tr>
+                                            <td>1/24</td>
+                                            <td>2.1 MW</td>
+                                            <td>5.7 m/s</td>
+                                            <td>120 MWh</td>
+                                            <td class="no-border">
+                                                <div id="gauge3" class="gauge-custom"></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table class="table table-condensed table-striped">
+                                    <thead class="bold">
+                                        <tr>
+                                            <td width="10%">Backen</td>
+                                            <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
+                                            <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
+                                            <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
+                                            <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
+                                            <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
+                                            <td><i class="tooltipster" title="Overall">Ov.</i></td>
+                                            <td><i class="tooltipster" title="Consistency">C.</i></td>
+                                            <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
+                                            <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
+                                            <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
+                                            <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
+                                            <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
+                                            <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
+                                            <td><i class="tooltipster" title=">24 Hours">>24</i></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Backen1</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Backen2</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Backen3</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Backen4</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-sum">
+                                    <thead>
+                                        <tr>
+                                            <td width="20%">WF/Turbines</td>
+                                            <td width="20%">Tot.Capacity</td>
+                                            <td width="20%">Wind Speed Avg.</td>
+                                            <td width="20%">Tot. Prod</td>
+                                            <td class="no-border align-left">Wind Speed</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bold summary">
+                                        <tr>
+                                            <td>1/24</td>
+                                            <td>2.1 MW</td>
+                                            <td>5.7 m/s</td>
+                                            <td>120 MWh</td>
+                                            <td class="no-border">
+                                                <div id="gauge4" class="gauge-custom"></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table class="table table-condensed table-striped">
+                                    <thead class="bold">
+                                        <tr>
+                                            <td width="10%">Delling</td>
+                                            <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
+                                            <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
+                                            <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
+                                            <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
+                                            <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(10 Minutes)">10<sup>m</sup></i></td>
+                                            <td><i class="tooltipster" title="Data Availability(3 Seconds)">3<sub>s</sub></i></td>
+                                            <td><i class="tooltipster" title="Overall">Ov.</i></td>
+                                            <td><i class="tooltipster" title="Consistency">C.</i></td>
+                                            <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
+                                            <td><i class="fa fa-th-large tooltipster" title="Performance Deviations" ></i></td>
+                                            <td><i class="tooltipster" title="Variable Consistency">Vc.</i></td>
+                                            <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>
+                                            <td><i class="tooltipster" title="Relia-tics">Rt.</i></td>
+                                            <td><i class="fa fa-volume-control-phone tooltipster" title="Communication"></i></td>
+                                            <td><i class="tooltipster" title=">24 Hours">>24</i></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Delling1</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Delling2</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Delling3</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-check green"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Delling4</td>
+                                            <td>80</td>
+                                            <td>10</td>
+                                            <td>70</td>
+                                            <td>90</td>
+                                            <td>90</td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-times red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                            <td><i class="fa fa-circle red"></i></td>
+                                            <td><i class="fa fa-circle green"></i></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
