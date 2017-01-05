@@ -389,7 +389,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1, "_id.hours": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).
