@@ -316,7 +316,6 @@ t1224.generateGrid = function (datatype) {
 
         $.each(keyIndex, function(j, key){
             var title = "";
-            console.log(key);
             if(key == "WS") {
                 title = key + " (m/s)";
             } else if(key == "Temp") {
