@@ -315,8 +315,17 @@ t1224.generateGrid = function (datatype) {
         }
 
         $.each(keyIndex, function(j, key){
+            var title = "";
+            console.log(key);
+            if(key == "WS") {
+                title = key + " (m/s)";
+            } else if(key == "Temp") {
+                title = key + " (" + String.fromCharCode(176) + "C)";
+            } else {
+                title = key + " kWH";
+            }
             var colChild = {
-                title: key + " (m/s)",                
+                title: title,                
                 field: "details["+i+"].col."+ key,
                 width: 100,
                 headerAttributes: {
