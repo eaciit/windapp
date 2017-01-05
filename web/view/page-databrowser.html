@@ -137,8 +137,7 @@
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
                                                  <a href="#" data-toggle="collapse" class="k-grid-showHideColumn btn btn-sm btn-primary tooltipster tooltipstered" title="Click to show column list"><i class="fa fa-eye-slash"></i></a>&nbsp;&nbsp;
-                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="dbr.exportToExcel('customGrid')"><i class="fa fa-file-excel-o"></i></button>
-                                               
+                                                 <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="dbr.exportToExcel('customGrid')"><i class="fa fa-file-excel-o"></i></button>   
                                             </div>
                                             <div id="customGrid" class="grid-custom-db-new"></div>
                                         </div>
@@ -382,6 +381,7 @@
 <div class="clearfix"></div>
 <script>
     dbr.ColumnList({{.ColumnList}});
+    dbsh.ColumnList({{.HDFColList}});
     fa.populateTurbine({{.TurbineList}});
     fa.populateProject({{.ProjectList}});
 </script>
