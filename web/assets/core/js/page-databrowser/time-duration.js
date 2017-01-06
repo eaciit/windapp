@@ -151,7 +151,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (GridFrequency < -99998 ) { # - # } else {#' + '#: GridFrequency #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             filterable: false
         }, {
@@ -159,7 +159,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             field: "ReactivePower",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             filterable: false
         }, {
@@ -332,7 +332,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (TotalTime < -99998 ) { # - # } else {#' + '#: TotalTime #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -342,7 +342,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (GeneratorRPM < -99998 ) { # - # } else {#' + '#: GeneratorRPM #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -351,7 +351,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             field: "NacelleYawPositionUntwist",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -361,7 +361,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (NacelleTemperature < -99998 ) { # - # } else {#' + '#: NacelleTemperature #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -371,7 +371,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (AdjWindSpeed < -99998 ) { # - # } else {#' + '#: AdjWindSpeed #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -381,7 +381,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (AmbientTemperature < -99998 ) { # - # } else {#' + '#: AmbientTemperature #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -391,7 +391,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (AvgBladeAngle < -99998 ) { # - # } else {#' + '#: AvgBladeAngle #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -401,7 +401,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (AvgWindSpeed < -99998 ) { # - # } else {#' + '#: AvgWindSpeed #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -411,7 +411,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (UnitsGenerated < -99998 ) { # - # } else {#' + '#: UnitsGenerated #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -421,7 +421,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (EstimatedPower < -99998 ) { # - # } else {#' + '#: EstimatedPower #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -431,7 +431,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (NacelDirection < -99998 ) { # - # } else {#' + '#: NacelDirection #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -441,7 +441,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (Power < -99998 ) { # - # } else {#' + '#: Power #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: true
@@ -451,7 +451,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (PowerLost < -99998 ) { # - # } else {#' + '#: PowerLost #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: true,
@@ -464,7 +464,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (RotorRPM < -99998 ) { # - # } else {#' + '#: RotorRPM #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -474,7 +474,7 @@ dbt.InitGridExceptionTimeDuration = function() {
             template: '# if (WindDirection < -99998 ) { # - # } else {#' + '#: WindDirection #' + '#}#',
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false

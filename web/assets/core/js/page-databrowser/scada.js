@@ -115,7 +115,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_R_PidAngleOut",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -124,7 +124,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_ActivPower",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -133,7 +133,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_I1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -142,7 +142,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_I2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -151,7 +151,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_I3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -160,7 +160,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_NacelleDrill",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -169,7 +169,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_NacellePos",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -178,7 +178,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAkku_V1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -187,7 +187,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAkku_V2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -196,7 +196,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAkku_V3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -205,7 +205,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAngle1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -214,7 +214,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAngle2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -223,7 +223,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAngle3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -232,7 +232,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchConv_Current1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -241,7 +241,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchConv_Current2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -250,7 +250,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchConv_Current3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -259,7 +259,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAngleSP_Diff1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -268,7 +268,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAngleSP_Diff2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -277,7 +277,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchAngleSP_Diff3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -286,7 +286,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_ReactivPower",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -295,7 +295,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_RpmDiff",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -304,7 +304,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_U1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -313,7 +313,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_U2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -322,7 +322,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_U3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -331,7 +331,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_WindDirection",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -340,7 +340,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_WindSpeed",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -349,7 +349,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_Intern_WindSpeedDif",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -358,7 +358,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_speed_RotFR",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -367,7 +367,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_WindSpeed1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -376,7 +376,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_WindSpeed2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -385,7 +385,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_WindVane1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -394,7 +394,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_WindVane2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -403,7 +403,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_internCurrentAsym",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -412,7 +412,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GearBox_IMS_NDE",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -421,7 +421,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_WindVaneDiff",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -430,7 +430,7 @@ dbs.InitScadaGrid = function() {
             field: "C_intern_SpeedGenerator",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -439,7 +439,7 @@ dbs.InitScadaGrid = function() {
             field: "C_intern_SpeedRotor",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -448,7 +448,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Speed_RPMDiff_FR1_RotCNT",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -457,7 +457,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Frequency_Grid",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -466,7 +466,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GearBox_HSS_NDE",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -475,7 +475,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_DrTrVibValue",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -484,7 +484,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_InLastErrorConv1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -493,7 +493,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_InLastErrorConv2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -502,7 +502,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_InLastErrorConv3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -511,7 +511,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_TempConv1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -520,7 +520,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_TempConv2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -529,7 +529,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_TempConv3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -538,7 +538,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchSpeed1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -547,7 +547,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_YawBrake_1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -556,7 +556,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_YawBrake_2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -565,7 +565,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_G1L1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -574,7 +574,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_G1L2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -583,7 +583,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_G1L3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -592,7 +592,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_YawBrake_3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -601,7 +601,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_HydrSystemPressure",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -610,7 +610,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_BottomControlSection_Low",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -619,7 +619,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GearBox_HSS_DE",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -628,7 +628,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GearOilSump",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -637,7 +637,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GeneratorBearing_DE",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -646,7 +646,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GeneratorBearing_NDE",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -655,7 +655,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_MainBearing",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -664,7 +664,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_GearBox_IMS_DE",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -673,7 +673,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_Nacelle",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -682,7 +682,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_Outdoor",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -691,7 +691,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_TowerVibValueAxial",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -700,7 +700,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DiffGenSpeedSPToAct",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -709,7 +709,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_YawBrake_4",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -718,7 +718,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_SpeedGenerator_Proximity",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -727,7 +727,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_SpeedDiff_Encoder_Proximity",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -736,7 +736,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_GearOilPressure",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -745,7 +745,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_CabinetTopBox_Low",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -754,7 +754,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_CabinetTopBox",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -763,7 +763,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_BottomControlSection",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -772,7 +772,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_BottomPowerSection",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -781,7 +781,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_BottomPowerSection_Low",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -790,7 +790,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Pitch1_Status_High",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -799,7 +799,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Pitch2_Status_High",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -808,7 +808,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Pitch3_Status_High",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -817,7 +817,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_InPosition1_ch2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -826,7 +826,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_InPosition2_ch2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -835,7 +835,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_InPosition3_ch2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -844,7 +844,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Brake_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -853,7 +853,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Brake_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -862,7 +862,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Brake_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -871,7 +871,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_PitchMotor_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -880,7 +880,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_PitchMotor_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -889,7 +889,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_PitchMotor_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -898,7 +898,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Hub_Additional1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -907,7 +907,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Hub_Additional2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -916,7 +916,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Hub_Additional3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -925,7 +925,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Pitch1_Status_Low",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -934,7 +934,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Pitch2_Status_Low",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -943,7 +943,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Pitch3_Status_Low",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -952,7 +952,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_VoltageBlade1_center",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -961,7 +961,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_VoltageBlade2_center",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -970,7 +970,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_VoltageBlade3_center",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -979,7 +979,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_ChargingCur_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -988,7 +988,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_ChargingCur_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -997,7 +997,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_ChargingCur_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1006,7 +1006,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_DischargingCur_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1015,7 +1015,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_DischargingCur_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1024,7 +1024,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Battery_DischargingCur_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1033,7 +1033,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchMotor_BrakeVoltage_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1042,7 +1042,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchMotor_BrakeVoltage_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1051,7 +1051,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchMotor_BrakeVoltage_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1060,7 +1060,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchMotor_BrakeCurrent_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1069,7 +1069,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchMotor_BrakeCurrent_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1078,7 +1078,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_PitchMotor_BrakeCurrent_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1087,7 +1087,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_HubBox_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1096,7 +1096,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_HubBox_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1105,7 +1105,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_HubBox_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1114,7 +1114,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Pitch1_HeatSink",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1123,7 +1123,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Pitch2_HeatSink",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1132,7 +1132,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_Pitch3_HeatSink",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1141,7 +1141,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_ErrorStackBlade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1150,7 +1150,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_ErrorStackBlade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1159,7 +1159,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_ErrorStackBlade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1168,7 +1168,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_BatteryBox_Blade1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1177,7 +1177,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_BatteryBox_Blade2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1186,7 +1186,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Temp_BatteryBox_Blade3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1195,7 +1195,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DC_LinkVoltage1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1204,7 +1204,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DC_LinkVoltage2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1213,7 +1213,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DC_LinkVoltage3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1222,7 +1222,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_Yaw_Motor1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1231,7 +1231,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_Yaw_Motor2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1240,7 +1240,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_Yaw_Motor3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1249,7 +1249,7 @@ dbs.InitScadaGrid = function() {
             field: "Temp_Yaw_Motor4",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1258,7 +1258,7 @@ dbs.InitScadaGrid = function() {
             field: "AO_DFIG_Power_Setpiont",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1267,7 +1267,7 @@ dbs.InitScadaGrid = function() {
             field: "AO_DFIG_Q_Setpoint",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1276,7 +1276,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_DFIG_Torque_actual",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1285,7 +1285,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_DFIG_SpeedGenerator_Encoder",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1294,7 +1294,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_DC_Link_Voltage_actual",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1303,7 +1303,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_MSC_current",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1312,7 +1312,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_Main_voltage",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1321,7 +1321,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_Main_current",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1330,7 +1330,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_active_power_actual",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1339,7 +1339,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_reactive_power_actual",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1348,7 +1348,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_active_power_actual_LSC",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1357,7 +1357,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_LSC_current",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1366,7 +1366,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_DFIG_Data_log_number",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1375,7 +1375,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Damper_OscMagnitude",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1384,7 +1384,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_Damper_PassbandFullLoad",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1393,7 +1393,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_YawBrake_TempRise1",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1402,7 +1402,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_YawBrake_TempRise2",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1411,7 +1411,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_YawBrake_TempRise3",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1420,7 +1420,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_YawBrake_TempRise4",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
@@ -1429,7 +1429,7 @@ dbs.InitScadaGrid = function() {
             field: "AI_intern_NacelleDrill_at_NorthPosSensor",
             width: 90,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0:n2}",
             filterable: false
