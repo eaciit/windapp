@@ -112,9 +112,9 @@ aws.generateGrid = function () {
     $('#gridAvgWs').kendoGrid(config);
     $('#gridAvgWs').data('kendoGrid').refresh();
 
-    setTimeout(function() {
-        app.loading(false);
-    }, 500);
+    // setTimeout(function() {
+    //     app.loading(false);
+    // }, 500);
 }
 
 aws.loadData = function() {
@@ -142,147 +142,6 @@ aws.RefreshGrid = function() {
 }
 
 
-/*
-
-aws.SeriesBreakdown = ko.observableArray([
-        { "value": "summary", "text": "Summary" },
-        { "value": "turbine", "text": "By Turbine" },
-])
-aws.TimeBreakdown = ko.observableArray([
-        { "value": "summary", "text": "Summary" },
-        { "value": "turbine", "text": "By Turbine" },
-]);
-
-
-aws.columnsBreakdownList = ko.observableArray([]);
-aws.rowsBreakdownList = ko.observableArray([]);
-
-aws.setBreakDown = function () {
-    fa.disableRefreshButton(true);
-    aws.columnsBreakdownList = [];
-    aws.rowsBreakdownList = [];
-
-    setTimeout(function () {
-        $.each(fa.GetBreakDown(), function (i, val) {
-            if (val.value == "Turbine" || val.value == "Project") {
-                // page.rowBreakdown = val.value
-                aws.rowsBreakdownList.push(val);
-            } else {
-                if(val.value == "Year"){
-                    return false;
-                }else{
-                    aws.columnsBreakdownList.push(val);
-                }
-                
-            }
-        });
-
-        $("#timeBreakdown").data("kendoDropDownList").dataSource.data(aws.columnsBreakdownList);
-        $("#timeBreakdown").data("kendoDropDownList").dataSource.query();
-        $("#timeBreakdown").data("kendoDropDownList").select(0);
-
-        fa.disableRefreshButton(false);
-    }, 500);
-}
-
-aws.getData = function(){
-    var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
-            project: fa.project,
-            seriesBreakdown: $("#seriesBreakdown").data("kendoDropDownList").value(),
-            timeBreakdown: $("#timeBreakdown").data("kendoDropDownList").value()
-    };
-
-    $('#averageWindSpeedChart').html("");
-    $("#averageWindSpeedChart").kendoChart({
-        dataSource: {
-           transport: {
-                read: {
-                    url: viewModel.appName + "analyticmeteorology/averagewindspeed",
-                    type: "POST",
-                    data: param,
-                    dataType: "json",
-                    contentType: "application/json; charset=utf-8"
-                },
-                parameterMap: function(options) {
-                    return JSON.stringify(options);
-                }
-            },
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top"
-        },
-        chartArea: {
-            height: 375,
-            background: "transparent",
-            padding: 0,
-        },
-        series: [{
-            type: "line",
-            style: "smooth",
-            data: [67.96, 68.93, 75, 74, 78],
-            markers: {
-                visible: false
-            },
-            dashType: "longdash"
-        }, {
-            type: "line",
-            style: "smooth",
-            data: [15.7, 16.7, 20, 23.5, 26.6],
-            markers: {
-                visible: false
-            }
-        }],
-        seriesColors: colorField,
-        valueAxis: {
-            title: {
-                text: "Wind Speed (m/s)",
-                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                color: "#585555",
-                visible: true,
-            },
-            labels: {
-                format: "n0"
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            categories: [2005, 2006, 2007, 2008, 2009],
-            majorGridLines: {
-                visible: false
-            },
-            majorTickType: "none"
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:n2}",
-            shared: true,
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-
-        },
-    });
-}*/
 
 // ============================ 12/24 Table ====================================
 
@@ -449,7 +308,7 @@ wr.GetData = function () {
                 wr.initChart();
             }
 
-            // app.loading(false);
+            app.loading(false);
 
         })
     }, 300);
@@ -1036,28 +895,18 @@ $(document).ready(function () {
         t1224.loadData("radio", this.id);
     });
     $('#btnRefresh').on('click', function () {
-        fa.LoadData();
-        pm.loadData();
-        if(!app.isLoading()) {
-            app.loading(true);
-        }
 
-        //Wind Rose
-        wr.GetData();
-        wr.checkPeriod();
-
-        //Wind Distribution
-        Data.LoadData();
-        
-        aws.loadData();
         var datatype = ''
         if($("#met").is(':checked')) {
             datatype = 'met';
         } else {
             datatype = 'turbine';
         }
-        t1224.loadData("page", datatype);
-        tc.LoadData();
+
+        $.when(fa.LoadData(), pm.loadData(),Data.LoadData(),aws.loadData(),t1224.loadData("page", datatype),tc.LoadData()).done(function(){
+            wr.GetData();
+            wr.checkPeriod();
+        });
     });
 
     setTimeout(function () {
