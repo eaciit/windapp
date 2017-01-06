@@ -377,8 +377,6 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
-	tk.Println(tStart)
-	tk.Println(tEnd)
 
 	match := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
 
