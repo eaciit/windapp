@@ -146,14 +146,24 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+
+	// tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, startDate, endDate)
+	// tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+
+	// log.Printf("X. %#v | %#v", startDate.String(), endDate.String())
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	match := tk.M{}
 
-	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lt": tEnd})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")

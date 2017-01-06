@@ -94,7 +94,7 @@ aws.generateGrid = function () {
             var colChild = {
                 title: key + " (m/s)",                
                 field: "details["+i+"].col."+ key ,
-                width: 100,
+                width: 80,
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;',
                 },
@@ -950,7 +950,7 @@ tc.LoadData = function(){
                 attributes: {
                     style: "text-align:center;"
                 },
-                width: 120,
+                width: 70,
                 template:( da != "Turbine" ? "#= kendo.toString("+da+", 'n2') #" : "#= kendo.toString("+da+") #")
             }
 
