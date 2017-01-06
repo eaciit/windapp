@@ -31,16 +31,21 @@ gr.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
         return ["<input type='checkbox' class='deletecheck' idcheck='" + d._id + "' onclick=\"gr.checkDeleteData(this, 'delete')\" />"].join(" ");
     } }, {
     field: "_id",
-    title: "ID"
+    title: "ID",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "title",
-    title: "Title"
-}, {
-    field: "enable",
-    title: "Enable"
+    title: "Title",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "owner",
-    title: "Owner"
+    title: "Owner",
+    headerAttributes: { style: "text-align: center;" }
+}, {
+    field: "enable",
+    title: "Enable",
+    headerAttributes: { style: "text-align: center;" },
+    attributes: { style: "text-align: center;" }
 }, {
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
