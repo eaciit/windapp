@@ -55,6 +55,9 @@ dbc.InitCustomGrid = function() {
             width: 120,
             headerAttributes: {
                 style: "text-align:center"
+            },
+            attributes: {
+                style: "text-align:center"
             }
         };
 

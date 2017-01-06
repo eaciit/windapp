@@ -921,7 +921,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -930,7 +930,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 90,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -939,7 +939,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -948,7 +948,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -957,7 +957,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -968,7 +968,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -977,7 +977,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 90,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -986,7 +986,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -995,7 +995,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1004,7 +1004,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1015,7 +1015,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1024,7 +1024,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 90,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1033,7 +1033,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1042,7 +1042,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1051,7 +1051,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1062,7 +1062,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1071,7 +1071,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 90,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1080,7 +1080,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1089,7 +1089,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 110,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1098,7 +1098,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1109,7 +1109,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1118,7 +1118,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 90,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1127,7 +1127,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 80,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1136,7 +1136,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 110,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1145,7 +1145,7 @@ dbm.InitMet = function() {
                 format: "{0:n2}",
                 width: 100,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1156,7 +1156,7 @@ dbm.InitMet = function() {
                 field: "THubHHubHumid855mAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1165,7 +1165,7 @@ dbm.InitMet = function() {
                 field: "THubHHubHumid855mMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1174,7 +1174,7 @@ dbm.InitMet = function() {
                 field: "THubHHubHumid855mMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1183,7 +1183,7 @@ dbm.InitMet = function() {
                 field: "THubHHubHumid855mStdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1192,7 +1192,7 @@ dbm.InitMet = function() {
                 field: "THubHHubHumid855mCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1203,7 +1203,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefHumid855mAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1212,7 +1212,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefHumid855mMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1221,7 +1221,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefHumid855mMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1230,7 +1230,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefHumid855mStdDev",
                 width: 130,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1239,7 +1239,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefHumid855mCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1250,7 +1250,7 @@ dbm.InitMet = function() {
                 field: "THubHHubTemp855mAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1259,7 +1259,7 @@ dbm.InitMet = function() {
                 field: "THubHHubTemp855mMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1268,7 +1268,7 @@ dbm.InitMet = function() {
                 field: "THubHHubTemp855mMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1277,7 +1277,7 @@ dbm.InitMet = function() {
                 field: "THubHHubTemp855mStdDev",
                 width: 130,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1286,7 +1286,7 @@ dbm.InitMet = function() {
                 field: "THubHHubTemp855mCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1297,7 +1297,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefTemp855mAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1306,7 +1306,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefTemp855mMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1315,7 +1315,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefTemp855mMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1324,7 +1324,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefTemp855mStdDev",
                 width: 130,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1333,7 +1333,7 @@ dbm.InitMet = function() {
                 field: "TRefHRefTemp855mCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1344,7 +1344,7 @@ dbm.InitMet = function() {
                 field: "BaroAirPress855mAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1353,7 +1353,7 @@ dbm.InitMet = function() {
                 field: "BaroAirPress855mMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1362,7 +1362,7 @@ dbm.InitMet = function() {
                 field: "BaroAirPress855mMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1371,7 +1371,7 @@ dbm.InitMet = function() {
                 field: "BaroAirPress855mStdDev",
                 width: 130,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1380,7 +1380,7 @@ dbm.InitMet = function() {
                 field: "BaroAirPress855mCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
@@ -1391,7 +1391,7 @@ dbm.InitMet = function() {
                 field: "YawAngleVoltageAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1400,7 +1400,7 @@ dbm.InitMet = function() {
                 field: "YawAngleVoltageMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1409,7 +1409,7 @@ dbm.InitMet = function() {
                 field: "YawAngleVoltageMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1418,7 +1418,7 @@ dbm.InitMet = function() {
                 field: "YawAngleVoltageStdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1427,7 +1427,7 @@ dbm.InitMet = function() {
                 field: "YawAngleVoltageCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1436,7 +1436,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1445,7 +1445,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1454,7 +1454,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1463,7 +1463,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1472,7 +1472,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1481,7 +1481,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1490,7 +1490,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1499,7 +1499,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1508,7 +1508,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1517,7 +1517,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1526,7 +1526,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI3Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1535,7 +1535,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI3Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1544,7 +1544,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI3Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1553,7 +1553,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI3StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1562,7 +1562,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI3Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1571,7 +1571,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI4Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1580,7 +1580,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI4Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1589,7 +1589,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI4Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1598,7 +1598,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI4StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1607,7 +1607,7 @@ dbm.InitMet = function() {
                 field: "OtherSensorVoltageAI4Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1616,7 +1616,7 @@ dbm.InitMet = function() {
                 field: "GenRPMCurrentAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1625,7 +1625,7 @@ dbm.InitMet = function() {
                 field: "GenRPMCurrentMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1634,7 +1634,7 @@ dbm.InitMet = function() {
                 field: "GenRPMCurrentMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1643,7 +1643,7 @@ dbm.InitMet = function() {
                 field: "GenRPMCurrentStdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1652,7 +1652,7 @@ dbm.InitMet = function() {
                 field: "GenRPMCurrentCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1661,7 +1661,7 @@ dbm.InitMet = function() {
                 field: "WS_SCSCurrentAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1670,7 +1670,7 @@ dbm.InitMet = function() {
                 field: "WS_SCSCurrentMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1679,7 +1679,7 @@ dbm.InitMet = function() {
                 field: "WS_SCSCurrentMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1688,7 +1688,7 @@ dbm.InitMet = function() {
                 field: "WS_SCSCurrentStdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1697,7 +1697,7 @@ dbm.InitMet = function() {
                 field: "WS_SCSCurrentCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1706,7 +1706,7 @@ dbm.InitMet = function() {
                 field: "RainStatusCount",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1715,7 +1715,7 @@ dbm.InitMet = function() {
                 field: "RainStatusSum",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1724,7 +1724,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1733,7 +1733,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1742,7 +1742,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1751,7 +1751,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1760,7 +1760,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1769,7 +1769,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1778,7 +1778,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1787,7 +1787,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1796,7 +1796,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1805,7 +1805,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1814,7 +1814,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO3Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1823,7 +1823,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO3Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1832,7 +1832,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO3Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1841,7 +1841,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO3StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1850,7 +1850,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO3Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1859,7 +1859,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO4Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1868,7 +1868,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO4Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1877,7 +1877,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO4Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1886,7 +1886,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO4StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1895,7 +1895,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO4Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1904,7 +1904,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO5Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1913,7 +1913,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO5Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1922,7 +1922,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO5Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1931,7 +1931,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO5StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1940,7 +1940,7 @@ dbm.InitMet = function() {
                 field: "OtherSensor2StatusIO5Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1949,7 +1949,7 @@ dbm.InitMet = function() {
                 field: "A1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1958,7 +1958,7 @@ dbm.InitMet = function() {
                 field: "A1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1967,7 +1967,7 @@ dbm.InitMet = function() {
                 field: "A1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1976,7 +1976,7 @@ dbm.InitMet = function() {
                 field: "A1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1985,7 +1985,7 @@ dbm.InitMet = function() {
                 field: "A1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -1994,7 +1994,7 @@ dbm.InitMet = function() {
                 field: "A2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2003,7 +2003,7 @@ dbm.InitMet = function() {
                 field: "A2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2012,7 +2012,7 @@ dbm.InitMet = function() {
                 field: "A2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2021,7 +2021,7 @@ dbm.InitMet = function() {
                 field: "A2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2030,7 +2030,7 @@ dbm.InitMet = function() {
                 field: "A2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2039,7 +2039,7 @@ dbm.InitMet = function() {
                 field: "A3Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2048,7 +2048,7 @@ dbm.InitMet = function() {
                 field: "A3Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2057,7 +2057,7 @@ dbm.InitMet = function() {
                 field: "A3Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2066,7 +2066,7 @@ dbm.InitMet = function() {
                 field: "A3StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2075,7 +2075,7 @@ dbm.InitMet = function() {
                 field: "A3Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2084,7 +2084,7 @@ dbm.InitMet = function() {
                 field: "A4Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2093,7 +2093,7 @@ dbm.InitMet = function() {
                 field: "A4Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2102,7 +2102,7 @@ dbm.InitMet = function() {
                 field: "A4Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2111,7 +2111,7 @@ dbm.InitMet = function() {
                 field: "A4StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2120,7 +2120,7 @@ dbm.InitMet = function() {
                 field: "A4Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2129,7 +2129,7 @@ dbm.InitMet = function() {
                 field: "A5Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2138,7 +2138,7 @@ dbm.InitMet = function() {
                 field: "A5Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2147,7 +2147,7 @@ dbm.InitMet = function() {
                 field: "A5Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2156,7 +2156,7 @@ dbm.InitMet = function() {
                 field: "A5StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2165,7 +2165,7 @@ dbm.InitMet = function() {
                 field: "A5Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2174,7 +2174,7 @@ dbm.InitMet = function() {
                 field: "A6Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2183,7 +2183,7 @@ dbm.InitMet = function() {
                 field: "A6Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2192,7 +2192,7 @@ dbm.InitMet = function() {
                 field: "A6Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2201,7 +2201,7 @@ dbm.InitMet = function() {
                 field: "A6StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2210,7 +2210,7 @@ dbm.InitMet = function() {
                 field: "A6Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2219,7 +2219,7 @@ dbm.InitMet = function() {
                 field: "A7Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2228,7 +2228,7 @@ dbm.InitMet = function() {
                 field: "A7Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2237,7 +2237,7 @@ dbm.InitMet = function() {
                 field: "A7Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2246,7 +2246,7 @@ dbm.InitMet = function() {
                 field: "A7StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2255,7 +2255,7 @@ dbm.InitMet = function() {
                 field: "A7Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2264,7 +2264,7 @@ dbm.InitMet = function() {
                 field: "A8Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2273,7 +2273,7 @@ dbm.InitMet = function() {
                 field: "A8Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2282,7 +2282,7 @@ dbm.InitMet = function() {
                 field: "A8Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2291,7 +2291,7 @@ dbm.InitMet = function() {
                 field: "A8StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2300,7 +2300,7 @@ dbm.InitMet = function() {
                 field: "A8Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2309,7 +2309,7 @@ dbm.InitMet = function() {
                 field: "A9Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2318,7 +2318,7 @@ dbm.InitMet = function() {
                 field: "A9Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2327,7 +2327,7 @@ dbm.InitMet = function() {
                 field: "A9Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2336,7 +2336,7 @@ dbm.InitMet = function() {
                 field: "A9StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2345,7 +2345,7 @@ dbm.InitMet = function() {
                 field: "A9Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2354,7 +2354,7 @@ dbm.InitMet = function() {
                 field: "A10Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2363,7 +2363,7 @@ dbm.InitMet = function() {
                 field: "A10Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2372,7 +2372,7 @@ dbm.InitMet = function() {
                 field: "A10Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2381,7 +2381,7 @@ dbm.InitMet = function() {
                 field: "A10StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2390,7 +2390,7 @@ dbm.InitMet = function() {
                 field: "A10Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2399,7 +2399,7 @@ dbm.InitMet = function() {
                 field: "AC1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2408,7 +2408,7 @@ dbm.InitMet = function() {
                 field: "AC1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2417,7 +2417,7 @@ dbm.InitMet = function() {
                 field: "AC1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2426,7 +2426,7 @@ dbm.InitMet = function() {
                 field: "AC1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2435,7 +2435,7 @@ dbm.InitMet = function() {
                 field: "AC1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2444,7 +2444,7 @@ dbm.InitMet = function() {
                 field: "AC2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2453,7 +2453,7 @@ dbm.InitMet = function() {
                 field: "AC2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2462,7 +2462,7 @@ dbm.InitMet = function() {
                 field: "AC2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2471,7 +2471,7 @@ dbm.InitMet = function() {
                 field: "AC2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2480,7 +2480,7 @@ dbm.InitMet = function() {
                 field: "AC2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2489,7 +2489,7 @@ dbm.InitMet = function() {
                 field: "C1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2498,7 +2498,7 @@ dbm.InitMet = function() {
                 field: "C1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2507,7 +2507,7 @@ dbm.InitMet = function() {
                 field: "C1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2516,7 +2516,7 @@ dbm.InitMet = function() {
                 field: "C1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2525,7 +2525,7 @@ dbm.InitMet = function() {
                 field: "C1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2534,7 +2534,7 @@ dbm.InitMet = function() {
                 field: "C2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2543,7 +2543,7 @@ dbm.InitMet = function() {
                 field: "C2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2552,7 +2552,7 @@ dbm.InitMet = function() {
                 field: "C2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2561,7 +2561,7 @@ dbm.InitMet = function() {
                 field: "C2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2570,7 +2570,7 @@ dbm.InitMet = function() {
                 field: "C2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2579,7 +2579,7 @@ dbm.InitMet = function() {
                 field: "C3Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2588,7 +2588,7 @@ dbm.InitMet = function() {
                 field: "C3Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2597,7 +2597,7 @@ dbm.InitMet = function() {
                 field: "C3Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2606,7 +2606,7 @@ dbm.InitMet = function() {
                 field: "C3StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2615,7 +2615,7 @@ dbm.InitMet = function() {
                 field: "C3Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2624,7 +2624,7 @@ dbm.InitMet = function() {
                 field: "D1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2633,7 +2633,7 @@ dbm.InitMet = function() {
                 field: "D1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2642,7 +2642,7 @@ dbm.InitMet = function() {
                 field: "D1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2651,7 +2651,7 @@ dbm.InitMet = function() {
                 field: "D1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2660,7 +2660,7 @@ dbm.InitMet = function() {
                 field: "M1_1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2669,7 +2669,7 @@ dbm.InitMet = function() {
                 field: "M1_1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2678,7 +2678,7 @@ dbm.InitMet = function() {
                 field: "M1_1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2687,7 +2687,7 @@ dbm.InitMet = function() {
                 field: "M1_1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2696,7 +2696,7 @@ dbm.InitMet = function() {
                 field: "M1_1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2705,7 +2705,7 @@ dbm.InitMet = function() {
                 field: "M1_2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2714,7 +2714,7 @@ dbm.InitMet = function() {
                 field: "M1_2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2723,7 +2723,7 @@ dbm.InitMet = function() {
                 field: "M1_2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2732,7 +2732,7 @@ dbm.InitMet = function() {
                 field: "M1_2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2741,7 +2741,7 @@ dbm.InitMet = function() {
                 field: "M1_2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2750,7 +2750,7 @@ dbm.InitMet = function() {
                 field: "M1_3Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2759,7 +2759,7 @@ dbm.InitMet = function() {
                 field: "M1_3Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2768,7 +2768,7 @@ dbm.InitMet = function() {
                 field: "M1_3Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2777,7 +2777,7 @@ dbm.InitMet = function() {
                 field: "M1_3StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2786,7 +2786,7 @@ dbm.InitMet = function() {
                 field: "M1_3Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2795,7 +2795,7 @@ dbm.InitMet = function() {
                 field: "M1_4Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2804,7 +2804,7 @@ dbm.InitMet = function() {
                 field: "M1_4Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2813,7 +2813,7 @@ dbm.InitMet = function() {
                 field: "M1_4Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2822,7 +2822,7 @@ dbm.InitMet = function() {
                 field: "M1_4StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2831,7 +2831,7 @@ dbm.InitMet = function() {
                 field: "M1_4Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2840,7 +2840,7 @@ dbm.InitMet = function() {
                 field: "M1_5Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2849,7 +2849,7 @@ dbm.InitMet = function() {
                 field: "M1_5Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2858,7 +2858,7 @@ dbm.InitMet = function() {
                 field: "M1_5Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2867,7 +2867,7 @@ dbm.InitMet = function() {
                 field: "M1_5StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2876,7 +2876,7 @@ dbm.InitMet = function() {
                 field: "M1_5Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2885,7 +2885,7 @@ dbm.InitMet = function() {
                 field: "M2_1Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2894,7 +2894,7 @@ dbm.InitMet = function() {
                 field: "M2_1Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2903,7 +2903,7 @@ dbm.InitMet = function() {
                 field: "M2_1Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2912,7 +2912,7 @@ dbm.InitMet = function() {
                 field: "M2_1StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2921,7 +2921,7 @@ dbm.InitMet = function() {
                 field: "M2_1Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2930,7 +2930,7 @@ dbm.InitMet = function() {
                 field: "M2_2Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2939,7 +2939,7 @@ dbm.InitMet = function() {
                 field: "M2_2Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2948,7 +2948,7 @@ dbm.InitMet = function() {
                 field: "M2_2Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2957,7 +2957,7 @@ dbm.InitMet = function() {
                 field: "M2_2StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2966,7 +2966,7 @@ dbm.InitMet = function() {
                 field: "M2_2Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2975,7 +2975,7 @@ dbm.InitMet = function() {
                 field: "M2_3Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2984,7 +2984,7 @@ dbm.InitMet = function() {
                 field: "M2_3Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -2993,7 +2993,7 @@ dbm.InitMet = function() {
                 field: "M2_3Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3002,7 +3002,7 @@ dbm.InitMet = function() {
                 field: "M2_3StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3011,7 +3011,7 @@ dbm.InitMet = function() {
                 field: "M2_3Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3020,7 +3020,7 @@ dbm.InitMet = function() {
                 field: "M2_4Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3029,7 +3029,7 @@ dbm.InitMet = function() {
                 field: "M2_4Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3038,7 +3038,7 @@ dbm.InitMet = function() {
                 field: "M2_4Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3047,7 +3047,7 @@ dbm.InitMet = function() {
                 field: "M2_4StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3056,7 +3056,7 @@ dbm.InitMet = function() {
                 field: "M2_4Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3065,7 +3065,7 @@ dbm.InitMet = function() {
                 field: "M2_5Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3074,7 +3074,7 @@ dbm.InitMet = function() {
                 field: "M2_5Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3083,7 +3083,7 @@ dbm.InitMet = function() {
                 field: "M2_5Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3092,7 +3092,7 @@ dbm.InitMet = function() {
                 field: "M2_5StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3101,7 +3101,7 @@ dbm.InitMet = function() {
                 field: "M2_5Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3110,7 +3110,7 @@ dbm.InitMet = function() {
                 field: "M2_6Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3119,7 +3119,7 @@ dbm.InitMet = function() {
                 field: "M2_6Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3128,7 +3128,7 @@ dbm.InitMet = function() {
                 field: "M2_6Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3137,7 +3137,7 @@ dbm.InitMet = function() {
                 field: "M2_6StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3146,7 +3146,7 @@ dbm.InitMet = function() {
                 field: "M2_6Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3155,7 +3155,7 @@ dbm.InitMet = function() {
                 field: "M2_7Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3164,7 +3164,7 @@ dbm.InitMet = function() {
                 field: "M2_7Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3173,7 +3173,7 @@ dbm.InitMet = function() {
                 field: "M2_7Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3182,7 +3182,7 @@ dbm.InitMet = function() {
                 field: "M2_7StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3191,7 +3191,7 @@ dbm.InitMet = function() {
                 field: "M2_7Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3200,7 +3200,7 @@ dbm.InitMet = function() {
                 field: "M2_8Avg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3209,7 +3209,7 @@ dbm.InitMet = function() {
                 field: "M2_8Max",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3218,7 +3218,7 @@ dbm.InitMet = function() {
                 field: "M2_8Min",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3227,7 +3227,7 @@ dbm.InitMet = function() {
                 field: "M2_8StdDev",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3236,7 +3236,7 @@ dbm.InitMet = function() {
                 field: "M2_8Count",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3245,7 +3245,7 @@ dbm.InitMet = function() {
                 field: "VAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3254,7 +3254,7 @@ dbm.InitMet = function() {
                 field: "VMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3263,7 +3263,7 @@ dbm.InitMet = function() {
                 field: "VMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3272,7 +3272,7 @@ dbm.InitMet = function() {
                 field: "IAvg",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3281,7 +3281,7 @@ dbm.InitMet = function() {
                 field: "IMax",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3290,7 +3290,7 @@ dbm.InitMet = function() {
                 field: "IMin",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3299,7 +3299,7 @@ dbm.InitMet = function() {
                 field: "T",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             }, {
@@ -3308,7 +3308,7 @@ dbm.InitMet = function() {
                 field: "addr",
                 width: 120,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },
