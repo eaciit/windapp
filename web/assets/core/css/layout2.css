@@ -1169,6 +1169,10 @@ a:active, a:focus, a:hover {
     display: none;
 }
 
+.maximize-mode .breadcrumb{
+    display: block;
+}
+
 .maximize-mode .ez.panel {
     border-radius: 0px;
 }
@@ -1192,4 +1196,17 @@ a:active, a:focus, a:hover {
 
 .maximize-mode .table-detail>thead>tr>td {
     border-bottom: 1px solid darkgray !important;
+}
+
+.maximize-mode .monitoring-date{
+    color: #ea5b19;
+    font-size: 20px;
+}
+
+.maximize-btn{
+    margin-top: 0px;
+}
+
+.maximize-mode .maximize-btn{
+    margin-top: -45px;
 }

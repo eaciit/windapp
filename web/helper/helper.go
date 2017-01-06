@@ -4,13 +4,14 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	"errors"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
@@ -62,12 +63,34 @@ type FilterJS struct {
 }
 
 type Filter struct {
-	Field string      `json:"field"`
-	Op    string      `json:"operator"`
-	Value interface{} `json:"value"`
+	Field   string      `json:"field"`
+	Op      string      `json:"operator"`
+	Value   interface{} `json:"value"`
+	Filters []Filter    `json:"filters"`
 }
 
 func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
+	if s != nil {
+		for _, each := range s.Filter.Filters {
+			filtersTmp := []*dbox.Filter{}
+			filtersTmp, err = doParseFilter(each, s)
+			for _, eachTmp := range filtersTmp {
+				filters = append(filters, eachTmp)
+			}
+		}
+	}
+
+	/*for _, val := range filters {
+		log.Printf("filter: %#v \n", val)
+		if val.Field == "timestamp" {
+			log.Printf("timestamp: %#v \n", val.Value.(time.Time).String())
+		}
+	}*/
+
+	return
+}
+
+func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error) {
 	datelist := []string{
 		"timestamp",
 		"dateinfo.dateid",
@@ -75,138 +98,140 @@ func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
 		"timestart",
 	}
 
-	if s != nil {
-		for _, each := range s.Filter.Filters {
-			field := strings.ToLower(each.Field)
-			switch each.Op {
-			case "gte":
-				var value interface{} = each.Value
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Gte(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Gte(field, value))
-				}
-			case "gt":
-				var value interface{} = each.Value
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Gt(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Gt(field, value))
-				}
-			case "lte":
-				var value interface{} = each.Value
+	field := strings.ToLower(each.Field)
 
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Lte(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Lte(field, value))
-				}
-			case "lt":
-				var value interface{} = each.Value
-
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Lt(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Lt(field, value))
-				}
-			case "eq":
-				value := each.Value
-
-				if field == "turbine" && value.(string) == "" {
-					continue
-				} else if field == "isvalidtimeduration" && value.(bool) == true {
-					continue
-				} else if field == "projectid" && value.(string) == "" {
-					continue
-				}
-
-				if field == "projectname" && value.(string) != "" {
-					anProject := strings.Split(value.(string), "(")
-					project := strings.TrimRight(anProject[0], " ")
-					filters = append(filters, dbox.Eq(field, project))
-				} else if field == "_id" && bson.IsObjectIdHex(toolkit.ToString(value)) {
-					filters = append(filters, dbox.Eq(field, bson.ObjectIdHex(toolkit.ToString(value))))
-				} else {
-					filters = append(filters, dbox.Eq(field, value))
-				}
-			case "neq":
-				value := each.Value
-				filters = append(filters, dbox.Ne(field, value))
-			case "in":
-				value := each.Value
-				if (field == "turbineid" && toolkit.SliceLen(value) == 0) ||
-					field == "turbine" && toolkit.SliceLen(value) == 0 {
-					continue
-				}
-				filters = append(filters, dbox.In(field, value.([]interface{})...))
+	if each.Filters != nil || len(each.Filters) > 0 {
+		for _, eachF := range each.Filters {
+			filtersTmp := []*dbox.Filter{}
+			filtersTmp, err = doParseFilter(&eachF, s)
+			for _, eachTmp := range filtersTmp {
+				filters = append(filters, eachTmp)
 			}
 		}
-	}
+	} else {
+		switch each.Op {
+		case "gte":
+			var value interface{} = each.Value
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Gte(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Gte(field, value))
+			}
+		case "gt":
+			var value interface{} = each.Value
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Gt(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Gt(field, value))
+			}
+		case "lte":
+			var value interface{} = each.Value
 
-	/*toolkit.Println("======= PARSE FILTER =======")
-	for _, val := range filters {
-		toolkit.Println(val.Field, val.Op, val.Value)
-	}*/
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Lte(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Lte(field, value))
+			}
+		case "lt":
+			var value interface{} = each.Value
+
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Lt(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Lt(field, value))
+			}
+		case "eq":
+			value := each.Value
+
+			if field == "turbine" && value.(string) == "" {
+				return
+			} else if field == "isvalidtimeduration" && value.(bool) == true {
+				return
+			} else if field == "projectid" && value.(string) == "" {
+				return
+			}
+
+			if field == "projectname" && value.(string) != "" {
+				anProject := strings.Split(value.(string), "(")
+				project := strings.TrimRight(anProject[0], " ")
+				filters = append(filters, dbox.Eq(field, project))
+			} else if field == "_id" && bson.IsObjectIdHex(toolkit.ToString(value)) {
+				filters = append(filters, dbox.Eq(field, bson.ObjectIdHex(toolkit.ToString(value))))
+			} else {
+				filters = append(filters, dbox.Eq(field, value))
+			}
+		case "neq":
+			value := each.Value
+			filters = append(filters, dbox.Ne(field, value))
+		case "in":
+			value := each.Value
+			if (field == "turbineid" && toolkit.SliceLen(value) == 0) ||
+				field == "turbine" && toolkit.SliceLen(value) == 0 {
+				return
+			}
+			filters = append(filters, dbox.In(field, value.([]interface{})...))
+		}
+	}
 
 	return
 }
