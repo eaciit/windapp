@@ -65,8 +65,7 @@ aws.generateGrid = function () {
     var config = {
         dataSource: {
             data: aws.dataSource(),
-            pageSize: 10,
-            sort: ({ field: "Row", dir: "asc" })
+            pageSize: 10
         },
         pageable: {
             pageSize: 10,
@@ -340,11 +339,11 @@ t1224.generateGrid = function (datatype) {
 
         config.columns.push(column);
     });
-
-    app.loading(false);
+    
     $('#gridTable1224').html('');
     $('#gridTable1224').kendoGrid(config);
     $('#gridTable1224').data('kendoGrid').refresh();
+    app.loading(false);
 }
 
 t1224.loadData = function(datatype) {
