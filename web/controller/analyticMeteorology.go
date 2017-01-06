@@ -185,7 +185,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1, "turbine": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1, "_id.turbine": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).

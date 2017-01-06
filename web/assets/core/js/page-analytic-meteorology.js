@@ -108,10 +108,13 @@ aws.generateGrid = function () {
         config.columns.push(column);
     });
 
-    app.loading(false);
     $('#gridAvgWs').html("");
     $('#gridAvgWs').kendoGrid(config);
     $('#gridAvgWs').data('kendoGrid').refresh();
+
+    setTimeout(function() {
+        app.loading(false);
+    }, 500);
 }
 
 aws.loadData = function() {
