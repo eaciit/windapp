@@ -39,7 +39,9 @@
 				if (i == 0) {
 					columns.push({
 						field: columnField,
-						title: (e.hasOwnProperty('name') ? e.name : e.field)
+						title: (e.hasOwnProperty('name') ? e.name : e.field),
+						attributes: { style: "text-align:center;" },
+						headerAttributes: { style: "text-align:center;" }
 					})
 				}
 			})
