@@ -134,6 +134,12 @@ aws.loadData = function() {
     });
 }
 
+aws.RefreshGrid = function() {
+    setTimeout(function(){
+        $("#gridAvgWs").data("kendoGrid").refresh();
+    }, 300);
+}
+
 
 /*
 
@@ -346,7 +352,7 @@ t1224.generateGrid = function (datatype) {
     app.loading(false);
 }
 
-t1224.loadData = function(datatype) {
+t1224.loadData = function(source, datatype) {
     var dt = new Date();
     var param = {
         DataType: datatype,
@@ -354,6 +360,9 @@ t1224.loadData = function(datatype) {
         Project: fa.project,
         Year: dt.getUTCFullYear()-1
     };
+    if(source == "radio") {
+        app.loading(true);
+    }
 
     toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
         if (!app.isFine(res)) {
@@ -1018,11 +1027,14 @@ $(document).ready(function () {
     fa.LoadData();
 
     $("input[name=isMet]").on("change", function() {
-        t1224.loadData(this.id);
+        t1224.loadData("radio", this.id);
     });
     $('#btnRefresh').on('click', function () {
         fa.LoadData();
         pm.loadData();
+        if(!app.isLoading()) {
+            app.loading(true);
+        }
 
         //Wind Rose
         wr.GetData();
@@ -1038,7 +1050,7 @@ $(document).ready(function () {
         } else {
             datatype = 'turbine';
         }
-        t1224.loadData(datatype);
+        t1224.loadData("page", datatype);
         tc.LoadData();
     });
 
