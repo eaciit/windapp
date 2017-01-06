@@ -155,7 +155,7 @@ dbd.InitDEgrid = function() {
                 template: '#= kendo.toString(secondsToHms(Duration)) #',
                 width: 90,
                 attributes: {
-                    class: "align-right"
+                    class: "align-center"
                 },
                 filterable: false
             },

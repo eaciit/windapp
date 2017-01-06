@@ -95,6 +95,7 @@ aws.generateGrid = function () {
                 title: key + " (m/s)",                
                 field: "details["+i+"].col."+ key ,
                 width: 80,
+                attributes: { class: "align-center row-custom" },
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;',
                 },
@@ -111,9 +112,9 @@ aws.generateGrid = function () {
     $('#gridAvgWs').kendoGrid(config);
     $('#gridAvgWs').data('kendoGrid').refresh();
 
-    setTimeout(function() {
-        app.loading(false);
-    }, 500);
+    // setTimeout(function() {
+    //     app.loading(false);
+    // }, 500);
 }
 
 aws.loadData = function() {
@@ -141,147 +142,6 @@ aws.RefreshGrid = function() {
 }
 
 
-/*
-
-aws.SeriesBreakdown = ko.observableArray([
-        { "value": "summary", "text": "Summary" },
-        { "value": "turbine", "text": "By Turbine" },
-])
-aws.TimeBreakdown = ko.observableArray([
-        { "value": "summary", "text": "Summary" },
-        { "value": "turbine", "text": "By Turbine" },
-]);
-
-
-aws.columnsBreakdownList = ko.observableArray([]);
-aws.rowsBreakdownList = ko.observableArray([]);
-
-aws.setBreakDown = function () {
-    fa.disableRefreshButton(true);
-    aws.columnsBreakdownList = [];
-    aws.rowsBreakdownList = [];
-
-    setTimeout(function () {
-        $.each(fa.GetBreakDown(), function (i, val) {
-            if (val.value == "Turbine" || val.value == "Project") {
-                // page.rowBreakdown = val.value
-                aws.rowsBreakdownList.push(val);
-            } else {
-                if(val.value == "Year"){
-                    return false;
-                }else{
-                    aws.columnsBreakdownList.push(val);
-                }
-                
-            }
-        });
-
-        $("#timeBreakdown").data("kendoDropDownList").dataSource.data(aws.columnsBreakdownList);
-        $("#timeBreakdown").data("kendoDropDownList").dataSource.query();
-        $("#timeBreakdown").data("kendoDropDownList").select(0);
-
-        fa.disableRefreshButton(false);
-    }, 500);
-}
-
-aws.getData = function(){
-    var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
-            project: fa.project,
-            seriesBreakdown: $("#seriesBreakdown").data("kendoDropDownList").value(),
-            timeBreakdown: $("#timeBreakdown").data("kendoDropDownList").value()
-    };
-
-    $('#averageWindSpeedChart').html("");
-    $("#averageWindSpeedChart").kendoChart({
-        dataSource: {
-           transport: {
-                read: {
-                    url: viewModel.appName + "analyticmeteorology/averagewindspeed",
-                    type: "POST",
-                    data: param,
-                    dataType: "json",
-                    contentType: "application/json; charset=utf-8"
-                },
-                parameterMap: function(options) {
-                    return JSON.stringify(options);
-                }
-            },
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top"
-        },
-        chartArea: {
-            height: 375,
-            background: "transparent",
-            padding: 0,
-        },
-        series: [{
-            type: "line",
-            style: "smooth",
-            data: [67.96, 68.93, 75, 74, 78],
-            markers: {
-                visible: false
-            },
-            dashType: "longdash"
-        }, {
-            type: "line",
-            style: "smooth",
-            data: [15.7, 16.7, 20, 23.5, 26.6],
-            markers: {
-                visible: false
-            }
-        }],
-        seriesColors: colorField,
-        valueAxis: {
-            title: {
-                text: "Wind Speed (m/s)",
-                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                color: "#585555",
-                visible: true,
-            },
-            labels: {
-                format: "n0"
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            categories: [2005, 2006, 2007, 2008, 2009],
-            majorGridLines: {
-                visible: false
-            },
-            majorTickType: "none"
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:n2}",
-            shared: true,
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-
-        },
-    });
-}*/
 
 // ============================ 12/24 Table ====================================
 
@@ -289,7 +149,7 @@ viewModel.Table1224 = new Object();
 var t1224 = viewModel.Table1224;
 t1224.dataSource = ko.observableArray();
 
-t1224.generateGrid = function (datatype) {
+t1224.generateGrid = function (source, datatype) {
     var config = {
         dataSource: {
             data: t1224.dataSource(),
@@ -333,6 +193,7 @@ t1224.generateGrid = function (datatype) {
             var colChild = {
                 title: title,                
                 field: "details["+i+"].col."+ key,
+                attributes: { class: "align-center row-custom" },
                 width: 100,
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;',
@@ -349,7 +210,9 @@ t1224.generateGrid = function (datatype) {
     $('#gridTable1224').html('');
     $('#gridTable1224').kendoGrid(config);
     $('#gridTable1224').data('kendoGrid').refresh();
-    app.loading(false);
+    if(source == "radio") {
+        app.loading(false);
+    }
 }
 
 t1224.loadData = function(source, datatype) {
@@ -358,7 +221,6 @@ t1224.loadData = function(source, datatype) {
         DataType: datatype,
         Turbine: fa.turbine,
         Project: fa.project,
-        Year: dt.getUTCFullYear()-1
     };
     if(source == "radio") {
         app.loading(true);
@@ -369,7 +231,7 @@ t1224.loadData = function(source, datatype) {
             return;
         }
         t1224.dataSource(res.data.Data);
-        t1224.generateGrid(datatype);
+        t1224.generateGrid(source, datatype);
     });
 }
 
@@ -419,7 +281,7 @@ wr.ExportWindRose = function () {
 var maxValue = 0;
 
 wr.GetData = function () {
-    app.loading(true);
+    // app.loading(true);
     fa.LoadData();
 
     setTimeout(function () {
@@ -446,15 +308,14 @@ wr.GetData = function () {
                 wr.initChart();
             }
 
-            app.loading(false)
+            app.loading(false);
 
         })
     }, 300);
 }
 
-
 wr.initChart = function () {
-    app.loading(true)
+    // app.loading(true)
     listOfChart = [];
     var breakDownVal = $("#nosection").data("kendoDropDownList").value();
     var stepNum = 1
@@ -554,13 +415,21 @@ wr.initChart = function () {
                 },
             }
         });
-        app.loading(true)
+        // app.loading(true)
         setTimeout(function () {
             if ($(idChart).data("kendoChart") != null) {
                 $(idChart).data("kendoChart").refresh();
             }
         }, 200);
     });
+}
+
+wr.RefreshChart = function() {
+    setTimeout(function(){
+        $.each(listOfChart, function(idx, elem){
+            $(elem).data("kendoChart").refresh();
+        });
+    }, 300);
 }
 
 wr.showHideLegend = function (index) {
@@ -707,7 +576,7 @@ var Data = {
     ChartWindDistributon: function () {
         // var res = {"Seconds":0,"Data":{"Total":619,"Data":[{"Turbine":"B1","Category":0,"Contribute":0.012868},{"Turbine":"B1","Category":1,"Contribute":0.000212},{"Turbine":"B1","Category":1.5,"Contribute":0.000254},{"Turbine":"B1","Category":2,"Contribute":0.00055},{"Turbine":"B1","Category":2.5,"Contribute":0.000339},{"Turbine":"B1","Category":3,"Contribute":0.000339},{"Turbine":"B1","Category":3.5,"Contribute":0.000339},{"Turbine":"B1","Category":4,"Contribute":0.000847},{"Turbine":"B1","Category":4.5,"Contribute":0.00072},{"Turbine":"B1","Category":5,"Contribute":0.001608},{"Turbine":"B1","Category":5.5,"Contribute":0.001989},{"Turbine":"B1","Category":6,"Contribute":0.00237},{"Turbine":"B1","Category":6.5,"Contribute":0.002455},{"Turbine":"B1","Category":7,"Contribute":0.001947},{"Turbine":"B1","Category":7.5,"Contribute":0.002201},{"Turbine":"B1","Category":8,"Contribute":0.002074},{"Turbine":"B1","Category":8.5,"Contribute":0.002921},{"Turbine":"B1","Category":9,"Contribute":0.002074},{"Turbine":"B1","Category":9.5,"Contribute":0.002116},{"Turbine":"B1","Category":10,"Contribute":0.001312},{"Turbine":"B1","Category":10.5,"Contribute":0.000296},{"Turbine":"B1","Category":11,"Contribute":0.000127},{"Turbine":"B1","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B16","Category":0,"Contribute":0.012317},{"Turbine":"B16","Category":1,"Contribute":0.000127},{"Turbine":"B16","Category":1.5,"Contribute":0.000296},{"Turbine":"B16","Category":2,"Contribute":0.000339},{"Turbine":"B16","Category":2.5,"Contribute":0.00055},{"Turbine":"B16","Category":3,"Contribute":0.000254},{"Turbine":"B16","Category":3.5,"Contribute":0.000381},{"Turbine":"B16","Category":4,"Contribute":0.000804},{"Turbine":"B16","Category":4.5,"Contribute":0.001101},{"Turbine":"B16","Category":5,"Contribute":0.00127},{"Turbine":"B16","Category":5.5,"Contribute":0.001905},{"Turbine":"B16","Category":6,"Contribute":0.002328},{"Turbine":"B16","Category":6.5,"Contribute":0.002286},{"Turbine":"B16","Category":7,"Contribute":0.00182},{"Turbine":"B16","Category":7.5,"Contribute":0.002328},{"Turbine":"B16","Category":8,"Contribute":0.002286},{"Turbine":"B16","Category":8.5,"Contribute":0.002286},{"Turbine":"B16","Category":9,"Contribute":0.003005},{"Turbine":"B16","Category":9.5,"Contribute":0.001905},{"Turbine":"B16","Category":10,"Contribute":0.001566},{"Turbine":"B16","Category":10.5,"Contribute":0.000381},{"Turbine":"B16","Category":11,"Contribute":0.000212},{"Turbine":"B16","Category":11.5,"Contribute":0.000212},{"Turbine":"B16","Category":12,"Contribute":4.2E-05},{"Turbine":"B33","Category":0,"Contribute":0.011683},{"Turbine":"B33","Category":0.5,"Contribute":4.2E-05},{"Turbine":"B33","Category":1,"Contribute":0.000296},{"Turbine":"B33","Category":1.5,"Contribute":0.000296},{"Turbine":"B33","Category":2,"Contribute":0.000296},{"Turbine":"B33","Category":2.5,"Contribute":0.000593},{"Turbine":"B33","Category":3,"Contribute":0.000423},{"Turbine":"B33","Category":3.5,"Contribute":0.000339},{"Turbine":"B33","Category":4,"Contribute":0.000889},{"Turbine":"B33","Category":4.5,"Contribute":0.001185},{"Turbine":"B33","Category":5,"Contribute":0.001143},{"Turbine":"B33","Category":5.5,"Contribute":0.001735},{"Turbine":"B33","Category":6,"Contribute":0.002243},{"Turbine":"B33","Category":6.5,"Contribute":0.003132},{"Turbine":"B33","Category":7,"Contribute":0.002328},{"Turbine":"B33","Category":7.5,"Contribute":0.001862},{"Turbine":"B33","Category":8,"Contribute":0.002497},{"Turbine":"B33","Category":8.5,"Contribute":0.00237},{"Turbine":"B33","Category":9,"Contribute":0.001566},{"Turbine":"B33","Category":9.5,"Contribute":0.001947},{"Turbine":"B33","Category":10,"Contribute":0.001312},{"Turbine":"B33","Category":10.5,"Contribute":0.001101},{"Turbine":"B33","Category":11,"Contribute":0.000466},{"Turbine":"B33","Category":11.5,"Contribute":0.000127},{"Turbine":"B33","Category":12,"Contribute":8.5E-05},{"Turbine":"B33","Category":13,"Contribute":4.2E-05},{"Turbine":"B38","Category":0,"Contribute":0.012571},{"Turbine":"B38","Category":1,"Contribute":0.000169},{"Turbine":"B38","Category":1.5,"Contribute":0.000339},{"Turbine":"B38","Category":2,"Contribute":0.000381},{"Turbine":"B38","Category":2.5,"Contribute":0.000423},{"Turbine":"B38","Category":3,"Contribute":0.000212},{"Turbine":"B38","Category":3.5,"Contribute":0.000423},{"Turbine":"B38","Category":4,"Contribute":0.000508},{"Turbine":"B38","Category":4.5,"Contribute":0.001058},{"Turbine":"B38","Category":5,"Contribute":0.001439},{"Turbine":"B38","Category":5.5,"Contribute":0.001524},{"Turbine":"B38","Category":6,"Contribute":0.001989},{"Turbine":"B38","Category":6.5,"Contribute":0.002201},{"Turbine":"B38","Category":7,"Contribute":0.002836},{"Turbine":"B38","Category":7.5,"Contribute":0.002497},{"Turbine":"B38","Category":8,"Contribute":0.002963},{"Turbine":"B38","Category":8.5,"Contribute":0.002497},{"Turbine":"B38","Category":9,"Contribute":0.002159},{"Turbine":"B38","Category":9.5,"Contribute":0.001608},{"Turbine":"B38","Category":10,"Contribute":0.001312},{"Turbine":"B38","Category":10.5,"Contribute":0.000508},{"Turbine":"B38","Category":11,"Contribute":0.000296},{"Turbine":"B38","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B38","Category":12,"Contribute":4.2E-05},{"Turbine":"B4","Category":0,"Contribute":0.012148},{"Turbine":"B4","Category":0.5,"Contribute":4.2E-05},{"Turbine":"B4","Category":1,"Contribute":0.000127},{"Turbine":"B4","Category":1.5,"Contribute":0.000381},{"Turbine":"B4","Category":2,"Contribute":0.000339},{"Turbine":"B4","Category":2.5,"Contribute":0.000508},{"Turbine":"B4","Category":3,"Contribute":0.000169},{"Turbine":"B4","Category":3.5,"Contribute":0.00055},{"Turbine":"B4","Category":4,"Contribute":0.000974},{"Turbine":"B4","Category":4.5,"Contribute":0.000593},{"Turbine":"B4","Category":5,"Contribute":0.001862},{"Turbine":"B4","Category":5.5,"Contribute":0.001905},{"Turbine":"B4","Category":6,"Contribute":0.002751},{"Turbine":"B4","Category":6.5,"Contribute":0.002921},{"Turbine":"B4","Category":7,"Contribute":0.001778},{"Turbine":"B4","Category":7.5,"Contribute":0.002667},{"Turbine":"B4","Category":8,"Contribute":0.003175},{"Turbine":"B4","Category":8.5,"Contribute":0.002328},{"Turbine":"B4","Category":9,"Contribute":0.001608},{"Turbine":"B4","Category":9.5,"Contribute":0.001566},{"Turbine":"B4","Category":10,"Contribute":0.001228},{"Turbine":"B4","Category":10.5,"Contribute":0.000254},{"Turbine":"B4","Category":11,"Contribute":0.000127},{"Turbine":"B71","Category":0,"Contribute":0.012275},{"Turbine":"B71","Category":1,"Contribute":0.000423},{"Turbine":"B71","Category":1.5,"Contribute":0.000466},{"Turbine":"B71","Category":2,"Contribute":0.000169},{"Turbine":"B71","Category":2.5,"Contribute":0.000339},{"Turbine":"B71","Category":3,"Contribute":0.000296},{"Turbine":"B71","Category":3.5,"Contribute":0.000381},{"Turbine":"B71","Category":4,"Contribute":0.000423},{"Turbine":"B71","Category":4.5,"Contribute":0.00072},{"Turbine":"B71","Category":5,"Contribute":0.001651},{"Turbine":"B71","Category":5.5,"Contribute":0.001439},{"Turbine":"B71","Category":6,"Contribute":0.001947},{"Turbine":"B71","Category":6.5,"Contribute":0.002243},{"Turbine":"B71","Category":7,"Contribute":0.001989},{"Turbine":"B71","Category":7.5,"Contribute":0.001862},{"Turbine":"B71","Category":8,"Contribute":0.003175},{"Turbine":"B71","Category":8.5,"Contribute":0.002624},{"Turbine":"B71","Category":9,"Contribute":0.002328},{"Turbine":"B71","Category":9.5,"Contribute":0.001947},{"Turbine":"B71","Category":10,"Contribute":0.000931},{"Turbine":"B71","Category":10.5,"Contribute":0.001228},{"Turbine":"B71","Category":11,"Contribute":0.000508},{"Turbine":"B71","Category":11.5,"Contribute":0.000339},{"Turbine":"B71","Category":12,"Contribute":0.000212},{"Turbine":"B71","Category":12.5,"Contribute":8.5E-05},{"Turbine":"B72","Category":0,"Contribute":0.012063},{"Turbine":"B72","Category":1,"Contribute":0.000169},{"Turbine":"B72","Category":1.5,"Contribute":0.000423},{"Turbine":"B72","Category":2,"Contribute":0.000339},{"Turbine":"B72","Category":2.5,"Contribute":0.000466},{"Turbine":"B72","Category":3,"Contribute":0.000339},{"Turbine":"B72","Category":3.5,"Contribute":0.000254},{"Turbine":"B72","Category":4,"Contribute":0.000804},{"Turbine":"B72","Category":4.5,"Contribute":0.00055},{"Turbine":"B72","Category":5,"Contribute":0.000931},{"Turbine":"B72","Category":5.5,"Contribute":0.002159},{"Turbine":"B72","Category":6,"Contribute":0.002243},{"Turbine":"B72","Category":6.5,"Contribute":0.002328},{"Turbine":"B72","Category":7,"Contribute":0.002836},{"Turbine":"B72","Category":7.5,"Contribute":0.001862},{"Turbine":"B72","Category":8,"Contribute":0.002328},{"Turbine":"B72","Category":8.5,"Contribute":0.002963},{"Turbine":"B72","Category":9,"Contribute":0.002497},{"Turbine":"B72","Category":9.5,"Contribute":0.002328},{"Turbine":"B72","Category":10,"Contribute":0.001058},{"Turbine":"B72","Category":10.5,"Contribute":0.00072},{"Turbine":"B72","Category":11,"Contribute":0.000254},{"Turbine":"B72","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B72","Category":12,"Contribute":4.2E-05},{"Turbine":"B73","Category":0,"Contribute":0.011725},{"Turbine":"B73","Category":1,"Contribute":0.000127},{"Turbine":"B73","Category":1.5,"Contribute":0.000254},{"Turbine":"B73","Category":2,"Contribute":0.000381},{"Turbine":"B73","Category":2.5,"Contribute":0.000381},{"Turbine":"B73","Category":3,"Contribute":0.000677},{"Turbine":"B73","Category":3.5,"Contribute":0.000339},{"Turbine":"B73","Category":4,"Contribute":0.000423},{"Turbine":"B73","Category":4.5,"Contribute":0.000847},{"Turbine":"B73","Category":5,"Contribute":0.00127},{"Turbine":"B73","Category":5.5,"Contribute":0.001439},{"Turbine":"B73","Category":6,"Contribute":0.001566},{"Turbine":"B73","Category":6.5,"Contribute":0.002074},{"Turbine":"B73","Category":7,"Contribute":0.002582},{"Turbine":"B73","Category":7.5,"Contribute":0.002201},{"Turbine":"B73","Category":8,"Contribute":0.002709},{"Turbine":"B73","Category":8.5,"Contribute":0.003005},{"Turbine":"B73","Category":9,"Contribute":0.002582},{"Turbine":"B73","Category":9.5,"Contribute":0.002159},{"Turbine":"B73","Category":10,"Contribute":0.001905},{"Turbine":"B73","Category":10.5,"Contribute":0.000635},{"Turbine":"B73","Category":11,"Contribute":0.000381},{"Turbine":"B73","Category":11.5,"Contribute":0.000212},{"Turbine":"B73","Category":12,"Contribute":4.2E-05},{"Turbine":"B73","Category":12.5,"Contribute":4.2E-05},{"Turbine":"B73","Category":14.5,"Contribute":4.2E-05},{"Turbine":"B75","Category":0,"Contribute":0.012233},{"Turbine":"B75","Category":1,"Contribute":0.000296},{"Turbine":"B75","Category":1.5,"Contribute":8.5E-05},{"Turbine":"B75","Category":2,"Contribute":0.00055},{"Turbine":"B75","Category":2.5,"Contribute":0.000339},{"Turbine":"B75","Category":3,"Contribute":0.000381},{"Turbine":"B75","Category":3.5,"Contribute":0.00055},{"Turbine":"B75","Category":4,"Contribute":0.000593},{"Turbine":"B75","Category":4.5,"Contribute":0.000974},{"Turbine":"B75","Category":5,"Contribute":0.001439},{"Turbine":"B75","Category":5.5,"Contribute":0.001397},{"Turbine":"B75","Category":6,"Contribute":0.002116},{"Turbine":"B75","Category":6.5,"Contribute":0.002497},{"Turbine":"B75","Category":7,"Contribute":0.002286},{"Turbine":"B75","Category":7.5,"Contribute":0.002624},{"Turbine":"B75","Category":8,"Contribute":0.002328},{"Turbine":"B75","Category":8.5,"Contribute":0.002455},{"Turbine":"B75","Category":9,"Contribute":0.001989},{"Turbine":"B75","Category":9.5,"Contribute":0.002243},{"Turbine":"B75","Category":10,"Contribute":0.001397},{"Turbine":"B75","Category":10.5,"Contribute":0.000593},{"Turbine":"B75","Category":11,"Contribute":0.000296},{"Turbine":"B75","Category":11.5,"Contribute":0.000254},{"Turbine":"B75","Category":12,"Contribute":8.5E-05},{"Turbine":"B77","Category":0,"Contribute":0.012275},{"Turbine":"B77","Category":1,"Contribute":0.000127},{"Turbine":"B77","Category":1.5,"Contribute":0.00055},{"Turbine":"B77","Category":2,"Contribute":0.00055},{"Turbine":"B77","Category":2.5,"Contribute":0.000254},{"Turbine":"B77","Category":3,"Contribute":0.000339},{"Turbine":"B77","Category":3.5,"Contribute":0.000339},{"Turbine":"B77","Category":4,"Contribute":0.000339},{"Turbine":"B77","Category":4.5,"Contribute":0.001058},{"Turbine":"B77","Category":5,"Contribute":0.001185},{"Turbine":"B77","Category":5.5,"Contribute":0.001101},{"Turbine":"B77","Category":6,"Contribute":0.002116},{"Turbine":"B77","Category":6.5,"Contribute":0.00237},{"Turbine":"B77","Category":7,"Contribute":0.002413},{"Turbine":"B77","Category":7.5,"Contribute":0.002116},{"Turbine":"B77","Category":8,"Contribute":0.002413},{"Turbine":"B77","Category":8.5,"Contribute":0.002243},{"Turbine":"B77","Category":9,"Contribute":0.002286},{"Turbine":"B77","Category":9.5,"Contribute":0.001862},{"Turbine":"B77","Category":10,"Contribute":0.00182},{"Turbine":"B77","Category":10.5,"Contribute":0.001354},{"Turbine":"B77","Category":11,"Contribute":0.000593},{"Turbine":"B77","Category":11.5,"Contribute":0.000296},{"Turbine":"B78","Category":0,"Contribute":0.012275},{"Turbine":"B78","Category":1,"Contribute":4.2E-05},{"Turbine":"B78","Category":1.5,"Contribute":0.000296},{"Turbine":"B78","Category":2,"Contribute":0.000381},{"Turbine":"B78","Category":2.5,"Contribute":0.000593},{"Turbine":"B78","Category":3,"Contribute":0.000508},{"Turbine":"B78","Category":3.5,"Contribute":0.000466},{"Turbine":"B78","Category":4,"Contribute":0.000762},{"Turbine":"B78","Category":4.5,"Contribute":0.001016},{"Turbine":"B78","Category":5,"Contribute":0.001101},{"Turbine":"B78","Category":5.5,"Contribute":0.001693},{"Turbine":"B78","Category":6,"Contribute":0.001524},{"Turbine":"B78","Category":6.5,"Contribute":0.001905},{"Turbine":"B78","Category":7,"Contribute":0.002921},{"Turbine":"B78","Category":7.5,"Contribute":0.003513},{"Turbine":"B78","Category":8,"Contribute":0.002582},{"Turbine":"B78","Category":8.5,"Contribute":0.002751},{"Turbine":"B78","Category":9,"Contribute":0.001693},{"Turbine":"B78","Category":9.5,"Contribute":0.002159},{"Turbine":"B78","Category":10,"Contribute":0.001185},{"Turbine":"B78","Category":10.5,"Contribute":0.000466},{"Turbine":"B78","Category":11,"Contribute":8.5E-05},{"Turbine":"B78","Category":11.5,"Contribute":8.5E-05},{"Turbine":"B79","Category":0,"Contribute":0.011767},{"Turbine":"B79","Category":0.5,"Contribute":8.5E-05},{"Turbine":"B79","Category":1,"Contribute":0.000212},{"Turbine":"B79","Category":1.5,"Contribute":0.000339},{"Turbine":"B79","Category":2,"Contribute":0.000296},{"Turbine":"B79","Category":2.5,"Contribute":0.000466},{"Turbine":"B79","Category":3,"Contribute":0.000296},{"Turbine":"B79","Category":3.5,"Contribute":0.000508},{"Turbine":"B79","Category":4,"Contribute":0.000762},{"Turbine":"B79","Category":4.5,"Contribute":0.000593},{"Turbine":"B79","Category":5,"Contribute":0.001354},{"Turbine":"B79","Category":5.5,"Contribute":0.001566},{"Turbine":"B79","Category":6,"Contribute":0.002032},{"Turbine":"B79","Category":6.5,"Contribute":0.002709},{"Turbine":"B79","Category":7,"Contribute":0.002201},{"Turbine":"B79","Category":7.5,"Contribute":0.002116},{"Turbine":"B79","Category":8,"Contribute":0.002286},{"Turbine":"B79","Category":8.5,"Contribute":0.002328},{"Turbine":"B79","Category":9,"Contribute":0.002582},{"Turbine":"B79","Category":9.5,"Contribute":0.002201},{"Turbine":"B79","Category":10,"Contribute":0.001481},{"Turbine":"B79","Category":10.5,"Contribute":0.000847},{"Turbine":"B79","Category":11,"Contribute":0.000296},{"Turbine":"B79","Category":11.5,"Contribute":0.000339},{"Turbine":"B79","Category":12,"Contribute":0.000169},{"Turbine":"B79","Category":13,"Contribute":4.2E-05},{"Turbine":"B79","Category":13.5,"Contribute":4.2E-05},{"Turbine":"B79","Category":14.5,"Contribute":4.2E-05},{"Turbine":"B79","Category":15,"Contribute":4.2E-05},{"Turbine":"B80","Category":0,"Contribute":0.012148},{"Turbine":"B80","Category":0.5,"Contribute":4.2E-05},{"Turbine":"B80","Category":1,"Contribute":0.000127},{"Turbine":"B80","Category":1.5,"Contribute":0.000508},{"Turbine":"B80","Category":2,"Contribute":0.000254},{"Turbine":"B80","Category":2.5,"Contribute":0.00055},{"Turbine":"B80","Category":3,"Contribute":0.000254},{"Turbine":"B80","Category":3.5,"Contribute":0.000254},{"Turbine":"B80","Category":4,"Contribute":0.000593},{"Turbine":"B80","Category":4.5,"Contribute":0.000762},{"Turbine":"B80","Category":5,"Contribute":0.001185},{"Turbine":"B80","Category":5.5,"Contribute":0.001481},{"Turbine":"B80","Category":6,"Contribute":0.001524},{"Turbine":"B80","Category":6.5,"Contribute":0.002074},{"Turbine":"B80","Category":7,"Contribute":0.00237},{"Turbine":"B80","Category":7.5,"Contribute":0.002328},{"Turbine":"B80","Category":8,"Contribute":0.002286},{"Turbine":"B80","Category":8.5,"Contribute":0.002497},{"Turbine":"B80","Category":9,"Contribute":0.002243},{"Turbine":"B80","Category":9.5,"Contribute":0.003132},{"Turbine":"B80","Category":10,"Contribute":0.002116},{"Turbine":"B80","Category":10.5,"Contribute":0.00072},{"Turbine":"B80","Category":11,"Contribute":0.000508},{"Turbine":"B80","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B82","Category":0,"Contribute":0.012233},{"Turbine":"B82","Category":1,"Contribute":0.000254},{"Turbine":"B82","Category":1.5,"Contribute":0.000423},{"Turbine":"B82","Category":2,"Contribute":0.000296},{"Turbine":"B82","Category":2.5,"Contribute":0.000508},{"Turbine":"B82","Category":3,"Contribute":0.000339},{"Turbine":"B82","Category":3.5,"Contribute":0.000423},{"Turbine":"B82","Category":4,"Contribute":0.000381},{"Turbine":"B82","Category":4.5,"Contribute":0.001354},{"Turbine":"B82","Category":5,"Contribute":0.001397},{"Turbine":"B82","Category":5.5,"Contribute":0.001651},{"Turbine":"B82","Category":6,"Contribute":0.00237},{"Turbine":"B82","Category":6.5,"Contribute":0.002032},{"Turbine":"B82","Category":7,"Contribute":0.002921},{"Turbine":"B82","Category":7.5,"Contribute":0.002328},{"Turbine":"B82","Category":8,"Contribute":0.002201},{"Turbine":"B82","Category":8.5,"Contribute":0.003259},{"Turbine":"B82","Category":9,"Contribute":0.002624},{"Turbine":"B82","Category":9.5,"Contribute":0.001185},{"Turbine":"B82","Category":10,"Contribute":0.000889},{"Turbine":"B82","Category":10.5,"Contribute":0.00055},{"Turbine":"B82","Category":11,"Contribute":0.000296},{"Turbine":"B82","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B82","Category":12.5,"Contribute":4.2E-05},{"Turbine":"B83","Category":0,"Contribute":0.011598},{"Turbine":"B83","Category":1,"Contribute":0.000169},{"Turbine":"B83","Category":1.5,"Contribute":0.000254},{"Turbine":"B83","Category":2,"Contribute":0.000508},{"Turbine":"B83","Category":2.5,"Contribute":0.000381},{"Turbine":"B83","Category":3,"Contribute":0.00055},{"Turbine":"B83","Category":3.5,"Contribute":0.000466},{"Turbine":"B83","Category":4,"Contribute":0.00072},{"Turbine":"B83","Category":4.5,"Contribute":0.000847},{"Turbine":"B83","Category":5,"Contribute":0.001058},{"Turbine":"B83","Category":5.5,"Contribute":0.001354},{"Turbine":"B83","Category":6,"Contribute":0.002328},{"Turbine":"B83","Category":6.5,"Contribute":0.002413},{"Turbine":"B83","Category":7,"Contribute":0.002794},{"Turbine":"B83","Category":7.5,"Contribute":0.002455},{"Turbine":"B83","Category":8,"Contribute":0.002582},{"Turbine":"B83","Category":8.5,"Contribute":0.002751},{"Turbine":"B83","Category":9,"Contribute":0.002413},{"Turbine":"B83","Category":9.5,"Contribute":0.001439},{"Turbine":"B83","Category":10,"Contribute":0.001185},{"Turbine":"B83","Category":10.5,"Contribute":0.000466},{"Turbine":"B83","Category":11,"Contribute":0.000508},{"Turbine":"B83","Category":11.5,"Contribute":0.000254},{"Turbine":"B83","Category":12,"Contribute":0.000254},{"Turbine":"B83","Category":12.5,"Contribute":0.000169},{"Turbine":"B83","Category":13,"Contribute":4.2E-05},{"Turbine":"B83","Category":15,"Contribute":4.2E-05},{"Turbine":"B84","Category":0,"Contribute":0.012148},{"Turbine":"B84","Category":1,"Contribute":0.000127},{"Turbine":"B84","Category":1.5,"Contribute":0.000254},{"Turbine":"B84","Category":2,"Contribute":0.000593},{"Turbine":"B84","Category":2.5,"Contribute":0.000508},{"Turbine":"B84","Category":3,"Contribute":0.000466},{"Turbine":"B84","Category":3.5,"Contribute":0.000381},{"Turbine":"B84","Category":4,"Contribute":0.000847},{"Turbine":"B84","Category":4.5,"Contribute":0.001016},{"Turbine":"B84","Category":5,"Contribute":0.001397},{"Turbine":"B84","Category":5.5,"Contribute":0.001693},{"Turbine":"B84","Category":6,"Contribute":0.001989},{"Turbine":"B84","Category":6.5,"Contribute":0.003048},{"Turbine":"B84","Category":7,"Contribute":0.00309},{"Turbine":"B84","Category":7.5,"Contribute":0.002751},{"Turbine":"B84","Category":8,"Contribute":0.002455},{"Turbine":"B84","Category":8.5,"Contribute":0.002878},{"Turbine":"B84","Category":9,"Contribute":0.001354},{"Turbine":"B84","Category":9.5,"Contribute":0.001439},{"Turbine":"B84","Category":10,"Contribute":0.000847},{"Turbine":"B84","Category":10.5,"Contribute":0.000508},{"Turbine":"B84","Category":11,"Contribute":8.5E-05},{"Turbine":"B84","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B84","Category":12,"Contribute":8.5E-05},{"Turbine":"B85","Category":0,"Contribute":0.011683},{"Turbine":"B85","Category":1,"Contribute":0.000212},{"Turbine":"B85","Category":1.5,"Contribute":0.000296},{"Turbine":"B85","Category":2,"Contribute":0.000508},{"Turbine":"B85","Category":2.5,"Contribute":0.000466},{"Turbine":"B85","Category":3,"Contribute":0.000169},{"Turbine":"B85","Category":3.5,"Contribute":0.000296},{"Turbine":"B85","Category":4,"Contribute":0.000635},{"Turbine":"B85","Category":4.5,"Contribute":0.000931},{"Turbine":"B85","Category":5,"Contribute":0.001101},{"Turbine":"B85","Category":5.5,"Contribute":0.001143},{"Turbine":"B85","Category":6,"Contribute":0.00182},{"Turbine":"B85","Category":6.5,"Contribute":0.001905},{"Turbine":"B85","Category":7,"Contribute":0.002328},{"Turbine":"B85","Category":7.5,"Contribute":0.002286},{"Turbine":"B85","Category":8,"Contribute":0.002455},{"Turbine":"B85","Category":8.5,"Contribute":0.002286},{"Turbine":"B85","Category":9,"Contribute":0.002582},{"Turbine":"B85","Category":9.5,"Contribute":0.002328},{"Turbine":"B85","Category":10,"Contribute":0.001439},{"Turbine":"B85","Category":10.5,"Contribute":0.001397},{"Turbine":"B85","Category":11,"Contribute":0.000677},{"Turbine":"B85","Category":11.5,"Contribute":0.000508},{"Turbine":"B85","Category":12,"Contribute":8.5E-05},{"Turbine":"B85","Category":12.5,"Contribute":0.000127},{"Turbine":"B85","Category":13,"Contribute":8.5E-05},{"Turbine":"B85","Category":13.5,"Contribute":0.000127},{"Turbine":"B85","Category":14,"Contribute":4.2E-05},{"Turbine":"B85","Category":14.5,"Contribute":8.5E-05},{"Turbine":"B86","Category":0,"Contribute":0.012021},{"Turbine":"B86","Category":1,"Contribute":8.5E-05},{"Turbine":"B86","Category":1.5,"Contribute":0.00055},{"Turbine":"B86","Category":2,"Contribute":0.000212},{"Turbine":"B86","Category":2.5,"Contribute":0.000466},{"Turbine":"B86","Category":3,"Contribute":0.000466},{"Turbine":"B86","Category":3.5,"Contribute":0.000508},{"Turbine":"B86","Category":4,"Contribute":0.000508},{"Turbine":"B86","Category":4.5,"Contribute":0.000762},{"Turbine":"B86","Category":5,"Contribute":0.001016},{"Turbine":"B86","Category":5.5,"Contribute":0.001481},{"Turbine":"B86","Category":6,"Contribute":0.001566},{"Turbine":"B86","Category":6.5,"Contribute":0.002878},{"Turbine":"B86","Category":7,"Contribute":0.002159},{"Turbine":"B86","Category":7.5,"Contribute":0.001989},{"Turbine":"B86","Category":8,"Contribute":0.00237},{"Turbine":"B86","Category":8.5,"Contribute":0.002582},{"Turbine":"B86","Category":9,"Contribute":0.002794},{"Turbine":"B86","Category":9.5,"Contribute":0.002709},{"Turbine":"B86","Category":10,"Contribute":0.001947},{"Turbine":"B86","Category":10.5,"Contribute":0.00072},{"Turbine":"B86","Category":11,"Contribute":8.5E-05},{"Turbine":"B86","Category":11.5,"Contribute":4.2E-05},{"Turbine":"B86","Category":12,"Contribute":8.5E-05},{"Turbine":"B87","Category":0,"Contribute":0.012106},{"Turbine":"B87","Category":0.5,"Contribute":8.5E-05},{"Turbine":"B87","Category":1,"Contribute":0.000254},{"Turbine":"B87","Category":1.5,"Contribute":0.000381},{"Turbine":"B87","Category":2,"Contribute":0.000254},{"Turbine":"B87","Category":2.5,"Contribute":0.000296},{"Turbine":"B87","Category":3,"Contribute":0.000381},{"Turbine":"B87","Category":3.5,"Contribute":0.000339},{"Turbine":"B87","Category":4,"Contribute":0.00055},{"Turbine":"B87","Category":4.5,"Contribute":0.000931},{"Turbine":"B87","Category":5,"Contribute":0.001143},{"Turbine":"B87","Category":5.5,"Contribute":0.001566},{"Turbine":"B87","Category":6,"Contribute":0.002328},{"Turbine":"B87","Category":6.5,"Contribute":0.00237},{"Turbine":"B87","Category":7,"Contribute":0.001735},{"Turbine":"B87","Category":7.5,"Contribute":0.002878},{"Turbine":"B87","Category":8,"Contribute":0.00182},{"Turbine":"B87","Category":8.5,"Contribute":0.001778},{"Turbine":"B87","Category":9,"Contribute":0.002582},{"Turbine":"B87","Category":9.5,"Contribute":0.002328},{"Turbine":"B87","Category":10,"Contribute":0.001524},{"Turbine":"B87","Category":10.5,"Contribute":0.001101},{"Turbine":"B87","Category":11,"Contribute":0.000677},{"Turbine":"B87","Category":11.5,"Contribute":0.000339},{"Turbine":"B87","Category":12,"Contribute":0.000127},{"Turbine":"B87","Category":12.5,"Contribute":8.5E-05},{"Turbine":"B87","Category":14,"Contribute":4.2E-05},{"Turbine":"B89","Category":0,"Contribute":0.012952},{"Turbine":"B89","Category":1.5,"Contribute":0.000296},{"Turbine":"B89","Category":2,"Contribute":4.2E-05},{"Turbine":"B89","Category":2.5,"Contribute":0.000339},{"Turbine":"B89","Category":3,"Contribute":0.000169},{"Turbine":"B89","Category":3.5,"Contribute":0.000212},{"Turbine":"B89","Category":4,"Contribute":0.000593},{"Turbine":"B89","Category":4.5,"Contribute":0.001101},{"Turbine":"B89","Category":5,"Contribute":0.001185},{"Turbine":"B89","Category":5.5,"Contribute":0.001566},{"Turbine":"B89","Category":6,"Contribute":0.003048},{"Turbine":"B89","Category":6.5,"Contribute":0.002836},{"Turbine":"B89","Category":7,"Contribute":0.001778},{"Turbine":"B89","Category":7.5,"Contribute":0.001651},{"Turbine":"B89","Category":8,"Contribute":0.00237},{"Turbine":"B89","Category":8.5,"Contribute":0.002963},{"Turbine":"B89","Category":9,"Contribute":0.002243},{"Turbine":"B89","Category":9.5,"Contribute":0.00182},{"Turbine":"B89","Category":10,"Contribute":0.001524},{"Turbine":"B89","Category":10.5,"Contribute":0.000847},{"Turbine":"B89","Category":11,"Contribute":0.000254},{"Turbine":"B89","Category":11.5,"Contribute":0.000169},{"Turbine":"B89","Category":13,"Contribute":4.2E-05},{"Turbine":"B90","Category":0,"Contribute":0.01236},{"Turbine":"B90","Category":1,"Contribute":0.000169},{"Turbine":"B90","Category":1.5,"Contribute":0.000339},{"Turbine":"B90","Category":2,"Contribute":0.000339},{"Turbine":"B90","Category":2.5,"Contribute":0.000508},{"Turbine":"B90","Category":3,"Contribute":0.000212},{"Turbine":"B90","Category":3.5,"Contribute":0.000212},{"Turbine":"B90","Category":4,"Contribute":0.000677},{"Turbine":"B90","Category":4.5,"Contribute":0.001016},{"Turbine":"B90","Category":5,"Contribute":0.001312},{"Turbine":"B90","Category":5.5,"Contribute":0.002328},{"Turbine":"B90","Category":6,"Contribute":0.001989},{"Turbine":"B90","Category":6.5,"Contribute":0.002413},{"Turbine":"B90","Category":7,"Contribute":0.002667},{"Turbine":"B90","Category":7.5,"Contribute":0.002624},{"Turbine":"B90","Category":8,"Contribute":0.002751},{"Turbine":"B90","Category":8.5,"Contribute":0.003132},{"Turbine":"B90","Category":9,"Contribute":0.001778},{"Turbine":"B90","Category":9.5,"Contribute":0.001735},{"Turbine":"B90","Category":10,"Contribute":0.000762},{"Turbine":"B90","Category":10.5,"Contribute":0.000296},{"Turbine":"B90","Category":11,"Contribute":0.000127},{"Turbine":"B90","Category":11.5,"Contribute":0.000169},{"Turbine":"B90","Category":12,"Contribute":8.5E-05},{"Turbine":"B91","Category":0,"Contribute":0.012148},{"Turbine":"B91","Category":1,"Contribute":0.000127},{"Turbine":"B91","Category":1.5,"Contribute":0.000423},{"Turbine":"B91","Category":2,"Contribute":0.000296},{"Turbine":"B91","Category":2.5,"Contribute":0.00055},{"Turbine":"B91","Category":3,"Contribute":0.000254},{"Turbine":"B91","Category":3.5,"Contribute":0.000296},{"Turbine":"B91","Category":4,"Contribute":0.00055},{"Turbine":"B91","Category":4.5,"Contribute":0.000931},{"Turbine":"B91","Category":5,"Contribute":0.001862},{"Turbine":"B91","Category":5.5,"Contribute":0.001439},{"Turbine":"B91","Category":6,"Contribute":0.001228},{"Turbine":"B91","Category":6.5,"Contribute":0.002074},{"Turbine":"B91","Category":7,"Contribute":0.002328},{"Turbine":"B91","Category":7.5,"Contribute":0.00237},{"Turbine":"B91","Category":8,"Contribute":0.00182},{"Turbine":"B91","Category":8.5,"Contribute":0.002878},{"Turbine":"B91","Category":9,"Contribute":0.00254},{"Turbine":"B91","Category":9.5,"Contribute":0.002159},{"Turbine":"B91","Category":10,"Contribute":0.001989},{"Turbine":"B91","Category":10.5,"Contribute":0.00127},{"Turbine":"B91","Category":11,"Contribute":0.000169},{"Turbine":"B91","Category":11.5,"Contribute":0.000127},{"Turbine":"B91","Category":12,"Contribute":0.000169},{"Turbine":"B92","Category":0,"Contribute":0.01236},{"Turbine":"B92","Category":1,"Contribute":0.000127},{"Turbine":"B92","Category":1.5,"Contribute":0.000508},{"Turbine":"B92","Category":2,"Contribute":0.000508},{"Turbine":"B92","Category":2.5,"Contribute":0.000127},{"Turbine":"B92","Category":3,"Contribute":0.000254},{"Turbine":"B92","Category":3.5,"Contribute":0.000339},{"Turbine":"B92","Category":4,"Contribute":0.000762},{"Turbine":"B92","Category":4.5,"Contribute":0.000804},{"Turbine":"B92","Category":5,"Contribute":0.000889},{"Turbine":"B92","Category":5.5,"Contribute":0.00182},{"Turbine":"B92","Category":6,"Contribute":0.002328},{"Turbine":"B92","Category":6.5,"Contribute":0.002074},{"Turbine":"B92","Category":7,"Contribute":0.002286},{"Turbine":"B92","Category":7.5,"Contribute":0.002201},{"Turbine":"B92","Category":8,"Contribute":0.002243},{"Turbine":"B92","Category":8.5,"Contribute":0.002455},{"Turbine":"B92","Category":9,"Contribute":0.002159},{"Turbine":"B92","Category":9.5,"Contribute":0.00237},{"Turbine":"B92","Category":10,"Contribute":0.001862},{"Turbine":"B92","Category":10.5,"Contribute":0.001016},{"Turbine":"B92","Category":11,"Contribute":0.000212},{"Turbine":"B92","Category":11.5,"Contribute":0.000169},{"Turbine":"B92","Category":12,"Contribute":4.2E-05},{"Turbine":"B92","Category":12.5,"Contribute":8.5E-05},{"Turbine":"T1","Category":0,"Contribute":0.013841},{"Turbine":"T1","Category":1,"Contribute":0.000127},{"Turbine":"T1","Category":1.5,"Contribute":0.000212},{"Turbine":"T1","Category":2,"Contribute":8.5E-05},{"Turbine":"T1","Category":2.5,"Contribute":0.000169},{"Turbine":"T1","Category":3,"Contribute":0.000296},{"Turbine":"T1","Category":3.5,"Contribute":0.000169},{"Turbine":"T1","Category":4,"Contribute":0.000381},{"Turbine":"T1","Category":4.5,"Contribute":0.000635},{"Turbine":"T1","Category":5,"Contribute":0.000762},{"Turbine":"T1","Category":5.5,"Contribute":0.001651},{"Turbine":"T1","Category":6,"Contribute":0.001862},{"Turbine":"T1","Category":6.5,"Contribute":0.002328},{"Turbine":"T1","Category":7,"Contribute":0.002116},{"Turbine":"T1","Category":7.5,"Contribute":0.001947},{"Turbine":"T1","Category":8,"Contribute":0.002286},{"Turbine":"T1","Category":8.5,"Contribute":0.002243},{"Turbine":"T1","Category":9,"Contribute":0.002582},{"Turbine":"T1","Category":9.5,"Contribute":0.002116},{"Turbine":"T1","Category":10,"Contribute":0.002159},{"Turbine":"T1","Category":10.5,"Contribute":0.000847},{"Turbine":"T1","Category":11,"Contribute":0.000635},{"Turbine":"T1","Category":11.5,"Contribute":0.000296},{"Turbine":"T1","Category":12,"Contribute":0.000169},{"Turbine":"T1","Category":12.5,"Contribute":4.2E-05},{"Turbine":"T1","Category":13,"Contribute":4.2E-05},{"Turbine":"T2","Category":0,"Contribute":0.012275},{"Turbine":"T2","Category":1,"Contribute":0.000296},{"Turbine":"T2","Category":1.5,"Contribute":0.000381},{"Turbine":"T2","Category":2,"Contribute":0.000423},{"Turbine":"T2","Category":2.5,"Contribute":0.000296},{"Turbine":"T2","Category":3,"Contribute":0.000339},{"Turbine":"T2","Category":3.5,"Contribute":0.000423},{"Turbine":"T2","Category":4,"Contribute":0.000423},{"Turbine":"T2","Category":4.5,"Contribute":0.000593},{"Turbine":"T2","Category":5,"Contribute":0.001101},{"Turbine":"T2","Category":5.5,"Contribute":0.001312},{"Turbine":"T2","Category":6,"Contribute":0.002286},{"Turbine":"T2","Category":6.5,"Contribute":0.00237},{"Turbine":"T2","Category":7,"Contribute":0.001651},{"Turbine":"T2","Category":7.5,"Contribute":0.002159},{"Turbine":"T2","Category":8,"Contribute":0.003344},{"Turbine":"T2","Category":8.5,"Contribute":0.002751},{"Turbine":"T2","Category":9,"Contribute":0.002582},{"Turbine":"T2","Category":9.5,"Contribute":0.002286},{"Turbine":"T2","Category":10,"Contribute":0.001397},{"Turbine":"T2","Category":10.5,"Contribute":0.000931},{"Turbine":"T2","Category":11,"Contribute":0.000254},{"Turbine":"T2","Category":11.5,"Contribute":8.5E-05},{"Turbine":"T2","Category":12,"Contribute":4.2E-05}]},"Result":"OK","Message":null,"Trace":null};
 
-        app.loading(true);
+        // app.loading(true);
         var param = {
             period: fa.period,
             dateStart: fa.dateStart,
@@ -813,7 +682,7 @@ var Data = {
 
             Data.InitRightTurbineList();
 
-            app.loading(false);
+            // app.loading(false);
             $("#windDistribution").data("kendoChart").refresh();
         });
     },
@@ -990,7 +859,7 @@ tc.LoadData = function(){
                         }
                     }
                 }
-                app.loading(false);
+                // app.loading(false);
             },
             pageable: {
                 pageSize: 10,
@@ -1006,10 +875,6 @@ tc.LoadData = function(){
         },200);
 
     });
-
-
-
-
 }
 
 tc.RefreshGrid = function(){
@@ -1030,28 +895,18 @@ $(document).ready(function () {
         t1224.loadData("radio", this.id);
     });
     $('#btnRefresh').on('click', function () {
-        fa.LoadData();
-        pm.loadData();
-        if(!app.isLoading()) {
-            app.loading(true);
-        }
 
-        //Wind Rose
-        wr.GetData();
-        wr.checkPeriod();
-
-        //Wind Distribution
-        Data.LoadData();
-        
-        aws.loadData();
         var datatype = ''
         if($("#met").is(':checked')) {
             datatype = 'met';
         } else {
             datatype = 'turbine';
         }
-        t1224.loadData("page", datatype);
-        tc.LoadData();
+
+        $.when(fa.LoadData(), pm.loadData(),Data.LoadData(),aws.loadData(),t1224.loadData("page", datatype),tc.LoadData()).done(function(){
+            wr.GetData();
+            wr.checkPeriod();
+        });
     });
 
     setTimeout(function () {
