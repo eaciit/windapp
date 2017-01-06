@@ -354,6 +354,7 @@ t1224.loadData = function(datatype) {
         Project: fa.project,
         Year: dt.getUTCFullYear()-1
     };
+    app.loading(true);
 
     toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
         if (!app.isFine(res)) {
