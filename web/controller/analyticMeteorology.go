@@ -255,11 +255,22 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 		details = append(details, time)
 
-		tmpRes.Set(turbine, details)
+		tmpRes.Set(strings.Trim(turbine, " "), details)
 	}
 
-	for i, v := range tmpRes {
-		turbines = append(turbines, tk.M{}.Set("turbine", i).Set("details", v.([]tk.M)))
+	turbineList := []string{}
+	for key := range tmpRes {
+		turbineList = append(turbineList, key)
+	}
+
+	sort.Strings(turbineList)
+	for _, val := range turbineList {
+		/*data = append(data, tk.M{
+			"hours":   val,
+			"details": tmpRes[val],
+		})*/
+
+		turbines = append(turbines, tk.M{}.Set("turbine", val).Set("details", tmpRes.Get(val)))
 	}
 
 	// met tower
