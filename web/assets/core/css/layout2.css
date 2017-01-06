@@ -1159,3 +1159,37 @@ a:active, a:focus, a:hover {
     font-size: 12px;
     border-radius: 3px;*/
 }
+
+.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
+    background-color: #263238 !important;
+    color: white;
+}
+
+.maximize-mode .main-header, .maximize-mode .bread-info{
+    display: none;
+}
+
+.maximize-mode .ez.panel {
+    border-radius: 0px;
+}
+
+.maximize-mode .dim {
+    color: darkgray;
+}
+
+.maximize-mode .table-sum {
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
+.maximize-mode .table-detail {
+    margin-bottom: 2px;
+}
+
+.maximize-mode .table-detail>tbody>tr>td {
+    border-top: 0px !important;
+}
+
+.maximize-mode .table-detail>thead>tr>td {
+    border-bottom: 1px solid darkgray !important;
+}
