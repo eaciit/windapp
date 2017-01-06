@@ -59,4 +59,18 @@ $(function () {
 	for(var i = 0 ; i < 5 ; i++){
 		monitoring.createGauge(i);
 	}
+
+    $("#restore-screen").hide();
+
+    $("#max-screen").click(function(){
+        $("html").addClass("maximize-mode");
+        $("#max-screen").hide();
+        $("#restore-screen").show();  
+    });
+
+    $("#restore-screen").click(function(){
+        $("html").removeClass("maximize-mode");
+        $("#max-screen").show();  
+        $("#restore-screen").hide();  
+    });
 });
