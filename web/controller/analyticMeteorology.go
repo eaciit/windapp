@@ -357,7 +357,6 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		DataType string
 		Project  string
 		Turbine  []interface{}
-		Year     int
 	}
 
 	var (
@@ -373,7 +372,15 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	match := tk.M{"dateinfo.year": p.Year}
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+	tk.Println(tStart)
+	tk.Println(tEnd)
+
+	match := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
 
 	if p.Project != "" && p.DataType == "turbine" {
 		anProject := strings.Split(p.Project, "(")

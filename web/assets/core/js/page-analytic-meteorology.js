@@ -358,7 +358,6 @@ t1224.loadData = function(source, datatype) {
         DataType: datatype,
         Turbine: fa.turbine,
         Project: fa.project,
-        Year: dt.getUTCFullYear()-1
     };
     if(source == "radio") {
         app.loading(true);
