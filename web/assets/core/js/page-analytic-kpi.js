@@ -163,7 +163,7 @@ page.generateGrid = function () {
                     class: "align-center column-" + key
                 },
                 attributes: {
-                    class: "align-right column-" + key
+                    class: "align-center column-" + key
                 },
                 format: "{0:n2}",
                 filterable: false

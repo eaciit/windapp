@@ -22,24 +22,27 @@
 							 (<strong>SCADA HFD</strong>) from: <strong><span id="availabledatestartscadahfd">-</span></strong> until: <strong><span id="availabledateendscadahfd">-</span></strong>								 
 	                    </div>
 	                    <div class="clearfix">&nbsp;</div>
-						<!--<ul class="nav nav-tabs " role="tablist">
-							<li id="dgrscadaTab" role="presentation" class="active"><a onclick="pg.refreshGrid();" href="#dgrscada" aria-controls="DgrScada" role="tab" data-toggle="tab" class="tab-custom">DGR vs Scada</a></li>
+						<ul class="nav nav-tabs " role="tablist">
+							<li id="dgrscadaTab" role="presentation" class="active"><a onclick="pg.refreshGrid();" href="#dgrscada" aria-controls="DgrScada" role="tab" data-toggle="tab" class="tab-custom">Data Consistency</a></li>
+							<li id="varianceTab" role="presentation"><a onclick="pg.refreshGrid();" href="#variance" aria-controls="Variance" role="tab" data-toggle="tab" class="tab-custom">Variance 10-20%</a></li>
+							<li id="varianceOverTab" role="presentation"><a onclick="pg.refreshGrid();" href="#varianceOver" aria-controls="VarianceOver" role="tab" data-toggle="tab" class="tab-custom">Variance over 20%</a></li>
+						</ul>
 
-							<li id="highfreqomTab" role="presentation"><a onclick="pg.refreshGrid();" href="#highfreqom" aria-controls="HighFreqOM" role="tab" data-toggle="tab" class="tab-custom">High Freq 10 min vs O&M 10 min</a></li>
-						</ul>-->
-
-						<!--<div class="tab-content">
-							<div role="tabpanel" class="tab-pane active" id="dgrscada">-->
+						<div class="tab-content">
+							<div role="tabpanel" class="tab-pane active" id="dgrscada">
 								<div class="col-md-8 col-md-offset-2" style="text-align:center">
 									<div class="clearfix">&nbsp;</div>
 									<div id="gridSummaryDgrScada"></div>
 									<div class="clearfix">&nbsp;</div>
 								</div>
 							</div>
-							<!--<div role="tabpanel" class="tab-pane active" id="highfreqom">
-								<div id="highfreqom" class="grid-custom"></div>
+							<div role="tabpanel" class="tab-pane active" id="variance">
+								
 							</div>
-						</div>-->
+							<div role="tabpanel" class="tab-pane active" id="varianceOver">
+								
+							</div>
+						</div>
 						<div class="clearfix">&nbsp;</div>
 						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
 					</div>
