@@ -333,6 +333,7 @@ t1224.generateGrid = function (datatype) {
             var colChild = {
                 title: title,                
                 field: "details["+i+"].col."+ key,
+                attributes: { class: "align-center row-custom" },
                 width: 100,
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;',
