@@ -27,7 +27,7 @@
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
 							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="aws.RefreshGrid()" class="tab-custom">Average Wind Speed</a></li>
-							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
+							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.RefreshChart()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
 							<li id="winddistributionTab" role="presentation"><a onclick="wd.RefreshChart()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
 							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
@@ -69,12 +69,12 @@
 										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
 									</div>
 
-									<div class="col-md-5 col-xs-12">
+									<div class="col-md-6 col-xs-12">
 										<div id="legend-list" class="col-md-12 col-sm-12 pl15">
 										</div>
 									</div>
 
-									<div class="col-md-4 col-xs-12">
+									<div class="col-md-3 col-xs-12">
 										<div class="period-met pull-right">
 <!-- 											Met Tower Data Available from: <strong><span id="availabledatestartmettower">-</span></strong> until: <strong><span id="availabledateendmettower">-</span></strong> -->
 										</div>
