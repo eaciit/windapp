@@ -448,8 +448,16 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		tmpRes.Set(hours, details)
 	}
 
-	for i, v := range tmpRes {
-		data = append(data, tk.M{}.Set("hours", i).Set("details", v.([]tk.M)))
+	hoursList := []string{}
+	for key := range tmpRes {
+		hoursList = append(hoursList, key)
+	}
+	sort.Strings(hoursList)
+	for _, val := range hoursList {
+		data = append(data, tk.M{
+			"hours":   val,
+			"details": tmpRes[val],
+		})
 	}
 	result := tk.M{"Data": data}
 
