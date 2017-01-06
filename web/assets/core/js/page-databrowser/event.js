@@ -147,7 +147,7 @@ dbe.InitEventGrid = function() {
             field: "BrakeProgram",
             width: 120,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0}",
             filterable: false
@@ -156,7 +156,7 @@ dbe.InitEventGrid = function() {
             field: "AlarmId",
             width: 120,
             attributes: {
-                class: "align-right"
+                class: "align-center"
             },
             format: "{0}",
             filterable: false

@@ -11,7 +11,13 @@ ss.templateFilter = {
     search: ""
 };
 
-ss.TableColumns = ko.observableArray([{ field: "status", title: "Status" }, { field: "loginid", title: "Username" }, { field: "created", title: "Created", template: '# if (created == "0001-01-01T00:00:00Z") {#-#} else {# #:moment(created).utc().format("DD-MMM-YYYY HH:mm:ss")# #}#' }, { field: "expired", title: "Expired", template: '# if (expired == "0001-01-01T00:00:00Z") {#-#} else {# #:moment(expired).utc().format("DD-MMM-YYYY HH:mm:ss")# #}#' }, { field: "duration", title: "Active In", template: '#= kendo.toString(duration, "n2")# H' }, { title: "Action", width: 80, attributes: { class: "align-center" }, template: "#if(status=='ACTIVE'){# <button data-value='#:_id #' onclick='ss.setexpired(\"#: _id #\", \"#: loginid #\")' name='expired' type='button' class='btn btn-sm btn-default btn-text-danger btn-stop tooltip tooltipster' title='Set Expired'><span class='fa fa-times'></span></button> #}else{# #}#" }]);
+ss.TableColumns = ko.observableArray([
+    { field: "status", title: "Status", headerAttributes:{ style:"text-align:center" }}, 
+    { field: "loginid", title: "Username", headerAttributes:{ style:"text-align:center" }}, 
+    { field: "created", title: "Created", headerAttributes:{ style:"text-align:center" }, template: '# if (created == "0001-01-01T00:00:00Z") {#-#} else {# #:moment(created).utc().format("DD-MMM-YYYY HH:mm:ss")# #}#' }, 
+    { field: "expired", title: "Expired", headerAttributes:{ style:"text-align:center" }, template: '# if (expired == "0001-01-01T00:00:00Z") {#-#} else {# #:moment(expired).utc().format("DD-MMM-YYYY HH:mm:ss")# #}#' }, 
+    { field: "duration", title: "Active In", headerAttributes:{ style:"text-align:center" }, attributes:{ class:"align-center" }, template: '#= kendo.toString(duration, "n2")# H' }, 
+    { title: "Action", width: 80, headerAttributes:{ style:"text-align:center" }, attributes: { class: "align-center" }, template: "#if(status=='ACTIVE'){# <button data-value='#:_id #' onclick='ss.setexpired(\"#: _id #\", \"#: loginid #\")' name='expired' type='button' class='btn btn-sm btn-default btn-text-danger btn-stop tooltip tooltipster' title='Set Expired'><span class='fa fa-times'></span></button> #}else{# #}#" }]);
 
 ss.contentIsLoading = ko.observable(false);
 ss.selectedTableID = ko.observable("");
@@ -78,7 +84,6 @@ ss.generateGrid = function () {
             schema: {
                 data: function data(res) {
                     ss.selectedTableID("show");
-                    ss.contentIsLoading(false);
                     app.isFine(res);
                     return res.data.Data;
                 },
@@ -102,6 +107,7 @@ ss.generateGrid = function () {
         },
         columns: ss.TableColumns()
     });
+    ss.contentIsLoading(false);
 };
 
 $(function () {

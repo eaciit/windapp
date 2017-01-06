@@ -47,8 +47,8 @@ var Data = {
 	      scrollable: false,
 	      columns: [
 	        { title: "Model", field: "Model", width: 120 },
-	        { title: "Avg. Wind Speed<br>(m/s)", field: "WindSpeed", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-right" }, format: "{0:n2}", width: 120 },
-	        { title: "Standard Power<br>(KW)", field: "Power1", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-right" }, format: "{0:n0}", width: 120 },
+	        { title: "Avg. Wind Speed<br>(m/s)", field: "WindSpeed", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120 },
+	        { title: "Standard Power<br>(KW)", field: "Power1", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-center" }, format: "{0:n0}", width: 120 },
 	        { title: "Control",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" },template: "<div class='middles'><a href=\"javascript:Data.Edit('#: ID #')\" class=\"btn btn-xs btn-warning\"><i class=\"fa fa-pencil\"></i>&nbsp;&nbsp;Edit</a></div>",width: 100}
 	      ]
 	    });
