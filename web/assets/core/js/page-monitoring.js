@@ -14,7 +14,7 @@ vm.breadcrumb([{
     href: '#'
 }]);
 
-
+vm.dateAsOf(app.currentDateData);
 monitoring.createGauge = function(id){
 	$("#gauge"+id).html("");
 	$("#gauge"+id).kendoLinearGauge({
@@ -73,4 +73,6 @@ $(function () {
         $("#max-screen").show();  
         $("#restore-screen").hide();  
     });
+
+    app.loading(false);
 });
