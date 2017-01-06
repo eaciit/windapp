@@ -148,7 +148,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		maxDate := scada.Get("maxdate").(time.Time)
 
 		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
-
+		// tk.Println(" >>> hour scada >>> ", hourValue)
 		sEnergy = sPower / 6
 		sOktime = scada.GetFloat64("oktime")
 		// log.Printf("sOkTime: %v \n", sOktime/3600)
@@ -267,19 +267,126 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	varItem.machineavail = math.Abs(dgrItem.machineavail - scadaItem.machineavail)
 	varItem.trueavail = math.Abs(dgrItem.trueavail - scadaItem.trueavail)*/
 
+	/*======SCADA HFD======*/
+	var scadaHfdItem DataItem
+	scadaDataHfdAvailable := false
+	// _midate := time.Time{}
+	// _madate := time.Time{}
+
+	// pipes = []tk.M{}
+	// pipes = append(pipes,
+	// 	tk.M{"$group": tk.M{"_id": "$projectname",
+	// 		"power":          tk.M{"$sum": "$fast_activepower_kw"},
+	// 		"windspeed":      tk.M{"$avg": "$fast_windspeed_ms"},
+	// 		"totaltimestamp": tk.M{"$sum": 1},
+	// 		"maxdate":        tk.M{"$max": "$dateinfo.dateid"},
+	// 		"mindate":        tk.M{"$min": "$dateinfo.dateid"},
+	// 	}})
+	// pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	// //fast_activepower_kw
+	// //fast_windspeed_ms
+	// //
+	csrhfd, e := DB().Connection.NewQuery().
+		Select("fast_activepower_kw", "fast_windspeed_ms", "dateinfo.dateid").
+		From("ScadaDataHFD").
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	ltkm := tk.M{}
+	if csrhfd.Count() > 0 {
+		scadaDataHfdAvailable = true
+	}
+
+	for {
+		_tkm := tk.M{}
+		_ex := csrhfd.Fetch(&_tkm, 1, false)
+		if _ex != nil {
+			break
+		}
+
+		_dtime := _tkm.Get("dateinfo", tk.M{}).(tk.M).Get("dateid", time.Time{}).(time.Time)
+		_midate := ltkm.Get("midate", time.Time{}).(time.Time)
+		_madate := ltkm.Get("madate", time.Time{}).(time.Time)
+		if !_dtime.IsZero() {
+			if _midate.IsZero() || _midate.After(_dtime) {
+				_midate = _dtime
+			}
+
+			if _madate.IsZero() || _madate.Before(_dtime) {
+				_madate = _dtime
+			}
+		}
+		ltkm.Set("midate", _midate)
+		ltkm.Set("madate", _madate)
+
+		_dws := _tkm.GetFloat64("fast_windspeed_ms")
+		_dap := _tkm.GetFloat64("fast_activepower_kw")
+		_cws := float64(1)
+		if _dws == -9999999.0 {
+			_dws = 0
+			_cws = 0
+		}
+
+		if _dap == -9999999.0 {
+			_dap = 0
+		}
+
+		_dws += ltkm.GetFloat64("windspeed")
+		_dap += ltkm.GetFloat64("power")
+		_cws += ltkm.GetFloat64("cws")
+
+		ltkm.Set("windspeed", _dws)
+		ltkm.Set("power", _dap)
+		ltkm.Set("cws", _cws)
+	}
+
+	csrhfd.Close()
+
+	if scadaDataHfdAvailable {
+		scadaHfdItem.power = ltkm.GetFloat64("power") / 1000
+		scadaHfdItem.energy = scadaHfdItem.power / 6
+		scadaHfdItem.windspeed = tk.Div(ltkm.GetFloat64("windspeed"), ltkm.GetFloat64("cws"))
+
+		minDate := ltkm.Get("midate", time.Time{}).(time.Time)
+		maxDate := ltkm.Get("madate", time.Time{}).(time.Time)
+		//(totalTurbine * hourValue * 2100) * 100 * 1000
+		// tk.Println(" >>> ltkm >>> ", ltkm)
+		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+		// tk.Println(" >>> hour >>> ", hourValue)
+		scadaHfdItem.plf = tk.Div(scadaHfdItem.energy, (totalTurbine*hourValue*2100)) * 100 * 1000
+	}
+
+	var diffDgrHfd DataItem
+	diffDgrHfd.power = math.Abs(scadaHfdItem.power - dgrItem.power)
+	diffDgrHfd.energy = math.Abs(scadaHfdItem.energy - dgrItem.energy)
+	diffDgrHfd.windspeed = math.Abs(scadaHfdItem.windspeed - dgrItem.windspeed)
+	diffDgrHfd.plf = math.Abs(scadaHfdItem.plf - dgrItem.plf)
+	diffDgrHfd.gridavail = math.Abs(scadaHfdItem.gridavail - dgrItem.gridavail)
+	diffDgrHfd.machineavail = math.Abs(scadaHfdItem.machineavail - dgrItem.machineavail)
+	diffDgrHfd.trueavail = math.Abs(scadaHfdItem.trueavail - dgrItem.trueavail)
+	diffDgrHfd.downtime = math.Abs(scadaHfdItem.downtime - dgrItem.downtime)
+
+	// _ = scadaHfdItem
+	// _ = scadaDataHfdAvailable
+	/*=====================*/
+
 	data.scada = scadaItem
 	data.dgr = dgrItem
 	data.variance = varItem
 
 	result := []tk.M{}
-	result = append(result, tk.M{"desc": "Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power})
-	result = append(result, tk.M{"desc": "Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy})
-	result = append(result, tk.M{"desc": "Avg. Wind Speed (m/s)", "dgr": "N/A", "scada": scadaItem.windspeed, "difference": varItem.windspeed})
-	result = append(result, tk.M{"desc": "Downtime (Hours)", "dgr": dgrItem.downtime, "scada": scadaItem.downtime, "difference": varItem.downtime})
-	result = append(result, tk.M{"desc": "PLF", "dgr": dgrItem.plf, "scada": scadaItem.plf, "difference": varItem.plf})
-	result = append(result, tk.M{"desc": "Grid Availability", "dgr": dgrItem.gridavail, "scada": scadaItem.gridavail, "difference": varItem.gridavail})
-	result = append(result, tk.M{"desc": "Machine Availability", "dgr": dgrItem.machineavail, "scada": scadaItem.machineavail, "difference": varItem.machineavail})
-	result = append(result, tk.M{"desc": "True Availability", "dgr": dgrItem.trueavail, "scada": scadaItem.trueavail, "difference": varItem.trueavail})
+	result = append(result, tk.M{"desc": "Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power, "ScadaHFD": scadaHfdItem.power, "diffdgrhfd": diffDgrHfd.power})
+	result = append(result, tk.M{"desc": "Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy, "ScadaHFD": scadaHfdItem.energy, "diffdgrhfd": diffDgrHfd.energy})
+	result = append(result, tk.M{"desc": "Avg. Wind Speed (m/s)", "dgr": "N/A", "scada": scadaItem.windspeed, "difference": varItem.windspeed, "ScadaHFD": scadaHfdItem.windspeed, "diffdgrhfd": diffDgrHfd.windspeed})
+	result = append(result, tk.M{"desc": "Downtime (Hours)", "dgr": dgrItem.downtime, "scada": scadaItem.downtime, "difference": varItem.downtime, "ScadaHFD": "N/A", "diffdgrhfd": diffDgrHfd.downtime})
+	result = append(result, tk.M{"desc": "PLF", "dgr": dgrItem.plf, "scada": scadaItem.plf, "difference": varItem.plf, "ScadaHFD": scadaHfdItem.plf, "diffdgrhfd": diffDgrHfd.plf})
+	result = append(result, tk.M{"desc": "Grid Availability", "dgr": dgrItem.gridavail, "scada": scadaItem.gridavail, "difference": varItem.gridavail, "ScadaHFD": "N/A", "diffdgrhfd": diffDgrHfd.gridavail})
+	result = append(result, tk.M{"desc": "Machine Availability", "dgr": dgrItem.machineavail, "scada": scadaItem.machineavail, "difference": varItem.machineavail, "ScadaHFD": "N/A", "diffdgrhfd": diffDgrHfd.machineavail})
+	result = append(result, tk.M{"desc": "True Availability", "dgr": dgrItem.trueavail, "scada": scadaItem.trueavail, "difference": varItem.trueavail, "ScadaHFD": "N/A", "diffdgrhfd": diffDgrHfd.trueavail})
 
 	if scadaDataAvailable == false {
 		for _, val := range result {
@@ -290,6 +397,12 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	if dgrDataAvailable == false {
 		for _, val := range result {
 			val["dgr"] = "N/A"
+		}
+	}
+
+	if !scadaDataHfdAvailable {
+		for _, val := range result {
+			val["ScadaHFD"] = "N/A"
 		}
 	}
 

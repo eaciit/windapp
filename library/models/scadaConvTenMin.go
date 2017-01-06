@@ -560,5 +560,5 @@ func (m *ScadaConvTenMin) RecordID() interface{} {
 }
 
 func (m *ScadaConvTenMin) TableName() string {
-	return "Temp_ScadaConvTenMin"
+	return "ScadaDataHFD"
 }

@@ -18,6 +18,12 @@ label.summary-number {
 	margin-top: -5px;
 }
 
+.nav-meteor{
+    margin: auto;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
 .control-input {
 	padding: 0px 0px 0px 4px;
 	background: transparent;
