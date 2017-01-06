@@ -288,8 +288,7 @@ t1224.generateGrid = function (datatype) {
     var config = {
         dataSource: {
             data: t1224.dataSource(),
-            pageSize: 10,
-            sort: ({ field: "hours", dir: "asc" })
+            pageSize: 10
         },
         pageable: {
             pageSize: 10,
