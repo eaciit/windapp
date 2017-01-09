@@ -20,6 +20,20 @@
   #     }
     } #
 </script>
+
+<script id="templateDTLE" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { 
+        if(points[i].series.name == 'Frequency') { #
+            <tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n0')#</td></tr></table>
+  #     } else if (points[i].series.name == 'Duration') { #
+            <tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# Hours</td></tr>
+  #     } else { #
+            <table><tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# MWh</td></tr>
+  #     }
+    } #
+</script>
+
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
