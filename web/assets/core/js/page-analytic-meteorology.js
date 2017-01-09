@@ -79,22 +79,26 @@ aws.generateGrid = function () {
     };
 
     $.each(aws.dataSource()[0].details, function (i, val) {
+        var wra = val.col.WRA;        
         var column = {
-            title: val.time,
+            title: val.time + " <br/> WRA "+wra+ " (m/s)",
             headerAttributes: {
                 style: 'font-weight: bold; text-align: center;'
             },
-            columns: []
+            columns: [],
+            width: 120
         }
 
-        var keyIndex = ["WRA", "Onsite"];
-        var j = 0;
+        // var keyIndex = ["WRA", "Onsite"];
+        var keyIndex = ["Onsite"];
+        var j = 0;        
 
         $.each(keyIndex, function(j, key){
+            // wra = 
             var colChild = {
                 title: key + " (m/s)",                
                 field: "details["+i+"].col."+ key ,
-                width: 80,
+                width: 120,
                 attributes: { class: "align-center row-custom" },
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;',
