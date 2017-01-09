@@ -162,3 +162,6 @@ label.summary-number {
 .mb-5{
 	 margin-bottom: -5px;
 }
+#gridTurbineCorrelation .k-grid-content-locked {
+     height: 352px!important; 
+}
