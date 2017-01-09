@@ -561,10 +561,6 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 				)
 			}
 
-			/*for _, v := range pipes {
-				log.Printf("pipes: %#v \n", v)
-			}*/
-
 			csr, e := DB().Connection.NewQuery().
 				From(new(Alarm).TableName()).
 				Command("pipe", pipes).
