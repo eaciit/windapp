@@ -1,0 +1,34 @@
+<script src="{{BaseUrl}}res/core/js/page-filter-analytic.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<style type="text/css">
+	.incomplete-icon {
+		margin-left: 10px;
+		/*margin-right: 10px;*/
+		color: #d91e18;
+	}
+</style>
+<div class="row" id="filter-analytic">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+			<div class="col-md-12 col-sm-12 filter-content">
+                <label class="col-md-1 col-sm-1 control-label label-filter"><strong data-bind="text: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy HH:mm')"></strong></label>&nbps;&nbps;
+				<label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+				<select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: fa.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
+					style="width:145px">
+                </select>&nbsp;
+				<div class="small-screen">&nbsp;</div>
+				<label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+				<select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: fa.turbineList, dataValueField: 'value', dataTextField: 'text', change: function() {fa.checkTurbine()}, suggest: true }"
+					style="width:120px">
+                </select>&nbsp;
+				<div class="search-btn-line">&nbsp;</div>
+				<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Apply</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- <div class="col-md-12 col-sm-12 ez panel-content">
+	<div class="alert alert-success" role="alert">
+	  <a href="#" class="alert-link">...</a>
+	</div>
+</div> -->

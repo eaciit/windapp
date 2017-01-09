@@ -146,14 +146,24 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+
+	// tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, startDate, endDate)
+	// tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+
+	// log.Printf("X. %#v | %#v", startDate.String(), endDate.String())
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	match := tk.M{}
 
-	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lt": tEnd})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
@@ -185,7 +195,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1, "turbine": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1, "_id.turbine": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -255,11 +265,22 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 		details = append(details, time)
 
-		tmpRes.Set(turbine, details)
+		tmpRes.Set(strings.Trim(turbine, " "), details)
 	}
 
-	for i, v := range tmpRes {
-		turbines = append(turbines, tk.M{}.Set("turbine", i).Set("details", v.([]tk.M)))
+	turbineList := []string{}
+	for key := range tmpRes {
+		turbineList = append(turbineList, key)
+	}
+
+	sort.Strings(turbineList)
+	for _, val := range turbineList {
+		/*data = append(data, tk.M{
+			"hours":   val,
+			"details": tmpRes[val],
+		})*/
+
+		turbines = append(turbines, tk.M{}.Set("turbine", val).Set("details", tmpRes.Get(val)))
 	}
 
 	// met tower
@@ -336,7 +357,6 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		DataType string
 		Project  string
 		Turbine  []interface{}
-		Year     int
 	}
 
 	var (
@@ -352,7 +372,13 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	match := tk.M{"dateinfo.year": p.Year}
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+
+	match := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
 
 	if p.Project != "" && p.DataType == "turbine" {
 		anProject := strings.Split(p.Project, "(")
@@ -389,7 +415,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1, "_id.hours": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).
@@ -448,8 +474,16 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		tmpRes.Set(hours, details)
 	}
 
-	for i, v := range tmpRes {
-		data = append(data, tk.M{}.Set("hours", i).Set("details", v.([]tk.M)))
+	hoursList := []string{}
+	for key := range tmpRes {
+		hoursList = append(hoursList, key)
+	}
+	sort.Strings(hoursList)
+	for _, val := range hoursList {
+		data = append(data, tk.M{
+			"hours":   val,
+			"details": tmpRes[val],
+		})
 	}
 	result := tk.M{"Data": data}
 
