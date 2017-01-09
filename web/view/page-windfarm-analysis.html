@@ -14,6 +14,40 @@
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-windfarm-analysis.css">
 
 <div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <div data-bind="visible: wfa.isProjectTab()">
+                        <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                        <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                        style="width:150px">
+                        </select>
+                    </div>
+                    <div data-bind="visible:wfa.isTurbine1Tab()">
+                        <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                            style="width:150px">
+                        </select>
+                        <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine1List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine1List')}, suggest: true }"
+                            style="width:320px" onblur="wfa.Turbine1Analysis.LoadData()">
+                        </select>
+                    </div>
+                    <div data-bind="visible:wfa.isTurbine2Tab()">
+                        <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                            style="width:150px">
+                        </select>
+                        <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine2List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine2List')}, suggest: true }"
+                            style="width:320px">
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 	<div class="col-md-12 col-sm-12 ez panel-content" id="panel-windfarm-analysis">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
@@ -27,9 +61,9 @@
                     </div>
                     <div class="clearfix">&nbsp;</div>
 					<ul class="nav nav-tabs" role="tablist">
-                        <li id="tProjectAnalysis" role="presentation" class="active"><a href="#projectAnalysis" aria-controls="projectAnalysis" role="tab" data-toggle="tab" class="tab-custom">Project Analysis</a></li>
-                        <li id="tTurbine1Analysis" role="presentation"><a href="#turbine1Analysis" aria-controls="turbine1Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 1 Analysis</a></li>
-                        <li id="tTurbine2Analysis" role="presentation"><a href="#turbine2Analysis" aria-controls="turbine2Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 2 Analysis</a></li>
+                        <li id="tProjectAnalysis" role="presentation" class="active" onclick="wfa.showFilter(true, false, false)"><a href="#projectAnalysis" aria-controls="projectAnalysis" role="tab" data-toggle="tab" class="tab-custom">Project Analysis</a></li>
+                        <li id="tTurbine1Analysis" role="presentation" onclick="wfa.showFilter(false, true, false)"><a href="#turbine1Analysis" aria-controls="turbine1Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 1 Analysis</a></li>
+                        <li id="tTurbine2Analysis" role="presentation" onclick="wfa.showFilter(false, false, true)"><a href="#turbine2Analysis" aria-controls="turbine2Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 2 Analysis</a></li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="projectAnalysis">
