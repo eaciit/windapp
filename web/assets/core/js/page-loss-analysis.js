@@ -239,12 +239,6 @@ pg.GridLoss = function () {
                 }]
         })
     });
-    
-    $.when(requestGridLoss).done(function(){
-        setTimeout(function(){
-            app.loading(false);
-        },500)
-    });
 };
 
 pg.DTDuration = function (dataSource) {
@@ -1144,6 +1138,8 @@ pg.loadData = function () {
             pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByDuration', true, res.data.catlossduration, 'Hours');
             pg.TLossCat('chartLCByFreq', true, res.data.catlossfreq, 'Times');
+
+            app.loading(false);
         });
         var paramdown = {
             Period: fa.period,
