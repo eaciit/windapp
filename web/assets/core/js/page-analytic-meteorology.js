@@ -46,8 +46,8 @@ pm.loadData = function () {
         availDateList.availabledatestartscada = kendo.toString(moment.utc(res.data.ScadaData[0]).format('DD-MMMM-YYYY'));
         availDateList.availabledateendscada = kendo.toString(moment.utc(res.data.ScadaData[1]).format('DD-MMMM-YYYY'));
 
-        $('#availabledatestart').html(availDateList.availabledatestartscada);
-        $('#availabledateend').html(availDateList.availabledateendscada);
+        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
 
         availDateList.availabledatestartmet = kendo.toString(moment.utc(res.data.MET[0]).format('DD-MMMM-YYYY'));
         availDateList.availabledateendmet = kendo.toString(moment.utc(res.data.MET[1]).format('DD-MMMM-YYYY'));
@@ -417,15 +417,17 @@ wr.initChart = function () {
 wr.RefreshChart = function(source) {
     switch (source) {
         case 'avgwindspeedTab':
-            $('#availabledatestart').html(availDateList.availabledatestartscada);
-            $('#availabledateend').html(availDateList.availabledateendscada);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
             setTimeout(function(){
                 $("#gridAvgWs").data("kendoGrid").refresh();
             }, 300);
             break;
         case 'windroseTab':
-            $('#availabledatestart').html(availDateList.availabledatestartscada);
-            $('#availabledateend').html(availDateList.availabledateendscada);
+            var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+            var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+            $('#availabledatestart').html(metDate);
+            $('#availabledateend').html(scadaDate);
             setTimeout(function(){
                 $.each(listOfChart, function(idx, elem){
                     $(elem).data("kendoChart").refresh();
@@ -433,15 +435,15 @@ wr.RefreshChart = function(source) {
             }, 300);
             break;
         case 'winddistributionTab':
-            $('#availabledatestart').html(availDateList.availabledatestartscada);
-            $('#availabledateend').html(availDateList.availabledateendscada);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
             setTimeout(function () {
                 $('#windDistribution').data('kendoChart').refresh();
             }, 100);
             break;
         case 'turbineCorrelationTab':
-            $('#availabledatestart').html(availDateList.availabledatestartscada);
-            $('#availabledateend').html(availDateList.availabledateendscada);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
             setTimeout(function(){
                  $("#gridTurbineCorrelation").data("kendoGrid").refresh();
                  $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
@@ -450,11 +452,11 @@ wr.RefreshChart = function(source) {
             break;
         case 'table1224Tab':
             if($("#met").is(':checked')) {
-                $('#availabledatestart').html(availDateList.availabledatestartmet);
-                $('#availabledateend').html(availDateList.availabledateendmet);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
             } else {
-                $('#availabledatestart').html(availDateList.availabledatestartscada);
-                $('#availabledateend').html(availDateList.availabledateendscada);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
             }
             setTimeout(function(){
                 $("#gridTable1224").data("kendoGrid").refresh();
@@ -905,11 +907,11 @@ $(document).ready(function () {
     $("input[name=isMet]").on("change", function() {
         t1224.loadData("radio", this.id);
         if($("#met").is(':checked')) {
-            $('#availabledatestart').html(availDateList.availabledatestartmet);
-            $('#availabledateend').html(availDateList.availabledateendmet);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
         } else {
-            $('#availabledatestart').html(availDateList.availabledatestartscada);
-            $('#availabledateend').html(availDateList.availabledateendscada);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
         }
     });
     $('#btnRefresh').on('click', function () {
