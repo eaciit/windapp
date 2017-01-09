@@ -703,7 +703,7 @@ pg.createChartAvailability = function (dataSource) {
             line: {
                 visible: false
             },
-            max: max,
+            max: 100,
             min: 0,
             labels: {
                 format: "{0}",
