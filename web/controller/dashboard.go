@@ -1586,7 +1586,7 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
 
-		match.Set("startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+		match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
@@ -1647,6 +1647,7 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			csr.Close()
 
 			for _, res := range resLoop {
+				tk.Printfn("%+v", res)
 				tmpResult = append(tmpResult, res)
 				tmpResultFreq = append(tmpResultFreq, res)
 				tmpResultPower = append(tmpResultPower, res)

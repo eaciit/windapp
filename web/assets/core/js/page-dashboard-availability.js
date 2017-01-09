@@ -103,6 +103,14 @@ avail.refreshChart = function () {
 
 
 avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
+    var templateLossCat = ''
+    if(measurement == "MWh") {
+       templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
+    } else if(measurement == "Hours") {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n1')# " + measurement
+    } else {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
+    }
 
     $('#'+id).html("");
     $('#'+id).kendoChart({
@@ -154,7 +162,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            template: (byTotalLostenergy == true) ? "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# "+measurement : "<b>#: category # :</b> #: kendo.toString(value, 'n1')# "+measurement,
+            template: templateLossCat,
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
