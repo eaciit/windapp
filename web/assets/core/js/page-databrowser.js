@@ -481,6 +481,64 @@ var Data = {
                 dbr.gridMoveTo(grid2, grid1, false);
             },
         });
+    },
+    InitColumnListHFD: function() {
+        $("#columnListHFD").kendoGrid({
+            theme: "flat",
+            dataSource: {
+                data: (dbsh.selectedColumn() == "" ? dbsh.ColumnList() : dbsh.unselectedColumn()),
+            },
+            height: 300,
+            scrollable: true,
+            sortable: true,
+            selectable: "multiple",
+            columns: [{
+                field: "label",
+                title: "Columns List",
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            }, ],
+            change: function(arg) {
+                var selected = $.map(this.select(), function(item) {
+                    return $(item).find('td').first().text();
+                });
+                var grid1 = $('#columnListHFD').data('kendoGrid');
+                var grid2 = $('#selectedListHFD').data('kendoGrid');
+                dbr.gridMoveTo(grid1, grid2, false);
+            },
+        });
+
+        setTimeout(function() {
+            $('#columnListHFD').data('kendoGrid').refresh();
+            $('#selectedListHFD').data('kendoGrid').refresh();
+        }, 300);
+
+        $("#selectedListHFD").kendoGrid({
+            theme: "flat",
+            dataSource: {
+                data: dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn(),
+            },
+            height: 300,
+            scrollable: true,
+            sortable: true,
+            selectable: "multiple",
+            columns: [{
+                field: "label",
+                title: "Selected Columns",
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            }, ],
+            change: function(arg) {
+                var selected = $.map(this.select(), function(item) {
+                    return $(item).find('td').first().text();
+                });
+                var grid1 = $('#columnListHFD').data('kendoGrid');
+                var grid2 = $('#selectedListHFD').data('kendoGrid');
+                dbr.gridMoveTo(grid2, grid1, false);
+            },
+        });
     }
 };
 
@@ -629,6 +687,15 @@ $(document).ready(function() {
 
         $("#myModal").on('shown.bs.modal', function() {
             Data.InitColumnList();
+        });
+        return false;
+    });
+
+    $('.k-grid-showHideColumnHFD').on("click", function() {
+        $("#modalShowHideHFD").modal();
+
+        $("#modalShowHideHFD").on('shown.bs.modal', function() {
+            Data.InitColumnListHFD();
         });
         return false;
     });
