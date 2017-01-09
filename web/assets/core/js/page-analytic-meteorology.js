@@ -10,6 +10,7 @@ pm.isDetailDTTop = ko.observable(false);
 pm.periodDesc = ko.observable();
 
 pm.breakDown = ko.observableArray([]);
+var availDateList = {};
 
 pm.breakDownList = ko.observableArray([
     { "value": "dateinfo.dateid", "text": "Date" },
@@ -41,13 +42,15 @@ pm.loadData = function () {
         if (!app.isFine(res)) {
             return;
         }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-        // $('#availabledatestartscada2').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        // $('#availabledateendscada2').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        availDateList.availabledatestartscada = kendo.toString(moment.utc(res.data.ScadaData[0]).format('DD-MMMM-YYYY'));
+        availDateList.availabledateendscada = kendo.toString(moment.utc(res.data.ScadaData[1]).format('DD-MMMM-YYYY'));
+
+        $('#availabledatestart').html(availDateList.availabledatestartscada);
+        $('#availabledateend').html(availDateList.availabledateendscada);
+
+        availDateList.availabledatestartmet = kendo.toString(moment.utc(res.data.MET[0]).format('DD-MMMM-YYYY'));
+        availDateList.availabledateendmet = kendo.toString(moment.utc(res.data.MET[1]).format('DD-MMMM-YYYY'));
     })
 }
 
@@ -134,13 +137,6 @@ aws.loadData = function() {
         aws.generateGrid();
     });
 }
-
-aws.RefreshGrid = function() {
-    setTimeout(function(){
-        $("#gridAvgWs").data("kendoGrid").refresh();
-    }, 300);
-}
-
 
 
 // ============================ 12/24 Table ====================================
@@ -233,12 +229,6 @@ t1224.loadData = function(source, datatype) {
         t1224.dataSource(res.data.Data);
         t1224.generateGrid(source, datatype);
     });
-}
-
-t1224.RefreshGrid = function() {
-    setTimeout(function(){
-        $("#gridTable1224").data("kendoGrid").refresh();
-    }, 300);
 }
 
 // ============================ WINDROSE ====================================
@@ -424,12 +414,53 @@ wr.initChart = function () {
     });
 }
 
-wr.RefreshChart = function() {
-    setTimeout(function(){
-        $.each(listOfChart, function(idx, elem){
-            $(elem).data("kendoChart").refresh();
-        });
-    }, 300);
+wr.RefreshChart = function(source) {
+    switch (source) {
+        case 'avgwindspeedTab':
+            $('#availabledatestart').html(availDateList.availabledatestartscada);
+            $('#availabledateend').html(availDateList.availabledateendscada);
+            setTimeout(function(){
+                $("#gridAvgWs").data("kendoGrid").refresh();
+            }, 300);
+            break;
+        case 'windroseTab':
+            $('#availabledatestart').html(availDateList.availabledatestartscada);
+            $('#availabledateend').html(availDateList.availabledateendscada);
+            setTimeout(function(){
+                $.each(listOfChart, function(idx, elem){
+                    $(elem).data("kendoChart").refresh();
+                });
+            }, 300);
+            break;
+        case 'winddistributionTab':
+            $('#availabledatestart').html(availDateList.availabledatestartscada);
+            $('#availabledateend').html(availDateList.availabledateendscada);
+            setTimeout(function () {
+                $('#windDistribution').data('kendoChart').refresh();
+            }, 100);
+            break;
+        case 'turbineCorrelationTab':
+            $('#availabledatestart').html(availDateList.availabledatestartscada);
+            $('#availabledateend').html(availDateList.availabledateendscada);
+            setTimeout(function(){
+                 $("#gridTurbineCorrelation").data("kendoGrid").refresh();
+                 $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
+                 $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+            }, 500);
+            break;
+        case 'table1224Tab':
+            if($("#met").is(':checked')) {
+                $('#availabledatestart').html(availDateList.availabledatestartmet);
+                $('#availabledateend').html(availDateList.availabledateendmet);
+            } else {
+                $('#availabledatestart').html(availDateList.availabledatestartscada);
+                $('#availabledateend').html(availDateList.availabledateendscada);
+            }
+            setTimeout(function(){
+                $("#gridTable1224").data("kendoGrid").refresh();
+            }, 300);
+            break;
+    }
 }
 
 wr.showHideLegend = function (index) {
@@ -450,8 +481,6 @@ wr.setPeriod = function(){
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), 8, 23, 0, 0, 0, 0));
     var lastEndDate = new Date(Date.UTC(moment(maxDateData).get('year'), 8+1, 0, 0, 0, 0, 0));
-    $('#availabledatestartmettower').html(kendo.toString(moment.utc(lastStartDate).format('DD-MMMM-YYYY')));
-    $('#availabledateendmettower').html(kendo.toString(moment.utc(lastEndDate).format('DD-MMMM-YYYY')));
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
@@ -487,8 +516,6 @@ wr.checkPeriod = function(){
 
     var dateStart = moment(fa.dateStart).format('YYYY-MM-DD');
     var dateEnd = moment(fa.dateEnd).format('YYYY-MM-DD');
-    $('#availabledatestartmettower').html(kendo.toString(moment.utc(dateStart).format('DD-MMMM-YYYY')));
-    $('#availabledateendmettower').html(kendo.toString(moment.utc(dateEnd).format('DD-MMMM-YYYY')));
 
     if (period === 'custom') {
         if ((dateEnd > currentDateData) && (dateStart > currentDateData)) {
@@ -773,12 +800,6 @@ wd.showHideLegend = function (idx) {
     $("#windDistribution").data("kendoChart").redraw();
 }
 
-wd.RefreshChart = function(){
-    setTimeout(function () {
-        $('#windDistribution').data('kendoChart').refresh();
-    }, 100);
-}
-
 // ============================ Turbine Correlation ====================================
 viewModel.TurbineCorrelation = new Object();
 var tc = viewModel.TurbineCorrelation;
@@ -877,22 +898,19 @@ tc.LoadData = function(){
     });
 }
 
-tc.RefreshGrid = function(){
-    setTimeout(function(){
-         $("#gridTurbineCorrelation").data("kendoGrid").refresh();
-         $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-         $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
-    },500);
-}
-
-
-
 $(document).ready(function () {
     app.loading(true);
     fa.LoadData();
 
     $("input[name=isMet]").on("change", function() {
         t1224.loadData("radio", this.id);
+        if($("#met").is(':checked')) {
+            $('#availabledatestart').html(availDateList.availabledatestartmet);
+            $('#availabledateend').html(availDateList.availabledateendmet);
+        } else {
+            $('#availabledatestart').html(availDateList.availabledatestartscada);
+            $('#availabledateend').html(availDateList.availabledateendscada);
+        }
     });
     $('#btnRefresh').on('click', function () {
 
