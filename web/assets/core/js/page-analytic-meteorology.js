@@ -860,7 +860,6 @@ tc.LoadData = function(){
 
         var knownOutagesDataSource = new kendo.data.DataSource({
             data: dataSource,
-            pageSize: 10,
             schema: {
                 model: schemaModelNew
             }
@@ -885,15 +884,12 @@ tc.LoadData = function(){
                             contentDiv.scrollLeft(1);
                         }
                     }
-                }
-                // app.loading(false);
+                }            
             },
-            pageable: {
-                pageSize: 10,
-                input:true, 
-            },
+            pageable: false,
             scrollable: true,
-            resizable: false
+            resizable: false,
+            height:390,
         });
         setTimeout(function(){
             // $("#gridTurbineCorrelation").data("kendoGrid").refresh();
