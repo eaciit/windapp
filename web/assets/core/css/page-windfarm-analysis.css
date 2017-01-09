@@ -1,6 +1,3 @@
-#panel-windfarm-analysis {
-	margin-top: 15px;
-}
 .wfa-content {
 	padding: 10px;
 }
@@ -17,4 +14,20 @@
 }
 .k-grid-header th.k-header span.k-info, .k-filter-row th span.k-info {
 	font-weight: 500;
+}
+.show_hide {
+    display:none;
+}
+.col-md-1 {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.filter-content{
+    margin-bottom: 10px;
+}
+.k-datepicker, .k-timepicker, .k-datetimepicker, .k-colorpicker, .k-numerictextbox, .k-dropdown, .k-selectbox, .k-toolbar .k-split-button{
+    white-space:inherit;
+}
+.label-filter{
+	padding-top:0px !important; 
 }
