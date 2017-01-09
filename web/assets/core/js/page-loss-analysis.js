@@ -1037,9 +1037,9 @@ pg.DTLEbyType = function (dataSource) {
         },
         tooltip: {
             visible: true,
-            format: "{0:n1}",
             background: "rgb(255,255,255, 0.9)",
             shared: true,
+            sharedTemplate: kendo.template($("#templateDTLE").html()),
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             border: {
