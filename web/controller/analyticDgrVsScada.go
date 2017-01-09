@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"math"
 	"strings"
 	"time"
 	// "time"
@@ -250,14 +249,14 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	dgrItem.trueavail = sTrueavail
 
 	var varItem DataItem
-	varItem.power = math.Abs(scadaItem.power - dgrItem.power)
-	varItem.energy = math.Abs(scadaItem.energy - dgrItem.energy)
-	varItem.windspeed = math.Abs(scadaItem.windspeed - dgrItem.windspeed)
-	varItem.plf = math.Abs(scadaItem.plf - dgrItem.plf)
-	varItem.gridavail = math.Abs(scadaItem.gridavail - dgrItem.gridavail)
-	varItem.machineavail = math.Abs(scadaItem.machineavail - dgrItem.machineavail)
-	varItem.trueavail = math.Abs(scadaItem.trueavail - dgrItem.trueavail)
-	varItem.downtime = math.Abs(scadaItem.downtime - dgrItem.downtime)
+	varItem.power = dgrItem.power - scadaItem.power
+	varItem.energy = dgrItem.energy - scadaItem.energy
+	varItem.windspeed = dgrItem.windspeed - scadaItem.windspeed
+	varItem.plf = dgrItem.plf - scadaItem.plf
+	varItem.gridavail = dgrItem.gridavail - scadaItem.gridavail
+	varItem.machineavail = dgrItem.machineavail - scadaItem.machineavail
+	varItem.trueavail = dgrItem.trueavail - scadaItem.trueavail
+	varItem.downtime = dgrItem.downtime - scadaItem.downtime
 
 	/*varItem.power = math.Abs(dgrItem.power - scadaItem.power)
 	varItem.energy = math.Abs(dgrItem.energy - scadaItem.energy)
@@ -361,14 +360,14 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	}
 
 	var diffDgrHfd DataItem
-	diffDgrHfd.power = math.Abs(scadaHfdItem.power - dgrItem.power)
-	diffDgrHfd.energy = math.Abs(scadaHfdItem.energy - dgrItem.energy)
-	diffDgrHfd.windspeed = math.Abs(scadaHfdItem.windspeed - dgrItem.windspeed)
-	diffDgrHfd.plf = math.Abs(scadaHfdItem.plf - dgrItem.plf)
-	diffDgrHfd.gridavail = math.Abs(scadaHfdItem.gridavail - dgrItem.gridavail)
-	diffDgrHfd.machineavail = math.Abs(scadaHfdItem.machineavail - dgrItem.machineavail)
-	diffDgrHfd.trueavail = math.Abs(scadaHfdItem.trueavail - dgrItem.trueavail)
-	diffDgrHfd.downtime = math.Abs(scadaHfdItem.downtime - dgrItem.downtime)
+	diffDgrHfd.power = dgrItem.power - scadaHfdItem.power
+	diffDgrHfd.energy = dgrItem.energy - scadaHfdItem.energy
+	diffDgrHfd.windspeed = dgrItem.windspeed - scadaHfdItem.windspeed
+	diffDgrHfd.plf = dgrItem.plf - scadaHfdItem.plf
+	diffDgrHfd.gridavail = dgrItem.gridavail - scadaHfdItem.gridavail
+	diffDgrHfd.machineavail = dgrItem.machineavail - scadaHfdItem.machineavail
+	diffDgrHfd.trueavail = dgrItem.trueavail - scadaHfdItem.trueavail
+	diffDgrHfd.downtime = dgrItem.downtime - scadaHfdItem.downtime
 
 	// _ = scadaHfdItem
 	// _ = scadaDataHfdAvailable
