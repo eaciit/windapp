@@ -239,12 +239,6 @@ pg.GridLoss = function () {
                 }]
         })
     });
-    
-    $.when(requestGridLoss).done(function(){
-        setTimeout(function(){
-            app.loading(false);
-        },500)
-    });
 };
 
 pg.DTDuration = function (dataSource) {
@@ -556,6 +550,7 @@ pg.TopTurbineLoss = function (dataSource) {
 
 pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
     var gapVal = 1
+    var templateLossCat = ''
     switch (dataSource.length) {
         case 1:
             gapVal = 5;
@@ -573,6 +568,14 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             gapVal = 1;
             break;
     } 
+
+    if(measurement == "MWh") {
+       templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
+    } else if(measurement == "Hours") {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n1')# " + measurement
+    } else {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
+    }
 
     $('#' + id).html("");
     $('#' + id).kendoChart({
@@ -634,7 +637,7 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            template: (byTotalLostenergy == true) ? "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement : "<b>#: category # :</b> #: kendo.toString(value, 'n1')# " + measurement,
+            template: templateLossCat,
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -703,7 +706,7 @@ pg.createChartAvailability = function (dataSource) {
             line: {
                 visible: false
             },
-            max: max,
+            max: 100,
             min: 0,
             labels: {
                 format: "{0}",
@@ -1043,9 +1046,9 @@ pg.DTLEbyType = function (dataSource) {
         },
         tooltip: {
             visible: true,
-            format: "{0:n1}",
             background: "rgb(255,255,255, 0.9)",
             shared: true,
+            sharedTemplate: kendo.template($("#templateDTLE").html()),
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             border: {
@@ -1142,8 +1145,10 @@ pg.loadData = function () {
             pg.TopTurbineLoss(res.data.loss);
             // pg.TLossCat('chartLCByLTE', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
-            pg.TLossCat('chartLCByDuration', true, res.data.catlossduration, 'Hours');
-            pg.TLossCat('chartLCByFreq', true, res.data.catlossfreq, 'Times');
+            pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+            pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+
+            app.loading(false);
         });
         var paramdown = {
             Period: fa.period,
