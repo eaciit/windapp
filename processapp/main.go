@@ -79,7 +79,7 @@ func main() {
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
 		// NewUpdateOEMToScada(base).RunMapping() // step 1
 
@@ -91,14 +91,14 @@ func main() {
 
 		// new(GenScadaLast24).Generate(base) // step 5
 
-		// new(GenScadaSummary).Generate(base)                 // step 6
-		// new(GenScadaSummary).GenerateSummaryByFleet(base)   // step 7
+		// new(GenScadaSummary).Generate(base) // step 6
+		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
 		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
-		// new(GenScadaSummary).GenerateSummaryDaily(base)     // step 9
+		// new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
 
 		// new(GenScadaSummary).GenWFAnalysisByProject(base) // step 10
 		// new(GenScadaSummary).GenWFAnalysisByTurbine1(base) // step 11
-		// new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
+		new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
 
 		// =========================================================================================== //
 		// step to prepare data for the application

@@ -328,3 +328,78 @@ $(document).ready(function(){
 
 	wfa.LoadData();
 });
+
+
+wfa.Turbine2Chart = function(data, chartSeries) {
+	var colors = [];
+	$.each(chartSeries, function(idx,val){
+		colors.push(val.color);
+	});
+	return { 
+		dataSource: data,
+        chartArea: {
+		    background: "transparent"
+		},
+		title: {
+	        visible: false
+	    },
+	    legend: {
+	        visible: false,
+	        position: "bottom"
+	    },
+	    seriesColors: colors,
+	    seriesDefaults: {
+            type: "line",
+            style: "smooth",
+            markers: {
+                visible: false
+            }
+        },
+	    // series: chartSeries,
+	    series: [{
+            field: "Value",
+            name: "#= group.value #",
+            dashType: "solid"
+        }],
+	    categoryAxis: {
+	        field: "Title",
+            labels: {
+                visible: false,
+            },
+            crosshair: {
+                visible: false,
+            },
+	        majorGridLines: {
+	            visible: false,
+	        },
+	        majorTicks: {
+	            visible: false,
+	        },
+	        visible: false
+	    },
+	    valueAxis: {
+	        visible: false,
+	        crosshair: {
+                visible: false
+            },
+	        majorGridLines: {
+	            visible: false,
+	        },
+	        majorTicks: {
+	            visible: false,
+	        },
+	    },
+        tooltip: {
+            visible: true,
+            template: "#: category # = #= kendo.format('{0:N2}',value) #"
+        },
+        dataBound: function(e) {
+        	var series = e.sender.options.series;
+        	$.each(series, function(idx, s){
+        		if(s.name=='Average') {
+        			s.dashType = 'dash';
+        		}
+        	});
+        },
+	};
+};
