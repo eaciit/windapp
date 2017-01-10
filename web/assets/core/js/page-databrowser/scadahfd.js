@@ -304,7 +304,27 @@ dbsh.unselectRowHFD = function() {
     var grid2 = $('#selectedListHFD').data('kendoGrid');
     dbr.gridMoveTo(grid1, grid2, true);
 }
+dbsh.getColumnListHFD = function(){
+    var a = dbsh.defaultSelectedColumn();
+    var b = dbsh.ColumnList();
 
+    var onlyInA = a.filter(function(current){
+        return b.filter(function(current_b){
+            return current_b._id == current._id && current_b.label == current.label
+        }).length == 0
+    });
+
+    var onlyInB = b.filter(function(current){
+        return a.filter(function(current_a){
+            return current_a._id == current._id && current_a.label == current.label
+        }).length == 0
+    });
+
+    var result = onlyInA.concat(onlyInB);
+
+    dbsh.ColumnList(result);
+    // console.log(dbsh.ColumnList());
+}
 dbsh.showColumnHFD = function() {
     dbsh.selectedColumn([]);
     dbsh.unselectedColumn([]);
