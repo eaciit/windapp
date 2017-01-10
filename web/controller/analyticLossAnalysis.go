@@ -452,6 +452,7 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 
 	result := tk.M{}
+	demiWaktu := time.Now()
 	duration, e := getDownTimeTopFiltered("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -467,6 +468,8 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("loss", loss)
+	tk.Println("getDownTimeTopFiltered >>>>", time.Since(demiWaktu))
+	demiWaktu = time.Now()
 	catloss, e := getCatLossTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -482,6 +485,7 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catlossfreq", catlossfreq)
+	tk.Println("getCatLossTopFiltered >>>>", time.Since(demiWaktu))
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -708,7 +712,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			if topType == "duration" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$turbine", "id4": title},
+						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
 							"result": tk.M{"$sum": "$detail.duration"},
 						},
 					},
@@ -716,7 +720,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			} else if topType == "frequency" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$turbine", "id4": title},
+						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
 							"result": tk.M{"$sum": 1},
 						},
 					},
@@ -724,7 +728,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			} else if topType == "loss" {
 				pipes = append(pipes,
 					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": "$turbine", "id4": title},
+						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
 							"result": tk.M{"$sum": "$detail.powerlost"},
 						},
 					},
