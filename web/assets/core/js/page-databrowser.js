@@ -42,11 +42,11 @@ dbr.defaultSelectedColumn = ko.observableArray([{
     "_id": "timestamp",
     "label": "Time Stamp",
     "source": "ScadaDataOEM"
-}, {
+  },{
     "_id": "turbine",
     "label": "Turbine",
     "source": "ScadaDataOEM"
-}, {
+  },{
     "_id": "ai_intern_r_pidangleout",
     "label": "Ai Intern R Pid Angle Out",
     "source": "ScadaDataOEM"
@@ -429,6 +429,10 @@ var Data = {
             theme: "flat",
             dataSource: {
                 data: (dbr.selectedColumn() == "" ? dbr.ColumnList() : dbr.unselectedColumn()),
+                sort: [{
+                    field: 'label',
+                    dir: 'asc'
+                }],
             },
             height: 300,
             scrollable: true,
@@ -460,6 +464,10 @@ var Data = {
             theme: "flat",
             dataSource: {
                 data: dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn(),
+                sort: [{
+                    field: 'label',
+                    dir: 'asc'
+                }],
             },
             height: 300,
             scrollable: true,
@@ -487,6 +495,10 @@ var Data = {
             theme: "flat",
             dataSource: {
                 data: (dbsh.selectedColumn() == "" ? dbsh.ColumnList() : dbsh.unselectedColumn()),
+                sort: [{
+                    field: 'label',
+                    dir: 'asc'
+                }],
             },
             height: 300,
             scrollable: true,
@@ -505,7 +517,15 @@ var Data = {
                 });
                 var grid1 = $('#columnListHFD').data('kendoGrid');
                 var grid2 = $('#selectedListHFD').data('kendoGrid');
-                dbr.gridMoveTo(grid1, grid2, false);
+
+                var dataSource = grid2.dataSource;
+                var recordsOnCurrentView = dataSource.view().length;
+                
+                if(recordsOnCurrentView == 30){
+                    app.showError("Max. 30 Columns")
+                }else{
+                    dbr.gridMoveTo(grid1, grid2, false);
+                }
             },
         });
 
@@ -518,6 +538,10 @@ var Data = {
             theme: "flat",
             dataSource: {
                 data: dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn(),
+                sort: [{
+                    field: 'label',
+                    dir: 'asc'
+                }],
             },
             height: 300,
             scrollable: true,
@@ -705,7 +729,8 @@ $(document).ready(function() {
 
     setTimeout(function() {
         Data.InitDefault();
-        // dbc.InitCustomGrid();
+        // dbc.getColumnCustom();
+        dbsh.getColumnListHFD();
     }, 1000);
     Data.LoadAvailDate();
 });
