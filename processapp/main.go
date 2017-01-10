@@ -2,8 +2,8 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
-	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
-	// . "eaciit/wfdemo-git/processapp/controllers/excelConverter"
+	// . "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 
 	"os"
 	"runtime"
@@ -69,6 +69,7 @@ func main() {
 
 		// new(ConvPermanentMetTower).Generate(base)
 		// new(ConvPermanentMetTowerCSV).Generate(base)
+		// new(ConvPermanentMetTowerNewFormat).Generate(base)
 		/*met := new(UpdateMetTower)
 		met.Generate(base)
 		met.GenerateWindRose(base)*/
