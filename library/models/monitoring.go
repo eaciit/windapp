@@ -3,9 +3,12 @@ package models
 import (
 	. "eaciit/wfdemo-git/library/helper"
 	"time"
+
+	"github.com/eaciit/orm"
 )
 
 type Monitoring struct {
+	orm.ModelBase      `bson:"-",json:"-"`
 	ID                 string ` bson:"_id" , json:"_id" `
 	TimeStamp          time.Time
 	DateInfo           DateInfo
@@ -39,6 +42,7 @@ func (m *Monitoring) TableName() string {
 }
 
 type MonitoringEvent struct {
+	orm.ModelBase    `bson:"-",json:"-"`
 	ID               string ` bson:"_id" , json:"_id" `
 	Project          string
 	Turbine          string
