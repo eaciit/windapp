@@ -168,3 +168,24 @@ dbc.InitCustomGrid = function() {
         return false;
     });
 }
+dbc.getColumnCustom = function(){
+    var a = dbr.defaultSelectedColumn();
+    var b = dbr.ColumnList();
+
+    var onlyInA = a.filter(function(current){
+        return b.filter(function(current_b){
+            return current_b.id == current.id && current_b.label == current.label && current_b.source == current.source
+        }).length == 0
+    });
+
+    var onlyInB = b.filter(function(current){
+        return a.filter(function(current_a){
+            return current_a.id == current.id && current_a.label == current.label && current_a.source == current.source
+        }).length == 0 
+    });
+
+    var result = onlyInA.concat(onlyInB);
+
+    dbr.ColumnList(result);
+    console.log(dbr.ColumnList());
+}
