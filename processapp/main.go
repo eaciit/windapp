@@ -2,8 +2,8 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
-	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
-	// . "eaciit/wfdemo-git/processapp/controllers/excelConverter"
+	// . "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 
 	"os"
 	"runtime"
@@ -69,6 +69,7 @@ func main() {
 
 		// new(ConvPermanentMetTower).Generate(base)
 		// new(ConvPermanentMetTowerCSV).Generate(base)
+		// new(ConvPermanentMetTowerNewFormat).Generate(base)
 		/*met := new(UpdateMetTower)
 		met.Generate(base)
 		met.GenerateWindRose(base)*/
@@ -79,7 +80,7 @@ func main() {
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
 		// NewUpdateOEMToScada(base).RunMapping() // step 1
 

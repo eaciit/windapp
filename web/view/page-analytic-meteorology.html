@@ -22,17 +22,17 @@
 					</div> -->
 					<div class="panel-body">
 						<div class="date-info">
-                            Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                            <span id="availabledatestart"></span><span id="availabledateend"></span>
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="aws.RefreshGrid()" class="tab-custom">Average Wind Speed</a></li>
-							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.RefreshChart()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
-							<li id="winddistributionTab" role="presentation"><a onclick="wd.RefreshChart()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
+							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="wr.RefreshChart('avgwindspeedTab')" class="tab-custom">Average Wind Speed</a></li>
+							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.RefreshChart('windroseTab')" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
+							<li id="winddistributionTab" role="presentation"><a onclick="wr.RefreshChart('winddistributionTab')" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
 							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
-							<li id="turbineCorrelationTab" role="presentation" onclick="tc.RefreshGrid()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
-							<li id="table12-24Tab" role="presentation"><a href="#table12-24" aria-controls="12/24 Table" role="tab" onclick="t1224.RefreshGrid()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
+							<li id="turbineCorrelationTab" role="presentation" onclick="wr.RefreshChart('turbineCorrelationTab')"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
+							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="wr.RefreshChart('table1224Tab')" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -111,7 +111,7 @@
 							<div role="tabpanel" class="tab-pane" id="turbineCorrelation">
 								<div id="gridTurbineCorrelation"></div>
 							</div>
-							<div role="tabpanel" class="tab-pane" id="table12-24">
+							<div role="tabpanel" class="tab-pane" id="table1224">
 								<div class="col-md-12">
 									<div class="nav-meteor">
 										<div class="btn-group" data-toggle="buttons">
