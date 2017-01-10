@@ -452,6 +452,7 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 
 	result := tk.M{}
+	demiWaktu := time.Now()
 	duration, e := getDownTimeTopFiltered("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -467,6 +468,8 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("loss", loss)
+	tk.Println("getDownTimeTopFiltered >>>>", time.Since(demiWaktu))
+	demiWaktu = time.Now()
 	catloss, e := getCatLossTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -482,6 +485,7 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catlossfreq", catlossfreq)
+	tk.Println("getCatLossTopFiltered >>>>", time.Since(demiWaktu))
 
 	return helper.CreateResult(true, result, "success")
 }
