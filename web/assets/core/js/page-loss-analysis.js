@@ -330,7 +330,7 @@ pg.DTDuration = function (dataSource) {
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value, 'n2') # Hours",
+            template: "#: category #: #: kendo.toString(value, 'n1') # Hours",
             border: {
                 color: "#eee",
                 width: "2px",
