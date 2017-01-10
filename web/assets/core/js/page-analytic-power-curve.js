@@ -326,6 +326,7 @@ var Data = {
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
                 theme: "flat",
+                renderAs: "canvas",
                 title: {
                     text: ""
                 },
@@ -334,7 +335,7 @@ var Data = {
                     position: "top"
                 },
                 seriesDefaults: {
-                    type: "scatter",
+                    type: "scatterLine",
                     style: "smooth",
                 },
                 series: dtSeries,

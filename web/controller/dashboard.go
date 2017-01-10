@@ -578,7 +578,7 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	var pipes []tk.M
 	match := tk.M{}
 
-	match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+	match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 	if len(p.Turbine) != 0 {
 		match.Set("turbine", tk.M{"$in": p.Turbine})
@@ -589,7 +589,8 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 		for field, mdName := range machinedown {
 			pipes = []tk.M{}
 			match.Set("projectname", project)
-			match.Set(field, true)
+			match.Set("detail."+field, true)
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
 			pipes = append(pipes, tk.M{"$match": match})
 			groups := tk.M{
 				"_id": tk.M{
@@ -597,8 +598,8 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 					"id2": mdName,
 					"id3": project,
 				},
-				"powerlost": tk.M{"$sum": "$powerlost"},
-				"duration":  tk.M{"$sum": "$duration"},
+				"powerlost": tk.M{"$sum": "$detail.powerlost"},
+				"duration":  tk.M{"$sum": "$detail.duration"},
 				"frequency": tk.M{"$sum": 1},
 			}
 			pipes = append(pipes, tk.M{"$group": groups})
@@ -635,7 +636,7 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 
 				result = append(result, emptyRes)
 			}
-			match.Unset(field)
+			match.Unset("detail." + field)
 		}
 	}
 	return helper.CreateResult(true, result, "success")

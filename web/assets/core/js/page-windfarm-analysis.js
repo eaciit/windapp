@@ -10,6 +10,10 @@ function addOption(project) {
 	}
 }
 
+wfa.isProjectTab = ko.observable(false);
+wfa.isTurbine1Tab = ko.observable(false);
+wfa.isTurbine2Tab = ko.observable(false);
+
 wfa.ProjectList = [];
 wfa.TurbineList = [];
 wfa.Keys = [
@@ -251,6 +255,7 @@ wfa.GetKeyValues = function(objValue) {
 };
 
 wfa.LoadData = function() {
+    app.loading(true);
 	if($('#turbine1List').data('kendoMultiSelect').value().length == 0)
 		$('#turbine1List').data('kendoMultiSelect').value(["All Turbines"]);
 	if($('#turbine2List').data('kendoMultiSelect').value().length == 0)
@@ -265,7 +270,6 @@ wfa.LoadData = function() {
     }
 
     toolkit.ajaxPost(viewModel.appName + "helper/getprojectinfo", param, function (res) {
-        app.loading(true);
 
         if (!app.isFine(res)) {
             app.loading(false);
@@ -276,7 +280,6 @@ wfa.LoadData = function() {
         $("#total-turbine-info").html('<i class="fa fa-flash tooltipster tooltipstered" aria-hidden="true" title="Total Turbine"></i>&nbsp;' + res.data.TotalTurbine);
         $("#total-capacity-info").html('<i class="fa fa-tachometer tooltipster tooltipstered" aria-hidden="true" title="Total Capacity"></i>&nbsp;' + res.data.TotalCapacity + "MW");
 
-        app.loading(false);
     });
 
     var minDatetemp = new Date(availableDate.ScadaData[0]);
@@ -284,9 +287,11 @@ wfa.LoadData = function() {
     $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
     $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-    wfa.ProjectAnalysis.LoadData();
-    wfa.Turbine1Analysis.LoadData();
-    wfa.Turbine2Analysis.LoadData();
+    $.when(wfa.ProjectAnalysis.LoadData(),wfa.Turbine1Analysis.LoadData(),wfa.Turbine2Analysis.LoadData()).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+        },500)
+    })
 }
 
 wfa.RefreshGrid = function() {
@@ -309,6 +314,12 @@ wfa.checkTurbine = function (elmId) {
     }
 }
 
+wfa.showFilter = function(project, turbine1, turbine2){
+    wfa.isProjectTab(project);
+    wfa.isTurbine1Tab(turbine1);
+    wfa.isTurbine2Tab(turbine2);
+}
+
 // initiate value for projects & turbines
 $.each(projects, function(idx, val) {
 	wfa.ProjectList.push(addOption(val));
@@ -317,7 +328,14 @@ $.each(turbines, function(idx, val) {
 	wfa.TurbineList.push(addOption(val));
 });
 
+vm.currentMenu('Wind Farm Analysis');
+vm.currentTitle('Wind Farm Analysis');
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Wind Farm Analysis', href: viewModel.appName + 'page/windfarmanalysis' }]);
+
+
 $(document).ready(function(){
+    wfa.isProjectTab(true);
+
 	$(window).on("resize orientationchange", function () {        
 	    wfa.RefreshGrid();
 	});
