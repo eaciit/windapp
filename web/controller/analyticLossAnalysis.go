@@ -5,6 +5,8 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"fmt"
+	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -452,7 +454,7 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 
 	result := tk.M{}
-	demiWaktu := time.Now()
+	// demiWaktu := time.Now()
 	duration, e := getDownTimeTopFiltered("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -468,8 +470,8 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("loss", loss)
-	tk.Println("getDownTimeTopFiltered >>>>", time.Since(demiWaktu))
-	demiWaktu = time.Now()
+	// tk.Println("getDownTimeTopFiltered >>>>", time.Since(demiWaktu))
+	// demiWaktu = time.Now()
 	catloss, e := getCatLossTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -485,7 +487,7 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catlossfreq", catlossfreq)
-	tk.Println("getCatLossTopFiltered >>>>", time.Since(demiWaktu))
+	// tk.Println("getCatLossTopFiltered >>>>", time.Since(demiWaktu))
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -1200,6 +1202,138 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		"categoryproduction": categoryproduction,
 		"valueproduction":    valueproduction,
 		"totaldata":          totalData,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	/*tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
+	turbine := p.Turbine
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	match := tk.M{}
+	match.Set("dateinfostart.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+	match.Set("projectname", project)
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	group := tk.M{
+		"_id":   tk.M{"desc": "$alarmdescription", "turbine": "$turbine"},
+		"count": tk.M{"$sum": 1},
+	}
+
+	var pipes []tk.M
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", group))
+	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
+		"_id": 1,
+	}))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(EventAlarm).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	results := make([]tk.M, 0)
+	e = csr.Fetch(&results, 0, false)
+
+	// log.Printf("results: %v \n", len(results))
+
+	for _, v := range results {
+		log.Printf("results: %#v \n", v)
+	}
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
+	}
+
+	turbines := []string{}
+	if len(turbine) == 0 {
+		turbines, _ = helper.GetTurbineList(project)
+	} else {
+		for _, v := range turbine {
+			turbines = append(turbines, v.(string))
+		}
+	}
+
+	sort.Strings(turbines)
+
+	descs := []string{}
+	mapRes := map[string][]tk.M{}
+	for _, v := range results {
+		id := v.Get("_id").(tk.M)
+		desc := id.GetString("desc")
+		turbine := id.GetString("turbine")
+		count := v.GetInt("count")
+
+		if len(mapRes[desc]) == 0 {
+			defHeader := []tk.M{}
+			for _, v := range turbines {
+				defHeader = append(defHeader, tk.M{"turbine": v, "count": 0})
+			}
+			mapRes[desc] = defHeader
+		}
+
+		var tmp []tk.M
+		tmp = mapRes[desc]
+
+		for _, t := range tmp {
+			if t.GetString("turbine") == turbine {
+				t.Set("count", t.GetInt("count")+count)
+				break
+			}
+		}
+		mapRes[desc] = tmp
+
+		found := false
+
+		for _, loop := range descs {
+			if loop == desc {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			descs = append(descs, desc)
+		}
+
+	}
+
+	sort.Strings(descs)
+
+	res := []tk.M{}
+	for _, v := range descs {
+		res = append(res, tk.M{"desc": v, "turbines": mapRes[v]})
+	}
+
+	data := struct {
+		Data []tk.M
+	}{
+		Data: res,
 	}
 
 	return helper.CreateResult(true, data, "success")

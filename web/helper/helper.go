@@ -608,8 +608,18 @@ func GetProjectList() (result []string, e error) {
 	return
 }
 
-func GetTurbineList() (result []string, e error) {
-	csr, e := DB().Connection.NewQuery().From("ref_turbine").Cursor(nil)
+func GetTurbineList(project string) (result []string, e error) {
+	var filter []*dbox.Filter
+
+	if project != "" {
+		filter = append(filter, dbox.Eq("project", project))
+	}
+
+	csr, e := DB().Connection.
+		NewQuery().
+		From("ref_turbine").
+		Where(filter...).
+		Cursor(nil)
 
 	if e != nil {
 		return

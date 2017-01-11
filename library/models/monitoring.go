@@ -4,12 +4,13 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	"time"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/eaciit/orm"
 )
 
 type Monitoring struct {
-	ID                 bson.ObjectId ` bson:"_id" , json:"_id" `
-	Timestamp          time.Time
+	orm.ModelBase      `bson:"-",json:"-"`
+	ID                 string ` bson:"_id" , json:"_id" `
+	TimeStamp          time.Time
 	DateInfo           DateInfo
 	LastUpdate         time.Time
 	LastUpdateDateInfo DateInfo
@@ -22,11 +23,31 @@ type Monitoring struct {
 	MachineAvail     float64
 	GridAvail        float64
 
+	RotorSpeedRPM float64
+
 	IsAlarm   bool
 	IsWarning bool
+
+	Status     string
+	StatusDesc string
+}
+
+func (m *Monitoring) New() *Monitoring {
+	timeStampStr := m.TimeStamp.Format("060102_150405")
+	m.ID = m.Project + "#" + m.Turbine + "#" + timeStampStr
+	return m
+}
+
+func (m *Monitoring) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *Monitoring) TableName() string {
+	return "Monitoring"
 }
 
 type MonitoringEvent struct {
+	orm.ModelBase    `bson:"-",json:"-"`
 	ID               string ` bson:"_id" , json:"_id" `
 	Project          string
 	Turbine          string
@@ -41,4 +62,18 @@ type MonitoringEvent struct {
 	DownEnvironment  bool
 	DownMachine      bool
 	Type             string // Alarm, Brake, Warning
+}
+
+func (m *MonitoringEvent) New() *MonitoringEvent {
+	timeStartStr := m.TimeStart.Format("060102_150405")
+	m.ID = m.Project + "#" + m.Turbine + "#" + timeStartStr
+	return m
+}
+
+func (m *MonitoringEvent) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *MonitoringEvent) TableName() string {
+	return "MonitoringEvent"
 }
