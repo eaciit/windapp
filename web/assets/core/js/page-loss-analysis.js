@@ -1303,43 +1303,23 @@ warn.generateGrid = function () {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Warning Description", field: "desc", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+            { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
         ],
     };
 
-    /*$.each(warn.dataSource()[0].details, function (i, val) {
-        var wra = val.col.WRA;        
+    $.each(warn.dataSource()[0].turbines, function (i, val) {
         var column = {
-            title: val.time + " <br/> WRA "+wra+ " (m/s)",
+            title: val.turbine,
+            field: "turbines["+i+"].count",
+            attributes: { class: "align-center" },
             headerAttributes: {
                 style: 'font-weight: bold; text-align: center;'
             },
-            columns: [],
-            width: 120
+            width: 100
         }
 
-        // var keyIndex = ["WRA", "Onsite"];
-        var keyIndex = ["Onsite"];
-        var j = 0;        
-
-        $.each(keyIndex, function(j, key){
-            // wra = 
-            var colChild = {
-                title: key + " (m/s)",                
-                field: "details["+i+"].col."+ key ,
-                width: 120,
-                attributes: { class: "align-center row-custom" },
-                headerAttributes: {
-                    style: 'font-weight: bold; text-align: center;',
-                },
-                format: "{0:n2}",
-                filterable: false
-            };
-            column.columns.push(colChild);
-        });
-
         config.columns.push(column);
-    });*/
+    });
 
     $('#warningGrid').html("");
     $('#warningGrid').kendoGrid(config);
@@ -1363,7 +1343,7 @@ warn.loadData = function() {
         if (!app.isFine(res)) {
             return;
         }
-        warn.dataSource(res.data.Data.turbine);
+        warn.dataSource(res.data.Data);
         warn.generateGrid();
     });
 }
