@@ -66,6 +66,8 @@
 							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.refreshGrid('reliabilitykpi');" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
 
 							<li id="windspeedavailTab" role="presentation"><a onclick="pg.refreshGrid('windspeedavail');" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
+							
+							<li id="warningTab" role="presentation"><a onclick="pg.refreshGrid('warning');" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -227,6 +229,9 @@
 										</div>
 									</div>
 								</div>
+							</div>
+							<div role="tabpanel" class="tab-pane active" id="warning">
+								<div id="warningGrid" class="grid-custom"></div>
 							</div>
 						</div>
 					</div>
