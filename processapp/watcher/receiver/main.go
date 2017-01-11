@@ -451,7 +451,7 @@ func UpdateLastHFDAvail() {
 	}
 
 	_tkm := tk.M{}
-	_ = xcsr.Fetch(&_tkm, 0, false)
+	_ = xcsr.Fetch(&_tkm, 1, false)
 	xcsr.Close()
 
 	_min := _tkm.Get("mintimestamp", time.Time{}).(time.Time)
