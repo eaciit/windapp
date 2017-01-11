@@ -1260,7 +1260,11 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
 
-	log.Printf("results: %v \n", len(results))
+	// log.Printf("results: %v \n", len(results))
+
+	for _, v := range results {
+		log.Printf("results: %#v \n", v)
+	}
 
 	if e != nil {
 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
@@ -1277,15 +1281,6 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 
 	sort.Strings(turbines)
 
-	log.Printf("turbine: %v \n", len(turbines))
-	log.Printf("turbine: %#v \n", turbines)
-
-	defHeader := []tk.M{}
-
-	for _, v := range turbines {
-		defHeader = append(defHeader, tk.M{"turbine": v, "count": 0})
-	}
-
 	descs := []string{}
 	mapRes := map[string][]tk.M{}
 	for _, v := range results {
@@ -1294,32 +1289,41 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 		turbine := id.GetString("turbine")
 		count := v.GetInt("count")
 
-		if mapRes[desc] == nil {
+		if len(mapRes[desc]) == 0 {
+			defHeader := []tk.M{}
+			for _, v := range turbines {
+				defHeader = append(defHeader, tk.M{"turbine": v, "count": 0})
+			}
 			mapRes[desc] = defHeader
 		}
 
-		tmp := mapRes[desc]
+		var tmp []tk.M
+		tmp = mapRes[desc]
 
-		for idx, t := range tmp {
-			_ = idx
+		for _, t := range tmp {
 			if t.GetString("turbine") == turbine {
-				// tmp[idx].Set("count", count)
-				t.Set("count", count)
+				t.Set("count", t.GetInt("count")+count)
+				break
+			}
+		}
+		mapRes[desc] = tmp
+
+		found := false
+
+		for _, loop := range descs {
+			if loop == desc {
+				found = true
 				break
 			}
 		}
 
-		mapRes[desc] = tmp
-
-		if sort.SearchStrings(descs, desc) == 0 {
+		if !found {
 			descs = append(descs, desc)
 		}
 
 	}
 
 	sort.Strings(descs)
-
-	log.Printf("mapRes: %#v \n", mapRes)
 
 	res := []tk.M{}
 	for _, v := range descs {
