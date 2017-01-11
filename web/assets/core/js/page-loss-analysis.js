@@ -27,6 +27,9 @@ pg.availabledateendscada3 = ko.observable();
 pg.availabledatestartalarm2 = ko.observable();
 pg.availabledateendalarm2 = ko.observable();
 
+pg.availabledatestartwarning = ko.observable();
+pg.availabledateendwarning = ko.observable();
+
 var height = $(".content").width() * 0.125;
 
 pg.breakDownList = ko.observableArray([
@@ -1091,6 +1094,7 @@ pg.loadData = function () {
         pg.ChartWindAvail();
         pg.ChartLoss();
         pg.GridLoss();
+        warn.loadData();
 
         // moment(Date.UTC(date1.getFullYear(), date1.getMonth(), date1.getDate(), 0, 0, 0)).toISOString()
 
@@ -1129,9 +1133,11 @@ pg.loadData = function () {
             pg.availabledatestartalarm2(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
             pg.availabledateendalarm2(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
 
+            pg.availabledatestartwarning(kendo.toString(moment.utc(res.data.Warning[0]).format('DD-MMMM-YYYY')));
+            pg.availabledateendwarning(kendo.toString(moment.utc(res.data.Warning[1]).format('DD-MMMM-YYYY')));
+
             $('#availabledatestart').html(pg.availabledatestartscada());
             $('#availabledateend').html(pg.availabledateendscada());
-
         })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
@@ -1193,6 +1199,10 @@ pg.refreshGrid = function (param) {
             $('#availabledatestart').html(pg.availabledatestartscada2());
             $('#availabledateend').html(pg.availabledateendscada2());
         }
+        if(param == 'warning'){
+            $('#availabledatestart').html(pg.availabledatestartwarning());
+            $('#availabledateend').html(pg.availabledateendwarning());
+        }
     }
     setTimeout(function () {
         if ($("#gridLoss").data("kendoGrid") != null) {
@@ -1242,6 +1252,10 @@ pg.refreshGrid = function (param) {
             $("#productionChart").data("kendoChart").refresh();
         }
 
+        if ($("#warningGrid").data("kendoGrid") != null) {
+            $("#warningGrid").data("kendoGrid").refresh();
+        }
+
         app.loading(false);
     },1500);
 }
@@ -1271,6 +1285,89 @@ pg.SetBreakDown = function () {
         }
     }, 1000);
 }
+
+viewModel.Warning = new Object();
+var warn = viewModel.Warning;
+warn.dataSource = ko.observableArray();
+
+warn.generateGrid = function () {
+    var config = {
+        dataSource: {
+            data: warn.dataSource(),
+            pageSize: 10
+        },
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
+        scrollable: true,
+        sortable: true,
+        columns: [
+            { title: "Warning Description", field: "desc", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+        ],
+    };
+
+    /*$.each(warn.dataSource()[0].details, function (i, val) {
+        var wra = val.col.WRA;        
+        var column = {
+            title: val.time + " <br/> WRA "+wra+ " (m/s)",
+            headerAttributes: {
+                style: 'font-weight: bold; text-align: center;'
+            },
+            columns: [],
+            width: 120
+        }
+
+        // var keyIndex = ["WRA", "Onsite"];
+        var keyIndex = ["Onsite"];
+        var j = 0;        
+
+        $.each(keyIndex, function(j, key){
+            // wra = 
+            var colChild = {
+                title: key + " (m/s)",                
+                field: "details["+i+"].col."+ key ,
+                width: 120,
+                attributes: { class: "align-center row-custom" },
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;',
+                },
+                format: "{0:n2}",
+                filterable: false
+            };
+            column.columns.push(colChild);
+        });
+
+        config.columns.push(column);
+    });*/
+
+    $('#warningGrid').html("");
+    $('#warningGrid').kendoGrid(config);
+    $('#warningGrid').data('kendoGrid').refresh();
+
+    // setTimeout(function() {
+    //     app.loading(false);
+    // }, 500);
+}
+
+warn.loadData = function() {
+    var param = {
+        period: fa.period,
+        Turbine: fa.turbine,
+        DateStart: fa.dateStart,
+        DateEnd: fa.dateEnd,
+        Project: fa.project
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getwarning", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        warn.dataSource(res.data.Data.turbine);
+        warn.generateGrid();
+    });
+}
+
 
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
