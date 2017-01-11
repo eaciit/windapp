@@ -74,5 +74,7 @@ $(function () {
         $("#restore-screen").hide();  
     });
 
-    app.loading(false);
+    setTimeout(function() {
+        app.loading(false);
+    }, 500);
 });
