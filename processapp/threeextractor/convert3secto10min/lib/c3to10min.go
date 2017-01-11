@@ -251,7 +251,20 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 
 	_tinterval := time.Time{}
 	for _tinterval = range jobs {
-		workerconn, _ := PrepareConnection()
+		// workerconn, _ := PrepareConnection()
+
+		var workerconn dbox.IConnection
+		for {
+			var err error
+			workerconn, err = PrepareConnection()
+			if err == nil {
+				break
+			} else {
+				tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+				<-time.After(time.Second * 3)
+			}
+		}
+
 		csr, e := workerconn.NewQuery().
 			Select().From(dtablename).
 			Where(dbox.Eq("timestampconverted", _tinterval)).
