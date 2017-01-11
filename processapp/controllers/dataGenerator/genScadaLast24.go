@@ -35,6 +35,8 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			Cursor(nil)
 		defer csr.Close()*/
 
+		d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
+
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
 			//Where(dbox.Gte("power", 0)).
 			Aggr(dbox.AggrMax, "$timestamp", "timestamp").
