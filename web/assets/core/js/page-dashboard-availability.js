@@ -32,27 +32,26 @@ avail.loadData = function () {
                 return;
             }
 
-            avail.fleetMachAvail(res.data.machineAvailability);
-            avail.fleetGridAvail(res.data.gridAvailability);
-            avail.DTLostEnergy(res.data.lostenergy);
             if (project == "Fleet") {
-                avail.DTLEbyType(res.data.lostenergybytype[0]);
-                avail.TopTurbineByLoss(res.data.loss);
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh');
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times');
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours');
+                avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
+                avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
+                avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+                avail.TopTurbineByLoss(res.data.loss); /*"#fleetChartTopTurbineLoss"*/
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
             }else{
-                avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh');
-                avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times');
-                avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours');
+                avail.projectMachAvail(res.data.machineAvailability); /*"#projectChartMachAvail"*/
+                avail.projectGridAvail(res.data.gridAvailability); /*"#projectChartGridAvail"*/
+                avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
+                avail.DTLoss(res.data.loss); /*#"projectChartTopTurbineLosses"*/
+                avail.DTDuration(res.data.duration); /*#"projectChartDTDuration"*/
+                avail.DTFrequency(res.data.frequency); /*#"projectChartDTFrequency"*/
+                avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
+                avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times'); /*#"projectChartTopLossCatFreq"*/
             }
-
-            avail.projectMachAvail(res.data.machineAvailability);
-            avail.projectGridAvail(res.data.gridAvailability);
-            avail.LossEnergyByType(res.data.lostenergy)
-            avail.DTLoss(res.data.loss);
-            avail.DTDuration(res.data.duration);
-            avail.DTFrequency(res.data.frequency);
             
             if (project == "Fleet"){
                 avail.DTTurbines();
@@ -103,6 +102,14 @@ avail.refreshChart = function () {
 
 
 avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
+    var templateLossCat = ''
+    if(measurement == "MWh") {
+       templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
+    } else if(measurement == "Hours") {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n1')# " + measurement
+    } else {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
+    }
 
     $('#'+id).html("");
     $('#'+id).kendoChart({
@@ -154,7 +161,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            template: (byTotalLostenergy == true) ? "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# "+measurement : "<b>#: category # :</b> #: kendo.toString(value, 'n1')# "+measurement,
+            template: templateLossCat,
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
