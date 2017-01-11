@@ -21,10 +21,15 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"bytes"
+	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 	"time"
 
 	tk "github.com/eaciit/toolkit"
+	"gopkg.in/mgo.v2/bson"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 )
 
 const (
@@ -387,25 +392,114 @@ func doProcess(file string) (success bool) {
 		if err != nil {
 			tk.Println(err)
 		} else {
+			UpdateLastHFDAvail()
 			tk.Println(">> DONE <<")
 		}
-
-		// errorLine = tk.M{}
-		// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
-		// WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
-		// log.Println("GenTenFromThreeSecond: DONE")
-
-		/*
-			muxDo.Lock()
-			errorLine = tk.M{}
-			conv := dc.NewDataConversion(base.Ctx)
-			errorLine = conv.Generate(fileName)
-			// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
-			WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
-			log.Printf("GenTenFromThreeSecond: %v DONE | in %v seconds \n", file, time.Now().Sub(start).Seconds())
-			success = true
-			muxDo.Unlock()*/
 	}
 
 	return
 }
+
+func UpdateLastHFDAvail() {
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	type latestdataperiod struct {
+		ID          bson.ObjectId ` bson:"_id" , json:"_id" `
+		Projectname string
+		Type        string
+		Data        []time.Time
+	}
+
+	csr, err := workerconn.NewQuery().
+		Select().
+		From("LatestDataPeriod").
+		Where(dbox.Eq("type", "ScadaDataHFD")).
+		Cursor(nil)
+
+	if err != nil || csr.Count() == 0 {
+		return
+	}
+
+	_dt := new(latestdataperiod)
+
+	_ = csr.Fetch(_dt, 1, false)
+	csr.Close()
+
+	pipes := []tk.M{tk.M{"$group": tk.M{"_id": "$projectname",
+		"mintimestamp": tk.M{"$min": "$timestamp"},
+		"maxtimestamp": tk.M{"$max": "$timestamp"},
+	}}}
+
+	xcsr, err := workerconn.NewQuery().
+		From(new(ScadaConvTenMin).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+
+	_tkm := tk.M{}
+	_ = xcsr.Fetch(&_tkm, 0, false)
+	xcsr.Close()
+
+	_min := _tkm.Get("mintimestamp", time.Time{}).(time.Time)
+	_max := _tkm.Get("maxtimestamp", time.Time{}).(time.Time)
+
+	_dt.Data[0] = _min
+	_dt.Data[1] = _max
+
+	_ = workerconn.NewQuery().
+		From("LatestDataPeriod").
+		SetConfig("multiexec", true).
+		Save().Exec(tk.M{}.Set("data", _dt))
+}
+
+// func PrepareConnection() (dbox.IConnection, error) {
+// 	ci := &dbox.ConnectionInfo{config["host"], config["database"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
+// 	c, e := dbox.NewConnection("mongo", ci)
+
+// 	if e != nil {
+// 		return nil, e
+// 	}
+
+// 	e = c.Connect()
+// 	if e != nil {
+// 		return nil, e
+// 	}
+
+// 	return c, nil
+// }
+
+// func ReadConfig() map[string]string {
+// 	ret := make(map[string]string)
+// 	file, err := os.Open("../conf" + separator + "app.conf")
+// 	if err == nil {
+// 		reader := bufio.NewReader(file)
+// 		for {
+// 			line, _, e := reader.ReadLine()
+// 			if e != nil {
+// 				break
+// 			}
+
+// 			sval := strings.Split(string(line), "=")
+// 			ret[sval[0]] = sval[1]
+// 		}
+// 	} else {
+// 		tk.Println(err.Error())
+// 	}
+
+// 	file.Close()
+// 	return ret
+// }
