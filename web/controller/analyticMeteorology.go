@@ -442,8 +442,14 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		monthDesc := id.GetString("monthdesc")
 		split := strings.Split(monthDesc, " ")
 		trim := split[0][:3]
-		wind := val.GetFloat64("windspeed")
-		temp := val.GetFloat64("temp")
+		wind := 0.0
+		if val.GetString("windspeed") != "NaN" {
+			wind = val.GetFloat64("windspeed")
+		}
+		temp := 0.0
+		if val.GetString("temp") != "NaN" {
+			wind = val.GetFloat64("temp")
+		}
 		power := 0.0
 		if p.DataType == "turbine" {
 			power = val.GetFloat64("power")
