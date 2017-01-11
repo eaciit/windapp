@@ -210,6 +210,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 		AlarmScadaAnomaly []time.Time
 		ScadaDataOEM      []time.Time
 		ScadaDataHFD      []time.Time
+		Warning           []time.Time
 	}
 
 	datePeriod := new(availdatedata)

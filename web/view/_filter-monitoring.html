@@ -11,7 +11,7 @@
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
 			<div class="col-md-12 col-sm-12 filter-content">
-                <label class="col-md-1 col-sm-1 control-label label-filter"><strong data-bind="text: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy HH:mm')"></strong></label>&nbps;&nbps;
+                <label class="col-md-1 col-sm-1 control-label label-filter" style="width: 140px;"><strong data-bind="text: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy HH:mm')"></strong></label>
 				<label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
 				<select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: fa.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
 					style="width:145px">
