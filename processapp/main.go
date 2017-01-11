@@ -2,8 +2,8 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
-	// . "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
-	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
+	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	// . "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 
 	"os"
 	"runtime"
@@ -90,7 +90,7 @@ func main() {
 
 		// NewGenDataPeriod(base).Generate() // step 4
 
-		// new(GenScadaLast24).Generate(base) // step 5
+		new(GenScadaLast24).Generate(base) // step 5
 
 		// new(GenScadaSummary).Generate(base) // step 6
 		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
@@ -99,7 +99,7 @@ func main() {
 
 		// new(GenScadaSummary).GenWFAnalysisByProject(base) // step 10
 		// new(GenScadaSummary).GenWFAnalysisByTurbine1(base) // step 11
-		new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
+		// new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
 
 		// =========================================================================================== //
 		// step to prepare data for the application
