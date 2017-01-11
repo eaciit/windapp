@@ -379,7 +379,7 @@ var Data = {
                   fileName: "DetailPowerCurve.pdf",
                 },
                 title: {
-                    text: "Power Curves Scatt | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
+                    text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
                     visible: false,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
@@ -516,7 +516,7 @@ var Data = {
                 theme: "flat",
                 renderAs: "canvas",
                 title: {
-                    text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                    text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                     visible: false,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
