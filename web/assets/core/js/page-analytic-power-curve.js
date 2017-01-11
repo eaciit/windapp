@@ -86,26 +86,47 @@ page.ExportPowerCurvePdf = function() {
 
       var options2 = $.extend(true, options, exportOptions);
       container.kendoChart(options2);
-      
+
       $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
-    var chart = $("#powerCurveDetail").getKendoChart();
-    chart.exportPDF({
-        paperSize: "auto",
-        margin: {
-            left: "1cm",
-            top: "1cm",
-            right: "1cm",
-            bottom: "1cm"
-        }
-    }).done(function(data) {
-        kendo.saveAs({
-            dataURI: data,
-            fileName: "DetailPowerCurve.pdf",
-        });
-    });
-}
+        var chart = $("#powerCurveDetail").getKendoChart();
+        var container = $('<div />').css({
+            position: 'absolute',
+            top: 0,
+            left: -1500
+          }).appendTo('body');
+
+
+          var options = chart.options;
+
+          var exportOptions ={
+                // Custom settings for export
+                legend: {
+                  visible: true
+                },
+                title:{
+                    visible: true,
+                },
+                chartArea: {
+                    height: 500,
+                },
+                transitions: false,
+
+                // Cleanup
+                render: function(e){
+                  setTimeout(function(){
+                        e.sender.saveAsPDF();
+                        container.remove();
+                  }, 500);
+                }
+          }
+
+          var options2 = $.extend(true, options, exportOptions);
+          container.kendoChart(options2);
+
+          $("#powerCurveDetail").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
+    }
 
 vm.currentMenu('Power Curve');
 vm.currentTitle('Power Curve');
@@ -175,7 +196,7 @@ var Data = {
                 theme: "flat",
                 renderAs: "canvas",
                 title: {
-                    text: "Power Curves | Project : "+fa.project+""+$(".date-info").text(),
+                    text: "Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                     visible: false,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
@@ -354,12 +375,17 @@ var Data = {
             $("#powerCurve").kendoChart({
                 theme: "flat",
                 renderAs: "canvas",
+                pdf: {
+                  fileName: "DetailPowerCurve.pdf",
+                },
                 title: {
-                    text: ""
+                    text: "Power Curves Scatt | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
+                    visible: false,
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 legend: {
                     visible: false,
-                    position: "top"
+                    position: "bottom"
                 },
                 seriesDefaults: {
                     type: "scatterLine",
@@ -484,14 +510,19 @@ var Data = {
 
             $('#powerCurveDetail').html("");
             $("#powerCurveDetail").kendoChart({
-
+                pdf: {
+                  fileName: "DetailPowerCurve.pdf",
+                },
                 theme: "flat",
+                renderAs: "canvas",
                 title: {
-                    text: ""
+                    text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                    visible: false,
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 legend: {
                     visible: false,
-                    position: "top"
+                    position: "bottom"
                 },
                 seriesDefaults: {
                     type: "scatter",
