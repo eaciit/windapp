@@ -60,11 +60,22 @@ func main() {
 			m.LastUpdateDateInfo = m.DateInfo
 			m.Project = k
 
-			m.Production = tk.ToFloat64(rand.Intn(200), 0, tk.RoundingAuto)
-			m.WindSpeed = tk.ToFloat64(rand.Intn(20), 0, tk.RoundingAuto)
+			var windspeed, production float64
+			for {
+				windspeed = tk.ToFloat64(rand.Intn(20), 0, tk.RoundingAuto)
+				production = tk.ToFloat64(rand.Intn(2000), 0, tk.RoundingAuto)
+
+				if (windspeed >= 3 && production >= 200) || (windspeed < 3 && production < 200) {
+					break
+				}
+			}
+
+			m.Production = production //tk.ToFloat64(rand.Intn(200), 0, tk.RoundingAuto)
+			m.WindSpeed = windspeed   //tk.ToFloat64(rand.Intn(20), 0, tk.RoundingAuto)
 			m.PerformanceIndex = tk.ToFloat64(rand.Intn(100), 0, tk.RoundingAuto)
 			m.MachineAvail = tk.ToFloat64(rand.Intn(100), 0, tk.RoundingAuto)
 			m.GridAvail = tk.ToFloat64(rand.Intn(100), 0, tk.RoundingAuto)
+			m.RotorSpeedRPM = tk.ToFloat64(rand.Intn(100), 0, tk.RoundingAuto)
 
 			alarm := rand.Intn(2)
 			warning := rand.Intn(2)

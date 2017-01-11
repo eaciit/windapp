@@ -1,13 +1,8 @@
 package controller
 
-import (
-	. "eaciit/wfdemo-git/library/core"
-	. "eaciit/wfdemo-git/library/models"
-	"eaciit/wfdemo-git/web/helper"
-	// "time"
-
-	"github.com/eaciit/knot/knot.v1"
-)
+// . "eaciit/wfdemo-git/library/core"
+// . "eaciit/wfdemo-git/library/models"
+// "time"
 
 type MonitoringController struct {
 	App
@@ -18,7 +13,7 @@ func CreateMonitoringController() *MonitoringController {
 	return controller
 }
 
-func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
+/*func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := new(helper.Payloads)
@@ -34,4 +29,4 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	}
 
 	return helper.CreateResult(true, data, "success")
-}
+}*/
