@@ -28,6 +28,7 @@ page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
+page.powerCurveOptions = ko.observable();
 
 page.backToMain = function() {
     page.isMain(true);
@@ -52,20 +53,41 @@ page.populateTurbine = function() {
 }
 page.ExportPowerCurvePdf = function() {
     var chart = $("#powerCurve").getKendoChart();
-    chart.exportPDF({
-        paperSize: "auto",
-        margin: {
-            left: "1cm",
-            top: "1cm",
-            right: "1cm",
-            bottom: "1cm"
-        }
-    }).done(function(data) {
-        kendo.saveAs({
-            dataURI: data,
-            fileName: "PowerCurve.pdf",
-        });
-    });
+    var container = $('<div />').css({
+        position: 'absolute',
+        top: 0,
+        left: -1500
+      }).appendTo('body');
+
+
+      var options = chart.options;
+
+      var exportOptions ={
+            // Custom settings for export
+            legend: {
+              visible: true
+            },
+            title:{
+                visible: true,
+            },
+            chartArea: {
+                height: 500,
+            },
+            transitions: false,
+
+            // Cleanup
+            render: function(e){
+              setTimeout(function(){
+                    e.sender.saveAsPDF();
+                    container.remove();
+              }, 500);
+            }
+      }
+
+      var options2 = $.extend(true, options, exportOptions);
+      container.kendoChart(options2);
+      
+      $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
     var chart = $("#powerCurveDetail").getKendoChart();
@@ -147,10 +169,15 @@ var Data = {
             
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
+                pdf: {
+                  fileName: "DetailPowerCurve.pdf",
+                },
                 theme: "flat",
                 renderAs: "canvas",
                 title: {
-                    text: ""
+                    text: "Power Curves | Project : "+fa.project+""+$(".date-info").text(),
+                    visible: false,
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 legend: {
                     position: "bottom",
@@ -268,7 +295,7 @@ var Data = {
             if (page.sScater()) {
                 Data.getPowerCurve();
             }
-            
+            page.powerCurveOptions($("#powerCurve").getKendoChart().options);
             page.ShowHideAfterInitChart();
         });
     },
@@ -457,6 +484,7 @@ var Data = {
 
             $('#powerCurveDetail').html("");
             $("#powerCurveDetail").kendoChart({
+
                 theme: "flat",
                 title: {
                     text: ""
@@ -542,6 +570,7 @@ var Data = {
             app.loading(false);
 
             $("#powerCurveDetail").data("kendoChart").refresh();
+
         });
     },
     InitRightTurbineList: function() {
