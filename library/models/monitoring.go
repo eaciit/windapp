@@ -23,8 +23,13 @@ type Monitoring struct {
 	MachineAvail     float64
 	GridAvail        float64
 
+	RotorSpeedRPM float64
+
 	IsAlarm   bool
 	IsWarning bool
+
+	Status     string
+	StatusDesc string
 }
 
 func (m *Monitoring) New() *Monitoring {
