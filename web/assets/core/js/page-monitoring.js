@@ -65,7 +65,7 @@ monitoring.createGauge = function(id){
 
 monitoring.populateTurbine = function (data) {
     if (data.length == 0) {
-        data = [];;
+        data = [];
         monitoring.turbineList([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
