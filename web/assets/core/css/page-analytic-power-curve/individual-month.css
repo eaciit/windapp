@@ -16,3 +16,13 @@
 .k-tooltip{
     margin-left: -20px;
 }
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+#legend-list {
+    text-align: center;
+}
