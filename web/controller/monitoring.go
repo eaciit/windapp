@@ -137,7 +137,9 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		projects.Set(project, updated)
 	}
 
-	for _, v := range projects {
+	res := []tk.M{}
+
+	for proj, v := range projects {
 		wsavg := 0.0
 		turbineList := v.(tk.M).Get("turbines").([]tk.M)
 
@@ -148,12 +150,15 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		wsavg = tk.Div(wsavg, tk.ToFloat64(len(turbineList), 0, tk.RoundingAuto))
 		v.(tk.M).Set("totalwsavg", wsavg)
 		v.(tk.M).Set("totalprod", v.(tk.M).GetFloat64("totalprod")/1000)
+
+		v.(tk.M).Set("project", proj)
+		res = append(res, v.(tk.M))
 	}
 
 	data := struct {
-		Data tk.M
+		Data []tk.M
 	}{
-		Data: projects,
+		Data: res,
 	}
 
 	return helper.CreateResult(true, data, "success")
