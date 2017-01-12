@@ -244,8 +244,6 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 		selArr++
 	}
 
-	// tk.Printf("%#v\n", pipes)
-
 	data := struct {
 		Data []tk.M
 	}{
@@ -329,9 +327,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		filter = append(filter, dbox.Eq("oktime", 600))
 	}
 
-	for _, pipa := range pipes {
-		tk.Printfn("%#v", pipa)
-	}
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
@@ -410,11 +405,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipes        []tk.M
-		filter       []*dbox.Filter
-		list         []tk.M
-		dataSeries   []tk.M
-		sortTurbines []string
+		pipes      []tk.M
+		filter     []*dbox.Filter
+		list       []tk.M
+		dataSeries []tk.M
 	)
 
 	p := new(PayloadAnalyticPC)
@@ -422,7 +416,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	turbine := p.Turbine
+
 	project := ""
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
@@ -467,6 +461,12 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	filter = append(filter, dbox.Ne("turbine", ""))
 	filter = append(filter, dbox.Gt("power", 0))
 	filter = append(filter, dbox.Eq("oktime", 600))
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
+	if len(p.Turbine) > 0 {
+		filter = append(filter, dbox.In("turbine", p.Turbine))
+	}
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -480,9 +480,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
-	monthIDList := []int{}
-	monthIDDesc := tk.M{}
-	monthDescList := []string{}
 	ids := tk.M{}
 	lastMonth := ""
 	lastTurbine := ""
@@ -491,22 +488,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	dataSeries = append(dataSeries, pcData)
 	for _, listVal := range list {
 		ids, _ = tk.ToM(listVal["_id"])
-		if strings.Contains(ids.GetString("monthid"), ".") {
-			monthIDDesc.Set(strings.Split(ids.GetString("monthid"), ".")[0], ids.GetString("monthdesc"))
-		} else {
-			monthIDDesc.Set(ids.GetString("monthid"), ids.GetString("monthdesc"))
-		}
-		if len(p.Turbine) == 0 {
-			exist := false
-			for _, val := range turbine {
-				if ids["Turbine"] == val {
-					exist = true
-				}
-			}
-			if exist == false {
-				turbine = append(turbine, ids["Turbine"])
-			}
-		}
 
 		if lastMonth != "" && lastMonth != ids.GetString("monthdesc") {
 			selArr++
@@ -543,52 +524,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		lastMonth = ids.GetString("monthdesc")
 		lastTurbine = ids.GetString("Turbine")
 	}
-	for key := range monthIDDesc {
-		monthIDList = append(monthIDList, tk.ToInt(key, tk.RoundingAuto))
-	}
-	sort.Ints(monthIDList)
-	for _, val := range monthIDList {
-		monthDescList = append(monthDescList, monthIDDesc.GetString(tk.ToString(val)))
-	}
-
-	for _, turX := range turbine {
-		sortTurbines = append(sortTurbines, turX.(string))
-	}
-	sort.Strings(sortTurbines)
-
-	/*for _, turbineX := range sortTurbines {
-
-		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
-			y := x.(tk.M)
-			id := y.Get("_id").(tk.M)
-
-			return id.GetString("Turbine") == turbineX
-		}).Exec().Result.Data().([]tk.M)
-
-		var datas [][]float64
-		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
-		turbineData.Set("type", "scatterLine")
-		turbineData.Set("style", "smooth")
-		turbineData.Set("dashType", "solid")
-		turbineData.Set("markers", tk.M{"visible": false})
-		turbineData.Set("width", 2)
-		turbineData.Set("color", colorField[selArr])
-		turbineData.Set("idxseries", selArr)
-
-		for _, val := range exist {
-			idD := val.Get("_id").(tk.M)
-
-			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")})
-		}
-
-		if len(datas) > 0 {
-			turbineData.Set("data", datas)
-		}
-
-		dataSeries = append(dataSeries, turbineData)
-		selArr++
-	}*/
 
 	data := struct {
 		Data []tk.M
