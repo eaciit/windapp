@@ -3,50 +3,31 @@
 viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 
-page.idName = ko.observable("");
-page.powerCurveOptions = ko.observable();
+page.dataPCEachTurbine = ko.observableArray([]);
+var listOfChart = [];
+var listOfButton = {};
+var listOfCategory = [];
 
-page.ExportPowerCurvePdf = function() {
-    var chart = $("#powerCurve").getKendoChart();
-    var container = $('<div />').css({
-        position: 'absolute',
-        top: 0,
-        left: -1500
-      }).appendTo('body');
-
-
-      var options = chart.options;
-
-      var exportOptions ={
-            // Custom settings for export
-            legend: {
-              visible: true
-            },
-            title:{
-                visible: true,
-            },
-            chartArea: {
-                height: 500,
-            },
-            transitions: false,
-
-            // Cleanup
-            render: function(e){
-              setTimeout(function(){
-                    e.sender.saveAsPDF();
-                    container.remove();
-              }, 500);
-            }
-      }
-
-      var options2 = $.extend(true, options, exportOptions);
-      container.kendoChart(options2);
-
-      $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
+page.ExportIndividualMonthPdf = function() {
+    kendo.drawing.drawDOM($(".individual-month"))
+    .then(function(group) {
+        // Render the result as a PDF file
+        return kendo.drawing.exportPDF(group, {
+            paperSize: "auto",
+            margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" }
+        });
+    })
+    .done(function(data) {
+        // Save the PDF file
+        kendo.saveAs({
+            dataURI: data,
+            fileName: "Individual-Month.pdf",
+        });
+    });
 }
 
-vm.currentMenu('Power Curve');
-vm.currentTitle('Power Curve');
+vm.currentMenu('Individual Month');
+vm.currentTitle('Individual Month');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
@@ -57,14 +38,6 @@ vm.breadcrumb([{
     title: 'Individual Monthly',
     href: viewModel.appName + 'page/analyticpcmonthly'
 }]);
-
-var dataPowerCurve
-var dataTurbine
-
-page.dataPCEachTurbine = ko.observableArray([]);
-var listOfChart = [];
-var listOfButton = {};
-var listOfCategory = [];
 
 page.showHideLegend = function (index) {
     var idName = "btn" + index;
@@ -262,8 +235,6 @@ page.InitLinePowerCurve = function() {
             zoomable: true
         });
         $(idChart).data("kendoChart").refresh();
-
-        page.powerCurveOptions($(idChart).getKendoChart().options);
     });
 }
 
