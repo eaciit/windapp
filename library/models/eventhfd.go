@@ -15,15 +15,14 @@ type EventRawHFD struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
 	ProjectName   string
-	Turbine       string
+	Turbine       string //
 	TimeStamp     time.Time
 	DateInfo      DateInfo
 
-	EventType        string
-	BrakeProgram     int    // alarmbrake > brakeprogram
+	EventType        string // e.g.: Fast.AlarmCode
+	BrakeProgram     int    // alarmbrake > brakeprogram , put 999 if the alarmcode is not found in alarmbrake
 	AlarmDescription string // alarmbrake > alarmame
-	AlarmId          int    // alarmcode
-
+	AlarmId          int    // alarmcode , put 999 if the alarmcode is empty / 999
 	// TurbineStatus string
 	// AlarmToggle   bool
 	BrakeType string // AlarmBrake > type
