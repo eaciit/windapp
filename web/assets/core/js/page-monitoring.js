@@ -55,6 +55,17 @@ monitoring.createGauge = function(id){
         }
     });
 }
+
+
+monitoring.getData = function(){
+    toolkit.ajaxPost(viewModel.appName + "monitoring/getdata", {}, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        console.log(res.data.Data);
+    });
+}
+
 $(function () {
 	for(var i = 0 ; i < 5 ; i++){
 		monitoring.createGauge(i);

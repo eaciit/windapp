@@ -29,6 +29,7 @@ type Monitoring struct {
 	IsWarning bool
 
 	Status     string
+	StatusCode string
 	StatusDesc string
 }
 
