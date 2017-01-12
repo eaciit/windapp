@@ -14,6 +14,7 @@ type TurbineMaster struct {
 	Latitude      float64
 	Longitude     float64
 	Elevation     float64
+	CapacityMW    float64
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
