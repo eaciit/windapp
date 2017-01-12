@@ -1,0 +1,517 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"github.com/eaciit/database/base"
+	"github.com/eaciit/orm"
+	"github.com/fsnotify/fsnotify"
+	// "github.com/metakeule/fmtdate"
+	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
+	"archive/tar"
+	"archive/zip"
+	"bufio"
+	"bytes"
+	"time"
+
+	"eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git/processapp/watcher/controllers"
+
+	tk "github.com/eaciit/toolkit"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+)
+
+const (
+	NOK = "NOK"
+	OK  = "OK"
+)
+
+type Command struct {
+	Action  string
+	Command string
+	Success string
+	Fail    string
+}
+type Configuration struct {
+	Draft    string
+	Process  string
+	Fail     string
+	Success  string
+	Errors   string
+	Archive  string
+	Commands []Command
+}
+
+var (
+	conn base.IConnection
+	ctx  *orm.DataContext
+	conf Configuration
+	mux  = &sync.Mutex{}
+
+	pathSep = string(os.PathSeparator)
+
+	wd = func() string {
+		d, _ := os.Getwd()
+		return d + "/"
+	}()
+
+	// masteralarmbrake = tk.M{}
+)
+
+func main() {
+
+	_fconf := filepath.Join(wd, "..", "conf", "alert-config.json")
+
+	fmt.Println(_fconf)
+	file, _ := os.Open(_fconf)
+	decoder := json.NewDecoder(file)
+	err := decoder.Decode(&conf)
+
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Starting the app..\n")
+
+	log.Println()
+	log.Printf("Draft: %v\n", conf.Draft)
+	log.Printf("Process: %v\n", conf.Process)
+	log.Printf("Fail: %v\n", conf.Fail)
+	log.Printf("Success: %v\n", conf.Success)
+	log.Printf("Errors: %v\n", conf.Errors)
+	log.Println()
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Create == fsnotify.Create {
+					go processfile(event.Name, conf.Commands)
+				}
+			case err := <-watcher.Errors:
+				log.Println("error:", err)
+			}
+		}
+	}()
+
+	// watch draft
+	err = watcher.Add(conf.Draft)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// watch process
+	err = watcher.Add(conf.Process)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	<-done
+}
+
+func processfile(filePath string, com []Command) {
+	fmt.Println(" >>> Process : ", filePath)
+	for true {
+		byteOut, err := runCMD("lsof " + filePath)
+		if err != nil {
+			log.Print("Gagal")
+		}
+
+		if len(byteOut) == 0 {
+			break
+		} else {
+			// fmt.Println(string(byteOut))
+			time.Sleep(5 * time.Second)
+		}
+	}
+	file := strings.Split(filePath, pathSep)
+	fileName := file[len(file)-1]
+
+	if strings.Contains(fileName, ".csv") {
+		time.Sleep(100 * time.Millisecond)
+		log.Printf("Proccess file: %v \n", filePath)
+		var action Command
+
+		if strings.Contains(filePath, conf.Draft) {
+			action = com[0]
+		} else if strings.Contains(filePath, conf.Process) {
+			action = com[1]
+		}
+		next := action.Action
+	done:
+		for {
+			log.Printf("\n\nnext: %v \n", next)
+			if next == "DONE" {
+				break done
+			} else {
+				for _, act := range com {
+					if act.Action == next {
+						next = run(act, fileName)
+						break
+					}
+				}
+			}
+		}
+
+		log.Printf("DONE for file: %v\n", filePath)
+	} else if strings.Contains(fileName, ".tar") {
+		time.Sleep(100 * time.Millisecond)
+		untar(filePath, conf.Draft)
+		_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
+	} else if strings.Contains(fileName, ".zip") {
+		time.Sleep(100 * time.Millisecond)
+		e := unzip(filePath, conf.Draft)
+		if e != nil {
+			log.Printf("%s - %s", filePath, e.Error())
+			_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Errors))
+		} else {
+			fmt.Println("Unzip Done")
+			_, _ = runCMD(fmt.Sprintf("mv %v %v", filePath, conf.Archive))
+		}
+	}
+}
+
+func untar(tarball, target string) error {
+	reader, err := os.Open(tarball)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+	tarReader := tar.NewReader(reader)
+
+	for {
+		header, err := tarReader.Next()
+
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Printf("ERR: %#v \n", err.Error())
+			return err
+		}
+
+		path := filepath.Join(target, header.Name)
+		info := header.FileInfo()
+		// log.Printf("path: %#v \n", path)
+		// log.Printf("info: %#v \n", info)
+		if strings.Contains(info.Name(), ".csv") {
+			if info.IsDir() {
+				if err = os.MkdirAll(path, info.Mode()); err != nil {
+					return err
+				}
+				continue
+			}
+
+			file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			_, err = io.Copy(file, tarReader)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func unzip(archive, target string) error {
+	fmt.Println("Unzip", archive, target)
+	reader, err := zip.OpenReader(archive)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(target, 0755); err != nil {
+		return err
+	}
+
+	for _, file := range reader.File {
+		if strings.Contains(file.Name, ".csv") {
+
+			path := filepath.Join(target, file.Name)
+			fileReader, err := file.Open()
+
+			if err != nil {
+				log.Printf("ERR: %#v \n", err.Error())
+				return err
+			}
+			defer fileReader.Close()
+
+			targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+			if err != nil {
+				return err
+			}
+			defer targetFile.Close()
+
+			if _, err := io.Copy(targetFile, fileReader); err != nil {
+				return err
+			}
+		}
+	}
+
+	reader.Close()
+	return nil
+}
+
+func runCMD(cmdStr string) (out []byte, err error) {
+	if pathSep == "\\" {
+		cmdStr = strings.Replace(cmdStr, "\\", "/", -1)
+	}
+
+	var errBuff bytes.Buffer
+	cmd := exec.Command("sh", "-c", cmdStr)
+	cmd.Stderr = &errBuff
+
+	out, err = cmd.Output()
+	if err != nil {
+		fmt.Println(errBuff.String())
+	}
+	return
+}
+
+func run(action Command, file string) (next string) {
+	cmdStr := ""
+	runCommand := true
+	log.Printf("run: %v | %v \n", action, file)
+
+	if action.Action == "COPY_TO_PROCESS" {
+		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Draft, file), filepath.Join(conf.Process, file))
+	} else if action.Action == "COPY_TO_SUCCESS" {
+		runCommand = doprocess(filepath.Join(conf.Process, file))
+		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Process, file), filepath.Join(conf.Success, file))
+	} else if action.Action == "COPY_TO_FAIL" {
+		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Process, file), filepath.Join(conf.Fail, file))
+	}
+
+	if runCommand {
+		out, err := runCMD(cmdStr)
+
+		if out != nil {
+			log.Printf("%v \n", out)
+		}
+		if err != nil {
+			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
+		}
+		next = action.Success
+	} else {
+		log.Println("DONE")
+		next = action.Fail
+	}
+
+	return
+}
+
+func preparemasteralarmbrake() (_tkm tk.M) {
+	_tkm = tk.M{}
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	csr, err := workerconn.NewQuery().
+		Select("brakeprogram", "alarmname", "typecode", "type").
+		From("AlarmBrake").
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	for {
+		_atkm := tk.M{}
+		err = csr.Fetch(&_atkm, 1, false)
+		if err != nil {
+			break
+		}
+
+		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("typecode")), _atkm)
+	}
+
+	return
+}
+
+func doprocess(file string) (success bool) {
+	log.Printf("doProcess: %v \n", file)
+	success = false
+	t1 := time.Now()
+
+	ilines, err := lineCounter(file)
+	if err != nil {
+		return
+	}
+
+	masteralarmbrake := preparemasteralarmbrake()
+
+	sresult := make(chan int, ilines)
+	sdata := make(chan string, ilines)
+	for i := 0; i < 10; i++ {
+		go workersave(i, sdata, sresult, &masteralarmbrake)
+	}
+
+	asend := 0
+	_file, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer _file.Close()
+	scanner := bufio.NewScanner(_file)
+	for scanner.Scan() {
+		sdata <- scanner.Text()
+		asend++
+	}
+	close(sdata)
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	step := getstep(asend)
+	for i := 0; i < asend; i++ {
+		<-sresult
+		if i%step == 0 {
+			tk.Printfn("Done Saved Data %d to %d, in %s",
+				i, asend, time.Since(t1).String())
+		}
+	}
+	close(sresult)
+
+	return
+}
+
+func workersave(wi int, jobs <-chan string, result chan<- int, msalarmbrake *tk.M) {
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	dtablename := tk.Sprintf("%s", new(EventRawHFD).TableName())
+
+	qSave := workerconn.NewQuery().
+		From(dtablename).
+		SetConfig("multiexec", true).
+		Save()
+
+	split := func(_astr string) (_erh EventRawHFD) {
+		_erh = EventRawHFD{}
+
+		_fdata := strings.Split(_astr, ",") //"stime", "project", "param", "id"
+		if len(_fdata) < 4 {
+			return
+		}
+		_ddata := strings.Split(_fdata[2], ".")
+
+		_erh.ProjectName = _fdata[1]
+		_erh.Turbine = _ddata[1]
+		_erh.TimeStamp, _ = time.Parse("02-Jan-2006 15:04:05", _fdata[0])
+		_erh.DateInfo = helper.GetDateInfo(_erh.TimeStamp)
+
+		_erh.EventType = tk.Sprintf("%s.%s", _ddata[2], _ddata[3])
+
+		ialarmid := "999"
+		if _fdata[3] != "" {
+			ialarmid = _fdata[3]
+		}
+
+		if !msalarmbrake.Has(ialarmid) {
+			ialarmid = "999"
+		}
+
+		_msabrake := msalarmbrake.Get(ialarmid, tk.M{}).(tk.M)
+
+		_erh.BrakeProgram = _msabrake.GetInt("brakeprogram")
+		_erh.AlarmDescription = _msabrake.GetString("alarmname")
+		_erh.AlarmId = tk.ToInt(ialarmid, tk.RoundingAuto)
+		_erh.BrakeType = _msabrake.GetString("type")
+
+		_erh.ID = tk.Sprintf("%s#%s#%d#%s", _erh.TimeStamp.Format("20060102#150405.000"),
+			_erh.ProjectName, _erh.AlarmId, _erh.EventType)
+
+		return
+	}
+
+	trx := string("")
+	for trx = range jobs {
+		_erh := split(trx)
+
+		if _erh.ID != "" {
+			err := qSave.Exec(tk.M{}.Set("data", _erh))
+			if err != nil {
+				tk.Println(err)
+			}
+		}
+
+		result <- 1
+	}
+
+	return
+}
+
+func lineCounter(_fpath string) (int, error) {
+	r, err := os.Open(_fpath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer r.Close()
+
+	buf := make([]byte, 32*1024)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := r.Read(buf)
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			return count, nil
+
+		case err != nil:
+			return count, err
+		}
+	}
+}
+
+func getstep(count int) int {
+	v := count / 5
+	if v == 0 {
+		return 1
+	}
+	return v
+}
