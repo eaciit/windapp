@@ -486,7 +486,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	var datas [][]float64
 	results := []tk.M{}
 	dataSeries = append(dataSeries, pcData)
-	for _, listVal := range list {
+	for i, listVal := range list {
 		ids, _ = tk.ToM(listVal["_id"])
 
 		if lastMonth != "" && lastMonth != ids.GetString("monthdesc") {
@@ -508,7 +508,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			datas = [][]float64{}
 		}
 
-		if lastTurbine != "" && lastTurbine != ids.GetString("Turbine") {
+		if (lastTurbine != "" && lastTurbine != ids.GetString("Turbine")) || i == len(list)-1 {
 			turbineData := tk.M{
 				"Name": lastTurbine,
 				"Data": dataSeries,

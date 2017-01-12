@@ -228,7 +228,6 @@ page.InitLinePowerCurve = function() {
             pannable: true,
             zoomable: true
         });
-        app.loading(false);
         $(idChart).data("kendoChart").refresh();
 
         page.powerCurveOptions($(idChart).getKendoChart().options);
@@ -237,11 +236,7 @@ page.InitLinePowerCurve = function() {
 
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
-        setTimeout(function() {
-            page.LoadData();
-            fa.LoadData();
-            page.InitLinePowerCurve()
-        }, 1000);
+        page.LoadData();
     });
     $(".period-list").hide();
     $(".filter-date-start").hide();
@@ -249,11 +244,5 @@ $(document).ready(function() {
     $(".label-filter")[3].remove();
     $(".label-filter")[2].remove();
 
-    setTimeout(function() {
-        page.LoadData();
-    }, 1000);
-
-    $("input[name=isAvg]").on("change", function() {
-        page.InitLinePowerCurve();
-    });
+    page.LoadData();
 });
