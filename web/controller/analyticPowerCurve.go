@@ -313,8 +313,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	// var collName string
-	// collName = "ScadaData"
 	dVal := (tk.ToFloat64(tk.ToInt(DeviationVal, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
 	selArr := 1
 
@@ -331,8 +329,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		filter = append(filter, dbox.Eq("oktime", 600))
 	}
 
-	// tk.Printf("%#v\n", filter)
-	// tk.Printf("%#v\n", filter...)
+	for _, pipa := range pipes {
+		tk.Printfn("%#v", pipa)
+	}
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
@@ -385,7 +384,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("idxseries", selArr)
 
 		for _, val := range exist {
-			// tk.Printf("%#v\n", filter)
 			idD := val.Get("_id").(tk.M)
 
 			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
@@ -403,6 +401,199 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		Data []tk.M
 	}{
 		Data: dataSeries,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		pipes        []tk.M
+		filter       []*dbox.Filter
+		list         []tk.M
+		dataSeries   []tk.M
+		sortTurbines []string
+	)
+
+	p := new(PayloadAnalyticPC)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Turbine
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+
+	colId := "$wsavgforpc"
+	colValue := "$power"
+
+	pcData, e := getPCData(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id": tk.M{
+			"monthid":   "$dateinfo.monthid",
+			"monthdesc": "$dateinfo.monthdesc",
+			"Turbine":   "$turbine",
+			"colId":     colId,
+		},
+		"production": tk.M{"$avg": colValue},
+	}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{
+		"_id.Turbine": 1,
+		"_id.monthid": 1,
+		"_id.colId":   1,
+	}})
+
+	selArr := 0
+
+	filter = nil
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Eq("oktime", 600))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
+
+	monthIDList := []int{}
+	monthIDDesc := tk.M{}
+	monthDescList := []string{}
+	ids := tk.M{}
+	lastMonth := ""
+	lastTurbine := ""
+	var datas [][]float64
+	results := []tk.M{}
+	dataSeries = append(dataSeries, pcData)
+	for _, listVal := range list {
+		ids, _ = tk.ToM(listVal["_id"])
+		if strings.Contains(ids.GetString("monthid"), ".") {
+			monthIDDesc.Set(strings.Split(ids.GetString("monthid"), ".")[0], ids.GetString("monthdesc"))
+		} else {
+			monthIDDesc.Set(ids.GetString("monthid"), ids.GetString("monthdesc"))
+		}
+		if len(p.Turbine) == 0 {
+			exist := false
+			for _, val := range turbine {
+				if ids["Turbine"] == val {
+					exist = true
+				}
+			}
+			if exist == false {
+				turbine = append(turbine, ids["Turbine"])
+			}
+		}
+
+		if lastMonth != "" && lastMonth != ids.GetString("monthdesc") {
+			selArr++
+			monthData := tk.M{}
+			monthData.Set("name", strings.Join(strings.Split(ids.GetString("monthdesc"), " "), ""))
+			monthData.Set("type", "scatterLine")
+			monthData.Set("style", "smooth")
+			monthData.Set("dashType", "solid")
+			monthData.Set("markers", tk.M{"visible": false})
+			monthData.Set("width", 2)
+			monthData.Set("color", colorField[selArr])
+			monthData.Set("idxseries", selArr)
+
+			if len(datas) > 0 {
+				monthData.Set("data", datas)
+			}
+			dataSeries = append(dataSeries, monthData)
+			datas = [][]float64{}
+		}
+
+		if lastTurbine != "" && lastTurbine != ids.GetString("Turbine") {
+			turbineData := tk.M{
+				"Name": lastTurbine,
+				"Data": dataSeries,
+			}
+			results = append(results, turbineData)
+			dataSeries = []tk.M{}
+			selArr = 0
+			dataSeries = append(dataSeries, pcData)
+		}
+
+		datas = append(datas, []float64{ids.GetFloat64("colId"), listVal.GetFloat64("production")})
+
+		lastMonth = ids.GetString("monthdesc")
+		lastTurbine = ids.GetString("Turbine")
+	}
+	for key := range monthIDDesc {
+		monthIDList = append(monthIDList, tk.ToInt(key, tk.RoundingAuto))
+	}
+	sort.Ints(monthIDList)
+	for _, val := range monthIDList {
+		monthDescList = append(monthDescList, monthIDDesc.GetString(tk.ToString(val)))
+	}
+
+	for _, turX := range turbine {
+		sortTurbines = append(sortTurbines, turX.(string))
+	}
+	sort.Strings(sortTurbines)
+
+	/*for _, turbineX := range sortTurbines {
+
+		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
+			y := x.(tk.M)
+			id := y.Get("_id").(tk.M)
+
+			return id.GetString("Turbine") == turbineX
+		}).Exec().Result.Data().([]tk.M)
+
+		var datas [][]float64
+		turbineData := tk.M{}
+		turbineData.Set("name", turbineX)
+		turbineData.Set("type", "scatterLine")
+		turbineData.Set("style", "smooth")
+		turbineData.Set("dashType", "solid")
+		turbineData.Set("markers", tk.M{"visible": false})
+		turbineData.Set("width", 2)
+		turbineData.Set("color", colorField[selArr])
+		turbineData.Set("idxseries", selArr)
+
+		for _, val := range exist {
+			idD := val.Get("_id").(tk.M)
+
+			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")})
+		}
+
+		if len(datas) > 0 {
+			turbineData.Set("data", datas)
+		}
+
+		dataSeries = append(dataSeries, turbineData)
+		selArr++
+	}*/
+
+	data := struct {
+		Data []tk.M
+	}{
+		Data: results,
 	}
 
 	return helper.CreateResult(true, data, "success")
