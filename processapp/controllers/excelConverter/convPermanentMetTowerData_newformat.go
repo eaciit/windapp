@@ -108,80 +108,80 @@ func (d *ConvPermanentMetTowerNewFormat) Generate(base *BaseController) {
 
 								if len(row.Cells) > 1 {
 									VHubWS90mAvg, err := row.Cells[1].Float()
-									if err != nil {
+									if err == nil {
 										data.VHubWS90mAvg = VHubWS90mAvg
 									}
 
 									ErrorLog(e, funcName, errorList)
 
 									VHubWS90mStdDev, err := row.Cells[2].Float()
-									if err != nil {
+									if err == nil {
 										data.VHubWS90mStdDev = VHubWS90mStdDev
 									}
 									ErrorLog(e, funcName, errorList)
 
 									VRefWS88mAvg, err := row.Cells[3].Float()
-									if err != nil {
+									if err == nil {
 										data.VRefWS88mAvg = VRefWS88mAvg
 									}
 									ErrorLog(e, funcName, errorList)
 
 									VRefWS88mStdDev, err := row.Cells[4].Float()
-									if err != nil {
+									if err == nil {
 										data.VRefWS88mStdDev = VRefWS88mStdDev
 									}
 									ErrorLog(e, funcName, errorList)
 
 									VTipWS42mAvg, err := row.Cells[5].Float()
-									if err != nil {
+									if err == nil {
 										data.VTipWS42mAvg = VTipWS42mAvg
 									}
 									ErrorLog(e, funcName, errorList)
 
 									VTipWS42mStdDev, err := row.Cells[6].Float()
-									if err != nil {
+									if err == nil {
 										data.VTipWS42mStdDev = VTipWS42mStdDev
 									}
 									ErrorLog(e, funcName, errorList)
 
 									DHubWD88mAvg, err := row.Cells[7].Float()
-									if err != nil {
+									if err == nil {
 										data.DHubWD88mAvg = DHubWD88mAvg
 									}
 									ErrorLog(e, funcName, errorList)
 
 									DRefWD86mAvg, err := row.Cells[8].Float()
-									if err != nil {
+									if err == nil {
 										data.DRefWD86mAvg = DRefWD86mAvg
 									}
 									ErrorLog(e, funcName, errorList)
 
 									TRefHRefHumid855mAvg, err := row.Cells[9].Float()
-									if err != nil {
+									if err == nil {
 										data.TRefHRefHumid855mAvg = TRefHRefHumid855mAvg
 									}
 									ErrorLog(e, funcName, errorList)
 
 									TRefHRefHumid855mStdDev, err := row.Cells[10].Float()
-									if err != nil {
+									if err == nil {
 										data.TRefHRefHumid855mStdDev = TRefHRefHumid855mStdDev
 									}
 									ErrorLog(e, funcName, errorList)
 
 									TRefHRefHumid855mMax, err := row.Cells[11].Float()
-									if err != nil {
+									if err == nil {
 										data.TRefHRefHumid855mMax = TRefHRefHumid855mMax
 									}
 									ErrorLog(e, funcName, errorList)
 
 									TRefHRefHumid855mMin, err := row.Cells[12].Float()
-									if err != nil {
+									if err == nil {
 										data.TRefHRefHumid855mMin = TRefHRefHumid855mMin
 									}
 									ErrorLog(e, funcName, errorList)
 
 									BaroAirPress855mAvg, err := row.Cells[13].Float()
-									if err != nil {
+									if err == nil {
 										data.BaroAirPress855mAvg = BaroAirPress855mAvg
 									}
 									ErrorLog(e, funcName, errorList)

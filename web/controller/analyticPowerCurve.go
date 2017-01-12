@@ -244,8 +244,6 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 		selArr++
 	}
 
-	// tk.Printf("%#v\n", pipes)
-
 	data := struct {
 		Data []tk.M
 	}{
@@ -313,8 +311,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	// var collName string
-	// collName = "ScadaData"
 	dVal := (tk.ToFloat64(tk.ToInt(DeviationVal, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
 	selArr := 1
 
@@ -331,8 +327,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		filter = append(filter, dbox.Eq("oktime", 600))
 	}
 
-	// tk.Printf("%#v\n", filter)
-	// tk.Printf("%#v\n", filter...)
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
@@ -385,7 +379,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("idxseries", selArr)
 
 		for _, val := range exist {
-			// tk.Printf("%#v\n", filter)
 			idD := val.Get("_id").(tk.M)
 
 			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
@@ -403,6 +396,169 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		Data []tk.M
 	}{
 		Data: dataSeries,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		pipes      []tk.M
+		filter     []*dbox.Filter
+		list       []tk.M
+		dataSeries []tk.M
+	)
+
+	p := new(PayloadAnalyticPC)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+
+	colId := "$wsavgforpc"
+	colValue := "$power"
+
+	pcData, e := getPCData(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id": tk.M{
+			"monthid":   "$dateinfo.monthid",
+			"monthdesc": "$dateinfo.monthdesc",
+			"Turbine":   "$turbine",
+			"colId":     colId,
+		},
+		"production": tk.M{"$avg": colValue},
+	}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{
+		"_id.Turbine": 1,
+		"_id.monthid": 1,
+		"_id.colId":   1,
+	}})
+
+	selArr := 0
+
+	filter = nil
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Eq("oktime", 600))
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
+	if len(p.Turbine) > 0 {
+		filter = append(filter, dbox.In("turbine", p.Turbine))
+	}
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
+
+	ids := tk.M{}
+	lastMonth := ""
+	lastTurbine := ""
+	var datas [][]float64
+	results := []tk.M{}
+	dataSeries = append(dataSeries, pcData)
+	monthIndex := tk.M{}
+	splitMonth := []string{}
+	simpleMonth := ""
+	for i, listVal := range list {
+		ids, _ = tk.ToM(listVal["_id"])
+
+		/*if lastMonth is different with current month so append as new line (hair)*/
+		if (lastMonth != "" && lastMonth != ids.GetString("monthdesc")) || i == len(list)-1 {
+			selArr++
+			splitMonth = strings.Split(lastMonth, " ")
+			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
+
+			/*month data is monthly data per turbine*/
+			monthData := tk.M{}
+			monthData.Set("name", strings.Join(splitMonth, "")) /*it will be january2016, february2016, and so on*/
+			monthData.Set("type", "scatterLine")
+			monthData.Set("style", "smooth")
+			monthData.Set("dashType", "solid")
+			monthData.Set("markers", tk.M{"visible": false})
+			monthData.Set("width", 2)
+			monthData.Set("color", colorField[selArr])
+			monthData.Set("idxseries", selArr)
+
+			/*month index is list of month and its index*/
+			monthIndex.Set(tk.ToString(selArr), simpleMonth)
+
+			if len(datas) > 0 {
+				/*set data (power per windspeed) for each line*/
+				monthData.Set("data", datas)
+			}
+			dataSeries = append(dataSeries, monthData)
+			datas = [][]float64{} /*clear variable for next data*/
+		}
+
+		/*if lastTubrine is different with current turbine so append as new chart*/
+		if (lastTurbine != "" && lastTurbine != ids.GetString("Turbine")) || i == len(list)-1 {
+			turbineData := tk.M{
+				"Name": lastTurbine, /*for chart name*/
+				"Data": dataSeries,
+			}
+			results = append(results, turbineData)
+			dataSeries = []tk.M{} /*clear variable for nex data*/
+			selArr = 0
+			dataSeries = append(dataSeries, pcData) /*always append expected value at beginning*/
+		}
+
+		datas = append(datas, []float64{ids.GetFloat64("colId"), listVal.GetFloat64("production")})
+
+		lastMonth = ids.GetString("monthdesc")
+		lastTurbine = ids.GetString("Turbine")
+	}
+
+	sortedIndex := []int{}
+	for key := range monthIndex {
+		sortedIndex = append(sortedIndex, tk.ToInt(key, tk.RoundingAuto))
+	}
+	sort.Ints(sortedIndex)
+
+	categoryList := []tk.M{}
+	catList := tk.M{"category": "Power Curve", "color": "#ff880e"}
+	categoryList = append(categoryList, catList)
+
+	for _, idx := range sortedIndex {
+		catList = tk.M{"category": monthIndex.GetString(tk.ToString(idx)), "color": colorField[idx]}
+		categoryList = append(categoryList, catList)
+	}
+
+	data := struct {
+		Data     []tk.M
+		Category []tk.M
+	}{
+		Data:     results,
+		Category: categoryList,
 	}
 
 	return helper.CreateResult(true, data, "success")
