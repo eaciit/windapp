@@ -564,6 +564,159 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		pipes        []tk.M
+		filter       []*dbox.Filter
+		list         []tk.M
+		dataSeries   []tk.M
+		// sortTurbines []string
+	)
+
+	p := new(PayloadPCComparison)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	PC1tStart, PC1tEnd, e := helper.GetStartEndDate(k, p.PC1Period, p.PC1DateStart, p.PC1DateEnd)
+	PC2tStart, PC2tEnd, e := helper.GetStartEndDate(k, p.PC2Period, p.PC2DateStart, p.PC2DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	PC1turbine := p.PC1Turbine
+	PC1project := ""
+	if p.PC1Project != "" {
+		anProject := strings.Split(p.PC1Project, "(")
+		PC1project = strings.TrimRight(anProject[0], " ")
+	}
+
+	// PC2turbine := p.PC2Turbine
+	// PC2project := ""
+	// if p.PC2Project != "" {
+	// 	anProject := strings.Split(p.PC2Project, "(")
+	// 	PC2project = strings.TrimRight(anProject[0], " ")
+	// }
+
+
+	colId := "$wsavgforpc"
+	colValue := "$power"
+
+	PC1Data, e := getPCData(PC1project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// PC2Data, e := getPCData(PC2project)
+	// if e != nil {
+	// 	return helper.CreateResult(false, nil, e.Error())
+	// }
+
+	dataSeries = append(dataSeries, PC1Data)
+	// dataSeries = append(dataSeries, PC2Data)
+
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": colId, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	filter = nil
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", PC1tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", PC1tEnd))
+	filter = append(filter, dbox.In("turbine", PC1turbine...))
+	filter = append(filter, dbox.Gt("power", 0))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
+
+	var datas [][]float64
+	turbineData := tk.M{}
+	turbineData.Set("name", "Condition 2")
+	turbineData.Set("type", "scatterLine")
+	turbineData.Set("style", "smooth")
+	turbineData.Set("dashType", "solid")
+	turbineData.Set("markers", tk.M{"visible": false})
+	turbineData.Set("width", 2)
+	turbineData.Set("color", colorField[2])
+
+	for _, val := range list {
+
+		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")}) 
+	}
+
+	if len(datas) > 0 {
+		turbineData.Set("data", datas)
+	}
+
+	dataSeries = append(dataSeries, turbineData)
+
+
+	filter = nil
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", PC2tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", PC2tEnd))
+	// filter = append(filter, dbox.In("turbine", PC1turbine...))
+	filter = append(filter, dbox.Gt("power", 0))
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
+
+	var datasC2 [][]float64
+	turbineData = tk.M{}
+	turbineData.Set("name", "Condition 1")
+	turbineData.Set("type", "scatterLine")
+	turbineData.Set("style", "smooth")
+	turbineData.Set("dashType", "solid")
+	turbineData.Set("markers", tk.M{"visible": false})
+	turbineData.Set("width", 2)
+	turbineData.Set("color", colorField[1])
+
+	for _, val := range list {
+
+		datasC2 = append(datasC2, []float64{val.GetFloat64("_id"), val.GetFloat64("production")}) 
+	}
+
+	if len(datasC2) > 0 {
+		turbineData.Set("data", datasC2)
+	}
+
+	dataSeries = append(dataSeries, turbineData)
+
+
+
+
+
+
+
+
+	data := struct {
+		Data []tk.M
+	}{
+		Data: dataSeries,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
