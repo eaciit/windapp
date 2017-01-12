@@ -273,7 +273,7 @@ func (w *PageController) Monitoring(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring.html"
 	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-monitoring.html"}...)
-	return w.GetParams(r, false)
+	return w.GetParams(r, true)
 }
 
 func (w *PageController) Dashboard(r *knot.WebContext) interface{} {

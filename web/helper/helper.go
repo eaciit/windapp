@@ -2,6 +2,7 @@ package helper
 
 import (
 	. "eaciit/wfdemo-git/library/core"
+	md "eaciit/wfdemo-git/library/models"
 	"errors"
 	"fmt"
 	"io"
@@ -612,7 +613,7 @@ func GetTurbineList(project string) (result []string, e error) {
 	var filter []*dbox.Filter
 
 	if project != "" {
-		filter = append(filter, dbox.Eq("project", project))
+		filter = append(filter, dbox.In("project", project))
 	}
 
 	csr, e := DB().Connection.
@@ -633,6 +634,48 @@ func GetTurbineList(project string) (result []string, e error) {
 		result = append(result, val.GetString("turbineid"))
 	}
 	sort.Strings(result)
+
+	return
+}
+
+func GetProjectTurbineList(projects []interface{}) (result map[string]toolkit.M, sortedKey []string, e error) {
+	var filter []*dbox.Filter
+	result = map[string]toolkit.M{}
+	sortedKey = []string{}
+
+	if len(projects) > 0 {
+		filter = append(filter, dbox.In("project", projects...))
+	}
+
+	csr, e := DB().Connection.
+		NewQuery().
+		From(new(md.TurbineMaster).TableName()).
+		Where(filter...).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []md.TurbineMaster{}
+	e = csr.Fetch(&data, 0, false)
+
+	keys := []string{}
+
+	for _, val := range data {
+		list := toolkit.M{}
+
+		if result[val.Project] != nil {
+			list = result[val.Project]
+		} else {
+			keys = append(keys, val.Project)
+		}
+		list.Set(val.TurbineId, val)
+		result[val.Project] = list
+	}
+
+	sort.Strings(keys)
 
 	return
 }
