@@ -6,7 +6,7 @@ var page = viewModel.AnalyticPowerCurve;
 page.idName = ko.observable("");
 page.powerCurveOptions = ko.observable();
 
-page.ExportPowerCurvePdf = function() {
+page.ExportIndividualMonthPdf = function() {
     var chart = $("#powerCurve").getKendoChart();
     var container = $('<div />').css({
         position: 'absolute',
