@@ -26,8 +26,8 @@ page.ExportIndividualMonthPdf = function() {
     });
 }
 
-vm.currentMenu('Power Curve');
-vm.currentTitle('Power Curve');
+vm.currentMenu('Individual Month');
+vm.currentTitle('Individual Month');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'

@@ -406,7 +406,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 
 	var (
 		pipes      []tk.M
-		filter     []*dbox.Filter
 		list       []tk.M
 		dataSeries []tk.M
 	)
@@ -454,10 +453,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 
 	selArr := 0
 
+	var filter []*dbox.Filter
 	filter = nil
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+	filter = append(filter, dbox.Lt("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
 	filter = append(filter, dbox.Gt("power", 0))
 	filter = append(filter, dbox.Eq("oktime", 600))
@@ -465,7 +465,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		filter = append(filter, dbox.Eq("projectname", project))
 	}
 	if len(p.Turbine) > 0 {
-		filter = append(filter, dbox.In("turbine", p.Turbine))
+		filter = append(filter, dbox.In("turbine", p.Turbine...))
 	}
 
 	csr, e := DB().Connection.NewQuery().
@@ -479,6 +479,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	}
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	ids := tk.M{}
 	lastMonth := ""
