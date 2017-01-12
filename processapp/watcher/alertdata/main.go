@@ -385,7 +385,7 @@ func doprocess(file string) (success bool) {
 	defer _file.Close()
 	scanner := bufio.NewScanner(_file)
 	for scanner.Scan() {
-		sdata <- scanner.Text()
+		sdata <- tk.Sprintf("%s,%d", scanner.Text(), asend+1)
 		asend++
 	}
 	close(sdata)
@@ -437,7 +437,9 @@ func workersave(wi int, jobs <-chan string, result chan<- int, msalarmbrake *tk.
 		}
 		_ddata := strings.Split(_fdata[2], ".")
 
-		_erh.ProjectName = _fdata[1]
+		// _erh.ProjectName = _fdata[1]
+		_erh.ProjectName = "Tejuva"
+
 		_erh.Turbine = _ddata[1]
 		_erh.TimeStamp, _ = time.Parse("02-Jan-2006 15:04:05", _fdata[0])
 		_erh.DateInfo = helper.GetDateInfo(_erh.TimeStamp)
@@ -460,8 +462,8 @@ func workersave(wi int, jobs <-chan string, result chan<- int, msalarmbrake *tk.
 		_erh.AlarmId = tk.ToInt(ialarmid, tk.RoundingAuto)
 		_erh.BrakeType = _msabrake.GetString("type")
 
-		_erh.ID = tk.Sprintf("%s#%s#%s#%d#%s", _erh.TimeStamp.Format("20060102_150405.000"),
-			_erh.ProjectName, _erh.Turbine, _erh.AlarmId, _erh.EventType)
+		_erh.ID = tk.Sprintf("%s#%s#%s#%d#%s#%d", _erh.TimeStamp.Format("20060102_150405.000"),
+			_erh.ProjectName, _erh.Turbine, _erh.AlarmId, _erh.EventType, _fdata[4])
 
 		return
 	}
