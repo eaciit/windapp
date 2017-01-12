@@ -135,6 +135,9 @@ vm.breadcrumb([{
     href: '#'
 }, {
     title: 'Power Curve',
+    href: '#'
+}, {
+    title: 'Power Curve',
     href: viewModel.appName + 'page/analyticpowercurve'
 }]);
 
