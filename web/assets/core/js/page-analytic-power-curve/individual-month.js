@@ -63,6 +63,22 @@ var dataTurbine
 
 page.dataPCEachTurbine = ko.observableArray([]);
 var listOfChart = [];
+var listOfButton = {};
+var listOfCategory = [];
+
+page.showHideLegend = function (index) {
+    var idName = "btn" + index;
+    listOfButton[idName] = !listOfButton[idName];
+    if (listOfButton[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': listOfCategory[index].color, 'border-color': listOfCategory[index].color });
+    }
+    $.each(listOfChart, function (idx, idChart) {
+        $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+        $(idChart).data("kendoChart").refresh();
+    });
+}
 
 page.LoadData = function() {
     fa.LoadData();
@@ -78,13 +94,30 @@ page.LoadData = function() {
                 return;
             }
             if (res.data.Data != null) {
-                localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
+                if (res.data.Data.length > 30) {
+                    var msg = {"success": false, "message": "Slow connection, please try again later"};
+                    app.loading(app.isFine(msg));
+                    return;
+                }
                 page.dataPCEachTurbine(res.data.Data);
                 page.InitLinePowerCurve();
             }
-
+            if (res.data.Category != null) {
+                listOfCategory = res.data.Category;
+                $("#legend-list").html("");
+                listOfButton = {};
+                $.each(listOfCategory, function (idx, val) {
+                    var idName = "btn" + idx;
+                    listOfButton[idName] = true;
+                    $("#legend-list").append(
+                        '<button id="' + idName + 
+                        '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
+                        val.color + ';background-color:' + val.color + ';"></button>' +
+                        '<span class="span-legend">' + val.category + '</span>'
+                    );
+                });
+            }
             app.loading(false);
-
         })
     }, 300);
 }

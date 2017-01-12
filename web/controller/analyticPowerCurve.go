@@ -486,13 +486,21 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	var datas [][]float64
 	results := []tk.M{}
 	dataSeries = append(dataSeries, pcData)
+	monthIndex := tk.M{}
+	splitMonth := []string{}
+	simpleMonth := ""
 	for i, listVal := range list {
 		ids, _ = tk.ToM(listVal["_id"])
 
-		if lastMonth != "" && lastMonth != ids.GetString("monthdesc") {
+		/*if lastMonth is different with current month so append as new line (hair)*/
+		if (lastMonth != "" && lastMonth != ids.GetString("monthdesc")) || i == len(list)-1 {
 			selArr++
+			splitMonth = strings.Split(lastMonth, " ")
+			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
+
+			/*month data is monthly data per turbine*/
 			monthData := tk.M{}
-			monthData.Set("name", strings.Join(strings.Split(ids.GetString("monthdesc"), " "), ""))
+			monthData.Set("name", strings.Join(splitMonth, "")) /*it will be january2016, february2016, and so on*/
 			monthData.Set("type", "scatterLine")
 			monthData.Set("style", "smooth")
 			monthData.Set("dashType", "solid")
@@ -501,22 +509,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			monthData.Set("color", colorField[selArr])
 			monthData.Set("idxseries", selArr)
 
+			/*month index is list of month and its index*/
+			monthIndex.Set(tk.ToString(selArr), simpleMonth)
+
 			if len(datas) > 0 {
+				/*set data (power per windspeed) for each line*/
 				monthData.Set("data", datas)
 			}
 			dataSeries = append(dataSeries, monthData)
-			datas = [][]float64{}
+			datas = [][]float64{} /*clear variable for next data*/
 		}
 
+		/*if lastTubrine is different with current turbine so append as new chart*/
 		if (lastTurbine != "" && lastTurbine != ids.GetString("Turbine")) || i == len(list)-1 {
 			turbineData := tk.M{
-				"Name": lastTurbine,
+				"Name": lastTurbine, /*for chart name*/
 				"Data": dataSeries,
 			}
 			results = append(results, turbineData)
-			dataSeries = []tk.M{}
+			dataSeries = []tk.M{} /*clear variable for nex data*/
 			selArr = 0
-			dataSeries = append(dataSeries, pcData)
+			dataSeries = append(dataSeries, pcData) /*always append expected value at beginning*/
 		}
 
 		datas = append(datas, []float64{ids.GetFloat64("colId"), listVal.GetFloat64("production")})
@@ -525,10 +538,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		lastTurbine = ids.GetString("Turbine")
 	}
 
+	sortedIndex := []int{}
+	for key := range monthIndex {
+		sortedIndex = append(sortedIndex, tk.ToInt(key, tk.RoundingAuto))
+	}
+	sort.Ints(sortedIndex)
+
+	categoryList := []tk.M{}
+	catList := tk.M{"category": "Power Curve", "color": "#ff880e"}
+	categoryList = append(categoryList, catList)
+
+	for _, idx := range sortedIndex {
+		catList = tk.M{"category": monthIndex.GetString(tk.ToString(idx)), "color": colorField[idx]}
+		categoryList = append(categoryList, catList)
+	}
+
 	data := struct {
-		Data []tk.M
+		Data     []tk.M
+		Category []tk.M
 	}{
-		Data: results,
+		Data:     results,
+		Category: categoryList,
 	}
 
 	return helper.CreateResult(true, data, "success")
