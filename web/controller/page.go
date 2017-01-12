@@ -136,6 +136,14 @@ func (w *PageController) AnalyticPowerCurve(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) AnalyticPCMonthly(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-power-curve/individual-month.html"
+
+	return w.GetParams(r, true)
+}
+
 /*func (w *PageController) AnalyticDgrScada(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
