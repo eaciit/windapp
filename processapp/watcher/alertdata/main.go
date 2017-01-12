@@ -462,7 +462,7 @@ func workersave(wi int, jobs <-chan string, result chan<- int, msalarmbrake *tk.
 		_erh.AlarmId = tk.ToInt(ialarmid, tk.RoundingAuto)
 		_erh.BrakeType = _msabrake.GetString("type")
 
-		_erh.ID = tk.Sprintf("%s#%s#%s#%d#%s#%d", _erh.TimeStamp.Format("20060102_150405.000"),
+		_erh.ID = tk.Sprintf("%s#%s#%s#%d#%s#%s", _erh.TimeStamp.Format("20060102_150405.000"),
 			_erh.ProjectName, _erh.Turbine, _erh.AlarmId, _erh.EventType, _fdata[4])
 
 		return
