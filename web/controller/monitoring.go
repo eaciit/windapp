@@ -24,25 +24,27 @@ func CreateMonitoringController() *MonitoringController {
 func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	p := new(PayloadAnalytic)
+	p := tk.M{}
 	e := k.GetPayload(&p)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	turbine := p.Turbine
+	turbine := p.Get("turbine").([]interface{})
 	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
+	if p.GetString("project") != "" {
+		anProject := strings.Split(p.GetString("project"), "(")
 		project = strings.TrimRight(anProject[0], " ")
 	}
+
+	// log.Printf("%#v \n", project)
 
 	match := tk.M{}
 	turbines := map[string]tk.M{}
 	var projectList []interface{}
 	if project != "" {
-		match.Set("projectname", project)
+		match.Set("project", project)
 		projectList = append(projectList, project)
 	}
 
@@ -51,6 +53,8 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	if len(turbine) > 0 {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))
 	}
+
+	// log.Printf("%#v \n", match)
 
 	group := tk.M{
 		"_id": tk.M{
