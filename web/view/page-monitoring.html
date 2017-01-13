@@ -2,208 +2,86 @@
     app.currentDateData = '{{.CurrentDateData}}';
 </script>
 <script src="{{BaseUrl}}res/core/js/page-monitoring.js?ANTI_CACHE={{.AntiCache}}"></script>
-<style type="text/css">
-    .dim{
-        color: #31b445;
-    }
-    .red{
-        color: #e91e3a;
-    }
-    .bold{
-        text-weight:bold;
-    }
-    .summary{
-        font-size: 16px;
-    }
-    .table-sum{
-        margin-bottom: 10px;
-        margin-top: 10px;
-    }
-    .table-sum, .table-sum>tbody>tr>td, .table-sum>tbody>tr>th, .table-sum>tfoot>tr>td, .table-sum>tfoot>tr>th, .table-sum>thead>tr>td, .table-sum>thead>tr>th {
-        border: 0px solid #f4f4f4;
-    }
-    .table-sum>tbody>tr>td, .table-sum>tbody>tr>th, .table-sum>tfoot>tr>td, .table-sum>tfoot>tr>th, .table-sum>thead>tr>td, .table-sum>thead>tr>th {
-        border-top: 0px solid #ffffff;
-        /*border-right: 2px solid #eee;*/
-        padding: 0px;
-    }
-    .no-border{
-        border-right:0px solid #eee;
-    }
-    .gauge-custom{
-        margin-bottom: -35px;
-        margin-top: -40px;
-    }
-    .align-left{
-        text-align: left;
-        padding-left: 5px !important;
-        font-size: 10px;
-    }
-</style>
-<div>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<div class="row">
     <div class="row">
-        {{template "_filter-monitoring.html"}}
         <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <div class="col-md-1 col-sm-1 time-info-div">
+                        <div class = "time-info">20:30</div>
+                        <span>20 Sep 2016</span>
+                    </div>
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: monitoring.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                    <label class="col-md-1 col-sm-1 control-label label-filter" >Turbine</label>
+                    <select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: monitoring.turbineList(), dataValueField: 'value', dataTextField: 'text', change: function() {monitoring.checkTurbine()}, suggest: true }"
+                    style="width:250px">
+                    </select>&nbsp;
+                    <button class="btn btn-sm btn-primary" id="btnRefresh"><i class="fa fa-refresh"></i> Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore mb-5">
                     <div class="panel-heading">           
-                        <div>
-                            
-                                
-                                <!--<select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoMultiSelect: { data: fa.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
-                                    style="width:145px">
-                                </select>&nbsp;
-                                <div class="small-screen">&nbsp;</div>
-                                <select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: fa.turbineList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
-                                    style="width:120px">
-                                </select>&nbsp;
-                                <div class="search-btn-line">&nbsp;</div>
-				                <button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>-->
-                            
-                        </div>             
                         <div class="pull-right maximize-btn">
                             <i class="fa fa-window-maximize tooltipster tooltipstered pull-right" aria-hidden="true" title="maximize screen" style="cursor: pointer;" id="max-screen"></i>
                             <i class="fa fa-window-restore tooltipster tooltipstered pull-right" aria-hidden="true" title="restore screen" style="cursor: pointer;" id="restore-screen"></i>
                         </div>
                     </div>
                     <div class="panel-body" style="text-align:center">                        
-                        <div class="col-md-12">
-                            <div class="col-md-3">
-                                <!--<form class="form-inline">
-                                    <div class="form-group">
-                                        <label class="sr-only" for="exampleInputAmount">Amount (in dollars)</label>
-                                        <div class="input-group">
-                                        <div class="input-group-addon">$</div>
-                                        <input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount">
-                                        <div class="input-group-addon">.00</div>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Transfer cash</button>
-                                </form>-->
+                        <div class="col-md-12 multicol-div">
+                            <div class="col-md-4 multicol" data-bind="foreach:monitoring.data">
                                 <table class="table table-condensed table-sum">
                                     <thead>
                                         <tr>
-                                            <td width="20%">Turbines</td>
-                                            <td width="20%">Capacity(MW)</td>
-                                            <td width="20%">WS Avg.(m/s)</td>
-                                            <td width="20%">Prod(MWh)</td>
+                                            <td width="25%" data-bind="text:project"></td>
+                                            <td width="25%">Capacity(MW)</td>
+                                            <td width="25%">WS Avg.(m/s)</td>
+                                            <td width="25%">Prod(MWh)</td>
                                         </tr>
                                     </thead>
                                     <tbody class="bold summary">
                                         <tr>
-                                            <td>24</td>
-                                            <td>40 / <span class="dim">50.4</span></td>
-                                            <td>5.7 / <span class="dim">6</span></td>
-                                            <td>120 / <span class="dim">150</span></td>
+                                            <td> <span data-bind="text:kendo.toString(totalturbines,'n0')"></span></td>
+                                            <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span>/ <span class="dim">50.4</span></td>
+                                            <td> <span data-bind="text:kendo.toString(totalwsavg,'n1')"></span> / <span class="dim">6</span></td>
+                                            <td> <span data-bind="text:kendo.toString(totalprod,'n1')"></span> / <span class="dim">150</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
                                 <table class="table table-condensed table-detail">
                                     <thead class="bold">
                                         <tr>
-                                            <td width="10%">Tejuva</td>
-                                            <td><i class="fa fa-flash tooltipster" title="Production"></i></td>
-                                            <td><i class="fa fa-tachometer tooltipster" title="Wind Speed"></i></td>
-                                            <td><i class="fa fa-line-chart tooltipster" title="Performance Index"></i></td>
-                                            <td><i class="fa fa-gears tooltipster" title="Machine Availability(%)"></i></td>
-                                            <td><i class="fa fa-th tooltipster" title="Grid Availability(%)"></i></td>
-                                            <td><i class="fa fa-bell tooltipster" title="Alarm/Errors"></i></td>
-                                            <td><i class="fa fa-warning tooltipster" title="Warning"></i></td>                                            
+                                            <td width="25%">Timestamp</td>
+                                            <td width="25%" data-bind="text:project"></td>
+                                            <td width="10%"><i class="fa fa-flash tooltipster tooltipstered" title="Production"></i></td>
+                                            <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="Wind Speed"></i></td>
+                                            <td width="10%"><i class="fa fa-line-chart tooltipster tooltipstered" title="Rotor RPM"></i></td>
+                                            <td width="10%"><i class="fa fa-bell tooltipster tooltipstered" title="Status"></i></td>
+                                            <td width="10%"><i class="fa fa-edit tooltipster tooltipstered" title="Status Code"></i></td>                                            
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody data-bind="foreach:$data.turbines">
                                         <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
-                                        </tr>
-                                        <tr>
-                                            <td>TJW001</td>
-                                            <td>80</td>
-                                            <td>10</td>
-                                            <td>70</td>
-                                            <td>90</td>
-                                            <td>90</td>
-                                            <td><i class="fa fa-circle dim"></i></td>
-                                            <td><i class="fa fa-circle red"></i></td>                                            
+                                            <td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>
+                                            <td data-bind="text:turbine"></td>
+                                            <td data-bind="text:kendo.toString(production,'n1')"></td>
+                                            <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
+                                            <td data-bind="text:kendo.toString(rotorspeedrpm,'n1')"></td>
+                                            <td data-bind="attr : {class: (status == 'break') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
+                                            <td data-bind='text: (statusdesc == "") ? "-" : statusdesc'></td>
+                                            <td></td>                                          
                                         </tr>
                                     </tbody>
                                 </table>
+                                <hr>
                             </div>
                         </div>
                     </div>
@@ -212,3 +90,7 @@
         </div>
     </div>
 </div>
+<script>
+    monitoring.populateTurbine({{.TurbineList}});
+    monitoring.populateProject({{.ProjectList}});
+</script>

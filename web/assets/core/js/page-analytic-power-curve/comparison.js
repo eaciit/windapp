@@ -1,7 +1,7 @@
 'use strict';
 
-vm.currentMenu('Power Curve');
-vm.currentTitle('Power Curve');
+vm.currentMenu('Comparison');
+vm.currentTitle('Comparison');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
@@ -46,6 +46,7 @@ pc.InitFirst = function () {
                 pc.turbineList([{ value: "", text: "" }]);
             } else {
                 var datavalue = [];
+                var dataturbine = [];
                 if (res.data.length > 0) {
                     var allturbine = {}
                     $.each(res.data, function (key, val) {
@@ -59,9 +60,11 @@ pc.InitFirst = function () {
                         data.value = val;
                         data.text = val;
                         datavalue.push(data);
+                        dataturbine.push(val);
                     });
                 }
                 pc.turbineList(datavalue);
+                pc.turbine(dataturbine);
             }
         }),
         app.ajaxPost(viewModel.appName + "/helper/getprojectlist", {}, function (res) {
@@ -102,6 +105,7 @@ pc.populateTurbine = function (data) {
         pc.turbineList([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
+        var dataturbine = [];
         if (data.length > 0) {
             var allturbine = {}
             $.each(data, function (key, val) {
@@ -115,9 +119,11 @@ pc.populateTurbine = function (data) {
                 data.value = val;
                 data.text = val;
                 datavalue.push(data);
+                dataturbine.push(val);
             });
         }
         pc.turbineList(datavalue);
+        pc.turbine(dataturbine);
     }
 
     setTimeout(function () {
@@ -319,15 +325,10 @@ pc.showHidePeriod2 = function (callback) {
     }, 50);
 }
 
-pc.DateChange = function (id) {
-    fa.dateStart = $('#' + id).data('kendoDatePicker').value();
-    fa.dateEnd = $('#' + id).data('kendoDatePicker').value();
-
-    fa.dateStart = new Date(Date.UTC(fa.dateStart.getFullYear(), fa.dateStart.getMonth(), fa.dateStart.getDate(), 0, 0, 0));
-    fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
-}
 
 pc.InitDefaultValue = function () {
+    $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
 
@@ -335,59 +336,200 @@ pc.InitDefaultValue = function () {
     $("#periodList2").data("kendoDropDownList").trigger("change");
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0, 0));
     var lastEndDate = new Date(app.toUTC(maxDateData));
+
+    var dateEnd2 = new Date(Date.UTC(moment(lastStartDate).get('year'), lastStartDate.getMonth(), lastStartDate.getDate()-30, 0, 0, 0, 0));
+    var dateStart2 =new Date(Date.UTC(moment(dateEnd2).get('year'), dateEnd2.getMonth(), dateEnd2.getDate()-30, 0, 0, 0, 0));
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-    $('#dateEnd2').data('kendoDatePicker').value(lastEndDate);
-    $('#dateStart2').data('kendoDatePicker').value(lastStartDate);
+    $('#dateEnd2').data('kendoDatePicker').value(dateEnd2);
+    $('#dateStart2').data('kendoDatePicker').value(dateStart2);
 }
 pc.initChart = function() {
-     $("#chartPCcomparison").kendoChart({
+        var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
+            p1DateStart = new Date(Date.UTC(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0));
+
+        var p1DateEnd  = $('#dateEnd').data('kendoDatePicker').value();
+            p1DateEnd = new Date(Date.UTC(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0));
+
+        var p2DateStart = $('#dateStart2').data('kendoDatePicker').value();
+            p2DateStart = new Date(Date.UTC(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0));
+
+        var p2DateEnd  = $('#dateEnd2').data('kendoDatePicker').value();
+            p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        })
+
+        var link = "analyticpowercurve/getlistpowercurvecomparison"
+
+        app.loading(true);
+        var param = {
+            PC1Period       : $('#periodList').data('kendoDropDownList').value(),
+            PC1Project      :  $("#projectList1").data("kendoDropDownList").value(),
+            PC1Turbine      :  $("#turbineList1").data('kendoMultiSelect').value()[0] == "All Turbine" || $("#turbineList1").data('kendoMultiSelect').value()[0] == undefined ? pc.turbine() : $("#turbineList1").data('kendoMultiSelect').value(),
+            PC1DateStart    : p1DateStart,
+            PC1DateEnd      : p1DateEnd,
+
+            PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
+            PC2Project      :  $("#projectList2").data("kendoDropDownList").value(),
+            PC2Turbine      : $("#turbineList2").data('kendoMultiSelect').value()[0] == "All Turbine" || $("#turbineList2").data('kendoMultiSelect').value()[0] == undefined  ? pc.turbine() : $("#turbineList2").data('kendoMultiSelect').value(),
+            PC2DateStart    : p2DateStart,
+            PC2DateEnd      : p2DateEnd
+
+        };
+
+        toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
+            if (!app.isFine(res)) {
+                app.loading(false);
+                return;
+            }
+            
+            var dataTurbine = res.data.Data;
+
+            
+            $('#chartPCcomparison').html("");
+            $("#chartPCcomparison").kendoChart({
+                pdf: {
+                  fileName: "DetailPowerCurve.pdf",
+                },
+                theme: "flat",
+                renderAs: "canvas",
+                title: {
+                    text: "Power Curves",
+                    visible: false,
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
                 legend: {
-                    visible: false
+                    position: "bottom",
+                    visible: false,
+                },
+                chartArea: {
+                    height: 375,
                 },
                 seriesDefaults: {
                     type: "scatterLine",
-                    style: "smooth"
+                    style: "smooth",
+                    dashType: "longDash",
+                    markers: {
+                        visible: false,
+                        size: 4,
+                    },
                 },
-                series: [{
-                    name: "Condition 1",
-                    data: [[0, 0],[10, 10], [15, 20], [20, 25], [32, 15], [43, 50], [55, 30], [60, 70], [70, 50], [90, 100]]
-                }, {
-                    name: "Condition 2",
-                    data: [[0, 0],[10, 12], [17, 16], [22, 29], [35, 33], [47, 46], [60, 52], [60, 64], [70, 74], [90, 85]]
+                seriesColors: colorField,
+                series: dataTurbine,
+                categoryAxis: {
+                    labels: {
+                        step: 1
+                    }
+                },
+                valueAxis: [{
+                    labels: {
+                        format: "N0",
+                    }
                 }],
                 xAxis: {
-                    max: 90,
-                    labels: {
-                       format: "N1",
-                    },
+                    majorUnit: 1,
                     title: {
-                        text: "Wind Speed (m/s)"
-                    }
+                        text: "Wind Speed (m/s)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        color: "#585555",
+                        visible: true,
+                    },
+                    crosshair: {
+                        visible: true,
+                        tooltip: {
+                            visible: true,
+                            format: "N1",
+                            background: "rgb(255,255,255, 0.9)",
+                            color: "#58666e",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            border: {
+                                color: "#eee",
+                                width: "2px",
+                            },
+                        }
+                    },
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    max: 25
                 },
                 yAxis: {
-                    max: 100,
-                    labels: {
-                        format: "N1",
-                    },
                     title: {
-                        text: "Generation (KW)"
-                    }
+                        text: "Generation (KW)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        color: "#585555"
+                    },
+                    labels: {
+                        format: "N0",
+                    },
+                    axisCrossingValue: -5,
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    crosshair: {
+                        visible: true,
+                        tooltip: {
+                            visible: true,
+                            format: "N1",
+                            background: "rgb(255,255,255, 0.9)",
+                            color: "#58666e",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            border: {
+                                color: "#eee",
+                                width: "2px",
+                            },
+                        }
+                    },
                 },
                 tooltip: {
                     visible: true,
-                }
+                    template: "#= series.name #",
+                    shared: true,
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                },
+                pannable: true,
+                zoomable: true
             });
+            app.loading(false);
+            $("#chartPCcomparison").data("kendoChart").refresh();
 
-    app.loading(false);
+            
+        });
+
+
 }
 
 
 
 $(document).ready(function () {
+    $('#btnRefresh').on('click', function() {
+        app.loading(true);
+        setTimeout(function() {
+            pc.initChart()
+        }, 300);
+    });
+
     app.loading(true);
     pc.InitDefaultValue();
     pc.initChart();
