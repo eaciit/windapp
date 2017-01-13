@@ -769,12 +769,13 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		project = strings.TrimRight(anProject[0], " ")
 	}
 	pcData, e := getPCData(project)
+	pcData.Set("axis", "powerAxis")
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	dataSeries = append(dataSeries, pcData)
 	dVal := (20.0 / 100.0)
-	selArr := 0
+
 	var filter []*dbox.Filter
 	filter = []*dbox.Filter{}
 	filter = append(filter, dbox.Ne("_id", ""))
@@ -806,29 +807,91 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	turbineData.Set("colorField", "valueColor")
 	turbineData.Set("type", "scatter")
 	turbineData.Set("markers", tk.M{"size": 2})
+	turbineData.Set("axis", "powerAxis")
 
 	datas := tk.M{}
 	arrDatas := []tk.M{}
-	selArr++
+	tempData := tk.M{}
+	tempDatas := []tk.M{}
+	pitchData := tk.M{}
+	pitchDatas := []tk.M{}
 	for _, val := range list {
 		datas = tk.M{}
+		tempData = tk.M{}
+		pitchData = tk.M{}
 
 		if val.AvgWindSpeed > 0 && val.Power > 0 {
 
 			datas.Set("WindSpeed", val.AvgWindSpeed)
 			datas.Set("Power", val.Power)
 			if val.DeviationPct <= dVal {
-				datas.Set("valueColor", colorFieldDegradation[selArr])
+				datas.Set("valueColor", colorFieldDegradation[1])
 			} else {
-				datas.Set("valueColor", colorField[selArr])
+				datas.Set("valueColor", colorField[1])
 			}
 
 			arrDatas = append(arrDatas, datas)
+		}
+
+		switch p.ScatterType {
+		case "temp":
+			if val.AvgWindSpeed > 0 && val.NacelleTemperature > 0 {
+				tempData.Set("WindSpeed", val.AvgWindSpeed)
+				tempData.Set("Temperature", val.NacelleTemperature)
+				if val.DeviationPct <= dVal {
+					tempData.Set("valueColor", colorFieldDegradation[2])
+				} else {
+					tempData.Set("valueColor", colorField[2])
+				}
+
+				tempDatas = append(tempDatas, tempData)
+			}
+		case "pitch":
+			if val.AvgWindSpeed > 0 && val.AvgBladeAngle > 0 {
+				pitchData.Set("WindSpeed", val.AvgWindSpeed)
+				pitchData.Set("Pitch", val.AvgBladeAngle)
+				if val.DeviationPct <= dVal {
+					pitchData.Set("valueColor", colorFieldDegradation[2])
+				} else {
+					pitchData.Set("valueColor", colorField[2])
+				}
+
+				pitchDatas = append(pitchDatas, pitchData)
+			}
 		}
 	}
 
 	turbineData.Set("data", arrDatas)
 	dataSeries = append(dataSeries, turbineData)
+
+	switch p.ScatterType {
+	case "temp":
+		/*set data series*/
+		seriesData := tk.M{
+			"name":       "Scatter-temperature",
+			"xField":     "WindSpeed",
+			"yField":     "Temperature",
+			"colorField": "valueColor",
+			"type":       "scatter",
+			"markers":    tk.M{"size": 2},
+			"axis":       "tempAxis",
+			"data":       tempDatas,
+		}
+		dataSeries = append(dataSeries, seriesData)
+
+	case "pitch":
+		seriesData := tk.M{
+			"name":       "Scatter-pitch",
+			"xField":     "WindSpeed",
+			"yField":     "Pitch",
+			"colorField": "valueColor",
+			"type":       "scatter",
+			"markers":    tk.M{"size": 2},
+			"axis":       "pitchAxis",
+			"data":       pitchDatas,
+		}
+		dataSeries = append(dataSeries, seriesData)
+	}
 
 	data := struct {
 		Data []tk.M
