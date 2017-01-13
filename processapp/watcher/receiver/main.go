@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/eaciit/database/base"
 	"github.com/eaciit/orm"
@@ -21,9 +22,10 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"bytes"
+
+	"eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
-	"time"
 
 	tk "github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
@@ -393,6 +395,7 @@ func doProcess(file string) (success bool) {
 			tk.Println(err)
 		} else {
 			UpdateLastHFDAvail()
+			UpdateLastMonitoring()
 			tk.Println(">> DONE <<")
 		}
 	}
@@ -401,6 +404,9 @@ func doProcess(file string) (success bool) {
 }
 
 func UpdateLastHFDAvail() {
+
+	_nt0 := time.Now()
+	tk.Println("Start Update Last HDF Available ...")
 
 	var workerconn dbox.IConnection
 	for {
@@ -464,42 +470,162 @@ func UpdateLastHFDAvail() {
 		From("LatestDataPeriod").
 		SetConfig("multiexec", true).
 		Save().Exec(tk.M{}.Set("data", _dt))
+
+	tk.Println(" >>> End Update Last HDF Available in ", time.Since(_nt0).String())
 }
 
-// func PrepareConnection() (dbox.IConnection, error) {
-// 	ci := &dbox.ConnectionInfo{config["host"], config["database"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
-// 	c, e := dbox.NewConnection("mongo", ci)
+func UpdateLastMonitoring() {
+	_nt0 := time.Now()
+	tk.Println(" >>> Start Update Last Monitoring ...")
 
-// 	if e != nil {
-// 		return nil, e
-// 	}
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
 
-// 	e = c.Connect()
-// 	if e != nil {
-// 		return nil, e
-// 	}
+	var sworkerconn dbox.IConnection
+	for {
+		var err error
+		sworkerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer sworkerconn.Close()
 
-// 	return c, nil
-// }
+	type latestdataperiod struct {
+		ID          bson.ObjectId ` bson:"_id" , json:"_id" `
+		Projectname string
+		Type        string
+		Data        []time.Time
+	}
 
-// func ReadConfig() map[string]string {
-// 	ret := make(map[string]string)
-// 	file, err := os.Open("../conf" + separator + "app.conf")
-// 	if err == nil {
-// 		reader := bufio.NewReader(file)
-// 		for {
-// 			line, _, e := reader.ReadLine()
-// 			if e != nil {
-// 				break
-// 			}
+	csr, err := workerconn.NewQuery().
+		Select().
+		From("LatestDataPeriod").
+		Where(dbox.Eq("type", "ScadaDataHFD")).
+		Cursor(nil)
 
-// 			sval := strings.Split(string(line), "=")
-// 			ret[sval[0]] = sval[1]
-// 		}
-// 	} else {
-// 		tk.Println(err.Error())
-// 	}
+	if err != nil || csr.Count() == 0 {
+		return
+	}
 
-// 	file.Close()
-// 	return ret
-// }
+	_dt := new(latestdataperiod)
+
+	_ = csr.Fetch(_dt, 1, false)
+	csr.Close()
+
+	speriode := _dt.Data[1].AddDate(0, 0, -1)
+	eperiode := _dt.Data[1]
+
+	msmonitor := PrepareMasterMonitoring()
+	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
+	xcsr, err := workerconn.NewQuery().
+		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm").
+		From(new(ScadaConvTenMin).TableName()).
+		Where(dbox.And(dbox.Lte("timestamp", eperiode), dbox.Gt("timestamp", speriode))).
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	sqsave := sworkerconn.NewQuery().
+		From(new(Monitoring).TableName()).
+		SetConfig("multiexec", true).
+		Save()
+
+	for {
+		_tkm := tk.M{}
+		err = xcsr.Fetch(&_tkm, 1, false)
+		if err != nil {
+			break
+		}
+
+		_timestamp := _tkm.Get("timestamp", time.Time{}).(time.Time)
+		_key := tk.Sprintf("%s#%s#%s",
+			_tkm.GetString("projectname"),
+			_tkm.GetString("turbine"),
+			_timestamp.Format("060102_150405"),
+		)
+		_monitor := Monitoring{}
+
+		if _mo, _bo := msmonitor[_key]; _bo {
+			_monitor = _mo
+		}
+
+		_monitor.ID = _key
+		_monitor.TimeStamp = _timestamp
+		_monitor.DateInfo = helper.GetDateInfo(_timestamp)
+		_monitor.LastUpdate = _nt0
+		_monitor.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
+		_monitor.Project = _tkm.GetString("projectname")
+		_monitor.Turbine = _tkm.GetString("turbine")
+
+		_monitor.Production = (_tkm.GetFloat64("fast_activepower_kw") / 1000) / 6
+		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
+		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
+
+		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
+
+	}
+	xcsr.Close()
+
+	_ = workerconn.NewQuery().
+		Delete().
+		Where(dbox.Lte("timestamp", speriode)).
+		Exec(nil)
+
+	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
+}
+
+func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
+	_mnt = make(map[string]Monitoring)
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	xcsr, err := workerconn.NewQuery().
+		Select().
+		From(new(Monitoring).TableName()).
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	defer xcsr.Close()
+
+	for {
+		_amnt := Monitoring{}
+		err = xcsr.Fetch(&_amnt, 1, false)
+		if err != nil {
+			break
+		}
+
+		_mnt[_amnt.ID] = _amnt
+	}
+
+	return
+}
