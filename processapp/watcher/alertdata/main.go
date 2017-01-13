@@ -451,13 +451,19 @@ func workersave(wi int, jobs <-chan string, result chan<- int, msalarmbrake *tk.
 			ialarmid = _fdata[3]
 		}
 
-		if !msalarmbrake.Has(ialarmid) {
-			ialarmid = "999"
-		}
+		// if !msalarmbrake.Has(ialarmid) {
+		// 	ialarmid = "999"
+		// }else{
+
+		// }
 
 		_msabrake := msalarmbrake.Get(ialarmid, tk.M{}).(tk.M)
 
 		_erh.BrakeProgram = _msabrake.GetInt("brakeprogram")
+		if !msalarmbrake.Has(ialarmid) {
+			_erh.BrakeProgram = 999
+		}
+
 		_erh.AlarmDescription = _msabrake.GetString("alarmname")
 		_erh.AlarmId = tk.ToInt(ialarmid, tk.RoundingAuto)
 		_erh.BrakeType = _msabrake.GetString("type")
