@@ -24,13 +24,14 @@ type Monitoring struct {
 	GridAvail        float64 // skip
 
 	RotorSpeedRPM float64
-
+	/*===================================*/
 	IsAlarm   bool
 	IsWarning bool
 
-	Status     string
-	StatusCode string
-	StatusDesc string
+	Type       string // Alarm, Brake, Warning
+	Status     string // ok, brake, N/A
+	StatusCode int    // brake : AlarmID
+	StatusDesc string // brake : AlarmDescription
 }
 
 func (m *Monitoring) New() *Monitoring {
@@ -52,22 +53,20 @@ type MonitoringEvent struct {
 	ID               string ` bson:"_id" , json:"_id" `
 	Project          string
 	Turbine          string
-	TimeStart        time.Time
-	DateInfoStart    DateInfo
-	TimeEnd          time.Time
-	DateInfoEnd      DateInfo
+	TimeStamp        time.Time
+	DateInfo         DateInfo
+	GroupTimeStamp   time.Time
+	AlarmId          int
 	AlarmDescription string
-	Duration         float64
-	Detail           []EventDownDetail
-	DownGrid         bool
-	DownEnvironment  bool
-	DownMachine      bool
 	Type             string // Alarm, Brake, Warning
+	Status           string /// down, up
 }
 
-func (m *MonitoringEvent) New() *MonitoringEvent {
-	timeStartStr := m.TimeStart.Format("060102_150405")
-	m.ID = m.Project + "#" + m.Turbine + "#" + timeStartStr
+func (m MonitoringEvent) New() MonitoringEvent {
+	timestampstr := m.TimeStamp.Format("060102_150405")
+	nowstr := time.Now().Format("060102_150405")
+
+	m.ID = m.Project + "#" + m.Turbine + "#" + timestampstr + "#" + m.AlarmId + "#" + m.Status + "#" + m.Type + "_" + nowstr
 	return m
 }
 
