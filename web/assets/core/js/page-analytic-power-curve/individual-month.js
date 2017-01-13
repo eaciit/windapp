@@ -26,8 +26,8 @@ page.ExportIndividualMonthPdf = function() {
     });
 }
 
-vm.currentMenu('Power Curve');
-vm.currentTitle('Power Curve');
+vm.currentMenu('Individual Month');
+vm.currentTitle('Individual Month');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
@@ -35,7 +35,7 @@ vm.breadcrumb([{
     title: 'Power Curve',
     href: '#'
 }, {
-    title: 'Individual Monthly',
+    title: 'Individual Month',
     href: viewModel.appName + 'page/analyticpcmonthly'
 }]);
 
@@ -67,11 +67,6 @@ page.LoadData = function() {
                 return;
             }
             if (res.data.Data != null) {
-                if (res.data.Data.length > 30) {
-                    var msg = {"success": false, "message": "Slow connection, please try again later"};
-                    app.loading(app.isFine(msg));
-                    return;
-                }
                 page.dataPCEachTurbine(res.data.Data);
                 page.InitLinePowerCurve();
             }
@@ -113,6 +108,28 @@ page.InitLinePowerCurve = function() {
         var name = dataTurbine.Name
         var idChart = "#chart-" + dataTurbine.Name
         listOfChart.push(idChart);
+        var rotation = 300;
+        var heightVal = 250;
+        var isPannable = false;
+        var isZoomable = false;
+        var isTitle = true;
+        var titleFont = '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+        var titleAxisFont = '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+        var labelAxisFont = '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+        var tooltipAxisFont = '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+
+        if (fa.turbine.length == 1) {
+            rotation = 0;
+            heightVal = 400;
+            isPannable = false;
+            isZoomable = false;
+            isTitle = false;
+            var titleFont = '20px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+            var titleAxisFont = '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+            var labelAxisFont = '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+            var tooltipAxisFont = 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
+            $(".power-curve-item").removeClass("col-md-4");
+        }
         
         $(idChart).html("");
         $(idChart).kendoChart({
@@ -123,15 +140,15 @@ page.InitLinePowerCurve = function() {
             renderAs: "canvas",
             title: {
                 text: name,
-                font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                font: titleFont,
+                visible: isTitle
             },
             legend: {
                 position: "bottom",
                 visible: false,
             },
             chartArea: {
-                width: 300,
-                height: 200
+                height: heightVal
             },
             seriesDefaults: {
                 type: "scatterLine",
@@ -158,12 +175,12 @@ page.InitLinePowerCurve = function() {
                 majorUnit: 1,
                 title: {
                     text: "Wind Speed (m/s)",
-                    font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    font: titleAxisFont,
                     color: "#585555",
                     visible: true,
                 },
                 labels: {
-                    font: '8px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    font: labelAxisFont,
                 },
                 crosshair: {
                     visible: true,
@@ -172,7 +189,7 @@ page.InitLinePowerCurve = function() {
                         format: "N1",
                         background: "rgb(255,255,255, 0.9)",
                         color: "#58666e",
-                        font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        font: tooltipAxisFont,
                         border: {
                             color: "#eee",
                             width: "2px",
@@ -189,13 +206,13 @@ page.InitLinePowerCurve = function() {
             yAxis: {
                 title: {
                     text: "Generation (KW)",
-                    font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    font: titleAxisFont,
                     color: "#585555"
                 },
                 labels: {
                     format: "N0",
-                    font: '8px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    rotation: 300,
+                    font: labelAxisFont,
+                    rotation: rotation,
                 },
                 axisCrossingValue: -5,
                 majorGridLines: {
@@ -210,7 +227,7 @@ page.InitLinePowerCurve = function() {
                         format: "N1",
                         background: "rgb(255,255,255, 0.9)",
                         color: "#58666e",
-                        font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        font: tooltipAxisFont,
                         border: {
                             color: "#eee",
                             width: "2px",
@@ -225,14 +242,14 @@ page.InitLinePowerCurve = function() {
                 shared: true,
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
-                font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                font: tooltipAxisFont,
                 border: {
                     color: "#eee",
                     width: "2px",
                 },
             },
-            pannable: true,
-            zoomable: true
+            pannable: isPannable,
+            zoomable: isZoomable
         });
         $(idChart).data("kendoChart").refresh();
     });

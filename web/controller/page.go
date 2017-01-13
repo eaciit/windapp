@@ -152,6 +152,15 @@ func (w *PageController) AnalyticPCComparison(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) AnalyticPCScatter(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-power-curve/scatter.html"
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"page-analytic-power-curve/page-filter-scatter.html"}...)
+
+	return w.GetParams(r, true)
+}
+
 /*func (w *PageController) AnalyticDgrScada(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
