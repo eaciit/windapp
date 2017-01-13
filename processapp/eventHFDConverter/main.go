@@ -32,8 +32,6 @@ func main() {
 	}
 	ctx := orm.New(conn)
 
-	// config := ReadConfig()
-
 	down := NewHFDDownConversion(ctx)
 	down.Run()
 

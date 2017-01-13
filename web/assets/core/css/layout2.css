@@ -1177,8 +1177,25 @@ a:active, a:focus, a:hover {
     border-radius: 0px;
 }
 
-.maximize-mode .dim {
+/*.maximize-mode .dim {
     color: darkgray;
+}*/
+.maximize-mode .multicol{
+    /* Safari and Chrome */
+  -webkit-column-count: 1;
+  -webkit-column-rule: 2px solid #5a5d5f;
+
+  /* Firefox */
+  -moz-column-count: 1; 
+  -moz-column-rule: 2px solid #5a5d5f;
+
+  /* CSS3 */
+  column-count: 1; 
+  column-rule: 2px solid #5a5d5f;
+}
+
+.maximize-mode .multicol hr{
+    border: 1px solid #263238;
 }
 
 .maximize-mode .table-sum {
