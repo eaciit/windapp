@@ -67,11 +67,6 @@ page.LoadData = function() {
                 return;
             }
             if (res.data.Data != null) {
-                if (res.data.Data.length > 30) {
-                    var msg = {"success": false, "message": "Slow connection, please try again later"};
-                    app.loading(app.isFine(msg));
-                    return;
-                }
                 page.dataPCEachTurbine(res.data.Data);
                 page.InitLinePowerCurve();
             }
