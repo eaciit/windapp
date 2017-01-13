@@ -466,8 +466,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		"_id.colId":   1,
 	}})
 
-	selArr := 0
-
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
@@ -483,26 +481,59 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	}
 
 	ids := tk.M{}
-	lastMonth := ""
-	lastTurbine := ""
 	var datas [][]float64
 	results := []tk.M{}
-	dataSeries = append(dataSeries, pcData)
 	monthIndex := tk.M{}
+	monthList := tk.M{}
 	splitMonth := []string{}
 	simpleMonth := ""
-	for i, listVal := range list {
-		ids, _ = tk.ToM(listVal["_id"])
+	sortMonth := []int{}
+	turbine := p.Turbine
+	sortTurbines := []string{}
 
-		/*if lastMonth is different with current month so append as new line (hair)*/
-		if (lastMonth != "" && lastMonth != ids.GetString("monthdesc")) || i == len(list)-1 {
+	for _, listVal := range list {
+		ids, _ = tk.ToM(listVal["_id"])
+		if len(p.Turbine) == 0 {
+			exist := false
+			for _, val := range turbine {
+				if ids["Turbine"] == val {
+					exist = true
+				}
+			}
+			if exist == false {
+				turbine = append(turbine, ids["Turbine"])
+			}
+		}
+		monthList.Set(tk.ToString(ids.GetInt("monthid")), ids.GetString("monthdesc"))
+	}
+	for key := range monthList {
+		sortMonth = append(sortMonth, tk.ToInt(key, tk.RoundingAuto))
+	}
+	sort.Ints(sortMonth)
+	for _, turX := range turbine {
+		sortTurbines = append(sortTurbines, turX.(string))
+	}
+	sort.Strings(sortTurbines)
+	selArr := 0
+	dataSeries = append(dataSeries, pcData)
+
+	for _, turbineX := range sortTurbines {
+		selArr = 0
+		for _, monthX := range sortMonth {
+			monthExist := crowd.From(&list).Where(func(x interface{}) interface{} {
+				y := x.(tk.M)
+				id := y.Get("_id").(tk.M)
+
+				return id.GetInt("monthid") == monthX && id.GetString("Turbine") == turbineX
+			}).Exec().Result.Data().([]tk.M)
+
+			datas = [][]float64{}
 			selArr++
-			splitMonth = strings.Split(lastMonth, " ")
+			splitMonth = strings.Split(monthList.GetString(tk.ToString(monthX)), " ")
 			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
 
-			/*month data is monthly data per turbine*/
 			monthData := tk.M{}
-			monthData.Set("name", strings.Join(splitMonth, "")) /*it will be january2016, february2016, and so on*/
+			monthData.Set("name", turbineX)
 			monthData.Set("type", "scatterLine")
 			monthData.Set("style", "smooth")
 			monthData.Set("dashType", "solid")
@@ -511,33 +542,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			monthData.Set("color", colorField[selArr])
 			monthData.Set("idxseries", selArr)
 
-			/*month index is list of month and its index*/
 			monthIndex.Set(tk.ToString(selArr), simpleMonth)
 
+			for _, val := range monthExist {
+				idD := val.Get("_id").(tk.M)
+
+				datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")})
+			}
+
 			if len(datas) > 0 {
-				/*set data (power per windspeed) for each line*/
 				monthData.Set("data", datas)
 			}
+
 			dataSeries = append(dataSeries, monthData)
-			datas = [][]float64{} /*clear variable for next data*/
 		}
-
-		/*if lastTubrine is different with current turbine so append as new chart*/
-		if (lastTurbine != "" && lastTurbine != ids.GetString("Turbine")) || i == len(list)-1 {
-			turbineData := tk.M{
-				"Name": lastTurbine, /*for chart name*/
-				"Data": dataSeries,
-			}
-			results = append(results, turbineData)
-			dataSeries = []tk.M{} /*clear variable for nex data*/
-			selArr = 0
-			dataSeries = append(dataSeries, pcData) /*always append expected value at beginning*/
+		turbineData := tk.M{
+			"Name": turbineX, /*for chart name*/
+			"Data": dataSeries,
 		}
-
-		datas = append(datas, []float64{ids.GetFloat64("colId"), listVal.GetFloat64("production")})
-
-		lastMonth = ids.GetString("monthdesc")
-		lastTurbine = ids.GetString("Turbine")
+		results = append(results, turbineData)
+		dataSeries = []tk.M{}                   /*clear variable for nex data*/
+		dataSeries = append(dataSeries, pcData) /*always append expected value at beginning*/
 	}
 
 	sortedIndex := []int{}
