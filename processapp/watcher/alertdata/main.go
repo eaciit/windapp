@@ -27,6 +27,7 @@ import (
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 
 	tk "github.com/eaciit/toolkit"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
@@ -404,6 +405,9 @@ func doprocess(file string) (success bool) {
 	}
 	close(sresult)
 
+	//Update Monitoring
+	UpdateLastMonitoring()
+
 	return
 }
 
@@ -522,4 +526,165 @@ func getstep(count int) int {
 		return 1
 	}
 	return v
+}
+
+func UpdateLastMonitoring() {
+	_nt0 := time.Now()
+	tk.Println(" >>> Start Update Last Monitoring ...")
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	var sworkerconn dbox.IConnection
+	for {
+		var err error
+		sworkerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer sworkerconn.Close()
+
+	type latestdataperiod struct {
+		ID          bson.ObjectId ` bson:"_id" , json:"_id" `
+		Projectname string
+		Type        string
+		Data        []time.Time
+	}
+
+	csr, err := workerconn.NewQuery().
+		Select().
+		From("LatestDataPeriod").
+		Where(dbox.Eq("type", "ScadaDataHFD")).
+		Cursor(nil)
+
+	if err != nil || csr.Count() == 0 {
+		return
+	}
+
+	_dt := new(latestdataperiod)
+
+	_ = csr.Fetch(_dt, 1, false)
+	csr.Close()
+
+	speriode := _dt.Data[1].AddDate(0, 0, -1)
+	eperiode := _dt.Data[1]
+
+	msmonitor := PrepareMasterMonitoring()
+	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
+	//Change to event up down
+	xcsr, err := workerconn.NewQuery().
+		Select("grouptimestamp", "projectname", "turbine", "status", "type", "alarmdescription", "alarmid").
+		From(new(MonitoringEvent).TableName()).
+		Where(dbox.And(dbox.Lte("grouptimestamp", eperiode), dbox.Gt("grouptimestamp", speriode))).
+		Order("grouptimestamp").
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	for {
+		_me := MonitoringEvent{}
+		err = xcsr.Fetch(&_me, 1, false)
+		if err != nil {
+			break
+		}
+
+		_key := tk.Sprintf("%s#%s#%s",
+			_me.Project,
+			_me.Turbine,
+			_me.GroupTimeStamp.Format("060102_150405"),
+		)
+
+		if _mo, _bo := msmonitor[_key]; _bo {
+			_mo.Status = "brake"
+			if _me.Status == "up" {
+				_mo.Status = "ok"
+			}
+
+			_mo.Type = _me.Type
+			_mo.StatusCode = _me.AlarmId
+			_mo.StatusDesc = _me.AlarmDescription
+
+			msmonitor[_key] = _mo
+		}
+	}
+	xcsr.Close()
+
+	sqsave := sworkerconn.NewQuery().
+		From(new(Monitoring).TableName()).
+		SetConfig("multiexec", true).
+		Save()
+
+	for _, _mo := range msmonitor {
+		if _mo.Status == "" {
+			_mo.Status = "N/A"
+		}
+
+		_mo.LastUpdate = _nt0
+		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
+
+		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
+	}
+
+	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
+}
+
+func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
+	_mnt = make(map[string]Monitoring)
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	xcsr, err := workerconn.NewQuery().
+		Select().
+		From(new(Monitoring).TableName()).
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	defer xcsr.Close()
+
+	for {
+		_amnt := Monitoring{}
+		err = xcsr.Fetch(&_amnt, 1, false)
+		if err != nil {
+			break
+		}
+
+		_amnt.Status = ""
+		_amnt.Type = ""
+		_amnt.StatusCode = 0
+		_amnt.StatusDesc = ""
+
+		_mnt[_amnt.ID] = _amnt
+	}
+
+	return
 }
