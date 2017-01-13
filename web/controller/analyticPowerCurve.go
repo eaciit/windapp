@@ -735,6 +735,110 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type PayloadScatter struct {
+		Period      string
+		DateStart   time.Time
+		DateEnd     time.Time
+		Turbine     string
+		Project     string
+		ScatterType string
+	}
+
+	var (
+		list       []ScadaData
+		dataSeries []tk.M
+	)
+
+	p := new(PayloadScatter)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Turbine
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+	pcData, e := getPCData(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	dataSeries = append(dataSeries, pcData)
+	dVal := (20.0 / 100.0)
+	selArr := 0
+	var filter []*dbox.Filter
+	filter = []*dbox.Filter{}
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+	filter = append(filter, dbox.Eq("turbine", turbine))
+	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.Eq("oktime", 600))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Where(dbox.And(filter...)).
+		Take(10000).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	defer csr.Close()
+
+	turbineData := tk.M{}
+	turbineData.Set("name", "Scatter-"+turbine)
+	turbineData.Set("xField", "WindSpeed")
+	turbineData.Set("yField", "Power")
+	turbineData.Set("colorField", "valueColor")
+	turbineData.Set("type", "scatter")
+	turbineData.Set("markers", tk.M{"size": 2})
+
+	datas := tk.M{}
+	arrDatas := []tk.M{}
+	selArr++
+	for _, val := range list {
+		datas = tk.M{}
+
+		if val.AvgWindSpeed > 0 && val.Power > 0 {
+
+			datas.Set("WindSpeed", val.AvgWindSpeed)
+			datas.Set("Power", val.Power)
+			if val.DeviationPct <= dVal {
+				datas.Set("valueColor", colorFieldDegradation[selArr])
+			} else {
+				datas.Set("valueColor", colorField[selArr])
+			}
+
+			arrDatas = append(arrDatas, datas)
+		}
+	}
+
+	turbineData.Set("data", arrDatas)
+	dataSeries = append(dataSeries, turbineData)
+
+	data := struct {
+		Data []tk.M
+	}{
+		Data: dataSeries,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
