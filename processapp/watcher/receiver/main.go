@@ -526,11 +526,11 @@ func UpdateLastMonitoring() {
 	_ = csr.Fetch(_dt, 1, false)
 	csr.Close()
 
-	speriode := _dt.Data[1].AddDate(0, 0, 1)
+	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
 
 	msmonitor := PrepareMasterMonitoring()
-
+	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	xcsr, err := workerconn.NewQuery().
 		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm").
 		From(new(ScadaConvTenMin).TableName()).
