@@ -435,12 +435,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	match := []tk.M{}
+	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
+	match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
+	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
+	match = append(match, tk.M{"oktime": 600})
+	if project != "" {
+		match = append(match, tk.M{"projectname": project})
+	}
+	if len(p.Turbine) > 0 {
+		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+	}
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 
 	pipes = append(pipes, tk.M{"$group": tk.M{
 		"_id": tk.M{
+			"Turbine":   "$turbine",
 			"monthid":   "$dateinfo.monthid",
 			"monthdesc": "$dateinfo.monthdesc",
-			"Turbine":   "$turbine",
 			"colId":     colId,
 		},
 		"production": tk.M{"$avg": colValue},
@@ -453,25 +468,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 
 	selArr := 0
 
-	var filter []*dbox.Filter
-	filter = nil
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lt("dateinfo.dateid", tEnd))
-	filter = append(filter, dbox.Ne("turbine", ""))
-	filter = append(filter, dbox.Gt("power", 0))
-	filter = append(filter, dbox.Eq("oktime", 600))
-	if project != "" {
-		filter = append(filter, dbox.Eq("projectname", project))
-	}
-	if len(p.Turbine) > 0 {
-		filter = append(filter, dbox.In("turbine", p.Turbine...))
-	}
-
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
 		Cursor(nil)
 
 	if e != nil {
@@ -571,10 +570,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipes        []tk.M
-		filter       []*dbox.Filter
-		list         []tk.M
-		dataSeries   []tk.M
+		pipes      []tk.M
+		filter     []*dbox.Filter
+		list       []tk.M
+		dataSeries []tk.M
 		// sortTurbines []string
 	)
 
@@ -602,7 +601,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	// 	anProject := strings.Split(p.PC2Project, "(")
 	// 	PC2project = strings.TrimRight(anProject[0], " ")
 	// }
-
 
 	colId := "$wsavgforpc"
 	colValue := "$power"
@@ -654,7 +652,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 
 	for _, val := range list {
 
-		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")}) 
+		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
 	}
 
 	if len(datas) > 0 {
@@ -662,7 +660,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	}
 
 	dataSeries = append(dataSeries, turbineData)
-
 
 	filter = nil
 	filter = append(filter, dbox.Ne("_id", ""))
@@ -695,7 +692,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 
 	for _, val := range list {
 
-		datasC2 = append(datasC2, []float64{val.GetFloat64("_id"), val.GetFloat64("production")}) 
+		datasC2 = append(datasC2, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
 	}
 
 	if len(datasC2) > 0 {
@@ -703,13 +700,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	}
 
 	dataSeries = append(dataSeries, turbineData)
-
-
-
-
-
-
-
 
 	data := struct {
 		Data []tk.M
