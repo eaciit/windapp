@@ -137,6 +137,9 @@ func (ev *HFDDownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup
 							down.AlarmDescription = start.AlarmDescription
 							down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
 
+							down.GroupTimeStart = convertTo10min(down.TimeStart)
+							down.GroupTimeEnd = convertTo10min(down.TimeEnd)
+
 							if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
 								mutex.Lock()
 								brakeType := data.BrakeType
@@ -329,4 +332,24 @@ func (ev *HFDDownConversion) getLatest() []GroupResult {
 	}*/
 
 	return result
+}
+
+func convertTo10min(input time.Time) (output time.Time) {
+	// THour := input.Hour()
+	TMinute := input.Minute()
+	TSecond := input.Second()
+	TMinuteValue := float64(TMinute) + tk.Div(float64(TSecond), 60.0)
+	TMinuteCategory := tk.ToInt(tk.RoundingUp64(tk.Div(TMinuteValue, 10), 0)*10, "0")
+
+	output = input.Add(time.Duration(TMinuteCategory-TMinute) * time.Minute).UTC()
+
+	/*log.Printf("%#v \n", TMinuteCategory)
+	log.Printf("%v | %v | %v | %v \n", THour, TMinute, TSecond, TMinuteValue)
+	log.Printf("%v | %v \n", TMinuteCategory, output.UTC().Format("15:04"))*/
+
+	return
+}
+
+func (ev *HFDDownConversion) InsertToMonitoringEvent(data EventDownHFD) {
+
 }
