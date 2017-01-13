@@ -47,6 +47,8 @@ type EventDownHFD struct {
 	DateInfoStart    DateInfo
 	TimeEnd          time.Time
 	DateInfoEnd      DateInfo
+	GroupTimeStart   time.Time
+	GroupTimeEnd     time.Time
 	AlarmDescription string
 	Duration         float64
 	DownGrid         bool

@@ -93,6 +93,7 @@ func (ev *HFDDownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup
 
 			loopData := eventRaws
 
+			AlarmCode := ".AlarmCode"
 			ErrorState := ".ErrorState"
 			TurbineState := ".TurbineState"
 
@@ -102,27 +103,48 @@ func (ev *HFDDownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup
 				endIdx := -1
 
 				var start, end EventRawHFD
-				lastAlarmCode := 999
+				lastAlarmCode := -1
+				lastAlarmDesc := ""
+				// lastBrakeProgram := 0
 
 			reloop:
 				for idx, data := range loopData {
 					if idx > 0 {
 						lastAlarmCode = loopData[idx-1].AlarmId
+						lastAlarmDesc = loopData[idx-1].AlarmDescription
+						// lastBrakeProgram = loopData[idx-1].BrakeProgram
 					}
 
 					if data.DateInfo.MonthId != 0 {
-						if data.BrakeProgram != 0 && startIdx == -1 {
+						/*else if lastBrakeProgram != 0 && lastBrakeProgram != 999 && lastAlarmCode != 0 && strings.Contains(data.EventType, AlarmCode) && startIdx == -1 {
 							startIdx = idx
 							start = data
-						} else if (strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 12) || data.AlarmId == 0) && start.TimeStamp.Year() != 1 {
+							ev.InsertToMonitoringEvent(start, "down")
+						} */
+
+						if data.BrakeProgram != 0 && data.BrakeProgram != 999 && data.AlarmId != 0 && strings.Contains(data.EventType, AlarmCode) && startIdx == -1 {
+							startIdx = idx
+							start = data
+							ev.InsertToMonitoringEvent(start, "down")
+						} else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || (strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) || (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11) || data.AlarmId == 0)) && startIdx != -1 {
 							end = data
-						} else if data.AlarmId == 999 {
-							if (strings.Contains(data.EventType, ErrorState) && lastAlarmCode == 0) || (strings.Contains(data.EventType, TurbineState) && (lastAlarmCode >= 0 && lastAlarmCode <= 12) || lastAlarmCode == 0) && start.TimeStamp.Year() != 1 {
+						} else if data.AlarmId == 999 && startIdx != -1 {
+							if (strings.Contains(data.EventType, ErrorState) && lastAlarmCode == 0) || (strings.Contains(data.EventType, AlarmCode) && lastAlarmCode == 0) || (strings.Contains(data.EventType, TurbineState) && (lastAlarmCode >= 0 && lastAlarmCode <= 11) || lastAlarmCode == 0) {
 								end = data
 							}
 						}
 
-						if end.TimeStamp.Year() != 1 {
+						if end.TimeStamp.Year() != 1 && startIdx != -1 {
+							tmp := EventRawHFD{}
+							tmp = end
+
+							if tmp.AlarmId == 999 {
+								tmp.AlarmId = lastAlarmCode
+								tmp.AlarmDescription = lastAlarmDesc
+							}
+
+							ev.InsertToMonitoringEvent(tmp, "up")
+
 							down := new(EventDownHFD).New()
 							down.AlarmID = start.AlarmId
 							down.ProjectName = loop.Project
@@ -136,6 +158,9 @@ func (ev *HFDDownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup
 
 							down.AlarmDescription = start.AlarmDescription
 							down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
+
+							down.GroupTimeStart = convertTo10min(down.TimeStart)
+							down.GroupTimeEnd = convertTo10min(down.TimeEnd)
 
 							if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
 								mutex.Lock()
@@ -329,4 +354,38 @@ func (ev *HFDDownConversion) getLatest() []GroupResult {
 	}*/
 
 	return result
+}
+
+func convertTo10min(input time.Time) (output time.Time) {
+	// THour := input.Hour()
+	TMinute := input.Minute()
+	TSecond := input.Second()
+	TMinuteValue := float64(TMinute) + tk.Div(float64(TSecond), 60.0)
+	TMinuteCategory := tk.ToInt(tk.RoundingUp64(tk.Div(TMinuteValue, 10), 0)*10, "0")
+
+	tmpInput := input.Add(time.Duration(TMinuteCategory-TMinute) * time.Minute).Add(time.Duration(TSecond*-1) * time.Second).UTC()
+	output, _ = time.Parse("20060102_150405", tmpInput.Format("20060102_150405"))
+	return
+}
+
+func (ev *HFDDownConversion) InsertToMonitoringEvent(data EventRawHFD, status string) error {
+	mutex.Lock()
+
+	mEvent := new(MonitoringEvent).New()
+	mEvent.Project = data.ProjectName
+	mEvent.Turbine = data.Turbine
+	mEvent.TimeStamp = data.TimeStamp
+	mEvent.DateInfo = data.DateInfo
+	mEvent.GroupTimeStamp = convertTo10min(mEvent.TimeStamp)
+	mEvent.AlarmId = data.AlarmId
+	mEvent.AlarmDescription = data.AlarmDescription
+	mEvent.Type = "brake"
+	mEvent.Status = status
+	mEvent = mEvent.New()
+
+	e := ev.Ctx.Save(mEvent)
+
+	mutex.Unlock()
+
+	return e
 }

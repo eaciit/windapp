@@ -63,10 +63,9 @@ type MonitoringEvent struct {
 	Status           string /// down, up
 }
 
-func (m MonitoringEvent) New() MonitoringEvent {
+func (m *MonitoringEvent) New() *MonitoringEvent {
 	timestampstr := m.TimeStamp.Format("060102_150405")
 	nowstr := time.Now().Format("060102_150405")
-
 	m.ID = m.Project + "#" + m.Turbine + "#" + timestampstr + "#" + tk.ToString(m.AlarmId) + "#" + m.Status + "#" + m.Type + "_" + nowstr
 	return m
 }

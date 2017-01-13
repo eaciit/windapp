@@ -132,15 +132,18 @@ monitoring.checkTurbine = function () {
 monitoring.getData = function(){
     app.loading(true);
 
+    var turbine = $("#turbineList").data("kendoMultiSelect").value()
+    var project = $("#projectList").data("kendoDropDownList").value()
     var param = {
-        turbine: $("#turbineList").data("kendoMultiSelect").value(),
-        project: $("#projectList").data("kendoDropDownList").value(),
+        turbine: (turbine == "All Turbine" ? []: turbine),
+        project: project
     };
 
     var request = toolkit.ajaxPost(viewModel.appName + "monitoring/getdata", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
+       monitoring.data([]);
        $.each(res.data.Data, function (index, item) {   
             monitoring.data.push(item);                    
        });
@@ -163,16 +166,16 @@ $(function () {
 
     $("#max-screen").click(function(){
         $("html").addClass("maximize-mode");
-        $(".multicol-div").height($(window).innerHeight() - 70);
-        $(".multicol").height($(window).innerHeight() - 70 - 25);
+        $(".multicol-div").height($(window).innerHeight() - 80);
+        $(".multicol").height($(window).innerHeight() - 80 - 25);
         $("#max-screen").hide();
         $("#restore-screen").show();  
     });
 
     $("#restore-screen").click(function(){
         $("html").removeClass("maximize-mode");
-        $(".multicol-div").height($(window).innerHeight() - 150);
-        $(".multicol").height($(window).innerHeight() - 150 - 25);
+        $(".multicol-div").height($(window).innerHeight() - 160);
+        $(".multicol").height($(window).innerHeight() - 160 - 25);
         $("#max-screen").show();  
         $("#restore-screen").hide();  
     });
@@ -180,6 +183,8 @@ $(function () {
     $('#btnRefresh').on('click', function() {
         monitoring.getData();
     });
+
+    setInterval(function(){monitoring.getData()},1000*120);
 
     setTimeout(function() {
         $(".multicol-div").height($(window).innerHeight() - 150);
