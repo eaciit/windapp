@@ -1,0 +1,28 @@
+.Epdf{
+    margin-top: -30px;
+    margin-right: 20px;
+    cursor:pointer
+}
+
+@media(max-width: 991px){
+    .fa-file-pdf-o{
+        font-size: 16px;
+    }
+    .Epdf {
+        margin-right: 10px;
+    }
+}
+
+.k-tooltip{
+    margin-left: -20px;
+}
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+#legend-list {
+    text-align: center;
+}

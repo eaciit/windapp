@@ -17,11 +17,11 @@ type Monitoring struct {
 	Project            string
 	Turbine            string
 
-	Production       float64
+	Production       float64 // MWh - Energy
 	WindSpeed        float64
-	PerformanceIndex float64
-	MachineAvail     float64
-	GridAvail        float64
+	PerformanceIndex float64 // skip
+	MachineAvail     float64 // skip
+	GridAvail        float64 // skip
 
 	RotorSpeedRPM float64
 
@@ -29,6 +29,7 @@ type Monitoring struct {
 	IsWarning bool
 
 	Status     string
+	StatusCode string
 	StatusDesc string
 }
 

@@ -1,0 +1,46 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/individual-month.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/individual-month.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+					</div>
+					<div class="panel-body">
+						<!-- <a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportIndividualMonthPdf">
+							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
+						</a> -->
+						<div class="date-info">
+                            Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                        </div>
+                        
+                        <div class="col-md-12 list">
+							<div class="col-md-12 col-xs-12">
+								<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+								</div>
+							</div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+
+						<div class="col-md-12 individual-month" data-bind="foreach: page.dataPCEachTurbine">
+							<div class="col-md-3 col-xs-12 power-curve-item">
+								<div data-bind="attr:{id: 'chart-' + Name}"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>
