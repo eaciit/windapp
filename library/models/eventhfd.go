@@ -46,13 +46,13 @@ type EventDownHFD struct {
 	TimeStart        time.Time
 	DateInfoStart    DateInfo
 	TimeEnd          time.Time
-	TimeEndInt       int64
 	DateInfoEnd      DateInfo
 	AlarmDescription string
 	Duration         float64
 	DownGrid         bool
 	DownEnvironment  bool
 	DownMachine      bool
+	AlarmID          int
 }
 
 func (m *EventDownHFD) New() *EventDownHFD {
