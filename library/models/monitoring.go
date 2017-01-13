@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/eaciit/orm"
+	tk "github.com/eaciit/toolkit"
 )
 
 type Monitoring struct {
@@ -24,14 +25,14 @@ type Monitoring struct {
 	GridAvail        float64 // skip
 
 	RotorSpeedRPM float64
-
+	/*===================================*/
 	IsAlarm   bool
 	IsWarning bool
 
 	Type       string // Alarm, Brake, Warning
-	Status     string
-	StatusCode string
-	StatusDesc string
+	Status     string // ok, brake, N/A
+	StatusCode int    // brake : AlarmID
+	StatusDesc string // brake : AlarmDescription
 }
 
 func (m *Monitoring) New() *Monitoring {
@@ -56,6 +57,7 @@ type MonitoringEvent struct {
 	TimeStamp        time.Time
 	DateInfo         DateInfo
 	GroupTimeStamp   time.Time
+	AlarmId          int
 	AlarmDescription string
 	Type             string // Alarm, Brake, Warning
 	Status           string /// down, up
@@ -64,8 +66,7 @@ type MonitoringEvent struct {
 func (m *MonitoringEvent) New() *MonitoringEvent {
 	timestampstr := m.TimeStamp.Format("060102_150405")
 	nowstr := time.Now().Format("060102_150405")
-
-	m.ID = m.Project + "#" + m.Turbine + "#" + timestampstr + "#" + m.Status + "#" + m.Type + "_" + nowstr
+	m.ID = m.Project + "#" + m.Turbine + "#" + timestampstr + "#" + tk.ToString(m.AlarmId) + "#" + m.Status + "#" + m.Type + "_" + nowstr
 	return m
 }
 
