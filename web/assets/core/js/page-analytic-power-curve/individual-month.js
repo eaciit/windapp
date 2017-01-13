@@ -35,7 +35,7 @@ vm.breadcrumb([{
     title: 'Power Curve',
     href: '#'
 }, {
-    title: 'Individual Monthly',
+    title: 'Individual Month',
     href: viewModel.appName + 'page/analyticpcmonthly'
 }]);
 
