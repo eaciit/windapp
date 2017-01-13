@@ -395,6 +395,7 @@ func doProcess(file string) (success bool) {
 			tk.Println(err)
 		} else {
 			UpdateLastHFDAvail()
+			UpdateLastMonitoring()
 			tk.Println(">> DONE <<")
 		}
 	}
