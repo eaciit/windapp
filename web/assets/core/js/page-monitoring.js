@@ -130,13 +130,27 @@ monitoring.checkTurbine = function () {
 }
 
 monitoring.getData = function(){
-    toolkit.ajaxPost(viewModel.appName + "monitoring/getdata", {}, function (res) {
+    app.loading(true);
+
+    var param = {
+        turbine: $("#turbineList").data("kendoMultiSelect").value(),
+        project: $("#projectList").data("kendoDropDownList").value(),
+    };
+
+    var request = toolkit.ajaxPost(viewModel.appName + "monitoring/getdata", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
        $.each(res.data.Data, function (index, item) {   
             monitoring.data.push(item);                    
        });
+    });
+
+    $.when(request).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+            app.prepareTooltipster();
+        },500);
     });
 }
 
@@ -163,10 +177,13 @@ $(function () {
         $("#restore-screen").hide();  
     });
 
+    $('#btnRefresh').on('click', function() {
+        monitoring.getData();
+    });
+
     setTimeout(function() {
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);
         monitoring.getData();
-        app.loading(false);
     }, 500);
 });

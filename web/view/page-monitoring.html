@@ -20,7 +20,7 @@
                     <select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: monitoring.turbineList(), dataValueField: 'value', dataTextField: 'text', change: function() {monitoring.checkTurbine()}, suggest: true }"
                     style="width:250px">
                     </select>&nbsp;
-                    <button class="btn btn-sm btn-primary"><i class="fa fa-refresh"></i> Apply</button>
+                    <button class="btn btn-sm btn-primary" id="btnRefresh"><i class="fa fa-refresh"></i> Apply</button>
                 </div>
             </div>
         </div>
