@@ -597,6 +597,15 @@ func UpdateLastMonitoring() {
 		return
 	}
 
+	i := 0
+	for _key, _ := range msmonitor {
+		tk.Println(" >>> key : ", _key)
+		i++
+		if i > 10 {
+			break
+		}
+	}
+
 	for {
 		_me := MonitoringEvent{}
 		err = xcsr.Fetch(&_me, 1, false)
@@ -609,7 +618,7 @@ func UpdateLastMonitoring() {
 			_me.Turbine,
 			_me.GroupTimeStamp.Format("060102_150405"),
 		)
-
+		tk.Println(">>> me key : ", _key)
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_mo.Status = "brake"
 			if _me.Status == "up" {
