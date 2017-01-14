@@ -587,24 +587,24 @@ func UpdateLastMonitoring() {
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	//Change to event up down
 	xcsr, err := workerconn.NewQuery().
-		Select("grouptimestamp", "projectname", "turbine", "status", "type", "alarmdescription", "alarmid").
+		Select("grouptimestamp", "project", "turbine", "status", "type", "alarmdescription", "alarmid").
 		From(new(MonitoringEvent).TableName()).
 		Where(dbox.And(dbox.Lte("grouptimestamp", eperiode), dbox.Gt("grouptimestamp", speriode))).
-		Order("grouptimestamp").
+		Order("timestamp").
 		Cursor(nil)
 
 	if err != nil {
 		return
 	}
 
-	i := 0
-	for _key, _ := range msmonitor {
-		tk.Println(" >>> key : ", _key)
-		i++
-		if i > 10 {
-			break
-		}
-	}
+	// i := 0
+	// for _key, _ := range msmonitor {
+	// 	tk.Println(" >>> key : ", _key)
+	// 	i++
+	// 	if i > 10 {
+	// 		break
+	// 	}
+	// }
 
 	for {
 		_me := MonitoringEvent{}
@@ -618,7 +618,7 @@ func UpdateLastMonitoring() {
 			_me.Turbine,
 			_me.GroupTimeStamp.Format("060102_150405"),
 		)
-		tk.Println(">>> me key : ", _key)
+		// tk.Println(">>> me key : ", _key)
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_mo.Status = "brake"
 			if _me.Status == "up" {
