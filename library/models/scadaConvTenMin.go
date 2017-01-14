@@ -22,6 +22,7 @@ type ScadaConvTenMin struct {
 	Fast_ActivePower_kW_Max    float64
 	Fast_ActivePower_kW_Count  int
 
+	Fast_WindSpeed_bin       float64
 	Fast_WindSpeed_ms        float64
 	Fast_WindSpeed_ms_StdDev float64
 	Fast_WindSpeed_ms_Min    float64
