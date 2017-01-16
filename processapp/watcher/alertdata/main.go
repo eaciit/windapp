@@ -610,6 +610,18 @@ func UpdateLastMonitoring() {
 	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
 
+	tk.Println(">>> Delete monitoring before : ", speriode)
+
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(MonitoringEvent).TableName()).
+		Where(dbox.Lte("grouptimestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	//Change to event up down
@@ -675,16 +687,6 @@ func UpdateLastMonitoring() {
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
-	}
-
-	err = workerconn.NewQuery().
-		Delete().
-		From(new(MonitoringEvent).TableName()).
-		Where(dbox.Lte("grouptimestamp", speriode)).
-		Exec(nil)
-
-	if err != nil {
-		tk.Println(">>> Error found on Delete : ", err.Error())
 	}
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
