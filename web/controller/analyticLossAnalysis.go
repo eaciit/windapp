@@ -5,7 +5,6 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -1262,9 +1261,9 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 
 	// log.Printf("results: %v \n", len(results))
 
-	for _, v := range results {
+	/*for _, v := range results {
 		log.Printf("results: %#v \n", v)
-	}
+	}*/
 
 	if e != nil {
 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())

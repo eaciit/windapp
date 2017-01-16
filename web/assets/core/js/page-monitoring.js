@@ -19,10 +19,14 @@ monitoring.projectList = ko.observableArray([]);
 monitoring.turbine = ko.observableArray([]);
 monitoring.project = ko.observable();
 monitoring.data = ko.observableArray([]);
+monitoring.last_minute = ko.observable();
+monitoring.last_date = ko.observable();
 var turbineval = [];
 
-vm.dateAsOf(app.currentDateData);
-monitoring.createGauge = function(id){
+
+
+// vm.dateAsOf(app.currentDateData);
+/*monitoring.createGauge = function(id){
     $("#gauge"+id).html("");
     $("#gauge"+id).kendoLinearGauge({
         theme: "flat",
@@ -61,7 +65,7 @@ monitoring.createGauge = function(id){
             ]
         }
     });
-}
+}*/
 
 monitoring.populateTurbine = function (data) {
     if (data.length == 0) {
@@ -143,10 +147,14 @@ monitoring.getData = function(){
         if (!app.isFine(res)) {
             return;
         }
-       monitoring.data([]);
-       $.each(res.data.Data, function (index, item) {   
+
+        monitoring.last_minute(res.data.Data.timestamp.minute);
+        monitoring.last_date(res.data.Data.timestamp.date);
+
+        monitoring.data([]);
+        $.each(res.data.Data.data, function (index, item) {   
             monitoring.data.push(item);                    
-       });
+        });
     });
 
     $.when(request).done(function(){
@@ -158,9 +166,9 @@ monitoring.getData = function(){
 }
 
 $(function () {
-    for(var i = 0 ; i < 5 ; i++){
+    /*for(var i = 0 ; i < 5 ; i++){
         monitoring.createGauge(i);
-    }
+    }*/
 
     $("#restore-screen").hide();
 
