@@ -261,9 +261,9 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
 	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
-		"timestamp": 1,
-		"turbine":   1,
-		"project":   1,
+		"timestamp": -1,
+		"turbine":   -1,
+		"project":   -1,
 	}))
 
 	csr, e := DB().Connection.NewQuery().
