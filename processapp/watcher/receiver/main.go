@@ -531,6 +531,7 @@ func UpdateLastMonitoring() {
 
 	err = workerconn.NewQuery().
 		Delete().
+		From(new(Monitoring).TableName()).
 		Where(dbox.Lte("timestamp", speriode)).
 		Exec(nil)
 
