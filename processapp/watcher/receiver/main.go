@@ -529,6 +529,15 @@ func UpdateLastMonitoring() {
 	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
 
+	err = workerconn.NewQuery().
+		Delete().
+		Where(dbox.Lte("timestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	xcsr, err := workerconn.NewQuery().
@@ -581,15 +590,6 @@ func UpdateLastMonitoring() {
 
 	}
 	xcsr.Close()
-
-	err = workerconn.NewQuery().
-		Delete().
-		Where(dbox.Lte("timestamp", speriode)).
-		Exec(nil)
-
-	if err != nil {
-		tk.Println(">>> Error found on Delete : ", err.Error())
-	}
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }
