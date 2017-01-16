@@ -1,7 +1,6 @@
 package main
 
 import (
-	c3to10 "eaciit/wfdemo-git/processapp/threeextractor/convert3secto10min/lib"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,10 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/eaciit/database/base"
 	"github.com/eaciit/orm"
@@ -21,7 +18,9 @@ import (
 	//dc "eaciit/wfdemo-git/processapp/threeextractor/dataconversion"
 	"archive/tar"
 	"archive/zip"
+	"bufio"
 	"bytes"
+	"time"
 
 	"eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
@@ -37,7 +36,6 @@ import (
 const (
 	NOK = "NOK"
 	OK  = "OK"
-	// TIME_FORMAT_STR = "DDMMYYhhmmss"
 )
 
 type Command struct {
@@ -57,18 +55,27 @@ type Configuration struct {
 }
 
 var (
-	conn    base.IConnection
-	ctx     *orm.DataContext
-	conf    Configuration
-	mux     = &sync.Mutex{}
+	conn base.IConnection
+	ctx  *orm.DataContext
+	conf Configuration
+	mux  = &sync.Mutex{}
+
 	pathSep = string(os.PathSeparator)
+
+	wd = func() string {
+		d, _ := os.Getwd()
+		return d + "/"
+	}()
+
+	// masteralarmbrake = tk.M{}
 )
 
 func main() {
 
-	fmt.Println(".." + pathSep + "conf" + pathSep + "receiver-config.json")
+	_fconf := filepath.Join(wd, "..", "conf", "alert-config.json")
 
-	file, _ := os.Open(".." + pathSep + "conf" + pathSep + "receiver-config.json")
+	fmt.Println(_fconf)
+	file, _ := os.Open(_fconf)
 	decoder := json.NewDecoder(file)
 	err := decoder.Decode(&conf)
 
@@ -76,12 +83,6 @@ func main() {
 		panic(err)
 	}
 
-	// now, _ := time.Parse("2006-1-2 15:4:05", "2016-10-22 23:57:30")
-	// tenMinInfo := GenTenMinuteInfo(now)
-
-	// log.Printf("%#v \n", tenMinInfo)
-
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	log.Println("Starting the app..\n")
 
 	log.Println()
@@ -91,15 +92,6 @@ func main() {
 	log.Printf("Success: %v\n", conf.Success)
 	log.Printf("Errors: %v\n", conf.Errors)
 	log.Println()
-
-	/*db, _ := PrepareConnection()
-	base := new(BaseController)
-	base.Ctx = orm.New(db)
-	defer base.Ctx.Close()
-
-	log.Println("xxx")
-
-	new(GenTenFromThreeSecond).Generate(base, "sample.csv")*/
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -112,9 +104,8 @@ func main() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				// log.Println("event:", event)
 				if event.Op&fsnotify.Create == fsnotify.Create {
-					go processFile(event.Name, conf.Commands)
+					go processfile(event.Name, conf.Commands)
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
@@ -134,36 +125,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	/*// watch fail
-	err = watcher.Add("/Users/frezadev/Documents/watch/fail")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// watch success
-	err = watcher.Add("/Users/frezadev/Documents/watch/success")
-	if err != nil {
-		log.Fatal(err)
-	}*/
 	<-done
 }
 
-func processFile(filePath string, com []Command) {
-	// dt := time.Now()
-	// dtStr := fmtdate.Format(TIME_FORMAT_STR, dt)
+func processfile(filePath string, com []Command) {
 	fmt.Println(" >>> Process : ", filePath)
 	for true {
 		byteOut, err := runCMD("lsof " + filePath)
 		if err != nil {
 			log.Print("Gagal")
 		}
+
 		if len(byteOut) == 0 {
 			break
 		} else {
-			fmt.Println(string(byteOut))
-			time.Sleep(200 * time.Millisecond)
+			// fmt.Println(string(byteOut))
+			time.Sleep(5 * time.Second)
 		}
-
 	}
 	file := strings.Split(filePath, pathSep)
 	fileName := file[len(file)-1]
@@ -178,23 +156,16 @@ func processFile(filePath string, com []Command) {
 		} else if strings.Contains(filePath, conf.Process) {
 			action = com[1]
 		}
-
-		// log.Printf("action: %v \n", action)
-
 		next := action.Action
 	done:
-
 		for {
 			log.Printf("\n\nnext: %v \n", next)
-
 			if next == "DONE" {
 				break done
 			} else {
 				for _, act := range com {
-					//fmt.Println("PPPP")
 					if act.Action == next {
 						next = run(act, fileName)
-
 						break
 					}
 				}
@@ -306,19 +277,12 @@ func unzip(archive, target string) error {
 func runCMD(cmdStr string) (out []byte, err error) {
 	if pathSep == "\\" {
 		cmdStr = strings.Replace(cmdStr, "\\", "/", -1)
-
-	}
-
-	if !strings.Contains(cmdStr, "lsof") {
-		fmt.Println("sh", "-c", cmdStr)
 	}
 
 	var errBuff bytes.Buffer
 	cmd := exec.Command("sh", "-c", cmdStr)
 	cmd.Stderr = &errBuff
-	//cmd.Run()
-	//cmd.Path = os.Getenv("Path")
-	//fmt.Println(cmd.Path)
+
 	out, err = cmd.Output()
 	if err != nil {
 		fmt.Println(errBuff.String())
@@ -330,19 +294,15 @@ func run(action Command, file string) (next string) {
 	cmdStr := ""
 	runCommand := true
 	log.Printf("run: %v | %v \n", action, file)
-	// mux.Lock()
 
 	if action.Action == "COPY_TO_PROCESS" {
-		cmdStr = fmt.Sprintf(action.Command, conf.Draft+pathSep+file, conf.Process+pathSep+file)
+		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Draft, file), filepath.Join(conf.Process, file))
 	} else if action.Action == "COPY_TO_SUCCESS" {
-		runCommand = doProcess(conf.Process + pathSep + file)
-
-		cmdStr = fmt.Sprintf(action.Command, conf.Process+pathSep+file, conf.Success+pathSep+file)
+		runCommand = doprocess(filepath.Join(conf.Process, file))
+		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Process, file), filepath.Join(conf.Success, file))
 	} else if action.Action == "COPY_TO_FAIL" {
-		cmdStr = fmt.Sprintf(action.Command, conf.Process+pathSep+file, conf.Fail+pathSep+file)
+		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Process, file), filepath.Join(conf.Fail, file))
 	}
-	//log.Printf("cmdstr: %v \n", cmdStr)
-	// mux.Unlock()
 
 	if runCommand {
 		out, err := runCMD(cmdStr)
@@ -350,63 +310,20 @@ func run(action Command, file string) (next string) {
 		if out != nil {
 			log.Printf("%v \n", out)
 		}
-
 		if err != nil {
 			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
-			next = action.Success
-		} else {
-			next = action.Success
 		}
+		next = action.Success
 	} else {
 		log.Println("DONE")
 		next = action.Fail
 	}
 
-	// log.Printf("next: %v \n", next)
-
 	return
 }
 
-func doProcess(file string) (success bool) {
-	log.Printf("doProcess: %v \n", file)
-	db, e := PrepareConnection()
-	if e != nil {
-		log.Printf("ERROR on Process: %v\n", e.Error())
-		success = false
-	} else {
-		//start := time.Now()
-		base := new(BaseController)
-		base.Ctx = orm.New(db)
-		defer base.Ctx.Close()
-
-		anFile := strings.Split(file, pathSep)
-		fileName := anFile[len(anFile)-1]
-
-		muxDo := &sync.Mutex{}
-
-		muxDo.Lock()
-		errorLine := new(ConvScadaTreeSecs).Generate(base, file)
-		WriteWatcherErrors(errorLine, fileName, conf.Errors)
-		log.Println("ConvScadaTreeSecs: DONE")
-		muxDo.Unlock()
-		log.Println("Begin Converting ", file)
-		err := c3to10.Generate(tk.M{}.Set("selector", "file").Set("file", fileName))
-		if err != nil {
-			tk.Println(err)
-		} else {
-			UpdateLastHFDAvail()
-			UpdateLastMonitoring()
-			tk.Println(">> DONE <<")
-		}
-	}
-
-	return
-}
-
-func UpdateLastHFDAvail() {
-
-	_nt0 := time.Now()
-	tk.Println("Start Update Last HDF Available ...")
+func preparemasteralarmbrake() (_tkm tk.M) {
+	_tkm = tk.M{}
 
 	var workerconn dbox.IConnection
 	for {
@@ -421,57 +338,194 @@ func UpdateLastHFDAvail() {
 	}
 	defer workerconn.Close()
 
-	type latestdataperiod struct {
-		ID          bson.ObjectId ` bson:"_id" , json:"_id" `
-		Projectname string
-		Type        string
-		Data        []time.Time
-	}
-
 	csr, err := workerconn.NewQuery().
-		Select().
-		From("LatestDataPeriod").
-		Where(dbox.Eq("type", "ScadaDataHFD")).
+		Select("brakeprogram", "alarmname", "typecode", "type").
+		From("AlarmBrake").
 		Cursor(nil)
 
-	if err != nil || csr.Count() == 0 {
-		return
-	}
-
-	_dt := new(latestdataperiod)
-
-	_ = csr.Fetch(_dt, 1, false)
-	csr.Close()
-
-	pipes := []tk.M{tk.M{"$group": tk.M{"_id": "$projectname",
-		"mintimestamp": tk.M{"$min": "$timestamp"},
-		"maxtimestamp": tk.M{"$max": "$timestamp"},
-	}}}
-
-	xcsr, err := workerconn.NewQuery().
-		From(new(ScadaConvTenMin).TableName()).
-		Command("pipe", pipes).
-		Cursor(nil)
 	if err != nil {
 		return
 	}
 
-	_tkm := tk.M{}
-	_ = xcsr.Fetch(&_tkm, 1, false)
-	xcsr.Close()
+	for {
+		_atkm := tk.M{}
+		err = csr.Fetch(&_atkm, 1, false)
+		if err != nil {
+			break
+		}
 
-	_min := _tkm.Get("mintimestamp", time.Time{}).(time.Time)
-	_max := _tkm.Get("maxtimestamp", time.Time{}).(time.Time)
+		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("typecode")), _atkm)
+	}
 
-	_dt.Data[0] = _min
-	_dt.Data[1] = _max
+	return
+}
 
-	_ = workerconn.NewQuery().
-		From("LatestDataPeriod").
+func doprocess(file string) (success bool) {
+	log.Printf("doProcess: %v \n", file)
+	success = false
+	t1 := time.Now()
+
+	ilines, err := lineCounter(file)
+	if err != nil {
+		return
+	}
+
+	masteralarmbrake := preparemasteralarmbrake()
+
+	sresult := make(chan int, ilines)
+	sdata := make(chan string, ilines)
+	for i := 0; i < 10; i++ {
+		go workersave(i, sdata, sresult, &masteralarmbrake)
+	}
+
+	asend := 0
+	_file, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer _file.Close()
+	scanner := bufio.NewScanner(_file)
+	for scanner.Scan() {
+		sdata <- tk.Sprintf("%s,%d", scanner.Text(), asend+1)
+		asend++
+	}
+	close(sdata)
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	step := getstep(asend)
+	for i := 0; i < asend; i++ {
+		<-sresult
+		if i%step == 0 {
+			tk.Printfn("Done Saved Data %d to %d, in %s",
+				i, asend, time.Since(t1).String())
+		}
+	}
+	close(sresult)
+
+	//Update Monitoring
+	UpdateLastMonitoring()
+
+	return
+}
+
+func workersave(wi int, jobs <-chan string, result chan<- int, msalarmbrake *tk.M) {
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	dtablename := tk.Sprintf("%s", new(EventRawHFD).TableName())
+
+	qSave := workerconn.NewQuery().
+		From(dtablename).
 		SetConfig("multiexec", true).
-		Save().Exec(tk.M{}.Set("data", _dt))
+		Save()
 
-	tk.Println(" >>> End Update Last HDF Available in ", time.Since(_nt0).String())
+	split := func(_astr string) (_erh EventRawHFD) {
+		_erh = EventRawHFD{}
+
+		_fdata := strings.Split(_astr, ",") //"stime", "project", "param", "id"
+		if len(_fdata) < 4 {
+			return
+		}
+		_ddata := strings.Split(_fdata[2], ".")
+
+		// _erh.ProjectName = _fdata[1]
+		_erh.ProjectName = "Tejuva"
+
+		_erh.Turbine = _ddata[1]
+		_erh.TimeStamp, _ = time.Parse("02-Jan-2006 15:04:05", _fdata[0])
+		_erh.DateInfo = helper.GetDateInfo(_erh.TimeStamp)
+
+		_erh.EventType = tk.Sprintf("%s.%s", _ddata[2], _ddata[3])
+
+		ialarmid := "999"
+		if _fdata[3] != "" {
+			ialarmid = _fdata[3]
+		}
+
+		// if !msalarmbrake.Has(ialarmid) {
+		// 	ialarmid = "999"
+		// }else{
+
+		// }
+
+		_msabrake := msalarmbrake.Get(ialarmid, tk.M{}).(tk.M)
+
+		_erh.BrakeProgram = _msabrake.GetInt("brakeprogram")
+		if !msalarmbrake.Has(ialarmid) {
+			_erh.BrakeProgram = 999
+		}
+
+		_erh.AlarmDescription = _msabrake.GetString("alarmname")
+		_erh.AlarmId = tk.ToInt(ialarmid, tk.RoundingAuto)
+		_erh.BrakeType = _msabrake.GetString("type")
+
+		_erh.ID = tk.Sprintf("%s#%s#%s#%d#%s#%s", _erh.TimeStamp.Format("20060102_150405.000"),
+			_erh.ProjectName, _erh.Turbine, _erh.AlarmId, _erh.EventType, _fdata[4])
+
+		return
+	}
+
+	trx := string("")
+	for trx = range jobs {
+		_erh := split(trx)
+
+		if _erh.ID != "" {
+			err := qSave.Exec(tk.M{}.Set("data", _erh))
+			if err != nil {
+				tk.Println(err)
+			}
+		}
+
+		result <- 1
+	}
+
+	return
+}
+
+func lineCounter(_fpath string) (int, error) {
+	r, err := os.Open(_fpath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer r.Close()
+
+	buf := make([]byte, 32*1024)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := r.Read(buf)
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			return count, nil
+
+		case err != nil:
+			return count, err
+		}
+	}
+}
+
+func getstep(count int) int {
+	v := count / 5
+	if v == 0 {
+		return 1
+	}
+	return v
 }
 
 func UpdateLastMonitoring() {
@@ -531,61 +585,61 @@ func UpdateLastMonitoring() {
 
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
+	//Change to event up down
 	xcsr, err := workerconn.NewQuery().
-		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm").
-		From(new(ScadaConvTenMin).TableName()).
-		Where(dbox.And(dbox.Lte("timestamp", eperiode), dbox.Gt("timestamp", speriode))).
+		Select("grouptimestamp", "projectname", "turbine", "status", "type", "alarmdescription", "alarmid").
+		From(new(MonitoringEvent).TableName()).
+		Where(dbox.And(dbox.Lte("grouptimestamp", eperiode), dbox.Gt("grouptimestamp", speriode))).
+		Order("grouptimestamp").
 		Cursor(nil)
 
 	if err != nil {
 		return
 	}
 
+	for {
+		_me := MonitoringEvent{}
+		err = xcsr.Fetch(&_me, 1, false)
+		if err != nil {
+			break
+		}
+
+		_key := tk.Sprintf("%s#%s#%s",
+			_me.Project,
+			_me.Turbine,
+			_me.GroupTimeStamp.Format("060102_150405"),
+		)
+
+		if _mo, _bo := msmonitor[_key]; _bo {
+			_mo.Status = "brake"
+			if _me.Status == "up" {
+				_mo.Status = "ok"
+			}
+
+			_mo.Type = _me.Type
+			_mo.StatusCode = _me.AlarmId
+			_mo.StatusDesc = _me.AlarmDescription
+
+			msmonitor[_key] = _mo
+		}
+	}
+	xcsr.Close()
+
 	sqsave := sworkerconn.NewQuery().
 		From(new(Monitoring).TableName()).
 		SetConfig("multiexec", true).
 		Save()
 
-	for {
-		_tkm := tk.M{}
-		err = xcsr.Fetch(&_tkm, 1, false)
-		if err != nil {
-			break
+	for _, _mo := range msmonitor {
+		if _mo.Status == "" {
+			_mo.Status = "N/A"
 		}
 
-		_timestamp := _tkm.Get("timestamp", time.Time{}).(time.Time)
-		_key := tk.Sprintf("%s#%s#%s",
-			_tkm.GetString("projectname"),
-			_tkm.GetString("turbine"),
-			_timestamp.Format("060102_150405"),
-		)
-		_monitor := Monitoring{}
+		_mo.LastUpdate = _nt0
+		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
-		if _mo, _bo := msmonitor[_key]; _bo {
-			_monitor = _mo
-		}
-
-		_monitor.ID = _key
-		_monitor.TimeStamp = _timestamp
-		_monitor.DateInfo = helper.GetDateInfo(_timestamp)
-		_monitor.LastUpdate = _nt0
-		_monitor.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
-		_monitor.Project = _tkm.GetString("projectname")
-		_monitor.Turbine = _tkm.GetString("turbine")
-
-		_monitor.Production = (_tkm.GetFloat64("fast_activepower_kw") / 1000) / 6
-		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
-		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
-
-		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
-
+		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
 	}
-	xcsr.Close()
-
-	_ = workerconn.NewQuery().
-		Delete().
-		Where(dbox.Lte("timestamp", speriode)).
-		Exec(nil)
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }
@@ -623,6 +677,11 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
 		if err != nil {
 			break
 		}
+
+		_amnt.Status = ""
+		_amnt.Type = ""
+		_amnt.StatusCode = 0
+		_amnt.StatusDesc = ""
 
 		_mnt[_amnt.ID] = _amnt
 	}
