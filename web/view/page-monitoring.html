@@ -4,6 +4,26 @@
 <script src="{{BaseUrl}}res/core/js/page-monitoring.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<style type="text/css">
+    .control-sidebar.control-sidebar-open {
+        right: 5px;
+        width: 350px;
+        overflow-y: scroll;
+    }
+    .control-sidebar-light{
+        background: #f9fafc;
+        border-left: 3px solid #ecf0f5;
+        margin-top: 30px;
+        padding-top: 5px;
+    }
+    .borderless td, .borderless th {
+        border: none;
+    }
+    .details-title{
+        border-bottom: 3px solid #eee;
+        bottom: 5px;
+    }
+</style>
 <div class="row">
     <div class="row">
         <div class="col-md-12 col-sm-12 ez panel-content">
@@ -27,15 +47,17 @@
     </div>
 
     <div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-12 col-sm-12 hardcore landing">
-				<div class="panel ez no-padding hardcore mb-5">
-                    <div class="panel-heading">           
+            <div class="col-md-12 col-sm-12 hardcore landing">
+                <div class="panel ez no-padding hardcore mb-5">
+                    <div class="panel-heading">      
                         <div class="pull-right maximize-btn">
+                            <i class="fa fa-bell tooltipster tooltipstered pull-right" aria-hidden="true" title="Notification" style="cursor: pointer;" data-toggle="control-sidebar"></i>
                             <i class="fa fa-window-maximize tooltipster tooltipstered pull-right" aria-hidden="true" title="maximize screen" style="cursor: pointer;" id="max-screen"></i>
                             <i class="fa fa-window-restore tooltipster tooltipstered pull-right" aria-hidden="true" title="restore screen" style="cursor: pointer;" id="restore-screen"></i>
                         </div>
+
                     </div>
-                    <div class="panel-body" style="text-align:center">                        
+                    <div class="panel-body">                        
                         <div class="col-md-12 multicol-div">
                             <div class="col-md-4 multicol" data-bind="foreach:monitoring.data">
                                 <table class="table table-condensed table-sum">
@@ -47,7 +69,7 @@
                                             <td width="25%">Prod(MWh)</td>
                                         </tr>
                                     </thead>
-                                    <tbody class="bold summary">
+                                     <tbody class="bold summary">
                                         <tr>
                                             <td> <span data-bind="text:kendo.toString(totalturbines,'n0')"></span></td>
                                             <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span><!--/ <span class="dim">50.4</span></td>-->
@@ -70,12 +92,12 @@
                                     </thead>
                                     <tbody data-bind="foreach:$data.turbines">
                                         <tr>
-                                            <td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>
+                                            <td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-MM-yyyy HH:mm')"></td>
                                             <td data-bind="text:turbine"></td>
                                             <td data-bind="text:kendo.toString(production,'n1')"></td>
                                             <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
                                             <td data-bind="text:kendo.toString(rotorspeedrpm,'n1')"></td>
-                                            <td data-bind="attr : {class: (status == 'break') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
+                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
                                             <td data-bind='text: (statusdesc == "") ? "-" : statusdesc'></td>
                                             <td></td>                                          
                                         </tr>
@@ -84,6 +106,25 @@
                                 <hr>
                             </div>
                         </div>
+                        <br>
+                        <aside class="control-sidebar control-sidebar-light">
+                           <div class="col-md-12 details-title">
+                                <h4>Events</h4>
+                           </div>
+                           <div class="col-md-12">
+                                <table class='table borderless able table-condensed'>
+                                    <tbody data-bind="foreach:monitoring.event"> 
+                                        <tr data-bind="attr : {class: (Status == 'brake') ? 'red' : 'dim'}">
+                                            <td data-bind="text:kendo.toString(kendo.parseDate(TimeStamp), 'dd-MM-yyyy HH:mm')"></td>
+                                            <td data-bind="text:Project"></td>
+                                            <td data-bind="text:Turbine"></td>
+                                            <td data-bind="attr : {class: (Status == 'brake') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim'}"></td>
+                                            <td data-bind="text:(Status == 'brake'? AlarmId : '')"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                           </div>
+                        </aside>
                     </div>
                 </div>
             </div>

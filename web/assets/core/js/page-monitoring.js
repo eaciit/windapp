@@ -19,6 +19,7 @@ monitoring.projectList = ko.observableArray([]);
 monitoring.turbine = ko.observableArray([]);
 monitoring.project = ko.observable();
 monitoring.data = ko.observableArray([]);
+monitoring.event = ko.observableArray([]);
 var turbineval = [];
 
 vm.dateAsOf(app.currentDateData);
@@ -149,7 +150,15 @@ monitoring.getData = function(){
        });
     });
 
-    $.when(request).done(function(){
+    var requestEvent = toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+       monitoring.event(res.data.Data)
+    });
+
+
+    $.when(request, requestEvent).done(function(){
         setTimeout(function(){
             app.loading(false);
             app.prepareTooltipster();
@@ -168,14 +177,16 @@ $(function () {
         $("html").addClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 80);
         $(".multicol").height($(window).innerHeight() - 80 - 25);
+        $(".control-sidebar").height($(window).innerHeight() - 80-50);
         $("#max-screen").hide();
         $("#restore-screen").show();  
     });
 
     $("#restore-screen").click(function(){
         $("html").removeClass("maximize-mode");
-        $(".multicol-div").height($(window).innerHeight() - 160);
-        $(".multicol").height($(window).innerHeight() - 160 - 25);
+        $(".multicol-div").height($(window).innerHeight() - 150);
+        $(".multicol").height($(window).innerHeight() - 150 - 25);
+        $(".control-sidebar").height($(window).innerHeight() - 150-50);
         $("#max-screen").show();  
         $("#restore-screen").hide();  
     });
@@ -184,11 +195,12 @@ $(function () {
         monitoring.getData();
     });
 
-    setInterval(function(){monitoring.getData()},1000*120);
+    // setInterval(function(){monitoring.getData()},1000*120);
 
     setTimeout(function() {
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);
+        $(".control-sidebar").height($(window).innerHeight() - 150 - 50);
         monitoring.getData();
     }, 500);
 });

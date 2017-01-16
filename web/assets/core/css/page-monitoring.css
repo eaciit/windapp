@@ -352,6 +352,7 @@
         white-space:nowrap;
         overflow-x:auto;
         margin-bottom: -30px;
+        text-align:center
     }
     .multicol {
       /*background-color: beige;*/
