@@ -769,17 +769,6 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		project = strings.TrimRight(anProject[0], " ")
 	}
 	pcData, e := getPCData(project)
-	pcData.Set("name", "PowerCurve")
-	pcData.Set("yAxis", "powerAxis")
-	pcData.Set("xField", "WindSpeed")
-	pcData.Set("yField", "Power")
-	dataPC := pcData.Get("data").([][]float64)
-	arrdataDefault := []tk.M{}
-	for _, val := range dataPC {
-		arrdataDefault = append(arrdataDefault, tk.M{"WindSpeed": val[0], "Power": val[1]})
-	}
-	pcData.Set("data", arrdataDefault)
-
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
