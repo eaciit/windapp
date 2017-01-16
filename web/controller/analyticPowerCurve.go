@@ -667,13 +667,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 
 	var datas [][]float64
 	turbineData := tk.M{}
-	turbineData.Set("name", "Condition 2")
+	turbineData.Set("name", PC1turbine)
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
 	turbineData.Set("markers", tk.M{"visible": false})
 	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[2])
+	turbineData.Set("color", colorField[1])
 
 	for _, val := range list {
 
@@ -707,13 +707,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 
 	var datasC2 [][]float64
 	turbineData = tk.M{}
-	turbineData.Set("name", "Condition 1")
+	turbineData.Set("name", PC2turbine)
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
 	turbineData.Set("markers", tk.M{"visible": false})
 	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[1])
+	turbineData.Set("color", colorField[6])
 
 	for _, val := range list {
 
