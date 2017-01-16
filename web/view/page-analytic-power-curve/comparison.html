@@ -26,10 +26,11 @@
 								<label class="control-label label-filter">Project</label>
 							</div>
 							<div class="col-md-10">
-								<select class="project-list" id="projectList1" name="table" data-bind="kendoDropDownList: { data: pc.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }">
+								<select class="project-list" id="projectList1" name="table" data-bind="kendoDropDownList: { data: pc.projectList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
 			                	</select>
 							</div>
 						</div>
+						<br>
 						<div class="row mgb10">
 							<div class="col-md-2">
 								<label class="control-label label-filter">Turbine</label>
@@ -57,24 +58,16 @@
 
 							</div>
 						</div>
-		<!-- 				<div class="row mgb10">
-							<div class="col-md-2">
-							<label class=" label-filter"> </label>
-							</div>
-							<div class="col-md-10">
-								<span class="show_hide custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
-			                    <label class="control-label label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
-			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
-			                    &nbsp;
-			                	</span>
-							</div>
-						</div> -->
 
-
-							<h5>VS</h5>
 						<div class="row mgb10">
+							<div class="col-md-2">
+								<label class="control-label label-filter"> </label>
+							</div>
+							<div class="col-md-2">
+								<h5><b> VS </b></h5>
+							</div>
+						</div>
+					<!-- 	<div class="row mgb10">
 							<div class="col-md-2">
 								<label class="control-label label-filter">Project</label>
 							</div>
@@ -82,7 +75,7 @@
 								<select class="project-list" id="projectList2" name="table" data-bind="kendoDropDownList: { data: pc.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }">
 				                </select>
 							</div>
-						</div>
+						</div> -->
 						<div class="row mgb10">
 							<div class="col-md-2">
 								<label class="control-label label-filter">Turbine</label>
@@ -110,27 +103,14 @@
 
 							</div>
 						</div>
-				<!-- 		<div class="row mgb10">
-							<div class="col-md-2">
-								<label class=" label-filter"> </label>
-							</div>
-							<div class="col-md-10 ">
-								<span class="show_hide2 custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
-			                    <label class="control-label label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
-			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
-			                    &nbsp;
-			                	</span>
-							</div>
-						</div> -->
 						<div class="row mgb10 ">
 							<div class="col-md-2">
 								<label class=" label-filter"> </label>&nbsp;
 							</div>
-							<div class="col-md-10 ">
-								<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
-							</div>
+						</div>
+						
+						<div class="col-md-10 ">
+							<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
 						</div>
 
 					</div>
