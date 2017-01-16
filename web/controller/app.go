@@ -91,13 +91,13 @@ type PayloadKPI struct {
 type PayloadPCComparison struct {
 	PC1Period     string
 	PC1Project    string
-	PC1Turbine    []interface{}
+	PC1Turbine    string//[]interface{}
 	PC1DateStart  time.Time
 	PC1DateEnd    time.Time
 
 	PC2Period     string
 	PC2Project    string
-	PC2Turbine    []interface{}
+	PC2Turbine    string//[]interface{}
 	PC2DateStart  time.Time
 	PC2DateEnd    time.Time
 
