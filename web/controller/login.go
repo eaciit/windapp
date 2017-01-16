@@ -20,6 +20,21 @@ type LoginController struct {
 	App
 }
 
+type Availdatedata struct {
+	ScadaData         []time.Time
+	DGRData           []time.Time
+	Alarm             []time.Time
+	JMR               []time.Time
+	MET               []time.Time
+	Duration          []time.Time
+	ScadaAnomaly      []time.Time
+	AlarmOverlapping  []time.Time
+	AlarmScadaAnomaly []time.Time
+	ScadaDataOEM      []time.Time
+	ScadaDataHFD      []time.Time
+	Warning           []time.Time
+}
+
 func CreateLoginController() *LoginController {
 	var controller = new(LoginController)
 	return controller
@@ -198,22 +213,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 
 	// toolkit.Println(latestDataPeriods)
 
-	type availdatedata struct {
-		ScadaData         []time.Time
-		DGRData           []time.Time
-		Alarm             []time.Time
-		JMR               []time.Time
-		MET               []time.Time
-		Duration          []time.Time
-		ScadaAnomaly      []time.Time
-		AlarmOverlapping  []time.Time
-		AlarmScadaAnomaly []time.Time
-		ScadaDataOEM      []time.Time
-		ScadaDataHFD      []time.Time
-		Warning           []time.Time
-	}
-
-	datePeriod := new(availdatedata)
+	datePeriod := new(Availdatedata)
 	xdp := reflect.ValueOf(datePeriod).Elem()
 	for _, d := range latestDataPeriods {
 		f := xdp.FieldByName(d.Type)
