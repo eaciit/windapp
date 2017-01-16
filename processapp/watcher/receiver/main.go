@@ -529,6 +529,16 @@ func UpdateLastMonitoring() {
 	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
 
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(Monitoring).TableName()).
+		Where(dbox.Lte("timestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	xcsr, err := workerconn.NewQuery().
@@ -573,19 +583,22 @@ func UpdateLastMonitoring() {
 		_monitor.Project = _tkm.GetString("projectname")
 		_monitor.Turbine = _tkm.GetString("turbine")
 
-		_monitor.Production = (_tkm.GetFloat64("fast_activepower_kw") / 1000) / 6
-		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
-		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
+		if _val := _tkm.GetFloat64("fast_activepower_kw"); _val != -9999999 {
+			_monitor.Production = (_val / 1000) / 6
+		}
+
+		if _val := _tkm.GetFloat64("fast_windspeed_ms"); _val != -9999999 {
+			_monitor.WindSpeed = _val
+		}
+
+		if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
+			_monitor.RotorSpeedRPM = _val
+		}
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
 
 	}
 	xcsr.Close()
-
-	_ = workerconn.NewQuery().
-		Delete().
-		Where(dbox.Lte("timestamp", speriode)).
-		Exec(nil)
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }

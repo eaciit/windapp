@@ -426,7 +426,7 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 				}
 
 				if _str == "Fast_WindSpeed_ms" {
-					_tVal := tk.ToFloat64(tVal, 6, tk.RoundingAuto)
+					_tVal := tk.ToFloat64(tVal, 0, tk.RoundingAuto)
 					reflect.ValueOf(&trx).Elem().FieldByName("Fast_WindSpeed_bin").SetFloat(_tVal)
 				}
 

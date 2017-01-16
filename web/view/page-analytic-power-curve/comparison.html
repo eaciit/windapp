@@ -21,7 +21,7 @@
 					</div>
 					<div class="col-md-4">
 						<div class="row mgb10">
-							<h5>Condition 1</h5>
+							<h5><b> Filter </b> </h5>
 							<div class="col-md-2">
 								<label class="control-label label-filter">Project</label>
 							</div>
@@ -35,7 +35,7 @@
 								<label class="control-label label-filter">Turbine</label>
 							</div>
 							<div class="col-md-10">
-								<select class="turbine-list" id="turbineList1" name="table" data-bind="kendoMultiSelect: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'text', change: function() {pc.checkTurbine('turbineList1')}, suggest: true }">
+								<select class="turbine-list" id="turbineList1" name="table" data-bind="kendoDropDownList: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'text', suggest: true }">
 				                </select>
 							</div>
 						</div>
@@ -46,26 +46,35 @@
 							<div class="col-md-10">
 								<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: pc.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pc.showHidePeriod()} }">
 			               		</select>
+
+			               		<span class="show_hide custom-period">
+			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
+			                    <label class="control-label label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
+			                    <div class="period-nwline">&nbsp;</div>
+			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
+			                    &nbsp;
+			                	</span>
+
 							</div>
 						</div>
-						<div class="row mgb10">
+		<!-- 				<div class="row mgb10">
 							<div class="col-md-2">
 							<label class=" label-filter"> </label>
 							</div>
 							<div class="col-md-10">
 								<span class="show_hide custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:125px" />
+			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
 			                    <label class="control-label label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
 			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:125px" />&nbsp;
+			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
 			                    &nbsp;
 			                	</span>
 							</div>
-						</div>
+						</div> -->
 
 
+							<h5>VS</h5>
 						<div class="row mgb10">
-							<h5>Condition 2</h5>
 							<div class="col-md-2">
 								<label class="control-label label-filter">Project</label>
 							</div>
@@ -79,7 +88,7 @@
 								<label class="control-label label-filter">Turbine</label>
 							</div>
 							<div class="col-md-2">
-								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoMultiSelect: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'text', change: function() {pc.checkTurbine('turbineList2')}, suggest: true }">
+								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'text', change: function() {pc.checkTurbine('turbineList2')}, suggest: true }">
 				                </select>
 							</div>
 						</div>
@@ -90,22 +99,31 @@
 							<div class="col-md-10">
 								<select class="period-list" id="periodList2" name="table" data-bind="kendoDropDownList: { data: pc.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pc.showHidePeriod2()} }">
 			               		</select>
+
+			               		<span class="show_hide2 custom-period">
+			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
+			                    <label class="control-label label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
+			                    <div class="period-nwline">&nbsp;</div>
+			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
+			                    &nbsp;
+			                	</span>
+
 							</div>
 						</div>
-						<div class="row mgb10">
+				<!-- 		<div class="row mgb10">
 							<div class="col-md-2">
 								<label class=" label-filter"> </label>
 							</div>
 							<div class="col-md-10 ">
 								<span class="show_hide2 custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:125px" />
+			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
 			                    <label class="control-label label-filter" style="width:40px;">&nbsp;&nbsp;to</label>
 			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:125px" />&nbsp;
+			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
 			                    &nbsp;
 			                	</span>
 							</div>
-						</div>
+						</div> -->
 						<div class="row mgb10 ">
 							<div class="col-md-2">
 								<label class=" label-filter"> </label>&nbsp;
