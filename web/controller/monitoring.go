@@ -96,7 +96,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		ID := v.Get("_id").(tk.M)
 		project := ID.GetString("project")
 		turbine := ID.GetString("turbine")
-		timestamp := v.Get("timestamp").(time.Time)
+		timestamp := v.Get("timestamp").(time.Time).UTC()
 		windspeed := checkNAValue(v.GetFloat64("windspeed"))
 		production := checkNAValue(v.GetFloat64("production"))
 		rotorspeedrpm := checkNAValue(v.GetFloat64("rotorspeedrpm"))
@@ -123,6 +123,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 
 		newRecord.Set("turbine", turbine)
 		newRecord.Set("timestamp", timestamp)
+		newRecord.Set("timestampstr", timestamp.Format("02-01-2006 15:04:05"))
 		newRecord.Set("windspeed", windspeed)
 		newRecord.Set("production", production)
 		newRecord.Set("rotorspeedrpm", rotorspeedrpm)
@@ -209,10 +210,19 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		res = append(res, v.(tk.M))
 	}
 
+	// get latest date update from ScadaDataHFD
+
+	availDate := k.Session("availdate", "")
+	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+
+	finalResult := tk.M{}
+	finalResult.Set("data", res)
+	finalResult.Set("timestamp", tk.M{"minute": date.Format("15:04"), "date": date.Format("02 Jan 2006")})
+
 	data := struct {
-		Data []tk.M
+		Data tk.M
 	}{
-		Data: res,
+		Data: finalResult,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -257,7 +267,7 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 	}))
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(Monitoring).TableName()).
+		From(new(MonitoringEvent).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
 

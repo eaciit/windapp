@@ -75,3 +75,12 @@ db.ScadaData.createIndex( { "avgwindspeed": 1} )
 db.ScadaData.createIndex( { "adjwindspeed": 1} )
 db.ScadaData.createIndex( { "timestamp": 1, "turbine": 1} )
 db.ScadaData.createIndex( { "timestamp": 1, "turbine": 1, "power": 1, "powerlost": 1, "avgwindspeed": 1, "adjwindspeed": 1} )
+
+
+db.EventDownHFD.createIndex( { brakeprogram: 1 } )
+db.EventDownHFD.createIndex( { alarmtoggle: 1 } )
+db.EventDownHFD.createIndex( { timestamp: 1 } )
+db.EventDownHFD.createIndex( { brakeprogram: -1 } )
+db.EventDownHFD.createIndex( { alarmtoggle: -1 } )
+db.EventDownHFD.createIndex( { timestamp: -1 } )
+db.EventDownHFD.createIndex( { timestamp: 1 , "dateinfostart.monthid":1, "timestart":1, "timeend":1} )

@@ -620,7 +620,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 		PC1project = strings.TrimRight(anProject[0], " ")
 	}
 
-	// PC2turbine := p.PC2Turbine
+	PC2turbine := p.PC2Turbine
 	// PC2project := ""
 	// if p.PC2Project != "" {
 	// 	anProject := strings.Split(p.PC2Project, "(")
@@ -650,7 +650,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", PC1tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC1tEnd))
-	filter = append(filter, dbox.In("turbine", PC1turbine...))
+	filter = append(filter, dbox.Eq("turbine", PC1turbine))
 	filter = append(filter, dbox.Gt("power", 0))
 
 	csr, e := DB().Connection.NewQuery().
@@ -690,7 +690,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", PC2tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC2tEnd))
-	// filter = append(filter, dbox.In("turbine", PC1turbine...))
+	filter = append(filter, dbox.Eq("turbine", PC2turbine))
 	filter = append(filter, dbox.Gt("power", 0))
 
 	csr, e = DB().Connection.NewQuery().
