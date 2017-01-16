@@ -25,49 +25,6 @@ monitoring.last_date = ko.observable();
 var turbineval = [];
 
 
-
-// vm.dateAsOf(app.currentDateData);
-/*monitoring.createGauge = function(id){
-    $("#gauge"+id).html("");
-    $("#gauge"+id).kendoLinearGauge({
-        theme: "flat",
-        pointer: {
-            value: 65,
-            shape: "arrow"
-        },
-        gaugeArea: {
-            margin: {
-                bottom: -40
-            }
-        },
-        scale: {
-            majorUnit: 20,
-            minorUnit: 5,
-            max: 180,
-            vertical: false,
-            labels: {
-                visible: false,
-                padding: 0,
-            },
-            ranges: [
-                {
-                    from: 80,
-                    to: 120,
-                    color: "#ffc700"
-                }, {
-                    from: 120,
-                    to: 150,
-                    color: "#ff7a00"
-                }, {
-                    from: 150,
-                    to: 180,
-                    color: "#c20000"
-                }
-            ]
-        }
-    });
-}*/
-
 monitoring.populateTurbine = function (data) {
     if (data.length == 0) {
         data = [];
@@ -175,9 +132,6 @@ monitoring.getData = function(){
 }
 
 $(function () {
-    /*for(var i = 0 ; i < 5 ; i++){
-        monitoring.createGauge(i);
-    }*/
 
     $("#restore-screen").hide();
 
@@ -203,7 +157,7 @@ $(function () {
         monitoring.getData();
     });
 
-    // setInterval(function(){monitoring.getData()},1000*120);
+    setInterval(function(){monitoring.getData()},1000*120);
 
     setTimeout(function() {
         $(".multicol-div").height($(window).innerHeight() - 150);
