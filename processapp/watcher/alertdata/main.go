@@ -26,6 +26,8 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 
+	econv "eaciit/wfdemo-git/processapp/eventHFDConverter/conversion"
+
 	tk "github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
 
@@ -339,7 +341,7 @@ func preparemasteralarmbrake() (_tkm tk.M) {
 	defer workerconn.Close()
 
 	csr, err := workerconn.NewQuery().
-		Select("brakeprogram", "alarmname", "typecode", "type").
+		Select("brakeprogram", "alarmname", "alarmindex", "type").
 		From("AlarmBrake").
 		Cursor(nil)
 
@@ -354,7 +356,7 @@ func preparemasteralarmbrake() (_tkm tk.M) {
 			break
 		}
 
-		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("typecode")), _atkm)
+		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("alarmindex")), _atkm)
 	}
 
 	return
@@ -405,8 +407,33 @@ func doprocess(file string) (success bool) {
 	}
 	close(sresult)
 
+	_t1_1 := time.Now()
+	//Event Update
+	var eventconn dbox.IConnection
+	for {
+		var err error
+		eventconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer eventconn.Close()
+
+	ctx := orm.New(eventconn)
+
+	down := econv.NewHFDDownConversion(ctx)
+	down.Run()
+
+	tk.Println("Done update event in ", time.Since(_t1_1).String())
+	//====================================================================
+
+	_t1_1 = time.Now()
 	//Update Monitoring
 	UpdateLastMonitoring()
+	tk.Println("Done update last monitor in ", time.Since(_t1_1).String())
 
 	return
 }
@@ -582,6 +609,18 @@ func UpdateLastMonitoring() {
 
 	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
+
+	tk.Println(">>> Delete monitoring before : ", speriode)
+
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(MonitoringEvent).TableName()).
+		Where(dbox.Lte("grouptimestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
 
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
