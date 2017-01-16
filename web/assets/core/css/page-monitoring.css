@@ -380,6 +380,26 @@
     	border: 1px solid #fff;
     }
 
+
+     .control-sidebar.control-sidebar-open {
+        right: 5px;
+        width: 350px;
+        overflow-y: scroll;
+    }
+    .control-sidebar-light{
+        background: #f9fafc;
+        border-left: 3px solid #ecf0f5;
+        margin-top: 30px;
+        padding-top: 5px;
+    }
+    .borderless td, .borderless th {
+        border: none;
+    }
+    .details-title{
+        border-bottom: 3px solid #eee;
+        bottom: 5px;
+    }
+
 /*	@media(max-width: 320){
 		.dropdownFilter{
 			margin-bottom: 20px;
