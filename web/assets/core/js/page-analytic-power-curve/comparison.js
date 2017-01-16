@@ -96,7 +96,7 @@ pc.InitFirst = function () {
         // $('#turbineList2').data('kendoDropDownList').value(["All Turbine"])
         // override to set the value
         $("#projectList1").data("kendoDropDownList").value("Tejuva");
-        $("#projectList2").data("kendoDropDownList").value("Tejuva");
+        // $("#projectList2").data("kendoDropDownList").value("Tejuva");
 
         pc.project = $("#projectList").data("kendoDropDownList").value();
     });
@@ -319,7 +319,7 @@ pc.showHidePeriod2 = function (callback) {
 
 pc.InitDefaultValue = function () {
     $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
-    $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    // $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
 
@@ -335,8 +335,8 @@ pc.InitDefaultValue = function () {
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-    $('#dateEnd2').data('kendoDatePicker').value(dateEnd2);
-    $('#dateStart2').data('kendoDatePicker').value(dateStart2);
+    $('#dateEnd2').data('kendoDatePicker').value(lastEndDate);
+    $('#dateStart2').data('kendoDatePicker').value(lastStartDate);
 }
 pc.initChart = function() {
         var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -372,7 +372,7 @@ pc.initChart = function() {
             PC1DateEnd      : p1DateEnd,
 
             PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-            PC2Project      :  $("#projectList2").data("kendoDropDownList").value(),
+            PC2Project      :  $("#projectList1").data("kendoDropDownList").value(),
             PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
             PC2DateStart    : p2DateStart,
             PC2DateEnd      : p2DateEnd
