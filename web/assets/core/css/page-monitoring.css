@@ -296,7 +296,7 @@
         color: #31b445;
     }
     .red{
-        color: #e91e3a;
+        color: #e91e3a !important;
     }
     .bold{
         text-weight:bold;

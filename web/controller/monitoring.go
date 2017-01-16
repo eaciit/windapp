@@ -209,10 +209,19 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		res = append(res, v.(tk.M))
 	}
 
+	// get latest date update from ScadaDataHFD
+
+	availDate := k.Session("availdate", "")
+	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+
+	finalResult := tk.M{}
+	finalResult.Set("data", res)
+	finalResult.Set("timestamp", tk.M{"minute": date.Format("15:04"), "date": date.Format("02 Jan 2006")})
+
 	data := struct {
-		Data []tk.M
+		Data tk.M
 	}{
-		Data: res,
+		Data: finalResult,
 	}
 
 	return helper.CreateResult(true, data, "success")
