@@ -402,7 +402,7 @@ pc.initChart = function() {
                 },
                 legend: {
                     position: "bottom",
-                    visible: false,
+                    visible: true   ,
                 },
                 chartArea: {
                     height: 375,
