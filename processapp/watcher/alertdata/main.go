@@ -26,6 +26,8 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
 
+	econv "eaciit/wfdemo-git/processapp/eventHFDConverter/conversion"
+
 	tk "github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
 
@@ -405,8 +407,33 @@ func doprocess(file string) (success bool) {
 	}
 	close(sresult)
 
+	_t1_1 := time.Now()
+	//Event Update
+	var eventconn dbox.IConnection
+	for {
+		var err error
+		eventconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer eventconn.Close()
+
+	ctx := orm.New(eventconn)
+
+	down := econv.NewHFDDownConversion(ctx)
+	down.Run()
+
+	tk.Println("Done update event in ", time.Since(_t1_1).String())
+	//====================================================================
+
+	_t1_1 = time.Now()
 	//Update Monitoring
 	UpdateLastMonitoring()
+	tk.Println("Done update last monitor in ", time.Since(_t1_1).String())
 
 	return
 }
