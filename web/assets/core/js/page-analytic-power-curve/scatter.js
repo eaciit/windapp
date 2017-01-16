@@ -45,6 +45,40 @@ page.LoadData = function() {
     page.getPowerCurveScatter();
 }
 
+page.setAxis = function(name, title, minVal, maxVal) {
+    var result = {
+        name: name,
+        title: {
+            text: title,
+            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            color: "#585555"
+        },
+        labels: {
+            format: "N2",
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        crosshair: {
+            visible: true,
+            tooltip: {
+                visible: true,
+                format: "N2",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            }
+        },
+    }
+    return result
+}
+
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
@@ -71,7 +105,21 @@ page.getPowerCurveScatter = function() {
             return;
         }
         var dtSeries = res.data.Data;
-    
+        
+        var yAxes = [];
+        var yAxis = page.setAxis("powerAxis", "Generation (KW)");
+        yAxes.push(yAxis);
+        switch(page.scatterType) {
+            case "temp":
+                var axis = page.setAxis("tempAxis", "Temperature (Celcius)");
+                yAxes.push(axis);
+                break;
+            case "pitch":
+                var axis = page.setAxis("pitchAxis", "Angle (Degree)");
+                yAxes.push(axis);
+                break;
+        }
+
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",
@@ -96,7 +144,7 @@ page.getPowerCurveScatter = function() {
             categoryAxis: {
                 labels: {
                     step: 1
-                }
+                },
             },
             valueAxis: [{
                 labels: {
@@ -115,6 +163,7 @@ page.getPowerCurveScatter = function() {
                     color: "#eee",
                     width: 0.8,
                 },
+                axisCrossingValues: [0, 30],
                 crosshair: {
                     visible: true,
                     tooltip: {
@@ -131,38 +180,7 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxis: {
-                title: {
-                    text: "Generation (KW)",
-                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    color: "#585555"
-                },
-                labels: {
-                    format: "N2",
-                },
-                axisCrossingValue: -5,
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                crosshair: {
-                    visible: true,
-                    tooltip: {
-                        visible: true,
-                        format: "N2",
-                        background: "rgb(255,255,255, 0.9)",
-                        color: "#58666e",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        border: {
-                            color: "#eee",
-                            width: "2px",
-                        },
-                    }
-                },
-            },
-            pannable: true,
-            zoomable: true
+            yAxes: yAxes
         });
         app.loading(false);
     });

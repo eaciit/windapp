@@ -19,49 +19,11 @@ monitoring.projectList = ko.observableArray([]);
 monitoring.turbine = ko.observableArray([]);
 monitoring.project = ko.observable();
 monitoring.data = ko.observableArray([]);
+monitoring.event = ko.observableArray([]);
+monitoring.last_minute = ko.observable();
+monitoring.last_date = ko.observable();
 var turbineval = [];
 
-vm.dateAsOf(app.currentDateData);
-monitoring.createGauge = function(id){
-    $("#gauge"+id).html("");
-    $("#gauge"+id).kendoLinearGauge({
-        theme: "flat",
-        pointer: {
-            value: 65,
-            shape: "arrow"
-        },
-        gaugeArea: {
-            margin: {
-                bottom: -40
-            }
-        },
-        scale: {
-            majorUnit: 20,
-            minorUnit: 5,
-            max: 180,
-            vertical: false,
-            labels: {
-                visible: false,
-                padding: 0,
-            },
-            ranges: [
-                {
-                    from: 80,
-                    to: 120,
-                    color: "#ffc700"
-                }, {
-                    from: 120,
-                    to: 150,
-                    color: "#ff7a00"
-                }, {
-                    from: 150,
-                    to: 180,
-                    color: "#c20000"
-                }
-            ]
-        }
-    });
-}
 
 monitoring.populateTurbine = function (data) {
     if (data.length == 0) {
@@ -143,13 +105,25 @@ monitoring.getData = function(){
         if (!app.isFine(res)) {
             return;
         }
-       monitoring.data([]);
-       $.each(res.data.Data, function (index, item) {   
+
+        monitoring.last_minute(res.data.Data.timestamp.minute);
+        monitoring.last_date(res.data.Data.timestamp.date);
+
+        monitoring.data([]);
+        $.each(res.data.Data.data, function (index, item) {   
             monitoring.data.push(item);                    
-       });
+        });
     });
 
-    $.when(request).done(function(){
+    var requestEvent = toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+       monitoring.event(res.data.Data)
+    });
+
+
+    $.when(request, requestEvent).done(function(){
         setTimeout(function(){
             app.loading(false);
             app.prepareTooltipster();
@@ -158,9 +132,6 @@ monitoring.getData = function(){
 }
 
 $(function () {
-    for(var i = 0 ; i < 5 ; i++){
-        monitoring.createGauge(i);
-    }
 
     $("#restore-screen").hide();
 
@@ -168,14 +139,16 @@ $(function () {
         $("html").addClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 80);
         $(".multicol").height($(window).innerHeight() - 80 - 25);
+        $(".control-sidebar").height($(window).innerHeight() - 80-50);
         $("#max-screen").hide();
         $("#restore-screen").show();  
     });
 
     $("#restore-screen").click(function(){
         $("html").removeClass("maximize-mode");
-        $(".multicol-div").height($(window).innerHeight() - 160);
-        $(".multicol").height($(window).innerHeight() - 160 - 25);
+        $(".multicol-div").height($(window).innerHeight() - 150);
+        $(".multicol").height($(window).innerHeight() - 150 - 25);
+        $(".control-sidebar").height($(window).innerHeight() - 150-50);
         $("#max-screen").show();  
         $("#restore-screen").hide();  
     });
@@ -189,6 +162,7 @@ $(function () {
     setTimeout(function() {
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);
+        $(".control-sidebar").height($(window).innerHeight() - 150 - 50);
         monitoring.getData();
     }, 500);
 });

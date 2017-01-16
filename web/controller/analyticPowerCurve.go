@@ -620,7 +620,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 		PC1project = strings.TrimRight(anProject[0], " ")
 	}
 
-	// PC2turbine := p.PC2Turbine
+	PC2turbine := p.PC2Turbine
 	// PC2project := ""
 	// if p.PC2Project != "" {
 	// 	anProject := strings.Split(p.PC2Project, "(")
@@ -650,7 +650,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", PC1tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC1tEnd))
-	filter = append(filter, dbox.In("turbine", PC1turbine...))
+	filter = append(filter, dbox.Eq("turbine", PC1turbine))
 	filter = append(filter, dbox.Gt("power", 0))
 
 	csr, e := DB().Connection.NewQuery().
@@ -690,7 +690,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", PC2tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC2tEnd))
-	// filter = append(filter, dbox.In("turbine", PC1turbine...))
+	filter = append(filter, dbox.Eq("turbine", PC2turbine))
 	filter = append(filter, dbox.Gt("power", 0))
 
 	csr, e = DB().Connection.NewQuery().
@@ -773,8 +773,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	dataSeries = append(dataSeries, pcData)
-	dVal := (20.0 / 100.0)
-	selArr := 0
+	// dVal := (20.0 / 100.0)
+
 	var filter []*dbox.Filter
 	filter = []*dbox.Filter{}
 	filter = append(filter, dbox.Ne("_id", ""))
@@ -800,35 +800,84 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	defer csr.Close()
 
 	turbineData := tk.M{}
-	turbineData.Set("name", "Scatter-"+turbine)
+	turbineData.Set("name", "ScatterPower")
 	turbineData.Set("xField", "WindSpeed")
 	turbineData.Set("yField", "Power")
 	turbineData.Set("colorField", "valueColor")
 	turbineData.Set("type", "scatter")
 	turbineData.Set("markers", tk.M{"size": 2})
+	turbineData.Set("yAxis", "powerAxis")
 
 	datas := tk.M{}
 	arrDatas := []tk.M{}
-	selArr++
+	tempData := tk.M{}
+	tempDatas := []tk.M{}
+	pitchData := tk.M{}
+	pitchDatas := []tk.M{}
 	for _, val := range list {
 		datas = tk.M{}
+		tempData = tk.M{}
+		pitchData = tk.M{}
 
 		if val.AvgWindSpeed > 0 && val.Power > 0 {
-
 			datas.Set("WindSpeed", val.AvgWindSpeed)
 			datas.Set("Power", val.Power)
-			if val.DeviationPct <= dVal {
-				datas.Set("valueColor", colorFieldDegradation[selArr])
-			} else {
-				datas.Set("valueColor", colorField[selArr])
-			}
+			datas.Set("valueColor", colorField[1])
 
 			arrDatas = append(arrDatas, datas)
+		}
+
+		switch p.ScatterType {
+		case "temp":
+			if val.AvgWindSpeed > 0 && val.NacelleTemperature > 0 {
+				tempData.Set("WindSpeed", val.AvgWindSpeed)
+				tempData.Set("Temperature", val.NacelleTemperature)
+				tempData.Set("valueColor", colorField[2])
+
+				tempDatas = append(tempDatas, tempData)
+			}
+		case "pitch":
+			if val.AvgWindSpeed > 0 && val.AvgBladeAngle <= -99999.0 {
+				pitchData.Set("WindSpeed", val.AvgWindSpeed)
+				pitchData.Set("Pitch", val.AvgBladeAngle)
+				pitchData.Set("valueColor", colorField[2])
+
+				pitchDatas = append(pitchDatas, pitchData)
+			}
 		}
 	}
 
 	turbineData.Set("data", arrDatas)
 	dataSeries = append(dataSeries, turbineData)
+
+	switch p.ScatterType {
+	case "temp":
+		/*set data series*/
+		seriesData := tk.M{
+			"name":       "ScatterTemperature",
+			"xField":     "WindSpeed",
+			"yField":     "Temperature",
+			"colorField": "valueColor",
+			"type":       "scatter",
+			"markers":    tk.M{"size": 2},
+			"yAxis":      "tempAxis",
+			"data":       tempDatas,
+		}
+		dataSeries = append(dataSeries, seriesData)
+
+	case "pitch":
+		seriesData := tk.M{
+			"name":       "ScatterPitch",
+			"xField":     "WindSpeed",
+			"yField":     "Pitch",
+			"colorField": "valueColor",
+			"type":       "scatter",
+			"markers":    tk.M{"size": 2},
+			"yAxis":      "pitchAxis",
+			"data":       pitchDatas,
+		}
+		dataSeries = append(dataSeries, seriesData)
+	}
 
 	data := struct {
 		Data []tk.M

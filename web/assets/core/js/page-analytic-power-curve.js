@@ -365,7 +365,6 @@ var Data = {
             }
 
             var dataPowerCurves = res.data.Data;
-            console.log(dataPowerCurves);
             var dtSeries = new Array();
             if (dataPowerCurves != null) {
                 if (dataPowerCurves.length > 0) {
@@ -374,7 +373,6 @@ var Data = {
             } else {
                 dtSeries = dtLine;
             }
-            console.log(dtSeries);
 
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
