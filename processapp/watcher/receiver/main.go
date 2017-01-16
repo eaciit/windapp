@@ -583,9 +583,17 @@ func UpdateLastMonitoring() {
 		_monitor.Project = _tkm.GetString("projectname")
 		_monitor.Turbine = _tkm.GetString("turbine")
 
-		_monitor.Production = (_tkm.GetFloat64("fast_activepower_kw") / 1000) / 6
-		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
-		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
+		if _val := _tkm.GetFloat64("fast_activepower_kw"); _val != -9999999 {
+			_monitor.Production = (_val / 1000) / 6
+		}
+
+		if _val := _tkm.GetFloat64("fast_windspeed_ms"); _val != -9999999 {
+			_monitor.WindSpeed = _val
+		}
+
+		if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
+			_monitor.RotorSpeedRPM = _val
+		}
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
 

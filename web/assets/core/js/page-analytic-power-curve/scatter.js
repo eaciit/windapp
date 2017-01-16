@@ -45,7 +45,7 @@ page.LoadData = function() {
     page.getPowerCurveScatter();
 }
 
-page.setAxis = function(name, title, crossVal, minVal, maxVal) {
+page.setAxis = function(name, title, minVal, maxVal) {
     var result = {
         name: name,
         title: {
@@ -56,14 +56,11 @@ page.setAxis = function(name, title, crossVal, minVal, maxVal) {
         labels: {
             format: "N2",
         },
-        // axisCrossingValue: crossVal,
         majorGridLines: {
             visible: true,
             color: "#eee",
             width: 0.8,
         },
-        min: minVal,
-        max: maxVal,
         crosshair: {
             visible: true,
             tooltip: {
@@ -110,15 +107,15 @@ page.getPowerCurveScatter = function() {
         var dtSeries = res.data.Data;
         
         var yAxes = [];
-        var yAxis = page.setAxis("powerAxis", "Generation (KW)", -5, 0, 2500);
+        var yAxis = page.setAxis("powerAxis", "Generation (KW)");
         yAxes.push(yAxis);
         switch(page.scatterType) {
             case "temp":
-                var axis = page.setAxis("tempAxis", "Temperature (Celcius)", -5, 0, 90);
+                var axis = page.setAxis("tempAxis", "Temperature (Celcius)");
                 yAxes.push(axis);
                 break;
             case "pitch":
-                var axis = page.setAxis("pitchAxis", "Angle (Degree)", -5, 0, 360);
+                var axis = page.setAxis("pitchAxis", "Angle (Degree)");
                 yAxes.push(axis);
                 break;
         }
@@ -148,14 +145,12 @@ page.getPowerCurveScatter = function() {
                 labels: {
                     step: 1
                 },
-                axisCrossingValues: [0, 30],
             },
             valueAxis: [{
                 labels: {
                     format: "N2",
                 }
             }],
-            // valueAxes: yAxes,
             xAxis: {
                 majorUnit: 1,
                 title: {
@@ -168,6 +163,7 @@ page.getPowerCurveScatter = function() {
                     color: "#eee",
                     width: 0.8,
                 },
+                axisCrossingValues: [0, 30],
                 crosshair: {
                     visible: true,
                     tooltip: {
@@ -184,9 +180,7 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxis: yAxes,
-            pannable: true,
-            zoomable: true
+            yAxes: yAxes
         });
         app.loading(false);
     });
