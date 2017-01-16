@@ -769,12 +769,22 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		project = strings.TrimRight(anProject[0], " ")
 	}
 	pcData, e := getPCData(project)
-	pcData.Set("axis", "powerAxis")
+	pcData.Set("name", "PowerCurve")
+	pcData.Set("yAxis", "powerAxis")
+	pcData.Set("xField", "WindSpeed")
+	pcData.Set("yField", "Power")
+	dataPC := pcData.Get("data").([][]float64)
+	arrdataDefault := []tk.M{}
+	for _, val := range dataPC {
+		arrdataDefault = append(arrdataDefault, tk.M{"WindSpeed": val[0], "Power": val[1]})
+	}
+	pcData.Set("data", arrdataDefault)
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	dataSeries = append(dataSeries, pcData)
-	dVal := (20.0 / 100.0)
+	// dVal := (20.0 / 100.0)
 
 	var filter []*dbox.Filter
 	filter = []*dbox.Filter{}
@@ -801,13 +811,13 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	defer csr.Close()
 
 	turbineData := tk.M{}
-	turbineData.Set("name", "Scatter-"+turbine)
+	turbineData.Set("name", "ScatterPower")
 	turbineData.Set("xField", "WindSpeed")
 	turbineData.Set("yField", "Power")
 	turbineData.Set("colorField", "valueColor")
 	turbineData.Set("type", "scatter")
 	turbineData.Set("markers", tk.M{"size": 2})
-	turbineData.Set("axis", "powerAxis")
+	turbineData.Set("yAxis", "powerAxis")
 
 	datas := tk.M{}
 	arrDatas := []tk.M{}
@@ -821,14 +831,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		pitchData = tk.M{}
 
 		if val.AvgWindSpeed > 0 && val.Power > 0 {
-
 			datas.Set("WindSpeed", val.AvgWindSpeed)
 			datas.Set("Power", val.Power)
-			if val.DeviationPct <= dVal {
-				datas.Set("valueColor", colorFieldDegradation[1])
-			} else {
-				datas.Set("valueColor", colorField[1])
-			}
+			datas.Set("valueColor", colorField[1])
 
 			arrDatas = append(arrDatas, datas)
 		}
@@ -838,23 +843,15 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 			if val.AvgWindSpeed > 0 && val.NacelleTemperature > 0 {
 				tempData.Set("WindSpeed", val.AvgWindSpeed)
 				tempData.Set("Temperature", val.NacelleTemperature)
-				if val.DeviationPct <= dVal {
-					tempData.Set("valueColor", colorFieldDegradation[2])
-				} else {
-					tempData.Set("valueColor", colorField[2])
-				}
+				tempData.Set("valueColor", colorField[2])
 
 				tempDatas = append(tempDatas, tempData)
 			}
 		case "pitch":
-			if val.AvgWindSpeed > 0 && val.AvgBladeAngle > 0 {
+			if val.AvgWindSpeed > 0 && val.AvgBladeAngle <= -99999.0 {
 				pitchData.Set("WindSpeed", val.AvgWindSpeed)
 				pitchData.Set("Pitch", val.AvgBladeAngle)
-				if val.DeviationPct <= dVal {
-					pitchData.Set("valueColor", colorFieldDegradation[2])
-				} else {
-					pitchData.Set("valueColor", colorField[2])
-				}
+				pitchData.Set("valueColor", colorField[2])
 
 				pitchDatas = append(pitchDatas, pitchData)
 			}
@@ -868,26 +865,26 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	case "temp":
 		/*set data series*/
 		seriesData := tk.M{
-			"name":       "Scatter-temperature",
+			"name":       "ScatterTemperature",
 			"xField":     "WindSpeed",
 			"yField":     "Temperature",
 			"colorField": "valueColor",
 			"type":       "scatter",
 			"markers":    tk.M{"size": 2},
-			"axis":       "tempAxis",
+			"yAxis":      "tempAxis",
 			"data":       tempDatas,
 		}
 		dataSeries = append(dataSeries, seriesData)
 
 	case "pitch":
 		seriesData := tk.M{
-			"name":       "Scatter-pitch",
+			"name":       "ScatterPitch",
 			"xField":     "WindSpeed",
 			"yField":     "Pitch",
 			"colorField": "valueColor",
 			"type":       "scatter",
 			"markers":    tk.M{"size": 2},
-			"axis":       "pitchAxis",
+			"yAxis":      "pitchAxis",
 			"data":       pitchDatas,
 		}
 		dataSeries = append(dataSeries, seriesData)
