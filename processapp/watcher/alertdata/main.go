@@ -339,7 +339,7 @@ func preparemasteralarmbrake() (_tkm tk.M) {
 	defer workerconn.Close()
 
 	csr, err := workerconn.NewQuery().
-		Select("brakeprogram", "alarmname", "typecode", "type").
+		Select("brakeprogram", "alarmname", "alarmindex", "type").
 		From("AlarmBrake").
 		Cursor(nil)
 
@@ -354,7 +354,7 @@ func preparemasteralarmbrake() (_tkm tk.M) {
 			break
 		}
 
-		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("typecode")), _atkm)
+		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("alarmindex")), _atkm)
 	}
 
 	return
