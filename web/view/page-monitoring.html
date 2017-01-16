@@ -66,7 +66,7 @@
                                             <td width="25%" data-bind="text:project"></td>
                                             <td width="25%">Capacity(MW)</td>
                                             <td width="25%">WS Avg.(m/s)</td>
-                                            <td width="25%">Prod(MWh)</td>
+                                            <td width="25%">Prod(KWh)</td>
                                         </tr>
                                     </thead>
                                      <tbody class="bold summary">
@@ -83,8 +83,8 @@
                                         <tr>
                                             <td width="25%">Timestamp</td>
                                             <td width="25%" data-bind="text:project"></td>
-                                            <td width="10%"><i class="fa fa-flash tooltipster tooltipstered" title="Production"></i></td>
-                                            <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="Wind Speed"></i></td>
+                                            <td width="10%"><i class="fa fa-flash tooltipster tooltipstered" title="Production (KWh)"></i></td>
+                                            <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="WS (m/s)"></i></td>
                                             <td width="10%"><i class="fa fa-line-chart tooltipster tooltipstered" title="Rotor RPM"></i></td>
                                             <td width="10%"><i class="fa fa-bell tooltipster tooltipstered" title="Status"></i></td>
                                             <td width="10%"><i class="fa fa-edit tooltipster tooltipstered" title="Status Code"></i></td>                                            
@@ -116,10 +116,11 @@
                                 <table class='table borderless able table-condensed'>
                                     <tbody data-bind="foreach:monitoring.event"> 
                                         <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'dim'}">
-                                            <td data-bind="text:kendo.toString(kendo.parseDate(TimeStamp), 'dd-MM-yyyy HH:mm')"></td>
+                                            <!--<td data-bind="text:kendo.toString(TimeStamp, 'dd-MM-yyyy HH:mm')"></td>-->
+                                            <td data-bind="text:TimeStampStr"></td>
                                             <td data-bind="text:Project"></td>
                                             <td data-bind="text:Turbine"></td>
-                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim'}"></td>
+                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim',title: AlarmDescription}"></td>
                                             <td data-bind="text:(Status == 'down'? AlarmId : '')"></td>
                                         </tr>
                                     </tbody>
