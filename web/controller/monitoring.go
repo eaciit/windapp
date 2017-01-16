@@ -267,7 +267,7 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 	}))
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(Monitoring).TableName()).
+		From(new(MonitoringEvent).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
 
