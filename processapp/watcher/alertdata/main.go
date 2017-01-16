@@ -677,6 +677,16 @@ func UpdateLastMonitoring() {
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
 	}
 
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(MonitoringEvent).TableName()).
+		Where(dbox.Lte("grouptimestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }
 
