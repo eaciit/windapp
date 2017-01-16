@@ -30,8 +30,8 @@
             <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
                 <div class="col-md-12 col-sm-12 filter-content">
                     <div class="col-md-1 col-sm-1 time-info-div">
-                        <div class = "time-info">20:30</div>
-                        <span>20 Sep 2016</span>
+                        <div class = "time-info"><span data-bind="text:monitoring.last_minute" ><span/></div>
+                        <span data-bind="text:monitoring.last_date" ><span/>
                     </div>
                     <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
                     <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: monitoring.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
@@ -51,9 +51,9 @@
                 <div class="panel ez no-padding hardcore mb-5">
                     <div class="panel-heading">      
                         <div class="pull-right maximize-btn">
-                            <i class="fa fa-bell tooltipster tooltipstered pull-right" aria-hidden="true" title="Notification" style="cursor: pointer;" data-toggle="control-sidebar"></i>
                             <i class="fa fa-window-maximize tooltipster tooltipstered pull-right" aria-hidden="true" title="maximize screen" style="cursor: pointer;" id="max-screen"></i>
                             <i class="fa fa-window-restore tooltipster tooltipstered pull-right" aria-hidden="true" title="restore screen" style="cursor: pointer;" id="restore-screen"></i>
+                            <i class="fa fa-bell tooltipster tooltipstered pull-right" aria-hidden="true" title="Notification" style="cursor: pointer;" data-toggle="control-sidebar"></i>
                         </div>
 
                     </div>
@@ -92,13 +92,14 @@
                                     </thead>
                                     <tbody data-bind="foreach:$data.turbines">
                                         <tr>
-                                            <td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-MM-yyyy HH:mm')"></td>
+                                            <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
+                                            <td data-bind="text:timestampstr"></td>
                                             <td data-bind="text:turbine"></td>
                                             <td data-bind="text:kendo.toString(production,'n1')"></td>
                                             <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
                                             <td data-bind="text:kendo.toString(rotorspeedrpm,'n1')"></td>
-                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
-                                            <td data-bind='text: (statusdesc == "") ? "-" : statusdesc'></td>
+                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
+                                            <td data-bind='text: (statuscode == "") ? "-" : statuscode'></td>
                                             <td></td>                                          
                                         </tr>
                                     </tbody>
@@ -114,12 +115,12 @@
                            <div class="col-md-12">
                                 <table class='table borderless able table-condensed'>
                                     <tbody data-bind="foreach:monitoring.event"> 
-                                        <tr data-bind="attr : {class: (Status == 'brake') ? 'red' : 'dim'}">
+                                        <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'dim'}">
                                             <td data-bind="text:kendo.toString(kendo.parseDate(TimeStamp), 'dd-MM-yyyy HH:mm')"></td>
                                             <td data-bind="text:Project"></td>
                                             <td data-bind="text:Turbine"></td>
-                                            <td data-bind="attr : {class: (Status == 'brake') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim'}"></td>
-                                            <td data-bind="text:(Status == 'brake'? AlarmId : '')"></td>
+                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim'}"></td>
+                                            <td data-bind="text:(Status == 'down'? AlarmId : '')"></td>
                                         </tr>
                                     </tbody>
                                 </table>
