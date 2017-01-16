@@ -96,7 +96,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		ID := v.Get("_id").(tk.M)
 		project := ID.GetString("project")
 		turbine := ID.GetString("turbine")
-		timestamp := v.Get("timestamp").(time.Time)
+		timestamp := v.Get("timestamp").(time.Time).UTC()
 		windspeed := checkNAValue(v.GetFloat64("windspeed"))
 		production := checkNAValue(v.GetFloat64("production"))
 		rotorspeedrpm := checkNAValue(v.GetFloat64("rotorspeedrpm"))
@@ -123,6 +123,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 
 		newRecord.Set("turbine", turbine)
 		newRecord.Set("timestamp", timestamp)
+		newRecord.Set("timestampstr", timestamp.Format("02-01-2006 15:04:05"))
 		newRecord.Set("windspeed", windspeed)
 		newRecord.Set("production", production)
 		newRecord.Set("rotorspeedrpm", rotorspeedrpm)

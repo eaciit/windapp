@@ -70,7 +70,8 @@
                                     </thead>
                                     <tbody data-bind="foreach:$data.turbines">
                                         <tr>
-                                            <td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>
+                                            <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
+                                            <td data-bind="text:timestampstr"></td>
                                             <td data-bind="text:turbine"></td>
                                             <td data-bind="text:kendo.toString(production,'n1')"></td>
                                             <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
