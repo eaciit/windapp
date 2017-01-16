@@ -582,10 +582,14 @@ func UpdateLastMonitoring() {
 	}
 	xcsr.Close()
 
-	_ = workerconn.NewQuery().
+	err = workerconn.NewQuery().
 		Delete().
 		Where(dbox.Lte("timestamp", speriode)).
 		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }
