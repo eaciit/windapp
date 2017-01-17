@@ -394,7 +394,6 @@ pc.initChart = function() {
                   fileName: "DetailPowerCurve.pdf",
                 },
                 theme: "flat",
-                renderAs: "canvas",
                 title: {
                     text: "Power Curves",
                     visible: false,
@@ -402,7 +401,7 @@ pc.initChart = function() {
                 },
                 legend: {
                     position: "bottom",
-                    visible: true   ,
+                    visible: true,
                 },
                 chartArea: {
                     height: 375,
@@ -499,8 +498,8 @@ pc.initChart = function() {
                         width: "2px",
                     },
                 },
-                pannable: true,
-                zoomable: true
+                pannable: false,
+                zoomable: false
             });
             app.loading(false);
             $("#chartPCcomparison").data("kendoChart").refresh();
