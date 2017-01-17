@@ -391,7 +391,7 @@ func (ev *HFDDownConversion) InsertToMonitoringEvent(data EventRawHFD, status st
 		csr, e := ev.Ctx.Connection.NewQuery().
 			From(new(MonitoringEvent).TableName()).
 			Where(dbox.And(filter...)).
-			Order(" -timestamp").
+			Order("-timestamp").
 			Take(1).
 			Cursor(nil)
 
@@ -412,6 +412,7 @@ func (ev *HFDDownConversion) InsertToMonitoringEvent(data EventRawHFD, status st
 
 		if len(events) == 1 {
 			start := events[0]
+			log.Printf("%v | %v \n", mEvent.TimeStamp.UTC().String(), start.TimeStamp.UTC().String())
 			mEvent.Duration = mEvent.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
 		}
 	}
