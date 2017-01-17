@@ -681,7 +681,7 @@ func UpdateLastMonitoring() {
 			_mo.Type = ""
 			_mo.StatusCode = 0
 			_mo.StatusDesc = ""
-			if _lsdata, _lscond := _lstatus[_mo.Project]; _lscond && _lsdata.Status == "brake" {
+			if _lsdata, _lscond := _lstatus[_mo.Turbine]; _lscond && _lsdata.Status == "brake" {
 				_mo.Status = _lsdata.Status
 				_mo.Type = _lsdata.Type
 				_mo.StatusCode = _lsdata.StatusCode
@@ -695,7 +695,7 @@ func UpdateLastMonitoring() {
 			_astatus.StatusCode = _mo.StatusCode
 			_astatus.StatusDesc = _mo.StatusDesc
 
-			_lstatus[_mo.Project] = _astatus
+			_lstatus[_mo.Turbine] = _astatus
 		}
 
 		_mo.LastUpdate = _nt0
@@ -753,10 +753,10 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
 			break
 		}
 
-		_amnt.Status = ""
-		_amnt.Type = ""
-		_amnt.StatusCode = 0
-		_amnt.StatusDesc = ""
+		// _amnt.Status = ""
+		// _amnt.Type = ""
+		// _amnt.StatusCode = 0
+		// _amnt.StatusDesc = ""
 
 		_mnt[_amnt.ID] = _amnt
 
