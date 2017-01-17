@@ -164,6 +164,13 @@ t1224.generateGrid = function (source, datatype) {
         columns: [
             { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
         ],
+         dataBound: function(){
+            setTimeout(function(){
+                $("#gridTable1224 >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","75px");
+                // $("#gridTable1224 >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","75px");
+                // app.loading(false);
+            },200);
+        },
     };
 
     $.each(t1224.dataSource()[0].details, function (i, val) {

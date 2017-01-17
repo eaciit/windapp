@@ -1305,6 +1305,13 @@ warn.generateGrid = function () {
         columns: [
             { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
         ],
+        dataBound: function(){
+            setTimeout(function(){
+                $("#warningGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","20px");
+                $("#warningGrid >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","20px");
+                // app.loading(false);
+            },200);
+        },
     };
 
     $.each(warn.dataSource()[0].turbines, function (i, val) {
