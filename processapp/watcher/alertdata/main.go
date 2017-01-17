@@ -671,7 +671,7 @@ func UpdateLastMonitoring() {
 		Save()
 
 	sort.Strings(mskeys)
-	_lstatus := make(map[string]Monitoring)
+	_lstatus := make(map[string]Monitoring, 0)
 
 	for _, _skey := range mskeys {
 		_mo := msmonitor[_skey]
@@ -753,10 +753,10 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
 			break
 		}
 
-		// _amnt.Status = ""
-		// _amnt.Type = ""
-		// _amnt.StatusCode = 0
-		// _amnt.StatusDesc = ""
+		_amnt.Status = ""
+		_amnt.Type = ""
+		_amnt.StatusCode = 0
+		_amnt.StatusDesc = ""
 
 		_mnt[_amnt.ID] = _amnt
 
