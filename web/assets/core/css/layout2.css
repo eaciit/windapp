@@ -1150,3 +1150,11 @@ a:active, a:focus, a:hover {
 .navbar-nav .dropdown.active ul {display:inline;}  
   
 }*/
+
+.dropdown-menu {
+    -webkit-box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
+    -moz-box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
+    box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
+    border-color: #eee;
+    box-sizing: border-box;
+}

@@ -737,6 +737,20 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	return helper.CreateResult(true, data, "success")
 }
 
+func setScatterData(name, xField, yField, color, yAxis string, data []tk.M) tk.M {
+	return tk.M{
+		"name":       name,
+		"xField":     xField,
+		"yField":     yField,
+		"colorField": "valueColor",
+		"color":      color,
+		"type":       "scatter",
+		"markers":    tk.M{"size": 2},
+		"yAxis":      yAxis,
+		"data":       data,
+	}
+}
+
 func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -775,34 +789,26 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	dataSeries = append(dataSeries, pcData)
-	// dVal := (20.0 / 100.0)
 
 	var filter []*dbox.Filter
 	filter = []*dbox.Filter{}
-	// filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Eq("turbine", turbine))
 	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.Eq("oktime", 600))
-
-	for _, val := range filter {
-		tk.Println(val)
-	}
+	filter = append(filter, dbox.Gt("avgwindspeed", 0))
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Where(dbox.And(filter...)).
-		// Take(10000).
+		Take(10000).
 		Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	// e = csr.Fetch(&list, 0, false)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
 	for {
 		_list := ScadaData{}
 		e = csr.Fetch(&_list, 1, false)
@@ -813,15 +819,6 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	}
 
 	defer csr.Close()
-
-	turbineData := tk.M{}
-	turbineData.Set("name", "Power")
-	turbineData.Set("xField", "WindSpeed")
-	turbineData.Set("yField", "Power")
-	turbineData.Set("colorField", "valueColor")
-	turbineData.Set("type", "scatter")
-	turbineData.Set("markers", tk.M{"size": 2})
-	turbineData.Set("yAxis", "powerAxis")
 
 	datas := tk.M{}
 	arrDatas := []tk.M{}
@@ -837,7 +834,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		pitchData = tk.M{}
 		deviationData = tk.M{}
 
-		if val.AvgWindSpeed > 0 && val.Power > 0 {
+		if val.Power > 0 {
 			datas.Set("WindSpeed", val.AvgWindSpeed)
 			datas.Set("Power", val.Power)
 			datas.Set("valueColor", colorField[1])
@@ -847,7 +844,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 		switch p.ScatterType {
 		case "temp":
-			if val.AvgWindSpeed > 0 && val.NacelleTemperature > 0 {
+			if val.NacelleTemperature > 0 {
 				tempData.Set("WindSpeed", val.AvgWindSpeed)
 				tempData.Set("Temperature", val.NacelleTemperature)
 				tempData.Set("valueColor", colorField[2])
@@ -855,15 +852,13 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 				tempDatas = append(tempDatas, tempData)
 			}
 		case "deviation":
-			if val.AvgWindSpeed > 0 {
-				deviationData.Set("WindSpeed", val.AvgWindSpeed)
-				deviationData.Set("Deviation", val.WindDirection)
-				deviationData.Set("valueColor", colorField[2])
+			deviationData.Set("WindSpeed", val.AvgWindSpeed)
+			deviationData.Set("Deviation", val.WindDirection)
+			deviationData.Set("valueColor", colorField[2])
 
-				deviationDatas = append(deviationDatas, deviationData)
-			}
+			deviationDatas = append(deviationDatas, deviationData)
 		case "pitch":
-			if val.AvgWindSpeed > 0 && val.AvgBladeAngle <= -99999.0 {
+			if val.AvgBladeAngle > -99999.0 {
 				pitchData.Set("WindSpeed", val.AvgWindSpeed)
 				pitchData.Set("Pitch", val.AvgBladeAngle)
 				pitchData.Set("valueColor", colorField[2])
@@ -872,47 +867,19 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 			}
 		}
 	}
-
-	turbineData.Set("data", arrDatas)
+	turbineData := setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", arrDatas)
 	dataSeries = append(dataSeries, turbineData)
 
 	switch p.ScatterType {
 	case "temp":
 		/*set data series*/
-		seriesData := tk.M{
-			"name":       "Temperature",
-			"xField":     "WindSpeed",
-			"yField":     "Temperature",
-			"colorField": "valueColor",
-			"type":       "scatter",
-			"markers":    tk.M{"size": 2},
-			"yAxis":      "tempAxis",
-			"data":       tempDatas,
-		}
+		seriesData := setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tempDatas)
 		dataSeries = append(dataSeries, seriesData)
 	case "deviation":
-		seriesData := tk.M{
-			"name":       "Deviation",
-			"xField":     "WindSpeed",
-			"yField":     "Deviation",
-			"colorField": "valueColor",
-			"type":       "scatter",
-			"markers":    tk.M{"size": 2},
-			"yAxis":      "deviationAxis",
-			"data":       deviationDatas,
-		}
+		seriesData := setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", deviationDatas)
 		dataSeries = append(dataSeries, seriesData)
 	case "pitch":
-		seriesData := tk.M{
-			"name":       "Pitch",
-			"xField":     "WindSpeed",
-			"yField":     "Pitch",
-			"colorField": "valueColor",
-			"type":       "scatter",
-			"markers":    tk.M{"size": 2},
-			"yAxis":      "pitchAxis",
-			"data":       pitchDatas,
-		}
+		seriesData := setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", pitchDatas)
 		dataSeries = append(dataSeries, seriesData)
 	}
 
