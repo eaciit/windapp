@@ -676,7 +676,7 @@ func UpdateLastMonitoring() {
 	for _, _skey := range mskeys {
 		_mo := msmonitor[_skey]
 
-		if _mo.Status == "" {
+		if _mo.Status == "" || _mo.Status == "N/A" {
 			_mo.Status = "N/A"
 			_mo.Type = ""
 			_mo.StatusCode = 0
