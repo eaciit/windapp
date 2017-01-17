@@ -489,20 +489,20 @@
 
 /* Safari 4.0 - 8.0 */
 @-webkit-keyframes flash {
-    from {background-color: white;color:red;}
+    from {background-color: yellow;color:white;}
     to {background-color: red;color:white;}
 
-  	from {background-color: white;color:red;}
+  	from {background-color: yellow;color:white;}
     to {background-color: red;color:white;}
 }
 
 /* Standard syntax */
 @keyframes flash {
-    from {background-color: white;color:red;}
-    to {background-color: red;color:white;}
+    from {background-color: yellow;color:white; opacity: 0.4}
+    to {background-color: red;color:white; opacity: 0.4}
 
-  	from {background-color: white;color:red;}
-    to {background-color: red;color:white;}
+  	from {background-color: yellow;color:white; opacity: 0.4}
+    to {background-color: red;color:white; opacity: 0.4}
 }
 
 .flash {
