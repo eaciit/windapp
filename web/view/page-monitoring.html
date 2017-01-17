@@ -10,8 +10,8 @@
             <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
                 <div class="col-md-12 col-sm-12 filter-content">
                     <div class="col-md-1 col-sm-1 time-info-div">
-                        <div class = "time-info">20:30</div>
-                        <span>20 Sep 2016</span>
+                        <div class = "time-info"><span data-bind="text:monitoring.last_minute" ><span/></div>
+                        <span data-bind="text:monitoring.last_date" ><span/>
                     </div>
                     <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
                     <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: monitoring.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
@@ -27,15 +27,17 @@
     </div>
 
     <div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-12 col-sm-12 hardcore landing">
-				<div class="panel ez no-padding hardcore mb-5">
-                    <div class="panel-heading">           
+            <div class="col-md-12 col-sm-12 hardcore landing">
+                <div class="panel ez no-padding hardcore mb-5">
+                    <div class="panel-heading">      
                         <div class="pull-right maximize-btn">
                             <i class="fa fa-window-maximize tooltipster tooltipstered pull-right" aria-hidden="true" title="maximize screen" style="cursor: pointer;" id="max-screen"></i>
                             <i class="fa fa-window-restore tooltipster tooltipstered pull-right" aria-hidden="true" title="restore screen" style="cursor: pointer;" id="restore-screen"></i>
+                            <i class="fa fa-bell tooltipster tooltipstered pull-right" aria-hidden="true" title="Notification" style="cursor: pointer;" data-toggle="control-sidebar"></i>
                         </div>
+
                     </div>
-                    <div class="panel-body" style="text-align:center">                        
+                    <div class="panel-body">                        
                         <div class="col-md-12 multicol-div">
                             <div class="col-md-4 multicol" data-bind="foreach:monitoring.data">
                                 <table class="table table-condensed table-sum">
@@ -44,15 +46,15 @@
                                             <td width="25%" data-bind="text:project"></td>
                                             <td width="25%">Capacity(MW)</td>
                                             <td width="25%">WS Avg.(m/s)</td>
-                                            <td width="25%">Prod(MWh)</td>
+                                            <td width="25%">Prod(KWh)</td>
                                         </tr>
                                     </thead>
-                                    <tbody class="bold summary">
+                                     <tbody class="bold summary">
                                         <tr>
                                             <td> <span data-bind="text:kendo.toString(totalturbines,'n0')"></span></td>
-                                            <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span>/ <span class="dim">50.4</span></td>
-                                            <td> <span data-bind="text:kendo.toString(totalwsavg,'n1')"></span> / <span class="dim">6</span></td>
-                                            <td> <span data-bind="text:kendo.toString(totalprod,'n1')"></span> / <span class="dim">150</span></td>
+                                            <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span><!--/ <span class="dim">50.4</span></td>-->
+                                            <td> <span data-bind="text:kendo.toString(totalwsavg,'n1')"><!--</span> / <span class="dim">6</span></td>-->
+                                            <td> <span data-bind="text:kendo.toString(totalprod,'n1')"></span>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -61,8 +63,8 @@
                                         <tr>
                                             <td width="25%">Timestamp</td>
                                             <td width="25%" data-bind="text:project"></td>
-                                            <td width="10%"><i class="fa fa-flash tooltipster tooltipstered" title="Production"></i></td>
-                                            <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="Wind Speed"></i></td>
+                                            <td width="10%"><i class="fa fa-flash tooltipster tooltipstered" title="Production (KWh)"></i></td>
+                                            <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="WS (m/s)"></i></td>
                                             <td width="10%"><i class="fa fa-line-chart tooltipster tooltipstered" title="Rotor RPM"></i></td>
                                             <td width="10%"><i class="fa fa-bell tooltipster tooltipstered" title="Status"></i></td>
                                             <td width="10%"><i class="fa fa-edit tooltipster tooltipstered" title="Status Code"></i></td>                                            
@@ -70,13 +72,14 @@
                                     </thead>
                                     <tbody data-bind="foreach:$data.turbines">
                                         <tr>
-                                            <td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>
+                                            <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
+                                            <td data-bind="text:timestampstr"></td>
                                             <td data-bind="text:turbine"></td>
                                             <td data-bind="text:kendo.toString(production,'n1')"></td>
                                             <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
                                             <td data-bind="text:kendo.toString(rotorspeedrpm,'n1')"></td>
-                                            <td data-bind="attr : {class: (status == 'break') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
-                                            <td data-bind='text: (statusdesc == "") ? "-" : statusdesc'></td>
+                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
+                                            <td data-bind='text: (statuscode == "") ? "-" : statuscode'></td>
                                             <td></td>                                          
                                         </tr>
                                     </tbody>
@@ -84,6 +87,26 @@
                                 <hr>
                             </div>
                         </div>
+                        <br>
+                        <aside class="control-sidebar control-sidebar-light">
+                           <div class="col-md-12 details-title">
+                                <h4>Events</h4>
+                           </div>
+                           <div class="col-md-12">
+                                <table class='table borderless able table-condensed'>
+                                    <tbody data-bind="foreach:monitoring.event"> 
+                                        <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'dim'}">
+                                            <!--<td data-bind="text:kendo.toString(TimeStamp, 'dd-MM-yyyy HH:mm')"></td>-->
+                                            <td data-bind="text:TimeStampStr"></td>
+                                            <td data-bind="text:Project"></td>
+                                            <td data-bind="text:Turbine"></td>
+                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim',title: AlarmDescription}"></td>
+                                            <td data-bind="text:(Status == 'down'? AlarmId : '')"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                           </div>
+                        </aside>
                     </div>
                 </div>
             </div>

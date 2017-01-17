@@ -20,6 +20,21 @@ type LoginController struct {
 	App
 }
 
+type Availdatedata struct {
+	ScadaData         []time.Time
+	DGRData           []time.Time
+	Alarm             []time.Time
+	JMR               []time.Time
+	MET               []time.Time
+	Duration          []time.Time
+	ScadaAnomaly      []time.Time
+	AlarmOverlapping  []time.Time
+	AlarmScadaAnomaly []time.Time
+	ScadaDataOEM      []time.Time
+	ScadaDataHFD      []time.Time
+	Warning           []time.Time
+}
+
 func CreateLoginController() *LoginController {
 	var controller = new(LoginController)
 	return controller
@@ -161,70 +176,37 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// temporary add last date hardcode, then will change to get it from database automatically
 	// add by ams, 2016-10-04
 
-	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
+	// query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
 
-	csr, e := query.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
+	// csr, e := query.Cursor(nil)
+	// if e != nil {
+	// 	return helper.CreateResult(false, nil, e.Error())
+	// }
 
-	Result := make([]ScadaData, 0)
-	e = csr.Fetch(&Result, 0, false)
+	// Result := make([]ScadaData, 0)
+	// e = csr.Fetch(&Result, 0, false)
 
-	csr.Close()
+	// csr.Close()
 
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
+	// if e != nil {
+	// 	return helper.CreateResult(false, nil, e.Error())
+	// }
 
-	for _, val := range Result {
-		// toolkit.Printf("Result : %s \n", val.TimeStamp.UTC())
-		lastDateData = val.TimeStamp.UTC()
-	}
+	// for _, val := range Result {
+	// 	// toolkit.Printf("Result : %s \n", val.TimeStamp.UTC())
+	// 	lastDateData = val.TimeStamp.UTC()
+	// }
 
-	// toolkit.Printf("Result : %s \n", lastDateData)
-	lastDateData = lastDateData.UTC()
-	r.SetSession("lastdate_data", lastDateData)
+	// // toolkit.Printf("Result : %s \n", lastDateData)
+	// lastDateData = lastDateData.UTC()
+	// r.SetSession("lastdate_data", lastDateData)
 
 	// Get Available Date All Collection
-	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e = DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	e = csr.Fetch(&latestDataPeriods, 0, false)
-	csr.Close()
-
-	// toolkit.Println(latestDataPeriods)
-
-	type availdatedata struct {
-		ScadaData         []time.Time
-		DGRData           []time.Time
-		Alarm             []time.Time
-		JMR               []time.Time
-		MET               []time.Time
-		Duration          []time.Time
-		ScadaAnomaly      []time.Time
-		AlarmOverlapping  []time.Time
-		AlarmScadaAnomaly []time.Time
-		ScadaDataOEM      []time.Time
-		ScadaDataHFD      []time.Time
-		Warning           []time.Time
-	}
-
-	datePeriod := new(availdatedata)
-	xdp := reflect.ValueOf(datePeriod).Elem()
-	for _, d := range latestDataPeriods {
-		f := xdp.FieldByName(d.Type)
-		if f.IsValid() {
-			if f.CanSet() {
-				f.Set(reflect.ValueOf(d.Data))
-			}
-		}
-	}
-
+	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+
+	lastDateData = datePeriod.ScadaData[1].UTC()
+	r.SetSession("lastdate_data", lastDateData)
 
 	data := toolkit.M{
 		"status":    true,
@@ -293,4 +275,30 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 	}
 
 	return helper.CreateResult(true, result, "Authenticate Success")
+}
+
+func getLastAvailDate() *Availdatedata {
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	// toolkit.Println(latestDataPeriods)
+
+	datePeriod := new(Availdatedata)
+	xdp := reflect.ValueOf(datePeriod).Elem()
+	for _, d := range latestDataPeriods {
+		f := xdp.FieldByName(d.Type)
+		if f.IsValid() {
+			if f.CanSet() {
+				f.Set(reflect.ValueOf(d.Data))
+			}
+		}
+	}
+
+	return datePeriod
 }
