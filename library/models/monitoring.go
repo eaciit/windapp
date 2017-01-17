@@ -50,17 +50,19 @@ func (m *Monitoring) TableName() string {
 }
 
 type MonitoringEvent struct {
-	orm.ModelBase    `bson:"-",json:"-"`
-	ID               string ` bson:"_id" , json:"_id" `
-	Project          string
-	Turbine          string
-	TimeStamp        time.Time
-	DateInfo         DateInfo
-	GroupTimeStamp   time.Time
-	AlarmId          int
-	AlarmDescription string
-	Type             string // Alarm, Brake, Warning
-	Status           string /// down, up
+	orm.ModelBase     `bson:"-",json:"-"`
+	ID                string ` bson:"_id" , json:"_id" `
+	Project           string
+	Turbine           string
+	TimeStamp         time.Time
+	TimeStampStr      string
+	DateInfo          DateInfo
+	GroupTimeStamp    time.Time
+	GroupTimeStampStr string
+	AlarmId           int
+	AlarmDescription  string
+	Type              string // Alarm, Brake, Warning
+	Status            string /// down, up
 }
 
 func (m *MonitoringEvent) New() *MonitoringEvent {
