@@ -13,7 +13,7 @@
 					<div class="panel-heading">
 						<div class="scatter-comparison pull-right">
 							<span><label class="label-scatter">Scatter Comparison</label></span>
-							<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true }">
+							<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
 			                </select>
 						</div>
 					</div>
