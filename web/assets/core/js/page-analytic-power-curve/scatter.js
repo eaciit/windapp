@@ -77,6 +77,10 @@ page.setAxis = function(name, title) {
     return result
 }
 
+page.refreshChart = function() {
+    page.LoadData();
+}
+
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();

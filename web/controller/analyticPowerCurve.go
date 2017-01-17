@@ -803,7 +803,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Where(dbox.And(filter...)).
-		// Take(10000).
+		Take(10000).
 		Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
