@@ -585,15 +585,17 @@ func UpdateLastMonitoring() {
 
 		if _val := _tkm.GetFloat64("fast_activepower_kw"); _val != -9999999 {
 			_monitor.Production = (_val / 1000) / 6
+		} else {
+			_monitor.Production = _val
 		}
 
-		if _val := _tkm.GetFloat64("fast_windspeed_ms"); _val != -9999999 {
-			_monitor.WindSpeed = _val
-		}
+		// if _val := _tkm.GetFloat64("fast_windspeed_ms"); _val != -9999999 {
+		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
+		// }
 
-		if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
-			_monitor.RotorSpeedRPM = _val
-		}
+		// if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
+		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
+		// }
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
 

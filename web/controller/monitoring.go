@@ -59,17 +59,20 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 			"project": "$project",
 			"turbine": "$turbine",
 		},
-		"timestamp":     tk.M{"$last": "$timestamp"},
-		"windspeed":     tk.M{"$last": "$windspeed"},
-		"production":    tk.M{"$last": "$production"},
-		"rotorspeedrpm": tk.M{"$last": "$rotorspeedrpm"},
-		"status":        tk.M{"$last": "$status"},
-		"statuscode":    tk.M{"$last": "$statuscode"},
-		"statusdesc":    tk.M{"$last": "$statusdesc"},
+		"timestamp":     tk.M{"$first": "$timestamp"},
+		"windspeed":     tk.M{"$first": "$windspeed"},
+		"production":    tk.M{"$first": "$production"},
+		"rotorspeedrpm": tk.M{"$first": "$rotorspeedrpm"},
+		"status":        tk.M{"$first": "$status"},
+		"statuscode":    tk.M{"$first": "$statuscode"},
+		"statusdesc":    tk.M{"$first": "$statusdesc"},
 	}
 
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
+		"timestamp": -1,
+	}))
 	pipes = append(pipes, tk.M{}.Set("$group", group))
 	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
 		"_id.project": 1,
@@ -151,8 +154,9 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))
 	}
 
-	dateid, _ := time.Parse("20060102_0504", time.Now().Format("20060102_")+"_0000")
+	dateid, _ := time.Parse("20060102_150405", time.Now().Format("20060102_")+"000000")
 	match.Set("dateinfo.dateid", dateid.UTC())
+	// match.Set("production", tk.M{"$ne": -9999999.0})
 
 	group = tk.M{
 		"_id":        "$project",
@@ -212,8 +216,17 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 
 	// get latest date update from ScadaDataHFD
 
-	availDate := k.Session("availdate", "")
-	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e = DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	availDate := getLastAvailDate()
+	date := availDate.ScadaDataHFD[1].UTC()
 
 	finalResult := tk.M{}
 	finalResult.Set("data", res)
@@ -258,12 +271,16 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))
 	}
 
+	availDate := k.Session("availdate", "")
+	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+	match.Set("grouptimestamp", tk.M{}.Set("$lte", date))
+
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
 	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
 		"timestamp": -1,
-		"turbine":   -1,
-		"project":   -1,
+		/*"turbine":   -1,
+		"project":   -1,*/
 	}))
 
 	csr, e := DB().Connection.NewQuery().
@@ -284,10 +301,20 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, "Error query : "+e.Error())
 	}
 
+	res := make([]MonitoringEvent, 0)
+
+	for _, v := range results {
+		v.TimeStamp = v.TimeStamp.UTC()
+		v.GroupTimeStamp = v.GroupTimeStamp.UTC()
+		v.TimeStampStr = v.TimeStamp.Format("02-01-2006 15:04:05")
+		v.GroupTimeStampStr = v.GroupTimeStamp.Format("02-01-2006 15:04:05")
+		res = append(res, v)
+	}
+
 	data := struct {
 		Data []MonitoringEvent
 	}{
-		Data: results,
+		Data: res,
 	}
 
 	return helper.CreateResult(true, data, "success")
