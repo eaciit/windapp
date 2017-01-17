@@ -207,7 +207,7 @@ label.summary-number {
 }
 
 .grid-custom-db-new.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-locked>table>thead>tr {
-    height: 90px !important;
+    height: 90px;
 }
 .lbl-period{
     padding-left: 0px;
