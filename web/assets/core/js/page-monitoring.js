@@ -92,7 +92,7 @@ monitoring.checkTurbine = function () {
 }
 
 monitoring.getData = function(){
-    app.loading(true);
+    // app.loading(true);
 
     var turbine = $("#turbineList").data("kendoMultiSelect").value()
     var project = $("#projectList").data("kendoDropDownList").value()
@@ -124,10 +124,15 @@ monitoring.getData = function(){
 
 
     $.when(request, requestEvent).done(function(){
+        $(".red").addClass("flash");
         setTimeout(function(){
-            app.loading(false);
-            app.prepareTooltipster();
+            // app.loading(false);
+            app.prepareTooltipster();            
         },500);
+
+        setTimeout(function() {
+            $(".red").removeClass("flash");
+        }, 2500);
     });
 }
 

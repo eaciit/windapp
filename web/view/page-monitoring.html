@@ -58,7 +58,7 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                                <table class="table table-condensed table-detail">
+                                <table class="table table-condensed table-detail table-hover table-striped">
                                     <thead class="bold">
                                         <tr>
                                             <td width="25%">Timestamp</td>
@@ -75,9 +75,9 @@
                                             <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
                                             <td data-bind="text:timestampstr"></td>
                                             <td data-bind="text:turbine"></td>
-                                            <td data-bind="text:kendo.toString(production,'n1')"></td>
-                                            <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
-                                            <td data-bind="text:kendo.toString(rotorspeedrpm,'n1')"></td>
+                                            <td data-bind="text:kendo.toString(production,'n1'), attr : { class: (production <= 0) ? 'red' : ''}"></td>
+                                            <td data-bind="text:kendo.toString(windspeed,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
+                                            <td data-bind="text:kendo.toString(rotorspeedrpm,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
                                             <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster tooltipstered',title: statusdesc}"></td>
                                             <td data-bind='text: (statuscode == "") ? "-" : statuscode'></td>
                                             <td></td>                                          
