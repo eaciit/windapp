@@ -93,6 +93,29 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
 
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	prodTotalsTurbine := getTurbineTodayTotal(tk.M{"$sum": "$production"}, "production", project, turbine)
+
+	mapTotalTurbine := map[string]tk.M{}
+
+	for _, v := range prodTotalsTurbine {
+		// log.Printf("%#v \n", v)
+
+		ID := v.Get("_id").(tk.M)
+		project := ID.GetString("project")
+		turbine := ID.GetString("turbine")
+		result := v.GetFloat64("result") * 1000
+
+		if mapTotalTurbine[project] == nil {
+			mapTotalTurbine[project] = tk.M{turbine: result}
+		} else {
+			mapTotalTurbine[project].Set(turbine, result)
+		}
+	}
+
 	projects := tk.M{}
 
 	for _, v := range results {
@@ -129,6 +152,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		newRecord.Set("timestampstr", timestamp.Format("02-01-2006 15:04:05"))
 		newRecord.Set("windspeed", windspeed)
 		newRecord.Set("production", production)
+		newRecord.Set("todayproduction", mapTotalTurbine[project].GetFloat64(turbine))
 		newRecord.Set("rotorspeedrpm", rotorspeedrpm)
 		newRecord.Set("status", status)
 		newRecord.Set("statuscode", statuscode)
@@ -315,6 +339,53 @@ func getTodayTotal(resultGroup tk.M, field string, project string, turbine []int
 
 	group := tk.M{
 		"_id":    "$project",
+		"result": resultGroup,
+	}
+
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", group))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return nil
+	}
+
+	results := make([]tk.M, 0)
+	e = csr.Fetch(&results, 0, false)
+
+	if e != nil {
+		return nil
+	}
+
+	return results
+}
+
+func getTurbineTodayTotal(resultGroup tk.M, field string, project string, turbine []interface{}) []tk.M {
+	match := tk.M{}
+	if project != "" {
+		match.Set("project", project)
+	}
+
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	dateid, _ := time.Parse("20060102_150405", time.Now().Format("20060102_")+"000000")
+	match.Set("dateinfo.dateid", dateid.UTC())
+	match.Set(field, tk.M{"$ne": -9999999.0})
+
+	group := tk.M{
+		"_id": tk.M{
+			"project": "$project",
+			"turbine": "$turbine",
+		},
 		"result": resultGroup,
 	}
 
