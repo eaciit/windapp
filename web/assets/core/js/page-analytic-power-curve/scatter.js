@@ -103,8 +103,6 @@ page.getPowerCurveScatter = function() {
             return;
         }
         var dtSeries = res.data.Data;
-        dtSeries[1].color = "#21c4af";
-        dtSeries[2].color = "#ff7663";
         
         var yAxes = [];
         var yAxis = page.setAxis("powerAxis", "Generation (KW)");
