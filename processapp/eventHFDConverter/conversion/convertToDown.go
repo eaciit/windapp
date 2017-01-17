@@ -10,6 +10,7 @@ import (
 	// . "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
+	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 
@@ -381,6 +382,40 @@ func (ev *HFDDownConversion) InsertToMonitoringEvent(data EventRawHFD, status st
 	mEvent.AlarmDescription = data.AlarmDescription
 	mEvent.Type = "brake"
 	mEvent.Status = status
+
+	if status == "up" {
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("project", data.ProjectName))
+		filter = append(filter, dbox.Eq("turbine", data.Turbine))
+
+		csr, e := ev.Ctx.Connection.NewQuery().
+			From(new(MonitoringEvent).TableName()).
+			Where(dbox.And(filter...)).
+			Order(" -timestamp").
+			Take(1).
+			Cursor(nil)
+
+		defer csr.Close()
+
+		events := []MonitoringEvent{}
+
+		if e != nil {
+			log.Printf("Error: %v \n" + e.Error())
+			return e
+		}
+		e = csr.Fetch(&events, 0, false)
+
+		if e != nil {
+			log.Printf("Error: %v \n" + e.Error())
+			return e
+		}
+
+		if len(events) == 1 {
+			start := events[0]
+			mEvent.Duration = mEvent.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
+		}
+	}
+
 	mEvent = mEvent.New()
 
 	e := ev.Ctx.Save(mEvent)

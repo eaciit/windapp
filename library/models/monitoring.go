@@ -63,6 +63,7 @@ type MonitoringEvent struct {
 	AlarmDescription  string
 	Type              string // Alarm, Brake, Warning
 	Status            string /// down, up
+	Duration          float64
 }
 
 func (m *MonitoringEvent) New() *MonitoringEvent {
