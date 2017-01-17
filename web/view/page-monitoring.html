@@ -103,7 +103,7 @@
                                             <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim tooltipster',title: AlarmDescription}"></td>
                                             <td data-bind="text:AlarmId"></td>
                                             <!--<td data-bind="text:(Status == 'up'? kendo.toString(secondsToHms(Duration)) : '')"></td>-->
-                                            <td data-bind="text:(Status == 'up'? Duration : '')"></td>
+                                            <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
                                         </tr>
                                     </tbody>
                                 </table>
