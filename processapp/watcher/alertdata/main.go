@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -622,7 +623,7 @@ func UpdateLastMonitoring() {
 		tk.Println(">>> Error found on Delete : ", err.Error())
 	}
 
-	msmonitor := PrepareMasterMonitoring()
+	msmonitor, mskeys := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	//Change to event up down
 	xcsr, err := workerconn.NewQuery().
@@ -635,15 +636,6 @@ func UpdateLastMonitoring() {
 	if err != nil {
 		return
 	}
-
-	// i := 0
-	// for _key, _ := range msmonitor {
-	// 	tk.Println(" >>> key : ", _key)
-	// 	i++
-	// 	if i > 10 {
-	// 		break
-	// 	}
-	// }
 
 	for {
 		_me := MonitoringEvent{}
@@ -678,22 +670,57 @@ func UpdateLastMonitoring() {
 		SetConfig("multiexec", true).
 		Save()
 
-	for _, _mo := range msmonitor {
-		if _mo.Status == "" {
+	sort.Strings(mskeys)
+	_lstatus := make(map[string]Monitoring, 0)
+
+	for _, _skey := range mskeys {
+		_mo := msmonitor[_skey]
+
+		if _mo.Status == "" || _mo.Status == "N/A" {
 			_mo.Status = "N/A"
+			_mo.Type = ""
+			_mo.StatusCode = 0
+			_mo.StatusDesc = ""
+			if _lsdata, _lscond := _lstatus[_mo.Turbine]; _lscond && _lsdata.Status == "brake" {
+				_mo.Status = _lsdata.Status
+				_mo.Type = _lsdata.Type
+				_mo.StatusCode = _lsdata.StatusCode
+				_mo.StatusDesc = _lsdata.StatusDesc
+			}
+		} else {
+			_astatus := Monitoring{}
+
+			_astatus.Status = _mo.Status
+			_astatus.Type = _mo.Type
+			_astatus.StatusCode = _mo.StatusCode
+			_astatus.StatusDesc = _mo.StatusDesc
+
+			_lstatus[_mo.Turbine] = _astatus
 		}
 
 		_mo.LastUpdate = _nt0
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
+
 	}
+
+	// for _, _mo := range msmonitor {
+	// 	if _mo.Status == "" {
+	// 		_mo.Status = "N/A"
+	// 	}
+
+	// 	_mo.LastUpdate = _nt0
+	// 	_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
+
+	// 	_ = sqsave.Exec(tk.M{}.Set("data", _mo))
+	// }
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }
 
-func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
-	_mnt = make(map[string]Monitoring)
+func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
+	_mnt, _arkey = make(map[string]Monitoring), make([]string, 0, 0)
 
 	var workerconn dbox.IConnection
 	for {
@@ -726,12 +753,14 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
 			break
 		}
 
-		_amnt.Status = ""
-		_amnt.Type = ""
-		_amnt.StatusCode = 0
-		_amnt.StatusDesc = ""
+		// _amnt.Status = ""
+		// _amnt.Type = ""
+		// _amnt.StatusCode = 0
+		// _amnt.StatusDesc = ""
 
 		_mnt[_amnt.ID] = _amnt
+
+		_arkey = append(_arkey, _amnt.ID)
 	}
 
 	return

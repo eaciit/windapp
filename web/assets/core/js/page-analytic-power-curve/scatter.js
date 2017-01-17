@@ -24,6 +24,7 @@ page.ExportIndividualMonthPdf = function() {
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
     { "value": "temp", "text": "Temperature Analysis" },
+    { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
 ]);
 
@@ -45,16 +46,13 @@ page.LoadData = function() {
     page.getPowerCurveScatter();
 }
 
-page.setAxis = function(name, title, minVal, maxVal) {
+page.setAxis = function(name, title) {
     var result = {
         name: name,
         title: {
             text: title,
             font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             color: "#585555"
-        },
-        labels: {
-            format: "N2",
         },
         majorGridLines: {
             visible: true,
@@ -77,6 +75,10 @@ page.setAxis = function(name, title, minVal, maxVal) {
         },
     }
     return result
+}
+
+page.refreshChart = function() {
+    page.LoadData();
 }
 
 page.getPowerCurveScatter = function() {
@@ -114,6 +116,10 @@ page.getPowerCurveScatter = function() {
                 var axis = page.setAxis("tempAxis", "Temperature (Celcius)");
                 yAxes.push(axis);
                 break;
+            case "deviation":
+                var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
+                yAxes.push(axis);
+                break;
             case "pitch":
                 var axis = page.setAxis("pitchAxis", "Angle (Degree)");
                 yAxes.push(axis);
@@ -133,7 +139,7 @@ page.getPowerCurveScatter = function() {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             legend: {
-                visible: false,
+                // visible: false,
                 position: "bottom"
             },
             seriesDefaults: {
@@ -188,7 +194,9 @@ page.getPowerCurveScatter = function() {
 
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
-        page.LoadData();
+        setTimeout(function(){
+            page.LoadData();
+        }, 300);
     });
 
     setTimeout(function(){

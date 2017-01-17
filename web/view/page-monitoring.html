@@ -58,11 +58,11 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                                <table class="table table-condensed table-detail">
+                                <table class="table table-condensed table-detail table-striped">
                                     <thead class="bold">
                                         <tr>
                                             <td width="25%">Timestamp</td>
-                                            <td width="25%" data-bind="text:project"></td>
+                                            <td width="25%">Turbine</td>
                                             <td width="10%"><i class="fa fa-flash tooltipster tooltipstered" title="Production (KWh)"></i></td>
                                             <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="WS (m/s)"></i></td>
                                             <td width="10%"><i class="fa fa-line-chart tooltipster tooltipstered" title="Rotor RPM"></i></td>
@@ -75,10 +75,13 @@
                                             <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
                                             <td data-bind="text:timestampstr"></td>
                                             <td data-bind="text:turbine"></td>
-                                            <td data-bind="text:kendo.toString(production,'n1')"></td>
-                                            <td data-bind="text:kendo.toString(windspeed,'n1')"></td>
-                                            <td data-bind="text:kendo.toString(rotorspeedrpm,'n1')"></td>
-                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster',title: statusdesc}"></td>
+                                            <td >
+                                                <span data-bind="text:kendo.toString(production,'n1'), attr : { class: (production <= 0) ? 'red' : ''}"></span>/
+                                                <span data-bind="text:kendo.toString(todayproduction,'n1')" class="dim"></span>
+                                            </td>
+                                            <td data-bind="text:kendo.toString(windspeed,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
+                                            <td data-bind="text:kendo.toString(rotorspeedrpm,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
+                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster tooltipstered',title: statusdesc}"></td>
                                             <td data-bind='text: (statuscode == "") ? "-" : statuscode'></td>
                                             <td></td>                                          
                                         </tr>
@@ -93,15 +96,15 @@
                                 <h4>Events</h4>
                            </div>
                            <div class="col-md-12">
-                                <table class='table borderless able table-condensed'>
+                                <table class='table borderless able table-condensed table-hover'>
                                     <tbody data-bind="foreach:monitoring.event"> 
                                         <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'dim'}">
-                                            <!--<td data-bind="text:kendo.toString(TimeStamp, 'dd-MM-yyyy HH:mm')"></td>-->
                                             <td data-bind="text:TimeStampStr"></td>
                                             <td data-bind="text:Project"></td>
                                             <td data-bind="text:Turbine"></td>
-                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim',title: AlarmDescription}"></td>
-                                            <td data-bind="text:(Status == 'down'? AlarmId : '')"></td>
+                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim tooltipster',title: AlarmDescription}"></td>
+                                            <td data-bind="text:AlarmId"></td>
+                                            <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
                                         </tr>
                                     </tbody>
                                 </table>
