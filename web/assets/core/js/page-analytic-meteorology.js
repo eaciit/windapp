@@ -485,8 +485,10 @@ wr.showHideLegend = function (index) {
         $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
     }
     $.each(listOfChart, function (idx, idChart) {
-        $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
-        $(idChart).data("kendoChart").refresh();
+       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+          $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+          $(idChart).data("kendoChart").refresh();
+        }
     });
 }
 

@@ -33,6 +33,9 @@ type Monitoring struct {
 	Status     string // ok, brake, N/A
 	StatusCode int    // brake : AlarmID
 	StatusDesc string // brake : AlarmDescription
+
+	PitchAngle    float64
+	WindDirection float64
 }
 
 func (m *Monitoring) New() *Monitoring {
