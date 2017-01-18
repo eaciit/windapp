@@ -3,6 +3,7 @@ package controller
 import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
+	"log"
 	"strings"
 	"time"
 
@@ -485,7 +486,7 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 
 	for _, v := range results {
 		resWS = append(resWS, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.WindSpeed)})
-		resProd = append(resProd, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.Production)})
+		resProd = append(resProd, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.Production) * 1000})
 	}
 
 	res.Set("ws", resWS)
@@ -558,14 +559,14 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 	}
 
 	resAvail := []tk.M{}
-	counter := 10
+	// log.Printf("%v | %v \n", minDate.String(), maxDate.String())
 
 	for {
-		if minDate == maxDate {
+		if counterDate.UTC() == maxDate.UTC() {
 			break
 		}
 
-		if counter == 10 {
+		if counterDate.Year() == 1 {
 			counterDate = minDate.UTC()
 		} else {
 			counterDate = counterDate.Add(10 * time.Minute).UTC()
@@ -580,7 +581,6 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 		var downTime, upTime time.Time
 
 		for idx, v := range events {
-
 			if idx == len(events) && v.Status == "down" {
 				downDuration += counterDate.UTC().Sub(v.TimeStamp.UTC()).Seconds()
 			} else if idx == 0 && v.Status == "up" {
@@ -588,6 +588,7 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 			} else {
 				if v.Status == "down" {
 					downTime = v.TimeStamp.UTC()
+					upTime = v.TimeStamp.UTC()
 				} else if v.Status == "up" {
 					upTime = v.TimeStamp.UTC()
 				}
@@ -596,12 +597,14 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 					downDuration += upTime.Sub(downTime).Seconds()
 				}
 			}
-
+			log.Printf("%v | %v \n", counterDate.String(), downDuration)
 		}
 
 		if downDuration != 0.0 {
-			avail = (seconds - downDuration) / seconds
+			avail = ((seconds - downDuration) / seconds) * 100
 		}
+
+		log.Printf("%v | %v \n", counterDate.String(), avail)
 
 		resAvail = append(resAvail, tk.M{"timestamp": counterDate, "value": avail})
 	}
