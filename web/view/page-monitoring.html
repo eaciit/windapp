@@ -124,6 +124,7 @@
 <div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
+            <div class="modal-header"><h5>Turbine Detail for 24 Hours <storng>(<span data-bind="text:monitoring.selectedProject"></span> || <span data-bind="text:monitoring.selectedTurbine"></span>)</storng></h5></div>
             <div class="modal-body">
                 <div class="col-md-12">
                     <div class="col-md-4">
@@ -143,7 +144,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 margintop15">
+                    <div class="col-md-4">
                         <div class="col-md-12 col-xs-12 section-part">
                             <label class="sector-label">Sectors</label>
                             <select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
@@ -159,7 +160,7 @@
                             <div data-bind="attr:{id: 'chart-' + Name}"></div>
                         </div>
                     </div>
-                    <div class="col-md-4 margintop15">
+                    <div class="col-md-4">
                         <table class='table borderless able table-condensed table-hover table-striped'>
                             <tbody data-bind="foreach:monitoring.detailEvent"> 
                                 <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
