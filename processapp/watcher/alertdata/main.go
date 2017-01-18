@@ -689,8 +689,10 @@ func UpdateLastMonitoring() {
 				_lsdata := _lstatus[_mo.Turbine]
 				// _ = _lsdata
 				// === Look brake from previous status
-				_mo.Status = _lsdata.Status
-				_mo.Type = _lsdata.Type
+				if _lsdata.Status != "" {
+					_mo.Status = _lsdata.Status
+					_mo.Type = _lsdata.Type
+				}
 
 				_mo.StatusCode = _erdata.AlarmId
 				_mo.StatusDesc = _erdata.AlarmDescription
@@ -760,11 +762,6 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
 		if err != nil {
 			break
 		}
-
-		// _amnt.Status = ""
-		// _amnt.Type = ""
-		// _amnt.StatusCode = 0
-		// _amnt.StatusDesc = ""
 
 		_mnt[_amnt.ID] = _amnt
 
