@@ -487,6 +487,11 @@
 	background-color: #2d3d46;
 }
 
+.maximize-mode .modal-lg {
+   color: #585555;
+}
+
+
 /* Safari 4.0 - 8.0 */
 @-webkit-keyframes flash {
     from {background-color: yellow;color:white;}
@@ -551,4 +556,20 @@
   -webkit-animation-duration: 5s; /* Safari 4.0 - 8.0 */
   animation-name: pulse;
   animation-duration: 5s;
+}
+.modal-dialog {
+  width: 97%;
+  height: 95%;
+  margin: 20px;
+  padding: 0;
+}
+
+.modal-content {
+  height: auto;
+  min-height: 95%;
+  border-radius: 0;
+}
+
+.modal-lg {
+     width: auto !important;
 }

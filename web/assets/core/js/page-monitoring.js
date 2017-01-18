@@ -136,6 +136,487 @@ monitoring.getData = function(){
     });
 }
 
+monitoring.showDetail = function(project, turbine){
+    var param = {
+        turbine: turbine,
+        project: project
+    };
+
+    $("#modalDetail").on("shown.bs.modal", function () { 
+        monitoring.windSpeedChart();
+        monitoring.productionChart ();
+        monitoring.dataAvailChart();
+    }).modal('show');
+}
+
+monitoring.windSpeedChart = function(){
+    var dataSource = [{
+        "timestamp": "2016-11-18 00:00:00",
+        "value": 1.125
+      },
+      {
+        "timestamp": "2016-11-18 00:10:00",
+        "value": 1.220833
+      },
+      {
+        "timestamp": "2016-11-18 00:20:00",
+        "value": 1.258333
+      },
+      {
+        "timestamp": "2016-11-18 00:30:00",
+        "value": 1.416667
+      },
+      {
+        "timestamp": "2016-11-18 00:40:00",
+        "value": 1.716667
+      },
+      {
+        "timestamp": "2016-11-18 00:50:00",
+        "value": 1.891667
+      },
+      {
+        "timestamp": "2016-11-18 01:00:00",
+        "value": 1.970833
+      },
+      {
+        "timestamp": "2016-11-18 01:10:00",
+        "value": 1.966667
+      },
+      {
+        "timestamp": "2016-11-18 01:20:00",
+        "value": 2.008333
+      },
+      {
+        "timestamp": "2016-11-18 01:30:00",
+        "value": 2.054167
+      },
+      {
+        "timestamp": "2016-11-18 01:40:00",
+        "value": 2.05
+      },
+      {
+        "timestamp": "2016-11-18 01:50:00",
+        "value": 1.9625
+      },
+      {
+        "timestamp": "2016-11-18 02:00:00",
+        "value": 1.833333
+      },
+      {
+        "timestamp": "2016-11-18 02:10:00",
+        "value": 1.633333
+      },
+      {
+        "timestamp": "2016-11-18 02:20:00",
+        "value": 1.420833
+      },
+      {
+        "timestamp": "2016-11-18 02:30:00",
+        "value": 1.275
+      },
+      {
+        "timestamp": "2016-11-18 02:40:00",
+        "value": 1.191667
+      },
+      {
+        "timestamp": "2016-11-18 02:50:00",
+        "value": 1.091667
+      },
+      {
+        "timestamp": "2016-11-18 03:00:00",
+        "value": 1.1
+      },
+      {
+        "timestamp": "2016-11-18 03:10:00",
+        "value": 1.079167
+      },
+      {
+        "timestamp": "2016-11-18 03:20:00",
+        "value": 0.958333
+      }
+    ]
+    $("#wsChart").kendoChart({
+      title: {
+        text: "Wind Speed",
+        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      dataSource: {
+        data: dataSource
+      },
+      theme: "flat",
+      chartArea:{
+        height: 175,
+        margin:0, 
+        padding: 0
+      },
+      seriesDefaults: {
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+      series: [{
+        type: "area",
+        field: "value",
+        aggregate: "avg", 
+        color: "#337ab7",
+      }],
+      valueAxis: {
+        title: {
+            text: "m/s",
+            visible: true,
+            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        },
+        labels: {
+            // format: "{0:p2}"
+            format: "{0}"
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        line: {
+            visible: false
+        },
+        axisCrossingValue: 0
+      },
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # m/s",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+}
+monitoring.productionChart = function(){
+    var dataSource = [{
+        "timestamp": "2016-11-18 00:00:00",
+        "value": 1.125
+      },
+      {
+        "timestamp": "2016-11-18 00:10:00",
+        "value": 1.220833
+      },
+      {
+        "timestamp": "2016-11-18 00:20:00",
+        "value": 1.258333
+      },
+      {
+        "timestamp": "2016-11-18 00:30:00",
+        "value": 1.416667
+      },
+      {
+        "timestamp": "2016-11-18 00:40:00",
+        "value": 1.716667
+      },
+      {
+        "timestamp": "2016-11-18 00:50:00",
+        "value": 1.891667
+      },
+      {
+        "timestamp": "2016-11-18 01:00:00",
+        "value": 1.970833
+      },
+      {
+        "timestamp": "2016-11-18 01:10:00",
+        "value": 1.966667
+      },
+      {
+        "timestamp": "2016-11-18 01:20:00",
+        "value": 2.008333
+      },
+      {
+        "timestamp": "2016-11-18 01:30:00",
+        "value": 2.054167
+      },
+      {
+        "timestamp": "2016-11-18 01:40:00",
+        "value": 2.05
+      },
+      {
+        "timestamp": "2016-11-18 01:50:00",
+        "value": 1.9625
+      },
+      {
+        "timestamp": "2016-11-18 02:00:00",
+        "value": 1.833333
+      },
+      {
+        "timestamp": "2016-11-18 02:10:00",
+        "value": 1.633333
+      },
+      {
+        "timestamp": "2016-11-18 02:20:00",
+        "value": 1.420833
+      },
+      {
+        "timestamp": "2016-11-18 02:30:00",
+        "value": 1.275
+      },
+      {
+        "timestamp": "2016-11-18 02:40:00",
+        "value": 1.191667
+      },
+      {
+        "timestamp": "2016-11-18 02:50:00",
+        "value": 1.091667
+      },
+      {
+        "timestamp": "2016-11-18 03:00:00",
+        "value": 1.1
+      },
+      {
+        "timestamp": "2016-11-18 03:10:00",
+        "value": 1.079167
+      },
+      {
+        "timestamp": "2016-11-18 03:20:00",
+        "value": 0.958333
+      }
+    ]
+    $("#prodChart").kendoChart({
+      title: {
+        text: "Production",
+        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      dataSource: {
+        data: dataSource
+      },
+      theme: "flat",
+      chartArea:{
+        height: 175,
+        margin:0, 
+        padding: 0
+      },
+      seriesDefaults: {
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+      series: [{
+        type: "area",
+        field: "value",
+        aggregate: "avg", 
+        color: "#ea5b19",
+      }],
+      valueAxis: {
+        title: {
+            text: "MWh",
+            visible: true,
+            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        },
+        labels: {
+            // format: "{0:p2}"
+            format: "{0}"
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        line: {
+            visible: false
+        },
+        axisCrossingValue: 0
+      },
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # m/s",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+}
+monitoring.dataAvailChart = function(){
+    var dataSource = [{
+        "timestamp": "2016-11-18 00:00:00",
+        "value": 1.125
+      },
+      {
+        "timestamp": "2016-11-18 00:10:00",
+        "value": 1.220833
+      },
+      {
+        "timestamp": "2016-11-18 00:20:00",
+        "value": 1.258333
+      },
+      {
+        "timestamp": "2016-11-18 00:30:00",
+        "value": 1.416667
+      },
+      {
+        "timestamp": "2016-11-18 00:40:00",
+        "value": 1.716667
+      },
+      {
+        "timestamp": "2016-11-18 00:50:00",
+        "value": 1.891667
+      },
+      {
+        "timestamp": "2016-11-18 01:00:00",
+        "value": 1.970833
+      },
+      {
+        "timestamp": "2016-11-18 01:10:00",
+        "value": 1.966667
+      },
+      {
+        "timestamp": "2016-11-18 01:20:00",
+        "value": 2.008333
+      },
+      {
+        "timestamp": "2016-11-18 01:30:00",
+        "value": 2.054167
+      },
+      {
+        "timestamp": "2016-11-18 01:40:00",
+        "value": 2.05
+      },
+      {
+        "timestamp": "2016-11-18 01:50:00",
+        "value": 1.9625
+      },
+      {
+        "timestamp": "2016-11-18 02:00:00",
+        "value": 1.833333
+      },
+      {
+        "timestamp": "2016-11-18 02:10:00",
+        "value": 1.633333
+      },
+      {
+        "timestamp": "2016-11-18 02:20:00",
+        "value": 1.420833
+      },
+      {
+        "timestamp": "2016-11-18 02:30:00",
+        "value": 1.275
+      },
+      {
+        "timestamp": "2016-11-18 02:40:00",
+        "value": 1.191667
+      },
+      {
+        "timestamp": "2016-11-18 02:50:00",
+        "value": 1.091667
+      },
+      {
+        "timestamp": "2016-11-18 03:00:00",
+        "value": 1.1
+      },
+      {
+        "timestamp": "2016-11-18 03:10:00",
+        "value": 1.079167
+      },
+      {
+        "timestamp": "2016-11-18 03:20:00",
+        "value": 0.958333
+      }
+    ]
+    $("#dataAvailChart").kendoChart({
+      title: {
+        text: "Data Available",
+        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      dataSource: {
+        data: dataSource
+      },
+      theme: "flat",
+      chartArea:{
+        height: 175,
+        margin:0, 
+        padding: 0
+      },
+      seriesDefaults: {
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+      series: [{
+        type: "area",
+        field: "value",
+        aggregate: "avg", 
+        color: "#ea5b19",
+      }],
+      valueAxis: {
+        title: {
+            text: "MWh",
+            visible: true,
+            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        },
+        labels: {
+            // format: "{0:p2}"
+            format: "{0}"
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        line: {
+            visible: false
+        },
+        axisCrossingValue: 0
+      },
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # m/s",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+}
 function secondsToHms(d) {
     d = Number(d);
     var h = Math.floor(d / 3600);

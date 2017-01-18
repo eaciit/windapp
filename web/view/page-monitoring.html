@@ -74,7 +74,7 @@
                                         <tr>
                                             <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
                                             <td data-bind="text:timestampstr"></td>
-                                            <td data-bind="text:turbine"></td>
+                                            <td data-bind="text:turbine, click: function(){ monitoring.showDetail($parent.project, turbine)}"></td>
                                             <td >
                                                 <span data-bind="text:kendo.toString(production,'n1'), attr : { class: (production <= 0) ? 'red' : ''}"></span>/
                                                 <span data-bind="text:kendo.toString(todayproduction,'n1')" class="dim"></span>
@@ -101,7 +101,7 @@
                                         <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'dim'}">
                                             <td data-bind="text:TimeStampStr"></td>
                                             <td data-bind="text:Project"></td>
-                                            <td data-bind="text:Turbine"></td>
+                                            <td data-bind="text:Turbine" onclick="monitoring.showDetail(Project, Turbine)"></td>
                                             <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim tooltipster',title: AlarmDescription}"></td>
                                             <td data-bind="text:AlarmId"></td>
                                             <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
@@ -116,6 +116,42 @@
         </div>
     </div>
 </div>
+
+<div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Detail Monitoring</h4>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div id="wsChart"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div id="prodChart"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div id="dataAvailChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     monitoring.populateTurbine({{.TurbineList}});
     monitoring.populateProject({{.ProjectList}});
