@@ -562,17 +562,50 @@
 }
 .modal-dialog {
   width: 97%;
-  height: 95%;
+  /*height: 95%;*/
   margin: 20px;
   padding: 0;
 }
 
 .modal-content {
   height: auto;
-  min-height: 95%;
+  /*min-height: 95%;*/
   border-radius: 0;
 }
 
 .modal-lg {
      width: auto !important;
+}
+
+.sector-label {
+    padding: 3px 5px 3px 3px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.section-part {
+	text-align: center;
+	margin-bottom: 5px;
+}
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+.legend-part {
+	text-align: center;
+	margin-bottom: 5px;
+}
+.modal-footer {
+    padding: 15px;
+    text-align: right;
+     border-top: 0px solid #e5e5e5; 
+}
+.margintop15{
+	margin-top: 15px;
+}
+.link-detail:hover{
+	cursor: pointer;
 }

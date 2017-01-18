@@ -76,7 +76,7 @@
                                         <tr>
                                             <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
                                             <td data-bind="text:timestampstr"></td>
-                                            <td data-bind="text:turbine, click: function(){ monitoring.showDetail($parent.project, turbine)}"></td>
+                                            <td class="link-detail" data-bind="text:turbine, click: function(){ monitoring.showDetail($parent.project, turbine)}"></td>
                                             <td >
                                                 <span data-bind="text:kendo.toString(production,'n1'), attr : { class: (production <= 0) ? 'red' : ''}"></span>/
                                                 <span data-bind="text:kendo.toString(todayproduction,'n1')" class="green"></span>
@@ -125,37 +125,54 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-body">
-                <div class="col-md-4">
-                    <div class="row">
-                        <div>
-                            <div id="chartWindSpeed"></div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="row">
+                            <div>
+                                <div id="chartWindSpeed"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div>
+                                <div id="chartProduction"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div>
+                                <div id="dataAvailChart"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div>
-                            <div id="chartProduction"></div>
+                    <div class="col-md-4 margintop15">
+                        <div class="col-md-12 col-xs-12 section-part">
+                            <label class="sector-label">Sectors</label>
+                            <select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
+                                style="width:50px;">
+                            </select>&nbsp;
+                            <label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
+                        </div>
+                        <div class="col-md-12 col-xs-12 legend-part">
+                            <div id="legend-list" class="col-md-12 col-sm-12 pl15">
+                            </div>
+                        </div>
+                        <div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+                            <div data-bind="attr:{id: 'chart-' + Name}"></div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div>
-                            <div id="dataAvailChart"></div>
-                        </div>
+                    <div class="col-md-4 margintop15">
+                        <table class='table borderless able table-condensed table-hover table-striped'>
+                            <tbody data-bind="foreach:monitoring.detailEvent"> 
+                                <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
+                                    <td data-bind="text:TimeStampStr"></td>
+                                    <td data-bind="text:Project"></td>
+                                    <td data-bind="text:Turbine"></td>
+                                    <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></td>
+                                    <td data-bind="text:AlarmId"></td>
+                                    <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <div class="col-md-4">&nbsp;</div>
-                <div class="col-md-4">
-                    <table class='table borderless able table-condensed table-hover'>
-                        <tbody data-bind="foreach:monitoring.detailEvent"> 
-                            <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
-                                <td data-bind="text:TimeStampStr"></td>
-                                <td data-bind="text:Project"></td>
-                                <td data-bind="text:Turbine"></td>
-                                <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></td>
-                                <td data-bind="text:AlarmId"></td>
-                                <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
             <div class="modal-footer">
