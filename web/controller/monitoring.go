@@ -3,7 +3,6 @@ package controller
 import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
-	"log"
 	"strings"
 	"time"
 
@@ -548,7 +547,7 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 	groupEvents := map[string][]MonitoringEvent{}
 
 	for _, v := range resMonitoringEvent {
-		groupTimestamp := v.GroupTimeStamp.Format("200601020504")
+		groupTimestamp := v.GroupTimeStamp.UTC().Format("20060102_1504")
 		tmpEvents := []MonitoringEvent{}
 		if len(groupEvents[groupTimestamp]) > 0 {
 			tmpEvents = groupEvents[groupTimestamp]
@@ -559,7 +558,6 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 	}
 
 	resAvail := []tk.M{}
-	// log.Printf("%v | %v \n", minDate.String(), maxDate.String())
 
 	for {
 		if counterDate.UTC() == maxDate.UTC() {
@@ -573,12 +571,12 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 		}
 
 		seconds := 600.0
-		groupTimestamp := counterDate.Format("200601020504")
+		groupTimestamp := counterDate.Format("20060102_1504")
 		events := groupEvents[groupTimestamp]
 		downDuration := 0.0
 		avail := 100.0
 
-		var downTime, upTime time.Time
+		var downTime time.Time
 
 		for idx, v := range events {
 			if idx == len(events) && v.Status == "down" {
@@ -588,23 +586,17 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 			} else {
 				if v.Status == "down" {
 					downTime = v.TimeStamp.UTC()
-					upTime = v.TimeStamp.UTC()
-				} else if v.Status == "up" {
-					upTime = v.TimeStamp.UTC()
 				}
 
-				if downTime.Year() != 1 && upTime.Year() != 1 {
-					downDuration += upTime.Sub(downTime).Seconds()
+				if downTime.Year() != 1 && v.Status == "up" {
+					downDuration += v.TimeStamp.UTC().Sub(downTime).Seconds()
 				}
 			}
-			log.Printf("%v | %v \n", counterDate.String(), downDuration)
 		}
 
 		if downDuration != 0.0 {
 			avail = ((seconds - downDuration) / seconds) * 100
 		}
-
-		log.Printf("%v | %v \n", counterDate.String(), avail)
 
 		resAvail = append(resAvail, tk.M{"timestamp": counterDate, "value": avail})
 	}
