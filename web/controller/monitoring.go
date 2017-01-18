@@ -484,8 +484,8 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 	resProd := []tk.M{}
 
 	for _, v := range results {
-		resWS = append(resWS, tk.M{"timestamp": v.TimeStamp.UTC(), "value": v.WindSpeed})
-		resProd = append(resProd, tk.M{"timestamp": v.TimeStamp.UTC(), "value": v.Production})
+		resWS = append(resWS, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.WindSpeed)})
+		resProd = append(resProd, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.Production)})
 	}
 
 	res.Set("ws", resWS)
