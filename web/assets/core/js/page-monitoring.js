@@ -92,7 +92,7 @@ monitoring.checkTurbine = function () {
 }
 
 monitoring.getData = function(){
-    app.loading(true);
+    // app.loading(true);
 
     var turbine = $("#turbineList").data("kendoMultiSelect").value()
     var project = $("#projectList").data("kendoDropDownList").value()
@@ -124,11 +124,26 @@ monitoring.getData = function(){
 
 
     $.when(request, requestEvent).done(function(){
+        $(".red").addClass("flash");
         setTimeout(function(){
-            app.loading(false);
-            app.prepareTooltipster();
+            // app.loading(false);
+            app.prepareTooltipster();            
         },500);
+
+        setTimeout(function() {
+            $(".red").removeClass("flash");
+        }, 2500);
     });
+}
+
+function secondsToHms(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+    var res = (h > 0 ? (h < 10 ? "0" + h : h) : "00") + ":" + (m > 0 ? (m < 10 ? "0" + m : m) : "00") + ":" + (s > 0 ? s : "00")
+
+    return res;
 }
 
 $(function () {

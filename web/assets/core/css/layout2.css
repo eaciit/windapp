@@ -1151,79 +1151,10 @@ a:active, a:focus, a:hover {
   
 }*/
 
-.date-info{
-    background: #fff;
-    /*margin-bottom: 10px;
-    padding: 5px 10px;
-    color: #585555;
-    font-size: 12px;
-    border-radius: 3px;*/
-}
-
-.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
-    background-color: #263238 !important;
-    color: white;
-}
-
-.maximize-mode .main-header, .maximize-mode .bread-info{
-    display: none;
-}
-
-.maximize-mode .breadcrumb{
-    display: block;
-}
-
-.maximize-mode .ez.panel {
-    border-radius: 0px;
-}
-
-/*.maximize-mode .dim {
-    color: darkgray;
-}*/
-.maximize-mode .multicol{
-    /* Safari and Chrome */
-  -webkit-column-count: 1;
-  -webkit-column-rule: 2px solid #5a5d5f;
-
-  /* Firefox */
-  -moz-column-count: 1; 
-  -moz-column-rule: 2px solid #5a5d5f;
-
-  /* CSS3 */
-  column-count: 1; 
-  column-rule: 2px solid #5a5d5f;
-}
-
-.maximize-mode .multicol hr{
-    border: 1px solid #263238;
-}
-
-.maximize-mode .table-sum {
-    margin-top: 5px;
-    margin-bottom: 0px;
-}
-
-.maximize-mode .table-detail {
-    margin-bottom: 2px;
-}
-
-.maximize-mode .table-detail>tbody>tr>td {
-    border-top: 0px !important;
-}
-
-.maximize-mode .table-detail>thead>tr>td {
-    border-bottom: 1px solid darkgray !important;
-}
-
-.maximize-mode .monitoring-date{
-    color: #ea5b19;
-    font-size: 20px;
-}
-
-.maximize-btn{
-    margin-top: 0px;
-}
-
-.maximize-mode .maximize-btn{
-    margin-top: -45px;
+.dropdown-menu {
+    -webkit-box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
+    -moz-box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
+    box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
+    border-color: #eee;
+    box-sizing: border-box;
 }

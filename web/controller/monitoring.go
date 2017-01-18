@@ -93,6 +93,29 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
 
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	prodTotalsTurbine := getTurbineTodayTotal(tk.M{"$sum": "$production"}, "production", project, turbine)
+
+	mapTotalTurbine := map[string]tk.M{}
+
+	for _, v := range prodTotalsTurbine {
+		// log.Printf("%#v \n", v)
+
+		ID := v.Get("_id").(tk.M)
+		project := ID.GetString("project")
+		turbine := ID.GetString("turbine")
+		result := v.GetFloat64("result") * 1000
+
+		if mapTotalTurbine[project] == nil {
+			mapTotalTurbine[project] = tk.M{turbine: result}
+		} else {
+			mapTotalTurbine[project].Set(turbine, result)
+		}
+	}
+
 	projects := tk.M{}
 
 	for _, v := range results {
@@ -101,7 +124,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		turbine := ID.GetString("turbine")
 		timestamp := v.Get("timestamp").(time.Time).UTC()
 		windspeed := checkNAValue(v.GetFloat64("windspeed"))
-		production := checkNAValue(v.GetFloat64("production"))
+		production := checkNAValue(v.GetFloat64("production")) * 1000
 		rotorspeedrpm := checkNAValue(v.GetFloat64("rotorspeedrpm"))
 		status := v.GetString("status")
 		statuscode := v.GetString("statuscode")
@@ -129,6 +152,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		newRecord.Set("timestampstr", timestamp.Format("02-01-2006 15:04:05"))
 		newRecord.Set("windspeed", windspeed)
 		newRecord.Set("production", production)
+		newRecord.Set("todayproduction", mapTotalTurbine[project].GetFloat64(turbine))
 		newRecord.Set("rotorspeedrpm", rotorspeedrpm)
 		newRecord.Set("status", status)
 		newRecord.Set("statuscode", statuscode)
@@ -145,52 +169,21 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 
 	// get today total production
 
-	match = tk.M{}
-	if project != "" {
-		match.Set("project", project)
-	}
+	prodTotals := getTodayTotal(tk.M{"$sum": "$production"}, "production", project, turbine)
+	wsTotals := getTodayTotal(tk.M{"$avg": "$windspeed"}, "windspeed", project, turbine)
 
-	if len(turbine) > 0 {
-		match.Set("turbine", tk.M{}.Set("$in", turbine))
-	}
+	projectTotalResult := map[string]tk.M{}
 
-	dateid, _ := time.Parse("20060102_150405", time.Now().Format("20060102_")+"000000")
-	match.Set("dateinfo.dateid", dateid.UTC())
-	// match.Set("production", tk.M{"$ne": -9999999.0})
-
-	group = tk.M{
-		"_id":        "$project",
-		"production": tk.M{"$sum": "$production"},
-	}
-
-	pipes = []tk.M{}
-	pipes = append(pipes, tk.M{}.Set("$match", match))
-	pipes = append(pipes, tk.M{}.Set("$group", group))
-
-	csr, e = DB().Connection.NewQuery().
-		From(new(Monitoring).TableName()).
-		Command("pipe", pipes).
-		Cursor(nil)
-
-	defer csr.Close()
-
-	if e != nil {
-		return helper.CreateResult(false, nil, "Error query : "+e.Error())
-	}
-
-	results = make([]tk.M, 0)
-	e = csr.Fetch(&results, 0, false)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, "Error query : "+e.Error())
-	}
-
-	projectProdResult := map[string]float64{}
-
-	for _, v := range results {
+	for _, v := range prodTotals {
 		id := v.GetString("_id")
-		prod := v.GetFloat64("production")
-		projectProdResult[id] = prod
+		prod := v.GetFloat64("result")
+		projectTotalResult[id] = tk.M{"prod": prod}
+	}
+
+	for _, v := range wsTotals {
+		id := v.GetString("_id")
+		ws := v.GetFloat64("result")
+		projectTotalResult[id] = projectTotalResult[id].Set("ws", ws)
 	}
 
 	// combine the data
@@ -205,10 +198,10 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 			wsavg += i.GetFloat64("windspeed")
 		}
 
-		wsavg = tk.Div(wsavg, tk.ToFloat64(len(turbineList), 0, tk.RoundingAuto))
-		v.(tk.M).Set("totalwsavg", wsavg)
+		// wsavg = tk.Div(wsavg, tk.ToFloat64(len(turbineList), 0, tk.RoundingAuto))
+		v.(tk.M).Set("totalwsavg", projectTotalResult[proj].GetFloat64("ws"))
 		// v.(tk.M).Set("totalprod", v.(tk.M).GetFloat64("totalprod")/1000)
-		v.(tk.M).Set("totalprod", projectProdResult[proj]/1000)
+		v.(tk.M).Set("totalprod", projectTotalResult[proj].GetFloat64("prod")*1000)
 
 		v.(tk.M).Set("project", proj)
 		res = append(res, v.(tk.M))
@@ -321,11 +314,102 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 }
 
 func checkNAValue(val float64) (result float64) {
-	if val == -9999999.0 {
+	if val == -9999999.0 || val == -99999.0 {
 		result = 0
 	} else {
 		result = val
 	}
 
 	return
+}
+
+func getTodayTotal(resultGroup tk.M, field string, project string, turbine []interface{}) []tk.M {
+	match := tk.M{}
+	if project != "" {
+		match.Set("project", project)
+	}
+
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	dateid, _ := time.Parse("20060102_150405", time.Now().Format("20060102_")+"000000")
+	match.Set("dateinfo.dateid", dateid.UTC())
+	match.Set(field, tk.M{"$ne": -9999999.0})
+
+	group := tk.M{
+		"_id":    "$project",
+		"result": resultGroup,
+	}
+
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", group))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return nil
+	}
+
+	results := make([]tk.M, 0)
+	e = csr.Fetch(&results, 0, false)
+
+	if e != nil {
+		return nil
+	}
+
+	return results
+}
+
+func getTurbineTodayTotal(resultGroup tk.M, field string, project string, turbine []interface{}) []tk.M {
+	match := tk.M{}
+	if project != "" {
+		match.Set("project", project)
+	}
+
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	dateid, _ := time.Parse("20060102_150405", time.Now().Format("20060102_")+"000000")
+	match.Set("dateinfo.dateid", dateid.UTC())
+	match.Set(field, tk.M{"$ne": -9999999.0})
+
+	group := tk.M{
+		"_id": tk.M{
+			"project": "$project",
+			"turbine": "$turbine",
+		},
+		"result": resultGroup,
+	}
+
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", group))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return nil
+	}
+
+	results := make([]tk.M, 0)
+	e = csr.Fetch(&results, 0, false)
+
+	if e != nil {
+		return nil
+	}
+
+	return results
 }

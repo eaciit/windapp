@@ -902,6 +902,13 @@ dbm.InitMet = function() {
 
             });
         },
+        dataBound: function(){
+            setTimeout(function(){
+                $("#dataGridMet >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","50px");
+                $("#dataGridMet >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","50px");
+                // app.loading(false);
+            },200);
+        },
         pageable: {
             pageSize: 10,
             input:true, 
