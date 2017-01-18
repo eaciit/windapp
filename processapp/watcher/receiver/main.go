@@ -542,7 +542,8 @@ func UpdateLastMonitoring() {
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	xcsr, err := workerconn.NewQuery().
-		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm").
+		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm",
+			"slow_tempnacelle", "fast_pitchangle").
 		From(new(ScadaConvTenMin).TableName()).
 		Where(dbox.And(dbox.Lte("timestamp", eperiode), dbox.Gt("timestamp", speriode))).
 		Order("timestamp").
@@ -614,6 +615,10 @@ func UpdateLastMonitoring() {
 		// if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
 		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
 		// }
+		_monitor.PitchAngle = _tkm.GetFloat64("fast_pitchangle")
+		_monitor.WindDirection = _tkm.GetFloat64("slow_tempnacelle")
+		// WindDirection
+		//"slow_tempnacelle","fast_pitchangle"
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
 
