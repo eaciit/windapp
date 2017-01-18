@@ -624,6 +624,7 @@ func UpdateLastMonitoring() {
 	}
 
 	msmonitor, mskeys := PrepareMasterMonitoring()
+	mseventraw := PrepareEventRawHFD(eperiode)
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	//Change to event up down
 	xcsr, err := workerconn.NewQuery().
@@ -684,13 +685,15 @@ func UpdateLastMonitoring() {
 			_mo.Type = ""
 			_mo.StatusCode = 0
 			_mo.StatusDesc = ""
-			if _lsdata, _lscond := _lstatus[_mo.Turbine]; _lscond && _lsdata.Status == "brake" {
-				_ = _lsdata
+			if _erdata, _ercond := mseventraw[_skey]; _ercond { //&& _lsdata.Status == "brake"
+				_lsdata := _lstatus[_mo.Turbine]
+				// _ = _lsdata
 				// === Look brake from previous status
-				// _mo.Status = _lsdata.Status
-				// _mo.Type = _lsdata.Type
-				// _mo.StatusCode = _lsdata.StatusCode
-				// _mo.StatusDesc = _lsdata.StatusDesc
+				_mo.Status = _lsdata.Status
+				_mo.Type = _lsdata.Type
+
+				_mo.StatusCode = _erdata.AlarmId
+				_mo.StatusDesc = _erdata.AlarmDescription
 			}
 		}
 
@@ -768,5 +771,67 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
 		_arkey = append(_arkey, _amnt.ID)
 	}
 
+	return
+}
+
+func PrepareEventRawHFD(_ltime time.Time) (_mnt map[string]EventRawHFD) {
+	_mnt = make(map[string]EventRawHFD)
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	_stime := _ltime.AddDate(0, 0, -1)
+	xcsr, err := workerconn.NewQuery().
+		Select().
+		From(new(EventRawHFD).TableName()).
+		Where(dbox.And(dbox.Lte("timestamp", _ltime), dbox.Gt("timestamp", _stime))).
+		Order("timestamp").
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	defer xcsr.Close()
+
+	for {
+		_aerh := EventRawHFD{}
+		err = xcsr.Fetch(&_aerh, 1, false)
+		if err != nil {
+			break
+		}
+
+		GroupTimeStamp := convertTo10min(_aerh.TimeStamp)
+		_key := tk.Sprintf("%s#%s#%s",
+			_aerh.ProjectName,
+			_aerh.Turbine,
+			GroupTimeStamp.Format("060102_150405"),
+		)
+
+		_mnt[_key] = _aerh
+	}
+
+	return
+}
+
+func convertTo10min(input time.Time) (output time.Time) {
+	// THour := input.Hour()
+	TMinute := input.Minute()
+	TSecond := input.Second()
+	TMinuteValue := float64(TMinute) + tk.Div(float64(TSecond), 60.0)
+	TMinuteCategory := tk.ToInt(tk.RoundingUp64(tk.Div(TMinuteValue, 10), 0)*10, "0")
+
+	tmpInput := input.Add(time.Duration(TMinuteCategory-TMinute) * time.Minute).Add(time.Duration(TSecond*-1) * time.Second).UTC()
+	output, _ = time.Parse("20060102_150405", tmpInput.Format("20060102_150405"))
 	return
 }
