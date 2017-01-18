@@ -23,6 +23,8 @@ monitoring.event = ko.observableArray([]);
 monitoring.detailEvent = ko.observableArray([]);
 monitoring.last_minute = ko.observable();
 monitoring.last_date = ko.observable();
+monitoring.selectedProject = ko.observable();
+monitoring.selectedTurbine = ko.observable();
 var turbineval = [];
 
 
@@ -143,6 +145,8 @@ monitoring.showDetail = function(project, turbine){
         project: project
     };
 
+    monitoring.selectedProject(project);
+    monitoring.selectedTurbine(turbine);
     $("#modalDetail").on("shown.bs.modal", function () { 
         toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
             if (!app.isFine(res)) {
@@ -180,7 +184,7 @@ monitoring.chartWindSpeed = function(dataSource){
     $("#chartWindSpeed").kendoStockChart({
       title: {
         text: "Wind Speed",
-        font: '12px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
         position: "top",
@@ -190,7 +194,7 @@ monitoring.chartWindSpeed = function(dataSource){
         data: dataSource
       },
       chartArea:{
-        height : 250,
+        height : 220,
       },
       theme: "flat",
       seriesDefaults: {
@@ -264,7 +268,7 @@ monitoring.chartProduction = function(dataSource){
     $("#chartProduction").kendoStockChart({
       title: {
         text: "Production",
-        font: '12px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
         position: "top",
@@ -274,7 +278,7 @@ monitoring.chartProduction = function(dataSource){
         data: dataSource
       },
       chartArea:{
-        height : 250,
+        height : 220,
       },
       theme: "flat",
       seriesDefaults: {
@@ -345,10 +349,10 @@ monitoring.chartProduction = function(dataSource){
     });
 } 
 monitoring.dataAvailChart = function(dataSource){
-    $("#dataAvailChart").kendoChart({
+    $("#dataAvailChart").kendoStockChart({
       title: {
         text: "Availability",
-        font: '12px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
         position: "top",
@@ -357,12 +361,10 @@ monitoring.dataAvailChart = function(dataSource){
       dataSource: {
         data: dataSource
       },
-      theme: "flat",
       chartArea:{
-        height: 175,
-        margin:0, 
-        padding: 0
+        height : 220,
       },
+      theme: "flat",
       seriesDefaults: {
             area: {
                 line: {
@@ -370,11 +372,12 @@ monitoring.dataAvailChart = function(dataSource){
                 }
             }
         },
+      dateField: "timestamp",
       series: [{
         type: "area",
         field: "value",
-        aggregate: "avg", 
-        color: "#88b5dd",
+        // aggregate: "sum", 
+        color: "#9cc2e3",
       }],
       navigator: {
         categoryAxis: {
@@ -386,15 +389,15 @@ monitoring.dataAvailChart = function(dataSource){
         series: [{
           type: "area",
           field: "value",
-          aggregate: "sum",
-          color: "#88b5dd",
+          // aggregate: "sum",
+          color: "#9cc2e3",
         }]
       },
       valueAxis: {
         title: {
             text: "%",
             visible: true,
-            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
         },
         labels: {
             // format: "{0:p2}"
@@ -408,7 +411,8 @@ monitoring.dataAvailChart = function(dataSource){
         line: {
             visible: false
         },
-        axisCrossingValue: 0
+        axisCrossingValue: 0,
+        max: 100,
       },
       categoryAxis: {
             majorGridLines: {
@@ -418,7 +422,7 @@ monitoring.dataAvailChart = function(dataSource){
       },
       tooltip: {
             visible: true,
-            template: "#= kendo.toString(value,'n2') # m/s",
+            template: "#= kendo.toString(value,'n2') # %",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
