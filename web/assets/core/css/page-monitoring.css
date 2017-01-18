@@ -576,3 +576,25 @@
 .modal-lg {
      width: auto !important;
 }
+
+.sector-label {
+    padding: 3px 5px 3px 3px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.section-part {
+	text-align: center;
+	margin-bottom: 5px;
+}
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+.legend-part {
+	text-align: center;
+	margin-bottom: 5px;
+}
