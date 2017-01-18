@@ -687,16 +687,16 @@ func UpdateLastMonitoring() {
 				_mo.StatusCode = _lsdata.StatusCode
 				_mo.StatusDesc = _lsdata.StatusDesc
 			}
-		} else {
-			_astatus := Monitoring{}
-
-			_astatus.Status = _mo.Status
-			_astatus.Type = _mo.Type
-			_astatus.StatusCode = _mo.StatusCode
-			_astatus.StatusDesc = _mo.StatusDesc
-
-			_lstatus[_mo.Turbine] = _astatus
 		}
+
+		_astatus := Monitoring{}
+		_astatus.Status = _mo.Status
+		_astatus.Type = _mo.Type
+		_astatus.StatusCode = _mo.StatusCode
+		_astatus.StatusDesc = _mo.StatusDesc
+
+		_lstatus[_mo.Turbine] = _astatus
+		// }
 
 		_mo.LastUpdate = _nt0
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
