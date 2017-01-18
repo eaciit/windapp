@@ -292,8 +292,11 @@
 	.margin-top-25{
 		margin-top: -25px;
 	}
-	.dim{
+	.green{
         color: #31b445;
+    }
+	.dim{
+        color: gray;
     }
     .red{
         color: #e91e3a !important;
