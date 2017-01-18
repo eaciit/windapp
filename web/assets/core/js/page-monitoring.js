@@ -103,9 +103,7 @@ monitoring.getData = function(){
     };
 
     var request = toolkit.ajaxPost(viewModel.appName + "monitoring/getdata", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
+        app.isFine(res)
 
         monitoring.last_minute(res.data.Data.timestamp.minute);
         monitoring.last_date(res.data.Data.timestamp.date);
@@ -117,10 +115,8 @@ monitoring.getData = function(){
     });
 
     var requestEvent = toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-       monitoring.event(res.data.Data)
+        app.isFine(res)
+        monitoring.event(res.data.Data)
     });
 
 
@@ -145,18 +141,14 @@ monitoring.showDetail = function(project, turbine){
 
     $("#modalDetail").on("shown.bs.modal", function () { 
         toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
+            app.isFine(res)
             monitoring.chartWindSpeed(res.data.Data.ws);
             monitoring.chartProduction(res.data.Data.prod);
             monitoring.dataAvailChart(res.data.Data.avail);
         });
         toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-           monitoring.detailEvent(res.data.Data)
+            app.isFine(res)
+            monitoring.detailEvent(res.data.Data)
         });
 
         /*WINDROSE INITIAL*/
