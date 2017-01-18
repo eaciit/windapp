@@ -150,7 +150,7 @@ monitoring.showDetail = function(project, turbine){
             }
             monitoring.chartWindSpeed(res.data.Data.ws);
             monitoring.chartProduction(res.data.Data.prod);
-            monitoring.dataAvailChart();
+            monitoring.dataAvailChart(res.data.Data.avail);
         });
         toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
             if (!app.isFine(res)) {
@@ -345,95 +345,10 @@ monitoring.chartProduction = function(dataSource){
         }
     });
 } 
-monitoring.dataAvailChart = function(){
-    var dataSource = [{
-        "timestamp": "2016-11-18 00:00:00",
-        "value": 1.125
-      },
-      {
-        "timestamp": "2016-11-18 00:10:00",
-        "value": 1.220833
-      },
-      {
-        "timestamp": "2016-11-18 00:20:00",
-        "value": 1.258333
-      },
-      {
-        "timestamp": "2016-11-18 00:30:00",
-        "value": 1.416667
-      },
-      {
-        "timestamp": "2016-11-18 00:40:00",
-        "value": 1.716667
-      },
-      {
-        "timestamp": "2016-11-18 00:50:00",
-        "value": 1.891667
-      },
-      {
-        "timestamp": "2016-11-18 01:00:00",
-        "value": 1.970833
-      },
-      {
-        "timestamp": "2016-11-18 01:10:00",
-        "value": 1.966667
-      },
-      {
-        "timestamp": "2016-11-18 01:20:00",
-        "value": 2.008333
-      },
-      {
-        "timestamp": "2016-11-18 01:30:00",
-        "value": 2.054167
-      },
-      {
-        "timestamp": "2016-11-18 01:40:00",
-        "value": 2.05
-      },
-      {
-        "timestamp": "2016-11-18 01:50:00",
-        "value": 1.9625
-      },
-      {
-        "timestamp": "2016-11-18 02:00:00",
-        "value": 1.833333
-      },
-      {
-        "timestamp": "2016-11-18 02:10:00",
-        "value": 1.633333
-      },
-      {
-        "timestamp": "2016-11-18 02:20:00",
-        "value": 1.420833
-      },
-      {
-        "timestamp": "2016-11-18 02:30:00",
-        "value": 1.275
-      },
-      {
-        "timestamp": "2016-11-18 02:40:00",
-        "value": 1.191667
-      },
-      {
-        "timestamp": "2016-11-18 02:50:00",
-        "value": 1.091667
-      },
-      {
-        "timestamp": "2016-11-18 03:00:00",
-        "value": 1.1
-      },
-      {
-        "timestamp": "2016-11-18 03:10:00",
-        "value": 1.079167
-      },
-      {
-        "timestamp": "2016-11-18 03:20:00",
-        "value": 0.958333
-      }
-    ]
+monitoring.dataAvailChart = function(dataSource){
     $("#dataAvailChart").kendoChart({
       title: {
-        text: "Data Available",
+        text: "Availability",
         font: '12px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
       },
       legend: {
@@ -460,8 +375,22 @@ monitoring.dataAvailChart = function(){
         type: "area",
         field: "value",
         aggregate: "avg", 
-        color: "#c3daee",
+        color: "#88b5dd",
       }],
+      navigator: {
+        categoryAxis: {
+          roundToBaseUnit: true
+        },
+        pane:{
+            height: 50,
+        },
+        series: [{
+          type: "area",
+          field: "value",
+          aggregate: "sum",
+          color: "#88b5dd",
+        }]
+      },
       valueAxis: {
         title: {
             text: "%",
