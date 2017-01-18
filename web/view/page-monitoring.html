@@ -52,8 +52,8 @@
                                      <tbody class="bold summary">
                                         <tr>
                                             <td> <span data-bind="text:kendo.toString(totalturbines,'n0')"></span></td>
-                                            <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span><!--/ <span class="dim">50.4</span></td>-->
-                                            <td> <span data-bind="text:kendo.toString(totalwsavg,'n1')"><!--</span> / <span class="dim">6</span></td>-->
+                                            <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span><!--/ <span class="green">50.4</span></td>-->
+                                            <td> <span data-bind="text:kendo.toString(totalwsavg,'n1')"><!--</span> / <span class="green">6</span></td>-->
                                             <td> <span data-bind="text:kendo.toString(totalprod,'n1')"></span>
                                         </tr>
                                     </tbody>
@@ -77,11 +77,11 @@
                                             <td data-bind="text:turbine"></td>
                                             <td >
                                                 <span data-bind="text:kendo.toString(production,'n1'), attr : { class: (production <= 0) ? 'red' : ''}"></span>/
-                                                <span data-bind="text:kendo.toString(todayproduction,'n1')" class="dim"></span>
+                                                <span data-bind="text:kendo.toString(todayproduction,'n1')" class="green"></span>
                                             </td>
                                             <td data-bind="text:kendo.toString(windspeed,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
                                             <td data-bind="text:kendo.toString(rotorspeedrpm,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
-                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : 'fa fa-circle dim tooltipster tooltipstered',title: statusdesc}"></td>
+                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : (status == 'N/A') ? 'fa fa-circle dim tooltipster tooltipstered' : 'fa fa-circle green tooltipster tooltipstered',title: statusdesc}"></td>
                                             <td data-bind='text: (statuscode == "") ? "-" : statuscode'></td>
                                             <td></td>                                          
                                         </tr>
@@ -98,11 +98,11 @@
                            <div class="col-md-12">
                                 <table class='table borderless able table-condensed table-hover'>
                                     <tbody data-bind="foreach:monitoring.event"> 
-                                        <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'dim'}">
+                                        <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
                                             <td data-bind="text:TimeStampStr"></td>
                                             <td data-bind="text:Project"></td>
                                             <td data-bind="text:Turbine"></td>
-                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle dim tooltipster',title: AlarmDescription}"></td>
+                                            <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></td>
                                             <td data-bind="text:AlarmId"></td>
                                             <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
                                         </tr>
