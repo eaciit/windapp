@@ -699,13 +699,15 @@ func UpdateLastMonitoring() {
 			}
 		}
 
-		_astatus := Monitoring{}
-		_astatus.Status = _mo.Status
-		_astatus.Type = _mo.Type
-		_astatus.StatusCode = _mo.StatusCode
-		_astatus.StatusDesc = _mo.StatusDesc
+		if _mo.Status != "N/A" {
+			_astatus := Monitoring{}
+			_astatus.Status = _mo.Status
+			_astatus.Type = _mo.Type
+			_astatus.StatusCode = _mo.StatusCode
+			_astatus.StatusDesc = _mo.StatusDesc
 
-		_lstatus[_mo.Turbine] = _astatus
+			_lstatus[_mo.Turbine] = _astatus
+		}
 		// }
 
 		_mo.LastUpdate = _nt0
