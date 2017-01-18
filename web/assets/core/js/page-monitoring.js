@@ -159,18 +159,17 @@ monitoring.showDetail = function(project, turbine){
            monitoring.detailEvent(res.data.Data)
         });
 
-        setTimeout(function () {
-            $("#legend-list").html("");
-            $.each(listOfCategory, function (idx, val) {
-                var idName = "btn" + idx;
-                listOfButton[idName] = true;
-                $("#legend-list").append(
-                    '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="wr.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
-                    '<span class="span-legend">' + val.category + '</span>'
-                );
-            });
-            $("#nosection").data("kendoDropDownList").value(12);
-        }, 300);
+        /*WINDROSE INITIAL*/
+        $("#legend-list").html("");
+        $.each(listOfCategory, function (idx, val) {
+            var idName = "btn" + idx;
+            listOfButton[idName] = true;
+            $("#legend-list").append(
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="wr.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<span class="span-legend">' + val.category + '</span>'
+            );
+        });
+        $("#nosection").data("kendoDropDownList").value(12);
         monitoring.turbine = [turbine];
         monitoring.project = project;
         wr.GetData();
@@ -604,12 +603,6 @@ wr.initChart = function () {
                 },
             }
         });
-        // app.loading(true)
-        setTimeout(function () {
-            if ($(idChart).data("kendoChart") != null) {
-                $(idChart).data("kendoChart").refresh();
-            }
-        }, 200);
     });
 }
 
@@ -630,8 +623,10 @@ wr.showHideLegend = function (index) {
         $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
     }
     $.each(listOfChart, function (idx, idChart) {
-        $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
-        $(idChart).data("kendoChart").refresh();
+        if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+            $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+            $(idChart).data("kendoChart").refresh();
+        }
     });
 }
 
