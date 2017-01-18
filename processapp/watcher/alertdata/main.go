@@ -624,6 +624,7 @@ func UpdateLastMonitoring() {
 	}
 
 	msmonitor, mskeys := PrepareMasterMonitoring()
+	mseventraw := PrepareEventRawHFD(eperiode)
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	//Change to event up down
 	xcsr, err := workerconn.NewQuery().
@@ -637,6 +638,7 @@ func UpdateLastMonitoring() {
 		return
 	}
 
+	_allkeys := tk.M{}
 	for {
 		_me := MonitoringEvent{}
 		err = xcsr.Fetch(&_me, 1, false)
@@ -650,6 +652,7 @@ func UpdateLastMonitoring() {
 			_me.GroupTimeStamp.Format("060102_150405"),
 		)
 		// tk.Println(">>> me key : ", _key)
+		_allkeys.Set(_key, 1)
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_mo.Status = "brake"
 			if _me.Status == "up" {
@@ -673,23 +676,35 @@ func UpdateLastMonitoring() {
 	sort.Strings(mskeys)
 	_lstatus := make(map[string]Monitoring, 0)
 
+	_ic := make(map[string]int, 0)
 	for _, _skey := range mskeys {
 		_mo := msmonitor[_skey]
+
+		if _mo.Status != "N/A" && _ic[_mo.Turbine] > 18 && !_allkeys.Has(_skey) {
+			_mo.Status = "N/A"
+		}
 
 		if _mo.Status == "" || _mo.Status == "N/A" {
 			_mo.Status = "N/A"
 			_mo.Type = ""
 			_mo.StatusCode = 0
 			_mo.StatusDesc = ""
-			if _lsdata, _lscond := _lstatus[_mo.Turbine]; _lscond && _lsdata.Status == "brake" {
-				_mo.Status = _lsdata.Status
-				_mo.Type = _lsdata.Type
-				_mo.StatusCode = _lsdata.StatusCode
-				_mo.StatusDesc = _lsdata.StatusDesc
-			}
-		} else {
-			_astatus := Monitoring{}
+			if _erdata, _ercond := mseventraw[_skey]; _ercond { //&& _lsdata.Status == "brake"
+				_lsdata := _lstatus[_mo.Turbine]
+				// _ = _lsdata
+				// === Look brake from previous status
+				if _lsdata.Status != "" {
+					_mo.Status = _lsdata.Status
+					_mo.Type = _lsdata.Type
+				}
 
+				_mo.StatusCode = _erdata.AlarmId
+				_mo.StatusDesc = _erdata.AlarmDescription
+			}
+		}
+
+		if _mo.Status != "N/A" {
+			_astatus := Monitoring{}
 			_astatus.Status = _mo.Status
 			_astatus.Type = _mo.Type
 			_astatus.StatusCode = _mo.StatusCode
@@ -697,12 +712,13 @@ func UpdateLastMonitoring() {
 
 			_lstatus[_mo.Turbine] = _astatus
 		}
+		// }
 
 		_mo.LastUpdate = _nt0
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
-
+		_ic[_mo.Turbine] += 1
 	}
 
 	// for _, _mo := range msmonitor {
@@ -753,15 +769,72 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
 			break
 		}
 
-		// _amnt.Status = ""
-		// _amnt.Type = ""
-		// _amnt.StatusCode = 0
-		// _amnt.StatusDesc = ""
-
 		_mnt[_amnt.ID] = _amnt
 
 		_arkey = append(_arkey, _amnt.ID)
 	}
 
+	return
+}
+
+func PrepareEventRawHFD(_ltime time.Time) (_mnt map[string]EventRawHFD) {
+	_mnt = make(map[string]EventRawHFD)
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	_stime := _ltime.AddDate(0, 0, -1)
+	xcsr, err := workerconn.NewQuery().
+		Select().
+		From(new(EventRawHFD).TableName()).
+		Where(dbox.And(dbox.Lte("timestamp", _ltime), dbox.Gt("timestamp", _stime))).
+		Order("timestamp").
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	defer xcsr.Close()
+
+	for {
+		_aerh := EventRawHFD{}
+		err = xcsr.Fetch(&_aerh, 1, false)
+		if err != nil {
+			break
+		}
+
+		GroupTimeStamp := convertTo10min(_aerh.TimeStamp)
+		_key := tk.Sprintf("%s#%s#%s",
+			_aerh.ProjectName,
+			_aerh.Turbine,
+			GroupTimeStamp.Format("060102_150405"),
+		)
+
+		_mnt[_key] = _aerh
+	}
+
+	return
+}
+
+func convertTo10min(input time.Time) (output time.Time) {
+	// THour := input.Hour()
+	TMinute := input.Minute()
+	TSecond := input.Second()
+	TMinuteValue := float64(TMinute) + tk.Div(float64(TSecond), 60.0)
+	TMinuteCategory := tk.ToInt(tk.RoundingUp64(tk.Div(TMinuteValue, 10), 0)*10, "0")
+
+	tmpInput := input.Add(time.Duration(TMinuteCategory-TMinute) * time.Minute).Add(time.Duration(TSecond*-1) * time.Second).UTC()
+	output, _ = time.Parse("20060102_150405", tmpInput.Format("20060102_150405"))
 	return
 }

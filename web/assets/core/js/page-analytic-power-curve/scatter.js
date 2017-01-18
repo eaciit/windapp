@@ -74,6 +74,22 @@ page.setAxis = function(name, title) {
             }
         },
     }
+    if(name == "powerAxis") {
+        result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # kW";
+        result.crosshair.tooltip.padding = {left:5};
+    } else {
+        switch(page.scatterType) {
+            case "temp":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176) + "C";
+                break;
+            case "deviation":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
+                break;
+            case "pitch":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
+                break;
+        }
+    }
     return result
 }
 
@@ -139,7 +155,6 @@ page.getPowerCurveScatter = function() {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             legend: {
-                // visible: false,
                 position: "bottom"
             },
             seriesDefaults: {
@@ -175,6 +190,7 @@ page.getPowerCurveScatter = function() {
                     tooltip: {
                         visible: true,
                         format: "N2",
+                        template: "#= kendo.toString(value, 'n2') # m/s",
                         background: "rgb(255,255,255, 0.9)",
                         color: "#58666e",
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
