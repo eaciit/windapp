@@ -676,11 +676,11 @@ func UpdateLastMonitoring() {
 	sort.Strings(mskeys)
 	_lstatus := make(map[string]Monitoring, 0)
 
-	_ic := 0
+	_ic := make(map[string]int, 0)
 	for _, _skey := range mskeys {
 		_mo := msmonitor[_skey]
 
-		if _mo.Status != "N/A" && _ic != 0 && !_allkeys.Has(_skey) {
+		if _mo.Status != "N/A" && _ic[_mo.Turbine] != 0 && !_allkeys.Has(_skey) {
 			_mo.Status = "N/A"
 		}
 
@@ -718,7 +718,7 @@ func UpdateLastMonitoring() {
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
-		_ic++
+		_ic[_mo.Turbine] += 1
 	}
 
 	// for _, _mo := range msmonitor {
