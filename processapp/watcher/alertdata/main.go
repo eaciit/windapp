@@ -685,10 +685,12 @@ func UpdateLastMonitoring() {
 			_mo.StatusCode = 0
 			_mo.StatusDesc = ""
 			if _lsdata, _lscond := _lstatus[_mo.Turbine]; _lscond && _lsdata.Status == "brake" {
-				_mo.Status = _lsdata.Status
-				_mo.Type = _lsdata.Type
-				_mo.StatusCode = _lsdata.StatusCode
-				_mo.StatusDesc = _lsdata.StatusDesc
+				_ = _lsdata
+				// === Look brake from previous status
+				// _mo.Status = _lsdata.Status
+				// _mo.Type = _lsdata.Type
+				// _mo.StatusCode = _lsdata.StatusCode
+				// _mo.StatusDesc = _lsdata.StatusDesc
 			}
 		}
 
