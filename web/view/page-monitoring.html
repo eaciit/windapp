@@ -129,20 +129,38 @@
                 <h4 class="modal-title">Detail Monitoring</h4>
             </div>
             <div class="modal-body">
-                <div class="col-md-4">
-                    <div class="row">
-                        <div>
-                            <div id="wsChart"></div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="row">
+                            <div>
+                                <div id="wsChart"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div>
+                                <div id="prodChart"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div>
+                                <div id="dataAvailChart"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div>
-                            <div id="prodChart"></div>
+                    <div class="col-md-4">
+                        <div class="col-md-12 col-xs-12 section-part">
+                            <label class="sector-label">Sectors</label>
+                            <select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
+                                style="width:50px;">
+                            </select>&nbsp;
+                            <label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div>
-                            <div id="dataAvailChart"></div>
+                        <div class="col-md-12 col-xs-12 legend-part">
+                            <div id="legend-list" class="col-md-12 col-sm-12 pl15">
+                            </div>
+                        </div>
+                        <div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+                            <div data-bind="attr:{id: 'chart-' + Name}"></div>
                         </div>
                     </div>
                 </div>

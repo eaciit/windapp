@@ -638,7 +638,7 @@ func UpdateLastMonitoring() {
 		return
 	}
 
-	// _allkeys := tk.M{}
+	_allkeys := tk.M{}
 	for {
 		_me := MonitoringEvent{}
 		err = xcsr.Fetch(&_me, 1, false)
@@ -652,7 +652,7 @@ func UpdateLastMonitoring() {
 			_me.GroupTimeStamp.Format("060102_150405"),
 		)
 		// tk.Println(">>> me key : ", _key)
-		// _allkeys.Set(_key, 1)
+		_allkeys.Set(_key, 1)
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_mo.Status = "brake"
 			if _me.Status == "up" {
@@ -676,9 +676,13 @@ func UpdateLastMonitoring() {
 	sort.Strings(mskeys)
 	_lstatus := make(map[string]Monitoring, 0)
 
-	// _ic := 0
+	_ic := make(map[string]int, 0)
 	for _, _skey := range mskeys {
 		_mo := msmonitor[_skey]
+
+		if _mo.Status != "N/A" && _ic[_mo.Turbine] > 18 && !_allkeys.Has(_skey) {
+			_mo.Status = "N/A"
+		}
 
 		if _mo.Status == "" || _mo.Status == "N/A" {
 			_mo.Status = "N/A"
@@ -714,7 +718,7 @@ func UpdateLastMonitoring() {
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
-		// _ic++
+		_ic[_mo.Turbine] += 1
 	}
 
 	// for _, _mo := range msmonitor {
