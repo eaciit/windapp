@@ -272,7 +272,7 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 
 	availDate := k.Session("availdate", "")
 	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
-	match.Set("grouptimestamp", tk.M{}.Set("$lte", date))
+	match.Set("timestamp", tk.M{}.Set("$lte", date))
 
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
@@ -490,6 +490,123 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 
 	res.Set("ws", resWS)
 	res.Set("prod", resProd)
+
+	// get min and max timestamp from monitoring
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", tk.M{
+		"_id": "$turbine",
+		"min": tk.M{"$min": "$timestamp"},
+		"max": tk.M{"$max": "$timestamp"},
+	}))
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	resMonitoring := []tk.M{}
+	e = csr.Fetch(&resMonitoring, 0, false)
+
+	var minDate, maxDate, counterDate time.Time
+
+	if len(resMonitoring) > 0 {
+		minDate = resMonitoring[0].Get("min").(time.Time)
+		maxDate = resMonitoring[0].Get("max").(time.Time)
+	}
+
+	// get events data
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
+		"timestamp": 1,
+	}))
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(MonitoringEvent).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	resMonitoringEvent := []MonitoringEvent{}
+	e = csr.Fetch(&resMonitoringEvent, 0, false)
+
+	groupEvents := map[string][]MonitoringEvent{}
+
+	for _, v := range resMonitoringEvent {
+		groupTimestamp := v.GroupTimeStamp.Format("200601020504")
+		tmpEvents := []MonitoringEvent{}
+		if len(groupEvents[groupTimestamp]) > 0 {
+			tmpEvents = groupEvents[groupTimestamp]
+		}
+
+		tmpEvents = append(tmpEvents, v)
+		groupEvents[groupTimestamp] = tmpEvents
+	}
+
+	resAvail := []tk.M{}
+	counter := 10
+
+	for {
+		if minDate == maxDate {
+			break
+		}
+
+		if counter == 10 {
+			counterDate = minDate.UTC()
+		} else {
+			counterDate = counterDate.Add(10 * time.Minute).UTC()
+		}
+
+		seconds := 600.0
+		groupTimestamp := counterDate.Format("200601020504")
+		events := groupEvents[groupTimestamp]
+		downDuration := 0.0
+		avail := 100.0
+
+		var downTime, upTime time.Time
+
+		for idx, v := range events {
+
+			if idx == len(events) && v.Status == "down" {
+				downDuration += counterDate.UTC().Sub(v.TimeStamp.UTC()).Seconds()
+			} else if idx == 0 && v.Status == "up" {
+				downDuration += v.TimeStamp.UTC().Sub(counterDate.Add(-10 * time.Minute).UTC()).Seconds()
+			} else {
+				if v.Status == "down" {
+					downTime = v.TimeStamp.UTC()
+				} else if v.Status == "up" {
+					upTime = v.TimeStamp.UTC()
+				}
+
+				if downTime.Year() != 1 && upTime.Year() != 1 {
+					downDuration += upTime.Sub(downTime).Seconds()
+				}
+			}
+
+		}
+
+		if downDuration != 0.0 {
+			avail = (seconds - downDuration) / seconds
+		}
+
+		resAvail = append(resAvail, tk.M{"timestamp": counterDate, "value": avail})
+	}
+
+	res.Set("avail", resAvail)
 
 	data := struct {
 		Data tk.M
