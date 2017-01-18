@@ -680,7 +680,7 @@ func UpdateLastMonitoring() {
 	for _, _skey := range mskeys {
 		_mo := msmonitor[_skey]
 
-		if _mo.Status != "N/A" && _ic[_mo.Turbine] != 0 && !_allkeys.Has(_skey) {
+		if _mo.Status != "N/A" && _ic[_mo.Turbine] > 18 && !_allkeys.Has(_skey) {
 			_mo.Status = "N/A"
 		}
 
