@@ -558,7 +558,7 @@ func UpdateLastMonitoring() {
 		SetConfig("multiexec", true).
 		Save()
 
-	_lstatus := make(map[string]Monitoring, 0)
+	// _lstatus := make(map[string]Monitoring, 0)
 	for {
 		_tkm := tk.M{}
 		err = xcsr.Fetch(&_tkm, 1, false)
@@ -577,21 +577,25 @@ func UpdateLastMonitoring() {
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_monitor = _mo
 
-			if _mo.Status != "" {
-				_astatus := Monitoring{}
+			// 	if _mo.Status != "" {
+			// 		_astatus := Monitoring{}
 
-				_astatus.Status = _mo.Status
-				_astatus.Type = _mo.Type
-				_astatus.StatusCode = _mo.StatusCode
-				_astatus.StatusDesc = _mo.StatusDesc
+			// 		_astatus.Status = _mo.Status
+			// 		_astatus.Type = _mo.Type
+			// 		_astatus.StatusCode = _mo.StatusCode
+			// 		_astatus.StatusDesc = _mo.StatusDesc
 
-				_lstatus[_mo.Turbine] = _astatus
-			}
-		} else if _lsdata, _lscond := _lstatus[_tkm.GetString("turbine")]; _lscond {
-			_monitor.Status = _lsdata.Status
-			_monitor.Type = _lsdata.Type
-			_monitor.StatusCode = _lsdata.StatusCode
-			_monitor.StatusDesc = _lsdata.StatusDesc
+			// 		_lstatus[_mo.Turbine] = _astatus
+			// 	}
+			// } else if _lsdata, _lscond := _lstatus[_tkm.GetString("turbine")]; _lscond {
+			// 	_monitor.Status = _lsdata.Status
+			// 	_monitor.Type = _lsdata.Type
+			// 	_monitor.StatusCode = _lsdata.StatusCode
+			// 	_monitor.StatusDesc = _lsdata.StatusDesc
+		}
+
+		if _monitor.Status == "" {
+			_monitor.Status = "N/A"
 		}
 
 		_monitor.ID = _key
