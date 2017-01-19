@@ -95,7 +95,7 @@ pc.InitFirst = function () {
         // $('#turbineList1').data('kendoDropDownList').value(["All Turbine"])
         // $('#turbineList2').data('kendoDropDownList').value(["All Turbine"])
         // override to set the value
-        $("#projectList1").data("kendoDropDownList").value("Tejuva");
+        // $("#projectList1").data("kendoDropDownList").value("Tejuva");
         // $("#projectList2").data("kendoDropDownList").value("Tejuva");
 
         pc.project = $("#projectList").data("kendoDropDownList").value();
@@ -318,7 +318,7 @@ pc.showHidePeriod2 = function (callback) {
 
 
 pc.InitDefaultValue = function () {
-    $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    // $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
     // $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");

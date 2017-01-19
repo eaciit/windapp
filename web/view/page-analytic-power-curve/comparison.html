@@ -31,7 +31,7 @@
 
 					
 					<div class="col-md-4" >
-						<div class="row mgb10">
+						<div class="row mgb10 hide">
 							<div class="col-md-3">
 								<label class="control-label label-filter">Filter</label>
 							</div>
@@ -43,17 +43,17 @@
 							<div class="col-md-3">
 								<label class="control-label label-filter">Project</label>
 							</div>
-							<div class="col-md-9">
+							<div class="col-md-9 no-padding">
 								<select class="project-list" id="projectList1" name="table" data-bind="kendoDropDownList: { data: pc.projectList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
 			                	</select>
 							</div>
 						</div>
-						<br><br>
+
 						<div class="row mgb10">
 							<div class="col-md-3">
 								<label class="control-label label-filter" style="width: 90px !important;">Turbine 1</label>
 							</div>
-							<div class="col-md-9">
+							<div class="col-md-9 no-padding">
 								<select class="turbine-list" id="turbineList1" name="table" data-bind="kendoDropDownList: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'text', suggest: true }">
 				                </select>
 							</div>
@@ -62,7 +62,7 @@
 							<div class="col-md-3">
 								<label class="control-label label-filter">Period</label>
 							</div>
-							<div class="col-md-9">
+							<div class="col-md-9 no-padding">
 								<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: pc.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pc.showHidePeriod()} }">
 			               		</select>
 
@@ -98,7 +98,7 @@
 							<div class="col-md-3">
 								<label class="control-label label-filter" style="width: 90px !important;">Turbine 2</label>
 							</div>
-							<div class="col-md-3">
+							<div class="col-md-9 no-padding">
 								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
 				                </select>
 							</div>
@@ -107,7 +107,7 @@
 							<div class="col-md-3">
 								<label class="control-label label-filter">Period</label>
 							</div>
-							<div class="col-md-9">
+							<div class="col-md-9 no-padding">
 								<select class="period-list" id="periodList2" name="table" data-bind="kendoDropDownList: { data: pc.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pc.showHidePeriod2()} }">
 			               		</select>
 
@@ -121,15 +121,12 @@
 
 							</div>
 						</div>
-						<div class="row mgb10 ">
-							<div class="col-md-3">
-								<label class=" label-filter"> </label>&nbsp;
-							</div>
-						</div>
+						<br>
 
-						<div class="col-md-10 ">
-							<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
-						</div>
+							<div class="col-md-12 no-padding">
+								<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+							</div>
+
 
 
 
