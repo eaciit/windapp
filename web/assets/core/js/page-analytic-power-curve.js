@@ -243,7 +243,7 @@ var Data = {
                         visible: true,
                         tooltip: {
                             visible: true,
-                            format: "N1",
+                            format: "N2",
                             background: "rgb(255,255,255, 0.9)",
                             color: "#58666e",
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
