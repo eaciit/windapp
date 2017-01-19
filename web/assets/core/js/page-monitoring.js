@@ -472,15 +472,6 @@ var listOfCategory = [
     { "category": "20m/s and above", "color": colorFieldsWR[5] },
 ];
 
-wr.ExportWindRose = function () {
-    var chart = $("#wr-chart").getKendoChart();
-    chart.exportPDF({ paperSize: "auto", margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" } }).done(function (data) {
-        kendo.saveAs({
-            dataURI: data,
-            fileName: "WindRose.pdf",
-        });
-    });
-}
 var maxValue = 0;
 
 wr.GetData = function () {
@@ -608,14 +599,6 @@ wr.initChart = function () {
             }
         });
     });
-}
-
-wr.RefreshChart = function(source) {
-  setTimeout(function(){
-      $.each(listOfChart, function(idx, elem){
-          $(elem).data("kendoChart").refresh();
-      });
-  }, 300);
 }
 
 wr.showHideLegend = function (index) {
