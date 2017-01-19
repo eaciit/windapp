@@ -449,8 +449,6 @@ function secondsToHms(d) {
 viewModel.WRFlexiDetail = new Object();
 var wr = viewModel.WRFlexiDetail;
 
-wr.dataWindrose = ko.observableArray([]);
-wr.dataWindroseGrid = ko.observableArray([]);
 wr.dataWindroseEachTurbine = ko.observableArray([]);
 wr.sectorDerajat = ko.observable(0);
 
@@ -464,12 +462,12 @@ var colorFieldsWR = ["#2d6a9f", "#337ab7", "#4c91cd", "#74a9d8", "#9cc2e3", "#c3
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [
-    { "category": "0 to 4m/s", "color": colorFieldsWR[0] },
-    { "category": "4 to 8m/s", "color": colorFieldsWR[1] },
-    { "category": "8 to 12m/s", "color": colorFieldsWR[2] },
-    { "category": "12 to 16m/s", "color": colorFieldsWR[3] },
-    { "category": "16 to 20m/s", "color": colorFieldsWR[4] },
-    { "category": "20m/s and above", "color": colorFieldsWR[5] },
+    { "category": "0 to 4 m/s", "color": colorFieldsWR[0] },
+    { "category": "4 to 8 m/s", "color": colorFieldsWR[1] },
+    { "category": "8 to 12 m/s", "color": colorFieldsWR[2] },
+    { "category": "12 to 16 m/s", "color": colorFieldsWR[3] },
+    { "category": "16 to 20 m/s", "color": colorFieldsWR[4] },
+    { "category": "20 m/s and above", "color": colorFieldsWR[5] },
 ];
 
 var maxValue = 0;
