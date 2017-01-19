@@ -222,7 +222,7 @@ monitoring.chartWindSpeed = function(dataSource){
         type: "area",
         field: "value",
         aggregate: "avg", 
-        color: "#2d6a9f",
+        color: "#ea5b19",
       }],
       navigator: {
         categoryAxis: {
@@ -235,7 +235,7 @@ monitoring.chartWindSpeed = function(dataSource){
           type: "area",
           field: "value",
           aggregate: "avg",
-          color: "#2d6a9f",
+          color: "#ea5b19",
         }]
       },
       valueAxis: {
@@ -306,7 +306,7 @@ monitoring.chartProduction = function(dataSource){
         type: "area",
         field: "value",
         aggregate: "sum", 
-        color: "#337ab7",
+        color: "#ee7a44",
       }],
       navigator: {
         categoryAxis: {
@@ -319,7 +319,7 @@ monitoring.chartProduction = function(dataSource){
           type: "area",
           field: "value",
           aggregate: "sum",
-          color: "#337ab7",
+          color: "#ee7a44",
         }]
       },
       valueAxis: {
@@ -390,7 +390,7 @@ monitoring.dataAvailChart = function(dataSource){
         type: "area",
         field: "value",
         // aggregate: "sum", 
-        color: "#74a9d8",
+        color: "#f4ac8a",
       }],
       navigator: {
         categoryAxis: {
@@ -403,7 +403,7 @@ monitoring.dataAvailChart = function(dataSource){
           type: "area",
           field: "value",
           // aggregate: "sum",
-          color: "#74a9d8",
+          color: "#f4ac8a",
         }]
       },
       valueAxis: {
@@ -470,8 +470,8 @@ wr.sectionsBreakdownList = ko.observableArray([
     { "text": 24, "value": 24 },
     { "text": 12, "value": 12 },
 ]);
-// var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
-var colorFieldsWR = ["#2d6a9f", "#337ab7", "#4c91cd", "#74a9d8", "#9cc2e3", "#c3daee", "#ebf3f9"];
+var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
+// var colorFieldsWR = ["#2d6a9f", "#337ab7", "#4c91cd", "#74a9d8", "#9cc2e3", "#c3daee", "#ebf3f9"];
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [
