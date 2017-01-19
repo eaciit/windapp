@@ -66,6 +66,8 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		"status":        tk.M{"$first": "$status"},
 		"statuscode":    tk.M{"$first": "$statuscode"},
 		"statusdesc":    tk.M{"$first": "$statusdesc"},
+		"winddirection": tk.M{"$first": "$winddirection"},
+		"pitchangle":    tk.M{"$first": "$pitchangle"},
 	}
 
 	var pipes []tk.M
@@ -126,6 +128,8 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		windspeed := checkNAValue(v.GetFloat64("windspeed"))
 		production := checkNAValue(v.GetFloat64("production")) * 1000
 		rotorspeedrpm := checkNAValue(v.GetFloat64("rotorspeedrpm"))
+		winddirection := checkNAValue(v.GetFloat64("winddirection"))
+		pitchangle := checkNAValue(v.GetFloat64("pitchangle"))
 		status := v.GetString("status")
 		statuscode := v.GetString("statuscode")
 		statusdesc := v.GetString("statusdesc")
@@ -157,6 +161,8 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		newRecord.Set("status", status)
 		newRecord.Set("statuscode", statuscode)
 		newRecord.Set("statusdesc", statusdesc)
+		newRecord.Set("winddirection", winddirection)
+		newRecord.Set("pitchangle", pitchangle)
 
 		list = append(list, newRecord)
 		updated.Set("turbines", list)
@@ -266,7 +272,7 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 
 	availDate := k.Session("availdate", "")
 	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
-	match.Set("grouptimestamp", tk.M{}.Set("$lte", date))
+	match.Set("timestamp", tk.M{}.Set("$lte", date))
 
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
@@ -412,4 +418,196 @@ func getTurbineTodayTotal(resultGroup tk.M, field string, project string, turbin
 	}
 
 	return results
+}
+
+func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := tk.M{}
+	e := k.GetPayload(&p)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	turbine := p.Get("turbine").([]interface{})
+	project := ""
+	if p.GetString("project") != "" {
+		anProject := strings.Split(p.GetString("project"), "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	// log.Printf("%#v \n", project)
+
+	match := tk.M{}
+	var projectList []interface{}
+	if project != "" {
+		match.Set("project", project)
+		projectList = append(projectList, project)
+	}
+
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	availDate := k.Session("availdate", "")
+	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+	match.Set("timestamp", tk.M{}.Set("$lte", date))
+
+	var pipes []tk.M
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
+		"timestamp": 1,
+	}))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	results := make([]Monitoring, 0)
+	e = csr.Fetch(&results, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	res := tk.M{}
+
+	resWS := []tk.M{}
+	resProd := []tk.M{}
+
+	for _, v := range results {
+		resWS = append(resWS, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.WindSpeed)})
+		resProd = append(resProd, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.Production) * 1000})
+	}
+
+	res.Set("ws", resWS)
+	res.Set("prod", resProd)
+
+	// get min and max timestamp from monitoring
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", tk.M{
+		"_id": "$turbine",
+		"min": tk.M{"$min": "$timestamp"},
+		"max": tk.M{"$max": "$timestamp"},
+	}))
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	resMonitoring := []tk.M{}
+	e = csr.Fetch(&resMonitoring, 0, false)
+
+	var minDate, maxDate, counterDate time.Time
+
+	if len(resMonitoring) > 0 {
+		minDate = resMonitoring[0].Get("min").(time.Time)
+		maxDate = resMonitoring[0].Get("max").(time.Time)
+	}
+
+	// get events data
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
+		"timestamp": 1,
+	}))
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(MonitoringEvent).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	resMonitoringEvent := []MonitoringEvent{}
+	e = csr.Fetch(&resMonitoringEvent, 0, false)
+
+	groupEvents := map[string][]MonitoringEvent{}
+
+	for _, v := range resMonitoringEvent {
+		groupTimestamp := v.GroupTimeStamp.UTC().Format("20060102_1504")
+		tmpEvents := []MonitoringEvent{}
+		if len(groupEvents[groupTimestamp]) > 0 {
+			tmpEvents = groupEvents[groupTimestamp]
+		}
+
+		tmpEvents = append(tmpEvents, v)
+		groupEvents[groupTimestamp] = tmpEvents
+	}
+
+	resAvail := []tk.M{}
+
+	for {
+		if counterDate.UTC() == maxDate.UTC() {
+			break
+		}
+
+		if counterDate.Year() == 1 {
+			counterDate = minDate.UTC()
+		} else {
+			counterDate = counterDate.Add(10 * time.Minute).UTC()
+		}
+
+		seconds := 600.0
+		groupTimestamp := counterDate.Format("20060102_1504")
+		events := groupEvents[groupTimestamp]
+		downDuration := 0.0
+		avail := 100.0
+
+		var downTime time.Time
+
+		for idx, v := range events {
+			if idx == len(events) && v.Status == "down" {
+				downDuration += counterDate.UTC().Sub(v.TimeStamp.UTC()).Seconds()
+			} else if idx == 0 && v.Status == "up" {
+				downDuration += v.TimeStamp.UTC().Sub(counterDate.Add(-10 * time.Minute).UTC()).Seconds()
+			} else {
+				if v.Status == "down" {
+					downTime = v.TimeStamp.UTC()
+				}
+
+				if downTime.Year() != 1 && v.Status == "up" {
+					downDuration += v.TimeStamp.UTC().Sub(downTime).Seconds()
+				}
+			}
+		}
+
+		if downDuration != 0.0 {
+			avail = ((seconds - downDuration) / seconds) * 100
+		}
+
+		resAvail = append(resAvail, tk.M{"timestamp": counterDate, "value": avail})
+	}
+
+	res.Set("avail", resAvail)
+
+	data := struct {
+		Data tk.M
+	}{
+		Data: res,
+	}
+
+	return helper.CreateResult(true, data, "success")
 }

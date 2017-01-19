@@ -20,8 +20,11 @@ monitoring.turbine = ko.observableArray([]);
 monitoring.project = ko.observable();
 monitoring.data = ko.observableArray([]);
 monitoring.event = ko.observableArray([]);
+monitoring.detailEvent = ko.observableArray([]);
 monitoring.last_minute = ko.observable();
 monitoring.last_date = ko.observable();
+monitoring.selectedProject = ko.observable();
+monitoring.selectedTurbine = ko.observable();
 var turbineval = [];
 
 
@@ -136,6 +139,300 @@ monitoring.getData = function(){
     });
 }
 
+monitoring.showDetail = function(project, turbine){
+    var param = {
+        turbine: [turbine],
+        project: project
+    };
+
+    monitoring.selectedProject(project);
+    monitoring.selectedTurbine(turbine);
+    $("#modalDetail").on("shown.bs.modal", function () { 
+        toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            monitoring.chartWindSpeed(res.data.Data.ws);
+            monitoring.chartProduction(res.data.Data.prod);
+            monitoring.dataAvailChart(res.data.Data.avail);
+        });
+        toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+           monitoring.detailEvent(res.data.Data)
+        });
+
+        /*WINDROSE INITIAL*/
+        $("#legend-list").html("");
+        $.each(listOfCategory, function (idx, val) {
+            var idName = "btn" + idx;
+            listOfButton[idName] = true;
+            $("#legend-list").append(
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="wr.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<span class="span-legend">' + val.category + '</span>'
+            );
+        });
+        $("#nosection").data("kendoDropDownList").value(12);
+        monitoring.turbine = [turbine];
+        monitoring.project = project;
+        wr.GetData();
+    }).modal('show');
+}
+
+monitoring.chartWindSpeed = function(dataSource){
+    $("#chartWindSpeed").kendoStockChart({
+      title: {
+        text: "Wind Speed",
+        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      dataSource: {
+        data: dataSource
+      },
+      chartArea:{
+        height : 220,
+      },
+      theme: "flat",
+      seriesDefaults: {
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+      dateField: "timestamp",
+      series: [{
+        type: "area",
+        field: "value",
+        aggregate: "avg", 
+        color: "#3277b3",
+      }],
+      navigator: {
+        categoryAxis: {
+          roundToBaseUnit: true
+        },
+        pane: {
+            height: 50,
+        },
+        series: [{
+          type: "area",
+          field: "value",
+          aggregate: "avg",
+          color: "#3277b3",
+        }]
+      },
+      valueAxis: {
+        title: {
+            text: "m/s",
+            visible: true,
+            font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        },
+        labels: {
+            // format: "{0:p2}"
+            format: "{0}"
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        line: {
+            visible: false
+        },
+        axisCrossingValue: 0
+      },
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # m/s",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+} 
+monitoring.chartProduction = function(dataSource){
+    $("#chartProduction").kendoStockChart({
+      title: {
+        text: "Production",
+        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      dataSource: {
+        data: dataSource
+      },
+      chartArea:{
+        height : 220,
+      },
+      theme: "flat",
+      seriesDefaults: {
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+      dateField: "timestamp",
+      series: [{
+        type: "area",
+        field: "value",
+        aggregate: "sum", 
+        color: "#609dd2",
+      }],
+      navigator: {
+        categoryAxis: {
+          roundToBaseUnit: true
+        },
+        pane:{
+            height: 50,
+        },
+        series: [{
+          type: "area",
+          field: "value",
+          aggregate: "sum",
+          color: "#609dd2",
+        }]
+      },
+      valueAxis: {
+        title: {
+            text: "MWh",
+            visible: true,
+            font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        },
+        labels: {
+            // format: "{0:p2}"
+            format: "{0}"
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        line: {
+            visible: false
+        },
+        axisCrossingValue: 0
+      },
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # MWh",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+} 
+monitoring.dataAvailChart = function(dataSource){
+    $("#dataAvailChart").kendoStockChart({
+      title: {
+        text: "Availability",
+        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      dataSource: {
+        data: dataSource
+      },
+      chartArea:{
+        height : 220,
+      },
+      theme: "flat",
+      seriesDefaults: {
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+      dateField: "timestamp",
+      series: [{
+        type: "area",
+        field: "value",
+        // aggregate: "sum", 
+        color: "#9cc2e3",
+      }],
+      navigator: {
+        categoryAxis: {
+          roundToBaseUnit: true
+        },
+        pane:{
+            height: 50,
+        },
+        series: [{
+          type: "area",
+          field: "value",
+          // aggregate: "sum",
+          color: "#9cc2e3",
+        }]
+      },
+      valueAxis: {
+        title: {
+            text: "%",
+            visible: true,
+            font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        },
+        labels: {
+            // format: "{0:p2}"
+            format: "{0}"
+        },
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        line: {
+            visible: false
+        },
+        axisCrossingValue: 0,
+        max: 100,
+      },
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # %",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+}
 function secondsToHms(d) {
     d = Number(d);
     var h = Math.floor(d / 3600);
@@ -144,6 +441,197 @@ function secondsToHms(d) {
     var res = (h > 0 ? (h < 10 ? "0" + h : h) : "00") + ":" + (m > 0 ? (m < 10 ? "0" + m : m) : "00") + ":" + (s > 0 ? s : "00")
 
     return res;
+}
+
+// ============================ WINDROSE ====================================
+
+
+viewModel.WRFlexiDetail = new Object();
+var wr = viewModel.WRFlexiDetail;
+
+wr.dataWindrose = ko.observableArray([]);
+wr.dataWindroseGrid = ko.observableArray([]);
+wr.dataWindroseEachTurbine = ko.observableArray([]);
+wr.sectorDerajat = ko.observable(0);
+
+wr.sectionsBreakdownList = ko.observableArray([
+    { "text": 36, "value": 36 },
+    { "text": 24, "value": 24 },
+    { "text": 12, "value": 12 },
+]);
+// var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
+var colorFieldsWR = ["#2d6a9f", "#337ab7", "#4c91cd", "#74a9d8", "#9cc2e3", "#c3daee", "#ebf3f9"];
+var listOfChart = [];
+var listOfButton = {};
+var listOfCategory = [
+    { "category": "0 to 4m/s", "color": colorFieldsWR[0] },
+    { "category": "4 to 8m/s", "color": colorFieldsWR[1] },
+    { "category": "8 to 12m/s", "color": colorFieldsWR[2] },
+    { "category": "12 to 16m/s", "color": colorFieldsWR[3] },
+    { "category": "16 to 20m/s", "color": colorFieldsWR[4] },
+    { "category": "20m/s and above", "color": colorFieldsWR[5] },
+];
+
+wr.ExportWindRose = function () {
+    var chart = $("#wr-chart").getKendoChart();
+    chart.exportPDF({ paperSize: "auto", margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" } }).done(function (data) {
+        kendo.saveAs({
+            dataURI: data,
+            fileName: "WindRose.pdf",
+        });
+    });
+}
+var maxValue = 0;
+
+wr.GetData = function () {
+  if(monitoring.turbine.length > 0) {
+    app.loading(true);
+    setTimeout(function () {
+        var breakDownVal = $("#nosection").data("kendoDropDownList").value();
+        var secDer = 360 / breakDownVal;
+        wr.sectorDerajat(secDer);
+        var param = {
+            turbine: monitoring.turbine,
+            project: monitoring.project,
+            breakDown: breakDownVal,
+            isMonitoring: true,
+        };
+        toolkit.ajaxPost(viewModel.appName + "analyticwindrose/getflexidataeachturbine", param, function (res) {
+            if (!app.isFine(res)) {
+                app.loading(false);
+                return;
+            }
+            if (res.data.WindRose != null) {
+                var metData = res.data.WindRose;
+                maxValue = res.data.MaxValue;
+                wr.dataWindroseEachTurbine(metData);
+                wr.initChart();
+            }
+
+            app.loading(false);
+
+        })
+    }, 300);
+  }
+}
+
+wr.initChart = function () {
+    // app.loading(true)
+    listOfChart = [];
+    var breakDownVal = $("#nosection").data("kendoDropDownList").value();
+    var stepNum = 1
+    var gapNum = 1
+    if (breakDownVal == 36) {
+        stepNum = 3
+        gapNum = 0
+    } else if (breakDownVal == 24) {
+        stepNum = 2
+        gapNum = 0
+    } else if (breakDownVal == 12) {
+        stepNum = 1
+        gapNum = 0
+    }
+
+    $.each(wr.dataWindroseEachTurbine(), function (i, val) {
+        var name = val.Name
+        var idChart = "#chart-" + val.Name
+        listOfChart.push(idChart);
+        $(idChart).kendoChart({
+            theme: "nova",
+            title: {
+                text: name,
+                visible: false,
+                font: '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            legend: {
+                position: "bottom",
+                labels: {
+                    template: "#= (series.data[0] || {}).WsCategoryDesc #"
+                },
+                visible: false,
+            },
+            dataSource: {
+                data: val.Data,
+                group: {
+                    field: "WsCategoryNo",
+                    dir: "asc"
+                },
+                sort: {
+                    field: "DirectionNo",
+                    dir: "asc"
+                }
+            },
+            seriesColors: colorFieldsWR,
+            series: [{
+                type: "radarColumn",
+                stack: true,
+                field: "Contribution",
+                gap: gapNum,
+                border: {
+                    width: 1,
+                    color: "#7f7f7f",
+                    opacity: 0.5
+                },
+            }],
+            categoryAxis: {
+                field: "DirectionDesc",
+                visible: true,
+                majorGridLines: {
+                    visible: true,
+                    step: stepNum
+                },
+                labels: {
+                    font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    visible: true,
+                    step: stepNum
+                }
+            },
+            valueAxis: {
+                labels: {
+                    template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                    font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                majorUnit: 10,
+                max: maxValue,
+                min: 0
+            },
+            tooltip: {
+                visible: true,
+                template: "#= category # (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            }
+        });
+    });
+}
+
+wr.RefreshChart = function(source) {
+  setTimeout(function(){
+      $.each(listOfChart, function(idx, elem){
+          $(elem).data("kendoChart").refresh();
+      });
+  }, 300);
+}
+
+wr.showHideLegend = function (index) {
+    var idName = "btn" + index;
+    listOfButton[idName] = !listOfButton[idName];
+    if (listOfButton[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
+    }
+    $.each(listOfChart, function (idx, idChart) {
+        if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+            $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+            $(idChart).data("kendoChart").refresh();
+        }
+    });
 }
 
 $(function () {
