@@ -147,8 +147,9 @@ monitoring.showDetail = function(project, turbine){
 
     monitoring.selectedProject(project);
     monitoring.selectedTurbine(turbine);
+    var interval = null;
     $("#modalDetail").on("shown.bs.modal", function () { 
-        toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
+        var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
@@ -156,14 +157,14 @@ monitoring.showDetail = function(project, turbine){
             monitoring.chartProduction(res.data.Data.prod);
             monitoring.dataAvailChart(res.data.Data.avail);
         });
-        toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
+        var getEvent = toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
            monitoring.detailEvent(res.data.Data)
         });
 
-        /*WINDROSE INITIAL*/
+         /*WINDROSE INITIAL*/
         $("#legend-list").html("");
         $.each(listOfCategory, function (idx, val) {
             var idName = "btn" + idx;
@@ -177,7 +178,19 @@ monitoring.showDetail = function(project, turbine){
         monitoring.turbine = [turbine];
         monitoring.project = project;
         wr.GetData();
+
+        interval = setInterval(function(){
+            getDetail 
+            getEvent
+            wr.GetData();
+         },1000*120);
+
     }).modal('show');
+
+    $('#modalDetail').on('hidden.bs.modal', function (e) {
+        clearInterval(interval);
+    });
+
 }
 
 monitoring.chartWindSpeed = function(dataSource){
@@ -209,7 +222,7 @@ monitoring.chartWindSpeed = function(dataSource){
         type: "area",
         field: "value",
         aggregate: "avg", 
-        color: "#3277b3",
+        color: "#2d6a9f",
       }],
       navigator: {
         categoryAxis: {
@@ -222,7 +235,7 @@ monitoring.chartWindSpeed = function(dataSource){
           type: "area",
           field: "value",
           aggregate: "avg",
-          color: "#3277b3",
+          color: "#2d6a9f",
         }]
       },
       valueAxis: {
@@ -293,7 +306,7 @@ monitoring.chartProduction = function(dataSource){
         type: "area",
         field: "value",
         aggregate: "sum", 
-        color: "#609dd2",
+        color: "#337ab7",
       }],
       navigator: {
         categoryAxis: {
@@ -306,7 +319,7 @@ monitoring.chartProduction = function(dataSource){
           type: "area",
           field: "value",
           aggregate: "sum",
-          color: "#609dd2",
+          color: "#337ab7",
         }]
       },
       valueAxis: {
@@ -377,7 +390,7 @@ monitoring.dataAvailChart = function(dataSource){
         type: "area",
         field: "value",
         // aggregate: "sum", 
-        color: "#9cc2e3",
+        color: "#74a9d8",
       }],
       navigator: {
         categoryAxis: {
@@ -390,7 +403,7 @@ monitoring.dataAvailChart = function(dataSource){
           type: "area",
           field: "value",
           // aggregate: "sum",
-          color: "#9cc2e3",
+          color: "#74a9d8",
         }]
       },
       valueAxis: {
