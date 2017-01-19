@@ -23,9 +23,10 @@ page.ExportIndividualMonthPdf = function() {
 
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
-    { "value": "temp", "text": "Temperature Analysis" },
     { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
+    /*{ "value": "power", "text": "Temperature Analysis" },
+    { "value": "grid", "text": "Temperature Analysis" },*/
 ]);
 
 vm.currentMenu('Scatter Analysis');
@@ -107,6 +108,10 @@ page.getPowerCurveScatter = function() {
         turbine: fa.turbine,
         project: fa.project,
         scatterType: page.scatterType,
+        lessDeviation: 20,
+        greaterDeviation: 20,
+        lessColor: "#ff7663",
+        greaterColor: "#a2df53",
     };
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
         if (!app.isFine(res)) {
@@ -118,7 +123,7 @@ page.getPowerCurveScatter = function() {
         $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
     });
 
-    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurvescatter", param, function(res) {
+    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteranalysis", param, function(res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -128,10 +133,6 @@ page.getPowerCurveScatter = function() {
         var yAxis = page.setAxis("powerAxis", "Generation (KW)");
         yAxes.push(yAxis);
         switch(page.scatterType) {
-            case "temp":
-                var axis = page.setAxis("tempAxis", "Temperature (Celcius)");
-                yAxes.push(axis);
-                break;
             case "deviation":
                 var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
                 yAxes.push(axis);
