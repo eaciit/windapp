@@ -465,7 +465,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		"_id.monthid": 1,
 		"_id.colId":   1,
 	}})
-
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipes).
@@ -561,7 +560,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			"Data": dataSeries,
 		}
 		results = append(results, turbineData)
-		dataSeries = []tk.M{}                   /*clear variable for nex data*/
+		dataSeries = []tk.M{}                   /*clear variable for next data*/
 		dataSeries = append(dataSeries, pcData) /*always append expected value at beginning*/
 	}
 
@@ -808,14 +807,13 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
+	var _list ScadaData
 	for {
-		_list := ScadaData{}
 		e = csr.Fetch(&_list, 1, false)
-		list = append(list, _list)
 		if e != nil {
 			break
 		}
+		list = append(list, _list)
 	}
 
 	defer csr.Close()
