@@ -15,8 +15,7 @@ vm.breadcrumb([ {
     href: viewModel.appName + 'page/analytictrendlineplots'
 }]);
 
-
-pc.periodList = ko.observableArray([
+tlp.compTemp = ko.observableArray([
     { "value": 2, "text": "Ambient Temp" },
     { "value": 5, "text": "Temp_GearBox_IMS_NDE" },
     { "value": 5, "text": "Temp_GearBox_HSS_NDE" },
@@ -33,6 +32,7 @@ pc.periodList = ko.observableArray([
     { "value": 5, "text": "Nacelle Temp" },
 ]);
 
+tlp.compTempVal = ko.observable("2");
 
 
 

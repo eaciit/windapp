@@ -13,16 +13,31 @@
 					<div class="panel-heading">
 					</div>
 					<div class="panel-body">
-						<div class="date-info">
-                            Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
-                        </div>
-                        
-                        <div class="col-md-12 list">
-							<div class="col-md-12 col-xs-12">
-								<div id="legend-list" class="col-md-12 col-sm-12 pl15">
-								</div>
+						<div class="row">
+							<div class="col-md-6">								
+								<div class="date-info">
+			                        Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
+			                    </div>
+							</div>
+							<div class="col-md-6">
+								<label>
+									<span><b class="colBlack">Component Temp</b></span>
+									<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
+				               		</select>
+				               		<span><b class="colBlack">Temp Compare to Average ± </b></span>
+				               		<input type="text" name="txtcompTemp" id="txtcompTemp" class="form-control input-xs tempBox" disabled data-bind="value:tlp.compTempVal">
+				               		<span><b class="colBlack"> degree </b></span>
+
+								</label>
 							</div>
 						</div>
+                        
+ <!--                        <div class="col-md-12 list"> , text:page.deviationVal
+							<div class="col-md-12 col-xs-12">
+								<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+								</div> data-bind="value:page.deviationVal, text:page.deviationVal"
+							</div> change: function() {pc.showHidePeriod()}   
+						</div> -->
 						<div class="clearfix">&nbsp;</div>
 
 						<div class="col-md-12 ">
