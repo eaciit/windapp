@@ -39,7 +39,7 @@
                     </div>
                     <div class="panel-body">                        
                         <div class="col-md-12 multicol-div">
-                            <div class="col-md-4 multicol" data-bind="foreach:monitoring.data">
+                            <div class="col-md-6 multicol" data-bind="foreach:monitoring.data">
                                 <table class="table table-condensed table-sum">
                                     <thead>
                                         <tr>
@@ -61,15 +61,15 @@
                                 <table class="table table-condensed table-detail table-striped">
                                     <thead class="bold">
                                         <tr>
-                                            <td width="20%">Timestamp</td>
-                                            <td width="20%">Turbine</td>
-                                            <td width="15%"><i class="fa fa-flash tooltipster tooltipstered" title="Production (KWh)"></i></td>
-                                            <td width="10%"><i class="fa fa-tachometer tooltipster tooltipstered" title="WS (m/s)"></i></td>
-                                            <td width="5%"><i class="fa fa-location-arrow tooltipster tooltipstered" title="Wind Direction"></i></td>
-                                            <td width="5%"><i class="fa fa-line-chart tooltipster tooltipstered" title="Rotor RPM"></i></td>
-                                            <td width="5%"><i class="fa fa-location-arrow tooltipster tooltipstered" title="Pitch Angle"></i></td>
-                                            <td width="5%"><i class="fa fa-bell tooltipster tooltipstered" title="Status"></i></td>
-                                            <td width="10%"><i class="fa fa-edit tooltipster tooltipstered" title="Status Code"></i></td>                                            
+                                            <td width="">Timestamp</td>
+                                            <td width="">Turbine</td>
+                                            <td width=""><i class="fa fa-flash tooltipster tooltipstered" title="Production (KWh)"></i></td>
+                                            <td width=""><i class="fa fa-tachometer tooltipster tooltipstered" title="WS (m/s)"></i></td>
+                                            <td width=""><i class="fa fa-location-arrow tooltipster tooltipstered" title="Wind Direction"></i></td>
+                                            <td width=""><i class="fa fa-line-chart tooltipster tooltipstered" title="Rotor RPM"></i></td>
+                                            <td width=""><i class="fa fa-location-arrow tooltipster tooltipstered" title="Pitch Angle"></i></td>
+                                            <td width=""><i class="fa fa-bell tooltipster tooltipstered" title="Status"></i></td>
+                                            <td width=""><i class="fa fa-edit tooltipster tooltipstered" title="Status Code"></i></td>                                            
                                         </tr>
                                     </thead>
                                     <tbody data-bind="foreach:$data.turbines">
@@ -82,11 +82,20 @@
                                                 <span data-bind="text:kendo.toString(todayproduction,'n1')" class="green"></span>
                                             </td>
                                             <td data-bind="text:kendo.toString(windspeed,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
-                                            <td data-bind="text:kendo.toString(winddirection,'n1')"></td>
+                                            <td >
+                                                <!--<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval:winddirection+45}"></i>&nbsp;-->
+                                                <span data-bind="text:kendo.toString(winddirection,'n1')"></span>
+                                            </td>
                                             <td data-bind="text:kendo.toString(rotorspeedrpm,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
-                                            <td data-bind="text:kendo.toString(pitchangle,'n1')"></td>
-                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red tooltipster tooltipstered' : (status == 'N/A') ? 'fa fa-circle dim tooltipster tooltipstered' : 'fa fa-circle green tooltipster tooltipstered',title: statusdesc}"></td>
-                                            <td data-bind='text: (statuscode == "") ? "-" : statuscode'></td>
+                                            <td >
+                                                <!--<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval:pitchangle+45}"></i>&nbsp;-->
+                                                <span data-bind="text:kendo.toString(pitchangle,'n1')"></span>
+                                            </td>
+                                            <td data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red' : (status == 'N/A') ? 'fa fa-circle dim' : 'fa fa-circle green'}"></td>
+                                            <td >
+                                                <span data-bind='text:statuscode'></span>&nbsp;
+                                                <span data-bind='text:statusdesc'></span>
+                                            </td>
                                             <td></td>                                          
                                         </tr>
                                     </tbody>
@@ -124,7 +133,10 @@
 <div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header"><h5>Turbine Detail for 24 Hours <storng>(<span data-bind="text:monitoring.selectedProject"></span> || <span data-bind="text:monitoring.selectedTurbine"></span>)</storng></h5></div>
+            <div class="modal-header">
+                <!--<h5>Turbine Detail for 24 Hours <strong>(<span data-bind="text:monitoring.selectedProject"></span> | <span data-bind="text:monitoring.selectedTurbine"></span>)</strong></h5>-->
+                <h5><strong><span data-bind="text:monitoring.selectedProject"></span> - <span data-bind="text:monitoring.selectedTurbine"></span></strong> (Last 24 Hours)</h5>
+            </div>
             <div class="modal-body">
                 <div class="col-md-12">
                     <div class="col-md-4">
