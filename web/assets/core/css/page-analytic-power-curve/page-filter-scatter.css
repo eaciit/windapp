@@ -21,3 +21,13 @@
 #btnRefresh {
     margin-left: 5px;
 }
+
+.period-list {
+	width:100px;
+}
+#projectList {
+	width:145px;
+}
+.input-filter {
+	width:110px;
+}
