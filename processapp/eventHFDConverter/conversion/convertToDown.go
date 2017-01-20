@@ -127,13 +127,17 @@ func (ev *HFDDownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup
 							startIdx = idx
 							start = data
 							ev.InsertToMonitoringEvent(start, "down")
-						} else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || (strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) || (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11) || data.AlarmId == 0)) && startIdx != -1 {
+						} else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || ((strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) && (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11)))) && startIdx != -1 {
 							end = data
-						} else if data.AlarmId == 999 && startIdx != -1 {
+						}
+						/* else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || (strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) || (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11) || data.AlarmId == 0)) && startIdx != -1 {
+							end = data
+						}
+						else if data.AlarmId == 999 && startIdx != -1 {
 							if (strings.Contains(data.EventType, ErrorState) && lastAlarmCode == 0) || (strings.Contains(data.EventType, AlarmCode) && lastAlarmCode == 0) || (strings.Contains(data.EventType, TurbineState) && (lastAlarmCode >= 0 && lastAlarmCode <= 11) || lastAlarmCode == 0) {
 								end = data
 							}
-						}
+						}*/
 
 						if end.TimeStamp.Year() != 1 && startIdx != -1 {
 							tmp := EventRawHFD{}

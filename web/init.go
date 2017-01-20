@@ -68,6 +68,7 @@ func init() {
 	app.Register(controller.CreateAnalyticWindAvailabilityController())
 	app.Register(controller.CreateAnalyticKeyMetricsController())
 	app.Register(controller.CreateAnalyticComparisonController())
+	app.Register(controller.CreateTrendLinePlotsController())
 	app.Register(controller.CreateAnalyticHistogramController())
 	app.Register(controller.CreateHelperController())
 	app.Register(controller.CreateUserPreferencesController())

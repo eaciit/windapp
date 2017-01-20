@@ -498,6 +498,10 @@
    color: #585555;
 }
 
+.maximize-mode .panel-body{
+    padding: 0px;
+}
+
 
 /* Safari 4.0 - 8.0 */
 @-webkit-keyframes flash {
