@@ -16,7 +16,7 @@ vm.breadcrumb([ {
 }]);
 
 
-pc.periodList = ko.observableArray([
+tlp.compTemp = ko.observableArray([
     { "value": 2, "text": "Ambient Temp" },
     { "value": 5, "text": "Temp_GearBox_IMS_NDE" },
     { "value": 5, "text": "Temp_GearBox_HSS_NDE" },
