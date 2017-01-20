@@ -222,12 +222,12 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-09-30 23:59")
-	k.SetSession("custom_lastdate", lastDateData.UTC())
+	/*lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-09-30 23:59")
+	k.SetSession("custom_lastdate", lastDateData.UTC())*/
 	var tStart, tEnd time.Time
 	if p.IsMonitoring {
 		now := time.Now()
-		last := time.Now().AddDate(0, -12, 0)
+		last := now.AddDate(0, 0, -24)
 
 		tStart, _ = time.Parse("20060102", last.Format("200601")+"01")
 		tEnd, _ = time.Parse("20060102", now.Format("200601")+"01")
