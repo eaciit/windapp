@@ -147,12 +147,12 @@ fa.showHidePeriod = function (callback) {
             $('#dateStart').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM yyyy",
             });
             $('#dateEnd').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM yyyy",
             });
 
             $('#dateStart').data('kendoDatePicker').value(startMonthDate);

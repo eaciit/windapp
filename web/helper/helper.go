@@ -537,11 +537,11 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	} else {
 		iLastDateData := GetLastDateData(r)
 		/*jika memiliki custom date sendiri seperti wind rose yang max date nya 31 Juli 2016*/
-		customLastDate := r.Session("custom_lastdate")
+		// customLastDate := r.Session("custom_lastdate")
 
-		if customLastDate != nil {
-			iLastDateData = customLastDate.(time.Time)
-		}
+		// if customLastDate != nil {
+		// 	iLastDateData = customLastDate.(time.Time)
+		// }
 		endDate = iLastDateData
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
 		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
@@ -581,8 +581,6 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			}
 		}
 	}
-
-	// r.SetSession("custom_lastdate", nil)
 	return
 }
 
