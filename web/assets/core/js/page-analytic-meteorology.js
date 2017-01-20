@@ -949,7 +949,7 @@ $(document).ready(function () {
             );
         });
         $("#nosection").data("kendoDropDownList").value(12);
-        wr.setPeriod();
+        // wr.setPeriod();
         $( "#btnRefresh" ).trigger( "click" );
     }, 300);
 

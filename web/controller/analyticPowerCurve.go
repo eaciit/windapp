@@ -937,12 +937,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	pipes := []tk.M{}
 	pipes = append(pipes, tk.M{
 		"$group": tk.M{
-			"_id": tk.M{
-				"colId":   "$wsavgforpc",
-				"Turbine": "$turbine",
-			},
+			"_id":        "$wsavgforpc",
 			"production": tk.M{"$avg": "$power"},
-			"totaldata":  tk.M{"$sum": 1},
 		},
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
@@ -966,13 +962,13 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	exist := []tk.M{}
-	e = csrPower.Fetch(&exist, 0, false)
+	powerData := []tk.M{}
+	e = csrPower.Fetch(&powerData, 0, false)
 	defer csrPower.Close()
 
 	var datas [][]float64
 	turbineData := tk.M{}
-	turbineData.Set("name", "Power")
+	turbineData.Set("name", turbine)
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
@@ -981,9 +977,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	turbineData.Set("color", colorField[1])
 	turbineData.Set("idxseries", 1)
 
-	for _, val := range exist {
-		idD := val.Get("_id").(tk.M)
-		datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
+	for _, val := range powerData {
+		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 	}
 
 	if len(datas) > 0 {
@@ -993,15 +988,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	dataSeries = append(dataSeries, turbineData)
 
 	/*===== END OF POWER LINE =======*/
-
-	filter = []*dbox.Filter{}
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
-	filter = append(filter, dbox.Eq("turbine", turbine))
-	filter = append(filter, dbox.Eq("projectname", project))
-	filter = append(filter, dbox.Eq("oktime", 600))
-	filter = append(filter, dbox.Gt("avgwindspeed", 0))
+	// filter is same with power filter
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -1022,39 +1009,33 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 
 	defer csr.Close()
 
-	pitchData := tk.M{}
-	pitchDatas1 := []tk.M{}
-	pitchDatas2 := []tk.M{}
-	deviationData := tk.M{}
-	deviationDatas1 := []tk.M{}
-	deviationDatas2 := []tk.M{}
+	scatterData := tk.M{}
+	scatterDatas1 := []tk.M{}
+	scatterDatas2 := []tk.M{}
 	lessDev := tk.ToFloat64(p.LessDeviation, 2, tk.RoundingAuto) / 100.0
 	greatDev := tk.ToFloat64(p.GreaterDeviation, 2, tk.RoundingAuto) / 100.0
 	for _, val := range list {
-		pitchData = tk.M{}
-		deviationData = tk.M{}
+		scatterData = tk.M{}
+		scatterData.Set("WindSpeed", val.AvgWindSpeed)
+		scatterData.Set("Power", val.Power)
 
 		switch p.ScatterType {
 		case "deviation":
-			deviationData.Set("WindSpeed", val.AvgWindSpeed)
-			deviationData.Set("Deviation", val.WindDirection)
-			if val.DeviationPct < lessDev {
-				deviationData.Set("valueColor", p.LessColor)
-				deviationDatas1 = append(deviationDatas1, deviationData)
+			if val.WindDirection < lessDev {
+				scatterData.Set("valueColor", p.LessColor)
+				scatterDatas1 = append(scatterDatas1, scatterData)
 			} else if val.DeviationPct > greatDev {
-				deviationData.Set("valueColor", p.GreaterColor)
-				deviationDatas2 = append(deviationDatas2, deviationData)
+				scatterData.Set("valueColor", p.GreaterColor)
+				scatterDatas2 = append(scatterDatas2, scatterData)
 			}
 		case "pitch":
 			if val.AvgBladeAngle > -99999.0 {
-				pitchData.Set("WindSpeed", val.AvgWindSpeed)
-				pitchData.Set("Pitch", val.AvgBladeAngle)
-				if val.DeviationPct < lessDev {
-					pitchData.Set("valueColor", p.LessColor)
-					pitchDatas1 = append(pitchDatas1, pitchData)
-				} else if val.DeviationPct > greatDev {
-					pitchData.Set("valueColor", p.GreaterColor)
-					pitchDatas2 = append(pitchDatas2, pitchData)
+				if val.AvgBladeAngle < lessDev {
+					scatterData.Set("valueColor", p.LessColor)
+					scatterDatas1 = append(scatterDatas1, scatterData)
+				} else if val.AvgBladeAngle > greatDev {
+					scatterData.Set("valueColor", p.GreaterColor)
+					scatterDatas2 = append(scatterDatas2, scatterData)
 				}
 			}
 		}
@@ -1062,14 +1043,14 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 
 	switch p.ScatterType {
 	case "deviation":
-		seriesData1 := setScatterData("Deviation < "+tk.ToString(p.LessDeviation), "WindSpeed", "Deviation", p.LessColor, "deviationAxis", deviationDatas1)
+		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", scatterDatas1)
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Deviation > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Deviation", p.GreaterColor, "deviationAxis", deviationDatas2)
+		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", scatterDatas2)
 		dataSeries = append(dataSeries, seriesData2)
 	case "pitch":
-		seriesData1 := setScatterData("Deviation < "+tk.ToString(p.LessDeviation), "WindSpeed", "Pitch", p.LessColor, "pitchAxis", pitchDatas1)
+		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", scatterDatas1)
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Deviation > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Pitch", p.GreaterColor, "pitchAxis", pitchDatas2)
+		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", scatterDatas2)
 		dataSeries = append(dataSeries, seriesData2)
 	}
 

@@ -29,8 +29,8 @@ page.scatterList = ko.observableArray([
     { "value": "grid", "text": "Temperature Analysis" },*/
 ]);
 
-vm.currentMenu('Scatter Analysis');
-vm.currentTitle('Scatter Analysis');
+vm.currentMenu('Scatter with Filter');
+vm.currentTitle('Scatter with Filter');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
@@ -38,60 +38,13 @@ vm.breadcrumb([{
     title: 'Power Curve',
     href: '#'
 }, {
-    title: 'Scatter Analysis',
+    title: 'Scatter with Filter',
     href: viewModel.appName + 'page/analyticpcscatteranalysis'
 }]);
 
 page.LoadData = function() {
     fa.LoadData();
     page.getPowerCurveScatter();
-}
-
-page.setAxis = function(name, title) {
-    var result = {
-        name: name,
-        title: {
-            text: title,
-            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            color: "#585555"
-        },
-        majorGridLines: {
-            visible: true,
-            color: "#eee",
-            width: 0.8,
-        },
-        crosshair: {
-            visible: true,
-            tooltip: {
-                visible: true,
-                format: "N2",
-                background: "rgb(255,255,255, 0.9)",
-                color: "#58666e",
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                border: {
-                    color: "#eee",
-                    width: "2px",
-                },
-            }
-        },
-    }
-    if(name == "powerAxis") {
-        result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # kW";
-        result.crosshair.tooltip.padding = {left:5};
-    } else {
-        switch(page.scatterType) {
-            case "temp":
-                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176) + "C";
-                break;
-            case "deviation":
-                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
-                break;
-            case "pitch":
-                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
-                break;
-        }
-    }
-    return result
 }
 
 page.refreshChart = function() {
@@ -128,30 +81,16 @@ page.getPowerCurveScatter = function() {
             return;
         }
         var dtSeries = res.data.Data;
-        
-        var yAxes = [];
-        var yAxis = page.setAxis("powerAxis", "Generation (KW)");
-        yAxes.push(yAxis);
-        switch(page.scatterType) {
-            case "deviation":
-                var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
-                yAxes.push(axis);
-                break;
-            case "pitch":
-                var axis = page.setAxis("pitchAxis", "Angle (Degree)");
-                yAxes.push(axis);
-                break;
-        }
 
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",
             renderAs: "canvas",
             pdf: {
-              fileName: "DetailPowerCurve.pdf",
+              fileName: "ScatterWithFilter.pdf",
             },
             title: {
-                text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
+                text: "Scatter with Filter | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
                 visible: false,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
@@ -203,7 +142,33 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxes: yAxes
+            yAxis: {
+                name: "powerAxis",
+                title: {
+                    text: "Generation (kW)",
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    color: "#585555"
+                },
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                crosshair: {
+                    visible: true,
+                    tooltip: {
+                        visible: true,
+                        format: "N2",
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    }
+                },
+            }
         });
         app.loading(false);
     });
