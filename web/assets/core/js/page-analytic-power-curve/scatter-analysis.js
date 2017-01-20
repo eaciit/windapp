@@ -2,6 +2,18 @@
 
 viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
+page.colorPalette = ko.observable("websafe");
+page.lessSelectedColour = ko.observable("#ff7663");
+page.moreSelectedColour = ko.observable("#a2df53");
+page.markerStyleList = ko.observableArray([
+    {value:"circle",text:"Circle"},
+    {value:"square",text:"Square"},
+    {value:"triangle",text:"Triangle"},
+    {value:"cross",text:"Cross"}]);
+
+page.lessSelectedMarker = ko.observable("circle");
+page.moreSelectedMarker = ko.observable("circle");
+
 
 page.ExportIndividualMonthPdf = function() {
     kendo.drawing.drawDOM($(".individual-month"))
@@ -210,6 +222,8 @@ page.getPowerCurveScatter = function() {
 }
 
 $(document).ready(function() {
+    var colorpicker = $("#colorpicker").kendoColorPicker();
+
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
             page.LoadData();
