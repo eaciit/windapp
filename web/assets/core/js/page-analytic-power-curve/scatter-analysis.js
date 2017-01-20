@@ -94,6 +94,8 @@ page.getPowerCurveScatter = function() {
         }
         var dtSeries = res.data.Data;
 
+        console.log(dtSeries);
+
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",

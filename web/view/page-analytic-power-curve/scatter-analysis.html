@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter-analysis.css">
 <style type="text/css">
 	.inputScatter{
-	    height: 25px;
+	    height: 30px;
 	    max-width: 50px;
 	    margin-left: 5px;
 	    padding: 5px;
@@ -50,23 +50,19 @@
 								<div class="clearfix">&nbsp;</div>
 								<div class="form-inline scatter-div">
 									<div class="form-group">
-										<label>
 											<span><strong><</strong></span>
                                             <input type="text" name="less" id="txtLessVal" class="form-control input-xs inputScatter">
                                              <input id="colorpicker" value="#ff7663" />&nbsp;&nbsp;
 		                                    <select class="scatter-type" id="lessMarkerType" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.lessSelectedMarker}">
 							                </select>
-                                        </label>
 									</div>
 								</div>
 								<div class="form-inline scatter-div">
 									<div class="form-group">
-										<label>
 											<span><strong>></strong></span>
                                             <input type="text" name="less" id="txtMoreVal" class="form-control input-xs inputScatter">
                                             <input data-bind="kendoColorPicker: { palette: page.colorPalette, value: page.moreSelectedColour }"  id="moreColor" />&nbsp;&nbsp;
                                              <select class="scatter-type" id="moreMarkerType" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.moreSelectedMarker}"></select>
-                                        </label>
 									</div>
 								</div>
 							</div>
