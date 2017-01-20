@@ -1022,19 +1022,15 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		switch p.ScatterType {
 		case "deviation":
 			if val.WindDirection < lessDev {
-				scatterData.Set("valueColor", p.LessColor)
 				scatterDatas1 = append(scatterDatas1, scatterData)
 			} else if val.DeviationPct > greatDev {
-				scatterData.Set("valueColor", p.GreaterColor)
 				scatterDatas2 = append(scatterDatas2, scatterData)
 			}
 		case "pitch":
 			if val.AvgBladeAngle > -99999.0 {
 				if val.AvgBladeAngle < lessDev {
-					scatterData.Set("valueColor", p.LessColor)
 					scatterDatas1 = append(scatterDatas1, scatterData)
 				} else if val.AvgBladeAngle > greatDev {
-					scatterData.Set("valueColor", p.GreaterColor)
 					scatterDatas2 = append(scatterDatas2, scatterData)
 				}
 			}
@@ -1044,13 +1040,17 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	switch p.ScatterType {
 	case "deviation":
 		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", scatterDatas1)
+		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
 		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", scatterDatas2)
+		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "pitch":
 		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", scatterDatas1)
+		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
 		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", scatterDatas2)
+		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	}
 
