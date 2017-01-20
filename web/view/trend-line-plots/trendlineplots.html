@@ -1,0 +1,41 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-trend-line-plots/trendlineplots.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/trend-line-plots/trendlineplots.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+					</div>
+					<div class="panel-body">
+						<div class="date-info">
+                            Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
+                        </div>
+                        
+                        <div class="col-md-12 list">
+							<div class="col-md-12 col-xs-12">
+								<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+								</div>
+							</div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+
+						<div class="col-md-12 ">
+							<div id="charttlp"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>
