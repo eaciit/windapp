@@ -17,7 +17,7 @@
     margin-left: -20px;
 }
 .turbine-list{
-    width: 100px;
+    width: 75px;
 }
 .project-list{
     width: 150px;
@@ -26,10 +26,13 @@
 margin-bottom: 2px;
 }
 .period-list{
-    width: 100px;
+    width: 75px;
 }
 .bread-info {
     margin-top: 11px;
     margin-right: 5px;
     margin-bottom: 5px;
+}
+.mt15{
+    margin-top: 2.5%;
 }

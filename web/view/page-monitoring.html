@@ -105,7 +105,7 @@
                                         <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
                                             <td data-bind="text:TimeStampStr"></td>
                                             <td data-bind="text:Project"></td>
-                                            <td data-bind="text:Turbine" onclick="monitoring.showDetail(Project, Turbine)"></td>
+                                            <td class="link-detail" data-bind="text:Turbine, click: function(){ monitoring.showDetail(Project, Turbine)}"></td>
                                             <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></td>
                                             <td data-bind="text:AlarmId"></td>
                                             <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
@@ -160,7 +160,7 @@
                             <div data-bind="attr:{id: 'chart-' + Name}"></div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 detail-tbl">
                         <table class='table borderless able table-condensed table-hover table-striped'>
                             <tbody data-bind="foreach:monitoring.detailEvent"> 
                                 <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">

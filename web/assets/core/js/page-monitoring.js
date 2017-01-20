@@ -147,8 +147,9 @@ monitoring.showDetail = function(project, turbine){
 
     monitoring.selectedProject(project);
     monitoring.selectedTurbine(turbine);
+    var interval = null;
     $("#modalDetail").on("shown.bs.modal", function () { 
-        toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
+        var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
@@ -156,14 +157,14 @@ monitoring.showDetail = function(project, turbine){
             monitoring.chartProduction(res.data.Data.prod);
             monitoring.dataAvailChart(res.data.Data.avail);
         });
-        toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
+        var getEvent = toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
            monitoring.detailEvent(res.data.Data)
         });
 
-        /*WINDROSE INITIAL*/
+         /*WINDROSE INITIAL*/
         $("#legend-list").html("");
         $.each(listOfCategory, function (idx, val) {
             var idName = "btn" + idx;
@@ -177,7 +178,19 @@ monitoring.showDetail = function(project, turbine){
         monitoring.turbine = [turbine];
         monitoring.project = project;
         wr.GetData();
+
+        interval = setInterval(function(){
+            getDetail 
+            getEvent
+            wr.GetData();
+         },1000*120);
+
     }).modal('show');
+
+    $('#modalDetail').on('hidden.bs.modal', function (e) {
+        clearInterval(interval);
+    });
+
 }
 
 monitoring.chartWindSpeed = function(dataSource){
@@ -209,7 +222,7 @@ monitoring.chartWindSpeed = function(dataSource){
         type: "area",
         field: "value",
         aggregate: "avg", 
-        color: "#3277b3",
+        color: "#ea5b19",
       }],
       navigator: {
         categoryAxis: {
@@ -222,7 +235,7 @@ monitoring.chartWindSpeed = function(dataSource){
           type: "area",
           field: "value",
           aggregate: "avg",
-          color: "#3277b3",
+          color: "#ea5b19",
         }]
       },
       valueAxis: {
@@ -293,7 +306,7 @@ monitoring.chartProduction = function(dataSource){
         type: "area",
         field: "value",
         aggregate: "sum", 
-        color: "#609dd2",
+        color: "#ee7a44",
       }],
       navigator: {
         categoryAxis: {
@@ -306,7 +319,7 @@ monitoring.chartProduction = function(dataSource){
           type: "area",
           field: "value",
           aggregate: "sum",
-          color: "#609dd2",
+          color: "#ee7a44",
         }]
       },
       valueAxis: {
@@ -377,7 +390,7 @@ monitoring.dataAvailChart = function(dataSource){
         type: "area",
         field: "value",
         // aggregate: "sum", 
-        color: "#9cc2e3",
+        color: "#f4ac8a",
       }],
       navigator: {
         categoryAxis: {
@@ -390,7 +403,7 @@ monitoring.dataAvailChart = function(dataSource){
           type: "area",
           field: "value",
           // aggregate: "sum",
-          color: "#9cc2e3",
+          color: "#f4ac8a",
         }]
       },
       valueAxis: {
@@ -449,8 +462,6 @@ function secondsToHms(d) {
 viewModel.WRFlexiDetail = new Object();
 var wr = viewModel.WRFlexiDetail;
 
-wr.dataWindrose = ko.observableArray([]);
-wr.dataWindroseGrid = ko.observableArray([]);
 wr.dataWindroseEachTurbine = ko.observableArray([]);
 wr.sectorDerajat = ko.observable(0);
 
@@ -459,28 +470,19 @@ wr.sectionsBreakdownList = ko.observableArray([
     { "text": 24, "value": 24 },
     { "text": 12, "value": 12 },
 ]);
-// var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
-var colorFieldsWR = ["#2d6a9f", "#337ab7", "#4c91cd", "#74a9d8", "#9cc2e3", "#c3daee", "#ebf3f9"];
+var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
+// var colorFieldsWR = ["#2d6a9f", "#337ab7", "#4c91cd", "#74a9d8", "#9cc2e3", "#c3daee", "#ebf3f9"];
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [
-    { "category": "0 to 4m/s", "color": colorFieldsWR[0] },
-    { "category": "4 to 8m/s", "color": colorFieldsWR[1] },
-    { "category": "8 to 12m/s", "color": colorFieldsWR[2] },
-    { "category": "12 to 16m/s", "color": colorFieldsWR[3] },
-    { "category": "16 to 20m/s", "color": colorFieldsWR[4] },
-    { "category": "20m/s and above", "color": colorFieldsWR[5] },
+    { "category": "0 to 4 m/s", "color": colorFieldsWR[0] },
+    { "category": "4 to 8 m/s", "color": colorFieldsWR[1] },
+    { "category": "8 to 12 m/s", "color": colorFieldsWR[2] },
+    { "category": "12 to 16 m/s", "color": colorFieldsWR[3] },
+    { "category": "16 to 20 m/s", "color": colorFieldsWR[4] },
+    { "category": "20 m/s and above", "color": colorFieldsWR[5] },
 ];
 
-wr.ExportWindRose = function () {
-    var chart = $("#wr-chart").getKendoChart();
-    chart.exportPDF({ paperSize: "auto", margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" } }).done(function (data) {
-        kendo.saveAs({
-            dataURI: data,
-            fileName: "WindRose.pdf",
-        });
-    });
-}
 var maxValue = 0;
 
 wr.GetData = function () {
@@ -608,14 +610,6 @@ wr.initChart = function () {
             }
         });
     });
-}
-
-wr.RefreshChart = function(source) {
-  setTimeout(function(){
-      $.each(listOfChart, function(idx, elem){
-          $(elem).data("kendoChart").refresh();
-      });
-  }, 300);
 }
 
 wr.showHideLegend = function (index) {
