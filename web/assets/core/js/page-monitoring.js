@@ -628,6 +628,13 @@ wr.showHideLegend = function (index) {
     });
 }
 
+monitoring.changeRotation = function(){
+    $.each( $('.rotation'), function( key, value ) {
+        var deg = $(value).attr("rotationval")
+        $(value).attr("style", "-ms-transform: rotate("+deg+"deg);-webkit-transform: rotate("+deg+"deg);transform: rotate("+deg+"deg);");
+    });
+}
+
 $(function () {
 
     $("#restore-screen").hide();
