@@ -3,7 +3,19 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/scatter-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter-analysis.css">
-
+<style type="text/css">
+	.inputScatter{
+	    height: 30px;
+	    max-width: 50px;
+	    margin-left: 5px;
+	    padding: 5px;
+	    text-align: center;
+	}
+	.scatter-div{
+	    margin-top: 0px;
+	    margin-bottom: 5px;
+	}
+</style>
 <div>
 	<div class="row">
 		{{template "page-filter-scatter.html"}}
@@ -30,10 +42,28 @@
 						</div>
 						<div class="col-md-3">
 							<div class="scatter-chart">
-								<div class="scatter-comparison pull-right">
+								<div class="scatter-comparison">
 									<span><label class="label-scatter">Scatter Comparison</label></span>
 									<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
 					                </select>
+								</div>
+								<div class="clearfix">&nbsp;</div>
+								<div class="form-inline scatter-div">
+									<div class="form-group">
+											<span><strong><</strong></span>
+                                            <input type="text" name="less" id="txtLessVal" class="form-control input-xs inputScatter">
+                                             <input id="colorpicker" value="#ff7663" />&nbsp;&nbsp;
+		                                    <select class="scatter-type" id="lessMarkerType" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.lessSelectedMarker}">
+							                </select>
+									</div>
+								</div>
+								<div class="form-inline scatter-div">
+									<div class="form-group">
+											<span><strong>></strong></span>
+                                            <input type="text" name="less" id="txtMoreVal" class="form-control input-xs inputScatter">
+                                            <input data-bind="kendoColorPicker: { palette: page.colorPalette, value: page.moreSelectedColour }"  id="moreColor" />&nbsp;&nbsp;
+                                             <select class="scatter-type" id="moreMarkerType" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.moreSelectedMarker}"></select>
+									</div>
 								</div>
 							</div>
 						</div>
