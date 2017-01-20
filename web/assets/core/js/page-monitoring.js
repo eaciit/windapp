@@ -25,6 +25,22 @@ monitoring.last_minute = ko.observable();
 monitoring.last_date = ko.observable();
 monitoring.selectedProject = ko.observable();
 monitoring.selectedTurbine = ko.observable();
+monitoring.selectedMonitoring = ko.observable();
+monitoring.selectedMonitoring({
+    pitchangle: 0,
+    production: 0,
+    project:"",
+    rotorspeedrpm:0,
+    status:"",
+    statuscode:"",
+    statusdesc:"",
+    timestamp:"",
+    timestampstr:"",
+    totalProduction:0,
+    turbine:"",
+    winddirection:0,
+    windspeed:0,
+});
 var turbineval = [];
 
 
@@ -139,6 +155,8 @@ monitoring.getData = function(){
     });
 }
 
+var interval = null;
+
 monitoring.showDetail = function(project, turbine){
     var param = {
         turbine: [turbine],
@@ -146,9 +164,12 @@ monitoring.showDetail = function(project, turbine){
     };
 
     monitoring.selectedProject(project);
-    monitoring.selectedTurbine(turbine);
-    var interval = null;
+    monitoring.selectedTurbine(turbine);    
     $("#modalDetail").on("shown.bs.modal", function () { 
+        var param = {
+            turbine: [monitoring.selectedTurbine()],
+            project: monitoring.selectedProject()
+        };
         var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoring/getdetailchart", param, function (res) {
             if (!app.isFine(res)) {
                 return;
@@ -156,6 +177,8 @@ monitoring.showDetail = function(project, turbine){
             monitoring.chartWindSpeed(res.data.Data.ws);
             monitoring.chartProduction(res.data.Data.prod);
             monitoring.dataAvailChart(res.data.Data.avail);
+            monitoring.dataChartLine(res.data.Data.line);
+            monitoring.selectedMonitoring(res.data.Data.monitoring);
         });
         var getEvent = toolkit.ajaxPost(viewModel.appName + "monitoring/getevent", param, function (res) {
             if (!app.isFine(res)) {
@@ -178,6 +201,7 @@ monitoring.showDetail = function(project, turbine){
         monitoring.turbine = [turbine];
         monitoring.project = project;
         wr.GetData();
+        monitoring.changeRotation();
 
         interval = setInterval(function(){
             getDetail 
@@ -189,9 +213,11 @@ monitoring.showDetail = function(project, turbine){
 
     $('#modalDetail').on('hidden.bs.modal', function (e) {
         clearInterval(interval);
+        $('#modalDetail').off();
     });
-
 }
+
+
 
 monitoring.chartWindSpeed = function(dataSource){
     $("#chartWindSpeed").kendoStockChart({
@@ -456,6 +482,191 @@ function secondsToHms(d) {
     return res;
 }
 
+// Minimum/maximum number of visible items
+var MIN_SIZE = 40;
+var MAX_SIZE = 100;
+
+// Optional sort expression
+// var SORT = { field: "val", dir: "asc" };
+var SORT = {};
+
+// Minimum distance in px to start dragging
+var DRAG_THR = 50;
+
+// State variables
+var viewStart = 0;
+var viewSize = MIN_SIZE;
+var newStart;
+
+// Drag handler
+function onDrag(e) {
+    var chart = e.sender;
+    var ds = chart.dataSource;
+    var delta = Math.round(e.originalEvent.x.initialDelta / DRAG_THR);
+
+    if (delta != 0) {
+    newStart = Math.max(0, viewStart - delta);
+    newStart = Math.min(data.length - viewSize, newStart);
+    ds.query({
+        skip: newStart,
+        page: 0,
+        pageSize: viewSize,
+        sort: SORT
+    });
+    }
+}
+
+function onDragEnd() {
+    viewStart = newStart;
+}
+
+monitoring.createLineChartZoom = function(e) {
+    var chart = e.sender;
+    var ds = chart.dataSource;
+    viewSize = Math.min(Math.max(viewSize + e.delta, MIN_SIZE), MAX_SIZE);
+    ds.query({
+        skip: viewStart,
+        page: 0,
+        pageSize: viewSize,
+        sort: SORT
+    });
+
+    // Prevent document scrolling
+    e.originalEvent.preventDefault();
+}
+
+monitoring.dataChartLine = function (data) {
+    $("#chartline").html("");
+    $("#chartline").kendoChart({
+        renderAs: "canvas",
+        zoomable: true,
+        /*zoom: monitoring.createLineChartZoom,
+        transitions: false,
+        drag: onDrag,
+        dragEnd: onDragEnd,*/
+        dataSource: {
+            data: data,
+            sort: { field: "Timestamp", dir: 'asc' }
+        },
+        theme: "Flat",
+        chartArea: {
+            height: 414,
+        },
+        legend: {
+            position: "top",
+            visible: true,
+        },
+        series: [{
+            type: "line",
+            style: "smooth",
+            field: "ws",
+            axis: "ws",
+            name: "Wind Speed(m/s)",
+            markers: {
+                visible: false,
+            },
+            width: 3,
+        }, {
+            type: "line",
+            style: "smooth",
+            field: "production",
+            axis: "prod",
+            name: "Production(KWh)",
+            markers: {
+                visible: false,
+            },
+            width: 3,
+        }, {
+            type: "area",
+            // style: "smooth",
+            field: "avail",
+            axis: "percentage",
+            name: "Availability(%)",
+            markers: {
+                visible: false,
+            },
+            width: 3,
+        }],
+        seriesColors: colorFields2,
+        valueAxes: [{
+            line: {
+                visible: false
+            },
+            max: 100,
+            // majorUnit: 20,
+            labels: {
+                format: "{0}%",
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            name: "percentage",
+            title: { text: "Availability (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+        }, {
+            line: {
+                visible: false
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            max: 25,
+            // majorUnit: 1,
+            labels: {
+                format: "{0}(m/s)",
+            },
+            name: "ws",
+            title: { text: "Average Wind Speed (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+        }, {
+            line: {
+                visible: false
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            // max: 25,
+            // majorUnit: 20,
+            labels: {
+                format: "{0}(KWh)",
+            },
+            name: "prod",
+            title: { text: "Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+        }],
+        categoryAxis: {
+            field: "timestamp",
+            title: {
+                text: "Time",
+                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            axisCrossingValues: [0, 1000],
+            justified: true,
+            majorGridLines: {
+                visible: false
+            },
+        },
+        tooltip: {
+            visible: true,
+            shared: true,
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            // template: "#= series.name # : #= kendo.toString(value, 'n2')# at #= category #",
+            template: "#= kendo.toString(value, 'n2')#",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        },
+    });
+
+    $("#chartline").data("kendoChart").refresh();
+};
+
 // ============================ WINDROSE ====================================
 
 
@@ -539,6 +750,9 @@ wr.initChart = function () {
         var idChart = "#chart-" + val.Name
         listOfChart.push(idChart);
         $(idChart).kendoChart({
+            chartArea: {
+                height: 350
+            },
             theme: "nova",
             title: {
                 text: name,
@@ -631,7 +845,7 @@ wr.showHideLegend = function (index) {
 monitoring.changeRotation = function(){
     $.each( $('.rotation'), function( key, value ) {
         var deg = $(value).attr("rotationval")
-        $(value).attr("style", "-ms-transform: rotate("+deg+"deg);-webkit-transform: rotate("+deg+"deg);transform: rotate("+deg+"deg);");
+        $(value).attr("style", $(value).attr("style")+"-ms-transform: rotate("+deg+"deg);-webkit-transform: rotate("+deg+"deg);transform: rotate("+deg+"deg);");
     });
 }
 

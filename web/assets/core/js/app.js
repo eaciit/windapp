@@ -237,7 +237,8 @@ app.prepareTooltipster = function ($o, argConfig) {
             touchDevices: false,
             trigger: 'hover',
             position: position,
-            content: $('<div />').html($(e).attr('title'))
+            content: $('<div />').html($(e).attr('title')),
+            multiple: true
         };
         if (typeof argConfig !== 'undefined') {
             config = $.extend(true, config, argConfig);
