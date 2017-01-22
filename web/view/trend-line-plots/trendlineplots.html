@@ -22,7 +22,7 @@
 							<div class="col-md-6">
 								<label>
 									<span><b class="colBlack">Component Temp</b></span>
-									<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
+									<select class="compTemp" id="compTemp" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
 				               		</select>
 				               		<span><b class="colBlack">Temp Compare to Average ± </b></span>
 				               		<input type="text" name="txtcompTemp" id="txtcompTemp" class="form-control input-xs tempBox" disabled data-bind="value:tlp.compTempVal">
@@ -32,16 +32,18 @@
 							</div>
 						</div>
                         
- <!--                        <div class="col-md-12 list"> , text:page.deviationVal
-							<div class="col-md-12 col-xs-12">
-								<div id="legend-list" class="col-md-12 col-sm-12 pl15">
-								</div> data-bind="value:page.deviationVal, text:page.deviationVal"
-							</div> change: function() {pc.showHidePeriod()}   
-						</div> -->
 						<div class="clearfix">&nbsp;</div>
 
-						<div class="col-md-12 ">
-							<div id="charttlp"></div>
+						<div  class="row ">
+							<div class="col-md-9 ">
+								<div id="charttlp"></div>
+							</div>
+							<div class="col-md-3 turList">
+								<div class="panel-heading">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show detail"></i></div>
+								<div class="clearfix">&nbsp;</div>
+								<div class="checkbox custom-header" id="showHideChk"></div>
+								<div class="col-md-12 col-sm-12 " id="right-turbine-list"></div>
+							</div>
 						</div>
 					</div>
 				</div>

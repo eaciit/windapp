@@ -58,6 +58,17 @@ type PayloadAnalytic struct {
 	BreakDown  string
 }
 
+type PayloadAnalyticTLP struct {
+	Period     	string
+	Project    	string
+	Turbine    	[]interface{}
+	DateStart  	time.Time
+	DateEnd   	time.Time
+	ColName 	string
+	BreakDown  	string
+}
+
+
 type PayloadAnalyticPC struct {
 	Period       string
 	DateStart    time.Time

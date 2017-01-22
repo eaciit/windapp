@@ -3,3 +3,43 @@
 	max-width: 50px;
 	display: inherit;
 }
+.turList{
+    max-height: 300px;
+    height: 300px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.turListPanel{
+    max-height: 300px;
+    height: 300px;
+}
+.turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 15px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.turbine-chk, .down-chk{
+	width: 15px;
+    height: 15px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.turbine-chk:hover, .down-chk:hover{
+    color: #fff;
+}
+.turbine-chk:active, .down-chk:active{
+    color: #fff;
+}
+.custom-header{
+	/*margin-top: -35px;*/
+	margin-left: -4.5%
+}
+.wbtn{
+	width:55px;
+	font-size: 10px;
+}
