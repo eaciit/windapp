@@ -51,18 +51,18 @@
 								<div class="form-inline scatter-div">
 									<div class="form-group">
 											<span><strong><</strong></span>
-                                            <input type="text" name="less" id="txtLessVal" class="form-control input-xs inputScatter">
-                                             <input id="colorpicker" value="#ff7663" />&nbsp;&nbsp;
-		                                    <select class="scatter-type" id="lessMarkerType" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.lessSelectedMarker}">
+                                            <input type="text" name="less" id="txtLessVal" class="form-control input-xs inputScatter" data-bind="value:page.lessValue">
+                                             <input data-bind="kendoColorPicker: { palette: 'websafe', value: page.lessSelectedColour, change: function(){ page.changeView('<')}}" id="lessColor"/>
+		                                    <select class="scatter-type" id="lessMarker" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.lessSelectedMarker(), change: function(){ page.changeView('<')}}">
 							                </select>
 									</div>
 								</div>
 								<div class="form-inline scatter-div">
 									<div class="form-group">
 											<span><strong>></strong></span>
-                                            <input type="text" name="less" id="txtMoreVal" class="form-control input-xs inputScatter">
-                                            <input data-bind="kendoColorPicker: { palette: page.colorPalette, value: page.moreSelectedColour }"  id="moreColor" />&nbsp;&nbsp;
-                                             <select class="scatter-type" id="moreMarkerType" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.moreSelectedMarker}"></select>
+                                            <input type="text" name="less" id="txtGraterVal" class="form-control input-xs inputScatter" data-bind="value:page.graterValue">
+                                            <input data-bind="kendoColorPicker: { palette: 'websafe', value: page.graterSelectedColour, change: function(){ page.changeView('>')} }" id="graterColor" />
+                                             <select class="scatter-type" id="graterMarker" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.graterSelectedMarker, change: function(){ page.changeView('>')}}"></select>
 									</div>
 								</div>
 							</div>

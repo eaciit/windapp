@@ -145,7 +145,6 @@ page.getPowerCurveScatter = function() {
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",
-            renderAs: "canvas",
             pdf: {
               fileName: "DetailPowerCurve.pdf",
             },

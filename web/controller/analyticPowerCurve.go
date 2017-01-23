@@ -571,7 +571,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	sort.Ints(sortedIndex)
 
 	categoryList := []tk.M{}
-	catList := tk.M{"category": "Power Curve", "color": "#ff880e"}
+	catList := tk.M{"category": "Power Curve", "color": "#ea5b19"}
 	categoryList = append(categoryList, catList)
 
 	for _, idx := range sortedIndex {
@@ -1398,7 +1398,7 @@ func getPCData(project string) (pcData tk.M, e error) {
 		"type":      "scatterLine",
 		"dashType":  "longDash",
 		"style":     "smooth",
-		"color":     "#ff880e",
+		"color":     "#ea5b19",
 		"markers":   tk.M{"visible": false},
 		"width":     3,
 	}

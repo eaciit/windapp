@@ -91,9 +91,9 @@ km.createChart = function () {
                 // padding: { 
                 //     left: 600 / valuewindspeed.length
                 // },
-                margin: {
-                    left: -600 / km.dsValuewindSpeed().length
-                },
+                // margin: {
+                //     left: -600 / km.dsValuewindSpeed().length
+                // },
                 template: "#: (value.split('~'))[0] #"
             },
             axisCrossingValue: [0]
@@ -178,9 +178,9 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
                 // padding: { 
                 //     left: 600 / categoryproduction.length
                 // },
-                margin: {
-                    left: -600 / km.dsCategoryProduction().length
-                },
+                // margin: {
+                //     left: -600 / km.dsCategoryProduction().length
+                // },
                 template: "#: ((value.split('~'))[0]) #",
                 format: "{0:n0}"
             }
@@ -242,8 +242,8 @@ km.getData = function () {
             km.dsCategorywindspeed(res.data.categorywindspeed);
             km.dsValuewindSpeed(res.data.valuewindspeed);
             km.dsTotaldataWS(res.data.totaldata);
-            km.dsValuewindSpeed.push(0);
-            km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
+            // km.dsValuewindSpeed.push(0);
+            // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
             km.createChart();
         }
     });
@@ -263,8 +263,8 @@ km.getData = function () {
             km.dsCategoryProduction(res.data.categoryproduction);
             km.dsValueProduction(res.data.valueproduction);
             km.dsTotaldataProduction(res.data.totaldata);
-            km.dsValueProduction.push(0);
-            km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
+            // km.dsValueProduction.push(0);
+            // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
             km.createChartProduction();
         }
     });

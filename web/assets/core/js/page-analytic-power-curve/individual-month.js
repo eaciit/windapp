@@ -139,7 +139,6 @@ page.InitLinePowerCurve = function() {
               fileName: "DetailPowerCurve.pdf",
             },
             theme: "flat",
-            renderAs: "canvas",
             title: {
                 text: name,
                 font: titleFont,

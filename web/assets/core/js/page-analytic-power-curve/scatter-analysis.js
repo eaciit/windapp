@@ -4,15 +4,18 @@ viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 page.colorPalette = ko.observable("websafe");
 page.lessSelectedColour = ko.observable("#ff7663");
-page.moreSelectedColour = ko.observable("#a2df53");
+page.graterSelectedColour = ko.observable("#a2df53");
 page.markerStyleList = ko.observableArray([
     {value:"circle",text:"Circle"},
     {value:"square",text:"Square"},
     {value:"triangle",text:"Triangle"},
     {value:"cross",text:"Cross"}]);
 
+page.lessValue = ko.observable(20);
+page.graterValue= ko.observable(20);
 page.lessSelectedMarker = ko.observable("circle");
-page.moreSelectedMarker = ko.observable("circle");
+page.graterSelectedMarker = ko.observable("circle");
+page.dtSeries = ko.observableArray([]);
 
 
 page.ExportIndividualMonthPdf = function() {
@@ -92,14 +95,38 @@ page.getPowerCurveScatter = function() {
         if (!app.isFine(res)) {
             return;
         }
-        var dtSeries = res.data.Data;
+        page.dtSeries(res.data.Data);
 
-        console.log(dtSeries);
+        page.createChart(page.dtSeries());
+        app.loading(false);
+    });
+}
 
+page.changeView=function(param){
+
+    var lessColor = $("#lessColor").data("kendoColorPicker").value();
+    var graterColor = $("#graterColor").data("kendoColorPicker").value();
+    var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
+    var graterMarker = $("#graterMarker").data("kendoDropDownList").value();
+
+    $.each(page.dtSeries(), function(index, value){
+        if(value.name.indexOf(param) !== -1){
+            page.dtSeries()[index].color = (param == ">" ? graterColor : lessColor);
+            page.dtSeries()[index].markers = {
+                size : 2,
+                type : (param == ">" ? graterMarker : lessMarker),
+                background : (param == ">" ? graterColor : lessColor),
+            }
+        }
+    });
+
+    page.createChart(page.dtSeries());
+}
+
+page.createChart = function(dtSeries){
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",
-            renderAs: "canvas",
             pdf: {
               fileName: "ScatterWithFilter.pdf",
             },
@@ -184,12 +211,9 @@ page.getPowerCurveScatter = function() {
                 },
             }
         });
-        app.loading(false);
-    });
 }
 
 $(document).ready(function() {
-    var colorpicker = $("#colorpicker").kendoColorPicker();
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){

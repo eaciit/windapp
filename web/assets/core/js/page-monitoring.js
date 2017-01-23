@@ -538,7 +538,6 @@ monitoring.createLineChartZoom = function(e) {
 monitoring.dataChartLine = function (data) {
     $("#chartline").html("");
     $("#chartline").kendoChart({
-        renderAs: "canvas",
         zoomable: true,
         /*zoom: monitoring.createLineChartZoom,
         transitions: false,
