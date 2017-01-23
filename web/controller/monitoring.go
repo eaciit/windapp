@@ -243,6 +243,11 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
+	// Get Available Date All Collection
+	datePeriod := getLastAvailDate()
+	k.SetSession("availdate", datePeriod)
+	//==================================
+
 	p := tk.M{}
 	e := k.GetPayload(&p)
 
@@ -270,9 +275,9 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))
 	}
 
-	availDate := k.Session("availdate", "")
-	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
-	match.Set("timestamp", tk.M{}.Set("$lte", date))
+	// availDate := k.Session("availdate", "")
+	// date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+	match.Set("timestamp", tk.M{}.Set("$lte", datePeriod.ScadaDataHFD[1].UTC()))
 
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
