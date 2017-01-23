@@ -66,6 +66,11 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	filter = append(filter, dbox.Gte("dateinfoutc.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfoutc.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Ne("timestamp", ""))
+	filter = append(filter, dbox.Ne("powerlost", ""))
+	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
+	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
+
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaDataOEM).TableName()).
