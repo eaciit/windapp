@@ -12,7 +12,7 @@ vm.breadcrumb([ {
     href: '#'
 }, {
     title: 'Trend Line Plots',
-    href: viewModel.appName + 'page/analytictrendlineplots'
+    href: "#"//viewModel.appName + 'page/analytictrendlineplots'
 }]);
 
 tlp.turbineList = ko.observableArray([]);
@@ -108,7 +108,7 @@ tlp.initChart = function() {
                 visible: false,
             },
             chartArea: {
-                height: 375,
+                height: 325,
             },
             seriesDefaults: {
                 type: "line",
