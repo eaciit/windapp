@@ -1,10 +1,10 @@
 {
-    "Draft": "/home/developer/wfdemo-watch/draft",
-    "Process": "/home/developer/wfdemo-watch/process",
-    "Fail": "/home/developer/wfdemo-watch/fail",
-    "Success": "/home/developer/wfdemo-watch/success",
-    "Errors": "/home/developer/wfdemo-watch/errors",
-    "Archive": "/home/developer/wfdemo-watch/archive",
+    "Draft": "/data1/wfdemo-watch/opc_scada/draft",
+    "Process": "/data1/wfdemo-watch/opc_scada/process",
+    "Fail": "/data1/wfdemo-watch/opc_scada/fail",
+    "Success": "/data1/wfdemo-watch/opc_scada/success",
+    "Errors": "/data1/wfdemo-watch/opc_scada/errors",
+    "Archive": "/data1/wfdemo-watch/opc_scada/archive",
     "Commands": [
         {
             "action": "COPY_TO_PROCESS",
