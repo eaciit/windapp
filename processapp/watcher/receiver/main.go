@@ -160,8 +160,8 @@ func processFile(filePath string, com []Command) {
 		if len(byteOut) == 0 {
 			break
 		} else {
-			fmt.Println(string(byteOut))
-			time.Sleep(200 * time.Millisecond)
+			// fmt.Println(string(byteOut))
+			time.Sleep(5 * time.Second)
 		}
 
 	}
