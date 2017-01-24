@@ -63,6 +63,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		"August", "September", "October", "November", "December"}
 	listCount := 0
 	monthNum := 0
+	minValue := 100.0
+	maxValue := 0.0
 	var listMonth []int
 	catTitle := ""
 	MStart := tStart.Month()
@@ -149,6 +151,12 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		for _, val := range exist {
 			datas = append(datas, val.GetFloat64("colresult"))
+			if val.GetFloat64("colresult") < minValue {
+				minValue = val.GetFloat64("colresult")
+			}
+			if val.GetFloat64("colresult") > maxValue {
+				maxValue = val.GetFloat64("colresult")
+			}
 		}
 
 		if len(datas) > 0 {
@@ -213,10 +221,14 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		Data []tk.M
 		Categories []string
 		CatTitle   string
+		Min   int
+		Max   int
 	}{
 		Data: dataSeries,
 		Categories: categories,
 		CatTitle: catTitle,
+		Min: tk.ToInt((minValue - 3 ), tk.RoundingAuto),
+		Max: tk.ToInt((maxValue + 3 ), tk.RoundingAuto),
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -272,7 +284,7 @@ func (m *TrendLinePlotsController) GetScadaOemAvailDate(k *knot.WebContext) inte
  * Turbine    []interface{}
 	DateStart  time.Time
 	DateEnd    time.Time]}
- * @return {[type]}
+ * @return {pcData}
  */
 
 func getTLPavgData(Turbine []interface{}, DateStart time.Time, DateEnd time.Time, colName string ) (pcData tk.M, e error) {
