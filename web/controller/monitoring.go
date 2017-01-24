@@ -131,8 +131,12 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		winddirection := checkNAValue(v.GetFloat64("winddirection"))
 		pitchangle := checkNAValue(v.GetFloat64("pitchangle"))
 		status := v.GetString("status")
-		statuscode := v.GetString("statuscode")
-		statusdesc := v.GetString("statusdesc")
+		statuscode := ""
+		statusdesc := ""
+		if v.GetInt("statuscode") > 0 && v.GetInt("statuscode") <= 420 {
+			statuscode = v.GetString("statuscode")
+			statusdesc = v.GetString("statusdesc")
+		}
 
 		list := []tk.M{}
 		newRecord := tk.M{}
