@@ -69,41 +69,7 @@ page.refreshChart = function() {
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project,
-        scatterType: page.scatterType,
-        lessDeviation: 20,
-        greaterDeviation: 20,
-        lessColor: "#ff7663",
-        greaterColor: "#a2df53",
-    };
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    });
-
-    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteranalysis", param, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        page.dtSeries(res.data.Data);
-
-        page.createChart(page.dtSeries());
-        app.loading(false);
-    });
-}
-
-page.changeDeviation = function(){
-    app.loading(true);
+    var turbine = $("#turbineList").data('kendoDropDownList').value();
 
     var lessValue = $("#txtLessVal").val();
     var graterValue = $('#txtGraterVal').val();
@@ -117,14 +83,25 @@ page.changeDeviation = function(){
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: turbine,
         project: fa.project,
         scatterType: page.scatterType,
         lessDeviation: parseInt(lessValue,10),
         greaterDeviation: parseInt(graterValue,10),
         lessColor: lessColor,
         greaterColor: graterColor,
+        lessMarker: lessMarker, 
+        greaterMarker: greaterMarker
     };
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        var minDatetemp = new Date(res.data.ScadaData[0]);
+        var maxDatetemp = new Date(res.data.ScadaData[1]);
+        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+    });
 
     toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteranalysis", param, function(res) {
         if (!app.isFine(res)) {
@@ -160,8 +137,8 @@ page.changeDeviation = function(){
     
         app.loading(false);
     });
-
 }
+
 
 page.changeView=function(param){
 
@@ -278,7 +255,7 @@ $(document).ready(function() {
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
-            page.LoadData();
+           page.LoadData();
         }, 300);
     });
 
