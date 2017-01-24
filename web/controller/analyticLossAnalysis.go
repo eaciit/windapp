@@ -1055,15 +1055,16 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 
 	categorywindspeed := []string{}
 	valuewindspeed := []float64{}
-	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
+	interval := tk.ToFloat64((p.MaxValue-p.MinValue)/float64(p.BinValue), 0, tk.RoundingAuto)
 	startcategory := p.MinValue
 	totalData := 0.0
 
 	for i := 0; i < (p.BinValue); i++ {
 		categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
+		// categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory))
 
 		match := tk.M{}
-		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+interval)).Set("$gte", startcategory))
+		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+interval+0.5)).Set("$gte", startcategory-0.5))
 		match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
 		if len(project) > 0 {
 			match.Set("projectname", project)
@@ -1143,15 +1144,17 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 	categoryproduction := []string{}
 	valueproduction := []float64{}
-	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
+	interval := tk.ToFloat64((p.MaxValue-p.MinValue)/float64(p.BinValue), 0, tk.RoundingAuto)
 	startcategory := p.MinValue
 	totalData := 0.0
 
 	for i := 0; i < (p.BinValue); i++ {
 		categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
 
+		// categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory))
+
 		match := tk.M{}
-		match.Set("power", tk.M{}.Set("$lt", (startcategory+interval)).Set("$gte", startcategory))
+		match.Set("power", tk.M{}.Set("$lt", (startcategory+interval+0.5)).Set("$gte", startcategory-0.5))
 		match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
 		if len(project) > 0 {
 			match.Set("projectname", project)
