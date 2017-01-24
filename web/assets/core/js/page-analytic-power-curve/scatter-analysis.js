@@ -110,27 +110,6 @@ page.getPowerCurveScatter = function() {
 
         var result = res.data.Data;
 
-        var con1 = "<";
-        var con2 = ">";
-        $.each(result, function(index, value){
-            if(value.name.indexOf(con1) !== -1){
-                result[index].color =  lessColor;
-                result[index].markers = {
-                    size : 2,
-                    type : lessMarker,
-                    background : lessColor,
-                }
-            }
-            else if(value.name.indexOf(con2) !== -1){
-                result[index].color =  graterColor;
-                result[index].markers = {
-                    size : 2,
-                    type : graterMarker,
-                    background : graterColor,
-                }
-            }
-        });
-
         page.dtSeries(result);
         page.createChart(page.dtSeries());
 
