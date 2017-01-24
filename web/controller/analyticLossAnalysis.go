@@ -1055,7 +1055,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 
 	categorywindspeed := []string{}
 	valuewindspeed := []float64{}
-	interval := tk.ToFloat64((p.MaxValue-p.MinValue)/float64(p.BinValue), 0, tk.RoundingAuto)
+	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
 	startcategory := p.MinValue
 	totalData := 0.0
 
@@ -1074,9 +1074,9 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 	}
 
 	for i := 0; i < (p.BinValue); i++ {
-		categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
-		// categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory))
-		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+interval-0.5)).Set("$gte", startcategory-0.5))
+		// categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
+		categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory))
+		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
 
 		var pipes []tk.M
 		pipes = append(pipes, tk.M{}.Set("$match", match))
@@ -1144,7 +1144,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 	categoryproduction := []string{}
 	valueproduction := []float64{}
-	interval := tk.ToFloat64((p.MaxValue-p.MinValue)/float64(p.BinValue), 0, tk.RoundingAuto)
+	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
 	startcategory := p.MinValue
 	totalData := 0.0
 
@@ -1162,10 +1162,10 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	}
 
 	for i := 0; i < (p.BinValue); i++ {
-		categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
+		// categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
 
-		// categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory))
-		match.Set("power", tk.M{}.Set("$lt", (startcategory+interval-0.5)).Set("$gte", startcategory-0.5))
+		categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory))
+		match.Set("power", tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
 
 		var pipes []tk.M
 		pipes = append(pipes, tk.M{}.Set("$match", match))

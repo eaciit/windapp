@@ -103,7 +103,7 @@ tlp.initChart = function() {
                 visible: false,
             },
             chartArea: {
-                height: 525,
+                height: 350,
             },
             seriesDefaults: {
                 type: "line",
@@ -119,12 +119,13 @@ tlp.initChart = function() {
             valueAxis: {
                 name: compTemp,
                 title: {
-                    text: compTemp,
+                    text: "Temperature",//compTemp,
                     visible: true,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 labels: {
-                    step: 0.5
+                    step: 0.5,
+                    font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 line: {
                     visible: false
@@ -135,7 +136,7 @@ tlp.initChart = function() {
                     color: "#eee",
                     width: 0.8,
                 },
-                min: 25,
+                min: 27,
                 max: 40,
                 majorUnit: 0.5,
             },
@@ -145,7 +146,7 @@ tlp.initChart = function() {
                     visible: false
                 },
                 title: {
-                    text: catTitle,
+                    text: "Time",//catTitle,
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 majorTickType: "none",
