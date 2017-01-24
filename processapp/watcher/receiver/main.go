@@ -344,6 +344,7 @@ func run(action Command, file string) (next string) {
 	//log.Printf("cmdstr: %v \n", cmdStr)
 	// mux.Unlock()
 
+	_ismvsucces := false
 	if runCommand {
 		out, err := runCMD(cmdStr)
 
@@ -353,13 +354,19 @@ func run(action Command, file string) (next string) {
 
 		if err != nil {
 			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
-			next = action.Success
 		} else {
-			next = action.Success
+			_ismvsucces = true
 		}
+
+		next = action.Success
 	} else {
 		log.Println("DONE")
 		next = action.Fail
+	}
+
+	if action.Action == "COPY_TO_SUCCESS" && runCommand && _ismvsucces {
+		_cmd := fmt.Sprintf("rm %v", filepath.Join(conf.Success, file))
+		_, _ = runCMD(_cmd)
 	}
 
 	// log.Printf("next: %v \n", next)
