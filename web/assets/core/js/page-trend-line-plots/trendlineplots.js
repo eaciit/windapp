@@ -119,7 +119,7 @@ tlp.initChart = function() {
             valueAxis: {
                 name: compTemp,
                 title: {
-                    text: compTemp,
+                    text: "Temperature",//compTemp,
                     visible: true,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
@@ -145,7 +145,7 @@ tlp.initChart = function() {
                     visible: false
                 },
                 title: {
-                    text: catTitle,
+                    text: "Time",//catTitle,
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 majorTickType: "none",
