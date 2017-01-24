@@ -736,7 +736,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	return helper.CreateResult(true, data, "success")
 }
 
-func setScatterData(name, xField, yField, color, yAxis string, data []tk.M) tk.M {
+func setScatterData(name, xField, yField, color, yAxis string, marker tk.M, data []tk.M) tk.M {
 	return tk.M{
 		"name":       name,
 		"xField":     xField,
@@ -744,7 +744,7 @@ func setScatterData(name, xField, yField, color, yAxis string, data []tk.M) tk.M
 		"colorField": "valueColor",
 		"color":      color,
 		"type":       "scatter",
-		"markers":    tk.M{"size": 2},
+		"markers":    marker,
 		"yAxis":      yAxis,
 		"data":       data,
 	}
@@ -865,19 +865,19 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 			}
 		}
 	}
-	turbineData := setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", arrDatas)
+	turbineData := setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, arrDatas)
 	dataSeries = append(dataSeries, turbineData)
 
 	switch p.ScatterType {
 	case "temp":
 		/*set data series*/
-		seriesData := setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tempDatas)
+		seriesData := setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, tempDatas)
 		dataSeries = append(dataSeries, seriesData)
 	case "deviation":
-		seriesData := setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", deviationDatas)
+		seriesData := setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, deviationDatas)
 		dataSeries = append(dataSeries, seriesData)
 	case "pitch":
-		seriesData := setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", pitchDatas)
+		seriesData := setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, pitchDatas)
 		dataSeries = append(dataSeries, seriesData)
 	}
 
@@ -904,6 +904,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		GreaterDeviation int
 		LessColor        string
 		GreaterColor     string
+		GreaterMarker    string
+		LessMarker       string
 	}
 
 	var (
@@ -1039,17 +1041,17 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 
 	switch p.ScatterType {
 	case "deviation":
-		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", scatterDatas1)
+		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", scatterDatas2)
+		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "pitch":
-		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", scatterDatas1)
+		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(p.LessDeviation), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", scatterDatas2)
+		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(p.GreaterDeviation), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	}
