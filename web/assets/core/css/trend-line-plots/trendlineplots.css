@@ -1,3 +1,4 @@
+
 .tempBox{
 	height: 25px;
 	max-width: 50px;
@@ -24,6 +25,22 @@
 .turbine-chk, .down-chk{
 	width: 15px;
     height: 15px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.turbine-chk, .down-chk{
+    width: 20px;
+    height: 20px;
     padding-left: 4px;
     color: #fff;
     padding-top: 1px!important;
