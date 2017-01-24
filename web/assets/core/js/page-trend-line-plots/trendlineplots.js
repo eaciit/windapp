@@ -103,7 +103,7 @@ tlp.initChart = function() {
                 visible: false,
             },
             chartArea: {
-                height: 325,
+                height: 525,
             },
             seriesDefaults: {
                 type: "line",
@@ -124,7 +124,7 @@ tlp.initChart = function() {
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 labels: {
-                    step: 2
+                    step: 0.5
                 },
                 line: {
                     visible: false
@@ -135,6 +135,9 @@ tlp.initChart = function() {
                     color: "#eee",
                     width: 0.8,
                 },
+                min: 25,
+                max: 40,
+                majorUnit: 0.5,
             },
             categoryAxis: {
                 categories: categories,
