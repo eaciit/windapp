@@ -69,17 +69,29 @@ page.refreshChart = function() {
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+    var turbine = $("#turbineList").data('kendoDropDownList').value();
+
+    var lessValue = $("#txtLessVal").val();
+    var graterValue = $('#txtGraterVal').val();
+
+    var lessColor = $("#lessColor").data("kendoColorPicker").value();
+    var graterColor = $("#graterColor").data("kendoColorPicker").value();
+    var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
+    var graterMarker = $("#graterMarker").data("kendoDropDownList").value();
+
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: turbine,
         project: fa.project,
         scatterType: page.scatterType,
-        lessDeviation: 20,
-        greaterDeviation: 20,
-        lessColor: "#ff7663",
-        greaterColor: "#a2df53",
+        lessDeviation: parseInt(lessValue,10),
+        greaterDeviation: parseInt(graterValue,10),
+        lessColor: lessColor,
+        greaterColor: graterColor,
+        lessMarker: lessMarker, 
+        graterMarker: graterMarker
     };
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
         if (!app.isFine(res)) {
@@ -95,64 +107,8 @@ page.getPowerCurveScatter = function() {
         if (!app.isFine(res)) {
             return;
         }
-        page.dtSeries(res.data.Data);
-
-        page.createChart(page.dtSeries());
-        app.loading(false);
-    });
-}
-
-page.changeDeviation = function(){
-    app.loading(true);
-
-    var lessValue = $("#txtLessVal").val();
-    var graterValue = $('#txtGraterVal').val();
-
-    var lessColor = $("#lessColor").data("kendoColorPicker").value();
-    var graterColor = $("#graterColor").data("kendoColorPicker").value();
-    var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
-    var graterMarker = $("#graterMarker").data("kendoDropDownList").value();
-
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project,
-        scatterType: page.scatterType,
-        lessDeviation: parseInt(lessValue,10),
-        greaterDeviation: parseInt(graterValue,10),
-        lessColor: lessColor,
-        greaterColor: graterColor,
-    };
-
-    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteranalysis", param, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
 
         var result = res.data.Data;
-
-        var con1 = "<";
-        var con2 = ">";
-        $.each(result, function(index, value){
-            if(value.name.indexOf(con1) !== -1){
-                result[index].color =  lessColor;
-                result[index].markers = {
-                    size : 2,
-                    type : lessMarker,
-                    background : lessColor,
-                }
-            }
-            else if(value.name.indexOf(con2) !== -1){
-                result[index].color =  graterColor;
-                result[index].markers = {
-                    size : 2,
-                    type : graterMarker,
-                    background : graterColor,
-                }
-            }
-        });
 
         page.dtSeries(result);
         page.createChart(page.dtSeries());
@@ -160,8 +116,8 @@ page.changeDeviation = function(){
     
         app.loading(false);
     });
-
 }
+
 
 page.changeView=function(param){
 
@@ -278,7 +234,7 @@ $(document).ready(function() {
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
-            page.LoadData();
+           page.LoadData();
         }, 300);
     });
 
