@@ -82,6 +82,8 @@ tlp.initChart = function() {
         var datatlp = res.data.Data;
         var categories = res.data.Categories;
         var catTitle = res.data.CatTitle;
+        var minValue = res.data.Min;
+        var maxValue = res.data.Max;
 
         localStorage.setItem("datatlp", JSON.stringify(datatlp));
 
@@ -103,7 +105,7 @@ tlp.initChart = function() {
                 visible: false,
             },
             chartArea: {
-                height: 350,
+                height: 400,
             },
             seriesDefaults: {
                 type: "line",
@@ -125,7 +127,7 @@ tlp.initChart = function() {
                 },
                 labels: {
                     step: 0.5,
-                    font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    font: '8px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 line: {
                     visible: false
@@ -136,8 +138,8 @@ tlp.initChart = function() {
                     color: "#eee",
                     width: 0.8,
                 },
-                min: 27,
-                max: 40,
+                min: minValue,
+                max: maxValue,
                 majorUnit: 0.5,
             },
             categoryAxis: {
