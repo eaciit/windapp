@@ -12,6 +12,15 @@ import (
 	tk "github.com/eaciit/toolkit"
 )
 
+
+var (
+	colorFieldTLP            = [...]string{"#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
+    "#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E", "#5C6BC0",
+    "#1E88E5", "#0277BD", "#0097A7", "#26A69A", "#4DD0E1", "#81C784",
+    "#8BC34A", "#1B5E20", "#827717", "#C0CA33", "#DCE775", "#FF6F00", "#A1887F",
+    "#FFEE58", "#004D40", "#212121", "#607D8B", "#BDBDBD", "#FF00CC", "#9999FF"}
+)
+
 type TrendLinePlotsController struct {
 	App
 }
@@ -46,17 +55,32 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	startdate := tStart.Day()
 	enddate := tEnd.Day()
 	turbine := p.Turbine
-	// project := ""
-	// if p.Project != "" {
-	// 	anProject := strings.Split(p.Project, "(")
-	// 	project = strings.TrimRight(anProject[0], " ")
-	// }
 	colName := p.ColName
-	// breakDown := p.BreakDown
+
+
+	listOfDays := []int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+	monthString := []string{"", "January", "February", "March", "April", "May", "June", "July",
+		"August", "September", "October", "November", "December"}
+	listCount := 0
+	monthNum := 0
+	var listMonth []int
+	catTitle := ""
+	MStart := tStart.Month()
+	MEnd := tEnd.Month()
+	iStart := int(MStart)
+	iEnd := int(MEnd)	
+	listOfYears := []int{}
 
 	colId := "$dateinfoutc.dateid"
 
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "colresult": tk.M{"$sum": "$"+colName}, "totaldata": tk.M{"$sum": 1}}})
+	TLPavgData, e := getTLPavgData(turbine,tStart, tEnd,colName)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	dataSeries = append(dataSeries, TLPavgData)
+
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "colresult": tk.M{"$avg": "$"+colName}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	selArr := 1
@@ -120,7 +144,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		turbineData.Set("dashType", "solid")
 		turbineData.Set("markers", tk.M{"visible": false})
 		turbineData.Set("width", 2)
-		turbineData.Set("color", colorField[selArr])
+		turbineData.Set("color", colorFieldTLP[selArr])
 		turbineData.Set("idxseries", selArr)
 
 		for _, val := range exist {
@@ -134,21 +158,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		dataSeries = append(dataSeries, turbineData)
 		selArr++
 	}
-	catTitle := ""
-
-	MStart := tStart.Month()
-	MEnd := tEnd.Month()
-
-	iStart := int(MStart)
-	iEnd := int(MEnd)
 
 	jumMonth := iEnd - iStart
-
-	listCount := 0
-	monthNum := 0
-	var listMonth []int
-
-
 	if(jumMonth == 0){
 		listMonth = append(listMonth, iStart)	
 	}else{		
@@ -159,17 +170,9 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		}
 	}
 
-
-	listOfDays := []int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-	monthString := []string{"", "January", "February", "March", "April", "May", "June", "July",
-		"August", "September", "October", "November", "December"}
-
-	listOfYears := []int{}
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
 		listOfYears = append(listOfYears, i)
 	}
-
-		// tk.Printf("tEnd : %s \n", tEnd)
 
 	for lm, lMonth := range listMonth {
 		month := lMonth
@@ -261,4 +264,73 @@ func (m *TrendLinePlotsController) GetScadaOemAvailDate(k *knot.WebContext) inte
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+
+/**
+ * @param  {[
+ * Turbine    []interface{}
+	DateStart  time.Time
+	DateEnd    time.Time]}
+ * @return {[type]}
+ */
+
+func getTLPavgData(Turbine []interface{}, DateStart time.Time, DateEnd time.Time, colName string ) (pcData tk.M, e error) {
+
+	var (
+		pipes        []tk.M
+		filter       []*dbox.Filter
+		list         []tk.M
+	)
+
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$dateinfoutc.dateid", "colresult": tk.M{"$avg": "$" + colName}, "totaldata": tk.M{"$sum": 1}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	filter = nil
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfoutc.dateid", DateStart))
+	filter = append(filter, dbox.Lte("dateinfoutc.dateid", DateEnd))
+	if(len(Turbine) > 0){
+		filter = append(filter, dbox.In("turbine", Turbine...))
+	}
+	filter = append(filter, dbox.Ne("timestamp", ""))
+	filter = append(filter, dbox.Ne("powerlost", ""))
+	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
+	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
+
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaDataOEM).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
+
+	var datas []float64
+
+	for _, val := range list {
+		datas = append(datas, val.GetFloat64("colresult"))
+	}
+
+	pcData = tk.M{
+		"name":      "Average",
+		"idxseries": 0,
+		"type":      "line",
+		"dashType":  "longDash",
+		"style":     "smooth",
+		"color":     "#000000",
+		"markers":   tk.M{"visible": false},
+		"width":     3,
+	}
+
+	if len(datas) > 0 {
+		pcData.Set("data", datas)
+	}
+
+	return
 }
