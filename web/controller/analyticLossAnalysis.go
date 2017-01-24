@@ -1059,24 +1059,24 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 	startcategory := p.MinValue
 	totalData := 0.0
 
+	match := tk.M{}
+	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+	if len(project) > 0 {
+		match.Set("projectname", project)
+	}
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	group := tk.M{
+		"_id":   "",
+		"total": tk.M{}.Set("$sum", 1),
+	}
+
 	for i := 0; i < (p.BinValue); i++ {
 		categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
 		// categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory))
-
-		match := tk.M{}
-		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+interval+0.5)).Set("$gte", startcategory-0.5))
-		match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-		if len(project) > 0 {
-			match.Set("projectname", project)
-		}
-		if len(turbine) > 0 {
-			match.Set("turbine", tk.M{}.Set("$in", turbine))
-		}
-
-		group := tk.M{
-			"_id":   "",
-			"total": tk.M{}.Set("$sum", 1),
-		}
+		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+interval-0.5)).Set("$gte", startcategory-0.5))
 
 		var pipes []tk.M
 		pipes = append(pipes, tk.M{}.Set("$match", match))
@@ -1148,25 +1148,24 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	startcategory := p.MinValue
 	totalData := 0.0
 
+	match := tk.M{}
+	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+	if len(project) > 0 {
+		match.Set("projectname", project)
+	}
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+	group := tk.M{
+		"_id":   "",
+		"total": tk.M{}.Set("$sum", 1),
+	}
+
 	for i := 0; i < (p.BinValue); i++ {
 		categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
 
 		// categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory))
-
-		match := tk.M{}
-		match.Set("power", tk.M{}.Set("$lt", (startcategory+interval+0.5)).Set("$gte", startcategory-0.5))
-		match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-		if len(project) > 0 {
-			match.Set("projectname", project)
-		}
-		if len(turbine) > 0 {
-			match.Set("turbine", tk.M{}.Set("$in", turbine))
-		}
-
-		group := tk.M{
-			"_id":   "",
-			"total": tk.M{}.Set("$sum", 1),
-		}
+		match.Set("power", tk.M{}.Set("$lt", (startcategory+interval-0.5)).Set("$gte", startcategory-0.5))
 
 		var pipes []tk.M
 		pipes = append(pipes, tk.M{}.Set("$match", match))
