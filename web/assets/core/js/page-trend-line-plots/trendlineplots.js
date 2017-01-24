@@ -37,11 +37,6 @@ tlp.compTemp = ko.observableArray([
 
 tlp.compTempVal = ko.observable("2");
 
-// function Categories(start,end){
-
-// }
-
-
 tlp.initChart = function() {
     app.loading(true);
 
@@ -97,7 +92,7 @@ tlp.initChart = function() {
                 fileName: "DetailPowerCurve.pdf",
             },
             theme: "flat",
-            renderAs: "canvas",
+            // renderAs: "canvas",
             title: {
                 text: "Trend Line Plots | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                 visible: false,
@@ -192,11 +187,11 @@ tlp.InitRightTurbineList = function(){
 
     $("#right-turbine-list").html("");
     $.each(dtTurbines, function(idx, val) {
-        if(val.name != "Power Curve"){
+        if(val.idxseries > 0){
             $("#right-turbine-list").append('<div class="btn-group">' +
-            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="tlp.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
-            '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + idx + '" hidden>' +
-            '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" onclick="tlp.showHideLegend(' + idx  + ')">' + val.name + '</button>' +
+            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="tlp.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
+            '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
+            '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" onclick="tlp.showHideLegend(' + val.idxseries  + ')">' + val.name + '</button>' +
             '</div>');
         }
     });
@@ -204,19 +199,19 @@ tlp.InitRightTurbineList = function(){
 
 tlp.showHideAllLegend = function(e){
     var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("datatlp")).sort(name), 'name');
-                console.log(dtTurbines)
+
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
         $.each(dtTurbines, function(i, val) {
             if(val.idxseries > 0){
-                $("#charttlp").data("kendoChart").options.series[val.idxseries - 1].visible = true;
+                $("#charttlp").data("kendoChart").options.series[val.idxseries].visible = true;
             }
         });
         $('#labelShowHide b').text('Select All');
     } else {
         $.each(dtTurbines, function(i, val) {
             if(val.idxseries > 0){
-                $("#charttlp").data("kendoChart").options.series[val.idxseries - 1].visible = false;
+                $("#charttlp").data("kendoChart").options.series[val.idxseries].visible = false;
             }
         });
         $('.fa-check').css("visibility", 'hidden');
