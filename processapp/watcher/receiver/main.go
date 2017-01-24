@@ -405,6 +405,7 @@ func doProcess(file string) (success bool) {
 			UpdateLastMonitoring()
 			tk.Println(">> DONE <<")
 		}
+		success = true
 	}
 
 	return
