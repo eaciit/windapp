@@ -91,7 +91,7 @@ page.getPowerCurveScatter = function() {
         lessColor: lessColor,
         greaterColor: graterColor,
         lessMarker: lessMarker, 
-        greaterMarker: greaterMarker
+        graterMarker: graterMarker
     };
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
         if (!app.isFine(res)) {
