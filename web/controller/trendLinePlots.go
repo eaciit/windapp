@@ -227,8 +227,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		Data: dataSeries,
 		Categories: categories,
 		CatTitle: catTitle,
-		Min: tk.ToInt((minValue - 3 ), tk.RoundingAuto),
-		Max: tk.ToInt((maxValue + 3 ), tk.RoundingAuto),
+		Min: tk.ToInt((minValue - 2 ), tk.RoundingAuto),
+		Max: tk.ToInt((maxValue + 2 ), tk.RoundingAuto),
 	}
 
 	return helper.CreateResult(true, data, "success")

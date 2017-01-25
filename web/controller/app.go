@@ -65,7 +65,8 @@ type PayloadAnalyticTLP struct {
 	DateStart  	time.Time
 	DateEnd   	time.Time
 	ColName 	string
-	BreakDown  	string
+	DeviationStatus  	bool
+	Deviation  	int
 }
 
 

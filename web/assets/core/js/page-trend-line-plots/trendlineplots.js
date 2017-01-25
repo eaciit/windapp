@@ -67,7 +67,8 @@ tlp.initChart = function() {
         turbine: fa.turbine,
         project: fa.project,
         colname: colnameTemp,
-        breakdown:""
+        deviationstatus:"", // Param from checkbox
+        deviation:"" // Param from Dropdown
     };
 
     var link = "trendlineplots/getlist"
@@ -137,6 +138,7 @@ tlp.initChart = function() {
                     color: "#eee",
                     width: 0.8,
                 },
+                // majorUnit: 0.5,
                 min: minValue,
                 max: maxValue,
             },
