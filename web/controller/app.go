@@ -66,7 +66,7 @@ type PayloadAnalyticTLP struct {
 	DateEnd   	time.Time
 	ColName 	string
 	DeviationStatus  	bool
-	Deviation  	int
+	Deviation  	float64
 }
 
 

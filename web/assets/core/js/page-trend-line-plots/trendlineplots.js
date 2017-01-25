@@ -60,15 +60,16 @@ tlp.initChart = function() {
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
+    var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: turb, // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
-        deviationstatus:"", // Param from checkbox
-        deviation:"" // Param from Dropdown
+        deviationstatus:false, // Param from checkbox
+        deviation:1 // Param from Dropdown
     };
 
     var link = "trendlineplots/getlist"
