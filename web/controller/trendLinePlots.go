@@ -56,7 +56,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	enddate := tEnd.Day()
 	turbine := p.Turbine
 	colName := p.ColName
+	deviationStatus := p.DeviationStatus
+	deviation := p.Deviation
 
+	// dateRange := 0
 
 	listOfDays := []int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 	monthString := []string{"", "January", "February", "March", "April", "May", "June", "July",
@@ -75,7 +78,11 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	colId := "$dateinfoutc.dateid"
 
-	TLPavgData, e := getTLPavgData(turbine,tStart, tEnd,colName)
+	// if(dateRange == 0){
+	// 	colId = "$timestamputc"
+	// }
+
+	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd,colName)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -149,24 +156,74 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		turbineData.Set("color", colorFieldTLP[selArr])
 		turbineData.Set("idxseries", selArr)
 
-		for _, val := range exist {
-			datas = append(datas, val.GetFloat64("colresult"))
+		idxAvgTlp := 0
+		shownSeries := false	
+		//colresult + deviation[idxAvgTlp]
+		for _, val := range exist {		
+
+			calcColResult := 0.0
+			colresult := val.GetFloat64("colresult")
+			colresultMinus := colresult - deviation
+			colresultPlus := colresult + deviation
+
+			if colresult > AvgTlp[idxAvgTlp] {	
+				calcColResult = colresultMinus - AvgTlp[idxAvgTlp]
+			}else{		
+				calcColResult = AvgTlp[idxAvgTlp] - colresultPlus	
+			}
+
+			if calcColResult > 0.0 {
+				shownSeries = true
+
+				// tk.Printf("calcColResult : %s \n", calcColResult)
+			}
+
+			// if !shownSeries {
+			// 	if calcColResult < 0 {
+			// 		shownSeries = true
+			// 	}
+			// }
+
+			datas = append(datas, colresult)
+
 			if val.GetFloat64("colresult") < minValue {
-				minValue = val.GetFloat64("colresult")
+				minValue = colresult
 			}
 			if val.GetFloat64("colresult") > maxValue {
-				maxValue = val.GetFloat64("colresult")
+				maxValue = colresult
 			}
+			idxAvgTlp = idxAvgTlp+1
+
 		}
 
-		if len(datas) > 0 {
-			turbineData.Set("data", datas)
+
+			// tk.Printf("shownSeries : %s \n", shownSeries)
+		if deviationStatus {
+			if shownSeries {
+				if len(datas) > 0 {
+					turbineData.Set("data", datas)
+				}
+			}
+		}else{
+			if len(datas) > 0 {
+				turbineData.Set("data", datas)
+			}
 		}
 
 		dataSeries = append(dataSeries, turbineData)
 		selArr++
 	}
 
+	for _, val := range AvgTlp {		
+
+		if val < minValue {
+			minValue = val
+		}
+		if val > maxValue {
+			maxValue = val
+		}
+	}
+	
 	jumMonth := iEnd - iStart
 	if(jumMonth == 0){
 		listMonth = append(listMonth, iStart)	
@@ -227,8 +284,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		Data: dataSeries,
 		Categories: categories,
 		CatTitle: catTitle,
-		Min: tk.ToInt((minValue - 3 ), tk.RoundingAuto),
-		Max: tk.ToInt((maxValue + 3 ), tk.RoundingAuto),
+		Min: tk.ToInt((minValue - 2 ), tk.RoundingAuto),
+		Max: tk.ToInt((maxValue + 2 ), tk.RoundingAuto),
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -287,7 +344,7 @@ func (m *TrendLinePlotsController) GetScadaOemAvailDate(k *knot.WebContext) inte
  * @return {pcData}
  */
 
-func getTLPavgData(Turbine []interface{}, DateStart time.Time, DateEnd time.Time, colName string ) (pcData tk.M, e error) {
+func getTLPavgData( DateStart time.Time, DateEnd time.Time, colName string ) (datas []float64,pcData tk.M, e error) {
 
 	var (
 		pipes        []tk.M
@@ -302,9 +359,9 @@ func getTLPavgData(Turbine []interface{}, DateStart time.Time, DateEnd time.Time
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfoutc.dateid", DateStart))
 	filter = append(filter, dbox.Lte("dateinfoutc.dateid", DateEnd))
-	if(len(Turbine) > 0){
-		filter = append(filter, dbox.In("turbine", Turbine...))
-	}
+	// if(len(Turbine) > 0){
+	// 	filter = append(filter, dbox.In("turbine", Turbine...))
+	// }
 	filter = append(filter, dbox.Ne("timestamp", ""))
 	filter = append(filter, dbox.Ne("powerlost", ""))
 	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
@@ -323,7 +380,7 @@ func getTLPavgData(Turbine []interface{}, DateStart time.Time, DateEnd time.Time
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
-	var datas []float64
+	// var datas []float64
 
 	for _, val := range list {
 		datas = append(datas, val.GetFloat64("colresult"))

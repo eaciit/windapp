@@ -35,6 +35,9 @@ tlp.compTemp = ko.observableArray([
     { "value": 5, "text": "Nacelle Temp", "colname": "temp_nacelle"  },
 ]);
 
+tlp.deviation= ko.observable(2);
+tlp.deviationList = ko.observableArray([1,2,3,4,5]);
+tlp.isDeviation = ko.observable(true);
 tlp.compTempVal = ko.observable("2");
 
 tlp.initChart = function() {
@@ -59,16 +62,21 @@ tlp.initChart = function() {
     });
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
+    var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
+    var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: turb, // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
-        breakdown:""
+        deviationstatus:tlp.isDeviation(), // Param from checkbox
+        deviation: parseFloat(ddldeviation)// Param from Dropdown
     };
+
+    console.log(param)
 
     var link = "trendlineplots/getlist"
 
@@ -126,8 +134,7 @@ tlp.initChart = function() {
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 labels: {
-                    step: 0.5,
-                    font: '8px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 line: {
                     visible: false
@@ -138,9 +145,9 @@ tlp.initChart = function() {
                     color: "#eee",
                     width: 0.8,
                 },
+                // majorUnit: 0.5,
                 min: minValue,
                 max: maxValue,
-                majorUnit: 0.5,
             },
             categoryAxis: {
                 categories: categories,

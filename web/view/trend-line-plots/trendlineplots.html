@@ -13,36 +13,39 @@
 					<div class="panel-heading">
 					</div>
 					<div class="panel-body">
-						<div class="row">
-							<div class="col-md-6">								
-								<div class="date-info">
-			                        Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
-			                    </div>
-							</div>
-							<div class="col-md-6">
-								<label>
-									<span><b class="colBlack">Component Temp</b></span>
-									<select class="compTemp" id="compTemp" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
-				               		</select>
-				               		<span><b class="colBlack">Temp Compare to Average ± </b></span>
-				               		<input type="text" name="txtcompTemp" id="txtcompTemp" class="form-control input-xs tempBox" disabled data-bind="value:tlp.compTempVal">
-				               		<span><b class="colBlack"> degree </b></span>
-
-								</label>
-							</div>
+						<div class="col-md-12">							
+							<div class="date-info">
+		                        Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
+		                    </div>
 						</div>
+
                         
 						<div class="clearfix">&nbsp;</div>
 
-						<div  class="row ">
+						<div  class="col-md-12 ">
 							<div class="col-md-9 ">
 								<div id="charttlp"></div>
 							</div>
-							<div class="col-md-3 turList">
+							<div class="col-md-3">
 								<div class="panel-heading">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show or hide series"></i></div>
 								<div class="clearfix">&nbsp;</div>
 								<div class="checkbox custom-header" id="showHideChk"></div>
 								<div class="col-md-12 col-sm-12 " id="right-turbine-list"></div>
+								<div class="clearfix">&nbsp;</div>
+								<span><b class="colBlack">Component Temp</b></span>
+								<select class="compTemp" id="compTemp" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
+			               		</select>
+			               		<div class="checkbox margin-left-15">
+				               		<label>
+	                                    <input type="checkbox" id="deviation" data-bind="checked: tlp.isDeviation" onchange="tlp.initChart()">
+	                                    <span class="cr" style="margin-top: 5px;"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+	                                </label>
+	                                    <span class="colRed"><b class="colBlack">Only for deviation</span>&nbsp; 
+	                                    <select class="compTemp" id="ddldeviation" name="table" data-bind="kendoDropDownList: {data: tlp.deviationList, value:tlp.deviation, suggest: true, enabled:tlp.isDeviation,change:function(){ tlp.initChart()}}" style="width:50px">
+			               				</select>
+	                                
+                                </div>
+
 							</div>
 						</div>
 					</div>

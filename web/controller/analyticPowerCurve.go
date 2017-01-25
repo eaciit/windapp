@@ -856,7 +856,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 			deviationDatas = append(deviationDatas, deviationData)
 		case "pitch":
-			if val.AvgBladeAngle > -99999.0 {
+			if val.AvgBladeAngle > -99999.0 && (val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120.0) {
 				pitchData.Set("WindSpeed", val.AvgWindSpeed)
 				pitchData.Set("Pitch", val.AvgBladeAngle)
 				pitchData.Set("valueColor", colorField[2])
@@ -1029,7 +1029,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 				scatterDatas2 = append(scatterDatas2, scatterData)
 			}
 		case "pitch":
-			if val.AvgBladeAngle > -99999.0 {
+			if val.AvgBladeAngle > -99999.0 && (val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120.0) {
 				if val.AvgBladeAngle < lessDev {
 					scatterDatas1 = append(scatterDatas1, scatterData)
 				} else if val.AvgBladeAngle > greatDev {
