@@ -62,6 +62,7 @@ tlp.initChart = function() {
     });
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
+    var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
     var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
     var param = {
@@ -71,9 +72,11 @@ tlp.initChart = function() {
         turbine: turb, // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
-        deviationstatus:tlp.isDeviation, // Param from checkbox
-        deviation: tlp.deviation// Param from Dropdown
+        deviationstatus:tlp.isDeviation(), // Param from checkbox
+        deviation: parseFloat(ddldeviation)// Param from Dropdown
     };
+
+    console.log(param)
 
     var link = "trendlineplots/getlist"
 

@@ -157,7 +157,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		turbineData.Set("idxseries", selArr)
 
 		idxAvgTlp := 0
-		shownSeries := true	
+		shownSeries := false	
 		//colresult + deviation[idxAvgTlp]
 		for _, val := range exist {		
 
@@ -166,17 +166,23 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			colresultMinus := colresult - deviation
 			colresultPlus := colresult + deviation
 
-			if colresult > AvgTlp[idxAvgTlp] {
+			if colresult > AvgTlp[idxAvgTlp] {	
 				calcColResult = colresultMinus - AvgTlp[idxAvgTlp]
-			}else{
-				calcColResult = AvgTlp[idxAvgTlp] - colresultPlus
+			}else{		
+				calcColResult = AvgTlp[idxAvgTlp] - colresultPlus	
 			}
 
-			if shownSeries {
-				if calcColResult < 0 {
-					shownSeries = false
-				}
+			if calcColResult > 0.0 {
+				shownSeries = true
+
+				// tk.Printf("calcColResult : %s \n", calcColResult)
 			}
+
+			// if !shownSeries {
+			// 	if calcColResult < 0 {
+			// 		shownSeries = true
+			// 	}
+			// }
 
 			datas = append(datas, colresult)
 
@@ -187,8 +193,11 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				maxValue = colresult
 			}
 			idxAvgTlp = idxAvgTlp+1
+
 		}
 
+
+			// tk.Printf("shownSeries : %s \n", shownSeries)
 		if deviationStatus {
 			if shownSeries {
 				if len(datas) > 0 {
@@ -205,6 +214,16 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		selArr++
 	}
 
+	for _, val := range AvgTlp {		
+
+		if val < minValue {
+			minValue = val
+		}
+		if val > maxValue {
+			maxValue = val
+		}
+	}
+	
 	jumMonth := iEnd - iStart
 	if(jumMonth == 0){
 		listMonth = append(listMonth, iStart)	
