@@ -3,8 +3,8 @@
 viewModel.KeyMetrics = new Object();
 var km = viewModel.KeyMetrics;
 km.MinValue = ko.observable(0);
-km.MaxValue = ko.observable(1000);
-km.BinValue = ko.observable(20);
+km.MaxValue = ko.observable(2000);
+km.BinValue = ko.observable(40);
 km.MinValueWindSpeed = ko.observable(0);
 km.MaxValueWindSpeed = ko.observable(24);
 km.BinValueWindSpeed = ko.observable(24);
@@ -122,6 +122,10 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
     } else {
         turbineData = fa.turbine.join(", ");
     }
+    var _rotationlabel = 0
+    if (km.BinValue() > 20) {
+        _rotationlabel = 68
+    }
     $("#turbineListProd").html('for ' + turbineData);
     $("#dhprod-chart").replaceWith("<div id='dhprod-chart'></div>");
     $("#dhprod-chart").kendoChart({
@@ -175,6 +179,7 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
                 visible: false
             },
             labels: {
+                rotation : _rotationlabel,
                 // padding: { 
                 //     left: 600 / categoryproduction.length
                 // },
