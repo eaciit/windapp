@@ -1,4 +1,6 @@
-
+.margin-left-15{
+    margin-left: -20px;
+}
 .tempBox
 {
     display: inherit;
@@ -74,4 +76,11 @@
 {
     font-size: 10px;
     width: 55px;
+}
+.txt-deviation{
+    height: 25px;
+    max-width: 50px;
+    margin-left: 5px;
+    padding: 5px;
+    text-align: center;
 }

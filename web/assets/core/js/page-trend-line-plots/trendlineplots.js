@@ -35,6 +35,9 @@ tlp.compTemp = ko.observableArray([
     { "value": 5, "text": "Nacelle Temp", "colname": "temp_nacelle"  },
 ]);
 
+tlp.deviation= ko.observable(2);
+tlp.deviationList = ko.observableArray([1,2,3,4,5]);
+tlp.isDeviation = ko.observable(true);
 tlp.compTempVal = ko.observable("2");
 
 tlp.initChart = function() {
@@ -68,8 +71,8 @@ tlp.initChart = function() {
         turbine: turb, // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
-        deviationstatus:false, // Param from checkbox
-        deviation:1 // Param from Dropdown
+        deviationstatus:tlp.isDeviation, // Param from checkbox
+        deviation: tlp.deviation// Param from Dropdown
     };
 
     var link = "trendlineplots/getlist"
