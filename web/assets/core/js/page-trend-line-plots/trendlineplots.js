@@ -126,8 +126,7 @@ tlp.initChart = function() {
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 labels: {
-                    step: 0.5,
-                    font: '8px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 line: {
                     visible: false
@@ -140,7 +139,6 @@ tlp.initChart = function() {
                 },
                 min: minValue,
                 max: maxValue,
-                majorUnit: 0.5,
             },
             categoryAxis: {
                 categories: categories,
