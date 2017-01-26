@@ -27,21 +27,19 @@
 								<div id="charttlp"></div>
 							</div>
 							<div class="col-md-3">
-								<div class="panel-heading">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show or hide series"></i></div>
-								<div class="clearfix">&nbsp;</div>
-								<div class="checkbox custom-header" id="showHideChk"></div>
-								<div class="col-md-12 col-sm-12 " id="right-turbine-list"></div>
-								<div class="clearfix">&nbsp;</div>
-								<span><b class="colBlack">Component Temp</b></span>
+								<span><b class="colBlack">Select</b></span>
 								<select class="compTemp" id="compTemp" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
 			               		</select>
+								<div class="checkbox custom-header" id="showHideChk"></div>
+								<div class="col-md-12 col-sm-12 " id="right-turbine-list"></div>
+								<div class="clearfix" style="line-height: 5px">&nbsp;</div>
 			               		<div class="checkbox margin-left-15">
 				               		<label>
 	                                    <input type="checkbox" id="deviation" data-bind="checked: tlp.isDeviation" onchange="tlp.initChart()">
 	                                    <span class="cr" style="margin-top: 5px;"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 	                                </label>
-	                                    <span class="colRed"><b class="colBlack">Only for deviation</span>&nbsp; 
-	                                    <select class="compTemp" id="ddldeviation" name="table" data-bind="kendoDropDownList: {data: tlp.deviationList, value:tlp.deviation, suggest: true, enabled:tlp.isDeviation,change:function(){ tlp.initChart()}}" style="width:50px">
+	                                    <span class="colRed"><b class="colBlack">For deviation ±</span>&nbsp; 
+	                                    <select class="compTemp" id="ddldeviation" name="table" data-bind="kendoDropDownList: {data: tlp.deviationList, value:tlp.deviation, suggest: true, enabled:tlp.isDeviation,change:function(){ tlp.initChart()}}" style="width:45px">
 			               				</select>
 	                                
                                 </div>
