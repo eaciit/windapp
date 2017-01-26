@@ -39,10 +39,15 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 
 	query := []tk.M{}
 	pipes := []tk.M{}
+	pipesmet := []tk.M{}
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 	// query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
+
+	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": query}})
+	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"winddirno": 1, "timestamp": 1}})
+
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
 		query = append(query, tk.M{"projectname": strings.TrimRight(anProject[0], " ")})
@@ -57,6 +62,7 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
+	defer csr.Close()
 
 	allres := tk.M{}
 	arrturbine := []string{}
@@ -80,13 +86,36 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 		_tturbine.Set(trx.Turbine, 1)
 	}
 
+	csrx, err := DB().Connection.NewQuery().From(new(MetTower).TableName()).
+		Command("pipe", pipesmet).Cursor(nil)
+
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	defer csrx.Close()
+
+	for {
+		trx := new(MetTower)
+		e := csrx.Fetch(trx, 1, false)
+		if e != nil {
+			break
+		}
+
+		dkey := trx.TimeStamp.Format("20060102030405")
+
+		_tkm := allres.Get("MetTower", tk.M{}).(tk.M)
+		_tkm.Set(dkey, tk.ToFloat64(trx.WindDirNo, 6, tk.RoundingAuto))
+
+		allres.Set("MetTower", _tkm)
+	}
+
 	for key, _ := range _tturbine {
 		arrturbine = append(arrturbine, key)
 	}
 
 	sort.Strings(arrturbine)
-	pturbine := append([]string{}, arrturbine...)
-	arrturbine = append([]string{"Turbine"}, arrturbine...)
+	pturbine := append([]string{"MetTower"}, arrturbine...)
+	arrturbine = append([]string{"Turbine", "MetTower"}, arrturbine...)
 
 	if len(p.Turbine) > 0 {
 		pturbine = []string{}

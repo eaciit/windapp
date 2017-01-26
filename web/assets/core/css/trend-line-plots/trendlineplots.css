@@ -1,5 +1,19 @@
+.devDrop{
+    width:40px;
+    margin-top: -10px;
+}
+.devDrop>.k-dropdown-wrap{
+    height: 20px;
+}
+.devDrop>.k-dropdown-wrap>.k-input{
+    height: 20px;
+    margin-top: -4px;
+}
+.devDrop>.k-dropdown-wrap>.k-select{
+    margin-top: -4px;
+}
 .margin-left-15{
-    margin-left: -20px;
+    margin-left: -15px;
 }
 .tempBox
 {

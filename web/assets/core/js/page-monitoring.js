@@ -575,7 +575,8 @@ monitoring.dataChartLine = function (data) {
                 visible: false,
             },
             width: 3,
-        }, {
+        },
+         {
             type: "area",
             // style: "smooth",
             field: "avail",
@@ -585,7 +586,8 @@ monitoring.dataChartLine = function (data) {
                 visible: false,
             },
             width: 3,
-        }],
+        }
+        ],
         seriesColors: colorFields2,
         valueAxes: [{
             line: {
