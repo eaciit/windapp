@@ -1350,6 +1350,9 @@ warn.loadData = function() {
         if (!app.isFine(res)) {
             return;
         }
+        if (res.data.Data.length == 0) {
+            return;
+        }
         warn.dataSource(res.data.Data);
         warn.generateGrid();
     });

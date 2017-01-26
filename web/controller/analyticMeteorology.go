@@ -41,9 +41,11 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	pipes := []tk.M{}
 	pipesmet := []tk.M{}
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
-	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
-	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
+	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
 	// query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
+
+	// tk.Println("Date select : ", tStart, " ~ ", tEnd)
 
 	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": query}})
 	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"winddirno": 1, "timestamp": 1}})
@@ -75,11 +77,11 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 			break
 		}
 
-		dkey := trx.TimeStamp.Format("20060102030405")
+		dkey := trx.TimeStamp.Format("20060102150405")
 
 		_tkm := allres.Get(trx.Turbine, tk.M{}).(tk.M)
 		if trx.AvgWindSpeed != -99999.0 {
-			_tkm.Set(dkey, tk.ToFloat64(trx.AvgWindSpeed, 6, tk.RoundingAuto))
+			_tkm.Set(dkey, trx.AvgWindSpeed)
 		}
 
 		allres.Set(trx.Turbine, _tkm)
@@ -101,10 +103,10 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 			break
 		}
 
-		dkey := trx.TimeStamp.Format("20060102030405")
+		dkey := trx.TimeStamp.Format("20060102150405")
 
 		_tkm := allres.Get("MetTower", tk.M{}).(tk.M)
-		_tkm.Set(dkey, tk.ToFloat64(trx.WindDirNo, 6, tk.RoundingAuto))
+		_tkm.Set(dkey, trx.WindDirNo)
 
 		allres.Set("MetTower", _tkm)
 	}
@@ -127,9 +129,11 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	for _, _turbine := range pturbine {
 		_tkm := tk.M{}.Set("Turbine", _turbine)
 		for i := 1; i < len(arrturbine); i++ {
-			if arrturbine[i] != _turbine {
+			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
+			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
+			if arrturbine[i] != _turbine && len(_dt01) > 0 && len(_dt02) > 0 {
 				_tkm.Set(arrturbine[i],
-					GetCorrelation(allres.Get(_turbine, tk.M{}).(tk.M), allres.Get(arrturbine[i], tk.M{}).(tk.M)))
+					GetCorrelation(_dt01, _dt02))
 			} else {
 				_tkm.Set(arrturbine[i], "-")
 			}
