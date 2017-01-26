@@ -564,7 +564,7 @@ monitoring.dataChartLine = function (data) {
             markers: {
                 visible: false,
             },
-            width: 3,
+            // width: 3,
         }, {
             type: "line",
             style: "smooth",
@@ -574,18 +574,20 @@ monitoring.dataChartLine = function (data) {
             markers: {
                 visible: false,
             },
-            width: 3,
-        }, {
-            type: "area",
-            // style: "smooth",
-            field: "avail",
-            axis: "percentage",
-            name: "Availability(%)",
-            markers: {
-                visible: false,
-            },
-            width: 3,
-        }],
+            // width: 3,
+        },
+        //  {
+        //     type: "area",
+        //     // style: "smooth",
+        //     field: "avail",
+        //     axis: "percentage",
+        //     name: "Availability(%)",
+        //     markers: {
+        //         visible: false,
+        //     },
+        //     // width: 3,
+        // }
+        ],
         seriesColors: colorFields2,
         valueAxes: [{
             line: {
