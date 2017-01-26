@@ -204,7 +204,7 @@ tlp.InitRightTurbineList = function(){
             if(val.data == undefined || val.data == ""){
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" disabled="disabled" onclick="tlp.showHideLegend(' + val.idxseries + ')" style="border-color:#a0a0a0;background-color:#a0a0a0"></button>' +
-                '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden disabled="disabled">' +
+                '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="disabled-' + val.idxseries + '" hidden disabled="disabled">' +
                 '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" disabled="disabled" onclick="tlp.showHideLegend(' + val.idxseries  + ')">' + val.name + '</button>' +
                 '</div>');
             }else{
@@ -242,6 +242,7 @@ tlp.showHideAllLegend = function(e){
     $("#charttlp").data("kendoChart").redraw();
 }
 tlp.showHideLegend = function(idx){
+
     $('#chk-' + idx).trigger('click');
     var chart = $("#charttlp").data("kendoChart");
 
