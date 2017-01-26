@@ -71,11 +71,11 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	}
 
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids,
-		"Production":       tk.M{"$sum": "$production"},
-		"MachineDownLoss":  tk.M{"$sum": "$machinedownloss"},
-		"GridDownLoss":     tk.M{"$sum": "$griddownloss"},
-		"PCDeviation":      tk.M{"$sum": "$pcdeviation"},
-		"ElectricalLosses": tk.M{"$sum": "$electricallosses"},
+		"Production":      tk.M{"$sum": "$production"},
+		"MachineDownLoss": tk.M{"$sum": "$machinedownloss"},
+		"GridDownLoss":    tk.M{"$sum": "$griddownloss"},
+		"PCDeviation":     tk.M{"$sum": "$pcdeviation"},
+		// "ElectricalLosses": tk.M{"$sum": "$electricallosses"},
 		"OtherDownLoss":    tk.M{"$sum": "$otherdownloss"},
 		"DownTimeDuration": tk.M{"$sum": "$downtimehours"},
 		"MachineDownHours": tk.M{"$sum": "$machinedownhours"},
@@ -95,7 +95,62 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 
 	resultScada := []tk.M{}
 	e = csr.Fetch(&resultScada, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	/*======== JMR PART ==================*/
+	_, _, monthDay := helper.GetDurationInMonth(tStart, tEnd)
+	newKey := ""
+	monthList := []int{}
+	for key, val := range monthDay { /*ubah jika ada key yang hanya 5 huruf ==> 20161 menjadi 201601*/
+		newKey = key
+		if len(key) < 6 {
+			newKey = key[0:4] + "0" + key[4:]
+			monthDay.Set(newKey, val)
+			monthDay.Unset(key)
+		}
+		monthList = append(monthList, tk.ToInt(newKey, tk.RoundingAuto))
+	}
+	pipesJMR := []tk.M{}
+	match := []tk.M{}
+	match = append(match, tk.M{"dateinfo.monthid": tk.M{"$in": monthList}})
+	if len(turbine) != 0 {
+		match = append(match, tk.M{"sections.turbine": tk.M{"$in": turbine}})
+	}
+	projection := tk.M{
+		"dateinfo.monthid":  1,
+		"sections.turbine":  1,
+		"sections.contrgen": 1,
+		"sections.boenet":   1,
+	}
+	pipesJMR = append(pipesJMR, tk.M{"$unwind": "$sections"})
+	pipesJMR = append(pipesJMR, tk.M{"$match": tk.M{"$and": match}})
+	pipesJMR = append(pipesJMR, tk.M{"$project": projection})
 
+	dataJMR := []tk.M{}
+	csrJMR, e := DB().Connection.NewQuery().
+		From(new(JMR).TableName()).
+		Command("pipe", pipesJMR).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrJMR.Close()
+	e = csrJMR.Fetch(&dataJMR, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	resultJMR := map[string]float64{}
+	for _, val := range dataJMR { /*buat data jmr agar sesuai dengan data scada (resultScada)*/
+		month := val.Get("dateinfo").(tk.M).GetInt("monthid") /*isinya 201601, 201602, dst....*/
+		months := monthDay.Get(tk.ToString(month)).(tk.M)     /*isinya days(jumlah hari sesuai filter) dan totalInMonth (total hari dalam 1 bulan)*/
+		sections := val.Get("sections").(tk.M)                /*isinya turbine, contrgen dan boenet*/
+		contrgen := sections.GetFloat64("contrgen") / months.GetFloat64("totalInMonth") * months.GetFloat64("days")
+		boenet := sections.GetFloat64("boenet") / months.GetFloat64("totalInMonth") * months.GetFloat64("days")
+		resultJMR[sections.GetString("turbine")] += (contrgen - boenet) / 1000.0
+	}
+	/*======== END OF JMR PART ==================*/
 	LossAnalysisResult := []tk.M{}
 
 	for _, val := range resultScada {
@@ -108,7 +163,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 			"GridDownHours":    val.GetFloat64("GridDownHours"),
 			"EnergyyMD":        val.GetFloat64("MachineDownLoss") / 1000,
 			"EnergyyGD":        val.GetFloat64("GridDownLoss") / 1000,
-			"ElectricLoss":     val.GetFloat64("ElectricalLosses") / 1000,
+			// "ElectricLoss":     val.GetFloat64("ElectricalLosses") / 1000,
+			"ElectricLoss":     resultJMR[val.GetString("_id")],
 			"PCDeviation":      val.GetFloat64("PCDeviation") / 1000,
 			"Others":           val.GetFloat64("OtherDownLoss") / 1000,
 			"DownTimeDuration": val.GetFloat64("DownTimeDuration"),
