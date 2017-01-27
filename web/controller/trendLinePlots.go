@@ -223,8 +223,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	sort.Ints(listMonth)
 
 	for lm, lMonth := range listMonth {
-		catTitle = tStart.Month().String()
-
 		if lm == 0 { /*bulan pertama*/
 			catTitle = tStart.Month().String()
 			if len(listMonth) == 1 {
@@ -235,7 +233,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			} else {
 				month := lMonth
 				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
-				monthDay.Get("2016")
 				for iDate := startdate; iDate <= maxDays; iDate++ {
 					categories = append(categories, tk.ToString(iDate))
 				}
@@ -243,17 +240,24 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					catTitle += " " + tk.ToString(listOfYears[0]) /* Dec 2015*/
 				}
 			}
-		} else { /*bulan kedua*/
-			catTitle += " - " + tEnd.Month().String()
-			if len(listOfYears) == 1 {
-				catTitle += " (" + tk.ToString(listOfYears[0]) + ")" /*Dec - Jan (2016)*/
+		} else { /*bulan selanjutnya*/
+			if lm == len(listMonth)-1 { /*bulan terakhir*/
+				catTitle += " - " + tEnd.Month().String()
+				if len(listOfYears) == 1 {
+					catTitle += " (" + tk.ToString(listOfYears[0]) + ")" /*Dec - Jan (2016)*/
+				} else {
+					catTitle += " " + tk.ToString(listOfYears[1]) /* - Jan 2016*/
+				}
+				for iDate := 1; iDate <= enddate; iDate++ {
+					categories = append(categories, tk.ToString(iDate))
+				}
 			} else {
-				catTitle += " " + tk.ToString(listOfYears[1]) /* - Jan 2016*/
+				month := lMonth
+				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
+				for iDate := 1; iDate <= maxDays; iDate++ {
+					categories = append(categories, tk.ToString(iDate))
+				}
 			}
-			for iDate := 1; iDate <= enddate; iDate++ {
-				categories = append(categories, tk.ToString(iDate))
-			}
-
 		}
 
 	}
