@@ -761,9 +761,17 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		Project     string
 		ScatterType string
 	}
+	type ScadaMini struct {
+		Power, AvgWindSpeed               float64
+		NacelleTemperature, WindDirection float64
+	}
 
+	type ScadaOEMMini struct {
+		AI_intern_WindSpeed, AI_intern_Pitchangle1   float64
+		AI_intern_Pitchangle2, AI_intern_Pitchangle3 float64
+	}
 	var (
-		list       []ScadaData
+		list       []ScadaMini
 		dataSeries []tk.M
 	)
 
@@ -792,8 +800,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	var filter []*dbox.Filter
 	filter = []*dbox.Filter{}
 	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	filter = append(filter, dbox.Eq("turbine", turbine))
 	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.Eq("oktime", 600))
@@ -807,7 +815,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	var _list ScadaData
+	var _list ScadaMini
 	for {
 		e = csr.Fetch(&_list, 1, false)
 		if e != nil {
@@ -822,14 +830,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	arrDatas := []tk.M{}
 	tempData := tk.M{}
 	tempDatas := []tk.M{}
-	pitchData := tk.M{}
-	pitchDatas := []tk.M{}
 	deviationData := tk.M{}
 	deviationDatas := []tk.M{}
 	for _, val := range list {
 		datas = tk.M{}
 		tempData = tk.M{}
-		pitchData = tk.M{}
 		deviationData = tk.M{}
 
 		if val.Power > 0 {
@@ -840,34 +845,88 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 			arrDatas = append(arrDatas, datas)
 		}
 
-		switch p.ScatterType {
-		case "temp":
-			if val.NacelleTemperature > 0 {
-				tempData.Set("WindSpeed", val.AvgWindSpeed)
-				tempData.Set("Temperature", val.NacelleTemperature)
-				tempData.Set("valueColor", colorField[2])
+		if p.ScatterType != "pitch" {
+			switch p.ScatterType {
+			case "temp":
+				if val.NacelleTemperature > 0 {
+					tempData.Set("WindSpeed", val.AvgWindSpeed)
+					tempData.Set("Temperature", val.NacelleTemperature)
+					tempData.Set("valueColor", colorField[2])
 
-				tempDatas = append(tempDatas, tempData)
-			}
-		case "deviation":
-			deviationData.Set("WindSpeed", val.AvgWindSpeed)
-			deviationData.Set("Deviation", val.WindDirection)
-			deviationData.Set("valueColor", colorField[2])
+					tempDatas = append(tempDatas, tempData)
+				}
+			case "deviation":
+				deviationData.Set("WindSpeed", val.AvgWindSpeed)
+				deviationData.Set("Deviation", val.WindDirection)
+				deviationData.Set("valueColor", colorField[2])
 
-			deviationDatas = append(deviationDatas, deviationData)
-		case "pitch":
-			if val.AvgBladeAngle > -99999.0 && (val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120.0) {
-				pitchData.Set("WindSpeed", val.AvgWindSpeed)
-				pitchData.Set("Pitch", val.AvgBladeAngle)
-				pitchData.Set("valueColor", colorField[2])
-
-				pitchDatas = append(pitchDatas, pitchData)
+				deviationDatas = append(deviationDatas, deviationData)
 			}
 		}
 	}
 	turbineData := setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, arrDatas)
 	dataSeries = append(dataSeries, turbineData)
 
+	/*================== SCADA OEM PART ==================*/
+	if p.ScatterType == "pitch" {
+		var filterOEM []*dbox.Filter
+		filterOEM = []*dbox.Filter{}
+		filterOEM = append(filterOEM, dbox.Ne("_id", ""))
+		filterOEM = append(filterOEM, dbox.Gte("timestamp", tStart))
+		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
+		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
+		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
+		filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
+		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
+
+		csrOEM, e := DB().Connection.NewQuery().
+			From(new(ScadaDataOEM).TableName()).
+			Where(dbox.And(filterOEM...)).
+			Take(10000).
+			Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		var _listOEM ScadaOEMMini
+		var listScadaOEM []ScadaOEMMini
+		for {
+			e = csrOEM.Fetch(&_listOEM, 1, false)
+			if e != nil {
+				break
+			}
+			listScadaOEM = append(listScadaOEM, _listOEM)
+		}
+		defer csrOEM.Close()
+
+		pitchData := tk.M{}
+		pitchDatas := []tk.M{}
+		count := 0.0
+		pitchAngle := 0.0
+		for _, val := range listScadaOEM {
+			pitchData = tk.M{}
+			pitchAngle = 0.0
+			if val.AI_intern_Pitchangle1 >= -10.0 && val.AI_intern_Pitchangle1 <= 120.0 {
+				pitchAngle = val.AI_intern_Pitchangle1
+				count++
+			} else if val.AI_intern_Pitchangle2 >= -10.0 && val.AI_intern_Pitchangle2 <= 120.0 {
+				pitchAngle += val.AI_intern_Pitchangle2
+				count++
+			} else if val.AI_intern_Pitchangle3 >= -10.0 && val.AI_intern_Pitchangle3 <= 120.0 {
+				pitchAngle += val.AI_intern_Pitchangle3
+				count++
+			}
+			pitchAngle /= count
+			if pitchAngle != 0.0 || count > 0 {
+				pitchData.Set("WindSpeed", val.AI_intern_WindSpeed)
+				pitchData.Set("Pitch", pitchAngle)
+				pitchData.Set("valueColor", colorField[2])
+				pitchDatas = append(pitchDatas, pitchData)
+			}
+		}
+		seriesData := setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, pitchDatas)
+		dataSeries = append(dataSeries, seriesData)
+	}
+	/*================== END OF SCADA OEM PART ==================*/
 	switch p.ScatterType {
 	case "temp":
 		/*set data series*/
@@ -875,9 +934,6 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		dataSeries = append(dataSeries, seriesData)
 	case "deviation":
 		seriesData := setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, deviationDatas)
-		dataSeries = append(dataSeries, seriesData)
-	case "pitch":
-		seriesData := setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, pitchDatas)
 		dataSeries = append(dataSeries, seriesData)
 	}
 
