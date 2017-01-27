@@ -878,7 +878,7 @@ tc.LoadData = function(){
             dataSource: knownOutagesDataSource,
             columns: columnArray,
             filterable: false,
-            sortable: true,
+            sortable: false,
             dataBound: function (e) {
                 if (e.sender._data.length == 0) {
                     var mgs, col;
@@ -900,10 +900,12 @@ tc.LoadData = function(){
             resizable: false,
             height:390,
         });
+
         setTimeout(function(){
             // $("#gridTurbineCorrelation").data("kendoGrid").refresh();
             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+            // $("#gridTurbineCorrelation >.k-grid-header >.k-grid-content-locked").css("height","342px!important");
         },200);
 
     });
