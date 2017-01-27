@@ -48,7 +48,7 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	// tk.Println("Date select : ", tStart, " ~ ", tEnd)
 
 	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": query}})
-	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"winddirno": 1, "timestamp": 1}})
+	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"vhubws90mavg": 1, "timestamp": 1}})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
@@ -106,7 +106,7 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 		dkey := trx.TimeStamp.Format("20060102150405")
 
 		_tkm := allres.Get("MetTower", tk.M{}).(tk.M)
-		_tkm.Set(dkey, trx.WindDirNo)
+		_tkm.Set(dkey, trx.VHubWS90mAvg)
 
 		allres.Set("MetTower", _tkm)
 	}
