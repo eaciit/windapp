@@ -893,7 +893,7 @@ tc.LoadData = function(){
                             contentDiv.scrollLeft(1);
                         }
                     }
-                }            
+                }        
             },
             pageable: false,
             scrollable: true,
@@ -905,7 +905,7 @@ tc.LoadData = function(){
             // $("#gridTurbineCorrelation").data("kendoGrid").refresh();
             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
-            // $("#gridTurbineCorrelation >.k-grid-header >.k-grid-content-locked").css("height","342px!important");
+            $("#gridTurbineCorrelation").data("kendoGrid").refresh();
         },200);
 
     });
