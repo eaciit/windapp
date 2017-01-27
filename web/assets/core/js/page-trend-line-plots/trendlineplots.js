@@ -154,7 +154,7 @@ tlp.initChart = function() {
                     visible: false
                 },
                 title: {
-                    text: "Time",//catTitle,
+                    text: catTitle,//"Time",
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 majorTickType: "none",

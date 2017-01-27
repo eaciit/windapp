@@ -1,3 +1,17 @@
+
+#gridTurbineCorrelation ::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+  background: #ecf0f5;
+  -webkit-border-radius: 0ex;
+}
+
+#gridTurbineCorrelation ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  -webkit-border-radius: 0ex;
+  -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+}
+
 label.control-label {
 	padding: 3.9px 30px 6px 6px;
 	display: inline-block;
@@ -164,5 +178,5 @@ label.summary-number {
 	 margin-bottom: -5px;
 }
 #gridTurbineCorrelation .k-grid-content-locked {
-     height: 352px!important; 
+     height: 342px!important; 
 }

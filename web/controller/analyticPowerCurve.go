@@ -935,7 +935,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 	dataSeries = append(dataSeries, pcData)
 
-	/*=======PPOWER LINE QUERY =========*/
+	/*=======POWER LINE QUERY =========*/
 	pipes := []tk.M{}
 	pipes = append(pipes, tk.M{
 		"$group": tk.M{
