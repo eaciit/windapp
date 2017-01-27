@@ -201,6 +201,93 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		dataSeries = append(dataSeries, turbineData)
 		selArr++
 	}
+	metData := tk.M{}
+	metData.Set("name", "Met Tower")
+	metData.Set("type", "line")
+	metData.Set("style", "smooth")
+	metData.Set("dashType", "solid")
+	metData.Set("markers", tk.M{"visible": false})
+	metData.Set("width", 2)
+	metData.Set("color", colorFieldTLP[selArr])
+	metData.Set("idxseries", selArr)
+	/*================================= MET TOWER PART =================================*/
+	if colName == "temp_yawbrake_1" {
+		tk.Println(AvgTlp)
+		// if colName == "kikuk" {
+		pipes = []tk.M{}
+		pipes = append(pipes, tk.M{"$group": tk.M{
+			"_id":       tk.M{"colId": "$dateinfo.dateid"},
+			"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
+			"totaldata": tk.M{"$sum": 1},
+		}})
+		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+		filter = nil
+		filter = append(filter, dbox.Ne("_id", ""))
+		filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+		filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+
+		csrMet, e := DB().Connection.NewQuery().
+			From(new(MetTower).TableName()).
+			Command("pipe", pipes).
+			Where(dbox.And(filter...)).
+			Cursor(nil)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		listMet := []tk.M{}
+		e = csrMet.Fetch(&listMet, 0, false)
+		defer csrMet.Close()
+
+		var datas []float64
+
+		idxAvgTlp := 0
+		shownSeries := false
+		for _, val := range listMet {
+
+			calcColResult := 0.0
+			colresult := val.GetFloat64("colresult")
+			colresultMinus := colresult - deviation
+			colresultPlus := colresult + deviation
+
+			if colresult > AvgTlp[idxAvgTlp] {
+				calcColResult = colresultMinus - AvgTlp[idxAvgTlp]
+			} else {
+				calcColResult = AvgTlp[idxAvgTlp] - colresultPlus
+			}
+
+			if calcColResult > 0.0 {
+				shownSeries = true
+			}
+
+			datas = append(datas, colresult)
+
+			if val.GetFloat64("colresult") < minValue {
+				minValue = colresult
+			}
+			if val.GetFloat64("colresult") > maxValue {
+				maxValue = colresult
+			}
+			idxAvgTlp = idxAvgTlp + 1
+
+		}
+
+		if deviationStatus {
+			if shownSeries {
+				if len(datas) > 0 {
+					metData.Set("data", datas)
+				}
+			}
+		} else {
+			if len(datas) > 0 {
+				metData.Set("data", datas)
+			}
+		}
+		selArr++
+	}
+	/*================================= END OF MET TOWER PART =================================*/
+	dataSeries = append(dataSeries, metData)
 
 	for _, val := range AvgTlp {
 
