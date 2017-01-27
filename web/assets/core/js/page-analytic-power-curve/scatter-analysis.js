@@ -4,7 +4,7 @@ viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 page.colorPalette = ko.observable("websafe");
 page.lessSelectedColour = ko.observable("#ff7663");
-page.graterSelectedColour = ko.observable("#a2df53");
+page.greaterSelectedColour = ko.observable("#a2df53");
 page.markerStyleList = ko.observableArray([
     {value:"circle",text:"Circle"},
     {value:"square",text:"Square"},
@@ -12,9 +12,9 @@ page.markerStyleList = ko.observableArray([
     {value:"cross",text:"Cross"}]);
 
 page.lessValue = ko.observable(20);
-page.graterValue= ko.observable(20);
+page.greaterValue= ko.observable(20);
 page.lessSelectedMarker = ko.observable("circle");
-page.graterSelectedMarker = ko.observable("circle");
+page.greaterSelectedMarker = ko.observable("circle");
 page.dtSeries = ko.observableArray([]);
 
 
@@ -63,6 +63,14 @@ page.LoadData = function() {
 }
 
 page.refreshChart = function() {
+    page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+    if(page.scatterType == 'pitch') {
+        $("#txtLessVal").val(0);
+        $('#txtGreaterVal').val(0);
+    } else {
+        $("#txtLessVal").val(20);
+        $('#txtGreaterVal').val(20);
+    }
     page.LoadData();
 }
 
@@ -72,12 +80,12 @@ page.getPowerCurveScatter = function() {
     var turbine = $("#turbineList").data('kendoDropDownList').value();
 
     var lessValue = $("#txtLessVal").val();
-    var graterValue = $('#txtGraterVal').val();
+    var greaterValue = $('#txtGreaterVal').val();
 
     var lessColor = $("#lessColor").data("kendoColorPicker").value();
-    var graterColor = $("#graterColor").data("kendoColorPicker").value();
+    var greaterColor = $("#greaterColor").data("kendoColorPicker").value();
     var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
-    var graterMarker = $("#graterMarker").data("kendoDropDownList").value();
+    var greaterMarker = $("#greaterMarker").data("kendoDropDownList").value();
 
     var param = {
         period: fa.period,
@@ -86,12 +94,12 @@ page.getPowerCurveScatter = function() {
         turbine: turbine,
         project: fa.project,
         scatterType: page.scatterType,
-        lessDeviation: parseInt(lessValue,10),
-        greaterDeviation: parseInt(graterValue,10),
+        lessValue: parseInt(lessValue,10),
+        greaterValue: parseInt(greaterValue,10),
         lessColor: lessColor,
-        greaterColor: graterColor,
+        greaterColor: greaterColor,
         lessMarker: lessMarker, 
-        graterMarker: graterMarker
+        greaterMarker: greaterMarker
     };
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
         if (!app.isFine(res)) {
@@ -122,17 +130,17 @@ page.getPowerCurveScatter = function() {
 page.changeView=function(param){
 
     var lessColor = $("#lessColor").data("kendoColorPicker").value();
-    var graterColor = $("#graterColor").data("kendoColorPicker").value();
+    var greaterColor = $("#greaterColor").data("kendoColorPicker").value();
     var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
-    var graterMarker = $("#graterMarker").data("kendoDropDownList").value();
+    var greaterMarker = $("#greaterMarker").data("kendoDropDownList").value();
 
     $.each(page.dtSeries(), function(index, value){
         if(value.name.indexOf(param) !== -1){
-            page.dtSeries()[index].color = (param == ">" ? graterColor : lessColor);
+            page.dtSeries()[index].color = (param == ">" ? greaterColor : lessColor);
             page.dtSeries()[index].markers = {
                 size : 2,
-                type : (param == ">" ? graterMarker : lessMarker),
-                background : (param == ">" ? graterColor : lessColor),
+                type : (param == ">" ? greaterMarker : lessMarker),
+                background : (param == ">" ? greaterColor : lessColor),
             }
         }
     });
