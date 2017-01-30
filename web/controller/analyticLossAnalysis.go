@@ -371,134 +371,6 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 	return helper.CreateResult(true, result, "success")
 }
 
-// func (m *AnalyticLossAnalysisController) GetScadaList(k *knot.WebContext) interface{} {
-// 	k.Config.OutputType = knot.OutputJson
-
-// 	var (
-// 		filter     		[]*dbox.Filter
-// 		pipes 			[]tk.M
-// 	)
-
-// 	p := new(PayloadAnalytic)
-// 	e := k.GetPayload(&p)
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-// 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-// 	turbine := p.Turbine
-// 	project := ""
-// if p.Project != "" {
-// 	anProject := strings.Split(p.Project, "(")
-// 	project = strings.TrimRight(anProject[0], " ")
-// }
-
-// 	filter = append(filter, dbox.Ne("_id", ""))
-// 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-// 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
-
-// 	if project != "" {
-// 		filter = append(filter, dbox.Eq("projectname", project))
-// 	}
-// 	if len(turbine) != 0 {
-// 		filter = append(filter, dbox.In("turbine", turbine...))
-// 	}
-
-// 	ids := "$turbine"
-// 	if project == "" {
-// 		ids = "$projectname"
-// 	}
-
-// 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids, "Power": tk.M{"$sum": "$power"}, "Powerlost": tk.M{"$sum": "$powerlost"}}})
-
-// 	csr, e := DB().Connection.NewQuery().
-// 	From(new(ScadaData).TableName()).
-// 	Command("pipe", pipes).
-// 	Where(dbox.And(filter...)).
-// 	Cursor(nil)
-
-// 	if e != nil {
-// 		helper.CreateResult(false, nil, e.Error())
-// 	}
-// 	defer csr.Close()
-
-// 	resultScada := []tk.M{}
-// 	e = csr.Fetch(&resultScada, 0, false)
-
-// 	LossAnalysisResult := []tk.M{}
-// 	for _, val := range resultScada {
-// 		// dummyRes := []tk.M{}
-// 		val.Set("Id", val.GetString("_id"))
-// 		val.Set("Production", (val.GetFloat64("Power")/6)/1000)
-// 		val.Set("EnergyyMD", 0)
-// 		val.Set("EnergyyGD", 0)
-// 		val.Set("PCDeviation", 0)
-// 		val.Set("ElectricLoss", 0)
-// 		val.Set("Others", 0)
-// 		LossAnalysisResult = append(LossAnalysisResult, val)
-// 	}
-
-// 	data := struct {
-// 		Data []tk.M
-// 	}{
-// 		Data: LossAnalysisResult,
-// 	}
-
-// 	return helper.CreateResult(true, data, "success")
-// }
-
-// func (m *AnalyticLossAnalysisController) GetScadaList(k *knot.WebContext) interface{} {
-// 	k.Config.OutputType = knot.OutputJson
-
-// 	p := new(helper.Payloads)
-// 	e := k.GetPayload(&p)
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	filter := p.ParseFilter()
-
-// 	tk.Printf("dt %v\n", filter)
-
-// 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(p.Skip).Take(p.Take)
-// 	query.Where(dbox.And(filter...))
-
-// 	if len(p.Sort) > 0 {
-// 		var arrsort []string
-// 		for _, val := range p.Sort {
-// 			if val.Dir == "desc" {
-// 				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
-// 			} else {
-// 				arrsort = append(arrsort, strings.ToLower(val.Field))
-// 			}
-// 		}
-// 		query = query.Order(arrsort...)
-// 	}
-// 	csr, e := query.Cursor(nil)
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-// 	defer csr.Close()
-
-// 	tmpResult := make([]ScadaData, 0)
-// 	results := make([]ScadaData, 0)
-// 	e = csr.Fetch(&tmpResult, 0, false)
-
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	for _, val := range tmpResult {
-// 		val.TimeStamp = val.TimeStamp.UTC()
-// 		results = append(results, val)
-// 	}
-
-// 	data := struct { Data	[]ScadaData }{ Data:	results }
-
-// 	return helper.CreateResult(true, data, "success")
-// }
-
 func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -872,109 +744,6 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 
 	return result, e
 }
-
-// func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) interface{} {
-// 	k.Config.OutputType = knot.OutputJson
-
-// 	p := new(PayloadAnalytic)
-// 	e := k.GetPayload(&p)
-
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-// 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-// 	turbine := p.Turbine
-// project := ""
-// 	if p.Project != "" {
-// 		anProject := strings.Split(p.Project, "(")
-// 		project = strings.TrimRight(anProject[0], " ")
-// 	}
-
-// 	match := tk.M{}
-// 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-// 	match.Set("projectname", project)
-// 	match.Set("avgwindspeed", tk.M{}.Set("$gte", 3).Set("$lt", 25))
-
-// 	if len(turbine) > 0 {
-// 		match.Set("turbine", tk.M{}.Set("$in", turbine))
-// 	}
-
-// 	group := tk.M{
-// 		"_id":   "$wsavgforpc",
-// 		"total": tk.M{}.Set("$sum", 1),
-// 	}
-
-// 	sort := tk.M{
-// 		"_id": 1,
-// 	}
-
-// 	var pipes []tk.M
-// 	pipes = append(pipes, tk.M{}.Set("$match", match))
-// 	pipes = append(pipes, tk.M{}.Set("$group", group))
-// 	pipes = append(pipes, tk.M{}.Set("$sort", sort))
-
-// 	csr, e := DB().Connection.NewQuery().
-// 		From(new(ScadaData).TableName()).
-// 		Command("pipe", pipes).
-// 		Cursor(nil)
-
-// 	defer csr.Close()
-
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, "Error query : "+e.Error())
-// 	}
-
-// 	results := make([]tk.M, 0)
-// 	e = csr.Fetch(&results, 0, false)
-
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
-// 	}
-
-// 	totalData := c.From(&results).Sum(func(x interface{}) interface{} {
-// 		dt := x.(tk.M)
-// 		return dt["total"].(int)
-// 	}).Exec().Result.Sum
-
-// 	valuewindspeed := tk.M{"3.0": 0}
-// 	valuewindspeed.Set("3.5", 0)
-
-// 	categorywindspeed := []string{}
-// 	categorywindspeed = append(categorywindspeed, "3 - 3.5")
-// 	categorywindspeed = append(categorywindspeed, "3.5 - 4")
-// 	for i := 4; i <= 24; i++ {
-// 		nextPhase := i + 1
-// 		categorywindspeed = append(categorywindspeed, strconv.Itoa(i)+" - "+strconv.Itoa(nextPhase))
-// 		valuewindspeed.Set(strconv.Itoa(i)+".0", 0)
-// 	}
-
-// 	for _, x := range results {
-// 		id := tk.RoundingAuto64(x["_id"].(float64), 1)
-// 		total := x["total"].(int)
-// 		value := tk.Div(float64(total), totalData)
-
-// 		sId := strconv.FormatFloat(id, 'f', 1, 64)
-
-// 		valuewindspeed.Set(sId, value)
-// 	}
-
-// 	retvaluews := []float64{}
-// 	retvaluews = append(retvaluews, valuewindspeed.GetFloat64("3.0"))
-// 	retvaluews = append(retvaluews, valuewindspeed.GetFloat64("3.5"))
-// 	for i := 4; i <= 24; i++ {
-// 		retvaluews = append(retvaluews, valuewindspeed.GetFloat64(strconv.Itoa(i)+".0"))
-// 	}
-
-// 	data := tk.M{
-// 		"categorywindspeed": categorywindspeed,
-// 		"valuewindspeed":    retvaluews,
-// 		"totaldata":         totalData,
-// 	}
-
-// 	return helper.CreateResult(true, data, "success")
-// }
 
 func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
@@ -1401,3 +1170,237 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
+
+
+// func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) interface{} {
+// 	k.Config.OutputType = knot.OutputJson
+
+// 	p := new(PayloadAnalytic)
+// 	e := k.GetPayload(&p)
+
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+// 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+// 	turbine := p.Turbine
+// project := ""
+// 	if p.Project != "" {
+// 		anProject := strings.Split(p.Project, "(")
+// 		project = strings.TrimRight(anProject[0], " ")
+// 	}
+
+// 	match := tk.M{}
+// 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+// 	match.Set("projectname", project)
+// 	match.Set("avgwindspeed", tk.M{}.Set("$gte", 3).Set("$lt", 25))
+
+// 	if len(turbine) > 0 {
+// 		match.Set("turbine", tk.M{}.Set("$in", turbine))
+// 	}
+
+// 	group := tk.M{
+// 		"_id":   "$wsavgforpc",
+// 		"total": tk.M{}.Set("$sum", 1),
+// 	}
+
+// 	sort := tk.M{
+// 		"_id": 1,
+// 	}
+
+// 	var pipes []tk.M
+// 	pipes = append(pipes, tk.M{}.Set("$match", match))
+// 	pipes = append(pipes, tk.M{}.Set("$group", group))
+// 	pipes = append(pipes, tk.M{}.Set("$sort", sort))
+
+// 	csr, e := DB().Connection.NewQuery().
+// 		From(new(ScadaData).TableName()).
+// 		Command("pipe", pipes).
+// 		Cursor(nil)
+
+// 	defer csr.Close()
+
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+// 	}
+
+// 	results := make([]tk.M, 0)
+// 	e = csr.Fetch(&results, 0, false)
+
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
+// 	}
+
+// 	totalData := c.From(&results).Sum(func(x interface{}) interface{} {
+// 		dt := x.(tk.M)
+// 		return dt["total"].(int)
+// 	}).Exec().Result.Sum
+
+// 	valuewindspeed := tk.M{"3.0": 0}
+// 	valuewindspeed.Set("3.5", 0)
+
+// 	categorywindspeed := []string{}
+// 	categorywindspeed = append(categorywindspeed, "3 - 3.5")
+// 	categorywindspeed = append(categorywindspeed, "3.5 - 4")
+// 	for i := 4; i <= 24; i++ {
+// 		nextPhase := i + 1
+// 		categorywindspeed = append(categorywindspeed, strconv.Itoa(i)+" - "+strconv.Itoa(nextPhase))
+// 		valuewindspeed.Set(strconv.Itoa(i)+".0", 0)
+// 	}
+
+// 	for _, x := range results {
+// 		id := tk.RoundingAuto64(x["_id"].(float64), 1)
+// 		total := x["total"].(int)
+// 		value := tk.Div(float64(total), totalData)
+
+// 		sId := strconv.FormatFloat(id, 'f', 1, 64)
+
+// 		valuewindspeed.Set(sId, value)
+// 	}
+
+// 	retvaluews := []float64{}
+// 	retvaluews = append(retvaluews, valuewindspeed.GetFloat64("3.0"))
+// 	retvaluews = append(retvaluews, valuewindspeed.GetFloat64("3.5"))
+// 	for i := 4; i <= 24; i++ {
+// 		retvaluews = append(retvaluews, valuewindspeed.GetFloat64(strconv.Itoa(i)+".0"))
+// 	}
+
+// 	data := tk.M{
+// 		"categorywindspeed": categorywindspeed,
+// 		"valuewindspeed":    retvaluews,
+// 		"totaldata":         totalData,
+// 	}
+
+// 	return helper.CreateResult(true, data, "success")
+// }
+// 
+// 
+// func (m *AnalyticLossAnalysisController) GetScadaList(k *knot.WebContext) interface{} {
+// 	k.Config.OutputType = knot.OutputJson
+
+// 	var (
+// 		filter     		[]*dbox.Filter
+// 		pipes 			[]tk.M
+// 	)
+
+// 	p := new(PayloadAnalytic)
+// 	e := k.GetPayload(&p)
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+// 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+// 	turbine := p.Turbine
+// 	project := ""
+// if p.Project != "" {
+// 	anProject := strings.Split(p.Project, "(")
+// 	project = strings.TrimRight(anProject[0], " ")
+// }
+
+// 	filter = append(filter, dbox.Ne("_id", ""))
+// 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+// 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+
+// 	if project != "" {
+// 		filter = append(filter, dbox.Eq("projectname", project))
+// 	}
+// 	if len(turbine) != 0 {
+// 		filter = append(filter, dbox.In("turbine", turbine...))
+// 	}
+
+// 	ids := "$turbine"
+// 	if project == "" {
+// 		ids = "$projectname"
+// 	}
+
+// 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids, "Power": tk.M{"$sum": "$power"}, "Powerlost": tk.M{"$sum": "$powerlost"}}})
+
+// 	csr, e := DB().Connection.NewQuery().
+// 	From(new(ScadaData).TableName()).
+// 	Command("pipe", pipes).
+// 	Where(dbox.And(filter...)).
+// 	Cursor(nil)
+
+// 	if e != nil {
+// 		helper.CreateResult(false, nil, e.Error())
+// 	}
+// 	defer csr.Close()
+
+// 	resultScada := []tk.M{}
+// 	e = csr.Fetch(&resultScada, 0, false)
+
+// 	LossAnalysisResult := []tk.M{}
+// 	for _, val := range resultScada {
+// 		// dummyRes := []tk.M{}
+// 		val.Set("Id", val.GetString("_id"))
+// 		val.Set("Production", (val.GetFloat64("Power")/6)/1000)
+// 		val.Set("EnergyyMD", 0)
+// 		val.Set("EnergyyGD", 0)
+// 		val.Set("PCDeviation", 0)
+// 		val.Set("ElectricLoss", 0)
+// 		val.Set("Others", 0)
+// 		LossAnalysisResult = append(LossAnalysisResult, val)
+// 	}
+
+// 	data := struct {
+// 		Data []tk.M
+// 	}{
+// 		Data: LossAnalysisResult,
+// 	}
+
+// 	return helper.CreateResult(true, data, "success")
+// }
+
+// func (m *AnalyticLossAnalysisController) GetScadaList(k *knot.WebContext) interface{} {
+// 	k.Config.OutputType = knot.OutputJson
+
+// 	p := new(helper.Payloads)
+// 	e := k.GetPayload(&p)
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	filter := p.ParseFilter()
+
+// 	tk.Printf("dt %v\n", filter)
+
+// 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(p.Skip).Take(p.Take)
+// 	query.Where(dbox.And(filter...))
+
+// 	if len(p.Sort) > 0 {
+// 		var arrsort []string
+// 		for _, val := range p.Sort {
+// 			if val.Dir == "desc" {
+// 				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+// 			} else {
+// 				arrsort = append(arrsort, strings.ToLower(val.Field))
+// 			}
+// 		}
+// 		query = query.Order(arrsort...)
+// 	}
+// 	csr, e := query.Cursor(nil)
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+// 	defer csr.Close()
+
+// 	tmpResult := make([]ScadaData, 0)
+// 	results := make([]ScadaData, 0)
+// 	e = csr.Fetch(&tmpResult, 0, false)
+
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	for _, val := range tmpResult {
+// 		val.TimeStamp = val.TimeStamp.UTC()
+// 		results = append(results, val)
+// 	}
+
+// 	data := struct { Data	[]ScadaData }{ Data:	results }
+
+// 	return helper.CreateResult(true, data, "success")
+// }
+
