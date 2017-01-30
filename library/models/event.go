@@ -65,6 +65,7 @@ type EventDown struct {
 	DateInfoEnd DateInfo
 	// DateInfoEndUTC   DateInfo
 	AlarmDescription string
+	BrakeType        string // add by ams, regarding to add new req | 20170130
 	Duration         float64
 	Detail           []EventDownDetail
 	DownGrid         bool
@@ -80,6 +81,7 @@ type EventDownDetail struct {
 	// DateInfoUTC      DateInfo
 	AlarmId          int
 	AlarmDescription string
+	BrakeType        string // add by ams, regarding to add new req | 20170130
 	AlarmToggle      bool
 }
 
