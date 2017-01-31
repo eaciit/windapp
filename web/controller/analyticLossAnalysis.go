@@ -402,38 +402,38 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	result.Set("loss", loss)
 
 	// =============== Component Alarm =============
-	componentduration, e := getTopComponentAlarm("duration", p, k)
+	componentduration, e := getTopComponentAlarm("breaketype", "duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("componentduration", componentduration)
 
-	componentfrequency, e := getTopComponentAlarm("frequency", p, k)
+	componentfrequency, e := getTopComponentAlarm("breaketype", "frequency", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("componentfrequency", componentfrequency)
 
-	componentloss, e := getTopComponentAlarm("loss", p, k)
+	componentloss, e := getTopComponentAlarm("breaketype", "loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("componentloss", componentloss)
 
-	// =======
-	alarmduration, e := getTopComponentAlarm("duration", p, k)
+	// ======= Alarm
+	alarmduration, e := getTopComponentAlarm("alertdescription", "duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("alarmduration", alarmduration)
 
-	alarmfrequency, e := getTopComponentAlarm("frequency", p, k)
+	alarmfrequency, e := getTopComponentAlarm("alertdescription", "frequency", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("alarmfrequency", alarmfrequency)
 
-	alarmloss, e := getTopComponentAlarm("loss", p, k)
+	alarmloss, e := getTopComponentAlarm("alertdescription", "loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -778,7 +778,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 	return result, e
 }
 
-func getTopComponentAlarm(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
+func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
 	var result []tk.M
 	var e error
 	var pipes []tk.M
@@ -804,11 +804,11 @@ func getTopComponentAlarm(topType string, p *PayloadAnalytic, k *knot.WebContext
 		pipes = append(pipes, tk.M{"$unwind": "$detail"})
 		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.duration"}}})
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$" + Id, "result": tk.M{"$sum": "$detail.duration"}}})
 		} else if topType == "frequency" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": 1}}})
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$" + Id, "result": tk.M{"$sum": 1}}})
 		} else if topType == "loss" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$" + Id, "result": tk.M{"$sum": "$detail.powerlost"}}})
 		}
 
 		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
@@ -824,8 +824,8 @@ func getTopComponentAlarm(topType string, p *PayloadAnalytic, k *knot.WebContext
 			return result, e
 		}
 
-		top10Turbines := []tk.M{}
-		e = csr.Fetch(&top10Turbines, 0, false)
+		// top10Turbines := []tk.M{}
+		e = csr.Fetch(&result, 0, false)
 
 		csr.Close()
 
@@ -833,143 +833,143 @@ func getTopComponentAlarm(topType string, p *PayloadAnalytic, k *knot.WebContext
 			return result, e
 		}
 
-		// get the downtime
-		turbines := []string{}
-		turbinesVal := tk.M{}
+		//// get the downtime
+		// turbines := []string{}
+		// turbinesVal := tk.M{}
 
-		for _, turbine := range top10Turbines {
-			turbines = append(turbines, turbine.Get("_id").(string))
-			turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result"))
-		}
+		// for _, turbine := range top10Turbines {
+		// 	turbines = append(turbines, turbine.Get("_id").(string))
+		// 	turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result"))
+		// }
 
-		match.Set("turbine", tk.M{"$in": turbines})
+		// match.Set("turbine", tk.M{"$in": turbines})
 
-		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
-		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause := tk.M{}
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
+		// downCause.Set("griddown", "Grid Down")
+		// downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("machinedown", "Machine Down")
+		// downCause.Set("unknown", "Unknown")
+		// downCause.Set("weatherstop", "Weather Stop")
 
-		tmpResult := []tk.M{}
-		downDone := []string{}
+		// tmpResult := []tk.M{}
+		// downDone := []string{}
 
-		for f, t := range downCause {
-			pipes = []tk.M{}
-			loopMatch := match
-			field := tk.ToString(f)
-			title := tk.ToString(t)
+		// for f, t := range downCause {
+		// 	pipes = []tk.M{}
+		// 	loopMatch := match
+		// 	field := tk.ToString(f)
+		// 	title := tk.ToString(t)
 
-			downDone = append(downDone, field)
+		// 	downDone = append(downDone, field)
 
-			for _, done := range downDone {
-				match.Unset("detail." + done)
-			}
+		// 	for _, done := range downDone {
+		// 		match.Unset("detail." + done)
+		// 	}
 
-			loopMatch.Set("detail."+field, true)
+		// 	loopMatch.Set("detail."+field, true)
 
-			pipes = append(pipes, tk.M{"$unwind": "$detail"})
-			pipes = append(pipes, tk.M{"$match": loopMatch})
-			if topType == "duration" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": "$detail.duration"},
-						},
-					},
-				)
-			} else if topType == "frequency" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": 1},
-						},
-					},
-				)
-			} else if topType == "loss" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": "$detail.powerlost"},
-						},
-					},
-				)
-			}
+		// 	pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		// 	pipes = append(pipes, tk.M{"$match": loopMatch})
+		// 	if topType == "duration" {
+		// 		pipes = append(pipes,
+		// 			tk.M{
+		// 				"$group": tk.M{"_id": tk.M{"id3": "$" + Id, "id4": title},
+		// 					"result": tk.M{"$sum": "$detail.duration"},
+		// 				},
+		// 			},
+		// 		)
+		// 	} else if topType == "frequency" {
+		// 		pipes = append(pipes,
+		// 			tk.M{
+		// 				"$group": tk.M{"_id": tk.M{"id3": "$" + Id, "id4": title},
+		// 					"result": tk.M{"$sum": 1},
+		// 				},
+		// 			},
+		// 		)
+		// 	} else if topType == "loss" {
+		// 		pipes = append(pipes,
+		// 			tk.M{
+		// 				"$group": tk.M{"_id": tk.M{"id3": "$" + Id, "id4": title},
+		// 					"result": tk.M{"$sum": "$detail.powerlost"},
+		// 				},
+		// 			},
+		// 		)
+		// 	}
 
-			pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+		// 	pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
 
-			csr, e := DB().Connection.NewQuery().
-				From(new(Alarm).TableName()).
-				Command("pipe", pipes).
-				Cursor(nil)
+		// 	csr, e := DB().Connection.NewQuery().
+		// 		From(new(Alarm).TableName()).
+		// 		Command("pipe", pipes).
+		// 		Cursor(nil)
 
-			if e != nil {
-				return result, e
-			}
+		// 	if e != nil {
+		// 		return result, e
+		// 	}
 
-			resLoop := []tk.M{}
-			e = csr.Fetch(&resLoop, 0, false)
+		// 	resLoop := []tk.M{}
+		// 	e = csr.Fetch(&resLoop, 0, false)
 
-			csr.Close()
+		// 	csr.Close()
 
-			for _, res := range resLoop {
-				tmpResult = append(tmpResult, res)
-			}
-		}
+		// 	for _, res := range resLoop {
+		// 		tmpResult = append(tmpResult, res)
+		// 	}
+		// }
 
-		resY := []tk.M{}
+		// resY := []tk.M{}
 
-		for _, t := range downCause {
-			title := tk.ToString(t)
+		// for _, t := range downCause {
+		// 	title := tk.ToString(t)
 
-			for _, turbine := range turbines {
-				resX := tk.M{}
-				resX.Set("_id", tk.M{"id3": turbine, "id4": title})
-				resX.Set("result", 0)
+		// 	for _, turbine := range turbines {
+		// 		resX := tk.M{}
+		// 		resX.Set("_id", tk.M{"id3": turbine, "id4": title})
+		// 		resX.Set("result", 0)
 
-			out:
-				for _, res := range tmpResult {
-					id3 := res.Get("_id").(tk.M).GetString("id3")
-					id4 := res.Get("_id").(tk.M).GetString("id4")
+		// 	out:
+		// 		for _, res := range tmpResult {
+		// 			id3 := res.Get("_id").(tk.M).GetString("id3")
+		// 			id4 := res.Get("_id").(tk.M).GetString("id4")
 
-					if id3 == turbine && id4 == title {
-						resX = res
-						break out
-					}
-				}
-				resY = append(resY, resX)
-			}
-		}
+		// 			if id3 == turbine && id4 == title {
+		// 				resX = res
+		// 				break out
+		// 			}
+		// 		}
+		// 		resY = append(resY, resX)
+		// 	}
+		// }
 
-		for _, turbine := range turbines {
-			resVal := tk.M{}
-			resVal.Set("_id", turbine)
+		// for _, turbine := range turbines {
+		// 	resVal := tk.M{}
+		// 	resVal.Set("_id", turbine)
 
-			for _, val := range resY {
-				valTurbine := val.Get("_id").(tk.M).GetString("id3")
-				valResult := val.GetFloat64("result")
-				valTitle := ""
+		// 	for _, val := range resY {
+		// 		valTurbine := val.Get("_id").(tk.M).GetString("id3")
+		// 		valResult := val.GetFloat64("result")
+		// 		valTitle := ""
 
-				splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
+		// 		splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
 
-				if len(splitTitle) > 1 {
-					valTitle = splitTitle[0] + "" + splitTitle[1]
-				} else {
-					valTitle = splitTitle[0]
-				}
+		// 		if len(splitTitle) > 1 {
+		// 			valTitle = splitTitle[0] + "" + splitTitle[1]
+		// 		} else {
+		// 			valTitle = splitTitle[0]
+		// 		}
 
-				if turbine == valTurbine && valResult != 0 {
-					resVal.Set(valTitle, valResult)
-				} else if resVal.Get(valTitle) == nil {
-					resVal.Set(valTitle, 0)
-				}
-			}
+		// 		if turbine == valTurbine && valResult != 0 {
+		// 			resVal.Set(valTitle, valResult)
+		// 		} else if resVal.Get(valTitle) == nil {
+		// 			resVal.Set(valTitle, 0)
+		// 		}
+		// 	}
 
-			resVal.Set("Total", turbinesVal.GetFloat64(turbine))
-			result = append(result, resVal)
-		}
+		// 	resVal.Set("Total", turbinesVal.GetFloat64(turbine))
+		// 	result = append(result, resVal)
+		// }
 	}
 
 	return result, e
