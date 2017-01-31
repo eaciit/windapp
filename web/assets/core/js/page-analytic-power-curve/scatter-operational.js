@@ -66,6 +66,10 @@ page.getPowerCurveScatter = function() {
         var title = '';
         var xAxis = {};
         var measurement = '';
+        var format = 'N0'
+        if(maxAxisX - minAxisX < 7) {
+            format = 'N2'
+        }
         switch(page.scatterType) {
             case "pitch":
                 name = 'pitchAxis'
@@ -87,7 +91,7 @@ page.getPowerCurveScatter = function() {
             },
             labels: {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                format: "N0"
+                format: format
             },
             line: {
                 visible: false
