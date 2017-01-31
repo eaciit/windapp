@@ -211,7 +211,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	metData.Set("color", colorFieldTLP[selArr])
 	metData.Set("idxseries", selArr)
 	/*================================= MET TOWER PART =================================*/
-	if colName == "temp_yawbrake_1" {
+	if colName == "temp_outdoor" {
 		tk.Println(AvgTlp)
 		// if colName == "kikuk" {
 		pipes = []tk.M{}

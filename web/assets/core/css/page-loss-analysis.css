@@ -163,3 +163,15 @@ label.summary-number {
 	position: relative;
 	z-index: 999999
 }
+.Tcenter{
+	text-align: center;
+}
+.nav-CA{
+    margin: auto;
+    text-align: center;
+    margin-bottom: 0px;
+}
+.radio-filter {
+	width: 125px !important;
+	margin-bottom: 2px !important;
+}

@@ -371,134 +371,6 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 	return helper.CreateResult(true, result, "success")
 }
 
-// func (m *AnalyticLossAnalysisController) GetScadaList(k *knot.WebContext) interface{} {
-// 	k.Config.OutputType = knot.OutputJson
-
-// 	var (
-// 		filter     		[]*dbox.Filter
-// 		pipes 			[]tk.M
-// 	)
-
-// 	p := new(PayloadAnalytic)
-// 	e := k.GetPayload(&p)
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-// 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-// 	turbine := p.Turbine
-// 	project := ""
-// if p.Project != "" {
-// 	anProject := strings.Split(p.Project, "(")
-// 	project = strings.TrimRight(anProject[0], " ")
-// }
-
-// 	filter = append(filter, dbox.Ne("_id", ""))
-// 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-// 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
-
-// 	if project != "" {
-// 		filter = append(filter, dbox.Eq("projectname", project))
-// 	}
-// 	if len(turbine) != 0 {
-// 		filter = append(filter, dbox.In("turbine", turbine...))
-// 	}
-
-// 	ids := "$turbine"
-// 	if project == "" {
-// 		ids = "$projectname"
-// 	}
-
-// 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids, "Power": tk.M{"$sum": "$power"}, "Powerlost": tk.M{"$sum": "$powerlost"}}})
-
-// 	csr, e := DB().Connection.NewQuery().
-// 	From(new(ScadaData).TableName()).
-// 	Command("pipe", pipes).
-// 	Where(dbox.And(filter...)).
-// 	Cursor(nil)
-
-// 	if e != nil {
-// 		helper.CreateResult(false, nil, e.Error())
-// 	}
-// 	defer csr.Close()
-
-// 	resultScada := []tk.M{}
-// 	e = csr.Fetch(&resultScada, 0, false)
-
-// 	LossAnalysisResult := []tk.M{}
-// 	for _, val := range resultScada {
-// 		// dummyRes := []tk.M{}
-// 		val.Set("Id", val.GetString("_id"))
-// 		val.Set("Production", (val.GetFloat64("Power")/6)/1000)
-// 		val.Set("EnergyyMD", 0)
-// 		val.Set("EnergyyGD", 0)
-// 		val.Set("PCDeviation", 0)
-// 		val.Set("ElectricLoss", 0)
-// 		val.Set("Others", 0)
-// 		LossAnalysisResult = append(LossAnalysisResult, val)
-// 	}
-
-// 	data := struct {
-// 		Data []tk.M
-// 	}{
-// 		Data: LossAnalysisResult,
-// 	}
-
-// 	return helper.CreateResult(true, data, "success")
-// }
-
-// func (m *AnalyticLossAnalysisController) GetScadaList(k *knot.WebContext) interface{} {
-// 	k.Config.OutputType = knot.OutputJson
-
-// 	p := new(helper.Payloads)
-// 	e := k.GetPayload(&p)
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	filter := p.ParseFilter()
-
-// 	tk.Printf("dt %v\n", filter)
-
-// 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(p.Skip).Take(p.Take)
-// 	query.Where(dbox.And(filter...))
-
-// 	if len(p.Sort) > 0 {
-// 		var arrsort []string
-// 		for _, val := range p.Sort {
-// 			if val.Dir == "desc" {
-// 				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
-// 			} else {
-// 				arrsort = append(arrsort, strings.ToLower(val.Field))
-// 			}
-// 		}
-// 		query = query.Order(arrsort...)
-// 	}
-// 	csr, e := query.Cursor(nil)
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-// 	defer csr.Close()
-
-// 	tmpResult := make([]ScadaData, 0)
-// 	results := make([]ScadaData, 0)
-// 	e = csr.Fetch(&tmpResult, 0, false)
-
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
-
-// 	for _, val := range tmpResult {
-// 		val.TimeStamp = val.TimeStamp.UTC()
-// 		results = append(results, val)
-// 	}
-
-// 	data := struct { Data	[]ScadaData }{ Data:	results }
-
-// 	return helper.CreateResult(true, data, "success")
-// }
-
 func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -509,40 +381,82 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 
 	result := tk.M{}
-	// demiWaktu := time.Now()
+
+	// =============== DOWNTIME =============
 	duration, e := getDownTimeTopFiltered("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("duration", duration)
+
 	frequency, e := getDownTimeTopFiltered("frequency", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("frequency", frequency)
+
 	loss, e := getDownTimeTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("loss", loss)
-	// tk.Println("getDownTimeTopFiltered >>>>", time.Since(demiWaktu))
-	// demiWaktu = time.Now()
+
+	// =============== Component Alarm =============
+	componentduration, e := getTopComponentAlarm("duration", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("componentduration", componentduration)
+
+	componentfrequency, e := getTopComponentAlarm("frequency", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("componentfrequency", componentfrequency)
+
+	componentloss, e := getTopComponentAlarm("loss", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("componentloss", componentloss)
+
+	// =======
+	alarmduration, e := getTopComponentAlarm("duration", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("alarmduration", alarmduration)
+
+	alarmfrequency, e := getTopComponentAlarm("frequency", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("alarmfrequency", alarmfrequency)
+
+	alarmloss, e := getTopComponentAlarm("loss", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("alarmloss", alarmloss)
+
+	// =============== OTHER =============
 	catloss, e := getCatLossTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catloss", catloss)
+
 	catlossduration, e := getCatLossTopFiltered("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catlossduration", catlossduration)
+
 	catlossfreq, e := getCatLossTopFiltered("frequency", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catlossfreq", catlossfreq)
-	// tk.Println("getCatLossTopFiltered >>>>", time.Since(demiWaktu))
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -669,8 +583,6 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 	match := tk.M{}
 
 	if p != nil {
-		// tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-		// tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 		if e != nil {
 			return result, e
@@ -700,15 +612,8 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
 		pipes = append(pipes, tk.M{"$limit": 10})
 
-		/*log.Printf("date: %v | %v \n", tStart, tEnd)
-
-		for _, v := range pipes {
-			log.Printf("pipes: %#v \n", v)
-		}*/
-
 		// get the top 10
 		csr, e := DB().Connection.NewQuery().
-			//Select("_id").
 			From(new(Alarm).TableName()).
 			Command("pipe", pipes).
 			Cursor(nil)
@@ -873,108 +778,202 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 	return result, e
 }
 
-// func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) interface{} {
-// 	k.Config.OutputType = knot.OutputJson
+func getTopComponentAlarm(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
+	var result []tk.M
+	var e error
+	var pipes []tk.M
+	match := tk.M{}
 
-// 	p := new(PayloadAnalytic)
-// 	e := k.GetPayload(&p)
+	if p != nil {
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return result, e
+		}
 
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, e.Error())
-// 	}
+		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
-// 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-// 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-// 	turbine := p.Turbine
-// project := ""
-// 	if p.Project != "" {
-// 		anProject := strings.Split(p.Project, "(")
-// 		project = strings.TrimRight(anProject[0], " ")
-// 	}
+		if p.Project != "" {
+			anProject := strings.Split(p.Project, "(")
+			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+		}
 
-// 	match := tk.M{}
-// 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-// 	match.Set("projectname", project)
-// 	match.Set("avgwindspeed", tk.M{}.Set("$gte", 3).Set("$lt", 25))
+		if len(p.Turbine) != 0 {
+			match.Set("turbine", tk.M{"$in": p.Turbine})
+		}
 
-// 	if len(turbine) > 0 {
-// 		match.Set("turbine", tk.M{}.Set("$in", turbine))
-// 	}
+		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		pipes = append(pipes, tk.M{"$match": match})
+		if topType == "duration" {
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.duration"}}})
+		} else if topType == "frequency" {
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": 1}}})
+		} else if topType == "loss" {
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
+		}
 
-// 	group := tk.M{
-// 		"_id":   "$wsavgforpc",
-// 		"total": tk.M{}.Set("$sum", 1),
-// 	}
+		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+		pipes = append(pipes, tk.M{"$limit": 10})
 
-// 	sort := tk.M{
-// 		"_id": 1,
-// 	}
+		// get the top 10
+		csr, e := DB().Connection.NewQuery().
+			From(new(Alarm).TableName()).
+			Command("pipe", pipes).
+			Cursor(nil)
 
-// 	var pipes []tk.M
-// 	pipes = append(pipes, tk.M{}.Set("$match", match))
-// 	pipes = append(pipes, tk.M{}.Set("$group", group))
-// 	pipes = append(pipes, tk.M{}.Set("$sort", sort))
+		if e != nil {
+			return result, e
+		}
 
-// 	csr, e := DB().Connection.NewQuery().
-// 		From(new(ScadaData).TableName()).
-// 		Command("pipe", pipes).
-// 		Cursor(nil)
+		top10Turbines := []tk.M{}
+		e = csr.Fetch(&top10Turbines, 0, false)
 
-// 	defer csr.Close()
+		csr.Close()
 
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, "Error query : "+e.Error())
-// 	}
+		if e != nil {
+			return result, e
+		}
 
-// 	results := make([]tk.M, 0)
-// 	e = csr.Fetch(&results, 0, false)
+		// get the downtime
+		turbines := []string{}
+		turbinesVal := tk.M{}
 
-// 	if e != nil {
-// 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
-// 	}
+		for _, turbine := range top10Turbines {
+			turbines = append(turbines, turbine.Get("_id").(string))
+			turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result"))
+		}
 
-// 	totalData := c.From(&results).Sum(func(x interface{}) interface{} {
-// 		dt := x.(tk.M)
-// 		return dt["total"].(int)
-// 	}).Exec().Result.Sum
+		match.Set("turbine", tk.M{"$in": turbines})
 
-// 	valuewindspeed := tk.M{"3.0": 0}
-// 	valuewindspeed.Set("3.5", 0)
+		downCause := tk.M{}
+		downCause.Set("aebok", "AEBOK")
+		downCause.Set("externalstop", "External Stop")
+		downCause.Set("griddown", "Grid Down")
+		downCause.Set("internalgrid", "Internal Grid")
+		downCause.Set("machinedown", "Machine Down")
+		downCause.Set("unknown", "Unknown")
+		downCause.Set("weatherstop", "Weather Stop")
 
-// 	categorywindspeed := []string{}
-// 	categorywindspeed = append(categorywindspeed, "3 - 3.5")
-// 	categorywindspeed = append(categorywindspeed, "3.5 - 4")
-// 	for i := 4; i <= 24; i++ {
-// 		nextPhase := i + 1
-// 		categorywindspeed = append(categorywindspeed, strconv.Itoa(i)+" - "+strconv.Itoa(nextPhase))
-// 		valuewindspeed.Set(strconv.Itoa(i)+".0", 0)
-// 	}
+		tmpResult := []tk.M{}
+		downDone := []string{}
 
-// 	for _, x := range results {
-// 		id := tk.RoundingAuto64(x["_id"].(float64), 1)
-// 		total := x["total"].(int)
-// 		value := tk.Div(float64(total), totalData)
+		for f, t := range downCause {
+			pipes = []tk.M{}
+			loopMatch := match
+			field := tk.ToString(f)
+			title := tk.ToString(t)
 
-// 		sId := strconv.FormatFloat(id, 'f', 1, 64)
+			downDone = append(downDone, field)
 
-// 		valuewindspeed.Set(sId, value)
-// 	}
+			for _, done := range downDone {
+				match.Unset("detail." + done)
+			}
 
-// 	retvaluews := []float64{}
-// 	retvaluews = append(retvaluews, valuewindspeed.GetFloat64("3.0"))
-// 	retvaluews = append(retvaluews, valuewindspeed.GetFloat64("3.5"))
-// 	for i := 4; i <= 24; i++ {
-// 		retvaluews = append(retvaluews, valuewindspeed.GetFloat64(strconv.Itoa(i)+".0"))
-// 	}
+			loopMatch.Set("detail."+field, true)
 
-// 	data := tk.M{
-// 		"categorywindspeed": categorywindspeed,
-// 		"valuewindspeed":    retvaluews,
-// 		"totaldata":         totalData,
-// 	}
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": loopMatch})
+			if topType == "duration" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
+							"result": tk.M{"$sum": "$detail.duration"},
+						},
+					},
+				)
+			} else if topType == "frequency" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
+							"result": tk.M{"$sum": 1},
+						},
+					},
+				)
+			} else if topType == "loss" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
+							"result": tk.M{"$sum": "$detail.powerlost"},
+						},
+					},
+				)
+			}
 
-// 	return helper.CreateResult(true, data, "success")
-// }
+			pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+
+			csr, e := DB().Connection.NewQuery().
+				From(new(Alarm).TableName()).
+				Command("pipe", pipes).
+				Cursor(nil)
+
+			if e != nil {
+				return result, e
+			}
+
+			resLoop := []tk.M{}
+			e = csr.Fetch(&resLoop, 0, false)
+
+			csr.Close()
+
+			for _, res := range resLoop {
+				tmpResult = append(tmpResult, res)
+			}
+		}
+
+		resY := []tk.M{}
+
+		for _, t := range downCause {
+			title := tk.ToString(t)
+
+			for _, turbine := range turbines {
+				resX := tk.M{}
+				resX.Set("_id", tk.M{"id3": turbine, "id4": title})
+				resX.Set("result", 0)
+
+			out:
+				for _, res := range tmpResult {
+					id3 := res.Get("_id").(tk.M).GetString("id3")
+					id4 := res.Get("_id").(tk.M).GetString("id4")
+
+					if id3 == turbine && id4 == title {
+						resX = res
+						break out
+					}
+				}
+				resY = append(resY, resX)
+			}
+		}
+
+		for _, turbine := range turbines {
+			resVal := tk.M{}
+			resVal.Set("_id", turbine)
+
+			for _, val := range resY {
+				valTurbine := val.Get("_id").(tk.M).GetString("id3")
+				valResult := val.GetFloat64("result")
+				valTitle := ""
+
+				splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
+
+				if len(splitTitle) > 1 {
+					valTitle = splitTitle[0] + "" + splitTitle[1]
+				} else {
+					valTitle = splitTitle[0]
+				}
+
+				if turbine == valTurbine && valResult != 0 {
+					resVal.Set(valTitle, valResult)
+				} else if resVal.Get(valTitle) == nil {
+					resVal.Set(valTitle, 0)
+				}
+			}
+
+			resVal.Set("Total", turbinesVal.GetFloat64(turbine))
+			result = append(result, resVal)
+		}
+	}
+
+	return result, e
+}
 
 func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
@@ -1401,3 +1400,4 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
+

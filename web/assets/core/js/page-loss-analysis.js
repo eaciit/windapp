@@ -30,6 +30,9 @@ pg.availabledateendalarm2 = ko.observable();
 pg.availabledatestartwarning = ko.observable();
 pg.availabledateendwarning = ko.observable();
 
+pg.dtCompponentAlarm = ko.observable();
+pg.labelAlarm = ko.observable("");
+
 var height = $(".content").width() * 0.125;
 
 pg.breakDownList = ko.observableArray([
@@ -244,8 +247,8 @@ pg.GridLoss = function () {
     });
 };
 
-pg.DTDuration = function (dataSource) {
-    $("#chartDTDuration").kendoChart({
+pg.DTDuration = function (dataSource,id) {
+    $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: [
@@ -340,14 +343,20 @@ pg.DTDuration = function (dataSource) {
             },
 
         },
-        seriesClick: function (e) {
-            pg.toDetailDTTop(e, "Hours");
-        }
+        // seriesClick: function (e) {
+        //     pg.toDetailDTTop(e, "Hours");
+        // }
     });
+
+    setTimeout(function () {
+        if ($("#" + id).data("kendoChart") != null) {
+            $("#" + id).data("kendoChart").refresh();
+        }
+    }, 100);
 }
 
-pg.DTFrequency = function (dataSource) {
-    $("#chartDTFrequency").kendoChart({
+pg.DTFrequency = function (dataSource,id) {
+    $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
             // group: [{field: "_id.id4"}],
@@ -442,14 +451,20 @@ pg.DTFrequency = function (dataSource) {
                 width: "2px",
             },
         },
-        seriesClick: function (e) {
-            pg.toDetailDTTop(e, "Times");
-        }
+        // seriesClick: function (e) {
+        //     pg.toDetailDTTop(e, "Times");
+        // }
     });
+
+    setTimeout(function () {
+        if ($("#" + id).data("kendoChart") != null) {
+            $("#" + id).data("kendoChart").refresh();
+        }
+    }, 100);
 }
 
-pg.TopTurbineLoss = function (dataSource) {
-    $("#chartTopTurbineLoss").kendoChart({
+pg.TopTurbineLoss = function (dataSource,id) {
+    $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: [
@@ -549,6 +564,12 @@ pg.TopTurbineLoss = function (dataSource) {
         //     avail.toDetailDTTop(e, "MWh");
         // }
     });
+
+    setTimeout(function () {
+        if ($("#" + id).data("kendoChart") != null) {
+            $("#" + id).data("kendoChart").refresh();
+        }
+    }, 100);
 }
 
 pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
@@ -1141,15 +1162,22 @@ pg.loadData = function () {
         })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
-            // console.log(res);
             if (!app.isFine(res)) {
                 return;
             }
 
-            pg.DTDuration(res.data.duration);
-            pg.DTFrequency(res.data.frequency);
-            pg.TopTurbineLoss(res.data.loss);
-            // pg.TLossCat('chartLCByLTE', true, res.data.catloss, 'MWh');
+            pg.dtCompponentAlarm(res.data)
+
+            // ===== Downtime =====
+            pg.DTDuration(res.data.duration,'chartDTDuration');
+            pg.DTFrequency(res.data.frequency,'chartDTFrequency');
+            pg.TopTurbineLoss(res.data.loss,'chartTopTurbineLoss');
+
+            // ===== Alarm =====
+            pg.DTDuration(res.data.componentduration,'chartCADuration');
+            pg.DTFrequency(res.data.componentfrequency,'chartCAFrequency');
+            pg.TopTurbineLoss(res.data.componentloss,'chartCATurbineLoss');
+
             pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
             pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
@@ -1254,6 +1282,18 @@ pg.refreshGrid = function (param) {
 
         if ($("#warningGrid").data("kendoGrid") != null) {
             $("#warningGrid").data("kendoGrid").refresh();
+        }
+
+        if ($("#chartCADuration").data("kendoChart") != null) {
+            $("#chartCADuration").data("kendoChart").refresh();
+        }
+
+        if ($("#chartCAFrequency").data("kendoChart") != null) {
+            $("#chartCAFrequency").data("kendoChart").refresh();
+        }
+
+        if ($("#chartCATurbineLoss").data("kendoChart") != null) {
+            $("#chartCATurbineLoss").data("kendoChart").refresh();
         }
 
         app.loading(false);
@@ -1414,5 +1454,26 @@ $(document).ready(function () {
         $("#dateEnd").change(function () { fa.DateChange(pg.SetBreakDown()) });
 
     }, 1500);
+
+
+    $("input[name=IsAlarm]").on("change", function() {
+        
+            var data = pg.dtCompponentAlarm()
+            if(this.id == "alarm"){                
+                // ===== Alarm =====
+                pg.DTDuration(data.alarmduration,'chartCADuration');
+                pg.DTFrequency(data.alarmfrequency,'chartCAFrequency');
+                pg.TopTurbineLoss(data.alarmloss,'chartCATurbineLoss');
+
+                pg.labelAlarm(" Top 10 ")
+            }else{                
+                // ===== Component =====
+                pg.DTDuration(data.componentduration,'chartCADuration');
+                pg.DTFrequency(data.componentfrequency,'chartCAFrequency');
+                pg.TopTurbineLoss(data.componentloss,'chartCATurbineLoss');
+
+                pg.labelAlarm("")
+            }
+    });
 
 });
