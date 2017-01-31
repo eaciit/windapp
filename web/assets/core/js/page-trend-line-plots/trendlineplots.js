@@ -19,7 +19,7 @@ tlp.turbineList = ko.observableArray([]);
 
 tlp.turbine = ko.observableArray([]);
 tlp.compTemp = ko.observableArray([
-    { "value": 2, "text": "Ambient Temp", "colname": "temp_yawbrake_1" },
+    { "value": 2, "text": "Ambient Temp", "colname": "temp_outdoor" },
     { "value": 5, "text": "Temp_GearBox_IMS_NDE", "colname": "temp_gearbox_ims_nde" }, 
     { "value": 5, "text": "Temp_GearBox_HSS_NDE", "colname": "temp_gearbox_hss_nde"  },
     { "value": 5, "text": "Temp_G1L1", "colname": "temp_g1l1"  },
