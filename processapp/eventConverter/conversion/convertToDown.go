@@ -130,6 +130,9 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						// tmp.DateInfoUTC = data.DateInfoUTC
 						tmp.AlarmDescription = data.AlarmDescription
 
+						// add by ams, regarding to add new req | 20170130
+						tmp.BrakeType = data.BrakeType
+
 						// log.Printf("trueFound: %v | %#v \n", idx, len(trueFound))
 
 						var isTrue bool
@@ -167,6 +170,10 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							down.DateInfoEnd = end.DateInfo
 
 							down.AlarmDescription = start.AlarmDescription
+
+							// add by ams, regarding to add new req | 20170130
+							down.BrakeType = start.BrakeType
+
 							down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
 
 							down.Detail = details
@@ -252,6 +259,10 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 								down.DateInfoEnd = end.DateInfo
 
 								down.AlarmDescription = start.AlarmDescription
+
+								// add by ams, regarding to add new req | 20170130
+								down.BrakeType = start.BrakeType
+
 								down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
 
 								down.Detail = details
