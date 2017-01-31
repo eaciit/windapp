@@ -8,6 +8,7 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
+	"math"
 	"sort"
 	"time"
 )
@@ -86,8 +87,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	filter = nil
 	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfoutc.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfoutc.dateid", tEnd))
+	filter = append(filter, dbox.Gte("timestamputc", tStart))
+	filter = append(filter, dbox.Lte("timestamputc", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
 	filter = append(filter, dbox.Ne("timestamp", ""))
 	filter = append(filter, dbox.Ne("powerlost", ""))
@@ -105,6 +106,70 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	}
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
+
+	/*==================== CREATING CATEGORY PART ====================*/
+	for i := tStart.Year(); i <= tEnd.Year(); i++ {
+		listOfYears = append(listOfYears, i)
+	}
+
+	_, months, monthDay := helper.GetDurationInMonth(tStart, tEnd)
+	for _, val := range months {
+		listMonth = append(listMonth, tk.ToInt(val, tk.RoundingAuto))
+	}
+	sort.Ints(listMonth)
+	categoryChecker := []string{}
+	lastMonth := 0
+	idxYear := 0
+
+	for lm, lMonth := range listMonth {
+		if lm == 0 { /*bulan pertama*/
+			catTitle = tStart.Month().String()
+			if len(listMonth) == 1 { /*jika hanya 1 bulan*/
+				for iDate := startdate; iDate <= enddate; iDate++ {
+					categories = append(categories, tk.ToString(iDate))
+					/*category checker akan berisi tanggal_bulan_tahun*/
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+				}
+				catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
+			} else {
+				month := lMonth
+				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
+				for iDate := startdate; iDate <= maxDays; iDate++ {
+					categories = append(categories, tk.ToString(iDate))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+				}
+				if len(listOfYears) > 1 { /*jika lebih dari 1 tahun, lanjut ke berikutnya*/
+					catTitle += " " + tk.ToString(listOfYears[0]) /* Dec 2015*/
+				}
+				lastMonth = lMonth
+			}
+		} else { /*bulan selanjutnya*/
+			if lastMonth > lMonth { /*jika bulan lalu lebih besar dari bulan saat ini maka ganti tahun*/
+				idxYear++
+			}
+			if lm == len(listMonth)-1 { /*bulan terakhir*/
+				catTitle += " - " + tEnd.Month().String()
+				if len(listOfYears) == 1 {
+					catTitle += " (" + tk.ToString(listOfYears[0]) + ")" /*Dec - Jan (2016)*/
+				} else {
+					catTitle += " " + tk.ToString(listOfYears[1]) /* - Jan 2016*/
+				}
+				for iDate := 1; iDate <= enddate; iDate++ {
+					categories = append(categories, tk.ToString(iDate))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+				}
+			} else {
+				month := lMonth
+				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
+				for iDate := 1; iDate <= maxDays; iDate++ {
+					categories = append(categories, tk.ToString(iDate))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+				}
+				lastMonth = lMonth
+			}
+		}
+	}
+	/*==================== END OF CREATING CATEGORY PART ====================*/
 
 	if len(p.Turbine) == 0 {
 		for _, listVal := range list {
@@ -124,9 +189,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
-
 	for _, turbineX := range sortTurbines {
-
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
 			id := y.Get("_id").(tk.M)
@@ -147,45 +210,39 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		idxAvgTlp := 0
 		shownSeries := false
-		//colresult + deviation[idxAvgTlp]
-		for _, val := range exist {
+		dateFound := false
+		for _, tanggal := range categoryChecker {
+			dateFound = false
+		existLoop:
+			for _, val := range exist {
+				ids := val["_id"].(tk.M)
+				tgl := ids.Get("colId").(time.Time)
+				tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
+				if tglString == tanggal { /*jika tanggal di dalam aggregate result ada di dalam category date*/
+					dateFound = true
+					/*calculation process*/
+					colresult := val.GetFloat64("colresult")
+					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
+						shownSeries = true
+					}
 
-			calcColResult := 0.0
-			colresult := val.GetFloat64("colresult")
-			colresultMinus := colresult - deviation
-			colresultPlus := colresult + deviation
+					datas = append(datas, colresult)
 
-			if colresult > AvgTlp[idxAvgTlp] {
-				calcColResult = colresultMinus - AvgTlp[idxAvgTlp]
-			} else {
-				calcColResult = AvgTlp[idxAvgTlp] - colresultPlus
+					if colresult < minValue {
+						minValue = colresult
+					}
+					if colresult > maxValue {
+						maxValue = colresult
+					}
+					idxAvgTlp++
+					break existLoop
+				}
 			}
-
-			if calcColResult > 0.0 {
-				shownSeries = true
-
-				// tk.Printf("calcColResult : %s \n", calcColResult)
+			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
+				datas = append(datas, -99999.99999)
 			}
-
-			// if !shownSeries {
-			// 	if calcColResult < 0 {
-			// 		shownSeries = true
-			// 	}
-			// }
-
-			datas = append(datas, colresult)
-
-			if val.GetFloat64("colresult") < minValue {
-				minValue = colresult
-			}
-			if val.GetFloat64("colresult") > maxValue {
-				maxValue = colresult
-			}
-			idxAvgTlp = idxAvgTlp + 1
-
 		}
 
-		// tk.Printf("shownSeries : %s \n", shownSeries)
 		if deviationStatus {
 			if shownSeries {
 				if len(datas) > 0 {
@@ -211,9 +268,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	metData.Set("color", colorFieldTLP[selArr])
 	metData.Set("idxseries", selArr)
 	/*================================= MET TOWER PART =================================*/
+	// if colName == "temp_yawbrake_1" {
 	if colName == "temp_outdoor" {
-		tk.Println(AvgTlp)
-		// if colName == "kikuk" {
 		pipes = []tk.M{}
 		pipes = append(pipes, tk.M{"$group": tk.M{
 			"_id":       tk.M{"colId": "$dateinfo.dateid"},
@@ -224,8 +280,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		filter = nil
 		filter = append(filter, dbox.Ne("_id", ""))
-		filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-		filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+		filter = append(filter, dbox.Gte("timestamp", tStart))
+		filter = append(filter, dbox.Lte("timestamp", tEnd))
 
 		csrMet, e := DB().Connection.NewQuery().
 			From(new(MetTower).TableName()).
@@ -244,35 +300,39 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		idxAvgTlp := 0
 		shownSeries := false
-		for _, val := range listMet {
 
-			calcColResult := 0.0
-			colresult := val.GetFloat64("colresult")
-			colresultMinus := colresult - deviation
-			colresultPlus := colresult + deviation
+		dateFound := false
+		for _, tanggal := range categoryChecker {
+			dateFound = false
+		metLoop:
+			for _, val := range listMet {
+				ids := val["_id"].(tk.M)
+				tgl := ids.Get("colId").(time.Time)
+				tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
+				if tglString == tanggal {
+					dateFound = true
+					/*calculation process*/
+					colresult := val.GetFloat64("colresult")
+					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
+						shownSeries = true
+					}
 
-			if colresult > AvgTlp[idxAvgTlp] {
-				calcColResult = colresultMinus - AvgTlp[idxAvgTlp]
-			} else {
-				calcColResult = AvgTlp[idxAvgTlp] - colresultPlus
+					datas = append(datas, colresult)
+
+					if colresult < minValue {
+						minValue = colresult
+					}
+					if colresult > maxValue {
+						maxValue = colresult
+					}
+					idxAvgTlp++
+					break metLoop
+				}
 			}
-
-			if calcColResult > 0.0 {
-				shownSeries = true
+			if !dateFound {
+				datas = append(datas, -99999.99999)
 			}
-
-			datas = append(datas, colresult)
-
-			if val.GetFloat64("colresult") < minValue {
-				minValue = colresult
-			}
-			if val.GetFloat64("colresult") > maxValue {
-				maxValue = colresult
-			}
-			idxAvgTlp = idxAvgTlp + 1
-
 		}
-
 		if deviationStatus {
 			if shownSeries {
 				if len(datas) > 0 {
@@ -297,56 +357,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		if val > maxValue {
 			maxValue = val
 		}
-	}
-
-	for i := tStart.Year(); i <= tEnd.Year(); i++ {
-		listOfYears = append(listOfYears, i)
-	}
-
-	_, months, monthDay := helper.GetDurationInMonth(tStart, tEnd)
-	for _, val := range months {
-		listMonth = append(listMonth, tk.ToInt(val, tk.RoundingAuto))
-	}
-	sort.Ints(listMonth)
-
-	for lm, lMonth := range listMonth {
-		if lm == 0 { /*bulan pertama*/
-			catTitle = tStart.Month().String()
-			if len(listMonth) == 1 {
-				for iDate := startdate; iDate <= enddate; iDate++ {
-					categories = append(categories, tk.ToString(iDate))
-				}
-				catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
-			} else {
-				month := lMonth
-				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
-				for iDate := startdate; iDate <= maxDays; iDate++ {
-					categories = append(categories, tk.ToString(iDate))
-				}
-				if len(listOfYears) > 1 { /*jika cuma 1 tahun, lanjut ke berikutnya*/
-					catTitle += " " + tk.ToString(listOfYears[0]) /* Dec 2015*/
-				}
-			}
-		} else { /*bulan selanjutnya*/
-			if lm == len(listMonth)-1 { /*bulan terakhir*/
-				catTitle += " - " + tEnd.Month().String()
-				if len(listOfYears) == 1 {
-					catTitle += " (" + tk.ToString(listOfYears[0]) + ")" /*Dec - Jan (2016)*/
-				} else {
-					catTitle += " " + tk.ToString(listOfYears[1]) /* - Jan 2016*/
-				}
-				for iDate := 1; iDate <= enddate; iDate++ {
-					categories = append(categories, tk.ToString(iDate))
-				}
-			} else {
-				month := lMonth
-				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
-				for iDate := 1; iDate <= maxDays; iDate++ {
-					categories = append(categories, tk.ToString(iDate))
-				}
-			}
-		}
-
 	}
 
 	data := struct {

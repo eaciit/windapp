@@ -92,6 +92,16 @@ tlp.initChart = function() {
         var minValue = res.data.Min;
         var maxValue = res.data.Max;
 
+        datatlp.forEach( function(data, idxTlp) {
+            if(data.data != undefined && data.data != null) {
+                data.data.forEach( function(element, idxData) {
+                    if(element == -99999.99999) {
+                        datatlp[idxTlp].data[idxData] = null;
+                    }
+                });
+            }
+        });
+
         localStorage.setItem("datatlp", JSON.stringify(datatlp));
 
         $('#charttlp').html("");
@@ -266,8 +276,6 @@ tlp.showHideLegend = function(idx){
     chart._legendItemClick(idx);
 }
 
-
-
 $(document).ready(function() {
     setTimeout(function() {
         fa.LoadData();
@@ -288,5 +296,3 @@ $(document).ready(function() {
 
 
 });
-
-
