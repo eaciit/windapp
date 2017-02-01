@@ -804,8 +804,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	filter = append(filter, dbox.Eq("turbine", turbine))
 	filter = append(filter, dbox.Eq("projectname", project))
-	filter = append(filter, dbox.Eq("oktime", 600))
+	// filter = append(filter, dbox.Eq("oktime", 600))
 	filter = append(filter, dbox.Gt("avgwindspeed", 0))
+	filter = append(filter, dbox.Gt("power", 0))
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -837,24 +838,24 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		tempData = tk.M{}
 		deviationData = tk.M{}
 
-		if val.Power > 0 {
-			datas.Set("WindSpeed", val.AvgWindSpeed)
-			datas.Set("Power", val.Power)
-			datas.Set("valueColor", colorField[1])
+		// if val.Power > 0 {
+		datas.Set("WindSpeed", val.AvgWindSpeed)
+		datas.Set("Power", val.Power)
+		datas.Set("valueColor", colorField[1])
 
-			arrDatas = append(arrDatas, datas)
-		}
+		arrDatas = append(arrDatas, datas)
+		// }
 
 		if p.ScatterType != "pitch" { /*processing NON pitch data*/
 			switch p.ScatterType {
 			case "temp":
-				if val.NacelleTemperature > 0 {
-					tempData.Set("WindSpeed", val.AvgWindSpeed)
-					tempData.Set("Temperature", val.NacelleTemperature)
-					tempData.Set("valueColor", colorField[2])
+				// if val.NacelleTemperature > 0 {
+				tempData.Set("WindSpeed", val.AvgWindSpeed)
+				tempData.Set("Temperature", val.NacelleTemperature)
+				tempData.Set("valueColor", colorField[2])
 
-					tempDatas = append(tempDatas, tempData)
-				}
+				tempDatas = append(tempDatas, tempData)
+				// }
 			case "deviation":
 				deviationData.Set("WindSpeed", val.AvgWindSpeed)
 				deviationData.Set("Deviation", val.WindDirection)
@@ -876,8 +877,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
 		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
 		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
-		filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
+		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
 		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
+		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
 
 		csrOEM, e := DB().Connection.NewQuery().
 			From(new(ScadaDataOEM).TableName()).
@@ -1002,6 +1004,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		filter = append(filter, dbox.Eq("projectname", project))
 		// filter = append(filter, dbox.Eq("oktime", 600))
 		filter = append(filter, dbox.Gt("power", 0))
+		filter = append(filter, dbox.Gt("avgwindspeed", 0))
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(ScadaData).TableName()).
@@ -1066,6 +1069,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
 		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
 		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
+		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
 
 		csrOEM, e := DB().Connection.NewQuery().
 			From(new(ScadaDataOEM).TableName()).
@@ -1221,7 +1225,9 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	filter = append(filter, dbox.Eq("turbine", turbine))
 	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.Gt("power", 0))
-	filter = append(filter, dbox.Eq("oktime", 600))
+	filter = append(filter, dbox.Gt("avgwindspeed", 0))
+
+	// filter = append(filter, dbox.Eq("oktime", 600))
 
 	csrPower, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -1309,8 +1315,9 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
 		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
 		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
-		filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
+		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
 		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
+		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
 
 		csrOEM, e := DB().Connection.NewQuery().
 			From(new(ScadaDataOEM).TableName()).
