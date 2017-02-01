@@ -63,49 +63,19 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	minValue := 100.0
 	maxValue := 0.0
+	selArr := 1
 	var listMonth []int
 	catTitle := ""
 	listOfYears := []int{}
 
 	colId := "$dateinfoutc.dateid"
-
-	// if(dateRange == 0){
-	// 	colId = "$timestamputc"
-	// }
-
+	/*============================== AVG TLP PART ============================*/
 	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
 	dataSeries = append(dataSeries, TLPavgData)
-
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "colresult": tk.M{"$avg": "$" + colName}, "totaldata": tk.M{"$sum": 1}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	selArr := 1
-
-	filter = nil
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("timestamputc", tStart))
-	filter = append(filter, dbox.Lte("timestamputc", tEnd))
-	filter = append(filter, dbox.Ne("turbine", ""))
-	filter = append(filter, dbox.Ne("timestamp", ""))
-	filter = append(filter, dbox.Ne("powerlost", ""))
-	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
-	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
-
-	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaDataOEM).TableName()).
-		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
-		Cursor(nil)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	e = csr.Fetch(&list, 0, false)
-	defer csr.Close()
+	/*============================== END OF AVG TLP PART ============================*/
 
 	/*==================== CREATING CATEGORY PART ====================*/
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
@@ -170,6 +140,124 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		}
 	}
 	/*==================== END OF CREATING CATEGORY PART ====================*/
+
+	/*================================= MET TOWER PART =================================*/
+	metData := tk.M{}
+	metData.Set("name", "Met Tower")
+	metData.Set("type", "line")
+	metData.Set("style", "smooth")
+	metData.Set("dashType", "solid")
+	metData.Set("markers", tk.M{"visible": false})
+	metData.Set("width", 2)
+	metData.Set("color", colorFieldTLP[selArr])
+	metData.Set("idxseries", selArr)
+	// if colName == "temp_yawbrake_1" {
+	if colName == "temp_outdoor" {
+		pipes = []tk.M{}
+		pipes = append(pipes, tk.M{"$group": tk.M{
+			"_id":       tk.M{"colId": "$dateinfo.dateid"},
+			"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
+			"totaldata": tk.M{"$sum": 1},
+		}})
+		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+		filter = nil
+		filter = append(filter, dbox.Ne("_id", ""))
+		filter = append(filter, dbox.Gte("timestamp", tStart))
+		filter = append(filter, dbox.Lte("timestamp", tEnd))
+
+		csrMet, e := DB().Connection.NewQuery().
+			From(new(MetTower).TableName()).
+			Command("pipe", pipes).
+			Where(dbox.And(filter...)).
+			Cursor(nil)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		listMet := []tk.M{}
+		e = csrMet.Fetch(&listMet, 0, false)
+		defer csrMet.Close()
+
+		var datas []float64
+
+		idxAvgTlp := 0
+		shownSeries := false
+
+		dateFound := false
+		for _, tanggal := range categoryChecker {
+			dateFound = false
+		metLoop:
+			for _, val := range listMet {
+				ids := val["_id"].(tk.M)
+				tgl := ids.Get("colId").(time.Time)
+				tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
+				if tglString == tanggal {
+					dateFound = true
+					/*calculation process*/
+					colresult := val.GetFloat64("colresult")
+					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
+						shownSeries = true
+					}
+
+					datas = append(datas, colresult)
+
+					if colresult < minValue {
+						minValue = colresult
+					}
+					if colresult > maxValue {
+						maxValue = colresult
+					}
+					idxAvgTlp++
+					break metLoop
+				}
+			}
+			if !dateFound {
+				datas = append(datas, -99999.99999)
+			}
+		}
+		if deviationStatus {
+			if shownSeries {
+				if len(datas) > 0 {
+					metData.Set("data", datas)
+				}
+			}
+		} else {
+			if len(datas) > 0 {
+				metData.Set("data", datas)
+			}
+		}
+		selArr++
+	}
+	dataSeries = append(dataSeries, metData)
+	/*================================= END OF MET TOWER PART =================================*/
+
+	/*==================== SCADA DATA OEM PART ====================*/
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "colresult": tk.M{"$avg": "$" + colName}, "totaldata": tk.M{"$sum": 1}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	filter = nil
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamputc", tStart))
+	filter = append(filter, dbox.Lte("timestamputc", tEnd))
+	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Ne("timestamp", ""))
+	filter = append(filter, dbox.Ne("powerlost", ""))
+	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
+	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaDataOEM).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
 
 	if len(p.Turbine) == 0 {
 		for _, listVal := range list {
@@ -258,96 +346,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		dataSeries = append(dataSeries, turbineData)
 		selArr++
 	}
-	metData := tk.M{}
-	metData.Set("name", "Met Tower")
-	metData.Set("type", "line")
-	metData.Set("style", "smooth")
-	metData.Set("dashType", "solid")
-	metData.Set("markers", tk.M{"visible": false})
-	metData.Set("width", 2)
-	metData.Set("color", colorFieldTLP[selArr])
-	metData.Set("idxseries", selArr)
-	/*================================= MET TOWER PART =================================*/
-	// if colName == "temp_yawbrake_1" {
-	if colName == "temp_outdoor" {
-		pipes = []tk.M{}
-		pipes = append(pipes, tk.M{"$group": tk.M{
-			"_id":       tk.M{"colId": "$dateinfo.dateid"},
-			"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
-			"totaldata": tk.M{"$sum": 1},
-		}})
-		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-		filter = nil
-		filter = append(filter, dbox.Ne("_id", ""))
-		filter = append(filter, dbox.Gte("timestamp", tStart))
-		filter = append(filter, dbox.Lte("timestamp", tEnd))
-
-		csrMet, e := DB().Connection.NewQuery().
-			From(new(MetTower).TableName()).
-			Command("pipe", pipes).
-			Where(dbox.And(filter...)).
-			Cursor(nil)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		listMet := []tk.M{}
-		e = csrMet.Fetch(&listMet, 0, false)
-		defer csrMet.Close()
-
-		var datas []float64
-
-		idxAvgTlp := 0
-		shownSeries := false
-
-		dateFound := false
-		for _, tanggal := range categoryChecker {
-			dateFound = false
-		metLoop:
-			for _, val := range listMet {
-				ids := val["_id"].(tk.M)
-				tgl := ids.Get("colId").(time.Time)
-				tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-				if tglString == tanggal {
-					dateFound = true
-					/*calculation process*/
-					colresult := val.GetFloat64("colresult")
-					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
-						shownSeries = true
-					}
-
-					datas = append(datas, colresult)
-
-					if colresult < minValue {
-						minValue = colresult
-					}
-					if colresult > maxValue {
-						maxValue = colresult
-					}
-					idxAvgTlp++
-					break metLoop
-				}
-			}
-			if !dateFound {
-				datas = append(datas, -99999.99999)
-			}
-		}
-		if deviationStatus {
-			if shownSeries {
-				if len(datas) > 0 {
-					metData.Set("data", datas)
-				}
-			}
-		} else {
-			if len(datas) > 0 {
-				metData.Set("data", datas)
-			}
-		}
-		selArr++
-	}
-	/*================================= END OF MET TOWER PART =================================*/
-	dataSeries = append(dataSeries, metData)
+	/*==================== END OF SCADA DATA OEM PART ====================*/
 
 	for _, val := range AvgTlp {
 
