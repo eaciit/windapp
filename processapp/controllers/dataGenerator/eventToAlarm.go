@@ -301,15 +301,20 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		detail.WeatherStop = alarm.WeatherStop
 
 		if len(scadas) > 0 {
-			scada := scadas[0]
-			if scada.DenPower > scada.AI_intern_ActivPower {
-				power, err := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", scada.AI_intern_WindSpeed)
-				if err != nil {
-					power = 0.0
+			for _, scada := range scadas {
+				if scada.DenPower > scada.AI_intern_ActivPower {
+					power, err := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", scada.AI_intern_WindSpeed)
+					if err != nil {
+						power = 0.0
+					}
+					detail.Power = power
+					alarm.PowerLost = power * alarm.Duration
+					detail.PowerLost = alarm.PowerLost
 				}
-				detail.Power = power
-				alarm.PowerLost = power * alarm.Duration
-				detail.PowerLost = alarm.PowerLost
+
+				if alarm.PowerLost != 0.0 {
+					break
+				}
 			}
 
 		}
