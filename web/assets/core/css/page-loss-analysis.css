@@ -161,7 +161,7 @@ label.summary-number {
 }
 .ontop{
 	position: relative;
-	z-index: 999999
+	z-index: 10;
 }
 .Tcenter{
 	text-align: center;
