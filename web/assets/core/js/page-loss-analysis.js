@@ -31,7 +31,7 @@ pg.availabledatestartwarning = ko.observable();
 pg.availabledateendwarning = ko.observable();
 
 pg.dtCompponentAlarm = ko.observable();
-pg.labelAlarm = ko.observable("");
+pg.labelAlarm = ko.observable("Downtime ");
 
 var height = $(".content").width() * 0.125;
 
