@@ -59,9 +59,10 @@ var SeriesDowntime = [{
 }]
 
 var SeriesAlarm =  [{
-    field: "result",
-    name: "Downtime"
-}]
+                type: "pie",
+                field: "result",
+                categoryField: "_id",
+            }]
 
 pg.breakDownList = ko.observableArray([
     { "value": "dateinfo.dateid", "text": "Date" },
@@ -275,8 +276,8 @@ pg.GridLoss = function () {
     });
 };
 
-pg.DTDuration = function (dataSource,id,Series,legend,name) {
-    $("#" + id).height("300px")
+pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel) {
+    // $("#" + id).height("300px")
     $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -293,13 +294,18 @@ pg.DTDuration = function (dataSource,id,Series,legend,name) {
             visible: legend,
         },
         chartArea: {
-            height: 300, 
+            height: 350, 
             padding: 0,
             margin: 0
         },
         seriesDefaults: {
             type: "column",
             stack: true,
+            labels: {
+                        visible: vislabel,
+                        background: "transparent",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value)# Hours",
+                    }
         },
         series: Series,
         seriesColors: colorField,
@@ -361,8 +367,8 @@ pg.DTDuration = function (dataSource,id,Series,legend,name) {
     }, 100);
 }
 
-pg.DTFrequency = function (dataSource,id,Series,legend,name) {
-    $("#" + id).height("300px")
+pg.DTFrequency = function (dataSource,id,Series,legend,name,vislabel) {
+    // $("#" + id).height("300px")
     $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -377,13 +383,18 @@ pg.DTFrequency = function (dataSource,id,Series,legend,name) {
             visible: legend,
         },
         chartArea: {
-            height: 300,
+            height: 350,
             padding: 0,
             margin: 0
         },
         seriesDefaults: {
             type: "column",
             stack: true,
+            labels: {
+                        visible: vislabel,
+                        background: "transparent",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value)#",
+                    }
         },
         series: Series,
         seriesColors: colorField,
@@ -446,8 +457,8 @@ pg.DTFrequency = function (dataSource,id,Series,legend,name) {
     }, 100);
 }
 
-pg.TopTurbineLoss = function (dataSource,id,Series,legend,name) {
-    $("#" + id).height("300px")
+pg.TopTurbineLoss = function (dataSource,id,Series,legend,name,vislabel) {
+    // $("#" + id).height("300px")
     $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -465,13 +476,18 @@ pg.TopTurbineLoss = function (dataSource,id,Series,legend,name) {
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 300, 
+            height: 350, 
             padding: 0,
             margin: 0
         },
         seriesDefaults: {
             type: "column",
             stack: true,
+            labels: {
+                        visible: vislabel,
+                        background: "transparent",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value/1000)# MWh",
+                    }
             // opacity : 0.7
         },
         series: Series,
@@ -1132,14 +1148,14 @@ pg.loadData = function () {
             pg.dtCompponentAlarm(res.data)
             
             // ===== Downtime =====
-            pg.DTDuration(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine");
-            pg.DTFrequency(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine");
-            pg.TopTurbineLoss(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine");
+            pg.DTDuration(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine",false);
+            pg.DTFrequency(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine",false);
+            pg.TopTurbineLoss(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine",false);
 
             // ===== Alarm =====
-            pg.DTDuration(res.data.componentduration,'chartCADuration',SeriesAlarm,false, "Component");
-            pg.DTFrequency(res.data.componentfrequency,'chartCAFrequency',SeriesAlarm,false, "Component");
-            pg.TopTurbineLoss(res.data.componentloss,'chartCATurbineLoss',SeriesAlarm,false, "Component");
+            pg.DTDuration(res.data.componentduration,'chartCADuration',SeriesAlarm,false, "",true);
+            pg.DTFrequency(res.data.componentfrequency,'chartCAFrequency',SeriesAlarm,false, "",true);
+            pg.TopTurbineLoss(res.data.componentloss,'chartCATurbineLoss',SeriesAlarm,false, "",true);
 
             pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
@@ -1422,18 +1438,27 @@ $(document).ready(function () {
     $("input[name=IsAlarm]").on("change", function() {
         
             var data = pg.dtCompponentAlarm()
-            if(this.id == "alarm"){                
+            if(this.id == "alarm"){   
+                SeriesAlarm =  [{
+                    field: "result",
+                    name: "Downtime"
+                }]             
                 // ===== Alarm =====
-                pg.DTDuration(data.alarmduration,'chartCADuration',SeriesAlarm,false, "Alarm Type");
-                pg.DTFrequency(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "Alarm Type");
-                pg.TopTurbineLoss(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "Alarm Type");
+                pg.DTDuration(data.alarmduration,'chartCADuration',SeriesAlarm,false, "",false);
+                pg.DTFrequency(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "",false);
+                pg.TopTurbineLoss(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "",false);
 
                 pg.labelAlarm(" Top 10 Downtime")
-            }else{                
+            }else{     
+                 SeriesAlarm = [{
+                    type: "pie",
+                    field: "result",
+                    categoryField: "_id",
+                }]           
                 // ===== Component =====
-                pg.DTDuration(data.componentduration,'chartCADuration',SeriesAlarm,false, "Component");
-                pg.DTFrequency(data.componentfrequency,'chartCAFrequency',SeriesAlarm,false, "Component");
-                pg.TopTurbineLoss(data.componentloss,'chartCATurbineLoss',SeriesAlarm,false, "Component");
+                pg.DTDuration(data.componentduration,'chartCADuration',SeriesAlarm,false, "",true);
+                pg.DTFrequency(data.componentfrequency,'chartCAFrequency',SeriesAlarm,false, "",true);
+                pg.TopTurbineLoss(data.componentloss,'chartCATurbineLoss',SeriesAlarm,false, "",true);
 
                 pg.labelAlarm(" Downtime")
             }
