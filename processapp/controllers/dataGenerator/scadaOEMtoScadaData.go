@@ -4,14 +4,15 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/controllers"
-	"github.com/eaciit/dbox"
-	_ "github.com/eaciit/dbox/dbc/mongo"
-	tk "github.com/eaciit/toolkit"
 	_ "math"
 	"os"
 	_ "strings"
 	"sync"
 	"time"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+	tk "github.com/eaciit/toolkit"
 )
 
 type UpdateOEMToScada struct {
@@ -109,8 +110,12 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.GridOkSecs = 600.0 - data.GridDowntime
 	scada.InternalLineDown = minValueFloat
 	scada.MachineDownTime = data.MachineDowntime
-	scada.OkSecs = data.MTTR
-	scada.OkTime = data.MTTR
+	// scada.OkSecs = data.MTTR
+	// scada.OkTime = data.MTTR
+
+	scada.OkTime = (600 - (data.GridDowntime + data.MachineDowntime + data.UnknownDowntime))
+	scada.OkSecs = scada.OkTime
+
 	scada.UnknownTime = data.UnknownDowntime
 	scada.WeatherStopTime = minValueFloat
 	scada.GeneratorRPM = data.C_intern_SpeedGenerator
