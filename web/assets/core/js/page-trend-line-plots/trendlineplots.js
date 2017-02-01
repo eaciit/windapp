@@ -91,14 +91,19 @@ tlp.initChart = function() {
         var catTitle = res.data.CatTitle;
         var minValue = res.data.Min;
         var maxValue = res.data.Max;
-
+        var nullCount = 0
         datatlp.forEach( function(data, idxTlp) {
             if(data.data != undefined && data.data != null) {
+                nullCount = 0
                 data.data.forEach( function(element, idxData) {
                     if(element == -99999.99999) {
+                        nullCount++
                         datatlp[idxTlp].data[idxData] = null;
                     }
                 });
+                if(data.data.length == nullCount) {
+                    datatlp[idxTlp].data = undefined;
+                }
             }
         });
 
