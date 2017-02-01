@@ -1280,29 +1280,25 @@ pg.refreshGrid = function (param) {
 }
 
 pg.SetBreakDown = function () {
+    fa.disableRefreshButton(true);
     pg.breakDown = [];
 
     setTimeout(function () {
-        $.each(pg.breakDownList(), function (i, valx) {
-            $.each(fa.GetBreakDown(), function (i, valy) {
-                if (valx.text == valy.text) {
-                    pg.breakDown.push(valx);
-                }
-            });
+        $.each(fa.GetBreakDown(), function (i, val) {
+            if (val.value == "Turbine" || val.value == "Project") {
+                return false;
+            } else {
+               pg.breakDown.push(val);
+            }
         });
 
-        $("#breakdownlist").data("kendoDropDownList").dataSource.data(pg.breakDown);
-        $("#breakdownlist").data("kendoDropDownList").dataSource.query();
-        if ($("#breakdownlist").data("kendoDropDownList").value() == "") {
-            $("#breakdownlist").data("kendoDropDownList").select(0);
-        }
-
-        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(fa.GetBreakDown());
+        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(pg.breakDown);
         $("#breakdownlistavail").data("kendoDropDownList").dataSource.query();
-        if ($("#breakdownlistavail").data("kendoDropDownList").value() == "") {
-            $("#breakdownlistavail").data("kendoDropDownList").select(0);
-        }
-    }, 1000);
+        $("#breakdownlistavail").data("kendoDropDownList").select(0);
+
+
+        fa.disableRefreshButton(false);
+    }, 500);
 }
 
 viewModel.Warning = new Object();
