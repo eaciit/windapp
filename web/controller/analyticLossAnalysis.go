@@ -402,19 +402,19 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	result.Set("loss", loss)
 
 	// =============== Component Alarm =============
-	componentduration, e := getTopComponentAlarm("breaketype", "duration", p, k)
+	componentduration, e := getTopComponentAlarm("braketype", "duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("componentduration", componentduration)
 
-	componentfrequency, e := getTopComponentAlarm("breaketype", "frequency", p, k)
+	componentfrequency, e := getTopComponentAlarm("braketype", "frequency", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("componentfrequency", componentfrequency)
 
-	componentloss, e := getTopComponentAlarm("breaketype", "loss", p, k)
+	componentloss, e := getTopComponentAlarm("braketype", "loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}

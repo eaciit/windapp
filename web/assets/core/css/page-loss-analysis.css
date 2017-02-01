@@ -161,10 +161,11 @@ label.summary-number {
 }
 .ontop{
 	position: relative;
-	z-index: 999999
+	z-index: 10;
 }
 .Tcenter{
 	text-align: center;
+	margin-bottom: 15px;
 }
 .nav-CA{
     margin: auto;

@@ -1000,7 +1000,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		filter = append(filter, dbox.Lte("timestamp", tEnd))
 		filter = append(filter, dbox.Eq("turbine", turbine))
 		filter = append(filter, dbox.Eq("projectname", project))
-		filter = append(filter, dbox.Eq("oktime", 600))
+		// filter = append(filter, dbox.Eq("oktime", 600))
 		filter = append(filter, dbox.Gt("power", 0))
 
 		csr, e := DB().Connection.NewQuery().
@@ -1064,7 +1064,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
 		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
 		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
-		filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
+		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
 		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
 
 		csrOEM, e := DB().Connection.NewQuery().
