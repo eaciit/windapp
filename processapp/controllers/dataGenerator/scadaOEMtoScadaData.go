@@ -150,7 +150,7 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.PCDeviation = data.PCDeviation
 	scada.WSAdjForPC = data.WSAdjForPC
 	scada.WSAvgForPC = data.WSAvgForPC
-	scada.TotalAvail = data.MTTR / 600.0
+	scada.TotalAvail = tk.Div(scada.OkTime, 600.0) //data.MTTR / 600.0
 	scada.MachineAvail = (600.0 - data.MachineDowntime) / 600
 	scada.GridAvail = (600.0 - data.GridDowntime) / 600.0
 	scada.DenPcDeviation = data.DenPcDeviation
