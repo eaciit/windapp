@@ -24,6 +24,7 @@ dbr.mettowervis = ko.observable(true);
 dbr.oemvis = ko.observable(true);
 dbr.hfdvis = ko.observable(true);
 dbr.downeventvis = ko.observable(true);
+dbr.downeventhfdvis = ko.observable(true);
 dbr.customvis = ko.observable(true);
 dbr.eventrawvis = ko.observable(true);
 
@@ -94,6 +95,7 @@ var Data = {
             dbe.InitEventGrid();
             dbm.InitMet();
             dbj.InitGridJMR();
+            dbdhfd.InitDEHFDgrid();
 
             // Exception
             dbt.InitGridExceptionTimeDuration();
@@ -175,6 +177,24 @@ var Data = {
                 }
             }
         });
+
+        app.ajaxPost(viewModel.appName + "/databrowser/getdowntimeeventvaildatehfd", {}, function(res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            //Scada Data
+            if (res.data.DowntimeEvent.length == 0) {
+                res.data.DowntimeEvent = [];
+            } else {
+                if (res.data.DowntimeEvent.length > 0) {
+                    var minDatetemp = new Date(res.data.DowntimeEvent[0]);
+                    var maxDatetemp = new Date(res.data.DowntimeEvent[1]);
+                    availDateList.availabledatestartDEHFD = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
+                    availDateList.availabledateendDEHFD = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
+                }
+            }
+        });
+
         app.ajaxPost(viewModel.appName + "/databrowser/getscadaavaildate", {}, function(res) {
             if (!app.isFine(res)) {
                 return;
@@ -375,6 +395,10 @@ var Data = {
             case 'alarmAnomaliesTab':
                 $('#availabledatestart').html(availDateList.availabledatestartalarmscadaanomaly);
                 $('#availabledateend').html(availDateList.availabledateendalarmscadaanomaly);
+                break;
+            case 'downtimeeventhfdTab':
+                $('#availabledatestart').html(availDateList.availabledatestartDEHFD);
+                $('#availabledateend').html(availDateList.availabledateendDEHFD);
                 break;
         }
     },

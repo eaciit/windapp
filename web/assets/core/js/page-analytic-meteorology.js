@@ -340,7 +340,7 @@ wr.initChart = function () {
 
         var idChart = "#chart-" + val.Name
         listOfChart.push(idChart);
-        var pWidth = $('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
+        var pWidth = $('body').width() * 0.235;//$('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
         $(idChart).kendoChart({
             theme: "nova",
             chartArea: {
@@ -878,7 +878,7 @@ tc.LoadData = function(){
             dataSource: knownOutagesDataSource,
             columns: columnArray,
             filterable: false,
-            sortable: true,
+            sortable: false,
             dataBound: function (e) {
                 if (e.sender._data.length == 0) {
                     var mgs, col;
@@ -893,17 +893,19 @@ tc.LoadData = function(){
                             contentDiv.scrollLeft(1);
                         }
                     }
-                }            
+                }        
             },
             pageable: false,
             scrollable: true,
             resizable: false,
             height:390,
         });
+
         setTimeout(function(){
             // $("#gridTurbineCorrelation").data("kendoGrid").refresh();
             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+            $("#gridTurbineCorrelation").data("kendoGrid").refresh();
         },200);
 
     });

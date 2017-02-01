@@ -92,9 +92,8 @@
                                                 <span data-bind="text:kendo.toString(pitchangle,'n1')"></span>
                                             </td>
                                             <td ><i data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red' : (status == 'N/A') ? 'fa fa-circle dim' : 'fa fa-circle green'}"></i></td>
-                                            <td >
-                                                <span data-bind='text:statuscode'></span>&nbsp;
-                                                <span data-bind='text:statusdesc'></span>
+                                            <td class="pull-left">
+                                                <span data-bind="text:statuscode,attr : {class: (statusdesc == '') ? 'emptyval' : 'tooltipster tooltipstered', title:statusdesc}"></span>&nbsp;
                                             </td>
                                             <td></td>                                          
                                         </tr>

@@ -538,7 +538,6 @@ monitoring.createLineChartZoom = function(e) {
 monitoring.dataChartLine = function (data) {
     $("#chartline").html("");
     $("#chartline").kendoChart({
-        renderAs: "canvas",
         zoomable: true,
         /*zoom: monitoring.createLineChartZoom,
         transitions: false,
@@ -576,7 +575,8 @@ monitoring.dataChartLine = function (data) {
                 visible: false,
             },
             width: 3,
-        }, {
+        },
+         {
             type: "area",
             // style: "smooth",
             field: "avail",
@@ -586,7 +586,8 @@ monitoring.dataChartLine = function (data) {
                 visible: false,
             },
             width: 3,
-        }],
+        }
+        ],
         seriesColors: colorFields2,
         valueAxes: [{
             line: {

@@ -1,10 +1,10 @@
 {
-    "Draft": "/home/developer/wfdemo-watch/alertdata/draft",
-    "Process": "/home/developer/wfdemo-watch/alertdata/process",
-    "Fail": "/home/developer/wfdemo-watch/alertdata/fail",
-    "Success": "/home/developer/wfdemo-watch/alertdata/success",
-    "Errors": "/home/developer/wfdemo-watch/alertdata/errors",
-    "Archive": "/home/developer/wfdemo-watch/alertdata/archive",
+    "Draft": "/data1/wfdemo-watch/opc_alert/draft",
+    "Process": "/data1/wfdemo-watch/opc_alert/process",
+    "Fail": "/data1/wfdemo-watch/opc_alert/fail",
+    "Success": "/data1/wfdemo-watch/opc_alert/success",
+    "Errors": "/data1/wfdemo-watch/opc_alert/errors",
+    "Archive": "/data1/wfdemo-watch/opc_alert/archive",
     "Commands": [
         {
             "action": "COPY_TO_PROCESS",

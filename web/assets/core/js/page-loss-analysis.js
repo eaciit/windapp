@@ -30,7 +30,39 @@ pg.availabledateendalarm2 = ko.observable();
 pg.availabledatestartwarning = ko.observable();
 pg.availabledateendwarning = ko.observable();
 
+pg.dtCompponentAlarm = ko.observable();
+pg.labelAlarm = ko.observable("Downtime ");
+
 var height = $(".content").width() * 0.125;
+
+var SeriesDowntime = [{
+    field: "AEBOK",
+    name: "AEBOK"
+}, {
+    field: "ExternalStop",
+    name: "External Stop"
+}, {
+    field: "GridDown",
+    name: "Grid Down"
+}, {
+    field: "InternalGrid",
+    name: "InternalGrid"
+}, {
+    field: "MachineDown",
+    name: "Machine Down"
+}, {
+    field: "WeatherStop",
+    name: "Weather Stop"
+}, {
+    field: "Unknown",
+    name: "Unknown"
+}]
+
+var SeriesAlarm =  [{
+                type: "pie",
+                field: "result",
+                categoryField: "_id",
+            }]
 
 pg.breakDownList = ko.observableArray([
     { "value": "dateinfo.dateid", "text": "Date" },
@@ -244,8 +276,11 @@ pg.GridLoss = function () {
     });
 };
 
-pg.DTDuration = function (dataSource) {
-    $("#chartDTDuration").kendoChart({
+pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
+    // $("#" + id).height("300px")
+    // var Height = $('#CompAlarm').width() * heightParam
+
+    $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: [
@@ -258,44 +293,25 @@ pg.DTDuration = function (dataSource) {
         },
         legend: {
             position: "top",
-            visible: true,
+            visible: legend,
         },
         chartArea: {
-            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 300, 
+            height: heightParam, 
             padding: 0,
             margin: 0
         },
         seriesDefaults: {
             type: "column",
             stack: true,
-            // opacity : 0.7
+            labels: {
+                        visible: vislabel,
+                        background: "transparent",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value)# Hours",
+                    }
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
-            field: "GridDown",
-            name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
-            field: "MachineDown",
-            name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
-            field: "Unknown",
-            name: "Unknown"
-        }],
+        series: Series,
         seriesColors: colorField,
         valueAxis: {
-            //majorUnit: 100,
             title: {
                 text: "Hours",
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
@@ -314,16 +330,17 @@ pg.DTDuration = function (dataSource) {
             }
         },
         categoryAxis: {
+            // visible: legend,
             field: "_id",
             title: {
-                text: "Turbine",
+                text: name,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             majorGridLines: {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: rotate
             },
             majorTickType: "none"
         },
@@ -340,17 +357,24 @@ pg.DTDuration = function (dataSource) {
             },
 
         },
-        seriesClick: function (e) {
-            pg.toDetailDTTop(e, "Hours");
-        }
+        // seriesClick: function (e) {
+        //     pg.toDetailDTTop(e, "Hours");
+        // }
     });
+
+    setTimeout(function () {
+        if ($("#" + id).data("kendoChart") != null) {
+            $("#" + id).data("kendoChart").refresh();
+        }
+    }, 100);
 }
 
-pg.DTFrequency = function (dataSource) {
-    $("#chartDTFrequency").kendoChart({
+pg.DTFrequency = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
+    // $("#" + id).height("300px")
+    // var Height = $('#CompAlarm').width() * height
+    $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
-            // group: [{field: "_id.id4"}],
             sort: { field: "Total", dir: 'desc' }
         },
         theme: "flat",
@@ -359,41 +383,23 @@ pg.DTFrequency = function (dataSource) {
         },
         legend: {
             position: "top",
-            visible: true,
+            visible: legend,
         },
         chartArea: {
-            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 300,
+            height: heightParam,
             padding: 0,
             margin: 0
         },
         seriesDefaults: {
             type: "column",
             stack: true,
-            // opacity : 0.7
+            labels: {
+                        visible: vislabel,
+                        background: "transparent",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value)#",
+                    }
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
-            field: "GridDown",
-            name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
-            field: "MachineDown",
-            name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
-            field: "Unknown",
-            name: "Unknown"
-        }],
+        series: Series,
         seriesColors: colorField,
         valueAxis: {
             title: {
@@ -417,7 +423,7 @@ pg.DTFrequency = function (dataSource) {
         categoryAxis: {
             field: "_id",
             title: {
-                text: "Turbine",
+                text: name,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             dir: "desc",
@@ -425,7 +431,7 @@ pg.DTFrequency = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: rotate
             },
             majorTickType: "none"
         },
@@ -442,14 +448,22 @@ pg.DTFrequency = function (dataSource) {
                 width: "2px",
             },
         },
-        seriesClick: function (e) {
-            pg.toDetailDTTop(e, "Times");
-        }
+        // seriesClick: function (e) {
+        //     pg.toDetailDTTop(e, "Times");
+        // }
     });
+
+    setTimeout(function () {
+        if ($("#" + id).data("kendoChart") != null) {
+            $("#" + id).data("kendoChart").refresh();
+        }
+    }, 100);
 }
 
-pg.TopTurbineLoss = function (dataSource) {
-    $("#chartTopTurbineLoss").kendoChart({
+pg.TopTurbineLoss = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
+    // $("#" + id).height("300px")
+    // var Height = $('#CompAlarm').width() * height
+    $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: [
@@ -462,41 +476,25 @@ pg.TopTurbineLoss = function (dataSource) {
         },
         legend: {
             position: "top",
-            visible: true,
+            visible: legend,
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: 300, 
+            height: heightParam, 
             padding: 0,
             margin: 0
         },
         seriesDefaults: {
             type: "column",
             stack: true,
+            labels: {
+                        visible: vislabel,
+                        background: "transparent",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value/1000)# MWh",
+                    }
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
-            field: "GridDown",
-            name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
-            field: "MachineDown",
-            name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
-            field: "Unknown",
-            name: "Unknown"
-        }],
+        series: Series,
         seriesColors: colorField,
         valueAxis: {
             //majorUnit: 100,
@@ -521,14 +519,14 @@ pg.TopTurbineLoss = function (dataSource) {
         categoryAxis: {
             field: "_id",
             title: {
-                text: "Turbine",
+                text: name,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             majorGridLines: {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: rotate
             },
             majorTickType: "none"
         },
@@ -549,6 +547,12 @@ pg.TopTurbineLoss = function (dataSource) {
         //     avail.toDetailDTTop(e, "MWh");
         // }
     });
+
+    setTimeout(function () {
+        if ($("#" + id).data("kendoChart") != null) {
+            $("#" + id).data("kendoChart").refresh();
+        }
+    }, 100);
 }
 
 pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
@@ -1141,15 +1145,25 @@ pg.loadData = function () {
         })
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
-            // console.log(res);
             if (!app.isFine(res)) {
                 return;
             }
 
-            pg.DTDuration(res.data.duration);
-            pg.DTFrequency(res.data.frequency);
-            pg.TopTurbineLoss(res.data.loss);
-            // pg.TLossCat('chartLCByLTE', true, res.data.catloss, 'MWh');
+            pg.dtCompponentAlarm(res.data)
+
+            var HDowntime = $('#filter-analytic').width() * 0.2
+            var HAlarm = $('#filter-analytic').width() * 0.235
+            
+            // ===== Downtime =====
+            pg.DTDuration(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+            pg.DTFrequency(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+            pg.TopTurbineLoss(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+
+            // ===== Alarm =====
+            pg.DTDuration(res.data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
+            pg.DTFrequency(res.data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
+            pg.TopTurbineLoss(res.data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
+
             pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
             pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
             pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
@@ -1256,34 +1270,42 @@ pg.refreshGrid = function (param) {
             $("#warningGrid").data("kendoGrid").refresh();
         }
 
+        if ($("#chartCADuration").data("kendoChart") != null) {
+            $("#chartCADuration").data("kendoChart").refresh();
+        }
+
+        if ($("#chartCAFrequency").data("kendoChart") != null) {
+            $("#chartCAFrequency").data("kendoChart").refresh();
+        }
+
+        if ($("#chartCATurbineLoss").data("kendoChart") != null) {
+            $("#chartCATurbineLoss").data("kendoChart").refresh();
+        }
+
         app.loading(false);
     },1500);
 }
 
 pg.SetBreakDown = function () {
+    fa.disableRefreshButton(true);
     pg.breakDown = [];
 
     setTimeout(function () {
-        $.each(pg.breakDownList(), function (i, valx) {
-            $.each(fa.GetBreakDown(), function (i, valy) {
-                if (valx.text == valy.text) {
-                    pg.breakDown.push(valx);
-                }
-            });
+        $.each(fa.GetBreakDown(), function (i, val) {
+            if (val.value == "Turbine" || val.value == "Project") {
+                return false;
+            } else {
+               pg.breakDown.push(val);
+            }
         });
 
-        $("#breakdownlist").data("kendoDropDownList").dataSource.data(pg.breakDown);
-        $("#breakdownlist").data("kendoDropDownList").dataSource.query();
-        if ($("#breakdownlist").data("kendoDropDownList").value() == "") {
-            $("#breakdownlist").data("kendoDropDownList").select(0);
-        }
-
-        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(fa.GetBreakDown());
+        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(pg.breakDown);
         $("#breakdownlistavail").data("kendoDropDownList").dataSource.query();
-        if ($("#breakdownlistavail").data("kendoDropDownList").value() == "") {
-            $("#breakdownlistavail").data("kendoDropDownList").select(0);
-        }
-    }, 1000);
+        $("#breakdownlistavail").data("kendoDropDownList").select(0);
+
+
+        fa.disableRefreshButton(false);
+    }, 500);
 }
 
 viewModel.Warning = new Object();
@@ -1350,6 +1372,9 @@ warn.loadData = function() {
         if (!app.isFine(res)) {
             return;
         }
+        if (res.data.Data.length == 0) {
+            return;
+        }
         warn.dataSource(res.data.Data);
         warn.generateGrid();
     });
@@ -1411,5 +1436,37 @@ $(document).ready(function () {
         $("#dateEnd").change(function () { fa.DateChange(pg.SetBreakDown()) });
 
     }, 1500);
+
+
+    $("input[name=IsAlarm]").on("change", function() {
+
+            var HAlarm = $('#filter-analytic').width() * 0.235
+        
+            var data = pg.dtCompponentAlarm()
+            if(this.id == "alarm"){   
+                SeriesAlarm =  [{
+                    field: "result",
+                    name: "Downtime"
+                }]             
+                // ===== Alarm =====
+                pg.DTDuration(data.alarmduration,'chartCADuration',SeriesAlarm,false, "",false,-90,HAlarm);
+                pg.DTFrequency(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "",false,-90,HAlarm);
+                pg.TopTurbineLoss(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "",false,-90,HAlarm);
+
+                pg.labelAlarm(" Top 10 Downtime")
+            }else{     
+                 SeriesAlarm = [{
+                    type: "pie",
+                    field: "result",
+                    categoryField: "_id",
+                }]           
+                // ===== Component =====
+                pg.DTDuration(data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
+                pg.DTFrequency(data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
+                pg.TopTurbineLoss(data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
+
+                pg.labelAlarm(" Downtime")
+            }
+    });
 
 });

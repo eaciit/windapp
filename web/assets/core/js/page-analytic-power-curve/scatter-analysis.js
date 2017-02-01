@@ -4,15 +4,18 @@ viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 page.colorPalette = ko.observable("websafe");
 page.lessSelectedColour = ko.observable("#ff7663");
-page.moreSelectedColour = ko.observable("#a2df53");
+page.greaterSelectedColour = ko.observable("#a2df53");
 page.markerStyleList = ko.observableArray([
     {value:"circle",text:"Circle"},
     {value:"square",text:"Square"},
     {value:"triangle",text:"Triangle"},
     {value:"cross",text:"Cross"}]);
 
+page.lessValue = ko.observable(20);
+page.greaterValue= ko.observable(20);
 page.lessSelectedMarker = ko.observable("circle");
-page.moreSelectedMarker = ko.observable("circle");
+page.greaterSelectedMarker = ko.observable("circle");
+page.dtSeries = ko.observableArray([]);
 
 
 page.ExportIndividualMonthPdf = function() {
@@ -60,23 +63,43 @@ page.LoadData = function() {
 }
 
 page.refreshChart = function() {
+    page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+    if(page.scatterType == 'pitch') {
+        $("#txtLessVal").val(0);
+        $('#txtGreaterVal').val(0);
+    } else {
+        $("#txtLessVal").val(20);
+        $('#txtGreaterVal').val(20);
+    }
     page.LoadData();
 }
 
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+    var turbine = $("#turbineList").data('kendoDropDownList').value();
+
+    var lessValue = $("#txtLessVal").val();
+    var greaterValue = $('#txtGreaterVal').val();
+
+    var lessColor = $("#lessColor").data("kendoColorPicker").value();
+    var greaterColor = $("#greaterColor").data("kendoColorPicker").value();
+    var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
+    var greaterMarker = $("#greaterMarker").data("kendoDropDownList").value();
+
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: turbine,
         project: fa.project,
         scatterType: page.scatterType,
-        lessDeviation: 20,
-        greaterDeviation: 20,
-        lessColor: "#ff7663",
-        greaterColor: "#a2df53",
+        lessValue: parseInt(lessValue,10),
+        greaterValue: parseInt(greaterValue,10),
+        lessColor: lessColor,
+        greaterColor: greaterColor,
+        lessMarker: lessMarker, 
+        greaterMarker: greaterMarker
     };
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
         if (!app.isFine(res)) {
@@ -92,14 +115,43 @@ page.getPowerCurveScatter = function() {
         if (!app.isFine(res)) {
             return;
         }
-        var dtSeries = res.data.Data;
 
-        console.log(dtSeries);
+        var result = res.data.Data;
 
+        page.dtSeries(result);
+        page.createChart(page.dtSeries());
+
+    
+        app.loading(false);
+    });
+}
+
+
+page.changeView=function(param){
+
+    var lessColor = $("#lessColor").data("kendoColorPicker").value();
+    var greaterColor = $("#greaterColor").data("kendoColorPicker").value();
+    var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
+    var greaterMarker = $("#greaterMarker").data("kendoDropDownList").value();
+
+    $.each(page.dtSeries(), function(index, value){
+        if(value.name.indexOf(param) !== -1){
+            page.dtSeries()[index].color = (param == ">" ? greaterColor : lessColor);
+            page.dtSeries()[index].markers = {
+                size : 2,
+                type : (param == ">" ? greaterMarker : lessMarker),
+                background : (param == ">" ? greaterColor : lessColor),
+            }
+        }
+    });
+
+    page.createChart(page.dtSeries());
+}
+
+page.createChart = function(dtSeries){
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",
-            renderAs: "canvas",
             pdf: {
               fileName: "ScatterWithFilter.pdf",
             },
@@ -184,16 +236,13 @@ page.getPowerCurveScatter = function() {
                 },
             }
         });
-        app.loading(false);
-    });
 }
 
 $(document).ready(function() {
-    var colorpicker = $("#colorpicker").kendoColorPicker();
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
-            page.LoadData();
+           page.LoadData();
         }, 300);
     });
 

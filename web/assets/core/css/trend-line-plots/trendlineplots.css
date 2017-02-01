@@ -1,5 +1,100 @@
-.tempBox{
-	height: 25px;
-	max-width: 50px;
-	display: inherit;
+.devDrop{
+    width:40px;
+    margin-top: -10px;
+}
+.devDrop>.k-dropdown-wrap{
+    height: 20px;
+}
+.devDrop>.k-dropdown-wrap>.k-input{
+    height: 20px;
+    margin-top: -4px;
+}
+.devDrop>.k-dropdown-wrap>.k-select{
+    margin-top: -4px;
+}
+.margin-left-15{
+    margin-left: -15px;
+}
+.tempBox
+{
+    display: inherit;
+    max-width: 50px;
+    height: 25px;
+}
+.turList
+{
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 300px;
+    max-height: 300px;
+}
+.turListPanel
+{
+    height: 300px;
+    max-height: 300px;
+}
+.turbine-btn
+{
+    height: 15px !important;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    margin-left: -1px;
+    padding: 0;
+
+    border-radius: 0;
+}
+.turbine-chk,
+.down-chk
+{
+    width: 15px;
+    height: 15px;
+    padding-top: 1px!important;
+    padding-left: 4px;
+    color: #fff;
+    border-radius: 0;
+}
+.turbine-btn
+{
+    height: 20px !important;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    margin-left: -1px;
+    padding: 0;
+    border-radius: 0;
+}
+.turbine-chk,
+.down-chk
+{
+    width: 20px;
+    height: 20px;
+    padding-top: 1px!important;
+    padding-left: 4px;
+    color: #fff;
+    border-radius: 0;
+}
+.turbine-chk:hover,
+.down-chk:hover
+{
+    color: #fff;
+}
+.turbine-chk:active,
+.down-chk:active
+{
+    color: #fff;
+}
+.custom-header
+{
+    margin-left: -5.75%;
+}
+.wbtn
+{
+    font-size: 10px;
+    width: 55px;
+}
+.txt-deviation{
+    height: 25px;
+    max-width: 50px;
+    margin-left: 5px;
+    padding: 5px;
+    text-align: center;
 }
