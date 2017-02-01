@@ -195,7 +195,8 @@ tlp.initChart = function() {
 
 tlp.InitRightTurbineList = function(){
     tlp.turbineList([]);
-    var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("datatlp")).sort(name), 'name');
+    
+    var dtTurbines = JSON.parse(localStorage.getItem("datatlp"));
 
     if (dtTurbines.length > 1) {
         $("#showHideChk").html('<label>' +
@@ -229,7 +230,7 @@ tlp.InitRightTurbineList = function(){
 }
 
 tlp.showHideAllLegend = function(e){
-    var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("datatlp")).sort(name), 'name');
+    var dtTurbines = JSON.parse(localStorage.getItem("datatlp"));
 
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
