@@ -14,6 +14,10 @@ wfa.isProjectTab = ko.observable(false);
 wfa.isTurbine1Tab = ko.observable(false);
 wfa.isTurbine2Tab = ko.observable(false);
 
+wfa.isProjectLoaded = ko.observable(true);
+wfa.isTurbine1Loaded = ko.observable(false);
+wfa.isTurbine2Loaded = ko.observable(false);
+
 wfa.ProjectList = [];
 wfa.TurbineList = [];
 wfa.Keys = [
@@ -287,18 +291,30 @@ wfa.LoadData = function() {
     $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
     $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-    $.when(wfa.ProjectAnalysis.LoadData(),wfa.Turbine1Analysis.LoadData(),wfa.Turbine2Analysis.LoadData()).done(function(){
+    $.when(wfa.ProjectAnalysis.LoadData()).done(function(){
         setTimeout(function(){
-            app.loading(false);
+            // app.loading(false);
         },500)
     })
 }
 
 wfa.RefreshGrid = function() {
-	$('.grid-custom').each(function(){
-		var grid = $(this).data("kendoGrid");
-		grid.refresh();
-	});
+	// $('.grid-custom').each(function(){
+	// 	var grid = $(this).data("kendoGrid");
+	// 	grid.refresh();
+	// });
+    var ids = $(".panel-body").find(".nav-tabs").find(".active")[0].id
+    switch (ids) {
+        case "tTurbine1Analysis":
+            $("#gridTurbine1").data("kendoGrid").refresh();
+            break;
+        case "tTurbine2Analysis":
+            $("#gridTurbine2").data("kendoGrid").refresh();
+            break;
+        default :
+            $("#gridProject").data("kendoGrid").refresh();
+            break;
+    }
 };
 
 wfa.checkTurbine = function (elmId) {
@@ -314,10 +330,29 @@ wfa.checkTurbine = function (elmId) {
     }
 }
 
-wfa.showFilter = function(project, turbine1, turbine2){
+wfa.showFilter = function(project, turbine1, turbine2, id){
     wfa.isProjectTab(project);
     wfa.isTurbine1Tab(turbine1);
     wfa.isTurbine2Tab(turbine2);
+    switch (id) {
+        case "tTurbine1Analysis":
+            if(!wfa.isTurbine1Loaded()) {
+                app.loading(true);
+                wfa.isTurbine1Loaded(true);
+                wfa.Turbine1Analysis.LoadData();
+            }
+            break;
+        case "tTurbine2Analysis":
+            if(!wfa.isTurbine2Loaded()) {
+                app.loading(true);
+                wfa.isTurbine2Loaded(true);
+                wfa.Turbine2Analysis.LoadData()
+            }
+            break;
+        default :
+            //project udah otomatis ke load
+            break;
+    }
 }
 
 // initiate value for projects & turbines
@@ -340,9 +375,9 @@ $(document).ready(function(){
 	    wfa.RefreshGrid();
 	});
 
-	$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-	    wfa.RefreshGrid();
-	});
+	// $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+	//     wfa.RefreshGrid();
+	// });
 
 	wfa.LoadData();
 });
