@@ -79,6 +79,7 @@ dbsa.InitGridAnomalies = function() {
                 },
                 data: function(res) {
                     app.isFine(res);
+                    app.loading(false);
                     return res.data.Data
                 },
                 total: function(res) {
@@ -502,4 +503,5 @@ dbsa.InitGridAnomalies = function() {
         }
         dbr.gridColumnsScadaAnomaly.push(result);
     });
+    $('#dataGridAnomalies').data("kendoGrid").refresh();
 }

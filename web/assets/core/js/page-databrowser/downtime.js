@@ -56,7 +56,7 @@ dbd.InitDEgrid = function() {
             pageSize: 10,
             schema: {
                 data: function(ress) {
-                    // app.loading(false);
+                    app.loading(false);
                     dbr.downeventvis(false);
                     app.isFine(ress);
                     return ress.data.Data
@@ -163,4 +163,5 @@ dbd.InitDEgrid = function() {
 
         ]
     });
+    $('#DEgrid').data("kendoGrid").refresh();
 }

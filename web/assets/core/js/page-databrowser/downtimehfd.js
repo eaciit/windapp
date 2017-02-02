@@ -56,7 +56,7 @@ dbdhfd.InitDEHFDgrid = function() {
             pageSize: 10,
             schema: {
                 data: function(ress) {
-                    // app.loading(false);
+                    app.loading(false);
                     dbr.downeventhfdvis(false);
                     app.isFine(ress);
                     return ress.data.Data
@@ -163,4 +163,5 @@ dbdhfd.InitDEHFDgrid = function() {
 
         ]
     });
+    $('#DEHFDgrid').data("kendoGrid").refresh();
 }
