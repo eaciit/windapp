@@ -181,27 +181,25 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		var values float64
 		categories = []string{}
 		for listCount, val := range list {
+			var hourValue, minutes float64
+
+			if strings.Contains(breakDown, "dateid") {
+				id := val.Get("_id").(tk.M)
+				id1 := id.Get("id1").(time.Time)
+				hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+			} else {
+			}
+
 			switch key {
 			case "Machine Availability":
-				// values = (hourValue - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
-				hourValue, minutes := getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 				values = tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Grid Availability":
-				// values = (hourValue - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
-				hourValue, minutes := getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 				values = tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Total Availability":
-				hourValue, _ := getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 				values = tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
-				//values = (val.GetFloat64("oktime") / (tk.ToFloat64(duration, 2, tk.RoundingAuto) * 86400 * totalTurbine)) * 100 /*percentage*/
 			case "Data Availability":
-				hourValue, _ := getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 				values = tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
-				// values = tk.ToFloat64((((val.GetInt("countdata") / totalData) /
-				// 	(duration * 144 )) * 100),
-				// 	6, tk.RoundingAuto) /*percentage*/
 			case "Actual PLF":
-				hourValue, _ := getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 				values = tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
 			case "Actual Production":
 				values = val.GetFloat64("energy") / 1000 /*MWh*/

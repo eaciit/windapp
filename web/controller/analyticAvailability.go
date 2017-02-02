@@ -137,8 +137,13 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 		var datas []float64
 		for _, val := range list {
-			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, hourValue float64
-			var totalTurbine float64
+			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, totalTurbine, hourValue float64
+
+			if len(turbine) == 0 {
+				totalTurbine = 24.0
+			} else {
+				totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
+			}
 
 			minDate := val.Get("mindate").(time.Time)
 			maxDate := val.Get("maxdate").(time.Time)
@@ -154,25 +159,13 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
 			energy := power / 6
-
 			mDownTime := val.GetFloat64("machinedowntime") / 3600.0
 			gDownTime := val.GetFloat64("griddowntime") / 3600.0
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
-
-			if len(turbine) == 0 {
-				totalTurbine = 24.0
-			} else {
-				totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
-			}
-
-			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
-			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-
 			minutes := val.GetFloat64("minutes") / 60
-			machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
 
-			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
 			prod = energy
 
 			_ = duration
