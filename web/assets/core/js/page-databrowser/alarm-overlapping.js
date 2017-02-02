@@ -61,6 +61,7 @@ dbao.InitGridAlarmOverlapping = function() {
             schema: {
                 data: function(res) {
                     app.isFine(res);
+                    app.loading(false);
                     return res.data.Data
                 },
                 total: function(res) {
@@ -123,6 +124,7 @@ dbao.InitGridAlarmOverlapping = function() {
             },
         ]
     });
+    $('#dataGridAlarmOverlapping').data("kendoGrid").refresh();
 }
 
 dbao.InitOverlapDetail = function(e) {

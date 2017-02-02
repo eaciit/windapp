@@ -58,7 +58,7 @@ dbe.InitEventGrid = function() {
             pageSize: 10,
             schema: {
                 data: function(res) {
-                    // app.loading(false);
+                    app.loading(false);
                     dbr.eventrawvis(false);
                     return res.data.Data
                 },
@@ -174,4 +174,5 @@ dbe.InitEventGrid = function() {
             }
         }, ]
     });
+    $('#EventGrid').data("kendoGrid").refresh();
 }

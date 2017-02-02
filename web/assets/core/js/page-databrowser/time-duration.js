@@ -75,6 +75,7 @@ dbt.InitGridExceptionTimeDuration = function() {
                     if (!app.isFine(res)) {
                         return;
                     }
+                    app.loading(false);
                     return res.data.Data
                 },
                 total: function(res) {
@@ -492,4 +493,5 @@ dbt.InitGridExceptionTimeDuration = function() {
         }
         dbr.gridColumnsScadaException.push(result);
     });
+    $('#dataGridExceptionTimeDuration').data("kendoGrid").refresh();
 }

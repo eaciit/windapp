@@ -92,6 +92,7 @@ dbj.InitGridJMR = function() {
             schema: {
                 data: function(res) {
                     app.isFine(res);
+                    app.loading(false);
                     dbr.jmrvis(false);
                     return res.data.Data
                 },
@@ -128,6 +129,7 @@ dbj.InitGridJMR = function() {
             field: "Description"
         }, ]
     });
+    $('#dataGridJMR').data("kendoGrid").refresh();
 }
 
 dbj.InitJMRDetail = function(e) {

@@ -54,6 +54,7 @@ dbaa.InitGridAlarmAnomalies = function() {
             schema: {
                 data: function(res) {
                     app.isFine(res);
+                    app.loading(false);
                     return res.data.Data
                 },
                 total: function(res) {
@@ -227,4 +228,5 @@ dbaa.InitGridAlarmAnomalies = function() {
             },
         ]
     });
+    $('#dataGridAlarmAnomalies').data("kendoGrid").refresh();
 }
