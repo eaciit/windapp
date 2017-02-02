@@ -99,5 +99,6 @@ wfa.Turbine1Analysis = {
 				}
 			});
 		}
+		app.loading(false);
 	},
 }
