@@ -2,6 +2,7 @@ package checker
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -27,44 +28,60 @@ func NewOEMChecker(ctx *orm.DataContext) *OEMChecker {
 }
 
 func (ev *OEMChecker) Run() {
-	max, min := ev.getMaxMin()
-	current := min
+	var wg sync.WaitGroup
+	turbines := ev.getMaxMin()
 
-	log.Printf("%v | %v \n", min.String(), max.String())
+	wg.Add(len(turbines))
+	for _, val := range turbines {
+		go func(val tk.M) {
+			turbine := val.GetString("_id")
+			max := val.Get("max").(time.Time).UTC()
+			min := val.Get("min").(time.Time).UTC()
+			current := min
 
-	for {
-		list := ev.getDatas(current)
-		var ids []bson.ObjectId
+			log.Printf("%v | %v | %v \n", turbine, min.String(), max.String())
 
-		log.Println(len(list))
+			maxDays := max.Sub(min).Hours() / 24
+			counter := 0
 
-		for idx, val := range list {
-			log.Println(idx)
-			if idx != 0 {
-				before := list[idx-1]
-				now := val
+			for {
+				log.Printf("%v => %v | %v of %v \n", turbine, float64(counter)/maxDays*100, counter, maxDays)
 
-				if before.TimeStamp.Format("20060102_150405") == now.TimeStamp.Format("20060102_150405") {
-					ids = append(ids, before.ID)
+				list := ev.getDatas(current, turbine)
+				var ids []bson.ObjectId
+				for idx, val := range list {
+					if idx != 0 {
+						before := list[idx-1]
+						now := val
+
+						if before.TimeStamp.Format("20060102_150405") == now.TimeStamp.Format("20060102_150405") {
+							ids = append(ids, before.ID)
+						}
+					}
+				}
+
+				// ev.Ctx.DeleteMany(new(ScadaDataOEM), dbox.And(dbox.In("_id", ids)))
+				// log.Printf("%v | %v \n", current.Format("2006-01-02"), len(ids))
+				if current.Format("20060102") == max.Format("20060102") {
+					break
+				} else {
+					current = current.AddDate(0, 0, 1)
+					counter++
 				}
 			}
-		}
 
-		// ev.Ctx.DeleteMany(new(ScadaDataOEM), dbox.And(dbox.In("_id", ids)))
-		log.Printf("%v | %v \n", current.Format("2006-01-02"), len(ids))
-		if current.Format("20060102") == max.Format("20060102") {
-			break
-		} else {
-			current = current.AddDate(0, 0, 1)
-		}
+			wg.Done()
+		}(val)
 	}
+
+	wg.Wait()
 }
 
-func (ev *OEMChecker) getDatas(dateid time.Time) (result []ScadaDataOEM) {
+func (ev *OEMChecker) getDatas(dateid time.Time, turbine string) (result []ScadaDataOEM) {
 	pipes := make([]tk.M, 0)
 
 	pipes = append(pipes, tk.M{
-		"$match": tk.M{}.Set("dateinfo.dateid", dateid),
+		"$match": tk.M{}.Set("dateinfo.dateid", dateid).Set("turbine", turbine),
 	})
 	pipes = append(pipes, tk.M{
 		"$sort": tk.M{}.Set("timestamp", 1),
@@ -81,10 +98,10 @@ func (ev *OEMChecker) getDatas(dateid time.Time) (result []ScadaDataOEM) {
 	return
 }
 
-func (ev *OEMChecker) getMaxMin() (max time.Time, min time.Time) {
+func (ev *OEMChecker) getMaxMin() (res []tk.M) {
 	pipes := make([]tk.M, 0)
 	pipes = append(pipes, tk.M{
-		"$group": tk.M{}.Set("_id", "oem").
+		"$group": tk.M{}.Set("_id", "$turbine").
 			Set("min", tk.M{}.Set("$min", "$timestamp")).
 			Set("max", tk.M{}.Set("$max", "$timestamp")),
 	})
@@ -94,15 +111,9 @@ func (ev *OEMChecker) getMaxMin() (max time.Time, min time.Time) {
 		From(new(ScadaDataOEM).TableName()).
 		Cursor(nil)
 
-	res := []tk.M{}
 	csr.Fetch(&res, 0, false)
 
 	csr.Close()
-
-	if len(res) > 0 {
-		min = res[0].Get("min").(time.Time).UTC()
-		max = res[0].Get("max").(time.Time).UTC()
-	}
 
 	return
 }
