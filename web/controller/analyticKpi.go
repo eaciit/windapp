@@ -174,7 +174,9 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 	for _, val := range list {
 		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine, hourValue float64
 
-		if len(p.Turbine) == 0 {
+		if rowsBreakdown == "Turbine" {
+			totalTurbine = 1.0
+		} else if len(p.Turbine) == 0 {
 			totalTurbine = 24.0
 		} else {
 			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)

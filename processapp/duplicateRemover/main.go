@@ -32,11 +32,11 @@ func main() {
 	}
 	ctx := orm.New(conn)
 
-	// config := ReadConfig()
-	// dir := config["FileProcess"]
+	/*scadaOEM := NewOEMChecker(ctx)
+	scadaOEM.Run()*/
 
-	scadaOEM := NewOEMChecker(ctx)
-	scadaOEM.Run()
+	scadaData := NewScadaChecker(ctx)
+	scadaData.Run()
 
 	log.Println("End remove duplicate data...")
 }

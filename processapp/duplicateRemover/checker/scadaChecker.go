@@ -15,18 +15,18 @@ import (
 	tk "github.com/eaciit/toolkit"
 )
 
-type OEMChecker struct {
+type ScadaChecker struct {
 	Ctx *orm.DataContext
 }
 
-func NewOEMChecker(ctx *orm.DataContext) *OEMChecker {
-	ev := new(OEMChecker)
+func NewScadaChecker(ctx *orm.DataContext) *ScadaChecker {
+	ev := new(ScadaChecker)
 	ev.Ctx = ctx
 
 	return ev
 }
 
-func (ev *OEMChecker) Run() {
+func (ev *ScadaChecker) Run() {
 	var wg sync.WaitGroup
 	turbines := ev.getMaxMin()
 
@@ -61,7 +61,7 @@ func (ev *OEMChecker) Run() {
 				}
 
 				if len(ids) > 0 {
-					ev.Ctx.DeleteMany(new(ScadaDataOEM), dbox.And(dbox.In("_id", ids...)))
+					ev.Ctx.DeleteMany(new(ScadaData), dbox.And(dbox.In("_id", ids...)))
 					log.Printf(">>>>>>>> %v - %v | %v \n", turbine, current.Format("2006-01-02"), len(ids))
 				}
 
@@ -82,7 +82,7 @@ func (ev *OEMChecker) Run() {
 	wg.Wait()
 }
 
-func (ev *OEMChecker) getDatas(dateid time.Time, turbine string) (result []ScadaDataOEM) {
+func (ev *ScadaChecker) getDatas(dateid time.Time, turbine string) (result []ScadaData) {
 	pipes := make([]tk.M, 0)
 
 	pipes = append(pipes, tk.M{
@@ -94,7 +94,7 @@ func (ev *OEMChecker) getDatas(dateid time.Time, turbine string) (result []Scada
 
 	csr, _ := ev.Ctx.Connection.NewQuery().
 		Command("pipe", pipes).
-		From(new(ScadaDataOEM).TableName()).
+		From(new(ScadaData).TableName()).
 		Cursor(nil)
 
 	csr.Fetch(&result, 0, false)
@@ -103,7 +103,7 @@ func (ev *OEMChecker) getDatas(dateid time.Time, turbine string) (result []Scada
 	return
 }
 
-func (ev *OEMChecker) getMaxMin() (res []tk.M) {
+func (ev *ScadaChecker) getMaxMin() (res []tk.M) {
 	pipes := make([]tk.M, 0)
 	pipes = append(pipes, tk.M{
 		"$group": tk.M{}.Set("_id", "$turbine").
@@ -113,7 +113,7 @@ func (ev *OEMChecker) getMaxMin() (res []tk.M) {
 
 	csr, _ := ev.Ctx.Connection.NewQuery().
 		Command("pipe", pipes).
-		From(new(ScadaDataOEM).TableName()).
+		From(new(ScadaData).TableName()).
 		Cursor(nil)
 
 	csr.Fetch(&res, 0, false)
