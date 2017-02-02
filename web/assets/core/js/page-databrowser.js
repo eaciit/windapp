@@ -81,7 +81,7 @@ var Data = {
         dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
         dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 
-        if ((new Date(dateStart).getTime() > new Date(dateEnd).getTime())) {
+        if (dateStart - dateEnd > 25200000) {
             toolkit.showError("Invalid Date Range Selection");
             return;
         } else {

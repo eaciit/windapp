@@ -88,7 +88,7 @@ var Data = {
             keyC: keyC,
         };
 
-        if ((new Date(dateStart).getTime() > new Date(dateEnd).getTime())) {
+        if (fa.dateStart - fa.dateEnd > 25200000) {
             toolkit.showError("Invalid Date Range Selection");
             return;
         } else {
