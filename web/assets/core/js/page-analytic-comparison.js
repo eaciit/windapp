@@ -645,7 +645,7 @@ page.refreshFilter = function (id) {
 		var startdate = $('#dateStart-' + id).data('kendoDatePicker').value();
 		var enddata = $('#dateEnd-' + id).data('kendoDatePicker').value();
 		var period = $('#periodList-' + id).data('kendoDropDownList').value();
-		if (startdate > enddata) {
+		if (startdate - enddata > 25200000) {
 			toolkit.showError("Invalid Date Range Selection");
 			return;
 		} else {

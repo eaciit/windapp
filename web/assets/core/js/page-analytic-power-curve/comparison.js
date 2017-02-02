@@ -164,18 +164,12 @@ pc.showHidePeriod = function (callback) {
     var period = $('#periodList').data('kendoDropDownList').value();
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    // var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
-    // var endMonthDate = new Date(app.toUTC(maxDateData));
-    // var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    // var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    // var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
-    // var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-    var startMonthDate = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), 1, 0, 0, 0, 0);
-    var endMonthDate = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0);
-    var startYearDate = new Date(maxDateData.getFullYear(), 0, 1, 0, 0, 0, 0);
-    var endYearDate = new Date(maxDateData.getFullYear(), 0, 1, 0, 0, 0, 0);
-    var last24hours = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0);
-    var lastweek = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0);
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+    var endMonthDate = new Date(app.toUTC(maxDateData));
+    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
     if (period == "custom") {
         $(".show_hide").show();
         $('#dateStart').data('kendoDatePicker').setOptions({
@@ -248,18 +242,12 @@ pc.showHidePeriod2 = function (callback) {
     var period = $('#periodList2').data('kendoDropDownList').value();
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    // var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
-    // var endMonthDate = new Date(app.toUTC(maxDateData));
-    // var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    // var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    // var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
-    // var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-    var startMonthDate = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), 1, 0, 0, 0, 0);
-    var endMonthDate = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0);
-    var startYearDate = new Date(maxDateData.getFullYear(), 0, 1, 0, 0, 0, 0);
-    var endYearDate = new Date(maxDateData.getFullYear(), 0, 1, 0, 0, 0, 0);
-    var last24hours = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0);
-    var lastweek = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0);
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+    var endMonthDate = new Date(app.toUTC(maxDateData));
+    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
     if (period == "custom") {
         $(".show_hide2").show();
         $('#dateStart2').data('kendoDatePicker').setOptions({
@@ -339,11 +327,8 @@ pc.InitDefaultValue = function () {
     $("#periodList2").data("kendoDropDownList").trigger("change");
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    // var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0, 0));
-    // var lastEndDate = new Date(app.toUTC(maxDateData));
-    var lastStartDate = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0);
-    var lastEndDate = new Date(maxDateData.getFullYear(), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0);
-
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0, 0));
+    var lastEndDate = new Date(app.toUTC(maxDateData));
     // var dateEnd2 = new Date(Date.UTC(moment(lastStartDate).get('year'), lastStartDate.getMonth(), lastStartDate.getDate()-30, 0, 0, 0, 0));
     // var dateStart2 =new Date(Date.UTC(moment(dateEnd2).get('year'), dateEnd2.getMonth(), dateEnd2.getDate()-30, 0, 0, 0, 0));
 
@@ -354,20 +339,16 @@ pc.InitDefaultValue = function () {
 }
 pc.initChart = function() {
         var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
-            // p1DateStart = new Date(Date.UTC(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0));
-            p1DateStart = new Date(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0);
+            p1DateStart = new Date(Date.UTC(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0));
 
         var p1DateEnd  = $('#dateEnd').data('kendoDatePicker').value();
-            // p1DateEnd = new Date(Date.UTC(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0));
-            p1DateEnd = new Date(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0);
+            p1DateEnd = new Date(Date.UTC(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0));
 
         var p2DateStart = $('#dateStart2').data('kendoDatePicker').value();
-            // p2DateStart = new Date(Date.UTC(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0));
-            p2DateStart = new Date(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0);
+            p2DateStart = new Date(Date.UTC(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0));
 
         var p2DateEnd  = $('#dateEnd2').data('kendoDatePicker').value();
-            // p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
-            p2DateEnd = new Date(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0);
+            p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
 
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
             if (!app.isFine(res)) {
