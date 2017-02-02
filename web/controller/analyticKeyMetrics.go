@@ -188,6 +188,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				id1 := id.Get("id1").(time.Time)
 				hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 			} else {
+				hourValue, minutes = getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 			}
 
 			switch key {
