@@ -79,7 +79,7 @@ pg.isFirstLostEnergy = ko.observable(true);
 pg.isFirstReliability = ko.observable(true);
 pg.isFirstWindSpeed = ko.observable(true);
 pg.isFirstWarning = ko.observable(true);
-pg.isFirstComponentAlrm = ko.observable(true);
+pg.isFirstComponentAlarm = ko.observable(true);
 
 
 pg.getDataAvailableInfo =  function(){
@@ -762,30 +762,18 @@ pg.Downtime = function(){
             project: fa.project,
         }
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getdowntimetab", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-            pg.dtCompponentAlarm(res.data)
             setTimeout(function(){
                 var HDowntime = $('#filter-analytic').width() * 0.2
-                var HAlarm = $('#filter-analytic').width() * 0.235
                 var wAll = $('#filter-analytic').width() * 0.32
 
+                /*Downtime Tab*/
                 pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll);
                 pg.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll);
                 pg.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll);
-
-                var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
-                var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
-                var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
-                pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
-                pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
-                pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
-
-                pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
-                pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
-                pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
 
                 pg.isFirstDowntime(false);
                 app.loading(false);
@@ -855,11 +843,30 @@ pg.LossEnergy = function(){
                 return;
             }
             setTimeout(function(){
-                 pg.DTLEbyType(res.data);
-                  pg.Downtime();
-                 pg.isFirstLostEnergy(false);
+                pg.DTLEbyType(res.data);
             },200)
-           
+        });
+        
+        var param = {
+            period: fa.period,
+            dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
+            dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
+            turbine: fa.turbine,
+            project: fa.project,
+        }
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getlostenergytab", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            setTimeout(function(){
+                pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
+                pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+                pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+
+                app.loading(false);
+                pg.isFirstLostEnergy(false);
+            },300);
         });
     }else{
         setTimeout(function(){
@@ -1053,15 +1060,46 @@ pg.Warning = function(){
 }
 
 pg.Component = function(){
-    app.loading(true);
+    app.loading(true)
     fa.LoadData();
-    if(pg.isFirstComponentAlrm() === true){
-        pg.Downtime();
+    if(pg.isFirstComponentAlarm() === true){
+        var param = {
+            period: fa.period,
+            dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
+            dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
+            turbine: fa.turbine,
+            project: fa.project,
+        }
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getcomponentalarmtab", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            setTimeout(function(){
+                pg.dtCompponentAlarm(res.data)
+                var HAlarm = $('#filter-analytic').width() * 0.235
+                var wAll = $('#filter-analytic').width() * 0.32
+                var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
+                var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
+                var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
+
+                /*Component / Alarm Type Tab*/
+                pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
+                pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
+                pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
+
+                app.loading(false);
+                pg.isFirstComponentAlarm(false);
+            },300);
+        }); 
     }else{
         setTimeout(function(){
+            $('#availabledatestart').html(pg.availabledatestartalarm());
+            $('#availabledateend').html(pg.availabledateendalarm());
             $("#chartCADuration").data("kendoChart").refresh();
             $("#chartCAFrequency").data("kendoChart").refresh();
             $("#chartCATurbineLoss").data("kendoChart").refresh();
+            app.loading(false);
         },200); 
     }
 }
@@ -1074,7 +1112,7 @@ pg.resetStatus = function(){
     pg.isFirstReliability(true);
     pg.isFirstWindSpeed(true);
     pg.isFirstWarning(true);
-    pg.isFirstComponentAlrm(true);
+    pg.isFirstComponentAlarm(true);
 }
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');

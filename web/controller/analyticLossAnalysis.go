@@ -371,7 +371,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 	return helper.CreateResult(true, result, "success")
 }
 
-func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{} {
+func (m *AnalyticLossAnalysisController) GetDowntimeTab(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := new(PayloadAnalytic)
@@ -401,6 +401,19 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 	result.Set("loss", loss)
 
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetComponentAlarmTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
 	// =============== Component Alarm =============
 	componentduration, e := getTopComponentAlarm("braketype", "duration", p, k)
 	if e != nil {
@@ -439,7 +452,20 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 	result.Set("alarmloss", alarmloss)
 
-	// =============== OTHER =============
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetLostEnergyTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
+
 	catloss, e := getCatLossTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -1400,4 +1426,3 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
-
