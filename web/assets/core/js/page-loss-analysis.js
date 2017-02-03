@@ -450,7 +450,7 @@ pg.generateGrid = function (dataSource) {
         sortable: true,
         columns: [
             { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
-            { title: "Total", field: "total", attributes: { class: "align-left row-custom" }, width: 50, locked: true, filterable: false },
+            { title: "Total", field: "total", attributes: { class: "align-center row-custom" }, width: 50, locked: true, filterable: false },
         ],
         dataBound: function(){
             setTimeout(function(){
@@ -470,7 +470,7 @@ pg.generateGrid = function (dataSource) {
                 headerAttributes: {
                     style: 'font-weight: bold; text-align: center;'
                 },
-                width: 100
+                width: 80
             }
 
             config.columns.push(column);
@@ -482,7 +482,7 @@ pg.generateGrid = function (dataSource) {
             headerAttributes: {
                 style: 'font-weight: bold; text-align: center;'
             },
-            width: 100
+            width: 80
         }
 
         config.columns.push(column);
