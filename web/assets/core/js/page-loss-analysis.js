@@ -146,7 +146,7 @@ pg.LoadData = function(){
     }
     pg.getDataAvailableInfo();
 }
-pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam) {
+pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
 
     $("#" + id).kendoChart({
         dataSource: {
@@ -175,7 +175,7 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             labels: {
                         visible: vislabel,
                         background: "transparent",
-                        template: "#= category #: \n #= kendo.format('{0:N1}', value)# " + axisLabel,
+                        template: "#= category #: \n #= kendo.format('{0:" + format + "}', value)# " + axisLabel,
                     }
         },
         series: Series,
@@ -219,7 +219,7 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value, 'n1') # " + axisLabel,
+            template: "#: category #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             border: {
                 color: "#eee",
                 width: "2px",
@@ -782,12 +782,12 @@ pg.Downtime = function(){
             }
             setTimeout(function(){
                 var HDowntime = $('#filter-analytic').width() * 0.2
-                var wAll = $('#filter-analytic').width() * 0.29
+                var wAll = $('#filter-analytic').width() * 0.275
 
                 /*Downtime Tab*/
-                pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll);
-                pg.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll);
-                pg.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll);
+                pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll,"N1");
+                pg.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll,"N0");
+                pg.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll,"N1");
 
                 pg.isFirstDowntime(false);
                 app.loading(false);
@@ -1092,7 +1092,7 @@ pg.Component = function(){
             setTimeout(function(){
                 pg.dtCompponentAlarm(res.data)
                 var HAlarm = $('#filter-analytic').width() * 0.235
-                var wAll = $('#filter-analytic').width() * 0.32
+                var wAll = $('#filter-analytic').width() * 0.275
                 var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
                 var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
                 var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
@@ -1101,13 +1101,13 @@ pg.Component = function(){
 
                 if(id == 'lblComp'){
                     /*Component / Alarm Type Tab*/
-                    pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
-                    pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
-                    pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
+                    pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
+                    pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
+                    pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
                 }else{                    
-                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll);
-                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll);
-                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll);
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
                 }
 
                 app.loading(false);
@@ -1179,7 +1179,7 @@ $(function(){
 
     $("input[name=IsAlarm]").on("change", function() {
         var HAlarm = $('#filter-analytic').width() * 0.235
-        var wAll = $('#filter-analytic').width() * 0.29
+        var wAll = $('#filter-analytic').width() * 0.275
     
         var data = pg.dtCompponentAlarm()
         if(this.id == "alarm"){   
@@ -1188,9 +1188,9 @@ $(function(){
                 name: "Downtime"
             }]             
             // ===== Alarm =====
-            pg.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            pg.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
+            pg.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Top 10 Downtime")
         }else{     
@@ -1203,9 +1203,9 @@ $(function(){
             var componentduration = _.sortBy(data.componentduration, '_id');
             var componentfrequency = _.sortBy(data.componentfrequency, '_id');
             var componentloss = _.sortBy(data.componentloss, '_id');
-            pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
+            pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Downtime")
         }
