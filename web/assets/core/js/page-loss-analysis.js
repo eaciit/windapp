@@ -635,6 +635,8 @@ pg.createChartProduction = function (dataSource) {
      $("#productionChart").css("margin-bottom",-60);
 }
 pg.StaticView = function(){
+    fa.LoadData();
+    app.loading(true);
     if(pg.isFirstStaticView() === true){
         var param = {
             period: fa.period,
@@ -749,6 +751,7 @@ pg.StaticView = function(){
 }
 pg.Downtime = function(){
     app.loading(true);
+    fa.LoadData();
     if(pg.isFirstDowntime() === true){
         var param = {
             period: fa.period,
@@ -798,7 +801,7 @@ pg.Downtime = function(){
 }
 pg.Availability = function(){
     app.loading(true);
-
+    fa.LoadData();
     if(pg.isFirstAvailability() === true){
         pg.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
         var param = {
@@ -833,7 +836,8 @@ pg.Availability = function(){
     }
 }
 pg.LossEnergy = function(){
-    app.loading(true)
+    app.loading(true);
+    fa.LoadData();
     if(pg.isFirstLostEnergy() === true){
         var paramdown = {
             Period: fa.period,
@@ -876,7 +880,7 @@ pg.Reliability = function(){
 }
 pg.WindSpeed = function(){
     app.loading(true);
-
+    fa.LoadData()
     if(pg.isFirstWindSpeed() === true){
         var param = {
             period: fa.period,
@@ -1009,6 +1013,7 @@ pg.WindSpeed = function(){
 }
 
 pg.Warning = function(){
+    fa.LoadData()
     app.loading(true);
     if(pg.isFirstWarning() === true){
         var param = {
@@ -1045,6 +1050,7 @@ pg.Warning = function(){
 
 pg.Component = function(){
     app.loading(true);
+    fa.LoadData();
     if(pg.isFirstComponentAlrm() === true){
         pg.Downtime();
     }else{
