@@ -768,7 +768,7 @@ pg.Downtime = function(){
             }
             setTimeout(function(){
                 var HDowntime = $('#filter-analytic').width() * 0.2
-                var wAll = $('#filter-analytic').width() * 0.32
+                var wAll = $('#filter-analytic').width() * 0.29
 
                 /*Downtime Tab*/
                 pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll);
@@ -1019,10 +1019,8 @@ pg.WindSpeed = function(){
             $("#windAvailabilityChart").data("kendoChart").refresh();
             app.loading(false);
         },200);
-    }
-    
+    } 
 }
-
 pg.Warning = function(){
     fa.LoadData()
     app.loading(true);
@@ -1058,7 +1056,6 @@ pg.Warning = function(){
         
     }
 }
-
 pg.Component = function(){
     app.loading(true)
     fa.LoadData();
@@ -1083,10 +1080,18 @@ pg.Component = function(){
                 var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
                 var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
 
-                /*Component / Alarm Type Tab*/
-                pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
-                pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
-                pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
+                var id = $("#downtimeGroup .active").attr('id')
+
+                if(id == 'lblComp'){
+                    /*Component / Alarm Type Tab*/
+                    pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
+                    pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
+                    pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
+                }else{                    
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll);
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll);
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll);
+                }
 
                 app.loading(false);
                 pg.isFirstComponentAlarm(false);
@@ -1103,7 +1108,6 @@ pg.Component = function(){
         },200); 
     }
 }
-
 pg.resetStatus = function(){
     pg.isFirstStaticView(true);
     pg.isFirstDowntime(true);
@@ -1158,7 +1162,7 @@ $(function(){
 
     $("input[name=IsAlarm]").on("change", function() {
         var HAlarm = $('#filter-analytic').width() * 0.235
-        var wAll = $('#filter-analytic').width() * 0.32
+        var wAll = $('#filter-analytic').width() * 0.29
     
         var data = pg.dtCompponentAlarm()
         if(this.id == "alarm"){   
