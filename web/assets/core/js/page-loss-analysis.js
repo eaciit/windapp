@@ -768,7 +768,7 @@ pg.Downtime = function(){
             }
             setTimeout(function(){
                 var HDowntime = $('#filter-analytic').width() * 0.2
-                var wAll = $('#filter-analytic').width() * 0.29
+                var wAll = $('#filter-analytic').width() * 0.275
 
                 /*Downtime Tab*/
                 pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll);
@@ -1075,7 +1075,7 @@ pg.Component = function(){
             setTimeout(function(){
                 pg.dtCompponentAlarm(res.data)
                 var HAlarm = $('#filter-analytic').width() * 0.235
-                var wAll = $('#filter-analytic').width() * 0.32
+                var wAll = $('#filter-analytic').width() * 0.275
                 var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
                 var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
                 var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
@@ -1162,7 +1162,7 @@ $(function(){
 
     $("input[name=IsAlarm]").on("change", function() {
         var HAlarm = $('#filter-analytic').width() * 0.235
-        var wAll = $('#filter-analytic').width() * 0.29
+        var wAll = $('#filter-analytic').width() * 0.275
     
         var data = pg.dtCompponentAlarm()
         if(this.id == "alarm"){   
