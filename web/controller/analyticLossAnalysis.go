@@ -1409,7 +1409,12 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 
 	res := []tk.M{}
 	for _, v := range descs {
-		res = append(res, tk.M{"desc": v, "turbines": mapRes[v]})
+		total := 0
+		for _, x := range mapRes[v] {
+			total += x.GetInt("count")
+		}
+
+		res = append(res, tk.M{"desc": v, "turbines": mapRes[v], "total": total})
 	}
 
 	data := struct {

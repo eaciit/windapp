@@ -450,6 +450,7 @@ pg.generateGrid = function (dataSource) {
         sortable: true,
         columns: [
             { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
+            { title: "Total", field: "total", attributes: { class: "align-center row-custom" }, width: 50, locked: true, filterable: false },
         ],
         dataBound: function(){
             setTimeout(function(){
@@ -460,19 +461,32 @@ pg.generateGrid = function (dataSource) {
         },
     };
 
-    $.each(dataSource[0].turbines, function (i, val) {
+    if (dataSource.length > 0){
+        $.each(dataSource[0].turbines, function (i, val) {
+            var column = {
+                title: val.turbine,
+                field: "turbines["+i+"].count",
+                attributes: { class: "align-center" },
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;'
+                },
+                width: 80
+            }
+
+            config.columns.push(column);
+        });
+    }else{
         var column = {
-            title: val.turbine,
-            field: "turbines["+i+"].count",
+            title: "",
             attributes: { class: "align-center" },
             headerAttributes: {
                 style: 'font-weight: bold; text-align: center;'
             },
-            width: 100
+            width: 80
         }
 
         config.columns.push(column);
-    });
+    }   
 
     $('#warningGrid').html("");
     $('#warningGrid').kendoGrid(config);
@@ -1043,7 +1057,10 @@ pg.Warning = function(){
                     app.loading(false);
                 },200);
             }else{
-                app.loading(false);
+                setTimeout(function(){
+                    pg.generateGrid([]);
+                    app.loading(false);
+                },200);
             }
         });
     }else{
@@ -1194,8 +1211,8 @@ $(function(){
         }
     });
 
-    $(window).resize(function() {
+    /*$(window).resize(function() {
         $("#chartCADuration").data("kendoChart").refresh();
-    });
+    });*/
 
 })
