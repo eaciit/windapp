@@ -56,7 +56,7 @@ pg.loadData = function(){
 
 pg.DataCon = function(){
     app.loading(true);
-
+    fa.LoadData();
     if(pg.isFirstDataCon() === true){
             var param = {
                 period: fa.period,
