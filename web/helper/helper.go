@@ -707,6 +707,22 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 	return
 }
 
+// totalTurbine in float64
+// okTime sum ok time
+// energy should be div by 1000
+// machineDownTime, gridDownTime already in hour value
+// minutes should be div by 60
+func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machineDownTime float64, gridDownTime float64, countTimeStamp float64, hourValue float64, totalMinutes float64) (machineAvail float64, gridAvail float64, dataAvail float64, totalAvail float64, plf float64) {
+	divider := (totalTurbine * hourValue)
+
+	plf = energy / (divider * 2.1) * 100
+	totalAvail = (okTime / 3600) / divider * 100
+	machineAvail = (totalMinutes - machineDownTime) / divider * 100
+	gridAvail = (totalMinutes - gridDownTime) / divider * 100
+	dataAvail = (countTimeStamp * 10 / 60) / divider * 100
+	return
+}
+
 func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
 	q := DB().Connection.
 		NewQuery().

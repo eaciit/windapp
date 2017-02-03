@@ -72,213 +72,81 @@ pg.breakDownList = ko.observableArray([
     { "value": "turbine", "text": "Turbine" },
 ]);
 
-pg.dummyData = ko.observableArray([
-    { "name": "TJ001", "prod": 90, "machdown": 50, "griddown": 40, "pcdev": 50, "elecloss": 55, "others": 30 },
-    { "name": "TJ002", "prod": 90, "machdown": 50, "griddown": 40, "pcdev": 50, "elecloss": 55, "others": 30 }
-]);
+pg.isFirstStaticView = ko.observable(true);
+pg.isFirstDowntime = ko.observable(true);
+pg.isFirstAvailability = ko.observable(true);
+pg.isFirstLostEnergy = ko.observable(true);
+pg.isFirstReliability = ko.observable(true);
+pg.isFirstWindSpeed = ko.observable(true);
+pg.isFirstWarning = ko.observable(true);
+pg.isFirstComponentAlrm = ko.observable(true);
 
-pg.ChartLoss = function () {
-    var breakDownVal = $("#breakdownlist").data("kendoDropDownList").value();
 
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project,
-        breakdown: breakDownVal
-    };
-
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarychart", param, function (res) {
+pg.getDataAvailableInfo =  function(){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
         if (!app.isFine(res)) {
             return;
         }
-        var cSeries = res.data.Series
-        var cCategories = res.data.Categories;
+        var minDatetemp = new Date(res.data.ScadaData[0]);
+        var maxDatetemp = new Date(res.data.ScadaData[1]);
 
-        $('#lossChart').html("");
+        pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-        $("#lossChart").kendoChart({
-            theme: "Flat",
-            legend: {
-                position: "top",
-                visible: true,
-            },
-            series: cSeries,
-            seriesColors: colorField,
-            valueAxes: [{
-                line: {
-                    visible: false
-                },
-                max: 100,
-                majorUnit: 10,
-                labels: {
-                    format: "{0}",
-                },
-                majorGridLines: {
-                    visible: false,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                name: "lossLine",
-                title: { text: "Percentage (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
-            }, {
-                line: {
-                    visible: false
-                },
-                // max: 100,
-                // majorUnit: 2,
-                labels: {
-                    format: "{0:n2}",
-                },
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                name: "lossBar",
-                title: { text: "Capacity (MW)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
-            }],
-            categoryAxis: {
-                categories: cCategories,
-                title: {
-                    text: $("#breakdownlist").data("kendoDropDownList").text(),
-                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                axisCrossingValues: [0, 1000],
-                justified: true,
-                majorGridLines: {
-                    visible: false
-                },
-            },
-            tooltip: {
-                visible: true,
-                shared: false,
-                template: '#if(series.name == "Energy Lost Due to Machine Down (%)"){ ##= "Lost Due to MD" ## }else if(series.name == "Energy Lost Due to Grid Down (%)"){ ##= "Lost Due to GD" ## }else if(series.name == "Others (MWh)"){ ##= "Others" ## }else if(series.name == "Electrical Losses (MWh)"){ ##= "Electrical Losses" ## }else if(series.name == "PC Deviation (MW)"){ ##= "PC Deviation" ## }else{##= series.name ##}# : # if (series.name  == "Electrical Losses (MWh)" || series.name  == "Others (MWh)" ) {##= value # MWh#} else if(series.name == "PC Deviation (MW)"){# #= value # MW #} else {# #= value # % #}#',
-                // sharedTemplate:kendo.template($("#templateChart").html()),
-                background: "rgb(255,255,255, 0.9)",
-                color: "#58666e",
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                border: {
-                    color: "#eee",
-                    width: "2px",
-                }
+        pg.availabledatestartscada2(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        pg.availabledateendscada2(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+        pg.availabledatestartalarm(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+        pg.availabledateendalarm(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
+
+        pg.availabledatestartscada3(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+        pg.availabledateendscada3(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+        pg.availabledatestartalarm2(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
+        pg.availabledateendalarm2(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
+
+        pg.availabledatestartwarning(kendo.toString(moment.utc(res.data.Warning[0]).format('DD-MMMM-YYYY')));
+        pg.availabledateendwarning(kendo.toString(moment.utc(res.data.Warning[1]).format('DD-MMMM-YYYY')));
+
+        $('#availabledatestart').html(pg.availabledatestartscada());
+        $('#availabledateend').html(pg.availabledateendscada());
+    })
+}
+pg.backToDownTime = function () {
+    pg.isDetailDTTop(false);
+    pg.detailDTTopTxt("");
+}
+pg.SetBreakDown = function () {
+    fa.disableRefreshButton(true);
+    pg.breakDown = [];
+
+    setTimeout(function () {
+        $.each(fa.GetBreakDown(), function (i, val) {
+            if (val.value == "Turbine" || val.value == "Project") {
+                return false;
+            } else {
+               pg.breakDown.push(val);
             }
         });
-        setTimeout(function () {
-            if ($("#lossChart").data("kendoChart") != null) {
-                $("#lossChart").data("kendoChart").refresh();
-            }
-        }, 10);
 
-    });
-};
+        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(pg.breakDown);
+        $("#breakdownlistavail").data("kendoDropDownList").dataSource.query();
+        $("#breakdownlistavail").data("kendoDropDownList").select(0);
 
-pg.GridLoss = function () {
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project,
-    };
 
-    var requestGridLoss = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var gData = res.data.Data
-
-        $('#lossGrid').html("");
-        $('#lossGrid').kendoGrid({
-            dataSource: {
-                data: gData,
-                pageSize: 10,
-                aggregate: [
-                    { field: "Production", aggregate: "sum" },
-                    { field: "LossEnergy", aggregate: "sum" },
-                    { field: "MachineDownHours", aggregate: "sum" },
-                    { field: "GridDownHours", aggregate: "sum" },
-                    { field: "EnergyyMD", aggregate: "sum" },
-                    { field: "EnergyyGD", aggregate: "sum" },
-                    { field: "ElectricLoss", aggregate: "sum" },
-                    { field: "PCDeviation", aggregate: "sum" },
-                    { field: "Others", aggregate: "sum" },
-                ]
-            },
-            groupable: false,
-            sortable: true,
-            filterable: false,
-            // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
-            height: 399,
-            pageable: {
-                pageSize: 10,
-                input: true, 
-            },
-            columns: [
-                { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
-                { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
-                { title: "Lost Energy (MWh)",headerAttributes: {style: "text-align:center;"},field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
-                {
-                    title: "Downtime : Duration (Hrs)",
-                    headerAttributes: {
-                        style: 'font-weight: bold; text-align: center;'
-                    },
-                    columns: [
-                        {
-                            title: "Machine",
-                            headerAttributes: { style: "text-align:center;" },
-                            field: "MachineDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
-                        },
-                        {
-                            title: "Grid",
-                            headerAttributes: { style: "text-align:center;" },
-                            field: "GridDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
-                        },
-                    ]
-                }, {
-                    title: "Downtime : Energy Loss (MWh)",
-                    headerAttributes: {
-                        style: 'font-weight: bold; text-align: center;'
-                    },
-                    columns: [
-                        {
-                            title: "Machine",
-                            headerAttributes: { style: "text-align:center;" },
-                            field: "EnergyyMD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
-                        },
-                        {
-                            title: "Grid",
-                            headerAttributes: { style: "text-align:center;" },
-                            field: "EnergyyGD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
-                        },
-                    ]
-                }, {
-                    title: "Electrical Losses (MWh)",
-                    headerAttributes: {
-                        style: "text-align:center;"
-                    },
-                    field: "ElectricLoss", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
-                }, {
-                    title: "Power Curve Deviation (MW)", //Sepertinya ini MW
-                    headerAttributes: {
-                        style: "text-align:center;"
-                    },
-                    field: "PCDeviation", width: 120, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
-                }, {
-                    title: "Others (MWh)", //Sepertinya ini KWh
-                    headerAttributes: {
-                        style: "text-align:center;"
-                    },
-                    field: "Others", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
-                }]
-        })
-    });
-};
-
+        fa.disableRefreshButton(false);
+    }, 500);
+}
+pg.LoadData = function(){
+    fa.LoadData();
+    if (fa.project == "") {
+        pg.type = "Project Name";
+    } else {
+        pg.type = "Turbine";
+    }
+    pg.getDataAvailableInfo();
+}
 pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
-    // $("#" + id).height("300px")
-    // var Height = $('#CompAlarm').width() * heightParam
 
     $("#" + id).kendoChart({
         dataSource: {
@@ -357,9 +225,6 @@ pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heigh
             },
 
         },
-        // seriesClick: function (e) {
-        //     pg.toDetailDTTop(e, "Hours");
-        // }
     });
 
     setTimeout(function () {
@@ -368,193 +233,6 @@ pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heigh
         }
     }, 100);
 }
-
-pg.DTFrequency = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
-    // $("#" + id).height("300px")
-    // var Height = $('#CompAlarm').width() * height
-    $("#" + id).kendoChart({
-        dataSource: {
-            data: dataSource,
-            sort: { field: "Total", dir: 'desc' }
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: legend,
-        },
-        chartArea: {
-            height: heightParam,
-            padding: 0,
-            margin: 0
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: true,
-            labels: {
-                        visible: vislabel,
-                        background: "transparent",
-                        template: "#= category #: \n #= kendo.format('{0:N1}', value)#",
-                    }
-        },
-        series: Series,
-        seriesColors: colorField,
-        valueAxis: {
-            title: {
-                text: "Times",
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            name: "result",
-            labels: {
-                step: 2
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            field: "_id",
-            title: {
-                text: name,
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            dir: "desc",
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                rotation: rotate
-            },
-            majorTickType: "none"
-        },
-        tooltip: {
-            visible: true,
-            // format: "{0:n1}",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            // template: "#: category #: #: kendo.toString(value, 'n1') # Hours",
-            template: "#: category #: #: value # ",
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        },
-        // seriesClick: function (e) {
-        //     pg.toDetailDTTop(e, "Times");
-        // }
-    });
-
-    setTimeout(function () {
-        if ($("#" + id).data("kendoChart") != null) {
-            $("#" + id).data("kendoChart").refresh();
-        }
-    }, 100);
-}
-
-pg.TopTurbineLoss = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
-    // $("#" + id).height("300px")
-    // var Height = $('#CompAlarm').width() * height
-    $("#" + id).kendoChart({
-        dataSource: {
-            data: dataSource,
-            sort: [
-                { "field": "Total", "dir": "desc" }
-            ],
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: legend,
-        },
-        chartArea: {
-            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 100) / 2,
-            height: heightParam, 
-            padding: 0,
-            margin: 0
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: true,
-            labels: {
-                        visible: vislabel,
-                        background: "transparent",
-                        template: "#= category #: \n #= kendo.format('{0:N1}', value/1000)# MWh",
-                    }
-            // opacity : 0.7
-        },
-        series: Series,
-        seriesColors: colorField,
-        valueAxis: {
-            //majorUnit: 100,
-            title: {
-                text: "MWh",
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            labels: {
-                step: 2,
-                template: "#: kendo.toString(value/1000, 'n1') #",
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            field: "_id",
-            title: {
-                text: name,
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                rotation: rotate
-            },
-            majorTickType: "none"
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:n1}",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value/1000, 'n1') # MWh",
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-
-        },
-        // seriesClick: function (e) {
-        //     avail.toDetailDTTop(e, "MWh");
-        // }
-    });
-
-    setTimeout(function () {
-        if ($("#" + id).data("kendoChart") != null) {
-            $("#" + id).data("kendoChart").refresh();
-        }
-    }, 100);
-}
-
 pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
     var gapVal = 1
     var templateLossCat = ''
@@ -655,37 +333,154 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
         },
     });
 }
-
-pg.ChartAvailability = function () {
-
-    pg.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
-
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project,
-        breakDown: pg.breakDownVal,
-    };
-    toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        pg.dataSource(res.data);
-        pg.createChartAvailability(pg.dataSource());
-        pg.createChartProduction(pg.dataSource());
-
-        if ($("#availabilityChart").data("kendoChart") != null) {
-            $("#availabilityChart").data("kendoChart").refresh();
-        }
-        if ($("#productionChart").data("kendoChart") != null) {
-            $("#productionChart").data("kendoChart").refresh();
-        }
-
+pg.DTLEbyType = function (dataSource) {
+    $("#chartDTLEbyType").kendoChart({
+        dataSource: {
+            data: dataSource,
+            group: [{ field: "_id.id3" }],
+            sort: { field: "_id.id1", dir: 'asc' }
+        },
+        theme: "flat",
+        title: {
+            text: ""
+        },
+        legend: {
+            position: "top",
+            visible: true,
+        },
+        chartArea: {
+            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
+            height: 163,
+        },
+        seriesDefaults: {
+            type: "column",
+            stack: true
+        },
+        series: [{
+            type: "column",
+            field: "powerlost",
+            // opacity : 0.7,
+            stacked: true,
+            axis: "PowerLost"
+        },
+        {
+            name: function () {
+                return "Duration";
+            },
+            type: "line",
+            field: "duration",
+            axis: "Duration",
+            markers: {
+                visible: false
+            }
+        },
+        {
+            name: function () {
+                return "Frequency";
+            },
+            type: "line",
+            field: "frequency",
+            axis: "Frequency",
+            markers: {
+                visible: false
+            }
+        }],
+        seriesColor: colorField,
+        valueAxis: [{
+            name: "PowerLost",
+            labels: {
+                step: 2
+            },
+            line: {
+                visible: false
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+        },
+        {
+            name: "Duration",
+            title: { visible: false },
+            visible: false,
+        },
+        {
+            name: "Frequency",
+            title: { visible: false },
+            visible: false,
+        }],
+        categoryAxis: {
+            field: "_id.id2",
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                rotation: -330
+            },
+            majorTickType: "none"
+        },
+        tooltip: {
+            visible: true,
+            background: "rgb(255,255,255, 0.9)",
+            shared: true,
+            sharedTemplate: kendo.template($("#templateDTLE").html()),
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        },
     });
-};
+}
+pg.generateGrid = function (dataSource) {
+    var config = {
+        dataSource: {
+            data: dataSource,
+            pageSize: 10
+        },
+        pageable: {
+            pageSize: 10,
+            input: true, 
+        },
+        scrollable: true,
+        sortable: true,
+        columns: [
+            { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
+        ],
+        dataBound: function(){
+            setTimeout(function(){
+                $("#warningGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","20px");
+                $("#warningGrid >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","20px");
+                // app.loading(false);
+            },200);
+        },
+    };
 
+    $.each(dataSource[0].turbines, function (i, val) {
+        var column = {
+            title: val.turbine,
+            field: "turbines["+i+"].count",
+            attributes: { class: "align-center" },
+            headerAttributes: {
+                style: 'font-weight: bold; text-align: center;'
+            },
+            width: 100
+        }
+
+        config.columns.push(column);
+    });
+
+    $('#warningGrid').html("");
+    $('#warningGrid').kendoGrid(config);
+    $('#warningGrid').data('kendoGrid').refresh();
+
+    // setTimeout(function() {
+    //     app.loading(false);
+    // }, 500);
+}
 pg.createChartAvailability = function (dataSource) {
     var series = dataSource.SeriesAvail;
     var seriesProd = dataSource.SeriesProd;
@@ -839,273 +634,123 @@ pg.createChartProduction = function (dataSource) {
      $("#productionChart").css("top",-60);
      $("#productionChart").css("margin-bottom",-60);
 }
+pg.StaticView = function(){
+    if(pg.isFirstStaticView() === true){
+        var param = {
+            period: fa.period,
+            dateStart: fa.dateStart,
+            dateEnd: fa.dateEnd,
+            turbine: fa.turbine,
+            project: fa.project,
+        };
 
-pg.ChartWindAvail = function () {
-    // fa.getProjectInfo();
-    fa.LoadData();
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project
-    };
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
 
-    toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var data = res.data;
+            var gData = res.data.Data
 
-        $("#windAvailabilityChart").html("");
-        $("#windAvailabilityChart").kendoChart({
-            dataSource: {
-                data: data,
-                sort: { field: "WindSpeed", dir: 'asc' }
-            },
-            theme: "Flat",
-            chartArea: {
+            $('#lossGrid').html("");
+            $('#lossGrid').kendoGrid({
+                dataSource: {
+                    data: gData,
+                    pageSize: 10,
+                    aggregate: [
+                        { field: "Production", aggregate: "sum" },
+                        { field: "LossEnergy", aggregate: "sum" },
+                        { field: "MachineDownHours", aggregate: "sum" },
+                        { field: "GridDownHours", aggregate: "sum" },
+                        { field: "EnergyyMD", aggregate: "sum" },
+                        { field: "EnergyyGD", aggregate: "sum" },
+                        { field: "ElectricLoss", aggregate: "sum" },
+                        { field: "PCDeviation", aggregate: "sum" },
+                        { field: "Others", aggregate: "sum" },
+                    ]
+                },
+                groupable: false,
+                sortable: true,
+                filterable: false,
                 // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
-                height: 400,
-            },
-            legend: {
-                position: "top",
-                visible: true,
-            },
-            series: [{
-                type: "column",
-                field: "TotalAvail",
-                axis: "windPercentage",
-                name: "Total Availability [%]",
-                opacity: 0.6
-            }, {
-                type: "line",
-                style: "smooth",
-                field: "Time",
-                axis: "windPercentage",
-                name: "Cumulative % of Time",
-                markers: {
-                    visible: false,
+                height: 399,
+                pageable: {
+                    pageSize: 10,
+                    input: true, 
                 },
-                width: 3,
-            }, {
-                type: "line",
-                style: "smooth",
-                field: "Energy",
-                axis: "cumProd",
-                name: "Cumulative % of Energy Delivered",
-                markers: {
-                    visible: false,
-                },
-                width: 3,
-            }],
-            seriesColors: colorFields2,
-            valueAxes: [{
-                line: {
-                    visible: false
-                },
-                max: 100,
-                majorUnit: 20,
-                labels: {
-                    format: "{0}%",
-                },
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                name: "windPercentage",
-                title: { text: "Availability (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
-            }, {
-                line: {
-                    visible: false
-                },
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                max: 100,
-                labels: {
-                    format: "{0}%",
-                },
-                name: "cumProd",
-                title: { text: "Cumulative Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
-            }],
-            categoryAxis: {
-                field: "WindSpeed",
-                title: {
-                    text: "Wind Speed (m/s)",
-                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                axisCrossingValues: [0, 1000],
-                justified: true,
-                majorGridLines: {
-                    visible: false
-                },
-            },
-            tooltip: {
-                visible: true,
-                shared: true,
-                background: "rgb(255,255,255, 0.9)",
-                color: "#58666e",
-                // template: "#= series.name # : #= kendo.toString(value, 'n2')# at #= category #",
-                template: "#= kendo.toString(value, 'n2')#",
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                border: {
-                    color: "#eee",
-                    width: "2px",
-                },
-            },
+                columns: [
+                    { title: pg.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
+                    { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
+                    { title: "Lost Energy (MWh)",headerAttributes: {style: "text-align:center;"},field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
+                    {
+                        title: "Downtime : Duration (Hrs)",
+                        headerAttributes: {
+                            style: 'font-weight: bold; text-align: center;'
+                        },
+                        columns: [
+                            {
+                                title: "Machine",
+                                headerAttributes: { style: "text-align:center;" },
+                                field: "MachineDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                            },
+                            {
+                                title: "Grid",
+                                headerAttributes: { style: "text-align:center;" },
+                                field: "GridDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                            },
+                        ]
+                    }, {
+                        title: "Downtime : Energy Loss (MWh)",
+                        headerAttributes: {
+                            style: 'font-weight: bold; text-align: center;'
+                        },
+                        columns: [
+                            {
+                                title: "Machine",
+                                headerAttributes: { style: "text-align:center;" },
+                                field: "EnergyyMD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                            },
+                            {
+                                title: "Grid",
+                                headerAttributes: { style: "text-align:center;" },
+                                field: "EnergyyGD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                            },
+                        ]
+                    }, {
+                        title: "Electrical Losses (MWh)",
+                        headerAttributes: {
+                            style: "text-align:center;"
+                        },
+                        field: "ElectricLoss", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                    }, {
+                        title: "Power Curve Deviation (MW)", //Sepertinya ini MW
+                        headerAttributes: {
+                            style: "text-align:center;"
+                        },
+                        field: "PCDeviation", width: 120, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                    }, {
+                        title: "Others (MWh)", //Sepertinya ini KWh
+                        headerAttributes: {
+                            style: "text-align:center;"
+                        },
+                        field: "Others", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                    }
+                ],
+                dataBound: function(){
+                     app.loading(false);
+                     pg.isFirstStaticView(false);
+                }
+            })
         });
-
-        $("#windAvailabilityChart").data("kendoChart").refresh();
-    });
-};
-
-pg.DTLEbyType = function (dataSource) {
-    $("#chartDTLEbyType").kendoChart({
-        dataSource: {
-            data: dataSource,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: true,
-        },
-        chartArea: {
-            // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
-            height: 163,
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: true
-        },
-        series: [{
-            type: "column",
-            field: "powerlost",
-            // opacity : 0.7,
-            stacked: true,
-            axis: "PowerLost"
-        },
-        {
-            name: function () {
-                return "Duration";
-            },
-            type: "line",
-            field: "duration",
-            axis: "Duration",
-            markers: {
-                visible: false
-            }
-        },
-        {
-            name: function () {
-                return "Frequency";
-            },
-            type: "line",
-            field: "frequency",
-            axis: "Frequency",
-            markers: {
-                visible: false
-            }
-        }],
-        seriesColor: colorField,
-        valueAxis: [{
-            name: "PowerLost",
-            labels: {
-                step: 2
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-        },
-        {
-            name: "Duration",
-            title: { visible: false },
-            visible: false,
-        },
-        {
-            name: "Frequency",
-            title: { visible: false },
-            visible: false,
-        }],
-        categoryAxis: {
-            field: "_id.id2",
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                rotation: -330
-            },
-            majorTickType: "none"
-        },
-        tooltip: {
-            visible: true,
-            background: "rgb(255,255,255, 0.9)",
-            shared: true,
-            sharedTemplate: kendo.template($("#templateDTLE").html()),
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        },
-    });
-}
-
-pg.backToDownTime = function () {
-
-    pg.isDetailDTTop(false);
-    pg.detailDTTopTxt("");
-}
-
-pg.getPeriodDesc = function () {
-    var duration = ((fa.dateEnd - fa.dateStart) / 86400000) + 1;
-    var breakDownVal = $("#breakdownlist").data("kendoDropDownList").value();
-    if (breakDownVal == "dateinfo.dateid") {
-        pg.periodDesc = fa.dateStart + " to " + fa.dateEnd;
-    } else {
-        pg.periodDesc = "";
+    }else{
+        $("#lossGrid").data("kendoGrid").refresh();
+        $('#availabledatestart').html(pg.availabledatestartscada());
+        $('#availabledateend').html(pg.availabledateendscada());
     }
 }
-
-pg.loadData = function () {
-
-    // fa.getProjectInfo();
-    setTimeout(function () {
-        pg.SetBreakDown();
-
-        if (fa.project == "") {
-            pg.type = "Project Name";
-        } else {
-            pg.type = "Turbine";
-        }
-
-        pg.ChartAvailability();
-        pg.ChartWindAvail();
-        pg.ChartLoss();
-        pg.GridLoss();
-        warn.loadData();
-
-        // moment(Date.UTC(date1.getFullYear(), date1.getMonth(), date1.getDate(), 0, 0, 0)).toISOString()
-
-        // Top 10 Downtime
-        // var param = {ProjectName : fa.project, Date: maxdate};
+pg.Downtime = function(){
+    app.loading(true);
+    if(pg.isFirstDowntime() === true){
         var param = {
-            // dateStart: fa.dateStart,
             period: fa.period,
             dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
             dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
@@ -1113,63 +758,83 @@ pg.loadData = function () {
             project: fa.project,
         }
 
-        // console.log(param);
-        pg.getPeriodDesc();
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var minDatetemp = new Date(res.data.ScadaData[0]);
-            var maxDatetemp = new Date(res.data.ScadaData[1]);
-
-            pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-            pg.availabledatestartscada2(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            pg.availabledateendscada2(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-            pg.availabledatestartalarm(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
-            pg.availabledateendalarm(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
-
-            pg.availabledatestartscada3(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            pg.availabledateendscada3(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-            pg.availabledatestartalarm2(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
-            pg.availabledateendalarm2(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
-
-            pg.availabledatestartwarning(kendo.toString(moment.utc(res.data.Warning[0]).format('DD-MMMM-YYYY')));
-            pg.availabledateendwarning(kendo.toString(moment.utc(res.data.Warning[1]).format('DD-MMMM-YYYY')));
-
-            $('#availabledatestart').html(pg.availabledatestartscada());
-            $('#availabledateend').html(pg.availabledateendscada());
-        })
-
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-
             pg.dtCompponentAlarm(res.data)
+            setTimeout(function(){
+                var HDowntime = $('#filter-analytic').width() * 0.2
+                var HAlarm = $('#filter-analytic').width() * 0.235
 
-            var HDowntime = $('#filter-analytic').width() * 0.2
-            var HAlarm = $('#filter-analytic').width() * 0.235
-            
-            // ===== Downtime =====
-            pg.DTDuration(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
-            pg.DTFrequency(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
-            pg.TopTurbineLoss(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+                pg.DTDuration(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+                pg.DTDuration(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+                pg.DTDuration(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
 
-            // ===== Alarm =====
-            pg.DTDuration(res.data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
-            pg.DTFrequency(res.data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
-            pg.TopTurbineLoss(res.data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
 
-            pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
-            pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
-            pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+                pg.DTDuration(res.data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
+                pg.DTDuration(res.data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
+                pg.DTDuration(res.data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
 
+                pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
+                pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+                pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+
+                pg.isFirstDowntime(false);
+                app.loading(false);
+            },300);
+           
+        }); 
+    }else{
+        setTimeout(function(){
+            $('#availabledatestart').html(pg.availabledatestartalarm2());
+            $('#availabledateend').html(pg.availabledateendalarm2());
+            $("#chartDTDuration").data("kendoChart").refresh();
+            $("#chartDTFrequency").data("kendoChart").refresh();
+            $("#chartTopTurbineLoss").data("kendoChart").refresh();
             app.loading(false);
+        },300);
+    }
+}
+pg.Availability = function(){
+    app.loading(true);
+
+    if(pg.isFirstAvailability() === true){
+        pg.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
+        var param = {
+            period: fa.period,
+            dateStart: fa.dateStart,
+            dateEnd: fa.dateEnd,
+            turbine: fa.turbine,
+            project: fa.project,
+            breakDown: pg.breakDownVal,
+        };
+        toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+
+            setTimeout(function(){
+                pg.dataSource(res.data);
+                pg.createChartAvailability(pg.dataSource());
+                pg.createChartProduction(pg.dataSource());
+                pg.isFirstAvailability(false);
+                app.loading(false);
+            },200);
         });
+    }else{
+        setTimeout(function(){
+            $('#availabledatestart').html(pg.availabledatestartscada3());
+            $('#availabledateend').html(pg.availabledateendscada3());
+            $("#availabilityChart").data("kendoChart").refresh();
+            $("#productionChart").data("kendoChart").refresh();
+            app.loading(false);
+        },200);
+    }
+}
+pg.LossEnergy = function(){
+    app.loading(true)
+    if(pg.isFirstLostEnergy() === true){
         var paramdown = {
             Period: fa.period,
             DateStart: fa.dateStart,
@@ -1181,239 +846,248 @@ pg.loadData = function () {
             if (!app.isFine(res)) {
                 return;
             }
-            pg.DTLEbyType(res.data);
+            setTimeout(function(){
+                 pg.DTLEbyType(res.data);
+                  pg.Downtime();
+                 pg.isFirstLostEnergy(false);
+            },200)
+           
         });
-    }, 100);
-}
-
-pg.refreshGrid = function (param) {
-    app.loading(true);
-    if(param != "undefined"){
-        if(param == "staticView"){
-            $('#availabledatestart').html(pg.availabledatestartscada());
-            $('#availabledateend').html(pg.availabledateendscada());
-        }
-        if(param == 'top10downtime'){
-            $('#availabledatestart').html(pg.availabledatestartalarm2());
-            $('#availabledateend').html(pg.availabledateendalarm2());
-        }
-        if(param == 'availability'){
-            $('#availabledatestart').html(pg.availabledatestartscada3());
-            $('#availabledateend').html(pg.availabledateendscada3());
-        }
-        if(param == 'lostenergy'){
+    }else{
+        setTimeout(function(){
             $('#availabledatestart').html(pg.availabledatestartalarm());
             $('#availabledateend').html(pg.availabledateendalarm());
-        }
-        if(param == 'reliabilitykpi'){
-            $('#availabledatestart').html(pg.availabledatestartscada2());
-            $('#availabledateend').html(pg.availabledateendscada2());
-        }
-        if(param == 'windspeedavail'){
-            $('#availabledatestart').html(pg.availabledatestartscada2());
-            $('#availabledateend').html(pg.availabledateendscada2());
-        }
-        if(param == 'warning'){
-            $('#availabledatestart').html(pg.availabledatestartwarning());
-            $('#availabledateend').html(pg.availabledateendwarning());
-        }
-    }
-    setTimeout(function () {
-        if ($("#gridLoss").data("kendoGrid") != null) {
-            $("#gridLoss").data("kendoGrid").refresh();
-        }
-        if ($("#lossChart").data("kendoChart") != null) {
-            $("#lossChart").data("kendoChart").refresh();
-        }
-
-        if ($("#chartDTDuration").data("kendoChart") != null) {
-            $("#chartDTDuration").data("kendoChart").refresh();
-        }
-
-        if ($("#chartDTFrequency").data("kendoChart") != null) {
-            $("#chartDTFrequency").data("kendoChart").refresh();
-        }
-
-        if ($("#chartTopTurbineLoss").data("kendoChart") != null) {
-            $("#chartTopTurbineLoss").data("kendoChart").refresh();
-        }
-
-        if ($("#availabilityChart").data("kendoChart") != null) {
-            $("#availabilityChart").data("kendoChart").refresh();
-        }
-
-        if ($("#chartLCByTEL").data("kendoChart") != null) {
             $("#chartLCByTEL").data("kendoChart").refresh();
-        }
-
-        if ($("#chartLCByDuration").data("kendoChart") != null) {
-            $("#chartLCByDuration").data("kendoChart").refresh();
-        }
-
-        if ($("#chartLCByFreq").data("kendoChart") != null) {
-            $("#chartLCByFreq").data("kendoChart").refresh();
-        }
-
-        if ($("#chartDTLEbyType").data("kendoChart") != null) {
             $("#chartDTLEbyType").data("kendoChart").refresh();
-        }
+            $("#chartLCByDuration").data("kendoChart").refresh();
+            $("#chartLCByFreq").data("kendoChart").refresh();
+            app.loading(false);
+        },200)
+    }
+}
+pg.Reliability = function(){
+    if(pg.isFirstReliability() === true){
+        $('#availabledatestart').html(pg.availabledatestartscada2());
+        $('#availabledateend').html(pg.availabledateendscada2());
+    }else{
+        $('#availabledatestart').html(pg.availabledatestartscada2());
+        $('#availabledateend').html(pg.availabledateendscada2());
+    }
+}
+pg.WindSpeed = function(){
+    app.loading(true);
 
-        if ($("#windAvailabilityChart").data("kendoChart") != null) {
+    if(pg.isFirstWindSpeed() === true){
+        var param = {
+            period: fa.period,
+            dateStart: fa.dateStart,
+            dateEnd: fa.dateEnd,
+            turbine: fa.turbine,
+            project: fa.project
+        };
+
+        toolkit.ajaxPost(viewModel.appName + "analyticwindavailability/getdata", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            var data = res.data;
+
+            $("#windAvailabilityChart").html("");
+            $("#windAvailabilityChart").kendoChart({
+                dataSource: {
+                    data: data,
+                    sort: { field: "WindSpeed", dir: 'asc' }
+                },
+                theme: "Flat",
+                chartArea: {
+                    height: 400,
+                },
+                legend: {
+                    position: "top",
+                    visible: true,
+                },
+                series: [{
+                    type: "column",
+                    field: "TotalAvail",
+                    axis: "windPercentage",
+                    name: "Total Availability [%]",
+                    opacity: 0.6
+                }, {
+                    type: "line",
+                    style: "smooth",
+                    field: "Time",
+                    axis: "windPercentage",
+                    name: "Cumulative % of Time",
+                    markers: {
+                        visible: false,
+                    },
+                    width: 3,
+                }, {
+                    type: "line",
+                    style: "smooth",
+                    field: "Energy",
+                    axis: "cumProd",
+                    name: "Cumulative % of Energy Delivered",
+                    markers: {
+                        visible: false,
+                    },
+                    width: 3,
+                }],
+                seriesColors: colorFields2,
+                valueAxes: [{
+                    line: {
+                        visible: false
+                    },
+                    max: 100,
+                    majorUnit: 20,
+                    labels: {
+                        format: "{0}%",
+                    },
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    name: "windPercentage",
+                    title: { text: "Availability (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+                }, {
+                    line: {
+                        visible: false
+                    },
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    max: 100,
+                    labels: {
+                        format: "{0}%",
+                    },
+                    name: "cumProd",
+                    title: { text: "Cumulative Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
+                }],
+                categoryAxis: {
+                    field: "WindSpeed",
+                    title: {
+                        text: "Wind Speed (m/s)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    },
+                    axisCrossingValues: [0, 1000],
+                    justified: true,
+                    majorGridLines: {
+                        visible: false
+                    },
+                },
+                tooltip: {
+                    visible: true,
+                    shared: true,
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    // template: "#= series.name # : #= kendo.toString(value, 'n2')# at #= category #",
+                    template: "#= kendo.toString(value, 'n2')#",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                },
+                dataBound: function(){
+                    pg.isFirstWindSpeed(false);
+                    app.loading(false);
+                }
+            });
+        });
+    }else{
+        setTimeout(function(){
+            $('#availabledatestart').html(pg.availabledatestartscada2());
+            $('#availabledateend').html(pg.availabledateendscada2());
             $("#windAvailabilityChart").data("kendoChart").refresh();
-        }
-        
-       if ($("#productionChart").data("kendoChart") != null) {
-            $("#productionChart").data("kendoChart").refresh();
-        }
-
-        if ($("#warningGrid").data("kendoGrid") != null) {
-            $("#warningGrid").data("kendoGrid").refresh();
-        }
-
-        if ($("#chartCADuration").data("kendoChart") != null) {
-            $("#chartCADuration").data("kendoChart").refresh();
-        }
-
-        if ($("#chartCAFrequency").data("kendoChart") != null) {
-            $("#chartCAFrequency").data("kendoChart").refresh();
-        }
-
-        if ($("#chartCATurbineLoss").data("kendoChart") != null) {
-            $("#chartCATurbineLoss").data("kendoChart").refresh();
-        }
-
-        app.loading(false);
-    },1500);
+            app.loading(false);
+        },200);
+    }
+    
 }
 
-pg.SetBreakDown = function () {
-    fa.disableRefreshButton(true);
-    pg.breakDown = [];
+pg.Warning = function(){
+    app.loading(true);
+    if(pg.isFirstWarning() === true){
+        var param = {
+            period: fa.period,
+            Turbine: fa.turbine,
+            DateStart: fa.dateStart,
+            DateEnd: fa.dateEnd,
+            Project: fa.project
+        };
 
-    setTimeout(function () {
-        $.each(fa.GetBreakDown(), function (i, val) {
-            if (val.value == "Turbine" || val.value == "Project") {
-                return false;
-            } else {
-               pg.breakDown.push(val);
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getwarning", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (res.data.Data.length != 0) {
+                setTimeout(function(){
+                    pg.generateGrid(res.data.Data);
+                    app.loading(false);
+                },200);
+            }else{
+                app.loading(false);
             }
         });
-
-        $("#breakdownlistavail").data("kendoDropDownList").dataSource.data(pg.breakDown);
-        $("#breakdownlistavail").data("kendoDropDownList").dataSource.query();
-        $("#breakdownlistavail").data("kendoDropDownList").select(0);
-
-
-        fa.disableRefreshButton(false);
-    }, 500);
+    }else{
+        setTimeout(function(){
+            $("#warningGrid").data("kendoGrid").refresh();
+            $('#availabledatestart').html(pg.availabledatestartwarning());
+            $('#availabledateend').html(pg.availabledateendwarning());
+            app.loading(false);
+        },200);
+        
+    }
 }
 
-viewModel.Warning = new Object();
-var warn = viewModel.Warning;
-warn.dataSource = ko.observableArray();
-
-warn.generateGrid = function () {
-    var config = {
-        dataSource: {
-            data: warn.dataSource(),
-            pageSize: 10
-        },
-        pageable: {
-            pageSize: 10,
-            input: true, 
-        },
-        scrollable: true,
-        sortable: true,
-        columns: [
-            { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
-        ],
-        dataBound: function(){
-            setTimeout(function(){
-                $("#warningGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","20px");
-                $("#warningGrid >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","20px");
-                // app.loading(false);
-            },200);
-        },
-    };
-
-    $.each(warn.dataSource()[0].turbines, function (i, val) {
-        var column = {
-            title: val.turbine,
-            field: "turbines["+i+"].count",
-            attributes: { class: "align-center" },
-            headerAttributes: {
-                style: 'font-weight: bold; text-align: center;'
-            },
-            width: 100
-        }
-
-        config.columns.push(column);
-    });
-
-    $('#warningGrid').html("");
-    $('#warningGrid').kendoGrid(config);
-    $('#warningGrid').data('kendoGrid').refresh();
-
-    // setTimeout(function() {
-    //     app.loading(false);
-    // }, 500);
+pg.Component = function(){
+    app.loading(true);
+    if(pg.isFirstComponentAlrm() === true){
+        pg.Downtime();
+    }else{
+        setTimeout(function(){
+            $("#chartCADuration").data("kendoChart").refresh();
+            $("#chartCAFrequency").data("kendoChart").refresh();
+            $("#chartCATurbineLoss").data("kendoChart").refresh();
+        },200); 
+    }
 }
 
-warn.loadData = function() {
-    var param = {
-        period: fa.period,
-        Turbine: fa.turbine,
-        DateStart: fa.dateStart,
-        DateEnd: fa.dateEnd,
-        Project: fa.project
-    };
-
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getwarning", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        if (res.data.Data.length == 0) {
-            return;
-        }
-        warn.dataSource(res.data.Data);
-        warn.generateGrid();
-    });
+pg.resetStatus = function(){
+    pg.isFirstStaticView(true);
+    pg.isFirstDowntime(true);
+    pg.isFirstAvailability(true);
+    pg.isFirstLostEnergy(true);
+    pg.isFirstReliability(true);
+    pg.isFirstWindSpeed(true);
+    pg.isFirstWarning(true);
+    pg.isFirstComponentAlrm(true);
 }
-
-
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 
-$(document).ready(function () {
-    fa.LoadData();
-    $('#btnRefresh').on('click', function () {
-         app.loading(true);
-        fa.LoadData();
-        pg.loadData();
-    });
+$(function(){
+    setTimeout(function(){
+        pg.LoadData();
+        pg.StaticView();
+    },200);
 
-    $('#breakdownlist').kendoDropDownList({
-        data: [],
-        dataValueField: 'value',
-        dataTextField: 'text',
-        change: function () { pg.loadData() },
+    $('#btnRefresh').on('click', function () {
+        pg.resetStatus();
+        $('.nav').find('li.active').find('a').trigger( "click" );
     });
 
     $('#breakdownlistavail').kendoDropDownList({
         data: [],
         dataValueField: 'value',
         dataTextField: 'text',
-        change: function () { pg.loadData() },
+        change: function () { pg.isFirstAvailability(true); pg.Availability(); },
     });
-
-    setTimeout(function () {
-        fa.LoadData();
-        pg.loadData();
-    }, 1000);
-
-    // smart filter :)
 
     $('#periodList').kendoDropDownList({
         data: fa.periodList,
@@ -1423,50 +1097,46 @@ $(document).ready(function () {
         change: function () { fa.showHidePeriod(pg.SetBreakDown()) }
     });
 
-    setTimeout(function () {
-        $('#projectList').kendoDropDownList({
-            data: fa.projectList,
-            dataValueField: 'value',
-            dataTextField: 'text',
-            suggest: true,
-            change: function () { pg.SetBreakDown() }
-        });
-
-        $("#dateStart").change(function () { fa.DateChange(pg.SetBreakDown()) });
-        $("#dateEnd").change(function () { fa.DateChange(pg.SetBreakDown()) });
-
-    }, 1500);
-
-
-    $("input[name=IsAlarm]").on("change", function() {
-
-            var HAlarm = $('#filter-analytic').width() * 0.235
-        
-            var data = pg.dtCompponentAlarm()
-            if(this.id == "alarm"){   
-                SeriesAlarm =  [{
-                    field: "result",
-                    name: "Downtime"
-                }]             
-                // ===== Alarm =====
-                pg.DTDuration(data.alarmduration,'chartCADuration',SeriesAlarm,false, "",false,-90,HAlarm);
-                pg.DTFrequency(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "",false,-90,HAlarm);
-                pg.TopTurbineLoss(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "",false,-90,HAlarm);
-
-                pg.labelAlarm(" Top 10 Downtime")
-            }else{     
-                 SeriesAlarm = [{
-                    type: "pie",
-                    field: "result",
-                    categoryField: "_id",
-                }]           
-                // ===== Component =====
-                pg.DTDuration(data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
-                pg.DTFrequency(data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
-                pg.TopTurbineLoss(data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
-
-                pg.labelAlarm(" Downtime")
-            }
+    $('#projectList').kendoDropDownList({
+        data: fa.projectList,
+        dataValueField: 'value',
+        dataTextField: 'text',
+        suggest: true,
+        change: function () { pg.SetBreakDown() }
     });
 
-});
+    $("#dateStart").change(function () { fa.DateChange(pg.SetBreakDown()) });
+    $("#dateEnd").change(function () { fa.DateChange(pg.SetBreakDown()) });
+
+    $("input[name=IsAlarm]").on("change", function() {
+        var HAlarm = $('#filter-analytic').width() * 0.235
+    
+        var data = pg.dtCompponentAlarm()
+        if(this.id == "alarm"){   
+            SeriesAlarm =  [{
+                field: "result",
+                name: "Downtime"
+            }]             
+            // ===== Alarm =====
+            pg.DTDuration(data.alarmduration,'chartCADuration',SeriesAlarm,false, "",false,-90,HAlarm);
+            pg.DTDuration(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "",false,-90,HAlarm);
+            pg.DTDuration(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "",false,-90,HAlarm);
+
+            pg.labelAlarm(" Top 10 Downtime")
+        }else{     
+             SeriesAlarm = [{
+                type: "pie",
+                field: "result",
+                categoryField: "_id",
+            }]           
+            // ===== Component =====
+            pg.DTDuration(data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
+            pg.DTDuration(data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
+            pg.DTDuration(data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
+
+            pg.labelAlarm(" Downtime")
+        }
+    });
+
+
+})
