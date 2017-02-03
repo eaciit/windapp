@@ -112,10 +112,10 @@ var Data = {
         }
     },
     IdCheck: function(param) {
+        app.loading(true);
         switch(param) {
             case 'scadaTab':
                 if(!dbr.isScadaLoaded()) {
-                    app.loading(true);
                     dbr.isScadaLoaded(true);
                     dbs.InitScadaGrid();
                     app.ajaxPost(viewModel.appName + "/databrowser/getscadadataoemavaildate", {}, function(res) {
@@ -140,11 +140,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartscadadataoem);
                     $('#availabledateend').html(availDateList.availabledateendscadadataoem);
+                    app.loading(false);
                 }
                 break;
             case 'scadahfdTab':
                 if(!dbr.isScadaHFDLoaded()) {
-                    app.loading(true);
                     dbr.isScadaHFDLoaded(true);
                     dbsh.InitScadaHFDGrid();
                     app.ajaxPost(viewModel.appName + "/databrowser/getscadadatahfdavaildate", {}, function (res) {
@@ -169,11 +169,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartscadadatahfd);
                     $('#availabledateend').html(availDateList.availabledateendscadadatahfd);
+                    app.loading(false);
                 }
                 break;
             case 'downtimeeventTab':
                 if(!dbr.isDowntimeEventLoaded()) {
-                    app.loading(true);
                     dbr.isDowntimeEventLoaded(true);
                     dbd.InitDEgrid();
                     app.ajaxPost(viewModel.appName + "/databrowser/getdowntimeeventvaildate", {}, function(res) {
@@ -197,11 +197,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartDE);
                     $('#availabledateend').html(availDateList.availabledateendDE);
+                    app.loading(false);
                 }
                 break;
             case 'customTab':
                 if(!dbr.isCustomLoaded()) {
-                    app.loading(true);
                     dbr.isCustomLoaded(true);
                     dbc.InitCustomGrid();
                     app.ajaxPost(viewModel.appName + "/databrowser/getcustomavaildate", {}, function(res) {
@@ -226,11 +226,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartCustom);
                     $('#availabledateend').html(availDateList.availabledateendCustom);
+                    app.loading(false);
                 }
                 break;
             case 'eventTab':
                 if(!dbr.isEventLoaded()) {
-                    app.loading(true);
                     dbr.isEventLoaded(true);
                     dbe.InitEventGrid();
                     app.ajaxPost(viewModel.appName + "/databrowser/geteventavaildate", {}, function(res) {
@@ -255,11 +255,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestarteventraw);
                     $('#availabledateend').html(availDateList.availabledateendeventraw);
+                    app.loading(false);
                 }
                 break;
             case 'metTab':
                 if(!dbr.isMetLoaded()) {
-                    app.loading(true);
                     dbr.isMetLoaded(true);
                     dbm.InitMet();
                     app.ajaxPost(viewModel.appName + "/databrowser/getmetavaildate", {}, function(res) {
@@ -284,11 +284,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartmet);
                     $('#availabledateend').html(availDateList.availabledateendmet);
+                    app.loading(false);
                 }
                 break;
             case 'jmrTab':
                 if(!dbr.isJMRLoaded()) {
-                    app.loading(true);
                     dbr.isJMRLoaded(true);
                     dbj.InitGridJMR();
                     app.ajaxPost(viewModel.appName + "/databrowser/getjmravaildate", {}, function(res) {
@@ -313,11 +313,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartjmr);
                     $('#availabledateend').html(availDateList.availabledateendjmr);
+                    app.loading(false);
                 }
                 break;
             case 'scadaExceptionTimeDurationTab':
                 if(!dbr.isScadaExceptionTimeDurationLoaded()) {
-                    app.loading(true);
                     dbr.isScadaExceptionTimeDurationLoaded(true);
                     dbt.InitGridExceptionTimeDuration();
                     app.ajaxPost(viewModel.appName + "/databrowser/getdurationavaildate", {}, function(res) {
@@ -342,11 +342,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartduration);
                     $('#availabledateend').html(availDateList.availabledateendduration);
+                    app.loading(false);
                 }
                 break;
             case 'scadaAnomaliesTab':
                 if(!dbr.isScadaAnomaliesLoaded()) {
-                    app.loading(true);
                     dbr.isScadaAnomaliesLoaded(true);
                     dbsa.InitGridAnomalies();
                     app.ajaxPost(viewModel.appName + "/databrowser/getscadaanomalyavaildate", {}, function(res) {
@@ -371,11 +371,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartscadaanomaly);
                     $('#availabledateend').html(availDateList.availabledateendscadaanomaly);
+                    app.loading(false);
                 }
                 break;
             case 'alarmOverlappingTab':
                 if(!dbr.isAlarmOverlappingLoaded()) {
-                    app.loading(true);
                     dbr.isAlarmOverlappingLoaded(true);
                     dbao.InitGridAlarmOverlapping();
                     app.ajaxPost(viewModel.appName + "/databrowser/getalarmoverlappingavaildate", {}, function(res) {
@@ -401,11 +401,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartalarmoverlapping);
                     $('#availabledateend').html(availDateList.availabledateendalarmoverlapping);
+                    app.loading(false);
                 }
                 break;
             case 'alarmAnomaliesTab':
                 if(!dbr.isAlarmAnomaliesLoaded()) {
-                    app.loading(true);
                     dbr.isAlarmAnomaliesLoaded(true);
                     dbaa.InitGridAlarmAnomalies();
                     app.ajaxPost(viewModel.appName + "/databrowser/getalarmscadaanomalyavaildate", {}, function(res) {
@@ -430,11 +430,11 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartalarmscadaanomaly);
                     $('#availabledateend').html(availDateList.availabledateendalarmscadaanomaly);
+                    app.loading(false);
                 }
                 break;
             case 'downtimeeventhfdTab':
                 if(!dbr.isDowntimeeventhfdLoaded()) {
-                    app.loading(true);
                     dbr.isDowntimeeventhfdLoaded(true);
                     dbdhfd.InitDEHFDgrid();
                     app.ajaxPost(viewModel.appName + "/databrowser/getdowntimeeventvaildatehfd", {}, function(res) {
@@ -458,6 +458,7 @@ var Data = {
                 } else {
                     $('#availabledatestart').html(availDateList.availabledatestartDEHFD);
                     $('#availabledateend').html(availDateList.availabledateendDEHFD);
+                    app.loading(false);
                 }
                 break;
         }

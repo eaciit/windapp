@@ -79,7 +79,7 @@ pg.isFirstLostEnergy = ko.observable(true);
 pg.isFirstReliability = ko.observable(true);
 pg.isFirstWindSpeed = ko.observable(true);
 pg.isFirstWarning = ko.observable(true);
-pg.isFirstComponentAlrm = ko.observable(true);
+pg.isFirstComponentAlarm = ko.observable(true);
 
 
 pg.getDataAvailableInfo =  function(){
@@ -146,7 +146,7 @@ pg.LoadData = function(){
     }
     pg.getDataAvailableInfo();
 }
-pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam) {
+pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
 
     $("#" + id).kendoChart({
         dataSource: {
@@ -175,7 +175,7 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             labels: {
                         visible: vislabel,
                         background: "transparent",
-                        template: "#= category #: \n #= kendo.format('{0:N1}', value)# " + axisLabel,
+                        template: "#= category #: \n #= kendo.format('{0:" + format + "}', value)# " + axisLabel,
                     }
         },
         series: Series,
@@ -219,7 +219,7 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value, 'n1') # " + axisLabel,
+            template: "#: category #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             border: {
                 color: "#eee",
                 width: "2px",
@@ -450,6 +450,7 @@ pg.generateGrid = function (dataSource) {
         sortable: true,
         columns: [
             { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
+            { title: "Total", field: "total", attributes: { class: "align-center row-custom" }, width: 50, locked: true, filterable: false },
         ],
         dataBound: function(){
             setTimeout(function(){
@@ -460,19 +461,32 @@ pg.generateGrid = function (dataSource) {
         },
     };
 
-    $.each(dataSource[0].turbines, function (i, val) {
+    if (dataSource.length > 0){
+        $.each(dataSource[0].turbines, function (i, val) {
+            var column = {
+                title: val.turbine,
+                field: "turbines["+i+"].count",
+                attributes: { class: "align-center" },
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;'
+                },
+                width: 80
+            }
+
+            config.columns.push(column);
+        });
+    }else{
         var column = {
-            title: val.turbine,
-            field: "turbines["+i+"].count",
+            title: "",
             attributes: { class: "align-center" },
             headerAttributes: {
                 style: 'font-weight: bold; text-align: center;'
             },
-            width: 100
+            width: 80
         }
 
         config.columns.push(column);
-    });
+    }   
 
     $('#warningGrid').html("");
     $('#warningGrid').kendoGrid(config);
@@ -762,30 +776,18 @@ pg.Downtime = function(){
             project: fa.project,
         }
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettop10", param, function (res) {
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getdowntimetab", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-            pg.dtCompponentAlarm(res.data)
             setTimeout(function(){
                 var HDowntime = $('#filter-analytic').width() * 0.2
-                var HAlarm = $('#filter-analytic').width() * 0.235
-                var wAll = $('#filter-analytic').width() * 0.32
+                var wAll = $('#filter-analytic').width() * 0.275
 
-                pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll);
-                pg.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll);
-                pg.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll);
-
-                var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
-                var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
-                var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
-                pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
-                pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
-                pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
-
-                pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
-                pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
-                pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+                /*Downtime Tab*/
+                pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll,"N1");
+                pg.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll,"N0");
+                pg.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll,"N1");
 
                 pg.isFirstDowntime(false);
                 app.loading(false);
@@ -855,11 +857,30 @@ pg.LossEnergy = function(){
                 return;
             }
             setTimeout(function(){
-                 pg.DTLEbyType(res.data);
-                  pg.Downtime();
-                 pg.isFirstLostEnergy(false);
+                pg.DTLEbyType(res.data);
             },200)
-           
+        });
+        
+        var param = {
+            period: fa.period,
+            dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
+            dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
+            turbine: fa.turbine,
+            project: fa.project,
+        }
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getlostenergytab", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            setTimeout(function(){
+                pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
+                pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+                pg.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+
+                app.loading(false);
+                pg.isFirstLostEnergy(false);
+            },300);
         });
     }else{
         setTimeout(function(){
@@ -1012,10 +1033,8 @@ pg.WindSpeed = function(){
             $("#windAvailabilityChart").data("kendoChart").refresh();
             app.loading(false);
         },200);
-    }
-    
+    } 
 }
-
 pg.Warning = function(){
     fa.LoadData()
     app.loading(true);
@@ -1038,7 +1057,10 @@ pg.Warning = function(){
                     app.loading(false);
                 },200);
             }else{
-                app.loading(false);
+                setTimeout(function(){
+                    pg.generateGrid([]);
+                    app.loading(false);
+                },200);
             }
         });
     }else{
@@ -1051,21 +1073,58 @@ pg.Warning = function(){
         
     }
 }
-
 pg.Component = function(){
-    app.loading(true);
+    app.loading(true)
     fa.LoadData();
-    if(pg.isFirstComponentAlrm() === true){
-        pg.Downtime();
+    if(pg.isFirstComponentAlarm() === true){
+        var param = {
+            period: fa.period,
+            dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
+            dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
+            turbine: fa.turbine,
+            project: fa.project,
+        }
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getcomponentalarmtab", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            setTimeout(function(){
+                pg.dtCompponentAlarm(res.data)
+                var HAlarm = $('#filter-analytic').width() * 0.235
+                var wAll = $('#filter-analytic').width() * 0.275
+                var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
+                var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
+                var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
+
+                var id = $("#downtimeGroup .active").attr('id')
+
+                if(id == 'lblComp'){
+                    /*Component / Alarm Type Tab*/
+                    pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
+                    pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
+                    pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
+                }else{                    
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
+                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
+                }
+
+                app.loading(false);
+                pg.isFirstComponentAlarm(false);
+            },300);
+        }); 
     }else{
         setTimeout(function(){
+            $('#availabledatestart').html(pg.availabledatestartalarm());
+            $('#availabledateend').html(pg.availabledateendalarm());
             $("#chartCADuration").data("kendoChart").refresh();
             $("#chartCAFrequency").data("kendoChart").refresh();
             $("#chartCATurbineLoss").data("kendoChart").refresh();
+            app.loading(false);
         },200); 
     }
 }
-
 pg.resetStatus = function(){
     pg.isFirstStaticView(true);
     pg.isFirstDowntime(true);
@@ -1074,7 +1133,7 @@ pg.resetStatus = function(){
     pg.isFirstReliability(true);
     pg.isFirstWindSpeed(true);
     pg.isFirstWarning(true);
-    pg.isFirstComponentAlrm(true);
+    pg.isFirstComponentAlarm(true);
 }
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
@@ -1120,7 +1179,7 @@ $(function(){
 
     $("input[name=IsAlarm]").on("change", function() {
         var HAlarm = $('#filter-analytic').width() * 0.235
-        var wAll = $('#filter-analytic').width() * 0.32
+        var wAll = $('#filter-analytic').width() * 0.275
     
         var data = pg.dtCompponentAlarm()
         if(this.id == "alarm"){   
@@ -1129,9 +1188,9 @@ $(function(){
                 name: "Downtime"
             }]             
             // ===== Alarm =====
-            pg.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            pg.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
+            pg.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Top 10 Downtime")
         }else{     
@@ -1144,16 +1203,16 @@ $(function(){
             var componentduration = _.sortBy(data.componentduration, '_id');
             var componentfrequency = _.sortBy(data.componentfrequency, '_id');
             var componentloss = _.sortBy(data.componentloss, '_id');
-            pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
-            pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
+            pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Downtime")
         }
     });
 
-    $(window).resize(function() {
+    /*$(window).resize(function() {
         $("#chartCADuration").data("kendoChart").refresh();
-    });
+    });*/
 
 })
