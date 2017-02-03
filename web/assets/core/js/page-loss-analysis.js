@@ -162,6 +162,9 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
         legend: {
             position: "top",
             visible: legend,
+            labels: {              
+                template: "#: kendo.toString(replaceString(text))#"
+            },
         },
         chartArea: {
             height: heightParam, 
@@ -209,9 +212,10 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
                 visible: false
             },
             labels: {
-                rotation: rotate
+                rotation: rotate,                
+                template: "#: kendo.toString(replaceString(value))#"
             },
-            majorTickType: "none"
+            majorTickType: "none",
         },
         tooltip: {
             visible: true,
@@ -219,7 +223,7 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
+            template: "#: kendo.toString(replaceString(category)) #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             border: {
                 color: "#eee",
                 width: "2px",
@@ -1139,6 +1143,9 @@ vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
+function replaceString(value) {
+    return value.replace(/_/gi, "  ");
+}
 
 $(function(){
     setTimeout(function(){
