@@ -146,7 +146,7 @@ pg.LoadData = function(){
     }
     pg.getDataAvailableInfo();
 }
-pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heightParam) {
+pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam) {
 
     $("#" + id).kendoChart({
         dataSource: {
@@ -165,6 +165,7 @@ pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heigh
         },
         chartArea: {
             height: heightParam, 
+            width: wParam, 
             padding: 0,
             margin: 0
         },
@@ -174,14 +175,14 @@ pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heigh
             labels: {
                         visible: vislabel,
                         background: "transparent",
-                        template: "#= category #: \n #= kendo.format('{0:N1}', value)# Hours",
+                        template: "#= category #: \n #= kendo.format('{0:N1}', value)# " + axisLabel,
                     }
         },
         series: Series,
         seriesColors: colorField,
         valueAxis: {
             title: {
-                text: "Hours",
+                text: axisLabel,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             labels: {
@@ -218,7 +219,7 @@ pg.DTDuration = function (dataSource,id,Series,legend,name,vislabel,rotate,heigh
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value, 'n1') # Hours",
+            template: "#: category #: #: kendo.toString(value, 'n1') # " + axisLabel,
             border: {
                 color: "#eee",
                 width: "2px",
@@ -766,15 +767,18 @@ pg.Downtime = function(){
             setTimeout(function(){
                 var HDowntime = $('#filter-analytic').width() * 0.2
                 var HAlarm = $('#filter-analytic').width() * 0.235
+                var wAll = $('#filter-analytic').width() * 0.32
 
-                pg.DTDuration(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
-                pg.DTDuration(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
-                pg.DTDuration(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine",false,-330,HDowntime);
+                pg.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll);
+                pg.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll);
+                pg.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll);
 
-
-                pg.DTDuration(res.data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
-                pg.DTDuration(res.data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
-                pg.DTDuration(res.data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
+                var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
+                var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
+                var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
+                pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
+                pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
+                pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
 
                 pg.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
                 pg.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
@@ -1110,6 +1114,7 @@ $(function(){
 
     $("input[name=IsAlarm]").on("change", function() {
         var HAlarm = $('#filter-analytic').width() * 0.235
+        var wAll = $('#filter-analytic').width() * 0.32
     
         var data = pg.dtCompponentAlarm()
         if(this.id == "alarm"){   
@@ -1118,9 +1123,9 @@ $(function(){
                 name: "Downtime"
             }]             
             // ===== Alarm =====
-            pg.DTDuration(data.alarmduration,'chartCADuration',SeriesAlarm,false, "",false,-90,HAlarm);
-            pg.DTDuration(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "",false,-90,HAlarm);
-            pg.DTDuration(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "",false,-90,HAlarm);
+            pg.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll);
 
             pg.labelAlarm(" Top 10 Downtime")
         }else{     
@@ -1130,13 +1135,19 @@ $(function(){
                 categoryField: "_id",
             }]           
             // ===== Component =====
-            pg.DTDuration(data.componentduration,'chartCADuration',SeriesAlarm,true, "",false,-90,HAlarm);
-            pg.DTDuration(data.componentfrequency,'chartCAFrequency',SeriesAlarm,true, "",false,-90,HAlarm);
-            pg.DTDuration(data.componentloss,'chartCATurbineLoss',SeriesAlarm,true, "",false,-90,HAlarm);
+            var componentduration = _.sortBy(data.componentduration, '_id');
+            var componentfrequency = _.sortBy(data.componentfrequency, '_id');
+            var componentloss = _.sortBy(data.componentloss, '_id');
+            pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll);
+            pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll);
 
             pg.labelAlarm(" Downtime")
         }
     });
 
+    $(window).resize(function() {
+        $("#chartCADuration").data("kendoChart").refresh();
+    });
 
 })

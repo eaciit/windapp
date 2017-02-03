@@ -474,7 +474,7 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 		if e != nil {
 			return result, e
 		}
-
+		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
@@ -587,7 +587,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		if e != nil {
 			return result, e
 		}
-
+		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
@@ -789,7 +789,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 		if e != nil {
 			return result, e
 		}
-
+		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
