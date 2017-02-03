@@ -197,7 +197,6 @@ var Data = {
                   fileName: "DetailPowerCurve.pdf",
                 },
                 theme: "flat",
-                renderAs: "canvas",
                 title: {
                     text: "Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                     visible: false,
@@ -303,8 +302,12 @@ var Data = {
                         width: "2px",
                     },
                 },
-                pannable: true,
-                zoomable: true
+                // zoomable: true,
+                zoomable: {
+                    selection: {
+                        lock: "y",
+                    }
+                }
             });
             app.loading(false);
             $("#powerCurve").data("kendoChart").refresh();

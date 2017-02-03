@@ -354,7 +354,7 @@
         /*height: 550px;*/
         white-space:nowrap;
         overflow-x:auto;
-        margin-bottom: -30px;
+        margin-bottom: -25px;
         text-align:center
     }
     .multicol {
@@ -496,6 +496,10 @@
 
 .maximize-mode .modal-lg {
    color: #585555;
+}
+
+.maximize-mode .panel-body{
+    padding: 0px;
 }
 
 

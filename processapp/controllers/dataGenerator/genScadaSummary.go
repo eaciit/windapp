@@ -643,9 +643,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			Set("$match", tk.M{}.Set("projectname", "Tejuva")),
 			tk.M{}.Set("$group", tk.M{}.
 				Set("_id", tk.M{}.
-				Set("projectname", "$projectname").
-				Set("turbine", "$turbine").
-				Set("dateinfo", "$dateinfo")).
+					Set("projectname", "$projectname").
+					Set("turbine", "$turbine").
+					Set("dateinfo", "$dateinfo")).
 				Set("totaltime", tk.M{}.Set("$sum", "$totaltime")).
 				Set("power", tk.M{}.Set("$sum", "$power")).
 				Set("energy", tk.M{}.Set("$sum", "$energy")).
@@ -1744,7 +1744,9 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 						if id == sId {
 							isFound = true
 							dataItems := dailyData.Get(p.Key).([]float64)
-							item.Value = dataItems[idx]
+							if len(dataItems) > idx {
+								item.Value = dataItems[idx]
+							}
 							// item.Turbine = dailyData.Get("Group").([]string)[idx]
 							break
 						}

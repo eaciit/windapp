@@ -251,6 +251,19 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 		if aDuration > 600 {
 			aDuration = 600
 		}
+
+		if machineDowntime > 600 {
+			machineDowntime = 600
+		}
+
+		if gridDowntime > 600 {
+			gridDowntime = 600
+		}
+
+		if unknownDowntime > 600 {
+			unknownDowntime = 600
+		}
+
 		totalDurationMttf = tk.Div(aDuration, float64(len(alarms)))
 	}
 
@@ -279,35 +292,35 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	e := ctx.Connection.NewQuery().Update().From(new(ScadaDataOEM).TableName()).
 		Where(dbox.Eq("_id", data.ID)).
 		Exec(tk.M{}.Set("data", tk.M{}.
-		Set("turbine", turbine).
-		Set("totalavail", totalavail).
-		Set("machineavail", machineavail).
-		Set("gridavail", gridavail).
-		Set("turbineelevation", elevation).
-		Set("wsadjforpc", retadjws).
-		Set("wsavgforpc", retavgws).
-		Set("pcdeviation", pcDeviation).
-		Set("pcvalue", pcValue).
-		Set("pcvalueadj", pcValueAdj).
-		Set("powerlost", powerLost).
-		Set("energylost", energyLost).
-		Set("energy", energy).
-		Set("denvalue", density).
-		Set("denph", pH).
-		Set("denadjwindspeed", adjDenWs).
-		Set("denwindspeed", denWs).
-		Set("denpower", denPower).
-		Set("denpcdeviation", denPcDeviation).
-		Set("dendeviationpct", denDeviationPct).
-		Set("denpcvalue", denPcValue).
-		Set("deviationpct", deviationPct).
-		Set("mttr", mttr).
-		Set("mttf", mttf).
-		Set("mtbf", mtbf).
-		Set("performanceindex", perfIndex).
-		Set("griddowntime", gridDowntime).
-		Set("machinedowntime", machineDowntime).
-		Set("unknowndowntime", unknownDowntime)))
+			Set("turbine", turbine).
+			Set("totalavail", totalavail).
+			Set("machineavail", machineavail).
+			Set("gridavail", gridavail).
+			Set("turbineelevation", elevation).
+			Set("wsadjforpc", retadjws).
+			Set("wsavgforpc", retavgws).
+			Set("pcdeviation", pcDeviation).
+			Set("pcvalue", pcValue).
+			Set("pcvalueadj", pcValueAdj).
+			Set("powerlost", powerLost).
+			Set("energylost", energyLost).
+			Set("energy", energy).
+			Set("denvalue", density).
+			Set("denph", pH).
+			Set("denadjwindspeed", adjDenWs).
+			Set("denwindspeed", denWs).
+			Set("denpower", denPower).
+			Set("denpcdeviation", denPcDeviation).
+			Set("dendeviationpct", denDeviationPct).
+			Set("denpcvalue", denPcValue).
+			Set("deviationpct", deviationPct).
+			Set("mttr", mttr).
+			Set("mttf", mttf).
+			Set("mtbf", mtbf).
+			Set("performanceindex", perfIndex).
+			Set("griddowntime", gridDowntime).
+			Set("machinedowntime", machineDowntime).
+			Set("unknowndowntime", unknownDowntime)))
 
 	if e != nil {
 		tk.Printf("Update fail: %s", e.Error())

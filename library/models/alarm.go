@@ -119,6 +119,7 @@ type Alarm struct {
 	Duration         float64 // duration in hours
 	Turbine          string
 	AlertDescription string
+	BrakeType        string // add by ams, regarding to add new req | 20170130
 	ExternalStop     bool
 	GridDown         bool
 	InternalGrid     bool
@@ -150,6 +151,7 @@ type AlarmDetail struct {
 	EndDate          time.Time
 	DetailDateInfo   DateInfo
 	AlertDescription string
+	BrakeType        string // add by ams, regarding to add new req | 20170130
 	Duration         float64
 	Power            float64
 	PowerLost        float64

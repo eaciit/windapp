@@ -3,11 +3,11 @@
 viewModel.KeyMetrics = new Object();
 var km = viewModel.KeyMetrics;
 km.MinValue = ko.observable(0);
-km.MaxValue = ko.observable(1000);
-km.BinValue = ko.observable(20);
-km.MinValueWindSpeed = ko.observable(1);
+km.MaxValue = ko.observable(2000);
+km.BinValue = ko.observable(40);
+km.MinValueWindSpeed = ko.observable(0);
 km.MaxValueWindSpeed = ko.observable(24);
-km.BinValueWindSpeed = ko.observable(23);
+km.BinValueWindSpeed = ko.observable(24);
 km.CategoryProduction = ko.observableArray([]);
 km.ValueProduction = ko.observableArray([]);
 km.dsCategorywindspeed = ko.observableArray();
@@ -91,9 +91,9 @@ km.createChart = function () {
                 // padding: { 
                 //     left: 600 / valuewindspeed.length
                 // },
-                margin: {
-                    left: -600 / km.dsValuewindSpeed().length
-                },
+                // margin: {
+                //     left: -600 / km.dsValuewindSpeed().length
+                // },
                 template: "#: (value.split('~'))[0] #"
             },
             axisCrossingValue: [0]
@@ -121,6 +121,10 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
         turbineData = 'All Turbines';
     } else {
         turbineData = fa.turbine.join(", ");
+    }
+    var _rotationlabel = 0
+    if (km.BinValue() > 20) {
+        _rotationlabel = 68
     }
     $("#turbineListProd").html('for ' + turbineData);
     $("#dhprod-chart").replaceWith("<div id='dhprod-chart'></div>");
@@ -175,12 +179,13 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
                 visible: false
             },
             labels: {
+                rotation : _rotationlabel,
                 // padding: { 
                 //     left: 600 / categoryproduction.length
                 // },
-                margin: {
-                    left: -600 / km.dsCategoryProduction().length
-                },
+                // margin: {
+                //     left: -600 / km.dsCategoryProduction().length
+                // },
                 template: "#: ((value.split('~'))[0]) #",
                 format: "{0:n0}"
             }
@@ -242,8 +247,8 @@ km.getData = function () {
             km.dsCategorywindspeed(res.data.categorywindspeed);
             km.dsValuewindSpeed(res.data.valuewindspeed);
             km.dsTotaldataWS(res.data.totaldata);
-            km.dsValuewindSpeed.push(0);
-            km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
+            // km.dsValuewindSpeed.push(0);
+            // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
             km.createChart();
         }
     });
@@ -263,8 +268,8 @@ km.getData = function () {
             km.dsCategoryProduction(res.data.categoryproduction);
             km.dsValueProduction(res.data.valueproduction);
             km.dsTotaldataProduction(res.data.totaldata);
-            km.dsValueProduction.push(0);
-            km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
+            // km.dsValueProduction.push(0);
+            // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
             km.createChartProduction();
         }
     });

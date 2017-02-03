@@ -68,6 +68,8 @@
 							<li id="windspeedavailTab" role="presentation"><a onclick="pg.refreshGrid('windspeedavail');" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
 							
 							<li id="warningTab" role="presentation"><a onclick="pg.refreshGrid('warning');" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
+
+							<li id="CompAlarmTab" role="presentation"><a href="#CompAlarm" aria-controls="ComponentAlarmType" role="tab" data-toggle="tab" class="tab-custom">Component / Alarm Type</a></li> <!-- onclick="pg.refreshGrid('CompAlarm');"  -->
 						</ul>
 
 						<div class="tab-content">
@@ -131,12 +133,13 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="availability">
 
-								<div class="col-md-12 pull-right ontop">
+								<div class="col-md-3 col-md-offset-9 ontop">
 									<span class="pull-right">
                                         <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
 									<select class="form-control input-sm" id="breakdownlistavail"></select>
 									</span>
 								</div>
+								<!-- <div class="clearfix">&nbsp;</div> -->
 								<div class="col-md-12"> 
 									<div class="clearfix">&nbsp;</div>
 									<!-- <span class="tools pull-right">
@@ -230,6 +233,49 @@
 									</div>
 								</div>
 							</div>
+
+							<!-- Component Alarm Tab -->
+							<div role="tabpanel" class="tab-pane" id="CompAlarm">
+								<div class="col-md-12 Tcenter">
+									<div class="nav-CA">
+										<div class="btn-group" data-toggle="buttons">
+											<label class="btn btn-sm btn-primary active radio-filter">
+		                                        <input type="radio" name="IsAlarm" id="comp" autocomplete="off" value="true" checked> Component
+		                                    </label>
+											<label class="btn btn-sm btn-primary radio-filter">
+		                                        <input type="radio" name="IsAlarm" id="alarm" autocomplete="off" value="false"> Alarm Type
+		                                    </label>
+										</div>
+									</div>
+								</div>
+                                <div class="col-md-12">
+	 								<div class="col-md-4">
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Duration (Hours)'">Top 10 Turbine Downtime by Duration (Hours)</div>
+											<div class="panel-body">
+												<div id="chartCADuration"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4" >
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Frequency'">Top 10 Turbine Downtime by Frequency</div>
+											<div class="panel-body">
+												<div id="chartCAFrequency"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4" >
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Losses (MWh)'">Top 10 Turbine Downtime by Losses (MWh)</div>
+											<div class="panel-body">
+												<div id="chartCATurbineLoss"></div>
+											</div>
+										</div>
+									</div>                               	
+                                </div>
+							</div>
+
 							<div role="tabpanel" class="tab-pane" id="warning">
 								<div id="warningGrid" class="grid-custom"></div>
 							</div>

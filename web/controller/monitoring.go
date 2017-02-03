@@ -131,8 +131,12 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 		winddirection := checkNAValue(v.GetFloat64("winddirection"))
 		pitchangle := checkNAValue(v.GetFloat64("pitchangle"))
 		status := v.GetString("status")
-		statuscode := v.GetString("statuscode")
-		statusdesc := v.GetString("statusdesc")
+		statuscode := ""
+		statusdesc := ""
+		if v.GetInt("statuscode") > 0 && v.GetInt("statuscode") <= 420 {
+			statuscode = v.GetString("statuscode")
+			statusdesc = v.GetString("statusdesc")
+		}
 
 		list := []tk.M{}
 		newRecord := tk.M{}
@@ -182,7 +186,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 
 	for _, v := range prodTotals {
 		id := v.GetString("_id")
-		prod := v.GetFloat64("result")
+		prod := v.GetFloat64("result") * 1000
 		projectTotalResult[id] = tk.M{"prod": prod}
 	}
 
@@ -243,6 +247,11 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
+	// Get Available Date All Collection
+	datePeriod := getLastAvailDate()
+	k.SetSession("availdate", datePeriod)
+	//==================================
+
 	p := tk.M{}
 	e := k.GetPayload(&p)
 
@@ -270,9 +279,9 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))
 	}
 
-	availDate := k.Session("availdate", "")
-	date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
-	match.Set("timestamp", tk.M{}.Set("$lte", date))
+	// availDate := k.Session("availdate", "")
+	// date := availDate.(*Availdatedata).ScadaDataHFD[1].UTC()
+	match.Set("timestamp", tk.M{}.Set("$lte", datePeriod.ScadaDataHFD[1].UTC()))
 
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
@@ -482,10 +491,12 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 
 	resWS := []tk.M{}
 	resProd := []tk.M{}
+	resAll := []tk.M{}
 
 	for _, v := range results {
 		resWS = append(resWS, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.WindSpeed)})
 		resProd = append(resProd, tk.M{"timestamp": v.TimeStamp.UTC(), "value": checkNAValue(v.Production) * 1000})
+		resAll = append(resAll, tk.M{"timestamp": v.TimeStamp.UTC(), "production": checkNAValue(v.Production) * 1000, "ws": checkNAValue(v.WindSpeed)})
 	}
 
 	res.Set("ws", resWS)
@@ -599,9 +610,87 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 		}
 
 		resAvail = append(resAvail, tk.M{"timestamp": counterDate, "value": avail})
+		currStr := counterDate.UTC().Format("20060102_1504")
+
+		for _, v := range resAll {
+			dtStr := v.Get("timestamp").(time.Time).UTC().Format("20060102_1504")
+			if currStr == dtStr {
+				v.Set("avail", avail)
+				break
+			}
+		}
 	}
 
 	res.Set("avail", resAvail)
+	res.Set("line", resAll)
+
+	// get last data from monitoring
+
+	group := tk.M{
+		"_id":           "$turbine",
+		"timestamp":     tk.M{"$first": "$timestamp"},
+		"windspeed":     tk.M{"$first": "$windspeed"},
+		"production":    tk.M{"$first": "$production"},
+		"rotorspeedrpm": tk.M{"$first": "$rotorspeedrpm"},
+		"status":        tk.M{"$first": "$status"},
+		"statuscode":    tk.M{"$first": "$statuscode"},
+		"statusdesc":    tk.M{"$first": "$statusdesc"},
+		"winddirection": tk.M{"$first": "$winddirection"},
+		"pitchangle":    tk.M{"$first": "$pitchangle"},
+	}
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$sort", tk.M{
+		"timestamp": -1,
+	}))
+	pipes = append(pipes, tk.M{}.Set("$group", group))
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(Monitoring).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	resultsSelected := make([]tk.M, 0)
+	e = csr.Fetch(&resultsSelected, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, "Error query : "+e.Error())
+	}
+
+	selectedMonitoring := tk.M{}
+
+	if len(resultsSelected) > 0 {
+		v := resultsSelected[0]
+		selectedMonitoring.Set("project", project)
+		selectedMonitoring.Set("turbine", v.GetString("_id"))
+		selectedMonitoring.Set("timestamp", v.Get("timestamp").(time.Time).UTC())
+		selectedMonitoring.Set("timestampstr", v.Get("timestamp").(time.Time).UTC().Format("02-01-2006 15:04:05"))
+		selectedMonitoring.Set("windspeed", checkNAValue(v.GetFloat64("windspeed")))
+		selectedMonitoring.Set("production", checkNAValue(v.GetFloat64("production"))*1000)
+		// selectedMonitoring.Set("totalProduction", checkNAValue(v.GetFloat64("totalprod"))*1000)
+
+		prodTotalsTurbine := getTurbineTodayTotal(tk.M{"$sum": "$production"}, "production", project, turbine)
+
+		if len(prodTotalsTurbine) > 0 {
+			selectedMonitoring.Set("totalProduction", prodTotalsTurbine[0].GetFloat64("result")*1000)
+		}
+
+		selectedMonitoring.Set("rotorspeedrpm", checkNAValue(v.GetFloat64("rotorspeedrpm")))
+		selectedMonitoring.Set("winddirection", checkNAValue(v.GetFloat64("winddirection")))
+		selectedMonitoring.Set("pitchangle", checkNAValue(v.GetFloat64("pitchangle")))
+		selectedMonitoring.Set("status", v.GetString("status"))
+		selectedMonitoring.Set("statuscode", v.GetString("statuscode"))
+		selectedMonitoring.Set("statusdesc", v.GetString("statusdesc"))
+	}
+
+	res.Set("monitoring", selectedMonitoring)
 
 	data := struct {
 		Data tk.M

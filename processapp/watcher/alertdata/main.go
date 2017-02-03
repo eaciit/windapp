@@ -307,19 +307,28 @@ func run(action Command, file string) (next string) {
 		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Process, file), filepath.Join(conf.Fail, file))
 	}
 
+	_ismvsucces := false
 	if runCommand {
 		out, err := runCMD(cmdStr)
 
 		if out != nil {
 			log.Printf("%v \n", out)
 		}
+
 		if err != nil {
 			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
+		} else {
+			_ismvsucces = true
 		}
 		next = action.Success
 	} else {
 		log.Println("DONE")
 		next = action.Fail
+	}
+
+	if action.Action == "COPY_TO_SUCCESS" && runCommand && _ismvsucces {
+		_cmd := fmt.Sprintf("rm %v", filepath.Join(conf.Success, file))
+		_, _ = runCMD(_cmd)
 	}
 
 	return
@@ -435,7 +444,7 @@ func doprocess(file string) (success bool) {
 	//Update Monitoring
 	UpdateLastMonitoring()
 	tk.Println("Done update last monitor in ", time.Since(_t1_1).String())
-
+	success = true
 	return
 }
 
