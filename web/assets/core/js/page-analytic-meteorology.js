@@ -700,9 +700,15 @@ pm.TurbineCorrelation = function(){
 
 // 12/24 table 
 pm.generateGridTable = function (datatype) {
+    var dataSource = [];
+    if(datatype == "turbine") {
+        dataSource = pm.dataSourceTable().DataTurbine;
+    } else {
+        dataSource = pm.dataSourceTable().DataMet;
+    }
     var config = {
         dataSource: {
-            data: pm.dataSourceTable(),
+            data: dataSource,
             pageSize: 10
         },
         pageable: {
@@ -718,12 +724,12 @@ pm.generateGridTable = function (datatype) {
             setTimeout(function(){
                 $("#gridTable1224 >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","75px");
                 // $("#gridTable1224 >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","75px");
-                // app.loading(false);
+                app.loading(false);
             },200);
         },
     };
 
-    $.each(pm.dataSourceTable()[0].details, function (i, val) {
+    $.each(dataSource[0].details, function (i, val) {
         var column = {
             title: val.time,
             headerAttributes: {
@@ -774,8 +780,6 @@ pm.Table = function(datatype){
     fa.LoadData();
 
     if(pm.isFirstTwelve() === true){
-        var dt = new Date();
-
         if(datatype == undefined || datatype == ''){
             if($("#met").is(':checked')) {
                 datatype = 'met';
@@ -788,7 +792,6 @@ pm.Table = function(datatype){
         
 
         var param = {
-            DataType: datatype,
             Turbine: fa.turbine,
             Project: fa.project,
         };
@@ -797,10 +800,8 @@ pm.Table = function(datatype){
             if (!app.isFine(res)) {
                 return;
             }
-            pm.dataSourceTable(res.data.Data);
+            pm.dataSourceTable(res.data);
             pm.generateGridTable(datatype);
-
-            app.loading(false);
             pm.isFirstTwelve(false); 
         });
     }else{
@@ -816,7 +817,6 @@ pm.Table = function(datatype){
             $("#gridTable1224").data("kendoGrid").refresh();
         }, 300);
     }
-    console.log(datatype);
 }
 
 pm.resetStatus= function(){
@@ -839,8 +839,7 @@ $(function(){
     });
 
     $("input[name=isMet]").on("change", function() {
-        pm.isFirstTwelve(true);
-        pm.Table(this.id);
+        pm.generateGridTable(this.id);
         if($("#met").is(':checked')) {
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
