@@ -65,15 +65,15 @@ var color = ["#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
 pm.dataSourceTable = ko.observableArray();
 
 pm.MetTowerColumn = ko.observableArray([
-    {value: true, text: "Wind Speed (m/s)", _id:"Ws", index:0 },
-    {value: true, text: "Temp (°C)", _id:"Temp", index: 1},
+    {value: true, text: "Wind Speed (m/s)", _id:"metWs", index:0 },
+    {value: true, text: "Temp (°C)", _id:"metTemp", index: 1},
 
 ]);
 
 pm.TurbineColumn = ko.observableArray([
-    {_id: "Ws", text: "Wind Speed (m/s)", value:true , index:0},
-    {_id: "Temp", text: "Temp (°C)", value:true , index:1},
-    {_id: "Power", text: "Power (kWH)", value: true, index:2},
+    {_id: "turbineWs", text: "Wind Speed (m/s)", value:true , index:0},
+    {_id: "turbineTemp", text: "Temp (°C)", value:true , index:1},
+    {_id: "turbinePower", text: "Power (kWH)", value: true, index:2},
 ]);
 
 pm.isMet = ko.observable(true);
@@ -550,6 +550,22 @@ pm.showHideAllLegend = function (e) {
     $("#windDistribution").data("kendoChart").redraw();
 }
 
+pm.showHideLegendWR = function (index) {
+    var idName = "btn" + index;
+    listOfButton[idName] = !listOfButton[idName];
+    if (listOfButton[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
+    }
+    $.each(listOfChart, function (idx, idChart) {
+       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+          $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+          $(idChart).data("kendoChart").refresh();
+        }
+    });
+}
+
 pm.showHideLegend = function (idx) {
     var stat = false;
 
@@ -711,9 +727,12 @@ pm.TurbineCorrelation = function(){
 }
 
 
+
 // 12/24 table 
 pm.generateGridTable = function (datatype) {
     app.loading(true);
+    $('#gridTable1224').html('');
+
     var dataSource = [];
     if(datatype == "turbine") {
         dataSource = pm.dataSourceTable().DataTurbine;
@@ -784,7 +803,7 @@ pm.generateGridTable = function (datatype) {
         config.columns.push(column);
     });
     
-    $('#gridTable1224').html('');
+    
     $('#gridTable1224').kendoGrid(config);
 }
 
@@ -827,8 +846,9 @@ pm.getObjects = function(obj, key, val){
 pm.refreshTable = function(datatype){
     var grid = $("#gridTable1224").data("kendoGrid");  
     var columns = grid.columns;
+    var data = (datatype == "met" ? pm.MetTowerColumn() : pm.TurbineColumn());
     var results = $.each($('[name="chk-column-'+datatype+'"]:not(:checked)'), function(i, val){
-        var diff = pm.getObjects(pm.MetTowerColumn(), "_id", val.id);
+        var diff = pm.getObjects(data, "_id", val.id);
         $.each(diff, function(a, res){
              $.each(columns, function(e, value){
                 if(e > 0){
