@@ -482,7 +482,7 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 		}
 		temp := 0.0
 		if val.GetString("temp") != "NaN" {
-			wind = val.GetFloat64("temp")
+			temp = val.GetFloat64("temp")
 		}
 		power := 0.0
 		if dataType == "turbine" {
