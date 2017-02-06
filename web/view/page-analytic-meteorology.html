@@ -124,6 +124,26 @@
 		                                    </label>
 										</div>
 									</div>
+									<div class="pull-right" style="margin-top:-30px">
+										<span><strong>Select Comparison :</strong></span>
+										<div class="checkbox chk-custom" data-bind="{visible:pm.isMet() == true, foreach:pm.MetTowerColumn()}">
+				                                <label>
+				                                    <input type="checkbox" name="chk-column-met" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){pm.hideShowColumn(e, 'chk-column-met')}}}" >
+				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+				                                    <span class="colRed" data-bind="text:text"></span>
+				                                </label>
+										</div>
+										<div class="checkbox chk-custom" data-bind="visible:pm.isMet() == false, foreach:pm.TurbineColumn()">
+											 <label>
+			                                    <input type="checkbox" name="chk-column-turbine" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){pm.hideShowColumn(e,'chk-column-turbine')}}}" >
+			                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+			                                    <span class="colRed" data-bind="text:text"></span>
+			                                </label>
+										</div>
+									</div>
+								</div>
+								<div class="clearfix">&nbsp;</div>
+								<div class="col-md-12">
 									<div id="gridTable1224"></div>
 								</div>
 							</div>

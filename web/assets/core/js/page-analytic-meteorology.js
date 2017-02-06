@@ -64,6 +64,19 @@ var color = ["#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
 
 pm.dataSourceTable = ko.observableArray();
 
+pm.MetTowerColumn = ko.observableArray([
+    {value: true, text: "Wind Speed (m/s)", _id:"metWs", index:0 },
+    {value: true, text: "Temp (°C)", _id:"metTemp", index: 1},
+
+]);
+
+pm.TurbineColumn = ko.observableArray([
+    {_id: "turbineWs", text: "Wind Speed (m/s)", value:true , index:0},
+    {_id: "turbineTemp", text: "Temp (°C)", value:true , index:1},
+    {_id: "turbinePower", text: "Power (kWH)", value: true, index:2},
+]);
+
+pm.isMet = ko.observable(true);
 pm.isFirstAverage = ko.observable(true);
 pm.isFirstWindRose = ko.observable(true);
 pm.isFirstWindDis = ko.observable(true);
@@ -537,6 +550,22 @@ pm.showHideAllLegend = function (e) {
     $("#windDistribution").data("kendoChart").redraw();
 }
 
+pm.showHideLegendWR = function (index) {
+    var idName = "btn" + index;
+    listOfButton[idName] = !listOfButton[idName];
+    if (listOfButton[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
+    }
+    $.each(listOfChart, function (idx, idChart) {
+       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+          $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+          $(idChart).data("kendoChart").refresh();
+        }
+    });
+}
+
 pm.showHideLegend = function (idx) {
     var stat = false;
 
@@ -698,11 +727,21 @@ pm.TurbineCorrelation = function(){
 }
 
 
+
 // 12/24 table 
 pm.generateGridTable = function (datatype) {
+    app.loading(true);
+    $('#gridTable1224').html('');
+
+    var dataSource = [];
+    if(datatype == "turbine") {
+        dataSource = pm.dataSourceTable().DataTurbine;
+    } else {
+        dataSource = pm.dataSourceTable().DataMet;
+    }
     var config = {
         dataSource: {
-            data: pm.dataSourceTable(),
+            data: dataSource,
             pageSize: 10
         },
         pageable: {
@@ -718,12 +757,12 @@ pm.generateGridTable = function (datatype) {
             setTimeout(function(){
                 $("#gridTable1224 >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","75px");
                 // $("#gridTable1224 >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","75px");
-                // app.loading(false);
+                pm.refreshTable(datatype);
             },200);
         },
     };
 
-    $.each(pm.dataSourceTable()[0].details, function (i, val) {
+    $.each(dataSource[0].details, function (i, val) {
         var column = {
             title: val.time,
             headerAttributes: {
@@ -756,7 +795,7 @@ pm.generateGridTable = function (datatype) {
                     style: 'font-weight: bold; text-align: center;',
                 },
                 format: "{0:n2}",
-                filterable: false
+                filterable: false, 
             };
             column.columns.push(colChild);
         });
@@ -764,9 +803,68 @@ pm.generateGridTable = function (datatype) {
         config.columns.push(column);
     });
     
-    $('#gridTable1224').html('');
+    
     $('#gridTable1224').kendoGrid(config);
-    $('#gridTable1224').data('kendoGrid').refresh();
+}
+
+pm.hideShowColumn = function(i, type){
+    var grid = $("#gridTable1224").data("kendoGrid");  
+    var columns = grid.columns;
+
+    if($('[name='+type+']:checked').length < 1){
+        toolkit.showError("Grid must show at least one column");
+        $('#'+i._id).prop('checked', true);
+        return false;    
+    }else{
+        $.each(columns, function(index, val){
+            if(index > 0){
+                var col = grid.columns[index].columns[i.index];
+                if (col.hidden) {
+                  grid.showColumn(col.field);
+                } else {
+                  grid.hideColumn(col.field);
+                } 
+            } 
+        });
+    }
+
+}
+
+pm.getObjects = function(obj, key, val){
+    var objects = [];
+    for (var i in obj) {
+        if (!obj.hasOwnProperty(i)) continue;
+        if (typeof obj[i] == 'object') {
+            objects = objects.concat(pm.getObjects(obj[i], key, val));
+        } else if (i == key && obj[key] == val) {
+            objects.push(obj);
+        }
+    }
+    return objects;
+}
+
+pm.refreshTable = function(datatype){
+    var grid = $("#gridTable1224").data("kendoGrid");  
+    var columns = grid.columns;
+    var data = (datatype == "met" ? pm.MetTowerColumn() : pm.TurbineColumn());
+    var results = $.each($('[name="chk-column-'+datatype+'"]:not(:checked)'), function(i, val){
+        var diff = pm.getObjects(data, "_id", val.id);
+        $.each(diff, function(a, res){
+             $.each(columns, function(e, value){
+                if(e > 0){
+                    var col = grid.columns[e].columns[res.index];
+                    grid.hideColumn(col.field);
+                } 
+            });
+             
+        });
+    });
+
+    $.when(results).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+        },300);
+    })
 }
 
 pm.Table = function(datatype){
@@ -774,8 +872,6 @@ pm.Table = function(datatype){
     fa.LoadData();
 
     if(pm.isFirstTwelve() === true){
-        var dt = new Date();
-
         if(datatype == undefined || datatype == ''){
             if($("#met").is(':checked')) {
                 datatype = 'met';
@@ -788,7 +884,6 @@ pm.Table = function(datatype){
         
 
         var param = {
-            DataType: datatype,
             Turbine: fa.turbine,
             Project: fa.project,
         };
@@ -797,10 +892,8 @@ pm.Table = function(datatype){
             if (!app.isFine(res)) {
                 return;
             }
-            pm.dataSourceTable(res.data.Data);
+            pm.dataSourceTable(res.data);
             pm.generateGridTable(datatype);
-
-            app.loading(false);
             pm.isFirstTwelve(false); 
         });
     }else{
@@ -812,11 +905,9 @@ pm.Table = function(datatype){
             $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
         }
         setTimeout(function(){
-            app.loading(false);
-            $("#gridTable1224").data("kendoGrid").refresh();
+            pm.generateGridTable(datatype);
         }, 300);
     }
-    console.log(datatype);
 }
 
 pm.resetStatus= function(){
@@ -839,12 +930,13 @@ $(function(){
     });
 
     $("input[name=isMet]").on("change", function() {
-        pm.isFirstTwelve(true);
-        pm.Table(this.id);
+        pm.generateGridTable(this.id);
         if($("#met").is(':checked')) {
+            pm.isMet(true);
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
         } else {
+             pm.isMet(false);
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
         }
