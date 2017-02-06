@@ -12,6 +12,9 @@
   -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }
 
+.chk-custom{
+	display: inline;
+}
 label.control-label {
 	padding: 3.9px 30px 6px 6px;
 	display: inline-block;
@@ -179,4 +182,7 @@ label.summary-number {
 }
 #gridTurbineCorrelation .k-grid-content-locked {
      height: 342px!important; 
+}
+#gridTable1224 >.k-grid-header > .k-grid-header-wrap > table > thead > tr {
+	height: 37px !important;
 }
