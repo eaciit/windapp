@@ -236,14 +236,14 @@ pm.initChart = function () {
         var idChart = "#chart-" + val.Name
         listOfChart.push(idChart);
         // var pWidth = $('body').width() * 0.235;//$('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
-        var pWidth = 300;
+        var pWidth = 290;
 
         $(idChart).kendoChart({
             theme: "nova",
             chartArea: {
                 width: pWidth,
                 height: pWidth,
-                padding: 30
+                padding: 25
             },
 
             title: {
@@ -357,6 +357,168 @@ pm.WindRose = function(){
         $('#availabledateend').html(scadaDate);
         setTimeout(function(){
             $.each(listOfChart, function(idx, elem){
+                $(elem).data("kendoChart").refresh();
+            });
+            app.loading(false);
+        }, 300);
+    }
+}
+
+// WIND ROSE COMPARISON
+pm.isFirstWindRoseComparison = ko.observable(true);
+pm.sectorDerajatComparison = ko.observable(0);
+pm.dataWindroseComparison = ko.observableArray([]);
+var listOfChartComparison = [];
+var listOfButtonComparison = {};
+pm.showHideLegendComparison = function (index) {
+    var idName = "btn" + index;
+    listOfButtonComparison[idName] = !listOfButtonComparison[idName];
+    if (listOfButtonComparison[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
+    }
+    $.each(listOfChartComparison, function (idx, idChart) {
+       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+          $(idChart).data("kendoChart").options.series[index].visible = listOfButtonComparison[idName];
+          $(idChart).data("kendoChart").refresh();
+        }
+    });
+}
+
+pm.initChartWRC = function () {
+    listOfChartComparison = [];
+    // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();
+    var breakDownVal = "36";
+    var stepNum = 1
+    var gapNum = 1
+    if (breakDownVal == 36) {
+        stepNum = 3
+        gapNum = 0
+    } else if (breakDownVal == 24) {
+        stepNum = 2
+        gapNum = 0
+    } else if (breakDownVal == 12) {
+        stepNum = 1
+        gapNum = 0
+    }
+
+    var dataSeries = pm.dataWindroseComparison().Data;
+    var categories = pm.dataWindroseComparison().Categories;
+    var nilaiMax = pm.dataWindroseComparison().MaxValue;
+
+    $("#WRChartComparison").kendoChart({
+        theme: "flat",
+        // chartArea: {
+        //     width: pWidth,
+        //     height: pWidth,
+        // },
+
+        title: {
+            text: "Wind Rose Comparison",
+            font: '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        },
+        legend: {
+            position: "right",
+            // labels: {
+            //     template: "#= (series.data[0] || {}).WsCategoryDesc #"
+            // },
+        },
+        dataSource: {
+            // data: val.Data,
+            sort: {
+                field: "DirectionNo",
+                dir: "asc"
+            }
+        },
+        // seriesColors: colorFieldsWR,
+        // series: [{
+        //     type: "radarLine",
+        //     field: "Contribution",
+        //     gap: gapNum,
+        //     border: {
+        //         width: 1,
+        //         color: "#7f7f7f",
+        //         opacity: 0.5
+        //     },
+        // }],
+        series: dataSeries,
+        categoryAxis: {
+            // field: "DirectionDesc",
+            categories: categories,
+            visible: true,
+            majorGridLines: {
+                visible: true,
+                step: stepNum
+            },
+            labels: {
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: true,
+                step: stepNum
+            }
+        },
+        valueAxis: {
+            labels: {
+                template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            majorUnit: 10,
+            max: nilaiMax,
+            min: 0
+        },
+        tooltip: {
+            visible: true,
+            template: "#= category # #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        }
+    });
+}
+
+pm.WindRoseComparison = function(){
+    app.loading(true);
+    fa.LoadData();
+    if(pm.isFirstWindRoseComparison() === true){
+        setTimeout(function () {
+            // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();
+            var breakDownVal = "36";
+            var secDer = 360 / breakDownVal;
+            // pm.sectorDerajatComparison(secDer);
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine,
+                project: fa.project,
+                breakDown: breakDownVal,
+            };
+            toolkit.ajaxPost(viewModel.appName + "analyticwindrose/getwindrosedata", param, function (res) {
+                if (!app.isFine(res)) {
+                    app.loading(false);
+                    return;
+                }
+                if (res.data != null) {
+                    pm.dataWindroseComparison(res.data);
+                    pm.initChartWRC();
+                }
+
+                app.loading(false);
+                pm.isFirstWindRoseComparison(false);
+
+            })
+        }, 300);
+    }else{
+        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+        $('#availabledatestart').html(metDate);
+        $('#availabledateend').html(scadaDate);
+        setTimeout(function(){
+            $.each(listOfChartComparison, function(idx, elem){
                 $(elem).data("kendoChart").refresh();
             });
             app.loading(false);
@@ -921,22 +1083,7 @@ pm.resetStatus= function(){
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstTwelve(true);
-}
-
-pm.showHideLegendWR = function (index) {
-    var idName = "btn" + index;
-    listOfButton[idName] = !listOfButton[idName];
-    if (listOfButton[idName] == false) {
-        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
-    } else {
-        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
-    }
-    $.each(listOfChart, function (idx, idChart) {
-       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
-          $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
-          $(idChart).data("kendoChart").refresh();
-        }
-    });
+    pm.isFirstWindRoseComparison(true);
 }
 
 $(function(){
@@ -973,4 +1120,17 @@ $(function(){
         });
         $("#nosection").data("kendoDropDownList").value(12);
     }, 300);
+
+    /*setTimeout(function () {
+        $("#legend-list-comparison").html("");
+        $.each(listOfCategory, function (idx, val) {
+            var idName = "btn" + idx;
+            listOfButtonComparison[idName] = true;
+            $("#legend-list-comparison").append(
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="pm.showHideLegendComparison(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<span class="span-legend">' + val.category + '</span>'
+            );
+        });
+        $("#nosectionComparison").data("kendoDropDownList").value(12);
+    }, 300);*/
 });
