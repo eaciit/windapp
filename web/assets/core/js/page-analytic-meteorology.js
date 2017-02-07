@@ -235,12 +235,15 @@ pm.initChart = function () {
 
         var idChart = "#chart-" + val.Name
         listOfChart.push(idChart);
-        var pWidth = $('body').width() * 0.235;//$('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
+        // var pWidth = $('body').width() * 0.235;//$('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
+        var pWidth = 300;
+
         $(idChart).kendoChart({
             theme: "nova",
             chartArea: {
                 width: pWidth,
-                height: pWidth
+                height: pWidth,
+                padding: 30
             },
 
             title: {
