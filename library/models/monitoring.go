@@ -33,6 +33,9 @@ type Monitoring struct {
 	Status     string // ok, brake, N/A
 	StatusCode int    // brake : AlarmID
 	StatusDesc string // brake : AlarmDescription
+
+	PitchAngle    float64
+	WindDirection float64
 }
 
 func (m *Monitoring) New() *Monitoring {
@@ -50,23 +53,26 @@ func (m *Monitoring) TableName() string {
 }
 
 type MonitoringEvent struct {
-	orm.ModelBase    `bson:"-",json:"-"`
-	ID               string ` bson:"_id" , json:"_id" `
-	Project          string
-	Turbine          string
-	TimeStamp        time.Time
-	DateInfo         DateInfo
-	GroupTimeStamp   time.Time
-	AlarmId          int
-	AlarmDescription string
-	Type             string // Alarm, Brake, Warning
-	Status           string /// down, up
+	orm.ModelBase     `bson:"-",json:"-"`
+	ID                string ` bson:"_id" , json:"_id" `
+	Project           string
+	Turbine           string
+	TimeStamp         time.Time
+	TimeStampStr      string
+	DateInfo          DateInfo
+	GroupTimeStamp    time.Time
+	GroupTimeStampStr string
+	AlarmId           int
+	AlarmDescription  string
+	Type              string // Alarm, Brake, Warning
+	Status            string /// down, up
+	Duration          float64
 }
 
 func (m *MonitoringEvent) New() *MonitoringEvent {
 	timestampstr := m.TimeStamp.Format("060102_150405")
-	nowstr := time.Now().Format("060102_150405")
-	m.ID = m.Project + "#" + m.Turbine + "#" + timestampstr + "#" + tk.ToString(m.AlarmId) + "#" + m.Status + "#" + m.Type + "_" + nowstr
+	// nowstr := time.Now().Format("060102_150405")
+	m.ID = m.Project + "#" + m.Turbine + "#" + timestampstr + "#" + tk.ToString(m.AlarmId) + "#" + m.Status + "#" + m.Type //+ "_" + nowstr
 	return m
 }
 

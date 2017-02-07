@@ -80,8 +80,7 @@ var Data = {
                 },
                 schema: {
                     data: function(res) {
-
-                        if (!app.isFine(res)) {
+                        if (res.data.Data == undefined) {
                             return;
                         }
                         var summary = res.data.Summary;
@@ -90,9 +89,10 @@ var Data = {
                         return res.data.Data;
                     },
                     total: function (res) {
-                        if (!app.isFine(res)) {
+                        if (res.data.Data == undefined) {
                             return;
                         }
+
                         return res.data.Data.length;
                     },
                     model: {

@@ -172,12 +172,11 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 	result := make(map[string]interface{})
 
 	for _, val := range list {
-		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine float64
+		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine, hourValue float64
 
-		// totalTurbine = tk.ToFloat64(len(p.Turbine), 0, tk.RoundingAuto)
-		// totalTurbine = 1.0
-
-		if len(p.Turbine) == 0 {
+		if rowsBreakdown == "Turbine" {
+			totalTurbine = 1.0
+		} else if len(p.Turbine) == 0 {
 			totalTurbine = 24.0
 		} else {
 			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
@@ -186,40 +185,28 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		minDate := val.Get("mindate").(time.Time)
 		maxDate := val.Get("maxdate").(time.Time)
 
-		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+		if colBreakdown == "Date" {
+			id := val.Get("_id").(tk.M)
+			id1 := id.Get("id2").(time.Time)
+			hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
+		} else {
+			hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+		}
 
-		// hourValue := val.GetFloat64("minutes") / 60.0
 		okTime := val.GetFloat64("oktime")
 		power := val.GetFloat64("power") / 1000.0
 		energy := val.GetFloat64("energy") / 1000 //power / 6
-
 		mDownTime := val.GetFloat64("machinedowntime") / 3600.0
 		gDownTime := val.GetFloat64("griddowntime") / 3600.0
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
-
-		plf = energy / (totalTurbine * hourValue * 2.1) * 100
-		trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-
-		/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
-		gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
-
 		minutes := val.GetFloat64("minutes") / 60
-		machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
-		gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
 
-		dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
+		machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
 		prod = energy
 		revenue = power * 5.740 * 1000
 
 		resVal := tk.M{}
-		/*resVal.Set("MachineAvailability", FloatToString(tk.ToFloat64((machineAvail), 2, tk.RoundingAuto))+" %")
-		resVal.Set("Production", FloatToString(tk.ToFloat64(prod, 2, tk.RoundingAuto))+" MWh")
-		resVal.Set("TotalAvailability", FloatToString(tk.ToFloat64((trueAvail), 2, tk.RoundingAuto))+" %")
-		resVal.Set("PLF", FloatToString(tk.ToFloat64(plf, 2, tk.RoundingAuto))+" %")
-		resVal.Set("GridAvailability", FloatToString(tk.ToFloat64((gridAvail), 2, tk.RoundingAuto))+" %")
-		resVal.Set("DataAvailability", FloatToString(tk.ToFloat64((dataAvail), 2, tk.RoundingAuto))+" %")
-		resVal.Set("Revenue", "INR "+FloatToString(tk.ToFloat64(revenue, 2, tk.RoundingAuto)))*/
-
 		resVal.Set("MachineAvailability", tk.ToFloat64((machineAvail), 2, tk.RoundingAuto))
 		resVal.Set("Production", tk.ToFloat64(prod, 2, tk.RoundingAuto))
 		resVal.Set("TotalAvailability", tk.ToFloat64((trueAvail), 2, tk.RoundingAuto))

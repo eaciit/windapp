@@ -96,8 +96,8 @@ dbc.InitCustomGrid = function() {
             pageSize: 10,
             schema: {
                 data: function(res) {
+                    app.loading(false);
                     dbr.customvis(false);
-                    // app.loading(false);
                     return res.data.Data
                 },
                 total: function(res) {
@@ -167,6 +167,7 @@ dbc.InitCustomGrid = function() {
         $("#modalShowHide").modal();
         return false;
     });
+    $('#customGrid').data("kendoGrid").refresh();
 }
 dbc.getColumnCustom = function(){
     var a = dbr.defaultSelectedColumn();

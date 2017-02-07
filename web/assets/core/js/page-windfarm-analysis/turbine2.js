@@ -158,5 +158,6 @@ wfa.Turbine2Analysis = {
 				}
 			});
 		}
+		app.loading(false);
 	},
 }

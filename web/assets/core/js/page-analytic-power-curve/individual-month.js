@@ -75,14 +75,16 @@ page.LoadData = function() {
                 $("#legend-list").html("");
                 listOfButton = {};
                 $.each(listOfCategory, function (idx, val) {
-                    var idName = "btn" + idx;
-                    listOfButton[idName] = true;
-                    $("#legend-list").append(
-                        '<button id="' + idName + 
-                        '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
-                        val.color + ';background-color:' + val.color + ';"></button>' +
-                        '<span class="span-legend">' + val.category + '</span>'
-                    );
+                    if(idx > 0) {
+                        var idName = "btn" + idx;
+                        listOfButton[idName] = true;
+                        $("#legend-list").append(
+                            '<button id="' + idName + 
+                            '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
+                            val.color + ';background-color:' + val.color + ';"></button>' +
+                            '<span class="span-legend">' + val.category + '</span>'
+                        );
+                    }
                 });
             }
             app.loading(false);
@@ -137,7 +139,6 @@ page.InitLinePowerCurve = function() {
               fileName: "DetailPowerCurve.pdf",
             },
             theme: "flat",
-            renderAs: "canvas",
             title: {
                 text: name,
                 font: titleFont,
@@ -186,7 +187,7 @@ page.InitLinePowerCurve = function() {
                     visible: true,
                     tooltip: {
                         visible: true,
-                        format: "N1",
+                        format: "N2",
                         background: "rgb(255,255,255, 0.9)",
                         color: "#58666e",
                         font: tooltipAxisFont,

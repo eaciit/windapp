@@ -1,5 +1,10 @@
 'use strict';
 
+
+viewModel.PCComparison = new Object();
+var pc = viewModel.PCComparison;
+
+
 vm.currentMenu('Comparison');
 vm.currentTitle('Comparison');
 vm.breadcrumb([{
@@ -13,8 +18,6 @@ vm.breadcrumb([{
     href: viewModel.appName + 'page/analyticpccomparison'
 }]);
 
-viewModel.PCComparison = new Object();
-var pc = viewModel.PCComparison;
 
 pc.periodList = ko.observableArray([
     { "value": "last24hours", "text": "Last 24 hours" },
@@ -52,9 +55,9 @@ pc.InitFirst = function () {
                     $.each(res.data, function (key, val) {
                         turbineval.push(val);
                     });
-                    allturbine.value = "All Turbine";
-                    allturbine.text = "All Turbines";
-                    datavalue.push(allturbine);
+                    // allturbine.value = "All Turbine";
+                    // allturbine.text = "All Turbines";
+                    // datavalue.push(allturbine);
                     $.each(res.data, function (key, val) {
                         var data = {};
                         data.value = val;
@@ -89,11 +92,11 @@ pc.InitFirst = function () {
         })
 
     ).then(function () {
-        $('#turbineList1').data('kendoMultiSelect').value(["All Turbine"])
-        $('#turbineList2').data('kendoMultiSelect').value(["All Turbine"])
+        // $('#turbineList1').data('kendoDropDownList').value(["All Turbine"])
+        // $('#turbineList2').data('kendoDropDownList').value(["All Turbine"])
         // override to set the value
-        $("#projectList1").data("kendoDropDownList").value("Tejuva");
-        $("#projectList2").data("kendoDropDownList").value("Tejuva");
+        // $("#projectList1").data("kendoDropDownList").value("Tejuva");
+        // $("#projectList2").data("kendoDropDownList").value("Tejuva");
 
         pc.project = $("#projectList").data("kendoDropDownList").value();
     });
@@ -111,9 +114,9 @@ pc.populateTurbine = function (data) {
             $.each(data, function (key, val) {
                 turbineval.push(val);
             });
-            allturbine.value = "All Turbine";
-            allturbine.text = "All Turbines";
-            datavalue.push(allturbine);
+            // allturbine.value = "All Turbine";
+            // allturbine.text = "All Turbines";
+            // datavalue.push(allturbine);
             $.each(data, function (key, val) {
                 var data = {};
                 data.value = val;
@@ -127,8 +130,8 @@ pc.populateTurbine = function (data) {
     }
 
     setTimeout(function () {
-        $('#turbineList1').data('kendoMultiSelect').value(["All Turbine"])
-        $('#turbineList2').data('kendoMultiSelect').value(["All Turbine"])
+        // $('#turbineList1').data('kendoDropDownList').value(["All Turbine"])
+        // $('#turbineList2').data('kendoDropDownList').value(["All Turbine"])
     }, 50);
 };
 
@@ -156,18 +159,6 @@ pc.populateProject = function (data) {
     }
 };
 
-pc.checkTurbine = function (id) {
-    var arr = $('#' + id).data('kendoMultiSelect').value();
-    var index = arr.indexOf("All Turbine");
-    if (index == 0 && arr.length > 1) {
-        arr.splice(index, 1);
-        $('#' + id).data('kendoMultiSelect').value(arr)
-    } else if (index > 0 && arr.length > 1) {
-        $("#" + id).data("kendoMultiSelect").value(["All Turbine"]);
-    } else if (arr.length == 0) {
-        $("#" + id).data("kendoMultiSelect").value(["All Turbine"]);
-    }
-}
 
 pc.showHidePeriod = function (callback) {
     var period = $('#periodList').data('kendoDropDownList').value();
@@ -200,12 +191,12 @@ pc.showHidePeriod = function (callback) {
             $('#dateStart').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM yyyy",
             });
             $('#dateEnd').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM yyyy",
             });
 
             $('#dateStart').data('kendoDatePicker').value(startMonthDate);
@@ -278,12 +269,12 @@ pc.showHidePeriod2 = function (callback) {
             $('#dateStart2').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM yyyy",
             });
             $('#dateEnd2').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM yyyy",
             });
 
             $('#dateStart2').data('kendoDatePicker').value(startMonthDate);
@@ -327,8 +318,8 @@ pc.showHidePeriod2 = function (callback) {
 
 
 pc.InitDefaultValue = function () {
-    $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
-    $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    // $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    // $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
 
@@ -338,14 +329,13 @@ pc.InitDefaultValue = function () {
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0, 0));
     var lastEndDate = new Date(app.toUTC(maxDateData));
-
-    var dateEnd2 = new Date(Date.UTC(moment(lastStartDate).get('year'), lastStartDate.getMonth(), lastStartDate.getDate()-30, 0, 0, 0, 0));
-    var dateStart2 =new Date(Date.UTC(moment(dateEnd2).get('year'), dateEnd2.getMonth(), dateEnd2.getDate()-30, 0, 0, 0, 0));
+    // var dateEnd2 = new Date(Date.UTC(moment(lastStartDate).get('year'), lastStartDate.getMonth(), lastStartDate.getDate()-30, 0, 0, 0, 0));
+    // var dateStart2 =new Date(Date.UTC(moment(dateEnd2).get('year'), dateEnd2.getMonth(), dateEnd2.getDate()-30, 0, 0, 0, 0));
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-    $('#dateEnd2').data('kendoDatePicker').value(dateEnd2);
-    $('#dateStart2').data('kendoDatePicker').value(dateStart2);
+    $('#dateEnd2').data('kendoDatePicker').value(lastEndDate);
+    $('#dateStart2').data('kendoDatePicker').value(lastStartDate);
 }
 pc.initChart = function() {
         var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -376,13 +366,13 @@ pc.initChart = function() {
         var param = {
             PC1Period       : $('#periodList').data('kendoDropDownList').value(),
             PC1Project      :  $("#projectList1").data("kendoDropDownList").value(),
-            PC1Turbine      :  $("#turbineList1").data('kendoMultiSelect').value()[0] == "All Turbine" || $("#turbineList1").data('kendoMultiSelect').value()[0] == undefined ? pc.turbine() : $("#turbineList1").data('kendoMultiSelect').value(),
+            PC1Turbine      :  $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
             PC1DateStart    : p1DateStart,
             PC1DateEnd      : p1DateEnd,
 
             PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-            PC2Project      :  $("#projectList2").data("kendoDropDownList").value(),
-            PC2Turbine      : $("#turbineList2").data('kendoMultiSelect').value()[0] == "All Turbine" || $("#turbineList2").data('kendoMultiSelect').value()[0] == undefined  ? pc.turbine() : $("#turbineList2").data('kendoMultiSelect').value(),
+            PC2Project      :  $("#projectList1").data("kendoDropDownList").value(),
+            PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
             PC2DateStart    : p2DateStart,
             PC2DateEnd      : p2DateEnd
 
@@ -403,7 +393,6 @@ pc.initChart = function() {
                   fileName: "DetailPowerCurve.pdf",
                 },
                 theme: "flat",
-                renderAs: "canvas",
                 title: {
                     text: "Power Curves",
                     visible: false,
@@ -411,7 +400,7 @@ pc.initChart = function() {
                 },
                 legend: {
                     position: "bottom",
-                    visible: false,
+                    visible: true,
                 },
                 chartArea: {
                     height: 375,
@@ -508,8 +497,8 @@ pc.initChart = function() {
                         width: "2px",
                     },
                 },
-                pannable: true,
-                zoomable: true
+                pannable: false,
+                zoomable: false
             });
             app.loading(false);
             $("#chartPCcomparison").data("kendoChart").refresh();

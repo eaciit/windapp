@@ -5627,3 +5627,198 @@ func SecondsToHms(d float64) string {
 
 	return res
 }
+
+func (m *DataBrowserController) GetDowntimeEventListHFD(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var filter []*dbox.Filter
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	filter, _ = p.ParseFilter()
+
+	query := DB().Connection.NewQuery().From(new(EventDownHFD).TableName()).Skip(p.Skip).Take(p.Take)
+	query.Where(dbox.And(filter...))
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(val.Field))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]EventDown, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	queryC := DB().Connection.NewQuery().From(new(EventDownHFD).TableName()).Where(dbox.And(filter...))
+	ccount, e := queryC.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer ccount.Close()
+
+	totalDuration := 0.0
+	totalTurbine := 0
+
+	aggrData := []tk.M{}
+
+	queryAggr := DB().Connection.NewQuery().From(new(EventDownHFD).TableName()).
+		Aggr(dbox.AggrSum, "$duration", "duration").
+		Group("turbine").Where(dbox.And(filter...))
+
+	caggr, e := queryAggr.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer caggr.Close()
+	e = caggr.Fetch(&aggrData, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for _, val := range aggrData {
+		totalDuration += val.GetFloat64("duration")
+	}
+	totalTurbine = tk.SliceLen(aggrData)
+
+	data := struct {
+		Data          []EventDown
+		Total         int
+		TotalTurbine  int
+		TotalDuration float64
+	}{
+		Data:          tmpResult,
+		Total:         ccount.Count(),
+		TotalTurbine:  totalTurbine,
+		TotalDuration: totalDuration,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataBrowserController) GetDowntimeEventvailDateHFD(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	DowntimeEventresults := make([]time.Time, 0)
+
+	// Downtime Event Data
+	for i := 0; i < 2; i++ {
+		var arrsort []string
+		if i == 0 {
+			arrsort = append(arrsort, "timestart")
+		} else {
+			arrsort = append(arrsort, "-timestart")
+		}
+
+		query := DB().Connection.NewQuery().From(new(EventDownHFD).TableName()).Skip(0).Take(1)
+		query = query.Order(arrsort...)
+
+		csr, e := query.Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		defer csr.Close()
+
+		Result := make([]EventDown, 0)
+		e = csr.Fetch(&Result, 0, false)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		for _, val := range Result {
+			DowntimeEventresults = append(DowntimeEventresults, val.TimeStart.UTC())
+		}
+	}
+
+	data := struct {
+		DowntimeEvent []time.Time
+	}{
+		DowntimeEvent: DowntimeEventresults,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataBrowserController) GenExcelDowntimeEventHFD(k *knot.WebContext) interface{} {
+
+	k.Config.OutputType = knot.OutputJson
+
+	var filter []*dbox.Filter
+
+	p := new(helper.PayloadsDB)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	turbine := p.Turbine
+
+	var pathDownload string
+	typeExcel := "DowntimeEventHFD"
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := typeExcel + TimeCreate
+
+	if err := os.RemoveAll("web/assets/Excel/" + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestart", tStart))
+	filter = append(filter, dbox.Lte("timestart", tEnd))
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+
+	query := DB().Connection.NewQuery().From(new(EventDownHFD).TableName()).Where(dbox.And(filter...))
+
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	tmpResult := make([]EventDown, 0)
+	// results := make([]EventDown, 0)
+	e = csr.Fetch(&tmpResult, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// for _, val := range tmpResult {
+	// 	val.TimeStart = val.TimeStart.UTC()
+	// 	results = append(results, val)
+	// }
+	//web/assets/Excel/
+
+	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
+	}
+
+	DeserializeEventDown(tmpResult, 0, typeExcel, CreateDateTime)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+	// tk.Println(pathDownload)
+
+	return helper.CreateResult(true, pathDownload, "success")
+}

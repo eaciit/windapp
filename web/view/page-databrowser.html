@@ -6,6 +6,7 @@
 <script src="{{BaseUrl}}res/core/js/page-databrowser/scada.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/scadahfd.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/downtime.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-databrowser/downtimehfd.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/custom.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/event.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/met.js?ANTI_CACHE={{.AntiCache}}"></script>
@@ -28,19 +29,20 @@
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <ul class="nav nav-tabs " role="tablist">
-                        <li id="mainTab" role="presentation" class="active"><a onclick="Data.RefreshGrid('Main')" href="#Main" aria-controls="Main" role="tab" data-toggle="tab" class="tab-custom">Main</a></li>
-                        <li id="exceptionTab" role="presentation"><a onclick="Data.RefreshGrid('Exception')" href="#Exception" aria-controls="Exception" role="tab" data-toggle="tab" class="tab-custom">Exception</a></li>
+                        <li id="mainTab" role="presentation" class="active"><a onclick="Data.LoadData()" href="#Main" aria-controls="Main" role="tab" data-toggle="tab" class="tab-custom">Main</a></li>
+                        <li id="exceptionTab" role="presentation"><a onclick="Data.LoadData()" href="#Exception" aria-controls="Exception" role="tab" data-toggle="tab" class="tab-custom">Exception</a></li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="Main">
                             <ul class="nav nav-tabs" role="tablist">
-                                <li id="scadaTab" role="presentation" class="active"><a onclick="Data.RefreshGrid('scadaTab')" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
-                                <li id="scadahfdTab" role="presentation"><a onclick="Data.RefreshGrid('scadahfdTab')" href="#scadahfd" aria-controls="scadahfd" role="tab" data-toggle="tab" class="tab-custom">Scada Data HFD</a></li>
-                                <li id="downtimeeventTab" role="presentation"><a onclick="Data.RefreshGrid('downtimeeventTab')" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
-                                <li id="customTab" role="presentation"><a onclick="Data.RefreshGrid('customTab')" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
-                                <li id="eventTab" role="presentation"><a onclick="Data.RefreshGrid('eventTab')" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
-                                <li id="metTab" role="presentation"><a onclick="Data.RefreshGrid('metTab')" href="#MET" aria-controls="MET" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
-                                <li id="jmrTab" role="presentation"><a onclick="Data.RefreshGrid('jmrTab')" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
+                                <li id="scadaTab" role="presentation" class="active"><a onclick="dbr.Scada()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
+                                <li id="scadahfdTab" role="presentation"><a onclick="dbr.ScadaHFD()" href="#scadahfd" aria-controls="scadahfd" role="tab" data-toggle="tab" class="tab-custom">Scada Data HFD</a></li>
+                                <li id="downtimeeventTab" role="presentation"><a onclick="dbr.Downtime()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
+                                <li id="customTab" role="presentation"><a onclick="dbr.Custom()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Custom 10 Minutes Data</a></li>
+                                <li id="eventTab" role="presentation"><a onclick="dbr.Event()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw</a></li>
+                                <li id="metTab" role="presentation"><a onclick="dbr.Met()" href="#MET" aria-controls="MET" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
+                                <li id="jmrTab" role="presentation"><a onclick="dbr.JMR()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
+                                <li id="downtimeeventhfdTab" role="presentation"><a onclick="dbr.DowntimeHFD()" href="#downtimeeventhfd" aria-controls="downtimeeventhfd" role="tab" data-toggle="tab" class="tab-custom">Downtime Event HFD</a></li>
                             </ul>
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active" id="scadaoem">
@@ -196,15 +198,33 @@
                                         </div>
                                     </div>
                                 </div>
-
+                                <div role="tabpanel" class="tab-pane" id="downtimeeventhfd">
+                                    <div data-bind="visible:!dbr.downeventhfdvis()">
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Total Turbine</label><br />
+                                            <label id="totalturbineDEHFD" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-green">
+                                            <label class="summary-header">Total Data</label><br />
+                                            <label id="totaldataDEHFD" class="summary-number">0</label>
+                                        </div>
+                                        <div class="tab-pane-content">
+                                            <div class="clearfix">&nbsp;</div>
+                                            <div class="etoExcel">
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexceldowntimeeventhfd')"><i class="fa fa-file-excel-o"></i></button>
+                                            </div>
+                                            <div id="DEHFDgrid" class="grid-custom-db-new"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="Exception">
                             <ul class="nav nav-tabs" role="tablist">
-                                <li id="scadaExceptionTimeDurationTab" class="active" role="presentation"><a onclick="Data.RefreshGrid('scadaExceptionTimeDurationTab')" href="#ScadaExceptionTimeDuration" aria-controls="ScadaExceptionTimeDuration" role="tab" data-toggle="tab" class="tab-custom">Scada Exception Time Duration</a></li>
-                                <li id="scadaAnomaliesTab" role="presentation"><a onclick="Data.RefreshGrid('scadaAnomaliesTab')" href="#GenerationAnomalies" aria-controls="GenerationAnomalies" role="tab" data-toggle="tab" class="tab-custom">Scada Anomaly</a></li>
-                                <li id="alarmOverlappingTab" role="presentation"><a onclick="Data.RefreshGrid('alarmOverlappingTab')" href="#AlarmOverlapping" aria-controls="AlarmOverlapping" role="tab" data-toggle="tab" class="tab-custom">Alarm Overlapping Data</a></li>
-                                <li id="alarmAnomaliesTab" role="presentation"><a onclick="Data.RefreshGrid('alarmAnomaliesTab')" href="#AlarmAnomalies" aria-controls="AlarmAnomalies" role="tab" data-toggle="tab" class="tab-custom">Alarm Anomaly</a></li>
+                                <li id="scadaExceptionTimeDurationTab" class="active" role="presentation"><a onclick="dbr.ScadaException()" href="#ScadaExceptionTimeDuration" aria-controls="ScadaExceptionTimeDuration" role="tab" data-toggle="tab" class="tab-custom">Scada Exception Time Duration</a></li>
+                                <li id="scadaAnomaliesTab" role="presentation"><a onclick="dbr.ScadaAnomalies()" href="#GenerationAnomalies" aria-controls="GenerationAnomalies" role="tab" data-toggle="tab" class="tab-custom">Scada Anomaly</a></li>
+                                <li id="alarmOverlappingTab" role="presentation"><a onclick="dbr.AlarmOverlapping()" href="#AlarmOverlapping" aria-controls="AlarmOverlapping" role="tab" data-toggle="tab" class="tab-custom">Alarm Overlapping Data</a></li>
+                                <li id="alarmAnomaliesTab" role="presentation"><a onclick="dbr.AlarmAnomalies()" href="#AlarmAnomalies" aria-controls="AlarmAnomalies" role="tab" data-toggle="tab" class="tab-custom">Alarm Anomaly</a></li>
                             </ul>
                             <div class="tab-content">
 

@@ -234,6 +234,7 @@ fa.showHidePeriod = function (callback) {
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
     var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
     if (period == "custom") {
         $(".show_hide").show();
         $('#dateStart').data('kendoDatePicker').setOptions({
@@ -261,12 +262,12 @@ fa.showHidePeriod = function (callback) {
             $('#dateStart').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM-yyyy",
             });
             $('#dateEnd').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMMM yyyy",
+                format: "MMM-yyyy",
             });
 
             $('#dateStart').data('kendoDatePicker').value(startMonthDate);
@@ -316,7 +317,7 @@ fa.LoadData = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
     fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
-    if (fa.dateStart > fa.dateEnd) {
+    if (fa.dateStart - fa.dateEnd > 25200000) {
         toolkit.showError("Invalid Date Range Selection");
         return;
     } else {
@@ -445,7 +446,7 @@ fa.checkCompleteDate = function () {
             fa.infoPeriodIcon(true);
             fa.infoPeriodRange("* Incomplete period data range on start date and end date");
         } else if (dateStart > currentDateData) {
-            fa.infoPeriodRange("* Incomplete period data ange on start date");
+            fa.infoPeriodRange("* Incomplete period data range on start date");
             fa.infoPeriodIconmozilla(true);
         } else if (dateEnd > currentDateData) {
             fa.infoPeriodIcon(true);

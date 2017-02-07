@@ -32,6 +32,12 @@ func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
 	return 0.0
 }
 
+func getHourMinute(tStart, tEnd, minDate, maxDate time.Time, minute float64) (hourValue, minutes float64) {
+	hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+	minutes = minute / 60
+	return
+}
+
 func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -75,9 +81,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
 		listOfYears = append(listOfYears, i)
 	}
-	listOfDays := []int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-	monthString := []string{"", "January", "February", "March", "April", "May", "June", "July",
-		"August", "September", "October", "November", "December"}
 	// totalTurbine := 1.0
 	// if !strings.Contains(breakDown, "turbine") {
 	totalTurbine := tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
@@ -147,12 +150,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				return helper.CreateResult(false, nil, e.Error())
 			}
 			// tk.Printf("breakDown : %s \n", breakDown)
-
-			// csrC, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Cursor(nil)
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-			// totalData = csrC.Count()
 		}
 		series := tk.M{}
 		measurement = "%"
@@ -184,27 +181,25 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		var values float64
 		categories = []string{}
 		for listCount, val := range list {
-			minDate := val.Get("mindate").(time.Time)
-			maxDate := val.Get("maxdate").(time.Time)
+			var hourValue, minutes float64
 
-			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
-			minutes := val.GetFloat64("minutes") / 60
+			if strings.Contains(breakDown, "dateid") {
+				id := val.Get("_id").(tk.M)
+				id1 := id.Get("id1").(time.Time)
+				hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+			} else {
+				hourValue, minutes = getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+			}
 
 			switch key {
 			case "Machine Availability":
-				// values = (hourValue - (val.GetFloat64("machinedowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
 				values = tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Grid Availability":
-				// values = (hourValue - (val.GetFloat64("griddowntime") / 3600.0)) / (totalTurbine * hourValue) * 100 /*percentage*/
 				values = tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Total Availability":
 				values = tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
-				//values = (val.GetFloat64("oktime") / (tk.ToFloat64(duration, 2, tk.RoundingAuto) * 86400 * totalTurbine)) * 100 /*percentage*/
 			case "Data Availability":
 				values = tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
-				// values = tk.ToFloat64((((val.GetInt("countdata") / totalData) /
-				// 	(duration * 144 )) * 100),
-				// 	6, tk.RoundingAuto) /*percentage*/
 			case "Actual PLF":
 				values = tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
 			case "Actual Production":
@@ -246,19 +241,19 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 
 			if tk.HasMember(keyList, key) {
 				if strings.Contains(breakDown, "dateid") {
-					month := val.GetInt("monthno")
 					datas = []float64{}
-					jumHari := listOfDays[month]
 
 					if listCount == 0 { /*bulan pertama*/
-						catTitle = monthString[int(tStart.Month())]
-						if len(list) == 1 {
+						catTitle = tStart.Month().String()
+						if len(list) == 1 { /*jika hanya 1 bulan*/
 							for iDate := startdate; iDate <= enddate; iDate++ {
 								categories = append(categories, tk.ToString(iDate))
 							}
 							catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
-						} else {
-							for iDate := startdate; iDate <= jumHari; iDate++ {
+						} else { /*jika lebih dari 1 bulan*/
+							month := val.GetInt("monthno")
+							maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
+							for iDate := startdate; iDate <= maxDays; iDate++ {
 								categories = append(categories, tk.ToString(iDate))
 							}
 							if len(listOfYears) > 1 { /*jika cuma 1 tahun, lanjut ke berikutnya*/
@@ -266,7 +261,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							}
 						}
 					} else { /*bulan kedua*/
-						catTitle += " - " + monthString[int(tEnd.Month())]
+						catTitle += " - " + tEnd.Month().String()
 						if len(listOfYears) == 1 {
 							catTitle += " (" + tk.ToString(listOfYears[0]) + ")" /*Dec - Jan (2016)*/
 						} else {
@@ -302,7 +297,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						}
 					}
 				} else if strings.Contains(breakDown, "monthid") {
-					categories = append(categories, monthString[val.GetInt("monthno")])
+					categories = append(categories, time.Month(val.GetInt("monthno")).String())
 					catTitle = "Month"
 				} else if strings.Contains(breakDown, "year") {
 					if listCount == 0 {

@@ -537,11 +537,11 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	} else {
 		iLastDateData := GetLastDateData(r)
 		/*jika memiliki custom date sendiri seperti wind rose yang max date nya 31 Juli 2016*/
-		customLastDate := r.Session("custom_lastdate")
+		// customLastDate := r.Session("custom_lastdate")
 
-		if customLastDate != nil {
-			iLastDateData = customLastDate.(time.Time)
-		}
+		// if customLastDate != nil {
+		// 	iLastDateData = customLastDate.(time.Time)
+		// }
 		endDate = iLastDateData
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
 		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
@@ -581,8 +581,6 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			}
 		}
 	}
-
-	// r.SetSession("custom_lastdate", nil)
 	return
 }
 
@@ -599,7 +597,7 @@ func GetProjectList() (result []string, e error) {
 
 	for _, val := range data {
 		if val.GetString("projectid") == "Tejuva" {
-			str := fmt.Sprintf("%v (%v | %v MWh)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
+			str := fmt.Sprintf("%v (%v | %v MW)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
 			// str := fmt.Sprintf("%v", val.GetString("projectid"))
 			result = append(result, str)
 		}
@@ -706,6 +704,22 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 
 	hourValue = toolkit.ToFloat64(end.Sub(start).Hours(), 0, toolkit.RoundingUp)
 
+	return
+}
+
+// totalTurbine in float64
+// okTime sum ok time
+// energy should be div by 1000
+// machineDownTime, gridDownTime already in hour value
+// minutes should be div by 60
+func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machineDownTime float64, gridDownTime float64, countTimeStamp float64, hourValue float64, totalMinutes float64) (machineAvail float64, gridAvail float64, dataAvail float64, totalAvail float64, plf float64) {
+	divider := (totalTurbine * hourValue)
+
+	plf = energy / (divider * 2.1) * 100
+	totalAvail = (okTime / 3600) / divider * 100
+	machineAvail = (totalMinutes - machineDownTime) / divider * 100
+	gridAvail = (totalMinutes - gridDownTime) / divider * 100
+	dataAvail = (countTimeStamp * 10 / 60) / divider * 100
 	return
 }
 

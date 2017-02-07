@@ -24,6 +24,7 @@ page.ExportIndividualMonthPdf = function() {
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
     { "value": "temp", "text": "Temperature Analysis" },
+    { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
 ]);
 
@@ -45,7 +46,7 @@ page.LoadData = function() {
     page.getPowerCurveScatter();
 }
 
-page.setAxis = function(name, title, crossVal, minVal, maxVal) {
+page.setAxis = function(name, title) {
     var result = {
         name: name,
         title: {
@@ -53,17 +54,11 @@ page.setAxis = function(name, title, crossVal, minVal, maxVal) {
             font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             color: "#585555"
         },
-        labels: {
-            format: "N2",
-        },
-        // axisCrossingValue: crossVal,
         majorGridLines: {
             visible: true,
             color: "#eee",
             width: 0.8,
         },
-        min: minVal,
-        max: maxVal,
         crosshair: {
             visible: true,
             tooltip: {
@@ -79,7 +74,27 @@ page.setAxis = function(name, title, crossVal, minVal, maxVal) {
             }
         },
     }
+    if(name == "powerAxis") {
+        result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # kW";
+        result.crosshair.tooltip.padding = {left:5};
+    } else {
+        switch(page.scatterType) {
+            case "temp":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176) + "C";
+                break;
+            case "deviation":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
+                break;
+            case "pitch":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
+                break;
+        }
+    }
     return result
+}
+
+page.refreshChart = function() {
+    page.LoadData();
 }
 
 page.getPowerCurveScatter = function() {
@@ -110,15 +125,19 @@ page.getPowerCurveScatter = function() {
         var dtSeries = res.data.Data;
         
         var yAxes = [];
-        var yAxis = page.setAxis("powerAxis", "Generation (KW)", -5, 0, 2500);
+        var yAxis = page.setAxis("powerAxis", "Generation (KW)");
         yAxes.push(yAxis);
         switch(page.scatterType) {
             case "temp":
-                var axis = page.setAxis("tempAxis", "Temperature (Celcius)", -5, 0, 90);
+                var axis = page.setAxis("tempAxis", "Temperature (Celcius)");
+                yAxes.push(axis);
+                break;
+            case "deviation":
+                var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
                 yAxes.push(axis);
                 break;
             case "pitch":
-                var axis = page.setAxis("pitchAxis", "Angle (Degree)", -5, 0, 360);
+                var axis = page.setAxis("pitchAxis", "Angle (Degree)");
                 yAxes.push(axis);
                 break;
         }
@@ -126,7 +145,6 @@ page.getPowerCurveScatter = function() {
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
             theme: "flat",
-            renderAs: "canvas",
             pdf: {
               fileName: "DetailPowerCurve.pdf",
             },
@@ -136,7 +154,6 @@ page.getPowerCurveScatter = function() {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             legend: {
-                visible: false,
                 position: "bottom"
             },
             seriesDefaults: {
@@ -148,14 +165,12 @@ page.getPowerCurveScatter = function() {
                 labels: {
                     step: 1
                 },
-                axisCrossingValues: [0, 30],
             },
             valueAxis: [{
                 labels: {
                     format: "N2",
                 }
             }],
-            // valueAxes: yAxes,
             xAxis: {
                 majorUnit: 1,
                 title: {
@@ -168,11 +183,13 @@ page.getPowerCurveScatter = function() {
                     color: "#eee",
                     width: 0.8,
                 },
+                axisCrossingValues: [0, 30],
                 crosshair: {
                     visible: true,
                     tooltip: {
                         visible: true,
                         format: "N2",
+                        template: "#= kendo.toString(value, 'n2') # m/s",
                         background: "rgb(255,255,255, 0.9)",
                         color: "#58666e",
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -184,9 +201,7 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxis: yAxes,
-            pannable: true,
-            zoomable: true
+            yAxes: yAxes
         });
         app.loading(false);
     });
@@ -194,7 +209,9 @@ page.getPowerCurveScatter = function() {
 
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
-        page.LoadData();
+        setTimeout(function(){
+            page.LoadData();
+        }, 300);
     });
 
     setTimeout(function(){

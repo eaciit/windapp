@@ -48,7 +48,7 @@ wfa.ProjectAnalysis = {
 
 	    $('#gridProject').html("");
 	    $('#gridProject').kendoGrid(cfg);
-	    // $('#gridProject').data('kendoGrid').refresh();
+	    $('#gridProject').data('kendoGrid').refresh();
 	},
 	CreateRowChart: function(arg) {
 		var obj = $('#gridProject').data('kendoGrid');
@@ -82,6 +82,8 @@ wfa.ProjectAnalysis = {
 				// });
 			});
 		}
+		// $('#gridProject').data('kendoGrid').refresh();
+		app.loading(false);
 	},
 };
 

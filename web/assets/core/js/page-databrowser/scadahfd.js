@@ -134,7 +134,6 @@ dbsh.defaultSelectedColumn = ko.observableArray([
 
 dbsh.InitScadaHFDGrid= function() {
     dbr.hfdvis(true);
-    app.loading(true);
     var turbine = [];
     if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
         turbine = turbineval;
@@ -221,6 +220,7 @@ dbsh.InitScadaHFDGrid= function() {
             pageSize: 10,
             schema: {
                 data: function(res) {
+                    app.loading(false);
                     dbr.hfdvis(false);
                     return res.data.Data
                 },
@@ -262,7 +262,6 @@ dbsh.InitScadaHFDGrid= function() {
             setTimeout(function(){
                 $("#scadahfdGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","73px");
                 $("#scadahfdGrid >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","73px");
-                app.loading(false);
             },200);
         }
     });
@@ -291,6 +290,8 @@ dbsh.InitScadaHFDGrid= function() {
     $('#scadahfdGrid').data("kendoGrid").showColumn("Turbine");
     $('#scadahfdGrid').data("kendoGrid").showColumn("TimeStamp");
     $("#scadahfdGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","73px");
+    
+    $('#scadahfdGrid').data("kendoGrid").refresh();
 }
 
 dbsh.selectRowHFD = function() {

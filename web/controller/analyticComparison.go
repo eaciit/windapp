@@ -122,32 +122,17 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
-			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
-			// hourValue := tk.ToFloat64(maxDate.Sub(tStart).Hours()/24, 1, tk.RoundingUp) * 24.0
-
-			// log.Printf("%v | %v | %v | \n", totalTurbine, maxDate.UTC(), hourValue, val.GetFloat64("minutes")/60.0)
-
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
 			energy := power / 6
 			revenue := energy * 5.740 * 1000
-
 			mDownTime := val.GetFloat64("machinedowntime") / 3600.0
 			gDownTime := val.GetFloat64("griddowntime") / 3600.0
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
-
-			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
-
-			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-
-			/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
-
 			minutes := val.GetFloat64("minutes") / 60
-			machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
 
-			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
 			prod = energy
 
 			// log.Printf("%v | %v | %v | \n", trueAvail, machineAvail, hourValue)

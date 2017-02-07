@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -25,6 +26,8 @@ import (
 	"eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
+
+	econv "eaciit/wfdemo-git/processapp/eventHFDConverter/conversion"
 
 	tk "github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
@@ -304,19 +307,28 @@ func run(action Command, file string) (next string) {
 		cmdStr = fmt.Sprintf(action.Command, filepath.Join(conf.Process, file), filepath.Join(conf.Fail, file))
 	}
 
+	_ismvsucces := false
 	if runCommand {
 		out, err := runCMD(cmdStr)
 
 		if out != nil {
 			log.Printf("%v \n", out)
 		}
+
 		if err != nil {
 			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
+		} else {
+			_ismvsucces = true
 		}
 		next = action.Success
 	} else {
 		log.Println("DONE")
 		next = action.Fail
+	}
+
+	if action.Action == "COPY_TO_SUCCESS" && runCommand && _ismvsucces {
+		_cmd := fmt.Sprintf("rm %v", filepath.Join(conf.Success, file))
+		_, _ = runCMD(_cmd)
 	}
 
 	return
@@ -339,7 +351,7 @@ func preparemasteralarmbrake() (_tkm tk.M) {
 	defer workerconn.Close()
 
 	csr, err := workerconn.NewQuery().
-		Select("brakeprogram", "alarmname", "typecode", "type").
+		Select("brakeprogram", "alarmname", "alarmindex", "type").
 		From("AlarmBrake").
 		Cursor(nil)
 
@@ -354,7 +366,7 @@ func preparemasteralarmbrake() (_tkm tk.M) {
 			break
 		}
 
-		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("typecode")), _atkm)
+		_tkm.Set(tk.Sprintf("%d", _atkm.GetInt("alarmindex")), _atkm)
 	}
 
 	return
@@ -405,9 +417,34 @@ func doprocess(file string) (success bool) {
 	}
 	close(sresult)
 
+	_t1_1 := time.Now()
+	//Event Update
+	var eventconn dbox.IConnection
+	for {
+		var err error
+		eventconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer eventconn.Close()
+
+	ctx := orm.New(eventconn)
+
+	down := econv.NewHFDDownConversion(ctx)
+	down.Run()
+
+	tk.Println("Done update event in ", time.Since(_t1_1).String())
+	//====================================================================
+
+	_t1_1 = time.Now()
 	//Update Monitoring
 	UpdateLastMonitoring()
-
+	tk.Println("Done update last monitor in ", time.Since(_t1_1).String())
+	success = true
 	return
 }
 
@@ -583,20 +620,34 @@ func UpdateLastMonitoring() {
 	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
 
-	msmonitor := PrepareMasterMonitoring()
+	tk.Println(">>> Delete monitoring before : ", speriode)
+
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(MonitoringEvent).TableName()).
+		Where(dbox.Lte("grouptimestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
+	msmonitor, mskeys := PrepareMasterMonitoring()
+	mseventraw := PrepareEventRawHFD(eperiode)
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	//Change to event up down
 	xcsr, err := workerconn.NewQuery().
-		Select("grouptimestamp", "projectname", "turbine", "status", "type", "alarmdescription", "alarmid").
+		Select("grouptimestamp", "project", "turbine", "status", "type", "alarmdescription", "alarmid").
 		From(new(MonitoringEvent).TableName()).
 		Where(dbox.And(dbox.Lte("grouptimestamp", eperiode), dbox.Gt("grouptimestamp", speriode))).
-		Order("grouptimestamp").
+		Order("timestamp").
 		Cursor(nil)
 
 	if err != nil {
 		return
 	}
 
+	_allkeys := tk.M{}
 	for {
 		_me := MonitoringEvent{}
 		err = xcsr.Fetch(&_me, 1, false)
@@ -609,7 +660,8 @@ func UpdateLastMonitoring() {
 			_me.Turbine,
 			_me.GroupTimeStamp.Format("060102_150405"),
 		)
-
+		// tk.Println(">>> me key : ", _key)
+		_allkeys.Set(_key, 1)
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_mo.Status = "brake"
 			if _me.Status == "up" {
@@ -630,22 +682,70 @@ func UpdateLastMonitoring() {
 		SetConfig("multiexec", true).
 		Save()
 
-	for _, _mo := range msmonitor {
-		if _mo.Status == "" {
+	sort.Strings(mskeys)
+	_lstatus := make(map[string]Monitoring, 0)
+
+	_ic := make(map[string]int, 0)
+	for _, _skey := range mskeys {
+		_mo := msmonitor[_skey]
+
+		if _mo.Status != "N/A" && _ic[_mo.Turbine] > 18 && !_allkeys.Has(_skey) {
 			_mo.Status = "N/A"
 		}
+
+		if _mo.Status == "" || _mo.Status == "N/A" {
+			_mo.Status = "N/A"
+			_mo.Type = ""
+			_mo.StatusCode = 0
+			_mo.StatusDesc = ""
+			if _erdata, _ercond := mseventraw[_skey]; _ercond { //&& _lsdata.Status == "brake"
+				_lsdata := _lstatus[_mo.Turbine]
+				// _ = _lsdata
+				// === Look brake from previous status
+				if _lsdata.Status != "" {
+					_mo.Status = _lsdata.Status
+					_mo.Type = _lsdata.Type
+				}
+
+				_mo.StatusCode = _erdata.AlarmId
+				_mo.StatusDesc = _erdata.AlarmDescription
+			}
+		}
+
+		if _mo.Status != "N/A" {
+			_astatus := Monitoring{}
+			_astatus.Status = _mo.Status
+			_astatus.Type = _mo.Type
+			_astatus.StatusCode = _mo.StatusCode
+			_astatus.StatusDesc = _mo.StatusDesc
+
+			_lstatus[_mo.Turbine] = _astatus
+		}
+		// }
 
 		_mo.LastUpdate = _nt0
 		_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _mo))
+		_ic[_mo.Turbine] += 1
 	}
+
+	// for _, _mo := range msmonitor {
+	// 	if _mo.Status == "" {
+	// 		_mo.Status = "N/A"
+	// 	}
+
+	// 	_mo.LastUpdate = _nt0
+	// 	_mo.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
+
+	// 	_ = sqsave.Exec(tk.M{}.Set("data", _mo))
+	// }
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }
 
-func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
-	_mnt = make(map[string]Monitoring)
+func PrepareMasterMonitoring() (_mnt map[string]Monitoring, _arkey []string) {
+	_mnt, _arkey = make(map[string]Monitoring), make([]string, 0, 0)
 
 	var workerconn dbox.IConnection
 	for {
@@ -678,13 +778,72 @@ func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
 			break
 		}
 
-		_amnt.Status = ""
-		_amnt.Type = ""
-		_amnt.StatusCode = 0
-		_amnt.StatusDesc = ""
-
 		_mnt[_amnt.ID] = _amnt
+
+		_arkey = append(_arkey, _amnt.ID)
 	}
 
+	return
+}
+
+func PrepareEventRawHFD(_ltime time.Time) (_mnt map[string]EventRawHFD) {
+	_mnt = make(map[string]EventRawHFD)
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	_stime := _ltime.AddDate(0, 0, -1)
+	xcsr, err := workerconn.NewQuery().
+		Select().
+		From(new(EventRawHFD).TableName()).
+		Where(dbox.And(dbox.Lte("timestamp", _ltime), dbox.Gt("timestamp", _stime))).
+		Order("timestamp").
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	defer xcsr.Close()
+
+	for {
+		_aerh := EventRawHFD{}
+		err = xcsr.Fetch(&_aerh, 1, false)
+		if err != nil {
+			break
+		}
+
+		GroupTimeStamp := convertTo10min(_aerh.TimeStamp)
+		_key := tk.Sprintf("%s#%s#%s",
+			_aerh.ProjectName,
+			_aerh.Turbine,
+			GroupTimeStamp.Format("060102_150405"),
+		)
+
+		_mnt[_key] = _aerh
+	}
+
+	return
+}
+
+func convertTo10min(input time.Time) (output time.Time) {
+	// THour := input.Hour()
+	TMinute := input.Minute()
+	TSecond := input.Second()
+	TMinuteValue := float64(TMinute) + tk.Div(float64(TSecond), 60.0)
+	TMinuteCategory := tk.ToInt(tk.RoundingUp64(tk.Div(TMinuteValue, 10), 0)*10, "0")
+
+	tmpInput := input.Add(time.Duration(TMinuteCategory-TMinute) * time.Minute).Add(time.Duration(TSecond*-1) * time.Second).UTC()
+	output, _ = time.Parse("20060102_150405", tmpInput.Format("20060102_150405"))
 	return
 }

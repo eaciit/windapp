@@ -160,8 +160,8 @@ func processFile(filePath string, com []Command) {
 		if len(byteOut) == 0 {
 			break
 		} else {
-			fmt.Println(string(byteOut))
-			time.Sleep(200 * time.Millisecond)
+			// fmt.Println(string(byteOut))
+			time.Sleep(5 * time.Second)
 		}
 
 	}
@@ -344,6 +344,7 @@ func run(action Command, file string) (next string) {
 	//log.Printf("cmdstr: %v \n", cmdStr)
 	// mux.Unlock()
 
+	_ismvsucces := false
 	if runCommand {
 		out, err := runCMD(cmdStr)
 
@@ -353,13 +354,19 @@ func run(action Command, file string) (next string) {
 
 		if err != nil {
 			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
-			next = action.Success
 		} else {
-			next = action.Success
+			_ismvsucces = true
 		}
+
+		next = action.Success
 	} else {
 		log.Println("DONE")
 		next = action.Fail
+	}
+
+	if action.Action == "COPY_TO_SUCCESS" && runCommand && _ismvsucces {
+		_cmd := fmt.Sprintf("rm %v", filepath.Join(conf.Success, file))
+		_, _ = runCMD(_cmd)
 	}
 
 	// log.Printf("next: %v \n", next)
@@ -398,6 +405,7 @@ func doProcess(file string) (success bool) {
 			UpdateLastMonitoring()
 			tk.Println(">> DONE <<")
 		}
+		success = true
 	}
 
 	return
@@ -529,12 +537,24 @@ func UpdateLastMonitoring() {
 	speriode := _dt.Data[1].AddDate(0, 0, -1)
 	eperiode := _dt.Data[1]
 
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(Monitoring).TableName()).
+		Where(dbox.Lte("timestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
 	msmonitor := PrepareMasterMonitoring()
 	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
 	xcsr, err := workerconn.NewQuery().
-		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm").
+		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm",
+			"slow_tempnacelle", "fast_pitchangle").
 		From(new(ScadaConvTenMin).TableName()).
 		Where(dbox.And(dbox.Lte("timestamp", eperiode), dbox.Gt("timestamp", speriode))).
+		Order("timestamp").
 		Cursor(nil)
 
 	if err != nil {
@@ -546,6 +566,7 @@ func UpdateLastMonitoring() {
 		SetConfig("multiexec", true).
 		Save()
 
+	// _lstatus := make(map[string]Monitoring, 0)
 	for {
 		_tkm := tk.M{}
 		err = xcsr.Fetch(&_tkm, 1, false)
@@ -563,6 +584,26 @@ func UpdateLastMonitoring() {
 
 		if _mo, _bo := msmonitor[_key]; _bo {
 			_monitor = _mo
+
+			// 	if _mo.Status != "" {
+			// 		_astatus := Monitoring{}
+
+			// 		_astatus.Status = _mo.Status
+			// 		_astatus.Type = _mo.Type
+			// 		_astatus.StatusCode = _mo.StatusCode
+			// 		_astatus.StatusDesc = _mo.StatusDesc
+
+			// 		_lstatus[_mo.Turbine] = _astatus
+			// 	}
+			// } else if _lsdata, _lscond := _lstatus[_tkm.GetString("turbine")]; _lscond {
+			// 	_monitor.Status = _lsdata.Status
+			// 	_monitor.Type = _lsdata.Type
+			// 	_monitor.StatusCode = _lsdata.StatusCode
+			// 	_monitor.StatusDesc = _lsdata.StatusDesc
+		}
+
+		if _monitor.Status == "" {
+			_monitor.Status = "N/A"
 		}
 
 		_monitor.ID = _key
@@ -573,19 +614,28 @@ func UpdateLastMonitoring() {
 		_monitor.Project = _tkm.GetString("projectname")
 		_monitor.Turbine = _tkm.GetString("turbine")
 
-		_monitor.Production = (_tkm.GetFloat64("fast_activepower_kw") / 1000) / 6
+		if _val := _tkm.GetFloat64("fast_activepower_kw"); _val != -9999999 {
+			_monitor.Production = (_val / 1000) / 6
+		} else {
+			_monitor.Production = _val
+		}
+
+		// if _val := _tkm.GetFloat64("fast_windspeed_ms"); _val != -9999999 {
 		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
+		// }
+
+		// if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
 		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
+		// }
+		_monitor.PitchAngle = _tkm.GetFloat64("fast_pitchangle")
+		_monitor.WindDirection = _tkm.GetFloat64("slow_tempnacelle")
+		// WindDirection
+		//"slow_tempnacelle","fast_pitchangle"
 
 		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
 
 	}
 	xcsr.Close()
-
-	_ = workerconn.NewQuery().
-		Delete().
-		Where(dbox.Lte("timestamp", speriode)).
-		Exec(nil)
 
 	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
 }

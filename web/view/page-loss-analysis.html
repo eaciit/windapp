@@ -53,21 +53,23 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.refreshGrid('staticView');" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
+							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.StaticView()" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
 
-							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.refreshGrid('top10downtime');" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
+							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.Downtime()" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
 <!-- 
 							<li id="analysisTab" role="presentation"><a onclick="pg.refreshGrid();" href="#analysis" aria-controls="Analysis" role="tab" data-toggle="tab" class="tab-custom">Analysis</a></li>
  -->
-							<li id="availabilityTab" role="presentation"><a onclick="pg.refreshGrid('availability');" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
+							<li id="availabilityTab" role="presentation"><a onclick="pg.Availability()" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
 
-							<li id="lostenergyTab" role="presentation"><a onclick="pg.refreshGrid('lostenergy');" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
+							<li id="lostenergyTab" role="presentation"><a onclick="pg.LossEnergy()" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
 
-							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.refreshGrid('reliabilitykpi');" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
+							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.Reliability()" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
 
-							<li id="windspeedavailTab" role="presentation"><a onclick="pg.refreshGrid('windspeedavail');" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
+							<li id="windspeedavailTab" role="presentation"><a onclick="pg.WindSpeed()" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
 							
-							<li id="warningTab" role="presentation"><a onclick="pg.refreshGrid('warning');" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
+							<li id="warningTab" role="presentation"><a onclick="pg.Warning()" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
+
+							<li id="CompAlarmTab" role="presentation"><a onclick="pg.Component()" href="#CompAlarm" aria-controls="ComponentAlarmType" role="tab" data-toggle="tab" class="tab-custom">Component / Alarm Type</a></li> <!-- onclick="pg.refreshGrid('CompAlarm');"  -->
 						</ul>
 
 						<div class="tab-content">
@@ -90,11 +92,13 @@
 							<div role="tabpanel" class="tab-pane" id="reliabilitykpi">
 								<div id="reliabilitykpi" class="grid-custom"></div>
 							</div>
+
 							<div role="tabpanel" class="tab-pane" id="windspeedavail">
 								<div class="col-md-12">
 									<div id="windAvailabilityChart"></div>
 								</div>
 							</div>
+
 							<div role="tabpanel" class="tab-pane" id="lostenergy">
 								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
 									<div class="panel ez no-padding hardcore">
@@ -131,7 +135,7 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="availability">
 
-								<div class="col-md-12 pull-right ontop">
+								<div class="col-md-3 col-md-offset-9 ontop">
 									<span class="pull-right">
                                         <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
 									<select class="form-control input-sm" id="breakdownlistavail"></select>
@@ -139,42 +143,22 @@
 								</div>
 								<div class="col-md-12"> 
 									<div class="clearfix">&nbsp;</div>
-									<!-- <span class="tools pull-right">
-		                                  <div class="btn-group ontop" data-toggle="buttons">
-		                                      <label class="btn btn-primary btn-xs" onclick="$('#availabilityChart').kendoChart2Grid()">
-		                                          <input type="radio" name="convert" id="totable" value="totable" checked><i class="fa fa-table"></i>
-		                                      </label>
-		                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartAvailability(pg.dataSource())">
-		                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-		                                      </label>
-		                                  </div>
-		                            </span> -->
 									<br>
 									<div id="availabilityChart"></div>
 								</div>
 								<div class="col-md-12">
 									<div class="clearfix">&nbsp;</div>
-									<!-- <span class="tools pull-right">
-		                                  <div class="btn-group ontop" data-toggle="buttons">
-		                                      <label class="btn btn-primary btn-xs" onclick="$('#productionChart').kendoChart2Grid()">
-		                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-		                                      </label>
-		                                      <label class="btn btn-primary btn-xs" onclick="pg.createChartProduction(pg.dataSource())">
-		                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-		                                      </label>
-		                                  </div>
-		                            </span> -->
 									<br>
 									<div id="productionChart"></div>
 								</div>
 							</div>
+
 							<div role="tabpanel" class="tab-pane" id="top10downtime">
                                 <div class="col-md-12">
 	 								<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
 										<div class="panel ez no-padding hardcore">
 											<div class="panel-heading">Top 10 Turbine Downtime by Duration (Hours)</div>
 											<div class="panel-body">
-												<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
 												<div id="chartDTDuration"></div>
 											</div>
 										</div>
@@ -183,7 +167,6 @@
 										<div class="panel ez no-padding hardcore">
 											<div class="panel-heading">Top 10 Turbine Downtime by Frequency</div>
 											<div class="panel-body">
-												<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
 												<div id="chartDTFrequency"></div>
 											</div>
 										</div>
@@ -192,44 +175,55 @@
 										<div class="panel ez no-padding hardcore">
 											<div class="panel-heading">Top 10 Turbine Downtime by Losses (MWh)</div>
 											<div class="panel-body">
-												<!-- <h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5> -->
 												<div id="chartTopTurbineLoss"></div>
 											</div>
 										</div>
 									</div>                               	
                                 </div>
-								<div class="row" data-bind="visible:pg.isDetailDTTop">
-									<div class="col-md-12 col-sm-12 ez panel-content">
-										<div class="col-md-12 col-sm-12">
-											<ul class="nav nav-pills nav-replace-title" role="tablist">
-												<li role="presentation" class="detaildowntime active">
-													<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:pg.backToDownTime()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
-												</li>
-											</ul>
-										</div>
-									</div>
-									<div class="col-md-12 col-sm-12 ez panel-content" id="divDTTopDetail">
-										<div class="col-md-12 col-sm-12 hardcore landing">
-											<div class="panel ez no-padding hardcore">
-												<div class="panel-heading">Downtime duration for Last 12 months
-													<span data-bind="text:pg.detailDTTopTxt"></span>
-												</div>
-												<div class="panel-body">
-													<div class="col-md-12">
-														<div id="chartDTTopDetail"></div>
-													</div>
-													<div class="col-md-12">
-														<div class="panel-heading">
-															<!--Detail-->
-														</div>
-														<div id="gridDTTopDetail"></div>
-													</div>
-												</div>
-											</div>
+							</div>
+
+							<!-- Component Alarm Tab -->
+							<div role="tabpanel" class="tab-pane" id="CompAlarm">
+								<div class="col-md-12 Tcenter">
+									<div class="nav-CA">
+										<div class="btn-group" data-toggle="buttons" id="downtimeGroup">
+											<label class="btn btn-sm btn-primary active radio-filter" id="lblComp">
+		                                        <input type="radio" name="IsAlarm" id="comp" autocomplete="off" value="true" checked> Component
+		                                    </label>
+											<label class="btn btn-sm btn-primary radio-filter" id="lblAlarm">
+		                                        <input type="radio" name="IsAlarm" id="alarm" autocomplete="off" value="false"> Alarm Type
+		                                    </label>
 										</div>
 									</div>
 								</div>
+                                <div class="col-md-12">
+	 								<div class="col-md-4">
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Duration (Hours)'">Top 10 Turbine Downtime by Duration (Hours)</div>
+											<div class="panel-body">
+												<div id="chartCADuration"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4" >
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Frequency'">Top 10 Turbine Downtime by Frequency</div>
+											<div class="panel-body">
+												<div id="chartCAFrequency"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4" >
+										<div class="panel ez no-padding hardcore">
+											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Losses (MWh)'">Top 10 Turbine Downtime by Losses (MWh)</div>
+											<div class="panel-body">
+												<div id="chartCATurbineLoss"></div>
+											</div>
+										</div>
+									</div>                               	
+                                </div>
 							</div>
+
 							<div role="tabpanel" class="tab-pane" id="warning">
 								<div id="warningGrid" class="grid-custom"></div>
 							</div>

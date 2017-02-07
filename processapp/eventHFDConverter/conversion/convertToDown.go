@@ -10,6 +10,7 @@ import (
 	// . "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
+	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 
@@ -126,13 +127,17 @@ func (ev *HFDDownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup
 							startIdx = idx
 							start = data
 							ev.InsertToMonitoringEvent(start, "down")
-						} else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || (strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) || (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11) || data.AlarmId == 0)) && startIdx != -1 {
+						} else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || ((strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) && (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11)))) && startIdx != -1 {
 							end = data
-						} else if data.AlarmId == 999 && startIdx != -1 {
+						}
+						/* else if ((strings.Contains(data.EventType, ErrorState) && data.AlarmId == 0) || (strings.Contains(data.EventType, AlarmCode) && data.AlarmId == 0) || (strings.Contains(data.EventType, TurbineState) && (data.AlarmId >= 0 && data.AlarmId <= 11) || data.AlarmId == 0)) && startIdx != -1 {
+							end = data
+						}
+						else if data.AlarmId == 999 && startIdx != -1 {
 							if (strings.Contains(data.EventType, ErrorState) && lastAlarmCode == 0) || (strings.Contains(data.EventType, AlarmCode) && lastAlarmCode == 0) || (strings.Contains(data.EventType, TurbineState) && (lastAlarmCode >= 0 && lastAlarmCode <= 11) || lastAlarmCode == 0) {
 								end = data
 							}
-						}
+						}*/
 
 						if end.TimeStamp.Year() != 1 && startIdx != -1 {
 							tmp := EventRawHFD{}
@@ -381,6 +386,41 @@ func (ev *HFDDownConversion) InsertToMonitoringEvent(data EventRawHFD, status st
 	mEvent.AlarmDescription = data.AlarmDescription
 	mEvent.Type = "brake"
 	mEvent.Status = status
+
+	if status == "up" {
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("project", data.ProjectName))
+		filter = append(filter, dbox.Eq("turbine", data.Turbine))
+
+		csr, e := ev.Ctx.Connection.NewQuery().
+			From(new(MonitoringEvent).TableName()).
+			Where(dbox.And(filter...)).
+			Order("-timestamp").
+			Take(1).
+			Cursor(nil)
+
+		defer csr.Close()
+
+		events := []MonitoringEvent{}
+
+		if e != nil {
+			log.Printf("Error: %v \n" + e.Error())
+			return e
+		}
+		e = csr.Fetch(&events, 0, false)
+
+		if e != nil {
+			log.Printf("Error: %v \n" + e.Error())
+			return e
+		}
+
+		if len(events) == 1 {
+			start := events[0]
+			log.Printf("%v | %v \n", mEvent.TimeStamp.UTC().String(), start.TimeStamp.UTC().String())
+			mEvent.Duration = mEvent.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
+		}
+	}
+
 	mEvent = mEvent.New()
 
 	e := ev.Ctx.Save(mEvent)

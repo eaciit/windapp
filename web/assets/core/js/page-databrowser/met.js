@@ -849,7 +849,7 @@ dbm.InitMet = function() {
                         dbr.mettowervis(false);
                         return;
                     }
-
+                    app.loading(false);
                     dbr.mettowervis(false);
                     return res.data.Data
                 },
@@ -901,6 +901,12 @@ dbm.InitMet = function() {
 
 
             });
+        },
+        dataBound: function(){
+            setTimeout(function(){
+                $("#dataGridMet >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","50px");
+                $("#dataGridMet >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","50px");
+            },200);
         },
         pageable: {
             pageSize: 10,
@@ -3315,4 +3321,5 @@ dbm.InitMet = function() {
 
         ]
     });
+    $('#dataGridMet').data("kendoGrid").refresh();
 }
