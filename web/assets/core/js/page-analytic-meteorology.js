@@ -920,6 +920,22 @@ pm.resetStatus= function(){
     pm.isFirstTwelve(true);
 }
 
+pm.showHideLegendWR = function (index) {
+    var idName = "btn" + index;
+    listOfButton[idName] = !listOfButton[idName];
+    if (listOfButton[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
+    }
+    $.each(listOfChart, function (idx, idChart) {
+       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+          $(idChart).data("kendoChart").options.series[index].visible = listOfButton[idName];
+          $(idChart).data("kendoChart").refresh();
+        }
+    });
+}
+
 $(function(){
     pm.loadData();
     pm.AverageWindSpeed();
@@ -948,7 +964,7 @@ $(function(){
             var idName = "btn" + idx;
             listOfButton[idName] = true;
             $("#legend-list").append(
-                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="wr.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="pm.showHideLegendWR(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
                 '<span class="span-legend">' + val.category + '</span>'
             );
         });
