@@ -1,18 +1,19 @@
 var ti = {
 	LoadData: function() {
-		var data = [];
-		var chartSeries = [];
-		var cfg = ti.ChartConfig(data, chartSeries);
+		toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getturbulenceintensity", {}, function (data) {
+	        var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
 
-		$('#chartTI').html('');
-		$('#chartTI').width($('#chartTI').parent().parent().width());
-		$('#chartTI').height(500);
-		$('#chartTI').kendoChart();
+			$('#chartTI').html('');
+			// $('#chartTI').width($('#chartTI').parent().parent().width());
+			$('#chartTI').width(800);
+			$('#chartTI').height(500);
+			$('#chartTI').kendoChart(cfg);
+		});
 	},
 	ChartConfig: function(data, chartSeries) {
 		var colors = [];
 		$.each(chartSeries, function(idx,val){
-			colors.push(val.color);
+			colors.push(val);
 		});
 		return { 
 			dataSource: data,
