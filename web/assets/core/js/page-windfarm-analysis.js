@@ -14,6 +14,7 @@ wfa.isProjectTab = ko.observable(false);
 wfa.isTurbine1Tab = ko.observable(false);
 wfa.isTurbine2Tab = ko.observable(false);
 
+wfa.GridHeader = ko.observableArray([]);
 wfa.ProjectList = [];
 wfa.TurbineList = [];
 wfa.Keys = [

@@ -2,10 +2,10 @@ package filewatcher
 
 import (
 	d "eaciit/wfdemo-git/processapp/opcdata/datareader"
+	"fmt"
 	tk "github.com/eaciit/toolkit"
 	"github.com/howeyc/fsnotify"
 	"strings"
-	"fmt"
 	"time"
 )
 
@@ -16,7 +16,7 @@ type FileWatcher struct {
 	PathUpload  string
 }
 
-func NewFileWatcher(pathSources string, pathProcess string, pathRoot string,uploadDir string) *FileWatcher {
+func NewFileWatcher(pathSources string, pathProcess string, pathRoot string, uploadDir string) *FileWatcher {
 	fw := new(FileWatcher)
 	fw.PathSources = pathSources
 	fw.PathProcess = pathProcess
@@ -58,19 +58,19 @@ func (w *FileWatcher) StartWatcher() {
 
 func (w *FileWatcher) doAction(ev *fsnotify.FileEvent) {
 	if ev.IsCreate() && strings.Contains(ev.Name, "DataFile") && !strings.Contains(ev.Name, "DataFile-T") {
-		fileName := strings.Split(ev.Name,"\\")
-		
+		fileName := strings.Split(ev.Name, "\\")
+
 		now := time.Now()
-		year,month,day:=now.Date()
-		hour,_,_:=now.Clock()
-		
-		targetFileName := fmt.Sprintf("DataFile%d%02d%02d-%02d.csv",year,month,day,hour)
+		year, month, day := now.Date()
+		hour, _, _ := now.Clock()
+
+		targetFileName := fmt.Sprintf("DataFile%d%02d%02d-%02d.csv", year, month, day, hour)
 		fmt.Println(targetFileName)
-		tk.Println(fileName[len(fileName)-1],targetFileName)
-		if fileName[len(fileName)-1]==targetFileName{
-			d.NewDataReader(ev.Name, w.PathProcess, w.PathRoot,w.PathUpload).Start()
+		tk.Println(fileName[len(fileName)-1], targetFileName)
+		if fileName[len(fileName)-1] == targetFileName {
+			d.NewDataReader(ev.Name, w.PathProcess, w.PathRoot, w.PathUpload).Start()
 			//tk.Println(ev.Name, time.Now())
 		}
-		
+
 	}
 }

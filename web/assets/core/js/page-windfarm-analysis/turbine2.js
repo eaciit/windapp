@@ -36,6 +36,7 @@ wfa.Turbine2Analysis = {
 	GenerateGrid: function(data) {
 		var chartSeries = data.ChartSeries;
 		var $this = wfa.Turbine2Analysis;
+		var titles = wfa.GridHeader();
 		var cfg = {
 			dataSource: {
 				data: data.ChartData,
@@ -47,17 +48,17 @@ wfa.Turbine2Analysis = {
 				{ title: "Data Point", field: "Key", headerAttributes: { class: "align-center" }, attributes: { class: "align-left row-custom" }, 
 					width: 180, locked: true, template: '<span class="cp-datapoint"></span>' },
 				{ 
-					title: "Rolling 12 Days<br /><span class='k-info'>25-Aug-2016 to 25-Nov-2016</span>", field: "Roll12D", 
+					title: titles[0], field: "Roll12D", 
 					headerAttributes: { class: "align-center" }, attributes: { class: "align-center row-custom" }, width: 180,
 					template:'<div class="cp-roll12days" style="width: 160px; height:120px;"></div>'
 				},
-				{ title: "Rolling 12 Weeks<br /><span class='k-info'>14-Nov-2016 to 25-Nov-2016</span>", field: "Roll12W", 
+				{ title: titles[1], field: "Roll12W", 
 					headerAttributes: { class: "align-center" }, attributes: { class: "align-center row-custom" }, width: 180,
 					template:'<div class="cp-roll12weeks" style="width: 160px; height:120px;"></div>' },
-				{ title: "Rolling 12 Months<br /><span class='k-info'>26-Nov-2015 to 25-Nov-2016</span>", field: "Roll12M", 
+				{ title: titles[2], field: "Roll12M", 
 					headerAttributes: { class: "align-center" }, attributes: { class: "align-center row-custom" }, width: 180,
 					template:'<div class="cp-roll12months" style="width: 160px; height:120px;"></div>' },
-				{ title: "Rolling 12 Quarters<br /><span class='k-info'>26-Nov-2013 to 25-Nov-2016</span>", field: "Roll12Q", 
+				{ title: titles[3], field: "Roll12Q", 
 					headerAttributes: { class: "align-center" }, attributes: { class: "align-center row-custom" }, width: 180,
 					template:'<div class="cp-roll12qtrs" style="width: 160px; height:120px;"></div>' },
 				// { title: "Custom View 1<br /><span class='k-info'>18-Nov-2016 to 25-Nov-2016</span>", field: "Custom1", 
