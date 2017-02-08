@@ -871,8 +871,8 @@ pm.TurbineCorrelation = function(){
             });
 
             setTimeout(function(){
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
                 $("#gridTurbineCorrelation").data("kendoGrid").refresh(); 
                 app.loading(false);
                 pm.isFirstTurbine(false)    
@@ -885,8 +885,8 @@ pm.TurbineCorrelation = function(){
         setTimeout(function(){
              app.loading(false);
              $("#gridTurbineCorrelation").data("kendoGrid").refresh();
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
         }, 500);
     }
 }
