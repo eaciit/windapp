@@ -235,12 +235,15 @@ pm.initChart = function () {
 
         var idChart = "#chart-" + val.Name
         listOfChart.push(idChart);
-        var pWidth = $('body').width() * 0.235;//$('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
+        // var pWidth = $('body').width() * 0.235;//$('body').width() * ($(idChart).closest('div.windrose-item').width() - 2) / 100;
+        var pWidth = 290;
+
         $(idChart).kendoChart({
             theme: "nova",
             chartArea: {
                 width: pWidth,
-                height: pWidth
+                height: pWidth,
+                padding: 25
             },
 
             title: {
@@ -301,7 +304,7 @@ pm.initChart = function () {
             },
             tooltip: {
                 visible: true,
-                template: "#= category # (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                template: "#= category #"+String.fromCharCode(176)+" (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -312,6 +315,11 @@ pm.initChart = function () {
             }
         });
     });
+}
+
+pm.ChangeSector = function(){
+    pm.isFirstWindRose(true);
+    pm.WindRose();
 }
 
 pm.WindRose = function(){
@@ -347,6 +355,10 @@ pm.WindRose = function(){
 
             })
         }, 300);
+        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+        $('#availabledatestart').html(metDate);
+        $('#availabledateend').html(scadaDate);
     }else{
         var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
         var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
@@ -354,6 +366,227 @@ pm.WindRose = function(){
         $('#availabledateend').html(scadaDate);
         setTimeout(function(){
             $.each(listOfChart, function(idx, elem){
+                $(elem).data("kendoChart").refresh();
+            });
+            app.loading(false);
+        }, 300);
+    }
+}
+
+// WIND ROSE COMPARISON
+pm.isFirstWindRoseComparison = ko.observable(true);
+pm.sectorDerajatComparison = ko.observable(0);
+pm.dataWindroseComparison = ko.observableArray([]);
+var listOfChartComparison = [];
+var listOfButtonComparison = {};
+pm.showHideLegendComparison = function (index) {
+    var idName = "btn" + index;
+    listOfButtonComparison[idName] = !listOfButtonComparison[idName];
+    if (listOfButtonComparison[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[index], 'border-color': colorFieldsWR[index] });
+    }
+    $.each(listOfChartComparison, function (idx, idChart) {
+       if($(idChart).data("kendoChart").options.series.length - 1 >= index) {
+          $(idChart).data("kendoChart").options.series[index].visible = listOfButtonComparison[idName];
+          $(idChart).data("kendoChart").refresh();
+        }
+    });
+}
+
+pm.InitTurbineListCompare = function () {
+    if (pm.dataWindroseComparison().Data.length > 1) {
+        $("#checkAllCompare").html('<label id="checkAllLabel">' +
+            '<input type="checkbox" id="showHideAllCompare" checked onclick="pm.showHideAllCompare(this)" >' +
+            '<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>' +
+            '<span id="labelShowHideCompare"><b>Select All</b></span>' +
+            '</label>');
+    } else {
+        $("#checkAllCompare").html("");
+    }
+
+    $("#turbine-list-compare").html("");
+    $.each(pm.dataWindroseComparison().Data, function (idx, val) {
+        $("#turbine-list-compare").append('<div class="btn-group">' +
+            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="pm.showHideCompare(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
+            '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
+            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="pm.showHideCompare(' + val.idxseries + ')" type="button">' + val.name + '</button>' +
+            '</div>');
+    });
+}
+
+pm.showHideAllCompare = function (e) {
+
+    if (e.checked == true) {
+        $('.fa-check').css("visibility", 'visible');
+        $.each(pm.dataWindroseComparison().Data, function (i, val) {
+            if($("#WRChartComparison").data("kendoChart").options.series[i] != undefined){
+                $("#WRChartComparison").data("kendoChart").options.series[i].visible = true;
+            }
+        });
+        $('#labelShowHideCompare b').text('Select All');
+    } else {
+        $.each(pm.dataWindroseComparison().Data, function (i, val) {
+            if($("#WRChartComparison").data("kendoChart").options.series[i] != undefined){
+                $("#WRChartComparison").data("kendoChart").options.series[i].visible = false;
+            }  
+        });
+        $('.fa-check').css("visibility", 'hidden');
+        $('#labelShowHideCompare b').text('Select All');
+    }
+    $('.chk-option').not(e).prop('checked', e.checked);
+
+    $("#WRChartComparison").data("kendoChart").redraw();
+}
+
+pm.showHideCompare = function (idx) {
+    var stat = false;
+
+    $('#chk-' + idx).trigger('click');
+    var chart = $("#WRChartComparison").data("kendoChart");
+    var leTur = $('input[id*=chk-][type=checkbox]').length
+
+    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
+        $('#showHideAllCompare').prop('checked', true);
+    } else {
+        $('#showHideAllCompare').prop('checked', false);
+    }
+
+    if ($('#chk-' + idx).is(':checked')) {
+        $('#icon-' + idx).css("visibility", "visible");
+    } else {
+        $('#icon-' + idx).css("visibility", "hidden");
+    }
+
+    if ($('#chk-' + idx).is(':checked')) {
+        $("#WRChartComparison").data("kendoChart").options.series[idx].visible = true
+    } else {
+        $("#WRChartComparison").data("kendoChart").options.series[idx].visible = false
+    }
+    $("#WRChartComparison").data("kendoChart").redraw();
+}
+
+pm.initChartWRC = function () {
+    listOfChartComparison = [];
+    var dataSeries = pm.dataWindroseComparison().Data;
+    var categories = pm.dataWindroseComparison().Categories;
+    var nilaiMax = pm.dataWindroseComparison().MaxValue;
+
+    // var paddingTitle = Math.floor($('.windrose-part').width() / 16.16) * -1;
+    // var offsetLegend = Math.floor($('.windrose-part').width() / 3.46) * -1;
+    var majorUnit = 10;
+    if(nilaiMax < 40) {
+        majorUnit = 5;
+    }
+
+    $("#WRChartComparison").kendoChart({
+        theme: "flat",
+        title: {
+            // padding: {
+            //   left: paddingTitle
+            // },
+            text: "Wind Rose Comparison",
+            font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            visible: false
+        },
+        legend: {
+            position: "right",
+            // offsetX: offsetLegend,
+            labels: {
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: true,
+            },
+            visible: false
+        },
+        dataSource: {
+            sort: {
+                field: "DirectionNo",
+                dir: "asc"
+            }
+        },
+        series: dataSeries,
+        categoryAxis: {
+            categories: categories,
+            visible: true,
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: true,
+            }
+        },
+        valueAxis: {
+            labels: {
+                template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            majorUnit: majorUnit,
+            max: nilaiMax,
+            min: 0
+        },
+        tooltip: {
+            visible: true,
+            // template: "#= category # #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+            template: "#= series.name # : #= category #"+String.fromCharCode(176)+" (#= kendo.toString(value, 'n2') #%)",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        }
+    });
+    pm.InitTurbineListCompare();
+    // $('#WRChartComparison').data('kendoChart').options.chartArea.width = $('#WRChartComparison').height() + ($('#WRChartComparison').height()/4);
+    // $('#WRChartComparison').data('kendoChart').refresh();
+}
+
+pm.WindRoseComparison = function(){
+    app.loading(true);
+    fa.LoadData();
+    if(pm.isFirstWindRoseComparison() === true){
+        setTimeout(function () {
+            // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();
+            var breakDownVal = "36";
+            var secDer = 360 / breakDownVal;
+            // pm.sectorDerajatComparison(secDer);
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine,
+                project: fa.project,
+                breakDown: breakDownVal,
+            };
+            toolkit.ajaxPost(viewModel.appName + "analyticwindrose/getwindrosedata", param, function (res) {
+                if (!app.isFine(res)) {
+                    app.loading(false);
+                    return;
+                }
+                if (res.data != null) {
+                    pm.dataWindroseComparison(res.data);
+                    pm.initChartWRC();
+                }
+
+                app.loading(false);
+                pm.isFirstWindRoseComparison(false);
+
+            })
+        }, 300);
+        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+        $('#availabledatestart').html(metDate);
+        $('#availabledateend').html(scadaDate);
+    }else{
+        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+        $('#availabledatestart').html(metDate);
+        $('#availabledateend').html(scadaDate);
+        setTimeout(function(){
+            $.each(listOfChartComparison, function(idx, elem){
                 $(elem).data("kendoChart").refresh();
             });
             app.loading(false);
@@ -404,7 +637,7 @@ pm.InitRightTurbineList= function () {
         $("#right-turbine-list").append('<div class="btn-group">' +
             '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="pm.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
             '<input class="chk-option" type="checkbox" name="' + val.turbine + '" checked id="chk-' + (idx) + '" hidden>' +
-            '<button class="btn btn-default btn-sm turbine-btn" onclick="pm.showHideLegend(' + (idx) + ')" type="button" style="width:70px">' + val.turbine + '</button>' +
+            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="pm.showHideLegend(' + (idx) + ')" type="button">' + val.turbine + '</button>' +
             '</div>');
     });
 }
@@ -476,6 +709,7 @@ pm.ChartWindDistributon =  function () {
             valueAxis: {
                 labels: {
                     format: "{0:p0}",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
                     visible: true
@@ -493,6 +727,7 @@ pm.ChartWindDistributon =  function () {
                     visible: false
                 },
                 labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     // rotation: 25
                 },
                 majorTickType: "none"
@@ -706,8 +941,8 @@ pm.TurbineCorrelation = function(){
             });
 
             setTimeout(function(){
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
                 $("#gridTurbineCorrelation").data("kendoGrid").refresh(); 
                 app.loading(false);
                 pm.isFirstTurbine(false)    
@@ -720,13 +955,11 @@ pm.TurbineCorrelation = function(){
         setTimeout(function(){
              app.loading(false);
              $("#gridTurbineCorrelation").data("kendoGrid").refresh();
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
         }, 500);
     }
 }
-
-
 
 // 12/24 table 
 pm.generateGridTable = function (datatype) {
@@ -918,6 +1151,7 @@ pm.resetStatus= function(){
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstTwelve(true);
+    pm.isFirstWindRoseComparison(true);
 }
 
 $(function(){
@@ -948,10 +1182,23 @@ $(function(){
             var idName = "btn" + idx;
             listOfButton[idName] = true;
             $("#legend-list").append(
-                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="wr.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="pm.showHideLegendWR(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
                 '<span class="span-legend">' + val.category + '</span>'
             );
         });
         $("#nosection").data("kendoDropDownList").value(12);
     }, 300);
+
+    /*setTimeout(function () {
+        $("#legend-list-comparison").html("");
+        $.each(listOfCategory, function (idx, val) {
+            var idName = "btn" + idx;
+            listOfButtonComparison[idName] = true;
+            $("#legend-list-comparison").append(
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="pm.showHideLegendComparison(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<span class="span-legend">' + val.category + '</span>'
+            );
+        });
+        $("#nosectionComparison").data("kendoDropDownList").value(12);
+    }, 300);*/
 });

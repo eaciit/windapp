@@ -34,3 +34,13 @@
 .scatter-comparison {
     margin-right: 8px;
 }
+
+#txtLessVal {
+    font-size: 12px;
+    font-family: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+}
+
+#txtGreaterVal {
+    font-size: 12px;
+    font-family: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+}

@@ -616,7 +616,10 @@ lgd.ProductionChart = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 165,
@@ -648,7 +651,8 @@ lgd.ProductionChart = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                format: dataFormat
+                format: dataFormat,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -676,6 +680,7 @@ lgd.ProductionChart = function (dataSource) {
             },
             labels: {
                 step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // template : "#: Number(kendo.toString(kendo.parseDate(value), 'HH')) #"
             },
             majorTickType: "none"
@@ -717,7 +722,10 @@ lgd.CumProduction = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 170,
@@ -759,7 +767,8 @@ lgd.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
         categoryAxis: {
@@ -769,7 +778,8 @@ lgd.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 3,
-                template: "#: Number(kendo.toString(kendo.parseDate(value), 'dd'))#"
+                template: "#: Number(kendo.toString(kendo.parseDate(value), 'dd'))#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -827,7 +837,8 @@ lgd.PLF = function (dataSource) {
             },
             axisCrossingValue: -10,
             labels: {
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -838,7 +849,8 @@ lgd.PLF = function (dataSource) {
         categoryAxis: {
             field: "DateInfo.MonthDesc",
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: false
@@ -904,6 +916,9 @@ lgd.LostEnergy = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
         },
         categoryAxis: {
@@ -912,9 +927,10 @@ lgd.LostEnergy = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
-            majorTickType: "none"
+            majorTickType: "none",
         },
         tooltip: {
             visible: true,
@@ -943,7 +959,10 @@ lgd.Windiness = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160,
@@ -976,7 +995,8 @@ lgd.Windiness = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             max: 10,
             majorUnit: 2,
@@ -996,7 +1016,8 @@ lgd.Windiness = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1040,6 +1061,9 @@ lgd.ProdMonth = function (dataSource) {
         },
         legend: {
             position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 150,
@@ -1084,7 +1108,8 @@ lgd.ProdMonth = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         }],
         categoryAxis: {
@@ -1093,7 +1118,8 @@ lgd.ProdMonth = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1125,7 +1151,10 @@ lgd.AvailabilityChart = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 165,
@@ -1164,7 +1193,8 @@ lgd.AvailabilityChart = function (dataSource) {
             axisCrossingValue: -10,
             labels: {
                 // format: "{0}%"
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -1178,7 +1208,8 @@ lgd.AvailabilityChart = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1210,7 +1241,10 @@ lgd.ProdCurLast = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160,
@@ -1260,6 +1294,7 @@ lgd.ProdCurLast = function (dataSource) {
             },
             labels: {
                 step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -1290,7 +1325,8 @@ lgd.ProdCurLast = function (dataSource) {
             },
             labels: {
                 // step: 2,
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1398,6 +1434,9 @@ lgd.DetailProd = function (e) {
             },
             legend: {
                 position: "top",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             chartArea: {
                 height: 200,
@@ -1438,13 +1477,19 @@ lgd.DetailProd = function (e) {
                     color: "#eee",
                     width: 0.8,
                 },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             categoryAxis: {
                 field: "project",
                 majorGridLines: {
                     visible: false
                 },
-                majorTickType: "none"
+                majorTickType: "none",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             tooltip: {
                 visible: true,
@@ -1504,6 +1549,9 @@ lgd.DetailProdByProject = function (e, month, data) {
         },
         legend: {
             position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             padding: 0,
@@ -1537,6 +1585,9 @@ lgd.DetailProdByProject = function (e, month, data) {
                 color: "#eee",
                 width: 0.8,
             },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         categoryAxis: {
             field: "turbine",
@@ -1545,7 +1596,8 @@ lgd.DetailProdByProject = function (e, month, data) {
             },
             majorTickType: "none",
             labels: {
-                rotation: 45
+                rotation: 45,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
         },
         tooltip: {
@@ -1592,6 +1644,9 @@ lgd.DTLostEnergy = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1609,7 +1664,8 @@ lgd.DTLostEnergy = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1630,7 +1686,8 @@ lgd.DTLostEnergy = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1678,6 +1735,9 @@ lgd.DTLEbyType = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1719,7 +1779,8 @@ lgd.DTLEbyType = function (dataSource) {
         valueAxis: [{
             name: "PowerLost",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1753,7 +1814,8 @@ lgd.DTLEbyType = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1801,6 +1863,9 @@ lgd.DTLostEnergyManeh = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1818,7 +1883,8 @@ lgd.DTLostEnergyManeh = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1839,7 +1905,8 @@ lgd.DTLostEnergyManeh = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1891,6 +1958,9 @@ lgd.DTLostEnergyByDown = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1906,7 +1976,8 @@ lgd.DTLostEnergyByDown = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1923,7 +1994,10 @@ lgd.DTLostEnergyByDown = function (dataSource) {
             majorGridLines: {
                 visible: false
             },
-            majorTickType: "none"
+            majorTickType: "none",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         tooltip: {
             visible: true,
@@ -1962,6 +2036,9 @@ lgd.DTDuration = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -2001,7 +2078,8 @@ lgd.DTDuration = function (dataSource) {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -2019,7 +2097,8 @@ lgd.DTDuration = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -2056,6 +2135,9 @@ lgd.DTFrequency = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -2095,7 +2177,8 @@ lgd.DTFrequency = function (dataSource) {
             },
             name: "result",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -2114,7 +2197,8 @@ lgd.DTFrequency = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -2150,6 +2234,9 @@ lgd.DTLostEnergyDetail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: [{
             type: "column",
@@ -2171,7 +2258,8 @@ lgd.DTLostEnergyDetail = function (dataSource) {
             name: "EnergyLost",
             title: { visible: false },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
 
             line: {
@@ -2191,11 +2279,12 @@ lgd.DTLostEnergyDetail = function (dataSource) {
         categoryAxis: {
             field: "_id",
             majorGridLines: {
-                visible: false
+                visible: false,
             },
             labels: {
                 // template: '#=  value.substring(0,3) #'
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none",
             axisCrossingValues: [0, 30],
@@ -2267,7 +2356,8 @@ lgd.DTTopDetail = function (turbine, type) {
             valueAxis: {
                 //majorUnit: 100,
                 labels: {
-                    step: 2
+                    step: 2,
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
                     visible: false
@@ -2285,7 +2375,8 @@ lgd.DTTopDetail = function (turbine, type) {
                     visible: false
                 },
                 labels: {
-                    template: '#=  value.substring(0,3) #'
+                    template: '#=  value.substring(0,3) #',
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorTickType: "none"
             },

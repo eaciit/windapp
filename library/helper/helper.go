@@ -431,27 +431,31 @@ func GetPeriodBackByDate(periodType string, lastDate time.Time, noPeriodBack int
 		}
 		startQtr := lastQtr
 		startYear := lastYear
-		for i := lastQtr; i > 0; i-- {
+		noQtr := exactNoPeriodBack
+		for noQtr > 0 {
 			startQtr--
 			if startQtr == 0 {
 				startQtr = 4
 				startYear--
 			}
+			noQtr--
 		}
 
 		startMonthOfStartQtr := (startQtr * 3) - 2
-		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, startMonthOfStartQtr, 1))
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, LeftPad2Len(tk.ToString(startMonthOfStartQtr), "0", 2), "01"))
 	case "MONTH":
 		startMonth := lastMonth
 		startYear := lastYear
-		for i := lastMonth; i > 0; i-- {
+		noMonths := exactNoPeriodBack
+		for noMonths > 0 {
 			startMonth--
 			if startMonth == 0 {
 				startMonth = 12
 				startYear--
 			}
+			noMonths--
 		}
-		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, startMonth, 1))
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, LeftPad2Len(tk.ToString(startMonth), "0", 2), "01"))
 	case "WEEK":
 		lastYear, lastWeek := lastDate.ISOWeek()
 		startWeek := lastWeek

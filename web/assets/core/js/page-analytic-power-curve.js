@@ -228,6 +228,7 @@ var Data = {
                 valueAxis: [{
                     labels: {
                         format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     }
                 }],
                 xAxis: {
@@ -237,6 +238,9 @@ var Data = {
                         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         color: "#585555",
                         visible: true,
+                    },
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     crosshair: {
                         visible: true,
@@ -267,6 +271,7 @@ var Data = {
                     },
                     labels: {
                         format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     axisCrossingValue: -5,
                     majorGridLines: {
@@ -630,7 +635,7 @@ var Data = {
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
                 '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn" onclick="page.toDetail(\'' + val.name + '\')" type="button" style="width:70px">' + val.name + '</button>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.name + '\')" type="button">' + val.name + '</button>' +
                 '</div>');
             }
         });

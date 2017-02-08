@@ -62,6 +62,7 @@ km.createChart = function () {
             },
             labels: {
                 // format: "{0:p2}"
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 format: "{0}"
             },
             majorGridLines: {
@@ -94,6 +95,7 @@ km.createChart = function () {
                 // margin: {
                 //     left: -600 / km.dsValuewindSpeed().length
                 // },
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 template: "#: (value.split('~'))[0] #"
             },
             axisCrossingValue: [0]
@@ -151,7 +153,8 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             labels: {
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -180,6 +183,7 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
             },
             labels: {
                 rotation : _rotationlabel,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // padding: { 
                 //     left: 600 / categoryproduction.length
                 // },

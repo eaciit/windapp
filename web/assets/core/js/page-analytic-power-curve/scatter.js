@@ -59,6 +59,9 @@ page.setAxis = function(name, title) {
             color: "#eee",
             width: 0.8,
         },
+        labels: {
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        },
         crosshair: {
             visible: true,
             tooltip: {
@@ -129,7 +132,7 @@ page.getPowerCurveScatter = function() {
         yAxes.push(yAxis);
         switch(page.scatterType) {
             case "temp":
-                var axis = page.setAxis("tempAxis", "Temperature (Celcius)");
+                var axis = page.setAxis("tempAxis", "Temperature (Celsius)");
                 yAxes.push(axis);
                 break;
             case "deviation":
@@ -154,7 +157,10 @@ page.getPowerCurveScatter = function() {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             legend: {
-                position: "bottom"
+                position: "bottom",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             seriesDefaults: {
                 type: "scatterLine",
@@ -163,12 +169,14 @@ page.getPowerCurveScatter = function() {
             series: dtSeries,
             categoryAxis: {
                 labels: {
-                    step: 1
+                    step: 1,
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
             },
             valueAxis: [{
                 labels: {
                     format: "N2",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 }
             }],
             xAxis: {
@@ -177,6 +185,9 @@ page.getPowerCurveScatter = function() {
                     text: "Wind Speed (m/s)",
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     color: "#585555"
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorGridLines: {
                     visible: true,

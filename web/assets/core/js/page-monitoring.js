@@ -554,6 +554,9 @@ monitoring.dataChartLine = function (data) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: [{
             type: "line",
@@ -597,6 +600,7 @@ monitoring.dataChartLine = function (data) {
             // majorUnit: 20,
             labels: {
                 format: "{0}%",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -618,6 +622,7 @@ monitoring.dataChartLine = function (data) {
             // majorUnit: 1,
             labels: {
                 format: "{0}(m/s)",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             name: "ws",
             title: { text: "Average Wind Speed (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
@@ -634,6 +639,7 @@ monitoring.dataChartLine = function (data) {
             // majorUnit: 20,
             labels: {
                 format: "{0}(KWh)",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             name: "prod",
             title: { text: "Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
@@ -643,6 +649,9 @@ monitoring.dataChartLine = function (data) {
             title: {
                 text: "Time",
                 font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             axisCrossingValues: [0, 1000],
             justified: true,
@@ -763,7 +772,7 @@ wr.initChart = function () {
             legend: {
                 position: "bottom",
                 labels: {
-                    template: "#= (series.data[0] || {}).WsCategoryDesc #"
+                    template: "#= (series.data[0] || {}).WsCategoryDesc #",
                 },
                 visible: false,
             },
