@@ -193,3 +193,14 @@ label.summary-number {
 #gridTable1224 >.k-grid-header > .k-grid-header-wrap > table > thead > tr {
 	height: 37px !important;
 }
+
+.wbtn
+{
+    font-size: 10px;
+    width: 55px;
+    font-weight: 600;
+}
+
+#checkAllLabel {
+	padding-left: 5px;
+}

@@ -395,14 +395,86 @@ pm.showHideLegendComparison = function (index) {
     });
 }
 
+pm.InitTurbineListCompare = function () {
+    if (pm.dataWindroseComparison().Data.length > 1) {
+        $("#checkAllCompare").html('<label id="checkAllLabel">' +
+            '<input type="checkbox" id="showHideAllCompare" checked onclick="pm.showHideAllCompare(this)" >' +
+            '<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>' +
+            '<span id="labelShowHideCompare"><b>Select All</b></span>' +
+            '</label>');
+    } else {
+        $("#checkAllCompare").html("");
+    }
+
+    $("#turbine-list-compare").html("");
+    $.each(pm.dataWindroseComparison().Data, function (idx, val) {
+        $("#turbine-list-compare").append('<div class="btn-group">' +
+            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="pm.showHideCompare(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
+            '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
+            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="pm.showHideCompare(' + val.idxseries + ')" type="button">' + val.name + '</button>' +
+            '</div>');
+    });
+}
+
+pm.showHideAllCompare = function (e) {
+
+    if (e.checked == true) {
+        $('.fa-check').css("visibility", 'visible');
+        $.each(pm.dataWindroseComparison().Data, function (i, val) {
+            if($("#WRChartComparison").data("kendoChart").options.series[i] != undefined){
+                $("#WRChartComparison").data("kendoChart").options.series[i].visible = true;
+            }
+        });
+        $('#labelShowHideCompare b').text('Select All');
+    } else {
+        $.each(pm.dataWindroseComparison().Data, function (i, val) {
+            if($("#WRChartComparison").data("kendoChart").options.series[i] != undefined){
+                $("#WRChartComparison").data("kendoChart").options.series[i].visible = false;
+            }  
+        });
+        $('.fa-check').css("visibility", 'hidden');
+        $('#labelShowHideCompare b').text('Select All');
+    }
+    $('.chk-option').not(e).prop('checked', e.checked);
+
+    $("#WRChartComparison").data("kendoChart").redraw();
+}
+
+pm.showHideCompare = function (idx) {
+    var stat = false;
+
+    $('#chk-' + idx).trigger('click');
+    var chart = $("#WRChartComparison").data("kendoChart");
+    var leTur = $('input[id*=chk-][type=checkbox]').length
+
+    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
+        $('#showHideAllCompare').prop('checked', true);
+    } else {
+        $('#showHideAllCompare').prop('checked', false);
+    }
+
+    if ($('#chk-' + idx).is(':checked')) {
+        $('#icon-' + idx).css("visibility", "visible");
+    } else {
+        $('#icon-' + idx).css("visibility", "hidden");
+    }
+
+    if ($('#chk-' + idx).is(':checked')) {
+        $("#WRChartComparison").data("kendoChart").options.series[idx].visible = true
+    } else {
+        $("#WRChartComparison").data("kendoChart").options.series[idx].visible = false
+    }
+    $("#WRChartComparison").data("kendoChart").redraw();
+}
+
 pm.initChartWRC = function () {
     listOfChartComparison = [];
     var dataSeries = pm.dataWindroseComparison().Data;
     var categories = pm.dataWindroseComparison().Categories;
     var nilaiMax = pm.dataWindroseComparison().MaxValue;
 
-    var paddingTitle = Math.floor($('.windrose-part').width() / 16.16) * -1;
-    var offsetLegend = Math.floor($('.windrose-part').width() / 3.46) * -1;
+    // var paddingTitle = Math.floor($('.windrose-part').width() / 16.16) * -1;
+    // var offsetLegend = Math.floor($('.windrose-part').width() / 3.46) * -1;
     var majorUnit = 10;
     if(nilaiMax < 40) {
         majorUnit = 5;
@@ -411,15 +483,21 @@ pm.initChartWRC = function () {
     $("#WRChartComparison").kendoChart({
         theme: "flat",
         title: {
-            padding: {
-              left: paddingTitle
-            },
+            // padding: {
+            //   left: paddingTitle
+            // },
             text: "Wind Rose Comparison",
-            font: '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            visible: false
         },
         legend: {
             position: "right",
-            offsetX: offsetLegend
+            // offsetX: offsetLegend,
+            labels: {
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: true,
+            },
+            visible: false
         },
         dataSource: {
             sort: {
@@ -435,14 +513,14 @@ pm.initChartWRC = function () {
                 visible: false
             },
             labels: {
-                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 visible: true,
             }
         },
         valueAxis: {
             labels: {
                 template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             majorUnit: majorUnit,
             max: nilaiMax,
@@ -461,6 +539,7 @@ pm.initChartWRC = function () {
             },
         }
     });
+    pm.InitTurbineListCompare();
     // $('#WRChartComparison').data('kendoChart').options.chartArea.width = $('#WRChartComparison').height() + ($('#WRChartComparison').height()/4);
     // $('#WRChartComparison').data('kendoChart').refresh();
 }
@@ -558,7 +637,7 @@ pm.InitRightTurbineList= function () {
         $("#right-turbine-list").append('<div class="btn-group">' +
             '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="pm.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
             '<input class="chk-option" type="checkbox" name="' + val.turbine + '" checked id="chk-' + (idx) + '" hidden>' +
-            '<button class="btn btn-default btn-sm turbine-btn" onclick="pm.showHideLegend(' + (idx) + ')" type="button" style="width:70px">' + val.turbine + '</button>' +
+            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="pm.showHideLegend(' + (idx) + ')" type="button">' + val.turbine + '</button>' +
             '</div>');
     });
 }
@@ -630,6 +709,7 @@ pm.ChartWindDistributon =  function () {
             valueAxis: {
                 labels: {
                     format: "{0:p0}",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
                     visible: true
@@ -647,6 +727,7 @@ pm.ChartWindDistributon =  function () {
                     visible: false
                 },
                 labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     // rotation: 25
                 },
                 majorTickType: "none"

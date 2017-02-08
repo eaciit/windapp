@@ -161,7 +161,10 @@ page.createChart = function(dtSeries){
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             legend: {
-                position: "bottom"
+                position: "bottom",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             seriesDefaults: {
                 type: "scatterLine",
@@ -176,6 +179,7 @@ page.createChart = function(dtSeries){
             valueAxis: [{
                 labels: {
                     format: "N2",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 }
             }],
             xAxis: {
@@ -184,6 +188,9 @@ page.createChart = function(dtSeries){
                     text: "Wind Speed (m/s)",
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     color: "#585555"
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',                    
                 },
                 majorGridLines: {
                     visible: true,
@@ -214,6 +221,9 @@ page.createChart = function(dtSeries){
                     text: "Generation (kW)",
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     color: "#585555"
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorGridLines: {
                     visible: true,

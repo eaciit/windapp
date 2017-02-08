@@ -122,7 +122,10 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         },
         legend: {
             position: "top",
-            visible: true
+            visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -138,7 +141,8 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         valueAxis: {
             labels: {
                 step: 2,
-                template: (byTotalLostenergy == true) ? "#= value / 1000 #" : "#= value#"
+                template: (byTotalLostenergy == true) ? "#= value / 1000 #" : "#= value#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -153,6 +157,9 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         },
         categoryAxis: {
             field: "_id.id2",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             majorGridLines: {
                 visible: false
             },
@@ -186,6 +193,9 @@ avail.fleetMachAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -210,6 +220,9 @@ avail.fleetMachAvail = function (dataSource) {
             line: {
                 visible: false
             },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             axisCrossingValue: -10,
             majorGridLines: {
                 visible: true,
@@ -221,6 +234,9 @@ avail.fleetMachAvail = function (dataSource) {
             field: "_id.id2",
             majorGridLines: {
                 visible: false
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             /*labels:{
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
@@ -261,6 +277,9 @@ avail.fleetGridAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -279,7 +298,8 @@ avail.fleetGridAvail = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
             },
             line: {
@@ -296,6 +316,9 @@ avail.fleetGridAvail = function (dataSource) {
             field: "_id.id2",
             majorGridLines: {
                 visible: false
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             /*labels:{
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
@@ -336,6 +359,9 @@ avail.DTLEbyType = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -377,7 +403,8 @@ avail.DTLEbyType = function (dataSource) {
         valueAxis: [{
             name: "PowerLost",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -411,7 +438,8 @@ avail.DTLEbyType = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -458,6 +486,9 @@ avail.DTLostEnergy = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -475,7 +506,8 @@ avail.DTLostEnergy = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -496,7 +528,8 @@ avail.DTLostEnergy = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -545,6 +578,9 @@ avail.TopTurbineByLoss = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -587,6 +623,7 @@ avail.TopTurbineByLoss = function (dataSource) {
             labels: {
                 step: 2,
                 template: "#: kendo.toString(value/1000, 'n0') #",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -604,7 +641,8 @@ avail.TopTurbineByLoss = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -642,6 +680,9 @@ avail.DTLostEnergyManeh = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -659,7 +700,8 @@ avail.DTLostEnergyManeh = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -680,7 +722,8 @@ avail.DTLostEnergyManeh = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -732,6 +775,9 @@ avail.DTLostEnergyByDown = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -747,7 +793,8 @@ avail.DTLostEnergyByDown = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -763,6 +810,9 @@ avail.DTLostEnergyByDown = function (dataSource) {
             categories: [lastParam.DateStr],
             majorGridLines: {
                 visible: false
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -802,6 +852,9 @@ avail.projectMachAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -820,7 +873,8 @@ avail.projectMachAvail = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
             },
             line: {
@@ -842,7 +896,8 @@ avail.projectMachAvail = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -877,6 +932,9 @@ avail.projectGridAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -895,7 +953,8 @@ avail.projectGridAvail = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
             },
             line: {
@@ -917,7 +976,8 @@ avail.projectGridAvail = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -953,6 +1013,9 @@ avail.LossEnergyByType = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -970,7 +1033,8 @@ avail.LossEnergyByType = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -991,7 +1055,8 @@ avail.LossEnergyByType = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1041,6 +1106,9 @@ avail.DTDuration = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1081,7 +1149,8 @@ avail.DTDuration = function (dataSource) {
                 visible: false
             },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1099,7 +1168,8 @@ avail.DTDuration = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1137,6 +1207,9 @@ avail.DTLoss = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1179,6 +1252,7 @@ avail.DTLoss = function (dataSource) {
             labels: {
                 step: 2,
                 template: "#: kendo.toString(value/1000, 'n0') #",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1196,7 +1270,8 @@ avail.DTLoss = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1233,6 +1308,9 @@ avail.DTFrequency = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1273,7 +1351,8 @@ avail.DTFrequency = function (dataSource) {
             },
             name: "result",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1292,7 +1371,8 @@ avail.DTFrequency = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1328,6 +1408,9 @@ avail.DTLostEnergyDetail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: [{
             type: "column",
@@ -1349,7 +1432,8 @@ avail.DTLostEnergyDetail = function (dataSource) {
             name: "EnergyLost",
             title: { visible: false },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
 
             line: {
@@ -1373,7 +1457,8 @@ avail.DTLostEnergyDetail = function (dataSource) {
             },
             labels: {
                 // template: '#=  value.substring(0,3) #'
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none",
             axisCrossingValues: [0, 30],
@@ -1431,6 +1516,9 @@ avail.DTTopDetail = function (turbine, type) {
             legend: {
                 position: "top",
                 visible: false,
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             chartArea: {
                 height: 160
@@ -1452,7 +1540,8 @@ avail.DTTopDetail = function (turbine, type) {
                 //majorUnit: 100,
                 labels: {
                     step: 2,
-                    template: (type == 'MWh' ? "#:  kendo.toString(value/1000, 'n0') #" : "#:  kendo.toString(value, 'n0') #")
+                    template: (type == 'MWh' ? "#:  kendo.toString(value/1000, 'n0') #" : "#:  kendo.toString(value, 'n0') #"),
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
                     visible: false
@@ -1470,7 +1559,8 @@ avail.DTTopDetail = function (turbine, type) {
                     visible: false
                 },
                 labels: {
-                    template: '#=  value.substring(0,3) #'
+                    template: '#=  value.substring(0,3) #',
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorTickType: "none"
             },

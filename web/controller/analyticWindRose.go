@@ -23,6 +23,14 @@ func CreateAnalyticWindRoseController() *AnalyticWindRoseController {
 	return controller
 }
 
+/*color palette below already remove some colors that not sharp enough, beware out of index*/
+var colorWindrose = []string{"#B71C1C", "#F44336", "#D81B60", "#F06292", "#880E4F",
+	"#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E", "#5C6BC0",
+	"#1E88E5", "#0277BD", "#0097A7", "#26A69A", "#81C784",
+	"#8BC34A", "#24752A", "#827717", "#004D40", "#C0CA33", "#FF6F00",
+	"#D6C847", "#FFB300", "#BA8914", "#9999FF",
+}
+
 func (m *AnalyticWindRoseController) GetWSData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -693,7 +701,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		turbineData := toolkit.M{}
 		turbineData.Set("name", turbineVal)
 		turbineData.Set("type", "radarLine")
-		turbineData.Set("color", colorFieldTLP[selArr])
+		turbineData.Set("color", colorWindrose[selArr])
 		turbineData.Set("idxseries", selArr)
 		// turbineData.Set("xField", "DirectionDesc")
 		// turbineData.Set("yField", "Contribution")

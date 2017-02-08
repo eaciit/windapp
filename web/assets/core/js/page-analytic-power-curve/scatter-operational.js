@@ -173,7 +173,10 @@ page.getPowerCurveScatter = function() {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             legend: {
-                position: "bottom"
+                position: "bottom",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             seriesDefaults: {
                 type: "scatterLine",
