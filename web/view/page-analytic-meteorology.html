@@ -64,7 +64,7 @@
 								<div class="col-md-12 list">
 									<div class="col-md-3 col-xs-12">
 										<label class="control-label keyA-label">Sectors</label>
-										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.WindRose }"
+										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.ChangeSector }"
 											style="width:50px;">
 		                                </select>&nbsp;
 										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + pm.sectorDerajat() + ' °'">&nbsp;</label>
@@ -98,7 +98,7 @@
 									</div>
 								</div> -->
 
-								<div class="col-md-12">
+								<div class="col-md-12 windrose-part">
 									<div id="WRChartComparison" class="windrose-item-comparison"></div>
 								</div>
 							</div>

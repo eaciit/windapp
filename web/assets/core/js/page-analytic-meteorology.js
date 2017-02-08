@@ -304,7 +304,7 @@ pm.initChart = function () {
             },
             tooltip: {
                 visible: true,
-                template: "#= category # (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                template: "#= category #"+String.fromCharCode(176)+" (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -315,6 +315,11 @@ pm.initChart = function () {
             }
         });
     });
+}
+
+pm.ChangeSector = function(){
+    pm.isFirstWindRose(true);
+    pm.WindRose();
 }
 
 pm.WindRose = function(){
@@ -350,6 +355,10 @@ pm.WindRose = function(){
 
             })
         }, 300);
+        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+        $('#availabledatestart').html(metDate);
+        $('#availabledateend').html(scadaDate);
     }else{
         var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
         var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
@@ -388,73 +397,42 @@ pm.showHideLegendComparison = function (index) {
 
 pm.initChartWRC = function () {
     listOfChartComparison = [];
-    // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();
-    var breakDownVal = "36";
-    var stepNum = 1
-    var gapNum = 1
-    if (breakDownVal == 36) {
-        stepNum = 3
-        gapNum = 0
-    } else if (breakDownVal == 24) {
-        stepNum = 2
-        gapNum = 0
-    } else if (breakDownVal == 12) {
-        stepNum = 1
-        gapNum = 0
-    }
-
     var dataSeries = pm.dataWindroseComparison().Data;
     var categories = pm.dataWindroseComparison().Categories;
     var nilaiMax = pm.dataWindroseComparison().MaxValue;
 
+    var paddingTitle = Math.floor($('.windrose-part').width() / 16.16) * -1;
+    var offsetLegend = Math.floor($('.windrose-part').width() / 3.46) * -1;
+
     $("#WRChartComparison").kendoChart({
         theme: "flat",
-        // chartArea: {
-        //     width: pWidth,
-        //     height: pWidth,
-        // },
-
         title: {
+            padding: {
+              left: paddingTitle
+            },
             text: "Wind Rose Comparison",
             font: '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         legend: {
             position: "right",
-            // labels: {
-            //     template: "#= (series.data[0] || {}).WsCategoryDesc #"
-            // },
+            offsetX: offsetLegend
         },
         dataSource: {
-            // data: val.Data,
             sort: {
                 field: "DirectionNo",
                 dir: "asc"
             }
         },
-        // seriesColors: colorFieldsWR,
-        // series: [{
-        //     type: "radarLine",
-        //     field: "Contribution",
-        //     gap: gapNum,
-        //     border: {
-        //         width: 1,
-        //         color: "#7f7f7f",
-        //         opacity: 0.5
-        //     },
-        // }],
         series: dataSeries,
         categoryAxis: {
-            // field: "DirectionDesc",
             categories: categories,
             visible: true,
             majorGridLines: {
                 visible: true,
-                step: stepNum
             },
             labels: {
                 font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 visible: true,
-                step: stepNum
             }
         },
         valueAxis: {
@@ -468,7 +446,8 @@ pm.initChartWRC = function () {
         },
         tooltip: {
             visible: true,
-            template: "#= category # #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+            // template: "#= category # #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+            template: "#= series.name # : #= category #"+String.fromCharCode(176)+" (#= kendo.toString(value, 'n2') #%)",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -478,6 +457,8 @@ pm.initChartWRC = function () {
             },
         }
     });
+    // $('#WRChartComparison').data('kendoChart').options.chartArea.width = $('#WRChartComparison').height() + ($('#WRChartComparison').height()/4);
+    // $('#WRChartComparison').data('kendoChart').refresh();
 }
 
 pm.WindRoseComparison = function(){
@@ -512,6 +493,10 @@ pm.WindRoseComparison = function(){
 
             })
         }, 300);
+        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+        $('#availabledatestart').html(metDate);
+        $('#availabledateend').html(scadaDate);
     }else{
         var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
         var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
@@ -871,8 +856,8 @@ pm.TurbineCorrelation = function(){
             });
 
             setTimeout(function(){
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
                 $("#gridTurbineCorrelation").data("kendoGrid").refresh(); 
                 app.loading(false);
                 pm.isFirstTurbine(false)    
@@ -885,13 +870,11 @@ pm.TurbineCorrelation = function(){
         setTimeout(function(){
              app.loading(false);
              $("#gridTurbineCorrelation").data("kendoGrid").refresh();
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","38px");
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","38px");
+             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
         }, 500);
     }
 }
-
-
 
 // 12/24 table 
 pm.generateGridTable = function (datatype) {
