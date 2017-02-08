@@ -317,6 +317,11 @@ pm.initChart = function () {
     });
 }
 
+pm.ChangeSector = function(){
+    pm.isFirstWindRose(true);
+    pm.WindRose();
+}
+
 pm.WindRose = function(){
     app.loading(true);
     fa.LoadData();
