@@ -54,7 +54,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"turbine": "$turbine", "windspeedbin": "$fast_windspeed_bin"},
-		"avgws": tk.M{"$avg": "$fast_windspeed_ms"}, "avgwsstddev": tk.M{"$avg": "$fast_activepower_kw_stddev"}},
+		"avgws": tk.M{"$avg": "$fast_windspeed_ms"}, "avgwsstddev": tk.M{"$avg": "$fast_windspeed_ms_stddev"}},
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
