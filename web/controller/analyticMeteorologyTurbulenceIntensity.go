@@ -7,7 +7,9 @@ import (
 
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
-	"time"
+	"github.com/eaciit/crowd"
+	"sort"
+	// "time"
 )
 
 func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContext) interface{} {
@@ -23,15 +25,18 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tStart, _ = time.Parse("2006-01-02 15:04:05", "2016-08-21 00:00:00")
-	tEnd, _ = time.Parse("2006-01-02 15:04:05", "2016-08-23 00:00:00")
+	// tStart, _ = time.Parse("2006-01-02 15:04:05", "2016-08-21 00:00:00")
+	// tEnd, _ = time.Parse("2006-01-02 15:04:05", "2016-08-23 00:00:00")
 
+	turbine := p.Turbine
 	var (
 		query    []tk.M
 		pipes    []tk.M
 		pipesmet []tk.M
 		results  tk.M
 		datas    []tk.M
+		dataSeries []tk.M
+		sortTurbines []string
 	)
 
 	scadaHfds := make([]tk.M, 0)
@@ -49,13 +54,13 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"turbine": "$turbine", "windspeedbin": "$fast_windspeed_bin"},
-		"avgws": tk.M{"$avg": "$fast_windspeed_ms", "avgwsstddev": tk.M{"$avg": "$fast_activepower_kw_stddev"}}},
+		"avgws": tk.M{"$avg": "$fast_windspeed_ms"}, "avgwsstddev": tk.M{"$avg": "$fast_activepower_kw_stddev"}},
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": query}})
 	pipesmet = append(pipesmet, tk.M{"$group": tk.M{"_id": tk.M{"turbine": "Met Tower", "windspeedbin": "$windspeedbin"},
-		"avgws": tk.M{"$avg": "$vhubws90mavg", "avgwsstddev": tk.M{"$avg": "$vhubws90mstddev"}}},
+		"avgws": tk.M{"$avg": "$vhubws90mavg"}, "avgwsstddev": tk.M{"$avg": "$vhubws90mstddev"}},
 	})
 	pipesmet = append(pipesmet, tk.M{"$sort": tk.M{"_id": 1}})
 
@@ -72,8 +77,6 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 	csr.Close()
 
-	tk.Println(scadaHfds)
-
 	csrt, e := DB().Connection.NewQuery().
 		From(new(MetTower).TableName()).
 		Command("pipe", pipesmet).
@@ -86,6 +89,8 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	e = csrt.Fetch(&metTowers, 0, false)
 
 	csrt.Close()
+
+	tk.Printf("metTowers : %s \n", len(metTowers))
 
 	for _, m := range metTowers {
 		iDs := m.Get("_id").(tk.M)
@@ -117,13 +122,64 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		})
 	}
 
+
+	if len(p.Turbine) == 0 {
+		for _, listVal := range datas {
+			exist := false
+			for _, val := range turbine {
+				if listVal["turbine"] == val {
+					exist = true
+				}
+			}
+			if exist == false {
+				turbine = append(turbine, listVal["turbine"])
+			}
+		}
+	}
+
+	for _, turX := range turbine {
+		sortTurbines = append(sortTurbines, turX.(string))
+	}
+	sort.Strings(sortTurbines)
+
+	selArr := 0
+	for _, turbineX := range sortTurbines {
+
+		exist := crowd.From(&datas).Where(func(x interface{}) interface{} {
+
+			return x.(tk.M).GetString("turbine") == turbineX
+		}).Exec().Result.Data().([]tk.M)
+
+		var dts [][]float64
+		turbineData := tk.M{}
+		turbineData.Set("name", turbineX)
+		turbineData.Set("type", "scatterLine")
+		turbineData.Set("style", "smooth")
+		turbineData.Set("dashType", "solid")
+		turbineData.Set("markers", tk.M{"visible": false})
+		turbineData.Set("width", 2)
+		turbineData.Set("color", colors[selArr])
+		turbineData.Set("idxseries", selArr)
+
+		for _, val := range exist {
+			dts = append(dts, []float64{val.GetFloat64("binws"), val.GetFloat64("tivalue")}) 
+		}
+
+		if len(dts) > 0 {
+			turbineData.Set("data", dts)
+		}
+
+		dataSeries = append(dataSeries, turbineData)
+		selArr++
+	}
+
 	if datas == nil {
 		datas = make([]tk.M, 0)
 	}
 
 	results = tk.M{
 		"Data":        datas,
-		"ChartSeries": colors,
+		"ChartSeries": dataSeries,
 	}
 
 	return results
