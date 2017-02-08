@@ -2,6 +2,7 @@
 pm.turbineListturbulence = ko.observableArray([]);
 pm.turbineturbulence = ko.observableArray([]);
 pm.ChartSeriesturbulence = ko.observableArray([]);
+pm.DtTurbulence = ko.observableArray([]);
 
 var ti = {
 	// RefreshchartTI: function(){
@@ -22,6 +23,7 @@ var ti = {
 			var width = $(".main-header").width()
 	        // var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
 	        pm.ChartSeriesturbulence(data.ChartSeries)
+	        pm.DtTurbulence(data)
 
 			$('#chartTI').html('');
 
@@ -37,7 +39,7 @@ var ti = {
 			        visible: false
 			    },
 			    legend: {
-			        // visible: false,
+			        visible: false,
 			        position: "bottom"
 			    },
 			    seriesDefaults: {
@@ -45,36 +47,83 @@ var ti = {
 			        style: "smooth",
 			    },
 			    series: data.ChartSeries,
-			    categoryAxis: {
-			        // field: "turbine",
-			        labels: {
-			            visible: false,
-			        },
-			        crosshair: {
-			            visible: false,
-			        },
-			        majorGridLines: {
-			            visible: false,
-			        },
-			        majorTicks: {
-			            visible: false,
-			        },
-			    },
-			    valueAxis: {
-			        crosshair: {
-			            visible: false
-			        },
-			        majorGridLines: {
-			            visible: false,
-			        },
-			        majorTicks: {
-			            visible: false,
-			        },
-			    },
-			    tooltip: {
-			        visible: true,
-			        template: "#: category # = #= kendo.format('{0:N2}',value) #"
-			    },
+			    valueAxis: [{
+                    labels: {
+                        format: "N0",
+                    }
+                }],
+                xAxis: {
+                    // majorUnit: 1,
+                    title: {
+                        // text: "Wind Speed (m/s)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        color: "#585555",
+                        visible: true,
+                    },
+                    crosshair: {
+                        visible: true,
+                        tooltip: {
+                            visible: true,
+                            format: "N2",
+                            background: "rgb(255,255,255, 0.9)",
+                            color: "#58666e",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            border: {
+                                color: "#eee",
+                                width: "2px",
+                            },
+                        }
+                    },
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    // max: 25
+                },
+                yAxis: {
+                    title: {
+                        // text: "Generation (KW)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        color: "#585555"
+                    },
+                    labels: {
+                        format: "N0",
+                    },
+                    axisCrossingValue: -5,
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    crosshair: {
+                        visible: true,
+                        tooltip: {
+                            visible: true,
+                            format: "N1",
+                            background: "rgb(255,255,255, 0.9)",
+                            color: "#58666e",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            border: {
+                                color: "#eee",
+                                width: "2px",
+                            },
+                        }
+                    },
+                },
+                tooltip: {
+                    visible: true,
+                    // format: "{1}in {0} minutes",
+                    template: "#= series.name #",
+                    shared: true,
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                },
 			});
 			setTimeout(function() {
 				ti.InitRightList();
