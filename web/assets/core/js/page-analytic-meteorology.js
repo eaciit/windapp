@@ -403,6 +403,10 @@ pm.initChartWRC = function () {
 
     var paddingTitle = Math.floor($('.windrose-part').width() / 16.16) * -1;
     var offsetLegend = Math.floor($('.windrose-part').width() / 3.46) * -1;
+    var majorUnit = 10;
+    if(nilaiMax < 40) {
+        majorUnit = 5;
+    }
 
     $("#WRChartComparison").kendoChart({
         theme: "flat",
@@ -428,7 +432,7 @@ pm.initChartWRC = function () {
             categories: categories,
             visible: true,
             majorGridLines: {
-                visible: true,
+                visible: false
             },
             labels: {
                 font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -440,7 +444,7 @@ pm.initChartWRC = function () {
                 template: kendo.template("#= kendo.toString(value, 'n0') #%"),
                 font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            majorUnit: 10,
+            majorUnit: majorUnit,
             max: nilaiMax,
             min: 0
         },

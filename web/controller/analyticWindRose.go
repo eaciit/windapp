@@ -963,14 +963,22 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		maxValue = 60
 	case maxValue >= 40 && maxValue < 50:
 		maxValue = 50
-	case maxValue >= 30 && maxValue < 40:
+	case maxValue >= 35 && maxValue < 40:
 		maxValue = 40
-	case maxValue >= 20 && maxValue < 30:
+	case maxValue >= 30 && maxValue < 35:
+		maxValue = 35
+	case maxValue >= 25 && maxValue < 30:
 		maxValue = 30
-	case maxValue >= 10 && maxValue < 20:
+	case maxValue >= 20 && maxValue < 25:
+		maxValue = 25
+	case maxValue >= 15 && maxValue < 20:
 		maxValue = 20
-	case maxValue >= 0 && maxValue < 10:
+	case maxValue >= 10 && maxValue < 15:
+		maxValue = 15
+	case maxValue >= 5 && maxValue < 10:
 		maxValue = 10
+	case maxValue >= 0 && maxValue < 5:
+		maxValue = 5
 	}
 
 	datas := struct {
