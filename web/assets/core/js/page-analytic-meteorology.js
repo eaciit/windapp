@@ -954,6 +954,8 @@ pm.TurbineCorrelation = function(){
                 app.loading(false);
                 pm.isFirstTurbine(false)    
             },200);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
 
         });
     }else{
@@ -1135,6 +1137,13 @@ pm.Table = function(datatype){
             pm.dataSourceTable(res.data);
             pm.generateGridTable(datatype);
             pm.isFirstTwelve(false); 
+            if($("#met").is(':checked')) {
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
+            } else {
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+            }
         });
     }else{
         if($("#met").is(':checked')) {
