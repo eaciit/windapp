@@ -107,6 +107,9 @@ pm.loadData = function () {
         $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
         $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
 
+        availDateList.startScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[0]).format('DD-MMMM-YYYY'));
+        availDateList.endScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[1]).format('DD-MMMM-YYYY'));
+
         availDateList.availabledatestartmet = kendo.toString(moment.utc(res.data.MET[0]).format('DD-MMMM-YYYY'));
         availDateList.availabledateendmet = kendo.toString(moment.utc(res.data.MET[1]).format('DD-MMMM-YYYY'));
     })
@@ -189,6 +192,8 @@ pm.AverageWindSpeed = function() {
             pm.generateGridAverage();
             app.loading(false);
             pm.isFirstAverage(false);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
         });        
     }else{
         $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
@@ -834,6 +839,8 @@ pm.WindDis = function(){
     if(pm.isFirstWindDis() === true){
         pm.populateTurbine();
         pm.ChartWindDistributon();
+        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
     }else{
         app.loading(false);
         $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
