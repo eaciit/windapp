@@ -66,7 +66,12 @@ wr.ZoomChart = function(divID){
                 indexChart = idx;
             }
         });
-        // setTimeout(function () {
+        var titleZoom = divID.replace("Chart-", "Chart ");
+        if(titleZoom.indexOf("MetTower")) {
+            titleZoom = "Chart Met Tower";
+        }
+        $('#titleWRZoom').html('<strong>' + titleZoom + '</strong>');
+        
         $("#legend-list-zoom").html("");
         $.each(listOfCategory, function (idx, val) {
             var idName = "btnZoom" + idx;
@@ -76,8 +81,7 @@ wr.ZoomChart = function(divID){
                 '<span class="span-legend">' + val.category + '</span>'
             );
         });
-        wr.initZoomChart(wr.dataWindroseEachTurbine()[indexChart]);
-        // }, 300);
+        wr.initZoomChart(wr.dataWindroseEachTurbine()[indexChart]);       
 
     }).modal('show');
 
@@ -114,7 +118,7 @@ wr.initZoomChart = function (dataSource) {
     $("#windroseZoom").kendoChart({
         theme: "nova",
         chartArea: {
-            height: 450,
+            height: 500,
         },
 
         title: {
