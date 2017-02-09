@@ -132,6 +132,34 @@
 		</div>
 	</div>
 </div>
+<div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="col-md-12 col-xs-12 legend-part">
+                                    <div id="legend-list-zoom" class="col-md-12 col-sm-12 pl15">
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div id="windroseZoom"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="clearfix"></div>
 <script>
 	fa.populateTurbine({{.TurbineList}});

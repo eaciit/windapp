@@ -8,6 +8,7 @@ var maxValue = 0;
 wr.sectorDerajat = ko.observable(0);
 var listOfChart = [];
 var listOfButton = {};
+var listOfButtonZoom = {};
 
 wr.ExportWindRose = function () {
     var chart = $("#wr-chart").getKendoChart();
@@ -33,6 +34,159 @@ wr.showHideLegendWR = function (index) {
           $(idChart).data("kendoChart").refresh();
         }
     });
+}
+
+wr.showHideLegendZoom = function (idxLegend) {
+    var idName = "btnZoom" + idxLegend;
+    listOfButtonZoom[idName] = !listOfButtonZoom[idName];
+    if (listOfButtonZoom[idName] == false) {
+        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+    } else {
+        $("#" + idName).css({ 'background': colorFieldsWR[idxLegend], 'border-color': colorFieldsWR[idxLegend] });
+    }
+    // $.each(listOfChart, function (idx, idChart) {
+    //    if($(idChart).data("kendoChart").options.series.length - 1 >= idxLegend) {
+    //       $(idChart).data("kendoChart").options.series[idxLegend].visible = listOfButton[idName];
+    //       $(idChart).data("kendoChart").refresh();
+    //     }
+    // });
+    if($("#windroseZoom").data("kendoChart").options.series.length - 1 >= idxLegend) {
+        $("#windroseZoom").data("kendoChart").options.series[idxLegend].visible = listOfButtonZoom[idName];
+        $("#windroseZoom").data("kendoChart").refresh();
+    }
+}
+
+wr.ZoomChart = function(divID){
+    $("#modalDetail").on("shown.bs.modal", function () { 
+        /*WINDROSE LEGEND INITIAL*/
+        var idxChart = "#"+divID;
+        var indexChart = 0;
+        $.each(listOfChart, function (idx, idChart) {
+            if(idChart == idxChart){
+                indexChart = idx;
+            }
+        });
+        // setTimeout(function () {
+        $("#legend-list-zoom").html("");
+        $.each(listOfCategory, function (idx, val) {
+            var idName = "btnZoom" + idx;
+            listOfButtonZoom[idName] = true;
+            $("#legend-list-zoom").append(
+                '<button id="' + idName + '" class="btn btn-default btn-sm btn-legend" type="button" onclick="wr.showHideLegendZoom(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + ';"></button>' +
+                '<span class="span-legend">' + val.category + '</span>'
+            );
+        });
+        wr.initZoomChart(wr.dataWindroseEachTurbine()[indexChart]);
+        // }, 300);
+
+    }).modal('show');
+
+    $('#modalDetail').on('hidden.bs.modal', function (e) {
+        $('#modalDetail').off();
+    });
+}
+
+wr.initZoomChart = function (dataSource) {
+    var breakDownVal = $("#nosection").data("kendoDropDownList").value();
+    var stepNum = 1
+    var gapNum = 1
+    if (breakDownVal == 36) {
+        stepNum = 3
+        gapNum = 0
+    } else if (breakDownVal == 24) {
+        stepNum = 2
+        gapNum = 0
+    } else if (breakDownVal == 12) {
+        stepNum = 1
+        gapNum = 0
+    }
+
+    var majorUnit = 10;
+    if(maxValue < 40) {
+        majorUnit = 5;
+    }
+
+    var name = dataSource.Name
+    if (name == "MetTower") {
+        name = "Met Tower"
+    }
+
+    $("#windroseZoom").kendoChart({
+        theme: "nova",
+        chartArea: {
+            height: 450,
+        },
+
+        title: {
+            text: name,
+            font: '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            visible: false
+        },
+        legend: {
+            position: "bottom",
+            labels: {
+                template: "#= (series.data[0] || {}).WsCategoryDesc #"
+            },
+            visible: false,
+        },
+        dataSource: {
+            data: dataSource.Data,
+            group: {
+                field: "WsCategoryNo",
+                dir: "asc"
+            },
+            sort: {
+                field: "DirectionNo",
+                dir: "asc"
+            }
+        },
+        seriesColors: colorFieldsWR,
+        series: [{
+            type: "radarColumn",
+            stack: true,
+            field: "Contribution",
+            gap: gapNum,
+            border: {
+                width: 1,
+                color: "#7f7f7f",
+                opacity: 0.5
+            },
+        }],
+        categoryAxis: {
+            field: "DirectionDesc",
+            visible: true,
+            majorGridLines: {
+                visible: true,
+                step: stepNum
+            },
+            labels: {
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: true,
+                step: stepNum
+            }
+        },
+        valueAxis: {
+            labels: {
+                template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            // majorUnit: majorUnit,
+            // max: maxValue,
+            // min: 0
+        },
+        tooltip: {
+            visible: true,
+            template: "#= category #"+String.fromCharCode(176)+" (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        }
+    });
+    $("#windroseZoom").data('kendoChart').refresh();
 }
 
 wr.initChart = function () {

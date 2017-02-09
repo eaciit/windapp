@@ -16,6 +16,6 @@
 
 <div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
 	<div class="col-md-3 col-xs-12 windrose-item">
-		<div data-bind="attr:{id: 'chart-' + Name}"></div>
+		<div class="link-zoom" onclick="wr.ZoomChart(this.id)" data-bind="attr:{id: 'chart-' + Name}"></div>
 	</div>
 </div>
