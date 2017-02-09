@@ -242,6 +242,7 @@ func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
 		"page-analytic-meteorology/table1224.html",
 		"page-analytic-meteorology/mtbf.html",
 		"page-analytic-meteorology/windrose.html",
+		"page-analytic-meteorology/windrose-comparison.html",
 	}...)
 	r.Config.ViewName = "page-analytic-meteorology.html"
 
