@@ -31,6 +31,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	turbine := p.Turbine
 	var (
 		query    []tk.M
+		querymet    []tk.M
 		pipes    []tk.M
 		pipesmet []tk.M
 		results  tk.M
@@ -51,6 +52,8 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
+	query = append(query, tk.M{"fast_windspeed_ms": tk.M{"$gte": -200}})
+	query = append(query, tk.M{"fast_windspeed_ms_stddev": tk.M{"$gte": -200}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"turbine": "$turbine", "windspeedbin": "$fast_windspeed_bin"},
@@ -58,7 +61,13 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": query}})
+	querymet = append(querymet, tk.M{"_id": tk.M{"$ne": ""}})
+	querymet = append(querymet, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	querymet = append(querymet, tk.M{"timestamp": tk.M{"$lte": tEnd}})
+	querymet = append(querymet, tk.M{"vhubws90mavg": tk.M{"$gte": -200}})
+	querymet = append(querymet, tk.M{"vhubws90mstddev": tk.M{"$gte": -200}})
+
+	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": querymet}})
 	pipesmet = append(pipesmet, tk.M{"$group": tk.M{"_id": tk.M{"turbine": "Met Tower", "windspeedbin": "$windspeedbin"},
 		"avgws": tk.M{"$avg": "$vhubws90mavg"}, "avgwsstddev": tk.M{"$avg": "$vhubws90mstddev"}},
 	})
