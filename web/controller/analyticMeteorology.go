@@ -26,7 +26,14 @@ func CreateAnalyticMeteorologyController() *AnalyticMeteorologyController {
 func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
+	type HeatMap struct {
+		Color   string
+		Opacity float64
+	}
+
 	var dataSeries []tk.M
+	var dataHeat []tk.M
+
 	p := new(PayloadAnalytic)
 	e := k.GetPayload(&p)
 	if e != nil {
@@ -141,12 +148,62 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 		dataSeries = append(dataSeries, _tkm)
 	}
 
+	for _, _tkm := range dataSeries {
+		_heattkm := tk.M{}
+
+		_aint := []float64{}
+
+		for _key, _val := range _tkm {
+			if tk.ToString(_val) == "-" || _key == "Turbine" {
+				continue
+			}
+			_num := tk.ToFloat64(_val, 2, tk.RoundingAuto)
+			if !tk.HasMember(_aint, _num) {
+				_aint = append(_aint, _num)
+			}
+		}
+
+		sort.Float64s(_aint)
+		_mapunique := map[float64]float64{}
+		_median := float64((len(_aint) + 1)) / 2
+		for _i, _val := range _aint {
+			_mapunique[_val] = float64(_i) + 1
+		}
+
+		tk.Println("MAP : ", _mapunique, " MEDIAN : ", _median)
+
+		for _key, _val := range _tkm {
+			_dt := HeatMap{}
+			_dt.Color = "white"
+			_dt.Opacity = 1
+
+			if tk.ToString(_val) != "-" && _key != "Turbine" {
+				_fval := tk.ToFloat64(_val, 2, tk.RoundingAuto)
+				if _median != _mapunique[_fval] {
+					if _median > _mapunique[_fval] {
+						_dt.Color = "red"
+						_dt.Opacity = tk.Div((_median - _mapunique[_fval]), _median)
+					} else {
+						_dt.Color = "green"
+						_dt.Opacity = tk.Div((_mapunique[_fval] - _median), _median)
+					}
+				}
+			}
+
+			_heattkm.Set(_key, _dt)
+		}
+
+		dataHeat = append(dataHeat, _heattkm)
+	}
+
 	data := struct {
 		Column []string
 		Data   []tk.M
+		Heat   []tk.M
 	}{
 		Column: arrturbine,
 		Data:   dataSeries,
+		Heat:   dataHeat,
 	}
 
 	return helper.CreateResult(true, data, "success")
