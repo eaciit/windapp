@@ -436,6 +436,93 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	return helper.CreateResult(true, result, "success")
 }
 
+func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interface{}{
+
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Turbine
+
+	var (
+		query    []tk.M
+		pipes    []tk.M
+		datas    []tk.M
+	)
+	scadaOem := make([]tk.M, 0)
+
+	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
+	if len(turbine) > 0 {
+		query = append(query, tk.M{"turbine": tk.M{"$in": turbine}})
+	}
+
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine",
+		"avgmttr": tk.M{"$avg": "$mttr"}, 
+		"avgmttf": tk.M{"$avg": "$mttf"},
+		"totmttf": tk.M{"$sum": "$mttf"},
+		"totmachinedowntime": tk.M{"$sum": "$machinedowntime"},
+		"totunknowndowntime": tk.M{"$sum": "$unknowndowntime"},
+		"totgriddowntime": tk.M{"$sum": "$griddowntime"},
+		},
+	})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaDataOEM).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csr.Fetch(&scadaOem, 0, false)
+
+	csr.Close()
+
+
+	for _, m := range scadaOem {
+		id := m.GetString("_id")
+		avgmttr := m.GetFloat64("avgmttr")
+		avgmttf := m.GetFloat64("avgmttf")
+		totmttf := m.GetFloat64("totmttf")
+		totmachinedowntime := m.GetFloat64("totmachinedowntime")
+		totunknowndowntime := m.GetFloat64("totunknowndowntime")
+		totgriddowntime := m.GetFloat64("totgriddowntime")
+		totDowntime := totmachinedowntime + totunknowndowntime + totgriddowntime
+
+		datas = append(datas, tk.M{
+			"id": id,
+			"avgmttr": avgmttr,
+			"avgmttf": avgmttf,
+			"totmttf": totmttf,
+			"totmachinedowntime": totmachinedowntime,
+			"totunknowndowntime": totunknowndowntime,
+			"totgriddowntime": totgriddowntime,
+			"totDowntime": totDowntime,
+			"avgmtbf":     tk.Div(totmttf, totDowntime),
+		})
+	}
+
+	if datas == nil {
+		datas = make([]tk.M, 0)
+	}
+
+	return helper.CreateResult(true, datas, "success")
+}
+
 func processTableData(group, match tk.M, tablename, dataType string) (data []tk.M) {
 	var (
 		pipes []tk.M

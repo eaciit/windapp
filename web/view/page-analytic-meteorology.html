@@ -34,6 +34,7 @@
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
 							<li id="turbineCorrelationTab" role="presentation" onclick="pm.TurbineCorrelation()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
 							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="pm.Table()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
+							<li id="mtbfTab" role="presentation"><a href="#mtbf" onclick="mt.Refreshchartmt()" aria-controls="mtbf" role="tab"  data-toggle="tab" class="tab-custom">MTBF</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -168,6 +169,11 @@
 									<div id="gridTable1224"></div>
 								</div>
 							</div>
+
+							<div role="tabpanel" class="tab-pane" id="mtbf">
+								{{template "mtbf.html"}}
+							</div>
+
 						</div>
 					</div>
 				</div>
