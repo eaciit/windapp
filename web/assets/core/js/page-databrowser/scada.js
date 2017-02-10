@@ -1449,4 +1449,5 @@ dbs.InitScadaGrid = function() {
         }
         dbr.gridColumnsScada.push(result);
     });
+    $('#scadaGrid').data('kendoGrid').refresh();
 }

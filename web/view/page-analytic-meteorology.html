@@ -26,13 +26,13 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="wr.RefreshChart('avgwindspeedTab')" class="tab-custom">Average Wind Speed</a></li>
-							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.RefreshChart('windroseTab')" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
-							<li id="winddistributionTab" role="presentation"><a onclick="wr.RefreshChart('winddistributionTab')" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
+							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="pm.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
+							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="pm.WindRose()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
+							<li id="winddistributionTab" role="presentation"><a onclick="pm.WindDis()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
 							<li id="turbulenceintencityTab" role="presentation"><a href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
-							<li id="turbineCorrelationTab" role="presentation" onclick="wr.RefreshChart('turbineCorrelationTab')"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
-							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="wr.RefreshChart('table1224Tab')" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
+							<li id="turbineCorrelationTab" role="presentation" onclick="pm.TurbineCorrelation()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
+							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="pm.Table()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -63,10 +63,10 @@
 								<div class="col-md-12 list">
 									<div class="col-md-3 col-xs-12">
 										<label class="control-label keyA-label">Sectors</label>
-										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
+										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.WindRose }"
 											style="width:50px;">
 		                                </select>&nbsp;
-										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
+										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + pm.sectorDerajat() + ' °'">&nbsp;</label>
 									</div>
 
 									<div class="col-md-6 col-xs-12">
@@ -81,7 +81,7 @@
 									</div>
 								</div>
 
-								<div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+								<div class="col-md-12" data-bind="foreach: pm.dataWindroseEachTurbine">
 									<div class="col-md-3 col-xs-12 windrose-item">
 										<div data-bind="attr:{id: 'chart-' + Name}"></div>
 									</div>
@@ -102,6 +102,7 @@
 									<div class="col-md-12 col-sm-12" id="right-turbine-list"></div>
 								</div>
 							</div>
+
 							<div role="tabpanel" class="tab-pane" id="turbulenceintencity">
 								
 							</div>

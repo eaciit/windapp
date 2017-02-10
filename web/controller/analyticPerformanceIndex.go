@@ -116,7 +116,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		}
 
 		if len(turbine) != 0 {
-			query = append(query, tk.M{"projectname": tk.M{"$in": turbine}})
+			query = append(query, tk.M{"turbine": tk.M{"$in": turbine}})
 		}
 
 		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})

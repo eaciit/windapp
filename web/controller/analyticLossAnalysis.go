@@ -371,7 +371,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 	return helper.CreateResult(true, result, "success")
 }
 
-func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{} {
+func (m *AnalyticLossAnalysisController) GetDowntimeTab(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := new(PayloadAnalytic)
@@ -401,6 +401,19 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 	result.Set("loss", loss)
 
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetComponentAlarmTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
 	// =============== Component Alarm =============
 	componentduration, e := getTopComponentAlarm("braketype", "duration", p, k)
 	if e != nil {
@@ -439,7 +452,20 @@ func (m *AnalyticLossAnalysisController) GetTop10(k *knot.WebContext) interface{
 	}
 	result.Set("alarmloss", alarmloss)
 
-	// =============== OTHER =============
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetLostEnergyTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
+
 	catloss, e := getCatLossTopFiltered("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -474,7 +500,7 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 		if e != nil {
 			return result, e
 		}
-
+		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
@@ -587,7 +613,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		if e != nil {
 			return result, e
 		}
-
+		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
@@ -789,7 +815,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 		if e != nil {
 			return result, e
 		}
-
+		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
@@ -1383,7 +1409,12 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 
 	res := []tk.M{}
 	for _, v := range descs {
-		res = append(res, tk.M{"desc": v, "turbines": mapRes[v]})
+		total := 0
+		for _, x := range mapRes[v] {
+			total += x.GetInt("count")
+		}
+
+		res = append(res, tk.M{"desc": v, "turbines": mapRes[v], "total": total})
 	}
 
 	data := struct {
@@ -1400,4 +1431,3 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
-
