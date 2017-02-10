@@ -700,11 +700,11 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		coId++
 		turbineData := toolkit.M{}
 		turbineData.Set("name", turbineVal)
-		turbineData.Set("type", "radarLine")
+		turbineData.Set("type", "polarLine")
 		turbineData.Set("color", colorWindrose[selArr])
 		turbineData.Set("idxseries", selArr)
-		// turbineData.Set("xField", "DirectionDesc")
-		// turbineData.Set("yField", "Contribution")
+		turbineData.Set("xField", "DirectionDesc")
+		turbineData.Set("yField", "Contribution")
 		selArr++
 		dataDir := []float64{}
 
@@ -781,50 +781,50 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				result := dts.Result.Data().([]DataItemsResultComp)
 				dirCatList := []string{}
 				dirContribute := map[string]float64{}
-				// dirHours := map[string]float64{}
-				// dirNo := map[string]int{}
+				dirHours := map[string]float64{}
+				dirNo := map[string]int{}
 				for _, dataRes := range result {
 					dirCatList = append(dirCatList, toolkit.ToString(dataRes.DirectionDesc))
 					dirContribute[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Contribution
-					// dirHours[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Hours
-					// dirNo[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.DirectionNo
+					dirHours[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Hours
+					dirNo[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.DirectionNo
 				}
-				// results := []DataItemsResultComp{}
+				results := []DataItemsResultComp{}
 				for _, dirCat := range categories {
 					if !toolkit.HasMember(dirCatList, dirCat) {
-						// emptyRes := DataItemsResultComp{}
-						// emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						// emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
-						// emptyRes.Contribution = 0.0
-						// emptyRes.Hours = 0.0
-						// results = append(results, emptyRes)
-						dataDir = append(dataDir, 0.0)
+						emptyRes := DataItemsResultComp{}
+						emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+						emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
+						emptyRes.Contribution = 0.0
+						emptyRes.Hours = 0.0
+						results = append(results, emptyRes)
+						// dataDir = append(dataDir, 0.0)
 					} else {
-						// dataRes := DataItemsResultComp{}
-						// dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						// dataRes.DirectionNo = dirNo[dirCat]
-						// dataRes.Contribution = dirContribute[dirCat]
-						// dataRes.Hours = dirHours[dirCat]
-						// results = append(results, dataRes)
-						dataDir = append(dataDir, dirContribute[dirCat])
+						dataRes := DataItemsResultComp{}
+						dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+						dataRes.DirectionNo = dirNo[dirCat]
+						dataRes.Contribution = dirContribute[dirCat]
+						dataRes.Hours = dirHours[dirCat]
+						results = append(results, dataRes)
+						// dataDir = append(dataDir, dirContribute[dirCat])
 					}
 				}
-				turbineData.Set("data", dataDir)
-				// turbineData.Set("data", results)
+				// turbineData.Set("data", dataDir)
+				turbineData.Set("data", results)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			} else {
-				// results := []DataItemsResultComp{}
-				for range categories {
-					// emptyRes := DataItemsResultComp{}
-					// emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-					// emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
-					// emptyRes.Contribution = 0.0
-					// emptyRes.Hours = 0.0
-					// results = append(results, emptyRes)
-					dataDir = append(dataDir, 0.0)
+				results := []DataItemsResultComp{}
+				for _, dirCat := range categories {
+					emptyRes := DataItemsResultComp{}
+					emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+					emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
+					emptyRes.Contribution = 0.0
+					emptyRes.Hours = 0.0
+					results = append(results, emptyRes)
+					// dataDir = append(dataDir, 0.0)
 				}
-				turbineData.Set("data", dataDir)
-				// turbineData.Set("data", results)
+				// turbineData.Set("data", dataDir)
+				turbineData.Set("data", results)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			}
 		} else {
@@ -903,50 +903,50 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				result := dts.Result.Data().([]DataItemsResultComp)
 				dirCatList := []string{}
 				dirContribute := map[string]float64{}
-				// dirHours := map[string]float64{}
-				// dirNo := map[string]int{}
+				dirHours := map[string]float64{}
+				dirNo := map[string]int{}
 				for _, dataRes := range result {
 					dirCatList = append(dirCatList, toolkit.ToString(dataRes.DirectionDesc))
 					dirContribute[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Contribution
-					// dirHours[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Hours
-					// dirNo[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.DirectionNo
+					dirHours[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Hours
+					dirNo[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.DirectionNo
 				}
-				// results := []DataItemsResultComp{}
+				results := []DataItemsResultComp{}
 				for _, dirCat := range categories {
 					if !toolkit.HasMember(dirCatList, dirCat) {
-						// emptyRes := DataItemsResultComp{}
-						// emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						// emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
-						// emptyRes.Contribution = 0.0
-						// emptyRes.Hours = 0.0
-						// results = append(results, emptyRes)
-						dataDir = append(dataDir, 0.0)
+						emptyRes := DataItemsResultComp{}
+						emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+						emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
+						emptyRes.Contribution = 0.0
+						emptyRes.Hours = 0.0
+						results = append(results, emptyRes)
+						// dataDir = append(dataDir, 0.0)
 					} else {
-						// dataRes := DataItemsResultComp{}
-						// dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						// dataRes.DirectionNo = dirNo[dirCat]
-						// dataRes.Contribution = dirContribute[dirCat]
-						// dataRes.Hours = dirHours[dirCat]
-						// results = append(results, dataRes)
-						dataDir = append(dataDir, dirContribute[dirCat])
+						dataRes := DataItemsResultComp{}
+						dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+						dataRes.DirectionNo = dirNo[dirCat]
+						dataRes.Contribution = dirContribute[dirCat]
+						dataRes.Hours = dirHours[dirCat]
+						results = append(results, dataRes)
+						// dataDir = append(dataDir, dirContribute[dirCat])
 					}
 				}
-				turbineData.Set("data", dataDir)
-				// turbineData.Set("data", results)
+				// turbineData.Set("data", dataDir)
+				turbineData.Set("data", results)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			} else {
-				// results := []DataItemsResultComp{}
-				for range categories {
-					// emptyRes := DataItemsResultComp{}
-					// emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-					// emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
-					// emptyRes.Contribution = 0.0
-					// emptyRes.Hours = 0.0
-					// results = append(results, emptyRes)
-					dataDir = append(dataDir, 0.0)
+				results := []DataItemsResultComp{}
+				for _, dirCat := range categories {
+					emptyRes := DataItemsResultComp{}
+					emptyRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+					emptyRes.DirectionNo = emptyRes.DirectionDesc / 360 * section
+					emptyRes.Contribution = 0.0
+					emptyRes.Hours = 0.0
+					results = append(results, emptyRes)
+					// dataDir = append(dataDir, 0.0)
 				}
 				turbineData.Set("data", dataDir)
-				// turbineData.Set("data", results)
+				turbineData.Set("data", results)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			}
 		}
