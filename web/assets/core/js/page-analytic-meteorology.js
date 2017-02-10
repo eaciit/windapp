@@ -436,26 +436,37 @@ pm.Temperature = function(){
 
 }
 
-pm.getBackground = function(index, da){
+pm.getCss = function(index, da){
     var color = 'white';
     var opacity = 1;
-
     var rgba = 'rgba(255,255,255)';
+    var fontColor = "#585555";
+    var css = {"background":rgba, "font-weight":"bold","color":fontColor};
+
+
     if(pm.newData().length != 0){
         if (da in pm.newData()[index]){
             color = pm.newData()[index][da].Color;
-            opacity = pm.newData()[index][da].Opacity
+            opacity = pm.newData()[index][da].Opacity;
+
+            if(opacity > 0.5){
+                fontColor = "#fff";
+            }
+
             if(color == "red") { 
                 rgba = 'rgba(255,0,0,'+opacity+')';
             }else if(color == "green"){
                  rgba = 'rgba(0,128,0,'+opacity+')';
             }else{
                  rgba = 'rgba(255,255,255,'+opacity+')';
+                 fontColor = "#585555";
             }
+
+            css = {"background":rgba, "font-weight":"bold","color":fontColor};
         }
     }
     
-    return rgba;
+    return css;
 }
 
 // Turbine Correlation
@@ -547,7 +558,7 @@ pm.TurbineCorrelation = function(){
                             var row = e.sender.tbody.find("[data-uid='" + dataItems[j].uid + "']");
                             var cell = row.children().eq(columnIndex);
 
-                            cell.css({"background": pm.getBackground(j,col)});
+                            cell.css(pm.getCss(j,col));
                         }
                     });
 
