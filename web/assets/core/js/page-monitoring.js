@@ -754,6 +754,10 @@ wr.initChart = function () {
         stepNum = 1
         gapNum = 0
     }
+    var majorUnit = 10;
+    if(maxValue < 40) {
+        majorUnit = 5;
+    }
 
     $.each(wr.dataWindroseEachTurbine(), function (i, val) {
         var name = val.Name
@@ -817,9 +821,9 @@ wr.initChart = function () {
                     template: kendo.template("#= kendo.toString(value, 'n0') #%"),
                     font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
-                majorUnit: 10,
-                max: maxValue,
-                min: 0
+                majorUnit: majorUnit,
+                // max: maxValue,
+                // min: 0
             },
             tooltip: {
                 visible: true,

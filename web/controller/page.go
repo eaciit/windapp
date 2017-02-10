@@ -237,7 +237,13 @@ func (w *PageController) AnalyticDataConsistency(r *knot.WebContext) interface{}
 func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
-	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-analytic.html", "page-analytic-meteorology/turbulence-intensity.html"}...)
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-analytic.html",
+		"page-analytic-meteorology/turbulence-intensity.html",
+		"page-analytic-meteorology/table1224.html",
+		"page-analytic-meteorology/mtbf.html",
+		"page-analytic-meteorology/windrose.html",
+		"page-analytic-meteorology/windrose-comparison.html",
+	}...)
 	r.Config.ViewName = "page-analytic-meteorology.html"
 
 	return w.GetParams(r, true)

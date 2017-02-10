@@ -27,13 +27,14 @@
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
 							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="pm.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
-							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="pm.WindRose()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
-							<li id="windroseComparisonTab" role="presentation"><a href="#windrosecomparison" aria-controls="Wind Rose" role="tab" onclick="pm.WindRoseComparison()" data-toggle="tab" class="tab-custom">Wind Rose Comparison</a></li>
+							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.WindRose()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
+							<li id="windroseComparisonTab" role="presentation"><a href="#windrosecomparison" aria-controls="Wind Rose" role="tab" onclick="wrb.WindRoseComparison()" data-toggle="tab" class="tab-custom">Wind Rose Comparison</a></li>
 							<li id="winddistributionTab" role="presentation"><a onclick="pm.WindDis()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
-							<li id="turbulenceintencityTab" role="presentation"><a onclick="ti.RefreshchartTI()" href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
+							<li id="turbulenceintencityTab" role="presentation"><a onclick="ti.RefreshData()" href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
 							<li id="turbineCorrelationTab" role="presentation" onclick="pm.TurbineCorrelation()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
-							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="pm.Table()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
+							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="tb.Table()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
+							<li id="mtbfTab" role="presentation"><a href="#mtbf" onclick="mt.Refreshchartmt()" aria-controls="mtbf" role="tab"  data-toggle="tab" class="tab-custom">MTBF</a></li>
 						</ul>
 
 						<div class="tab-content">
@@ -61,52 +62,10 @@
 								</div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
-								<div class="col-md-12 list">
-									<div class="col-md-3 col-xs-12">
-										<label class="control-label keyA-label">Sectors</label>
-										<select id="nosection" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.ChangeSector }"
-											style="width:50px;">
-		                                </select>&nbsp;
-										<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + pm.sectorDerajat() + ' °'">&nbsp;</label>
-									</div>
-
-									<div class="col-md-6 col-xs-12">
-										<div id="legend-list" class="col-md-12 col-sm-12 pl15">
-										</div>
-									</div>
-								</div>
-
-								<div class="col-md-12" data-bind="foreach: pm.dataWindroseEachTurbine">
-									<div class="col-md-3 col-xs-12 windrose-item">
-										<div data-bind="attr:{id: 'chart-' + Name}"></div>
-									</div>
-								</div>
+								{{template "windrose.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrosecomparison">
-								<!-- <div class="col-md-12 list">
-									<div class="col-md-3 col-xs-12">
-										<label class="control-label keyA-label">Sectors</label>
-										<select id="nosectionComparison" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.WindRoseComparison }"
-											style="width:50px;">
-		                                </select>&nbsp;
-										<label class="txtWarComparison" data-bind="text: '&nbsp;&nbsp;Sector width : ' + pm.sectorDerajatComparison() + ' °'">&nbsp;</label>
-									</div>
-
-									<div class="col-md-6 col-xs-12">
-										<div id="legend-list-comparison" class="col-md-12 col-sm-12 pl15">
-										</div>
-									</div>
-								</div> -->
-
-								<div class="col-md-9 windrose-part">
-									<div id="WRChartComparison" class="windrose-item-comparison"></div>
-									<div class="clearfix">&nbsp;</div>
-								</div>
-								<div class="col-md-3 turList">
-									<div class="clearfix">&nbsp;</div>
-									<div class="checkbox" id="checkAllCompare"></div>
-									<div class="col-md-12 col-sm-12" id="turbine-list-compare"></div>
-								</div>
+								{{template "windrose-comparison.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="winddistribution">
 <!-- 								<div class="date-info">
@@ -134,46 +93,49 @@
 								<div id="gridTurbineCorrelation"></div>
 							</div>
 							<div role="tabpanel" class="tab-pane" id="table1224">
-								<div class="col-md-12">
-									<div class="nav-meteor">
-										<div class="btn-group" data-toggle="buttons">
-											<label class="btn btn-sm btn-primary active radio-filter">
-		                                        <input type="radio" name="isMet" id="met" autocomplete="off" value="true" checked> Met Tower
-		                                    </label>
-											<label class="btn btn-sm btn-primary radio-filter">
-		                                        <input type="radio" name="isMet" id="turbine" autocomplete="off" value="false" onclick="return false;"> Turbine
-		                                    </label>
-										</div>
-									</div>
-									<div class="pull-right" style="margin-top:-30px">
-										<span><strong>Select Comparison :</strong></span>
-										<div class="checkbox chk-custom" data-bind="{visible:pm.isMet() == true, foreach:pm.MetTowerColumn()}">
-				                                <label>
-				                                    <input type="checkbox" name="chk-column-met" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){pm.hideShowColumn(e, 'chk-column-met')}}}" >
-				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-				                                    <span class="colRed" data-bind="text:text"></span>
-				                                </label>
-										</div>
-										<div class="checkbox chk-custom" data-bind="visible:pm.isMet() == false, foreach:pm.TurbineColumn()">
-											 <label>
-			                                    <input type="checkbox" name="chk-column-turbine" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){pm.hideShowColumn(e,'chk-column-turbine')}}}" >
-			                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-			                                    <span class="colRed" data-bind="text:text"></span>
-			                                </label>
-										</div>
-									</div>
-								</div>
-								<div class="clearfix">&nbsp;</div>
-								<div class="col-md-12">
-									<div id="gridTable1224"></div>
-								</div>
+
+
+								{{template "table1224.html"}}
 							</div>
+
+							<div role="tabpanel" class="tab-pane" id="mtbf">
+								{{template "mtbf.html"}}
+							</div>
+
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+</div>
+<div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                            <div class="panel-body">
+                                <div class="col-md-12 col-xs-12 legend-part">
+                                	<div class="col-md-12 title-zoom-part">
+	                                	<span id="titleWRZoom"></span>
+	                                	<div id="legend-list-zoom" class="col-md-12 col-sm-12 pl15"></div>
+	                                </div>
+                                </div>
+                                <div class="col-md-12 col-xs-12">
+                                	<div id="windroseZoom"></div>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 <div class="clearfix"></div>
 <script>
