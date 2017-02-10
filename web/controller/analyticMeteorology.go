@@ -170,7 +170,7 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 			_mapunique[_val] = float64(_i) + 1
 		}
 
-		tk.Println("MAP : ", _mapunique, " MEDIAN : ", _median)
+		// tk.Println("MAP : ", _mapunique, " MEDIAN : ", _median)
 
 		for _key, _val := range _tkm {
 			_dt := HeatMap{}
@@ -493,7 +493,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	return helper.CreateResult(true, result, "success")
 }
 
-func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interface{}{
+func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interface{} {
 
 	k.Config.OutputType = knot.OutputJson
 
@@ -509,9 +509,9 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 	turbine := p.Turbine
 
 	var (
-		query    []tk.M
-		pipes    []tk.M
-		datas    []tk.M
+		query []tk.M
+		pipes []tk.M
+		datas []tk.M
 	)
 	scadaOem := make([]tk.M, 0)
 
@@ -522,19 +522,17 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 		query = append(query, tk.M{"turbine": tk.M{"$in": turbine}})
 	}
 
-
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine",
-		"avgmttr": tk.M{"$avg": "$mttr"}, 
-		"avgmttf": tk.M{"$avg": "$mttf"},
-		"totmttf": tk.M{"$sum": "$mttf"},
+		"avgmttr":            tk.M{"$avg": "$mttr"},
+		"avgmttf":            tk.M{"$avg": "$mttf"},
+		"totmttf":            tk.M{"$sum": "$mttf"},
 		"totmachinedowntime": tk.M{"$sum": "$machinedowntime"},
 		"totunknowndowntime": tk.M{"$sum": "$unknowndowntime"},
-		"totgriddowntime": tk.M{"$sum": "$griddowntime"},
-		},
+		"totgriddowntime":    tk.M{"$sum": "$griddowntime"},
+	},
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaDataOEM).TableName()).
@@ -549,7 +547,6 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 
 	csr.Close()
 
-
 	for _, m := range scadaOem {
 		id := m.GetString("_id")
 		avgmttr := m.GetFloat64("avgmttr")
@@ -561,15 +558,15 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 		totDowntime := totmachinedowntime + totunknowndowntime + totgriddowntime
 
 		datas = append(datas, tk.M{
-			"id": id,
-			"avgmttr": avgmttr,
-			"avgmttf": avgmttf,
-			"totmttf": totmttf,
+			"id":                 id,
+			"avgmttr":            avgmttr,
+			"avgmttf":            avgmttf,
+			"totmttf":            totmttf,
 			"totmachinedowntime": totmachinedowntime,
 			"totunknowndowntime": totunknowndowntime,
-			"totgriddowntime": totgriddowntime,
-			"totDowntime": totDowntime,
-			"avgmtbf":     tk.Div(totmttf, totDowntime),
+			"totgriddowntime":    totgriddowntime,
+			"totDowntime":        totDowntime,
+			"avgmtbf":            tk.Div(totmttf, totDowntime),
 		})
 	}
 
