@@ -440,8 +440,8 @@ pm.getCss = function(index, da){
     var color = 'white';
     var opacity = 1;
     var rgba = 'rgba(255,255,255)';
-    var fontColor = "#585555";
-    var css = {"background":rgba, "font-weight":"bold","color":fontColor};
+    var fontColor = "#333";
+    var css = {"background":rgba, "color":fontColor};
 
 
     if(pm.newData().length != 0){
@@ -449,20 +449,22 @@ pm.getCss = function(index, da){
             color = pm.newData()[index][da].Color;
             opacity = pm.newData()[index][da].Opacity;
 
-            if(opacity > 0.5){
-                fontColor = "#fff";
-            }
+            // if(opacity > 0.5){
+            //     fontColor = "#fff";
+            // }
 
             if(color == "red") { 
-                rgba = 'rgba(255,0,0,'+opacity+')';
+                // rgba = 'rgba(255,0,0,'+opacity+')';
+                rgba = 'rgba(248,109,111,'+opacity+')';
             }else if(color == "green"){
-                 rgba = 'rgba(0,128,0,'+opacity+')';
+                 // rgba = 'rgba(0,128,0,'+opacity+')';
+                 rgba = 'rgba(100,190,124,'+opacity+')';
             }else{
                  rgba = 'rgba(255,255,255,'+opacity+')';
-                 fontColor = "#585555";
             }
 
-            css = {"background":rgba, "font-weight":"bold","color":fontColor};
+            // css = {"background":rgba, "font-weight":"bold","color":fontColor};
+            css = {"background":rgba, "color":fontColor};
         }
     }
     

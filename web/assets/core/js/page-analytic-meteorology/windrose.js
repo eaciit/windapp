@@ -59,15 +59,15 @@ wr.showHideLegendZoom = function (idxLegend) {
 wr.ZoomChart = function(divID){
     $("#modalDetail").on("shown.bs.modal", function () { 
         /*WINDROSE LEGEND INITIAL*/
-        var idxChart = "#"+divID;
+        var idxChart = "#"+divID.replace("btn-zoom-", "chart-");
         var indexChart = 0;
         $.each(listOfChart, function (idx, idChart) {
             if(idChart == idxChart){
                 indexChart = idx;
             }
         });
-        var titleZoom = divID.replace("Chart-", "Chart ");
-        if(titleZoom.indexOf("MetTower")) {
+        var titleZoom = divID.replace("btn-zoom-", "");
+        if(titleZoom.indexOf("MetTower") > 0) {
             titleZoom = "Chart Met Tower";
         }
         $('#titleWRZoom').html('<strong>' + titleZoom + '</strong>');
@@ -119,18 +119,14 @@ wr.initZoomChart = function (dataSource) {
         theme: "nova",
         chartArea: {
             height: 500,
+            margin: 0,
+            padding: 0
         },
 
         title: {
-            text: name,
-            font: '13px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             visible: false
         },
         legend: {
-            position: "bottom",
-            labels: {
-                template: "#= (series.data[0] || {}).WsCategoryDesc #"
-            },
             visible: false,
         },
         dataSource: {
@@ -164,7 +160,7 @@ wr.initZoomChart = function (dataSource) {
                 step: stepNum
             },
             labels: {
-                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 visible: true,
                 step: stepNum
             }
@@ -172,7 +168,7 @@ wr.initZoomChart = function (dataSource) {
         valueAxis: {
             labels: {
                 template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             // majorUnit: majorUnit,
             // max: maxValue,
