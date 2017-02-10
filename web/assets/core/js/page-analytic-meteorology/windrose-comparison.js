@@ -102,8 +102,6 @@ wrb.initChartWRC = function () {
     var categories = wrb.dataWindroseComparison().Categories;
     var nilaiMax = wrb.dataWindroseComparison().MaxValue;
 
-    // var paddingTitle = Math.floor($('.windrose-part').width() / 16.16) * -1;
-    // var offsetLegend = Math.floor($('.windrose-part').width() / 3.46) * -1;
     var majorUnit = 10;
     if(nilaiMax < 40) {
         majorUnit = 5;
@@ -112,53 +110,31 @@ wrb.initChartWRC = function () {
     $("#WRChartComparison").kendoChart({
         theme: "flat",
         title: {
-            // padding: {
-            //   left: paddingTitle
-            // },
             text: "Wind Rose Comparison",
             font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             visible: false
         },
         legend: {
-            position: "right",
-            // offsetX: offsetLegend,
-            labels: {
-                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                visible: true,
-            },
             visible: false
         },
-        dataSource: {
-            sort: {
-                field: "DirectionNo",
-                dir: "asc"
-            }
-        },
         series: dataSeries,
-        categoryAxis: {
-            categories: categories,
-            visible: true,
-            majorGridLines: {
-                visible: false
+        xAxis: {
+        	majorUnit: 30,
+        	startAngle: 90,
+        	reverse: true,
+        	labels: {
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            labels: {
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                visible: true,
-            }
         },
-        valueAxis: {
-            labels: {
-                template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+        yAxis: {
+        	labels: {
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            majorUnit: majorUnit,
-            // max: nilaiMax,
-            // min: 0
         },
         tooltip: {
             visible: true,
-            // template: "#= category # #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
-            template: "#= series.name # : #= category #"+String.fromCharCode(176)+" (#= kendo.toString(value, 'n2') #%)",
+            template: "#= series.name # : #= dataItem.DirectionDesc #"+String.fromCharCode(176)+
+            			" (#= kendo.toString(dataItem.Contribution, 'n2') #%) for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
