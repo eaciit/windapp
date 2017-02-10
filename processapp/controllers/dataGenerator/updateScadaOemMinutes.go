@@ -213,22 +213,34 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 		for _, a := range dataAlarms {
 			if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
 				alarms = append(alarms, a)
-			}
-			if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeStart.Sub(timestamp) <= 0 {
+			} else if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeStart.Sub(timestamp) <= 0 {
+				alarms = append(alarms, a)
+			} else if a.TimeEnd.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
 				alarms = append(alarms, a)
 			}
-			if a.TimeEnd.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
+			/*else if a.TimeStart.Sub(timestamp0) <= 0 && a.TimeStart.Sub(timestamp) >= 0 {
 				alarms = append(alarms, a)
-			}
-			if a.TimeStart.Sub(timestamp0) <= 0 && a.TimeStart.Sub(timestamp) >= 0 {
-				alarms = append(alarms, a)
-			}
+			}*/
 		}
 	}
 
+	// log.Printf("%v -> scada: %v - %v \n", turbine, timestamp0.UTC().String(), timestamp.UTC().String())
 	if len(alarms) > 0 {
 		for _, a := range alarms {
-			startTime := timestamp0
+			// log.Printf("alarm: %v - %v \n", a.TimeStart.UTC().String(), a.TimeEnd.UTC().String())
+
+			startTime := a.TimeStart
+			endTime := a.TimeEnd
+
+			if timestamp0.Sub(startTime) > 0 {
+				startTime = timestamp0
+			}
+			if timestamp.Sub(endTime) < 0 {
+				endTime = timestamp
+			}
+			aDuration += endTime.Sub(startTime).Seconds()
+
+			/*startTime := timestamp0
 			endTime := timestamp
 			if startTime.Sub(a.TimeStart) > 0 {
 				startTime = a.TimeStart
@@ -236,17 +248,19 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			if endTime.Sub(a.TimeEnd) > 0 {
 				endTime = a.TimeEnd
 			}
-			aDuration += endTime.Sub(startTime).Seconds()
+			aDuration += endTime.Sub(startTime).Seconds()*/
+
 			if a.DownGrid {
 				gridDowntime += endTime.Sub(startTime).Seconds()
-			}
-			if a.DownMachine {
+			} else if a.DownMachine {
 				machineDowntime += endTime.Sub(startTime).Seconds()
-			}
-			if a.DownEnvironment {
+			} else if a.DownEnvironment {
 				unknownDowntime += endTime.Sub(startTime).Seconds()
 			}
+
 			totalDowntime++
+			/*log.Printf("endTime: %v | startTime: %v \n", endTime.UTC().String(), startTime.UTC().String())
+			log.Printf("aDuration: %v | machineDowntime: %v | gridDowntime: %v | unknownDowntime: %v \n", aDuration, machineDowntime, gridDowntime, unknownDowntime)*/
 		}
 		if aDuration > 600 {
 			aDuration = 600

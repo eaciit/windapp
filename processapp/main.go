@@ -63,7 +63,7 @@ func main() {
 		// new(GenScadaPowerCurvePlus).GeneratePlusAvg(base)
 		// new(UpdateScadaMinutes).Generate(base)
 		// new(UpdateScadaMinutes).GenerateDensity(base)
-		new(UpdateScadaMinutes).UpdateOkTime(base)
+		// new(UpdateScadaMinutes).UpdateOkTime(base)
 		// new(UpdateProjectScadaAndAlarm).Generate(base)
 
 		// new(ConvJMRBreakup).Generate(base)
@@ -84,7 +84,7 @@ func main() {
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
 		// NewUpdateOEMToScada(base).RunMapping() // step 1
 
