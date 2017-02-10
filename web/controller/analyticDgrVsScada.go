@@ -135,7 +135,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	sGridavail := 0.0
 	sMachineavail := 0.0
 	sTrueavail := 0.0
-
+	totalTimeStamp := 0
 	scadaDataAvailable := true
 
 	if len(list) > 0 {
@@ -158,6 +158,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		sTrueavail = (sOktime / 3600) / (totalTurbine * hourValue) * 100
 
 		minutes := scada.GetFloat64("minutes") / 60
+		totalTimeStamp = scada.GetInt("totaltimestamp")
 		sMachineavail = (minutes - (scada.GetFloat64("machinedowntime"))/3600) / (totalTurbine * hourValue) * 100
 		sGridavail = (minutes - (scada.GetFloat64("griddowntime"))/3600) / (totalTurbine * hourValue) * 100
 	} else {
@@ -167,6 +168,13 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	scadaItem.power = sPower
 	scadaItem.energy = sEnergy
 	scadaItem.windspeed = sWindspeed
+
+	maxCount10min := int(totalTurbine) * 144 * tk.ToInt(tk.Div(tEnd.Sub(tStart).Hours(), 24), tk.RoundingUp)
+
+	if totalTimeStamp < maxCount10min {
+		sDowntime += tk.Div(tk.ToFloat64((maxCount10min-totalTimeStamp), 0, tk.RoundingAuto)*600.0, 3600.0)
+	}
+
 	scadaItem.downtime = sDowntime
 	scadaItem.plf = sPlf
 	scadaItem.gridavail = sGridavail
