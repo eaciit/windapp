@@ -6,6 +6,17 @@
   -webkit-border-radius: 0ex;
 }
 
+#gridTurbineCorrelation tr:hover {
+  background: transparent;
+  color:#585555;
+}
+ 
+#gridTurbineCorrelation tr.k-alt:hover {
+  background: transparent;
+  color:#585555;
+}
+
+
 #gridTurbineCorrelation ::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   -webkit-border-radius: 0ex;

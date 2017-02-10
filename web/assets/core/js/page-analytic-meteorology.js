@@ -54,6 +54,10 @@ var color = ["#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
     "#FFEE58", "#004D40", "#212121", "#607D8B", "#BDBDBD", "#FF00CC", "#9999FF"
 ];
 
+pm.newData = ko.observableArray([]);
+pm.Column = ko.observableArray([]);
+pm.datas = ko.observableArray([]);
+
 pm.isMet = ko.observable(true);
 pm.isFirstAverage = ko.observable(true);
 pm.isFirstWindRose = ko.observable(true);
@@ -432,6 +436,28 @@ pm.Temperature = function(){
 
 }
 
+pm.getBackground = function(index, da){
+    var color = 'white';
+    var opacity = 1;
+
+    var rgba = 'rgba(255,255,255)';
+    if(pm.newData().length != 0){
+        if (da in pm.newData()[index]){
+            color = pm.newData()[index][da].Color;
+            opacity = pm.newData()[index][da].Opacity
+            if(color == "red") { 
+                rgba = 'rgba(255,0,0,'+opacity+')';
+            }else if(color == "green"){
+                 rgba = 'rgba(0,128,0,'+opacity+')';
+            }else{
+                 rgba = 'rgba(255,255,255,'+opacity+')';
+            }
+        }
+    }
+    
+    return rgba;
+}
+
 // Turbine Correlation
 pm.TurbineCorrelation = function(){
     app.loading(true);
@@ -447,14 +473,22 @@ pm.TurbineCorrelation = function(){
         };
         var dataSource;
         var columns;
-        toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getwindcorrelation", param, function (res) {
+        var heat;
+         toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getwindcorrelation", param, function (res) {
             if (!app.isFine(res)) {
                 app.loading(false);
                 return;
             }
             dataSource = res.data.Data;
-            columns = res.data.Column
-            
+            columns = res.data.Column;
+            heat = res.data.Heat;
+
+            pm.datas(dataSource);
+            pm.newData(heat);
+            pm.Column(columns);
+
+
+
             var schemaModel = {};
             var columnArray = [];
 
@@ -466,10 +500,12 @@ pm.TurbineCorrelation = function(){
                     field: da,
                     locked: (da == "Turbine" ? true : false),
                     headerAttributes: {
-                        style: "text-align: center"
+                        style: "text-align: center;",
                     },
                     attributes: {
-                        style: "text-align:center;"
+                        style: "text-align:center",
+                        turbine: da,
+                        index: index,
                     },
                     width: 70,
                     template:( da != "Turbine" ? "#= kendo.toString("+da+", 'n2') #" : "#= kendo.toString("+da+") #")
@@ -496,12 +532,32 @@ pm.TurbineCorrelation = function(){
                 filterable: false,
                 sortable: false,
                 dataBound: function (e) {
+                    
+                    var ini = this.wrapper;
+                    $.each(pm.Column(), function(i, col){
+                        var columns = e.sender.columns;
+                        var columnIndex = ini.find(".k-grid-header [data-field=" + col + "]").index();
+
+                        // iterate the data items and apply row styles where necessary
+                        var dataItems = e.sender.dataSource.view();
+                        for (var j = 0; j < dataItems.length; j++) {
+
+                            var units = dataItems[j].get(col);
+      
+                            var row = e.sender.tbody.find("[data-uid='" + dataItems[j].uid + "']");
+                            var cell = row.children().eq(columnIndex);
+
+                            cell.css({"background": pm.getBackground(j,col)});
+                        }
+                    });
+
+
                     if (e.sender._data.length == 0) {
                         var mgs, col;
                         mgs = "No results found for";
                         col = 9;
                         var contentDiv = this.wrapper.children(".k-grid-content"),
-                     dataTable = contentDiv.children("table");
+                        dataTable = contentDiv.children("table");
                         if (!dataTable.find("tr").length) {
                             dataTable.children("tbody").append("<tr><td colspan='" + col + "'><div style='color:red;width:500px'>" + mgs + "</div></td></tr>");
                             if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
@@ -509,7 +565,8 @@ pm.TurbineCorrelation = function(){
                                 contentDiv.scrollLeft(1);
                             }
                         }
-                    }  
+                    }
+                    
                 },
                 pageable: false,
                 scrollable: true,
