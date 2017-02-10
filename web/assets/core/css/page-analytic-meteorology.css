@@ -189,6 +189,10 @@ label.summary-number {
     margin-right: 2px;
 }
 
+#legend-list {
+	margin-top: 2px;
+}
+
 #legend-list-comparison button {
     padding-right: 10px;
     margin-left: 10px;
@@ -246,10 +250,10 @@ label.summary-number {
 
 .title-zoom-part {
 	text-align: center;
-	margin-bottom: 5px;
-	margin-top: 5px;
+	margin-bottom: 2px;
+	margin-top: 0px;
 	font-family: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
-	font-size: 24px;
+	font-size: 20px;
 }
 
 .modal-footer {
@@ -263,7 +267,16 @@ label.summary-number {
 
 .modal-body {
     padding-right: 15px;
-    padding-top: 15px;
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-bottom: 10px;
+    text-align: right;
+    border-top: 0px solid #e5e5e5; 
+}
+
+.panel-body {
+    padding-right: 15px;
+    padding-top: 5px;
     padding-left: 15px;
     padding-bottom: 2px;
     text-align: right;
@@ -272,4 +285,13 @@ label.summary-number {
 
 .link-zoom:hover{
 	cursor: pointer;
+}
+
+.span-legend {
+	font-size: 11px;
+	font-weight: bold;
+}
+
+.sector-part {
+	margin-bottom: 5px;
 }

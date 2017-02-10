@@ -128,6 +128,7 @@ wrb.initChartWRC = function () {
         },
         yAxis: {
         	labels: {
+        		template: kendo.template("#= kendo.toString(value, 'n0') #%"),
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
         },
