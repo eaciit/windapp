@@ -59,14 +59,14 @@ wr.showHideLegendZoom = function (idxLegend) {
 wr.ZoomChart = function(divID){
     $("#modalDetail").on("shown.bs.modal", function () { 
         /*WINDROSE LEGEND INITIAL*/
-        var idxChart = "#"+divID;
+        var idxChart = "#"+divID.replace("btn-zoom-", "chart-");
         var indexChart = 0;
         $.each(listOfChart, function (idx, idChart) {
             if(idChart == idxChart){
                 indexChart = idx;
             }
         });
-        var titleZoom = divID.replace("chart-", "Chart ");
+        var titleZoom = divID.replace("btn-zoom-", "");
         if(titleZoom.indexOf("MetTower") > 0) {
             titleZoom = "Chart Met Tower";
         }

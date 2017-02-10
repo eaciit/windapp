@@ -295,3 +295,10 @@ label.summary-number {
 .sector-part {
 	margin-bottom: 5px;
 }
+
+.btn-zoom {
+	position: relative;
+	left: -30px;
+	top: 30px;
+	z-index: 10;
+}
