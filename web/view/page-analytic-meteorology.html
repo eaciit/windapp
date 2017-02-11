@@ -26,7 +26,7 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="pm.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
+							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="aw.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
 							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.WindRose()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
 							<li id="windroseComparisonTab" role="presentation"><a href="#windrosecomparison" aria-controls="Wind Rose" role="tab" onclick="wrb.WindRoseComparison()" data-toggle="tab" class="tab-custom">Wind Rose Comparison</a></li>
 							<li id="winddistributionTab" role="presentation"><a onclick="wd.WindDis()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
@@ -56,10 +56,7 @@
 								<div class="col-md-12">
 									<div id="averageWindSpeedChart"></div>
 								</div>-->
-								<div class="col-md-12">
-									<div id="gridAvgWs"></div>
-									<div class="clearfix">&nbsp;</div>
-								</div>
+								{{template "average-windspeed.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
 								{{template "windrose.html"}}
