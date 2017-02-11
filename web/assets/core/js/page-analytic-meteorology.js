@@ -38,8 +38,6 @@ var listOfCategory = [
     { "category": "20m/s and above", "color": colorFieldsWR[5] },
 ];
 
-pm.turbineList = ko.observableArray([]);
-pm.turbine = ko.observableArray([]);
 pm.valueCategory = ko.observableArray([
     { "value": "powerGeneration", "text": "Power Generation (MW)" },
     { "value": "machine", "text": "Machine Availability" },
@@ -67,6 +65,7 @@ pm.isFirstTemperature = ko.observable(true);
 pm.isFirstTurbine = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
+pm.isFirstMTBF = ko.observable(true);
 
 
 pm.loadData = function () {
@@ -92,6 +91,9 @@ pm.loadData = function () {
 
         availDateList.startScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[0]).format('DD-MMMM-YYYY'));
         availDateList.endScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[1]).format('DD-MMMM-YYYY'));
+
+        availDateList.startScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[0]).format('DD-MMMM-YYYY'));
+        availDateList.endScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[1]).format('DD-MMMM-YYYY'));
 
         availDateList.availabledatestartmet = kendo.toString(moment.utc(res.data.MET[0]).format('DD-MMMM-YYYY'));
         availDateList.availabledateendmet = kendo.toString(moment.utc(res.data.MET[1]).format('DD-MMMM-YYYY'));
@@ -186,253 +188,6 @@ pm.AverageWindSpeed = function() {
             app.loading(false);
         }, 300);
     }
-
-}
-
-// WIND DISTRIBUTION
-pm.populateTurbine = function(){
-    pm.turbine([]);
-    if(fa.turbine == ""){
-        $.each(fa.turbineList(), function(i, val){
-            if (i > 0){
-                pm.turbine.push(val.text);
-            }
-        });
-    }else{
-        pm.turbine(fa.turbine);
-    }
-
-}
-
-pm.InitRightTurbineList= function () {
-    if (pm.turbine().length > 0) {
-        pm.turbineList([]);
-        $.each(pm.turbine(), function (i, val) {
-            var data = {
-                color: color[i],
-                turbine: val
-            }
-
-            pm.turbineList.push(data);
-        });
-    }
-
-    if (pm.turbineList().length > 1) {
-        $("#showHideChk").html('<label>' +
-            '<input type="checkbox" id="showHideAll" checked onclick="pm.showHideAllLegend(this)" >' +
-            '<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>' +
-            '<span id="labelShowHide"><b>Select All</b></span>' +
-            '</label>');
-    } else {
-        $("#showHideChk").html("");
-    }
-
-    $("#right-turbine-list").html("");
-    $.each(pm.turbineList(), function (idx, val) {
-        $("#right-turbine-list").append('<div class="btn-group">' +
-            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="pm.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
-            '<input class="chk-option" type="checkbox" name="' + val.turbine + '" checked id="chk-' + (idx) + '" hidden>' +
-            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="pm.showHideLegend(' + (idx) + ')" type="button">' + val.turbine + '</button>' +
-            '</div>');
-    });
-}
-
-pm.ChartWindDistributon =  function () {
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project
-    };
-
-    toolkit.ajaxPost(viewModel.appName + "analyticwinddistribution/getlist", param, function (res) {
-        if (!app.isFine(res)) {
-            app.loading(false);
-            return;
-        }
-
-        if (pm.turbine().length == 0) {
-            var turbine = []
-            for (var i=0;i<res.data.Data.length;i++) {
-                if ($.inArray( res.data.Data[i].Turbine, turbine ) == -1){
-                    turbine.push(res.data.Data[i].Turbine);
-                }
-            }
-
-            $.each(turbine, function (i, val) {
-                var data = {
-                    color: color[i],
-                    turbine: val
-                }
-
-                pm.turbineList.push(data);
-            });
-        }
-
-        $('#windDistribution').html("");
-        var data = res.data.Data;
-
-        $("#windDistribution").kendoChart({
-            dataSource: {
-                data: data,
-                group: { field: "Turbine" },
-                sort: { field: "Category", dir: 'asc' }
-            },
-            theme: "flat",
-            title: {
-                text: ""
-            },
-            legend: {
-                position: "right",
-                visible: false
-            },
-            chartArea: {
-                height: 360
-            },
-            series: [{
-                type: "line",
-                style: "smooth",
-                field: "Contribute",
-                // opacity : 0.7,
-                markers: {
-                    visible: true,
-                    size: 3,
-                }
-            }],
-            seriesColors: color,
-            valueAxis: {
-                labels: {
-                    format: "{0:p0}",
-                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                },
-                line: {
-                    visible: true
-                },
-                axisCrossingValue: -10,
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                }
-            },
-            categoryAxis: {
-                field: "Category",
-                majorGridLines: {
-                    visible: false
-                },
-                labels: {
-                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    // rotation: 25
-                },
-                majorTickType: "none"
-            },
-            tooltip: {
-                visible: true,
-                // template: "Contribution of #= series.name # : #= kendo.toString(value, 'n4')# % at #= category #",
-                template: "#= kendo.toString(value, 'p2')#",
-                // shared: true,
-                background: "rgb(255,255,255, 0.9)",
-                color: "#58666e",
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                border: {
-                    color: "#eee",
-                    width: "2px",
-                },
-
-            },
-            dataBound: function(){
-                app.loading(false);
-                pm.isFirstWindDis(false);
-            }
-        });
-
-        pm.InitRightTurbineList();
-
-        // app.loading(false);
-        $("#windDistribution").data("kendoChart").refresh();
-    });
-}
-
-pm.showHideAllLegend = function (e) {
-
-    if (e.checked == true) {
-        $('.fa-check').css("visibility", 'visible');
-        $.each(pm.turbine(), function (i, val) {
-            if($("#windDistribution").data("kendoChart").options.series[i] != undefined){
-                $("#windDistribution").data("kendoChart").options.series[i].visible = true;
-            }
-        });
-        /*$('#labelShowHide b').text('Untick All Turbines');*/
-        $('#labelShowHide b').text('Select All');
-    } else {
-        $.each(pm.turbine(), function (i, val) {
-            if($("#windDistribution").data("kendoChart").options.series[i] != undefined){
-                $("#windDistribution").data("kendoChart").options.series[i].visible = false;
-            }  
-        });
-        $('.fa-check').css("visibility", 'hidden');
-        /*$('#labelShowHide b').text('Tick All Turbines');*/
-        $('#labelShowHide b').text('Select All');
-    }
-    $('.chk-option').not(e).prop('checked', e.checked);
-
-    $("#windDistribution").data("kendoChart").redraw();
-}
-
-pm.showHideLegend = function (idx) {
-    var stat = false;
-
-    $('#chk-' + idx).trigger('click');
-    var chart = $("#windDistribution").data("kendoChart");
-    var leTur = $('input[id*=chk-][type=checkbox]').length
-
-    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
-        $('#showHideAll').prop('checked', true);
-    } else {
-        $('#showHideAll').prop('checked', false);
-    }
-
-    if ($('#chk-' + idx).is(':checked')) {
-        $('#icon-' + idx).css("visibility", "visible");
-    } else {
-        $('#icon-' + idx).css("visibility", "hidden");
-    }
-
-    if ($('#chk-' + idx).is(':checked')) {
-        $("#windDistribution").data("kendoChart").options.series[idx].visible = true
-    } else {
-        $("#windDistribution").data("kendoChart").options.series[idx].visible = false
-    }
-    $("#windDistribution").data("kendoChart").redraw();
-}
-
-pm.WindDis = function(){
-    app.loading(true);
-    fa.LoadData();
-    if(pm.isFirstWindDis() === true){
-        pm.populateTurbine();
-        pm.ChartWindDistributon();
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-    }else{
-        app.loading(false);
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        setTimeout(function () {
-            $('#windDistribution').data('kendoChart').refresh();
-            app.loading(false);
-        }, 100);
-    }
-}
-
-// Turbulence
-pm.Turbulence = function(){
-
-}
-
-// Temperature and Season Plots
-pm.Temperature = function(){
 
 }
 
@@ -615,6 +370,7 @@ pm.resetStatus= function(){
     pm.isFirstWindRose(true);
     pm.isFirstWindDis(true);
     pm.isFirstTurbulence(true);
+    pm.isFirstMTBF(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstTwelve(true);

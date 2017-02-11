@@ -14,30 +14,17 @@ var ti = {
 	    app.loading(true);
 	    fa.LoadData();
 	    if(pm.isFirstTurbulence() === true){
-	        var param = {
-	            period: fa.period,
-	            Turbine: fa.turbine,
-	            DateStart: fa.dateStart,
-	            DateEnd: fa.dateEnd,
-	            Project: fa.project
-	        };
+	        ti.RefreshchartTI();
+	        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+	        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
+	        $('#availabledatestart').html(metDate);
+	        $('#availabledateend').html(scadaDate);
 
-	        toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/averagewindspeed", param, function (res) {
-	            if (!app.isFine(res)) {
-	                return;
-	            }
-	            ti.RefreshchartTI();
-	            pm.isFirstTurbulence(false);
-	            var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
-		        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
-		        $('#availabledatestart').html(metDate);
-		        $('#availabledateend').html(scadaDate);
-	        });        
 	    }else{
 	        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
-		        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
-		        $('#availabledatestart').html(metDate);
-		        $('#availabledateend').html(scadaDate);
+	        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
+	        $('#availabledatestart').html(metDate);
+	        $('#availabledateend').html(scadaDate);
 	        setTimeout(function(){
 	            $("#chartTI").data("kendoChart").refresh();
 	            app.loading(false);
@@ -54,6 +41,8 @@ var ti = {
             Project: fa.project
         };
 		toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getturbulenceintensity", param, function (data) {
+            pm.isFirstTurbulence(false);
+
 			var width = $(".main-header").width()
 	        // var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
 	        pm.ChartSeriesturbulence(data.ChartSeries)
@@ -83,7 +72,7 @@ var ti = {
 			    series: data.ChartSeries,
 			    valueAxis: [{
                     labels: {
-                        format: "N0",
+                        format: "N2",
                     }
                 }],
                 xAxis: {
@@ -122,7 +111,7 @@ var ti = {
                         color: "#585555"
                     },
                     labels: {
-                        format: "N0",
+                        format: "N2",
                     },
                     axisCrossingValue: -5,
                     majorGridLines: {
@@ -134,7 +123,7 @@ var ti = {
                         visible: true,
                         tooltip: {
                             visible: true,
-                            format: "N1",
+                            format: "N2",
                             background: "rgb(255,255,255, 0.9)",
                             color: "#58666e",
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',

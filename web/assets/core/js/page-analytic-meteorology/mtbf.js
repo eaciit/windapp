@@ -2,6 +2,24 @@
 pm.dtMt = ko.observable();
 
 var mt = {
+	RefreshData: function() {
+	    app.loading(true);
+	    fa.LoadData();
+	    if(pm.isFirstMTBF() === true){
+	        mt.Refreshchartmt();
+	        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.startScadaOEM + '</strong> until: ');
+			$('#availabledateend').html('<strong>' + availDateList.endScadaOEM + '</strong>');
+
+	    }else{
+	        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.startScadaOEM + '</strong> until: ');
+			$('#availabledateend').html('<strong>' + availDateList.endScadaOEM + '</strong>');
+	        setTimeout(function(){
+	            $("#chartTI").data("kendoChart").refresh();
+	            app.loading(false);
+	        }, 300);
+	    }
+
+	},
 	
 	Refreshchartmt: function() {
 		app.loading(true);
@@ -13,25 +31,8 @@ var mt = {
             Project: fa.project
         };
 
-		app.ajaxPost(viewModel.appName + "/databrowsernew/getscadadataoemavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //Scada Data
-            if (res.data.ScadaDataOEM.length == 0) {
-                res.data.ScadaDataOEM = [];
-            } else {
-                if (res.data.ScadaDataOEM.length > 0) {
-                    var minDatetemp = new Date(res.data.ScadaDataOEM[0]);
-                    var maxDatetemp = new Date(res.data.ScadaDataOEM[1]);
-					$('#availabledatestart').html('Data Available from: <strong>' + kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')) + '</strong> until: ');
-					$('#availabledateend').html('<strong>' + kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')) + '</strong>');
-                }
-            }         
-        });
-
 		toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/GetListMtbf", param, function (data) {
+			pm.isFirstMTBF(false);
 
 			pm.dtMt(data)
 			var width = $(".main-header").width()
