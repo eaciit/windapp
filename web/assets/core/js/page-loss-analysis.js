@@ -23,7 +23,6 @@ pg.availabledateendalarm2 = ko.observable();
 pg.availabledatestartwarning = ko.observable();
 pg.availabledateendwarning = ko.observable();
 
-pg.dtCompponentAlarm = ko.observable();
 pg.labelAlarm = ko.observable("Downtime ");
 
 var SeriesAlarm =  [{
@@ -192,58 +191,6 @@ pg.Reliability = function(){
     }
 }
 
-pg.Component = function(){
-    app.loading(true)
-    fa.LoadData();
-    if(pg.isFirstComponentAlarm() === true){
-        var param = {
-            period: fa.period,
-            dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
-            dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
-            turbine: fa.turbine,
-            project: fa.project,
-        }
-
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getcomponentalarmtab", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            setTimeout(function(){
-                pg.dtCompponentAlarm(res.data)
-                var HAlarm = $('#filter-analytic').width() * 0.235
-                var wAll = $('#filter-analytic').width() * 0.275
-                var componentduration = _.sortBy(pg.dtCompponentAlarm().componentduration, '_id');
-                var componentfrequency = _.sortBy(pg.dtCompponentAlarm().componentfrequency, '_id');
-                var componentloss = _.sortBy(pg.dtCompponentAlarm().componentloss, '_id');
-
-                var id = $("#downtimeGroup .active").attr('id')
-
-                if(id == 'lblComp'){
-                    /*Component / Alarm Type Tab*/
-                    pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
-                    pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
-                    pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
-                }else{                    
-                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
-                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
-                    pg.GenChartDownAlarmComponent(pg.dtCompponentAlarm().alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
-                }
-
-                app.loading(false);
-                pg.isFirstComponentAlarm(false);
-            },300);
-        }); 
-    }else{
-        setTimeout(function(){
-            $('#availabledatestart').html(pg.availabledatestartalarm());
-            $('#availabledateend').html(pg.availabledateendalarm());
-            $("#chartCADuration").data("kendoChart").refresh();
-            $("#chartCAFrequency").data("kendoChart").refresh();
-            $("#chartCATurbineLoss").data("kendoChart").refresh();
-            app.loading(false);
-        },200); 
-    }
-}
 pg.resetStatus = function(){
     pg.isFirstStaticView(true);
     pg.isFirstDowntime(true);
@@ -303,7 +250,7 @@ $(function(){
         var HAlarm = $('#filter-analytic').width() * 0.235
         var wAll = $('#filter-analytic').width() * 0.275
     
-        var data = pg.dtCompponentAlarm()
+        var data = ca.dtCompponentAlarm()
         if(this.id == "alarm"){   
             SeriesAlarm =  [{
                 field: "result",
