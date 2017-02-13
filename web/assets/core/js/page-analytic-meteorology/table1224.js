@@ -27,10 +27,19 @@ tb.generateGridTable = function (datatype) {
     } else {
         dataSource = tb.dataSourceTable().DataMet;
     }
+
+    // var aggregates = [];
+
+    // $.each(dataSource[0].details[0].col, function (key, val) {
+    //     var aggregate = { field: key , aggregate: (key == "Power" ? "sum" : "average")};
+    //     aggregates.push(aggregate);
+    // });
+
     var config = {
         dataSource: {
             data: dataSource,
-            pageSize: 10
+            pageSize: 10,
+            // aggregate: aggregates
         },
         pageable: {
             pageSize: 10,
@@ -39,7 +48,7 @@ tb.generateGridTable = function (datatype) {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false},
         ],
          dataBound: function(){
             setTimeout(function(){
@@ -49,7 +58,7 @@ tb.generateGridTable = function (datatype) {
             },200);
         },
     };
-
+    console.log(config);
     $.each(dataSource[0].details, function (i, val) {
         var column = {
             title: val.time,
@@ -72,8 +81,9 @@ tb.generateGridTable = function (datatype) {
             } else if(key == "Temp") {
                 title = key + " (" + String.fromCharCode(176) + "C)";
             } else {
-                title = key + " (kWH)";
+                title = key + " (MWH)";
             }
+
             var colChild = {
                 title: title,                
                 field: "details["+i+"].col."+ key,
@@ -83,7 +93,9 @@ tb.generateGridTable = function (datatype) {
                     style: 'font-weight: bold; text-align: center;',
                 },
                 format: "{0:n2}",
-                filterable: false, 
+                // filterable: false, 
+                // footerTemplate: (key == "Power" ? "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"  : "<div style='text-align:center'>#=kendo.toString(average, 'n2')#</div>"  )
+                // footerTemplate: "<div>#= kendo.toString(data.details["+i+"].col."+ key+".sum,'n2') # </div>"
             };
             column.columns.push(colChild);
         });
@@ -192,15 +204,17 @@ tb.Table = function(){
             }
         });
     }else{
-        if($("#met").is(':checked')) {
-            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
-            $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
-        } else {
-            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        }
         setTimeout(function(){
-            tb.generateGridTable(datatype);
-        }, 300);
+            tb.refreshTable(datatype);
+            if($("#met").is(':checked')) {
+                pm.isMet(true);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
+            } else {
+                 pm.isMet(false);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+            }
+        },300);
     }
 }
