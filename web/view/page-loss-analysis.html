@@ -59,7 +59,7 @@
 <!-- 
 							<li id="analysisTab" role="presentation"><a onclick="pg.refreshGrid();" href="#analysis" aria-controls="Analysis" role="tab" data-toggle="tab" class="tab-custom">Analysis</a></li>
  -->
-							<li id="availabilityTab" role="presentation"><a onclick="pg.Availability()" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
+							<li id="availabilityTab" role="presentation"><a onclick="av.Availability()" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
 
 							<li id="lostenergyTab" role="presentation"><a onclick="pg.LossEnergy()" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
 
@@ -78,6 +78,9 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="top10downtime">
                                 {{template "downtime.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="availability">
+								{{template "availability.html"}}
 							</div>
  
 							<div role="tabpanel" class="tab-pane" id="analysis">
@@ -134,25 +137,6 @@
 											<div id="chartLCByFreq"></div>
 										</div>
 									</div>
-								</div>
-							</div>
-							<div role="tabpanel" class="tab-pane" id="availability">
-
-								<div class="col-md-3 col-md-offset-9 ontop">
-									<span class="pull-right">
-                                        <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
-									<select class="form-control input-sm" id="breakdownlistavail"></select>
-									</span>
-								</div>
-								<div class="col-md-12"> 
-									<div class="clearfix">&nbsp;</div>
-									<br>
-									<div id="availabilityChart"></div>
-								</div>
-								<div class="col-md-12">
-									<div class="clearfix">&nbsp;</div>
-									<br>
-									<div id="productionChart"></div>
 								</div>
 							</div>
 
