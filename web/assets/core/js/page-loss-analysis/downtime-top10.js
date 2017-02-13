@@ -2,6 +2,28 @@
 
 viewModel.Downtime = new Object();
 var dt = viewModel.Downtime;
+var SeriesDowntime = [{
+    field: "AEBOK",
+    name: "AEBOK"
+}, {
+    field: "ExternalStop",
+    name: "External Stop"
+}, {
+    field: "GridDown",
+    name: "Grid Down"
+}, {
+    field: "InternalGrid",
+    name: "InternalGrid"
+}, {
+    field: "MachineDown",
+    name: "Machine Down"
+}, {
+    field: "WeatherStop",
+    name: "Weather Stop"
+}, {
+    field: "Unknown",
+    name: "Unknown"
+}]
 
 dt.Downtime = function(){
     app.loading(true);

@@ -67,7 +67,7 @@
 
 							<li id="windspeedavailTab" role="presentation"><a onclick="wa.WindSpeed()" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
 							
-							<li id="warningTab" role="presentation"><a onclick="pg.Warning()" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
+							<li id="warningTab" role="presentation"><a onclick="wf.Warning()" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
 
 							<li id="CompAlarmTab" role="presentation"><a onclick="pg.Component()" href="#CompAlarm" aria-controls="ComponentAlarmType" role="tab" data-toggle="tab" class="tab-custom">Component / Alarm Type</a></li> <!-- onclick="pg.refreshGrid('CompAlarm');"  -->
 						</ul>
@@ -77,7 +77,7 @@
 								{{template "static-view.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="top10downtime">
-                                {{template "downtime.html"}}
+                                {{template "downtime-top10.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="availability">
 								{{template "availability.html"}}
@@ -92,6 +92,9 @@
 
 							<div role="tabpanel" class="tab-pane" id="windspeedavail">
 								{{template "windspeed-availability.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="warning">
+								{{template "warning-frequency.html"}}
 							</div>
  
 							<div role="tabpanel" class="tab-pane" id="analysis">
@@ -146,10 +149,6 @@
 										</div>
 									</div>                               	
                                 </div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="warning">
-								<div id="warningGrid" class="grid-custom"></div>
 							</div>
 						</div>
 					</div>
