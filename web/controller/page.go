@@ -223,6 +223,7 @@ func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-analytic.html",
 		"page-loss-analysis/static-view.html",
+		"page-loss-analysis/downtime.html",
 	}...)
 	r.Config.ViewName = "page-loss-analysis.html"
 
