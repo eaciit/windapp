@@ -46,6 +46,8 @@ ca.Component = function(){
                 pg.isFirstComponentAlarm(false);
             },300);
         }); 
+        $('#availabledatestart').html(pg.availabledatestartalarm());
+        $('#availabledateend').html(pg.availabledateendalarm());
     }else{
         setTimeout(function(){
             $('#availabledatestart').html(pg.availabledatestartalarm());
