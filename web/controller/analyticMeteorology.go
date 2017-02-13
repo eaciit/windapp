@@ -485,10 +485,16 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	}
 	tablenameMet := new(MetTower).TableName()
 
-	dataTurbine := processTableData(groupTurbine, matchTurbine, tablenameTurbine, "turbine")
-	dataMet := processTableData(groupMet, matchMet, tablenameMet, "met")
+	dataTurbine, totalTurbine, e := processTableData(groupTurbine, matchTurbine, tablenameTurbine, "turbine")
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	dataMet, totalMet, e := processTableData(groupMet, matchMet, tablenameMet, "met")
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	result := tk.M{"DataTurbine": dataTurbine, "DataMet": dataMet}
+	result := tk.M{"DataTurbine": dataTurbine, "DataMet": dataMet, "TotalTurbine": totalTurbine, "TotalMet": totalMet}
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -577,10 +583,11 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 	return helper.CreateResult(true, datas, "success")
 }
 
-func processTableData(group, match tk.M, tablename, dataType string) (data []tk.M) {
+func processTableData(group, match tk.M, tablename, dataType string) (data []tk.M, totalData []tk.M, e error) {
 	var (
-		pipes []tk.M
-		list  []tk.M
+		pipes      []tk.M
+		list       []tk.M
+		pipesTotal []tk.M
 	)
 	groupID := tk.M{}                           /*inside _id group*/
 	groupID.Set("monthid", "$dateinfo.monthid") /*for sorting purpose*/
@@ -600,13 +607,11 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 	if e != nil {
 		return
 	}
-
 	e = csr.Fetch(&list, 0, false)
 	if e != nil {
 		return
 	}
-
-	csr.Close()
+	defer csr.Close()
 
 	// combine
 
@@ -665,6 +670,31 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 			"hours":   val,
 			"details": tmpRes[val],
 		})
+	}
+
+	group.Set("_id", "$dateinfo.monthid")
+	pipesTotal = append(pipesTotal, tk.M{"$match": match})
+	pipesTotal = append(pipesTotal, tk.M{"$group": group})
+	pipesTotal = append(pipesTotal, tk.M{"$sort": tk.M{"_id": 1}})
+
+	csrTotal, e := DB().Connection.NewQuery().
+		From(tablename).
+		Command("pipe", pipesTotal).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	e = csrTotal.Fetch(&totalData, 0, false)
+	if e != nil {
+		return
+	}
+	defer csrTotal.Close()
+
+	for idx := range totalData {
+		if dataType == "turbine" {
+			totalData[idx].Set("power", totalData[idx].GetFloat64("power")/1000)
+		}
 	}
 
 	return
