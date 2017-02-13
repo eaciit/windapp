@@ -61,7 +61,7 @@
  -->
 							<li id="availabilityTab" role="presentation"><a onclick="av.Availability()" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
 
-							<li id="lostenergyTab" role="presentation"><a onclick="pg.LossEnergy()" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
+							<li id="lostenergyTab" role="presentation"><a onclick="le.LossEnergy()" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
 
 							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.Reliability()" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
 
@@ -81,6 +81,9 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="availability">
 								{{template "availability.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="lostenergy">
+								{{template "lost-energy.html"}}
 							</div>
  
 							<div role="tabpanel" class="tab-pane" id="analysis">
@@ -104,42 +107,6 @@
 									<div id="windAvailabilityChart"></div>
 								</div>
 							</div>
-
-							<div role="tabpanel" class="tab-pane" id="lostenergy">
-								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading ph-availability">Lost Energy (MWh) by Down Time Type</div>
-										<div class="panel-body">
-											<div id="chartDTLEbyType"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Loss Categories by Total Energy Loss (MWh)</div>
-										<div class="panel-body">
-											<div id="chartLCByTEL"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6 margin-bottom-30 margin-top-10" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Loss Categories by Duration (Hours)</div>
-										<div class="panel-body">
-											<div id="chartLCByDuration"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6 margin-bottom-30 margin-top-10" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Loss Categories by Frequency</div>
-										<div class="panel-body">
-											<div id="chartLCByFreq"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-
 							<!-- Component Alarm Tab -->
 							<div role="tabpanel" class="tab-pane" id="CompAlarm">
 								<div class="col-md-12 Tcenter">
