@@ -85,101 +85,6 @@ pg.LoadData = function(){
     }
     pg.getDataAvailableInfo();
 }
-pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
-
-    $("#" + id).kendoChart({
-        dataSource: {
-            data: dataSource,
-            sort: [
-                { "field": "Total", "dir": "desc" }
-            ],
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: legend,
-            labels: {              
-                template: "#: kendo.toString(replaceString(text))#",
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-        },
-        chartArea: {
-            height: heightParam, 
-            width: wParam, 
-            padding: 0,
-            margin: 0
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: true,
-            labels: {
-                        visible: vislabel,
-                        background: "transparent",
-                        template: "#= category #: \n #= kendo.format('{0:" + format + "}', value)# " + axisLabel,
-                    }
-        },
-        series: Series,
-        seriesColors: colorField,
-        valueAxis: {
-            title: {
-                text: axisLabel,
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            labels: {
-                step: 2,
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            // visible: legend,
-            field: "_id",
-            title: {
-                text: name,
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                rotation: rotate,                
-                template: "#: kendo.toString(replaceString(value))#",
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            majorTickType: "none",
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:n1}",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: kendo.toString(replaceString(category)) #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-
-        },
-    });
-
-    setTimeout(function () {
-        if ($("#" + id).data("kendoChart") != null) {
-            $("#" + id).data("kendoChart").refresh();
-        }
-    }, 100);
-}
 
 pg.Reliability = function(){
     if(pg.isFirstReliability() === true){
@@ -257,9 +162,9 @@ $(function(){
                 name: "Downtime"
             }]             
             // ===== Alarm =====
-            pg.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
-            pg.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
-            pg.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
+            dt.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Top 10 Downtime")
         }else{     
@@ -272,9 +177,9 @@ $(function(){
             var componentduration = _.sortBy(data.componentduration, '_id');
             var componentfrequency = _.sortBy(data.componentfrequency, '_id');
             var componentloss = _.sortBy(data.componentloss, '_id');
-            pg.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
-            pg.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
-            pg.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
+            dt.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Downtime")
         }
