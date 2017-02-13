@@ -39,23 +39,6 @@
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="avgwindspeed">
-								<!--<div class="col-md-12">
-									<div class="col-md-3 col-xs-12">
-										<label class="control-label keyA-label">Series Breakdown</label>
-										<select id="seriesBreakdown" data-bind="kendoDropDownList: { data: aws.SeriesBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
-											style="width:120px;">
-		                                </select>&nbsp;
-									</div>
-									<div class="col-md-3 col-xs-12">
-										<label class="control-label keyA-label">Time Breakdown</label>
-										<select id="timeBreakdown" data-bind="kendoDropDownList: { data: aws.TimeBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
-											style="width:120px;">
-		                                </select>&nbsp;
-									</div>
-								</div>
-								<div class="col-md-12">
-									<div id="averageWindSpeedChart"></div>
-								</div>-->
 								{{template "average-windspeed.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
@@ -67,7 +50,6 @@
 							<div role="tabpanel" class="tab-pane" id="winddistribution">
 								{{template "wind-distribution.html"}}
 							</div>
-
 							<div role="tabpanel" class="tab-pane" id="turbulenceintencity">
 								{{template "turbulence-intensity.html"}}
 							</div>
@@ -78,15 +60,11 @@
 								{{template "turbine-correlation.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="table1224">
-
-
 								{{template "table1224.html"}}
 							</div>
-
 							<div role="tabpanel" class="tab-pane" id="mtbf">
 								{{template "mtbf.html"}}
 							</div>
-
 						</div>
 					</div>
 				</div>
