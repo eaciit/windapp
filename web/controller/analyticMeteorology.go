@@ -476,7 +476,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	groupTurbine := tk.M{
 		"windspeed": tk.M{"$avg": "$avgwindspeed"},
 		"temp":      tk.M{"$avg": "$nacelletemperature"},
-		"power":     tk.M{"$avg": "$power"},
+		"power":     tk.M{"$sum": "$power"},
 	}
 	tablenameTurbine := new(ScadaData).TableName()
 	groupMet := tk.M{
@@ -627,7 +627,7 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 		}
 		power := 0.0
 		if dataType == "turbine" {
-			power = val.GetFloat64("power")
+			power = val.GetFloat64("power") / 1000
 		}
 
 		hours := id.GetString("hours")
