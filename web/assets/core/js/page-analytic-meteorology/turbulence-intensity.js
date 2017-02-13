@@ -13,6 +13,7 @@ var ti = {
 	RefreshData: function() {
 	    app.loading(true);
 	    fa.LoadData();
+	    pm.showFilter();
 	    if(pm.isFirstTurbulence() === true){
 	        ti.RefreshchartTI();
 	        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'

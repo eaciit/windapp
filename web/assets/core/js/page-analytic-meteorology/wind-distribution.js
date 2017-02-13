@@ -226,6 +226,7 @@ wd.showHideLegend = function (idx) {
 wd.WindDis = function(){
     app.loading(true);
     fa.LoadData();
+    pm.showFilter();
     if(pm.isFirstWindDis() === true){
         wd.populateTurbine();
         wd.ChartWindDistributon();

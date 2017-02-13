@@ -22,24 +22,21 @@ tb.generateGridTable = function (datatype) {
     $('#gridTable1224').html('');
 
     var dataSource = [];
+    var total = [];
+
     if(datatype == "turbine") {
         dataSource = tb.dataSourceTable().DataTurbine;
+        total = tb.dataSourceTable().TotalTurbine;
     } else {
         dataSource = tb.dataSourceTable().DataMet;
+        total = tb.dataSourceTable().TotalMet;
     }
 
-    // var aggregates = [];
-
-    // $.each(dataSource[0].details[0].col, function (key, val) {
-    //     var aggregate = { field: key , aggregate: (key == "Power" ? "sum" : "average")};
-    //     aggregates.push(aggregate);
-    // });
 
     var config = {
         dataSource: {
             data: dataSource,
             pageSize: 10,
-            // aggregate: aggregates
         },
         pageable: {
             pageSize: 10,
@@ -48,7 +45,7 @@ tb.generateGridTable = function (datatype) {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false},
+            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false,footerTemplate: "<center>Total</center>"},
         ],
          dataBound: function(){
             setTimeout(function(){
@@ -58,7 +55,7 @@ tb.generateGridTable = function (datatype) {
             },200);
         },
     };
-    console.log(config);
+
     $.each(dataSource[0].details, function (i, val) {
         var column = {
             title: val.time,
@@ -76,11 +73,15 @@ tb.generateGridTable = function (datatype) {
 
         $.each(keyIndex, function(j, key){
             var title = "";
+            var totalSum;
             if(key == "WS") {
                 title = key + " (m/s)";
+                totalSum = total[i].windspeed
             } else if(key == "Temp") {
                 title = key + " (" + String.fromCharCode(176) + "C)";
+                totalSum = total[i].temp;
             } else {
+                totalSum = total[i].power
                 title = key + " (MWH)";
             }
 
@@ -93,11 +94,11 @@ tb.generateGridTable = function (datatype) {
                     style: 'font-weight: bold; text-align: center;',
                 },
                 format: "{0:n2}",
-                // filterable: false, 
-                // footerTemplate: (key == "Power" ? "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"  : "<div style='text-align:center'>#=kendo.toString(average, 'n2')#</div>"  )
-                // footerTemplate: "<div>#= kendo.toString(data.details["+i+"].col."+ key+".sum,'n2') # </div>"
+                filterable: false, 
+                footerTemplate: "<div style='text-align:center'>#= kendo.toString("+totalSum+",'n2') # </div>"
             };
             column.columns.push(colChild);
+
         });
 
         config.columns.push(column);
@@ -169,6 +170,7 @@ tb.refreshTable = function(datatype){
 
 tb.Table = function(){
     app.loading(true);
+    pm.hideFilter();
     fa.LoadData();
     var datatype = '';
     if(pm.isFirstTwelve() === true){

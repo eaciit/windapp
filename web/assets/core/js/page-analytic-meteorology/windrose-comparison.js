@@ -153,6 +153,7 @@ wrb.initChartWRC = function () {
 wrb.WindRoseComparison = function(){
     app.loading(true);
     fa.LoadData();
+    pm.showFilter();
     if(pm.isFirstWindRoseComparison() === true){
         setTimeout(function () {
             // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();

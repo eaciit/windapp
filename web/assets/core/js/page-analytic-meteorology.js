@@ -106,7 +106,20 @@ pm.resetStatus= function(){
     pm.isFirstTwelve(true);
     pm.isFirstWindRoseComparison(true);
 }
-
+pm.showFilter = function(){
+    $("#periodList").closest(".k-widget").show();
+    $("#dateStart").closest(".k-widget").show();
+    $("#dateEnd").closest(".k-widget").show();
+    $(".control-label:contains('Period')").show();
+    $(".control-label:contains('to')").show();
+}
+pm.hideFilter = function(){
+    $("#periodList").closest(".k-widget").hide();
+    $("#dateStart").closest(".k-widget").hide();
+    $("#dateEnd").closest(".k-widget").hide();
+    $(".control-label:contains('Period')").hide();
+    $(".control-label:contains('to')").hide();
+}
 $(function(){
     pm.loadData();
     aw.AverageWindSpeed();

@@ -46,7 +46,7 @@ tc.getCss = function(index, da){
 tc.TurbineCorrelation = function(){
     app.loading(true);
     fa.LoadData();
-
+    pm.showFilter();
     if(pm.isFirstTurbine() === true){
         var param = {
             period: fa.period,

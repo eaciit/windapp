@@ -4,6 +4,7 @@ pm.dtMt = ko.observable();
 var mt = {
 	RefreshData: function() {
 	    app.loading(true);
+	    pm.showFilter();
 	    fa.LoadData();
 	    if(pm.isFirstMTBF() === true){
 	        mt.Refreshchartmt();
