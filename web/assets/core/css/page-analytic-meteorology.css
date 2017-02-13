@@ -246,7 +246,7 @@ label.summary-number {
     padding-top: 5px;
     padding-left: 15px;
     padding-bottom: 2px;
-    text-align: right;
+    text-align: left;
     border-top: 0px solid #e5e5e5; 
 }
 
@@ -268,4 +268,8 @@ label.summary-number {
 	left: -30px;
 	top: 30px;
 	z-index: 10;
+}
+
+.modal-footer {
+	border-top-color: #ffffff;
 }
