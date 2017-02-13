@@ -53,7 +53,7 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.StaticView()" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
+							<li id="staticViewTab" role="presentation" class="active"><a onclick="sv.StaticView()" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
 
 							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.Downtime()" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
 <!-- 
@@ -74,7 +74,7 @@
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="staticView">
-								<div id="lossGrid" class="grid-custom"></div>
+								{{template "static-view.html"}}
 							</div>
  
 							<div role="tabpanel" class="tab-pane" id="analysis">

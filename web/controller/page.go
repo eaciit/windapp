@@ -221,6 +221,9 @@ func (w *PageController) AnalyticKpi(r *knot.WebContext) interface{} {
 func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-analytic.html",
+		"page-loss-analysis/static-view.html",
+	}...)
 	r.Config.ViewName = "page-loss-analysis.html"
 
 	return w.GetParams(r, true)
