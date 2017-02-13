@@ -226,6 +226,7 @@ func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 		"page-loss-analysis/downtime.html",
 		"page-loss-analysis/availability.html",
 		"page-loss-analysis/lost-energy.html",
+		"page-loss-analysis/windspeed-availability.html",
 	}...)
 	r.Config.ViewName = "page-loss-analysis.html"
 

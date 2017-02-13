@@ -65,7 +65,7 @@
 
 							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.Reliability()" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
 
-							<li id="windspeedavailTab" role="presentation"><a onclick="pg.WindSpeed()" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
+							<li id="windspeedavailTab" role="presentation"><a onclick="wa.WindSpeed()" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
 							
 							<li id="warningTab" role="presentation"><a onclick="pg.Warning()" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
 
@@ -85,6 +85,14 @@
 							<div role="tabpanel" class="tab-pane" id="lostenergy">
 								{{template "lost-energy.html"}}
 							</div>
+
+							<div role="tabpanel" class="tab-pane" id="reliabilitykpi">
+								<div id="reliabilitykpi" class="grid-custom"></div>
+							</div>
+
+							<div role="tabpanel" class="tab-pane" id="windspeedavail">
+								{{template "windspeed-availability.html"}}
+							</div>
  
 							<div role="tabpanel" class="tab-pane" id="analysis">
 								<div class="col-md-12 pull-right">
@@ -98,15 +106,6 @@
 								</div>
 							</div>
 
-							<div role="tabpanel" class="tab-pane" id="reliabilitykpi">
-								<div id="reliabilitykpi" class="grid-custom"></div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="windspeedavail">
-								<div class="col-md-12">
-									<div id="windAvailabilityChart"></div>
-								</div>
-							</div>
 							<!-- Component Alarm Tab -->
 							<div role="tabpanel" class="tab-pane" id="CompAlarm">
 								<div class="col-md-12 Tcenter">
