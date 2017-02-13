@@ -48,7 +48,7 @@ tb.generateGridTable = function (datatype) {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false ,footerTemplate: "<center>Total</center>"},
+            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false},
         ],
          dataBound: function(){
             setTimeout(function(){
