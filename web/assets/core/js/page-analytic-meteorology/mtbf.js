@@ -63,6 +63,7 @@ var mt = {
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
+	                attributes: { class: "align-center"},
 	                width: 120,
 	            },{
 	                field: "avgmtbf",
@@ -70,6 +71,7 @@ var mt = {
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
+	                attributes: { class: "align-center"},
 	                format: "{0:n2}",
 	                width: 120,
 	            },{
@@ -78,11 +80,13 @@ var mt = {
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
+	                attributes: { class: "align-center"},
 	                format: "{0:n2}",
 	                width: 120,
 	            },{
 	                field: "avgmttr",
 	                title: "Avg. MTTR",
+	                attributes: { class: "align-center"},
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
