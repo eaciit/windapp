@@ -106,6 +106,14 @@ pg.createChart = function(){
   valueAxisList.push(pg.setValueAxis("windspeedAxis", "m/s", 0));
   valueAxisList.push(pg.setValueAxis("productionAxis", "MWh", 0));
 
+  var naviSeriesList = [];
+  var series1 = pg.setSeries("Wind Speed", "windspeedAxis", "#337ab7", timeSeriesData.windspeed);
+  series1.shared = true;
+  var series2 = pg.setSeries("Production", "productionAxis", "#ea5b19", timeSeriesData.production);
+  series2.shared = true;
+  naviSeriesList.push(series1);
+  naviSeriesList.push(series2);
+
   $("#chartTimeSeries").kendoStockChart({
     title: {
         text: "Wind Speed & Production",
@@ -128,14 +136,7 @@ pg.createChart = function(){
         categoryAxis: {
           roundToBaseUnit: true
         },
-        series: [{
-          type: "line",
-          field: "value",
-          // shared: true,
-          // data: timeSeriesData.windspeed,
-          aggregate: "sum",
-          color: "#ea5b19",
-        }]
+        series: naviSeriesList
       },
       valueAxis: valueAxisList,
       categoryAxis: {
