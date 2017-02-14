@@ -148,6 +148,11 @@ pg.createChart = function(){
             },
             majorTickType: "none",
             axisCrossingValues: [0, 1000],
+            autoBaseUnitSteps: {
+                // Would produce 31 groups
+                // => Skip to weeks
+                minutes: [10],
+            }
       },
       tooltip: {
             visible: true,
