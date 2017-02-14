@@ -65,7 +65,10 @@ pg.setSeries = function(name, axis, color, data){
     axis: axis,
     color: color,
     data: data,
-    aggregate: "sum"
+    aggregate: "sum",
+    markers : {
+        visible : false,
+    },
   }
 }
 
@@ -78,6 +81,8 @@ pg.setValueAxis = function(name, titleText, crossingVal){
         font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
     },
     labels: {
+        // format: "{0:p2}"
+        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         format: "{0}"
     },
     majorGridLines: {
@@ -134,10 +139,14 @@ pg.createChart = function(){
       },
       valueAxis: valueAxisList,
       categoryAxis: {
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             majorGridLines: {
                 visible: false
             },
-            majorTickType: "none"
+            majorTickType: "none",
+            axisCrossingValues: [0, 1000],
       },
       tooltip: {
             visible: true,
