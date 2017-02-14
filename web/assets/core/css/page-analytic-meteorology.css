@@ -266,6 +266,7 @@ label.summary-number {
 .btn-zoom {
 	position: relative;
 	left: -30px;
+	float: right;
 	top: 30px;
 	z-index: 10;
 }
