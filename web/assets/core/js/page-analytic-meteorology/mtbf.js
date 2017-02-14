@@ -63,26 +63,30 @@ var mt = {
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
+	                attributes: { class: "align-center"},
 	                width: 120,
 	            },{
 	                field: "avgmtbf",
-	                title: "Avg. MTBF",
+	                title: "Avg. MTBF (Hrs)",
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
+	                attributes: { class: "align-center"},
 	                format: "{0:n2}",
 	                width: 120,
 	            },{
 	                field: "avgmttf",
-	                title: "Avg. MTTF",
+	                title: "Avg. MTTF (Hrs)",
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
+	                attributes: { class: "align-center"},
 	                format: "{0:n2}",
 	                width: 120,
 	            },{
 	                field: "avgmttr",
-	                title: "Avg. MTTR",
+	                title: "Avg. MTTR (Hrs)",
+	                attributes: { class: "align-center"},
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },

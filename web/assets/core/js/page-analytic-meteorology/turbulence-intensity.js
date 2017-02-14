@@ -229,7 +229,7 @@ var ti = {
 	        $("#right-turbine-turbulence").append('<div class="btn-group">' +
 	            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="ti.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
 	            '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + (idx) + '" hidden>' +
-	            '<button class="btn btn-default btn-sm turbine-btn" onclick="ti.showHideLegend(' + (idx) + ')" type="button" style="width:70px">' + val.name + '</button>' +
+	            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="ti.showHideLegend(' + (idx) + ')" type="button">' + val.name + '</button>' +
 	            '</div>');
 	    });
 	},

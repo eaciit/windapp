@@ -99,7 +99,7 @@ wrb.showHideCompare = function (idx) {
 wrb.initChartWRC = function () {
     listOfChartComparison = [];
     var dataSeries = wrb.dataWindroseComparison().Data;
-    var categories = wrb.dataWindroseComparison().Categories;
+    // var categories = wrb.dataWindroseComparison().Categories;
     var nilaiMax = wrb.dataWindroseComparison().MaxValue;
 
     var majorUnit = 10;
