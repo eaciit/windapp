@@ -9,6 +9,7 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series 
 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
+var timeSeriesData = [];
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -27,8 +28,10 @@ pg.LoadData = function(){
         if (!app.isFine(res)) {
             return;
         }
-        pg.chartWindSpeed(res.data.Data.windspeed);
-        pg.chartProduction(res.data.Data.production);
+        // pg.chartWindSpeed(res.data.Data.windspeed);
+        // pg.chartProduction(res.data.Data.production);
+        timeSeriesData = res.data.Data;
+        pg.createChart();
     });
 
     $.when(requestData).done(function(){
@@ -52,6 +55,105 @@ toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, fu
     $('#availabledateend').html(pg.availabledateendscada());
 
 })
+
+pg.setSeries = function(name, axis, color, data){
+  return {
+    name: name,
+    type: "line",
+    field: "value",
+    categoryField: "timestamp",
+    axis: axis,
+    color: color,
+    data: data,
+    aggregate: "sum"
+  }
+}
+
+pg.setValueAxis = function(name, titleText, crossingVal){
+  return {
+    name: name,
+    title: {
+        text: titleText,
+        visible: true,
+        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+    },
+    labels: {
+        format: "{0}"
+    },
+    majorGridLines: {
+        visible: true,
+        color: "#eee",
+        width: 0.8,
+    },
+    line: {
+        visible: false
+    },
+    axisCrossingValue: crossingVal
+  }
+}
+
+pg.createChart = function(){
+  var seriesList = [];
+  seriesList.push(pg.setSeries("Wind Speed", "windspeedAxis", "#337ab7", timeSeriesData.windspeed));
+  seriesList.push(pg.setSeries("Production", "productionAxis", "#ea5b19", timeSeriesData.production));
+  
+  var valueAxisList = [];
+  valueAxisList.push(pg.setValueAxis("windspeedAxis", "m/s", 0));
+  valueAxisList.push(pg.setValueAxis("productionAxis", "MWh", 0));
+
+  $("#chartTimeSeries").kendoStockChart({
+    title: {
+        text: "Wind Speed & Production",
+        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+      },
+      legend: {
+        position: "top",
+        visible: false
+      },
+      theme: "flat",
+      seriesDefaults: {
+          area: {
+              line: {
+                  style: "smooth"
+              }
+          }
+      },
+      series: seriesList,
+      navigator: {
+        categoryAxis: {
+          roundToBaseUnit: true
+        },
+        series: [{
+          type: "line",
+          field: "value",
+          // shared: true,
+          // data: timeSeriesData.windspeed,
+          aggregate: "sum",
+          color: "#ea5b19",
+        }]
+      },
+      valueAxis: valueAxisList,
+      categoryAxis: {
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none"
+      },
+      tooltip: {
+            visible: true,
+            template: "#= kendo.toString(value,'n2') # MWh",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+            shared: true,
+            sharedTemplate: kendo.template($("#template").html())
+        }
+    });
+} 
 
 pg.chartWindSpeed = function(dataSource){
 	$("#chartWindSpeed").kendoStockChart({
