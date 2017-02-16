@@ -515,13 +515,13 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 		pipes = append(pipes, tk.M{"$match": match})
 
 		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
 		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("internalgrid", "Internal Grid")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause.Set("weatherstop", "Weather Stop")
 
 		tmpResult := []tk.M{}
 		downDone := []string{}
