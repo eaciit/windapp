@@ -63,6 +63,7 @@ func main() {
 		// new(GenScadaPowerCurvePlus).GeneratePlusAvg(base)
 		// new(UpdateScadaMinutes).Generate(base)
 		// new(UpdateScadaMinutes).GenerateDensity(base)
+		// new(UpdateScadaMinutes).UpdateOkTime(base)
 		// new(UpdateProjectScadaAndAlarm).Generate(base)
 
 		// new(ConvJMRBreakup).Generate(base)
@@ -70,9 +71,12 @@ func main() {
 		// new(ConvPermanentMetTower).Generate(base)
 		// new(ConvPermanentMetTowerCSV).Generate(base)
 		// new(ConvPermanentMetTowerNewFormat).Generate(base)
+
 		/*met := new(UpdateMetTower)
 		met.Generate(base)
 		met.GenerateWindRose(base)*/
+
+		// new(UpdateScadaHFD).DoUpdateWsBin(base)
 
 		// new(ConvScadaDataOEM).Generate(base)
 
@@ -80,7 +84,7 @@ func main() {
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
 		// NewUpdateOEMToScada(base).RunMapping() // step 1
 
@@ -90,14 +94,14 @@ func main() {
 
 		// NewGenDataPeriod(base).Generate() // step 4
 
-		new(GenScadaLast24).Generate(base) // step 5
+		// new(GenScadaLast24).Generate(base) // step 5
 
-		// new(GenScadaSummary).Generate(base) // step 6
+		// new(GenScadaSummary).Generate(base)                 // step 6
 		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
 		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
-		// new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
+		// new(GenScadaSummary).GenerateSummaryDaily(base)     // step 9
 
-		// new(GenScadaSummary).GenWFAnalysisByProject(base) // step 10
+		// new(GenScadaSummary).GenWFAnalysisByProject(base)  // step 10
 		// new(GenScadaSummary).GenWFAnalysisByTurbine1(base) // step 11
 		// new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
 

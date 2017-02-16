@@ -162,6 +162,10 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
         legend: {
             position: "top",
             visible: legend,
+            labels: {              
+                template: "#: kendo.toString(replaceString(text))#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
         },
         chartArea: {
             height: heightParam, 
@@ -186,7 +190,8 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -209,9 +214,11 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
                 visible: false
             },
             labels: {
-                rotation: rotate
+                rotation: rotate,                
+                template: "#: kendo.toString(replaceString(value))#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
-            majorTickType: "none"
+            majorTickType: "none",
         },
         tooltip: {
             visible: true,
@@ -219,7 +226,7 @@ pg.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
+            template: "#: kendo.toString(replaceString(category)) #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             border: {
                 color: "#eee",
                 width: "2px",
@@ -274,7 +281,10 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
         },
         legend: {
             position: "top",
-            visible: true
+            visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
@@ -292,7 +302,8 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: (byTotalLostenergy == true) ? "#= value / 1000 #" : "#= value#"
+                template: (byTotalLostenergy == true) ? "#= value / 1000 #" : "#= value#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             title: {
                 text: measurement,
@@ -313,12 +324,15 @@ pg.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             field: "_id.id2",
             title: {
                 text: "Loss Categories",
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: false
             },
-            majorTickType: "none"
+            majorTickType: "none",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         tooltip: {
             visible: true,
@@ -348,6 +362,9 @@ pg.DTLEbyType = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209) - 120) / 2,
@@ -390,7 +407,8 @@ pg.DTLEbyType = function (dataSource) {
         valueAxis: [{
             name: "PowerLost",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -418,7 +436,8 @@ pg.DTLEbyType = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -510,6 +529,9 @@ pg.createChartAvailability = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: series,
         seriesColors: colorField,
@@ -527,6 +549,7 @@ pg.createChartAvailability = function (dataSource) {
             min: 0,
             labels: {
                 format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -542,6 +565,7 @@ pg.createChartAvailability = function (dataSource) {
             },
             labels: {
                 format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -556,6 +580,9 @@ pg.createChartAvailability = function (dataSource) {
             title: {
                 text: $("#breakdownlistavail").data("kendoDropDownList").value(),
                 font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             axisCrossingValues: [0, 1],
             justified: true,
@@ -594,6 +621,9 @@ pg.createChartProduction = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea :{
             // height: ($(".content-wrapper").height() - ($("#filter-analytic").height()+209 + 100) ) / 2,
@@ -612,6 +642,7 @@ pg.createChartProduction = function (dataSource) {
             },
             labels: {
                 format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -626,6 +657,9 @@ pg.createChartProduction = function (dataSource) {
             title: {
                 text: $("#breakdownlistavail").data("kendoDropDownList").value(),
                 font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             justified: true,
             majorGridLines: {
@@ -934,6 +968,9 @@ pg.WindSpeed = function(){
                 legend: {
                     position: "top",
                     visible: true,
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    }
                 },
                 series: [{
                     type: "column",
@@ -971,6 +1008,7 @@ pg.WindSpeed = function(){
                     majorUnit: 20,
                     labels: {
                         format: "{0}%",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     majorGridLines: {
                         visible: true,
@@ -991,6 +1029,7 @@ pg.WindSpeed = function(){
                     max: 100,
                     labels: {
                         format: "{0}%",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     name: "cumProd",
                     title: { text: "Cumulative Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
@@ -1006,6 +1045,9 @@ pg.WindSpeed = function(){
                     majorGridLines: {
                         visible: false
                     },
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    }
                 },
                 tooltip: {
                     visible: true,
@@ -1139,6 +1181,9 @@ vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
+function replaceString(value) {
+    return value.replace(/_/gi, "  ");
+}
 
 $(function(){
     setTimeout(function(){

@@ -554,6 +554,9 @@ monitoring.dataChartLine = function (data) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: [{
             type: "line",
@@ -597,6 +600,7 @@ monitoring.dataChartLine = function (data) {
             // majorUnit: 20,
             labels: {
                 format: "{0}%",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -618,6 +622,7 @@ monitoring.dataChartLine = function (data) {
             // majorUnit: 1,
             labels: {
                 format: "{0}(m/s)",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             name: "ws",
             title: { text: "Average Wind Speed (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
@@ -634,6 +639,7 @@ monitoring.dataChartLine = function (data) {
             // majorUnit: 20,
             labels: {
                 format: "{0}(KWh)",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             name: "prod",
             title: { text: "Production (%)", font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif' },
@@ -643,6 +649,9 @@ monitoring.dataChartLine = function (data) {
             title: {
                 text: "Time",
                 font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             axisCrossingValues: [0, 1000],
             justified: true,
@@ -745,6 +754,10 @@ wr.initChart = function () {
         stepNum = 1
         gapNum = 0
     }
+    var majorUnit = 10;
+    if(maxValue < 40) {
+        majorUnit = 5;
+    }
 
     $.each(wr.dataWindroseEachTurbine(), function (i, val) {
         var name = val.Name
@@ -763,7 +776,7 @@ wr.initChart = function () {
             legend: {
                 position: "bottom",
                 labels: {
-                    template: "#= (series.data[0] || {}).WsCategoryDesc #"
+                    template: "#= (series.data[0] || {}).WsCategoryDesc #",
                 },
                 visible: false,
             },
@@ -808,9 +821,9 @@ wr.initChart = function () {
                     template: kendo.template("#= kendo.toString(value, 'n0') #%"),
                     font: '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
-                majorUnit: 10,
-                max: maxValue,
-                min: 0
+                majorUnit: majorUnit,
+                // max: maxValue,
+                // min: 0
             },
             tooltip: {
                 visible: true,

@@ -135,3 +135,10 @@
 .margin-70{
     margin-bottom: -70px;
 }
+
+.wbtn
+{
+    font-size: 10px;
+    width: 55px;
+    font-weight: 600;
+}

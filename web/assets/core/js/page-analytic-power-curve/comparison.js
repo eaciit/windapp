@@ -401,6 +401,9 @@ pc.initChart = function() {
                 legend: {
                     position: "bottom",
                     visible: true,
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
                 },
                 chartArea: {
                     height: 375,
@@ -418,12 +421,14 @@ pc.initChart = function() {
                 series: dataTurbine,
                 categoryAxis: {
                     labels: {
-                        step: 1
+                        step: 1,
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     }
                 },
                 valueAxis: [{
                     labels: {
                         format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     }
                 }],
                 xAxis: {
@@ -433,6 +438,9 @@ pc.initChart = function() {
                         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         color: "#585555",
                         visible: true,
+                    },
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     crosshair: {
                         visible: true,
@@ -463,6 +471,7 @@ pc.initChart = function() {
                     },
                     labels: {
                         format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     axisCrossingValue: -5,
                     majorGridLines: {

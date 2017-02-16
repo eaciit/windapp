@@ -26,7 +26,14 @@ func CreateAnalyticMeteorologyController() *AnalyticMeteorologyController {
 func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
+	type HeatMap struct {
+		Color   string
+		Opacity float64
+	}
+
 	var dataSeries []tk.M
+	var dataHeat []tk.M
+
 	p := new(PayloadAnalytic)
 	e := k.GetPayload(&p)
 	if e != nil {
@@ -141,12 +148,62 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 		dataSeries = append(dataSeries, _tkm)
 	}
 
+	for _, _tkm := range dataSeries {
+		_heattkm := tk.M{}
+
+		_aint := []float64{}
+
+		for _key, _val := range _tkm {
+			if tk.ToString(_val) == "-" || _key == "Turbine" {
+				continue
+			}
+			_num := tk.ToFloat64(_val, 2, tk.RoundingAuto)
+			if !tk.HasMember(_aint, _num) {
+				_aint = append(_aint, _num)
+			}
+		}
+
+		sort.Float64s(_aint)
+		_mapunique := map[float64]float64{}
+		_median := float64((len(_aint) + 1)) / 2
+		for _i, _val := range _aint {
+			_mapunique[_val] = float64(_i) + 1
+		}
+
+		// tk.Println("MAP : ", _mapunique, " MEDIAN : ", _median)
+
+		for _key, _val := range _tkm {
+			_dt := HeatMap{}
+			_dt.Color = "white"
+			_dt.Opacity = 1
+
+			if tk.ToString(_val) != "-" && _key != "Turbine" {
+				_fval := tk.ToFloat64(_val, 2, tk.RoundingAuto)
+				if _median != _mapunique[_fval] {
+					if _median > _mapunique[_fval] {
+						_dt.Color = "red"
+						_dt.Opacity = tk.Div((_median - _mapunique[_fval]), _median)
+					} else {
+						_dt.Color = "green"
+						_dt.Opacity = tk.Div((_mapunique[_fval] - _median), _median)
+					}
+				}
+			}
+
+			_heattkm.Set(_key, _dt)
+		}
+
+		dataHeat = append(dataHeat, _heattkm)
+	}
+
 	data := struct {
 		Column []string
 		Data   []tk.M
+		Heat   []tk.M
 	}{
 		Column: arrturbine,
 		Data:   dataSeries,
+		Heat:   dataHeat,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -387,16 +444,9 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	type Payload1224 struct {
-		DataType string
-		Project  string
-		Turbine  []interface{}
+		Project string
+		Turbine []interface{}
 	}
-
-	var (
-		pipes []tk.M
-		data  []tk.M
-		list  []tk.M
-	)
 
 	p := new(Payload1224)
 	e := k.GetPayload(&p)
@@ -411,36 +461,128 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
 
-	match := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
+	matchTurbine := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
+	matchMet := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
 
-	if p.Project != "" && p.DataType == "turbine" {
+	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
-		match.Set("projectname", strings.TrimRight(anProject[0], " "))
+		matchTurbine.Set("projectname", strings.TrimRight(anProject[0], " "))
 	}
 
-	if len(p.Turbine) > 0 && p.DataType == "turbine" {
-		match.Set("turbine", tk.M{"$in": p.Turbine})
+	if len(p.Turbine) > 0 {
+		matchTurbine.Set("turbine", tk.M{"$in": p.Turbine})
 	}
 
-	group := tk.M{}
-	groupID := tk.M{} /*inside _id group*/
+	groupTurbine := tk.M{
+		"windspeed": tk.M{"$avg": "$avgwindspeed"},
+		"temp":      tk.M{"$avg": "$nacelletemperature"},
+		"power":     tk.M{"$avg": "$power"},
+	}
+	tablenameTurbine := new(ScadaData).TableName()
+	groupMet := tk.M{
+		"windspeed": tk.M{"$avg": "$vhubws90mavg"},
+		"temp":      tk.M{"$avg": "$thubhhubtemp855mavg"},
+	}
+	tablenameMet := new(MetTower).TableName()
 
-	tablename := ""
-	if p.DataType == "turbine" { /*average value*/
-		group = tk.M{
-			"windspeed": tk.M{"$avg": "$avgwindspeed"},
-			"temp":      tk.M{"$avg": "$nacelletemperature"},
-			"power":     tk.M{"$avg": "$power"},
-		}
-		tablename = new(ScadaData).TableName()
-	} else {
-		group = tk.M{
-			"windspeed": tk.M{"$avg": "$vhubws90mavg"},
-			"temp":      tk.M{"$avg": "$thubhhubtemp855mavg"},
-		}
-		tablename = new(MetTower).TableName()
+	dataTurbine := processTableData(groupTurbine, matchTurbine, tablenameTurbine, "turbine")
+	dataMet := processTableData(groupMet, matchMet, tablenameMet, "met")
+
+	result := tk.M{"DataTurbine": dataTurbine, "DataMet": dataMet}
+
+	return helper.CreateResult(true, result, "success")
+}
+
+func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interface{} {
+
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Turbine
+
+	var (
+		query []tk.M
+		pipes []tk.M
+		datas []tk.M
+	)
+	scadaOem := make([]tk.M, 0)
+
+	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
+	if len(turbine) > 0 {
+		query = append(query, tk.M{"turbine": tk.M{"$in": turbine}})
 	}
 
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine",
+		"avgmttr":            tk.M{"$avg": "$mttr"},
+		"avgmttf":            tk.M{"$avg": "$mttf"},
+		"totmttf":            tk.M{"$sum": "$mttf"},
+		"totmachinedowntime": tk.M{"$sum": "$machinedowntime"},
+		"totunknowndowntime": tk.M{"$sum": "$unknowndowntime"},
+		"totgriddowntime":    tk.M{"$sum": "$griddowntime"},
+	},
+	})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaDataOEM).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csr.Fetch(&scadaOem, 0, false)
+
+	csr.Close()
+
+	for _, m := range scadaOem {
+		id := m.GetString("_id")
+		avgmttr := m.GetFloat64("avgmttr")
+		avgmttf := m.GetFloat64("avgmttf")
+		totmttf := m.GetFloat64("totmttf")
+		totmachinedowntime := m.GetFloat64("totmachinedowntime")
+		totunknowndowntime := m.GetFloat64("totunknowndowntime")
+		totgriddowntime := m.GetFloat64("totgriddowntime")
+		totDowntime := totmachinedowntime + totunknowndowntime + totgriddowntime
+
+		datas = append(datas, tk.M{
+			"id":                 id,
+			"avgmttr":            avgmttr,
+			"avgmttf":            avgmttf,
+			"totmttf":            totmttf,
+			"totmachinedowntime": totmachinedowntime,
+			"totunknowndowntime": totunknowndowntime,
+			"totgriddowntime":    totgriddowntime,
+			"totDowntime":        totDowntime,
+			"avgmtbf":            tk.Div(totmttf, totDowntime),
+		})
+	}
+
+	if datas == nil {
+		datas = make([]tk.M, 0)
+	}
+
+	return helper.CreateResult(true, datas, "success")
+}
+
+func processTableData(group, match tk.M, tablename, dataType string) (data []tk.M) {
+	var (
+		pipes []tk.M
+		list  []tk.M
+	)
+	groupID := tk.M{}                           /*inside _id group*/
 	groupID.Set("monthid", "$dateinfo.monthid") /*for sorting purpose*/
 	groupID.Set("monthdesc", "$dateinfo.monthdesc")
 	groupID.Set("hours", tk.M{"$dateToString": tk.M{"format": "%H:00", "date": "$timestamp"}}) /*to format HH:MM*/
@@ -456,12 +598,12 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		Cursor(nil)
 
 	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+		return
 	}
 
 	e = csr.Fetch(&list, 0, false)
 	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+		return
 	}
 
 	csr.Close()
@@ -481,10 +623,10 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		}
 		temp := 0.0
 		if val.GetString("temp") != "NaN" {
-			wind = val.GetFloat64("temp")
+			temp = val.GetFloat64("temp")
 		}
 		power := 0.0
-		if p.DataType == "turbine" {
+		if dataType == "turbine" {
 			power = val.GetFloat64("power")
 		}
 
@@ -502,7 +644,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 		col := tk.M{}
 		col.Set("WS", wind)
 		col.Set("Temp", temp)
-		if p.DataType == "turbine" {
+		if dataType == "turbine" {
 			col.Set("Power", power)
 		}
 
@@ -524,7 +666,6 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 			"details": tmpRes[val],
 		})
 	}
-	result := tk.M{"Data": data}
 
-	return helper.CreateResult(true, result, "success")
+	return
 }

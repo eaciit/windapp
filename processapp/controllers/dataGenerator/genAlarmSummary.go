@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
 )
@@ -25,6 +26,8 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 			ErrorHandler(e, "Alarm Summary")
 			os.Exit(0)
 		}
+
+		base.Ctx.DeleteMany(new(AlarmSummaryByMonth), dbox.Ne("projectname", ""))
 
 		downCause := tk.M{}
 		downCause.Set("externalstop", "External Stop")

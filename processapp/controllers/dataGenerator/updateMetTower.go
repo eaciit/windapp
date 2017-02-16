@@ -43,10 +43,11 @@ func (d *UpdateMetTower) Generate(base *BaseController) {
 
 			wsCatNo, wsCatDesc := GetWsCategory(windSpeed)
 			wdNo, wdDesc := GetDirectionOnlyFromWD(windDir)
+			windSpeedBin := tk.RoundingUp64(windSpeed, 0)
 
 			e = ctx.NewQuery().Update().From(new(MetTower).TableName()).
 				Where(dbox.Eq("_id", data.ID)).
-				Exec(tk.M{}.Set("data", tk.M{}.Set("winddirno", wdNo).Set("winddirdesc", wdDesc).Set("wscategoryno", wsCatNo).Set("wscategorydesc", wsCatDesc)))
+				Exec(tk.M{}.Set("data", tk.M{}.Set("winddirno", wdNo).Set("winddirdesc", wdDesc).Set("wscategoryno", wsCatNo).Set("wscategorydesc", wsCatDesc).Set("windspeedbin", windSpeedBin)))
 			if e != nil {
 				tk.Printf("Update fail: %s", e.Error())
 			}

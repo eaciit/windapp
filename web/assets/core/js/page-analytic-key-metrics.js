@@ -81,6 +81,9 @@ km.createChart = function (dataSource) {
 			legend: {
 				position: "top",
 				visible: true,
+				labels: {
+					font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+				}
 			},
 			chartArea: {
 				height : 370,
@@ -96,7 +99,8 @@ km.createChart = function (dataSource) {
 					font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
 				},
 				labels: {
-					step: 2
+					step: 2,
+					font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
 				},
 				line: {
 					visible: false
@@ -120,6 +124,9 @@ km.createChart = function (dataSource) {
 					font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
 				},
 				visible: true,
+				labels: {
+					font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+				},
 	            /*min: -(maxLine*4),
 	            max: maxLine*2,*/
 				min: minKey2,
@@ -135,7 +142,8 @@ km.createChart = function (dataSource) {
 					font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
 				},
 				labels: {
-					rotation: rotation
+					rotation: rotation,
+					font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
 				},
 				majorTickType: "none",
 				axisCrossingValues: [0, 1000],

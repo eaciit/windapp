@@ -52,7 +52,16 @@ func (c *WindFarmAnalysisController) GetDataByProject(k *knot.WebContext) interf
 	e = csr.Fetch(&datas, 0, false)
 	csr.Close()
 
-	return helper.CreateResult(true, datas, "success")
+	title := make([]string, 4)
+	d := datas[0]
+	title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
+	title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
+	title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
+	title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+
+	datareturn := tk.M{}.Set("data", datas).Set("header", title)
+
+	return helper.CreateResult(true, datareturn, "success")
 }
 
 func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) interface{} {
@@ -91,7 +100,16 @@ func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) inter
 	e = csr.Fetch(&datas, 0, false)
 	csr.Close()
 
-	return helper.CreateResult(true, datas, "success")
+	title := make([]string, 4)
+	d := datas[0]
+	title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
+	title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
+	title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
+	title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+
+	datareturn := tk.M{}.Set("data", datas).Set("header", title)
+
+	return helper.CreateResult(true, datareturn, "success")
 }
 
 func (c *WindFarmAnalysisController) GetDataByTurbine2(k *knot.WebContext) interface{} {

@@ -191,7 +191,8 @@ sum.PLF = function (dataSource) {
             },
             axisCrossingValue: -10,
             labels: {
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -202,7 +203,8 @@ sum.PLF = function (dataSource) {
         categoryAxis: {
             field: "DateInfo.MonthDesc",
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: false
@@ -265,6 +267,9 @@ sum.LostEnergy = function (dataSource) {
             line: {
                 visible: false
             },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             axisCrossingValue: -10,
             majorGridLines: {
                 visible: true,
@@ -278,7 +283,8 @@ sum.LostEnergy = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -310,7 +316,10 @@ sum.Windiness = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160,
@@ -343,7 +352,8 @@ sum.Windiness = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             max: 10,
             majorUnit: 2,
@@ -363,7 +373,8 @@ sum.Windiness = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -397,6 +408,9 @@ sum.ProdMonth = function (dataSource) {
         },
         legend: {
             position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 150,
@@ -441,7 +455,8 @@ sum.ProdMonth = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         }],
         categoryAxis: {
@@ -450,7 +465,8 @@ sum.ProdMonth = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -483,7 +499,8 @@ sum.AvailabilityChart = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
             height: 165,
@@ -522,7 +539,8 @@ sum.AvailabilityChart = function (dataSource) {
             axisCrossingValue: -10,
             labels: {
                 // format: "{0}%"
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -536,7 +554,8 @@ sum.AvailabilityChart = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -569,7 +588,10 @@ sum.ProdCurLast = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160,
@@ -619,6 +641,7 @@ sum.ProdCurLast = function (dataSource) {
             },
             labels: {
                 step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -753,7 +776,10 @@ sum.ProductionChart = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 165,
@@ -785,7 +811,8 @@ sum.ProductionChart = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                format: dataFormat
+                format: dataFormat,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -813,6 +840,7 @@ sum.ProductionChart = function (dataSource) {
             },
             labels: {
                 step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // template : "#: Number(kendo.toString(kendo.parseDate(value), 'HH')) #"
             },
             majorTickType: "none"
@@ -845,7 +873,8 @@ sum.CumProduction = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
             height: 170,
@@ -887,7 +916,8 @@ sum.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
         categoryAxis: {
@@ -897,7 +927,8 @@ sum.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 3,
-                template: "#: Number(kendo.toString(kendo.parseDate(value), 'dd'))#"
+                template: "#: Number(kendo.toString(kendo.parseDate(value), 'dd'))#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -946,6 +977,9 @@ sum.DetailProd = function (e) {
             },
             legend: {
                 position: "top",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             chartArea: {
                 height: 200,
@@ -980,6 +1014,9 @@ sum.DetailProd = function (e) {
                 line: {
                     visible: false
                 },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
                 axisCrossingValue: -10,
                 majorGridLines: {
                     visible: true,
@@ -991,6 +1028,9 @@ sum.DetailProd = function (e) {
                 field: "project",
                 majorGridLines: {
                     visible: false
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorTickType: "none"
             },
@@ -1056,6 +1096,9 @@ sum.DetailProdByProject = function (e, month, data) {
         },
         legend: {
             position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             padding: 0,
@@ -1083,6 +1126,9 @@ sum.DetailProdByProject = function (e, month, data) {
             line: {
                 visible: false
             },
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             axisCrossingValue: -10,
             majorGridLines: {
                 visible: true,
@@ -1097,7 +1143,8 @@ sum.DetailProdByProject = function (e, month, data) {
             },
             majorTickType: "none",
             labels: {
-                rotation: 45
+                rotation: 45,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
         },
         tooltip: {

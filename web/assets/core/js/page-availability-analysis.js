@@ -57,6 +57,9 @@ pg.createChartAvailability = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: series,
         seriesColors: colorField,
@@ -68,6 +71,7 @@ pg.createChartAvailability = function (dataSource) {
             min: 0,
             labels: {
                 format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -83,6 +87,7 @@ pg.createChartAvailability = function (dataSource) {
             },
             labels: {
                 format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -97,6 +102,9 @@ pg.createChartAvailability = function (dataSource) {
             title: {
                 text: $("#breakdownlist").data("kendoDropDownList").value(),
                 font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             axisCrossingValues: [0, 1],
             justified: true,
@@ -133,6 +141,9 @@ pg.createChartProduction = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             background: "transparent",
@@ -146,6 +157,7 @@ pg.createChartProduction = function (dataSource) {
             },
             labels: {
                 format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -160,6 +172,9 @@ pg.createChartProduction = function (dataSource) {
             title: {
                 text: $("#breakdownlist").data("kendoDropDownList").value(),
                 font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             justified: true,
             majorGridLines: {
