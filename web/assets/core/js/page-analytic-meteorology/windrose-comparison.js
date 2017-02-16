@@ -99,7 +99,7 @@ wrb.showHideCompare = function (idx) {
 wrb.initChartWRC = function () {
     listOfChartComparison = [];
     var dataSeries = wrb.dataWindroseComparison().Data;
-    var categories = wrb.dataWindroseComparison().Categories;
+    // var categories = wrb.dataWindroseComparison().Categories;
     var nilaiMax = wrb.dataWindroseComparison().MaxValue;
 
     var majorUnit = 10;
@@ -153,6 +153,7 @@ wrb.initChartWRC = function () {
 wrb.WindRoseComparison = function(){
     app.loading(true);
     fa.LoadData();
+    pm.showFilter();
     if(pm.isFirstWindRoseComparison() === true){
         setTimeout(function () {
             // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();

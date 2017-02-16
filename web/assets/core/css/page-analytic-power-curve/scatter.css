@@ -34,3 +34,15 @@
 .scatter-comparison {
     margin-right: 8px;
 }
+
+#txtLessVal {
+    font-size: 12px;
+}
+
+#txtGreaterVal {
+    font-size: 12px;
+}
+
+.k-tooltip{
+    margin-left: -20px;
+}

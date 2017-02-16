@@ -809,6 +809,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 	var e error
 	var pipes []tk.M
 	match := tk.M{}
+	var dataSeries []tk.M
 
 	if p != nil {
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
@@ -850,155 +851,32 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 			return result, e
 		}
 
-		// top10Turbines := []tk.M{}
 		e = csr.Fetch(&result, 0, false)
 
 		csr.Close()
 
-		if e != nil {
-			return result, e
+		for _, val := range result {
+
+			series := tk.M{}
+			valueResult := val.GetFloat64("result")
+			id := val.GetString("_id")
+
+			if topType == "loss" {
+				valueResult = tk.Div(valueResult, 1000)
+			}
+
+			series.Set("_id", id)
+			series.Set("result",valueResult)
+
+			dataSeries = append(dataSeries, series)
 		}
 
-		//// get the downtime
-		// turbines := []string{}
-		// turbinesVal := tk.M{}
-
-		// for _, turbine := range top10Turbines {
-		// 	turbines = append(turbines, turbine.Get("_id").(string))
-		// 	turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result"))
-		// }
-
-		// match.Set("turbine", tk.M{"$in": turbines})
-
-		// downCause := tk.M{}
-		// downCause.Set("aebok", "AEBOK")
-		// downCause.Set("externalstop", "External Stop")
-		// downCause.Set("griddown", "Grid Down")
-		// downCause.Set("internalgrid", "Internal Grid")
-		// downCause.Set("machinedown", "Machine Down")
-		// downCause.Set("unknown", "Unknown")
-		// downCause.Set("weatherstop", "Weather Stop")
-
-		// tmpResult := []tk.M{}
-		// downDone := []string{}
-
-		// for f, t := range downCause {
-		// 	pipes = []tk.M{}
-		// 	loopMatch := match
-		// 	field := tk.ToString(f)
-		// 	title := tk.ToString(t)
-
-		// 	downDone = append(downDone, field)
-
-		// 	for _, done := range downDone {
-		// 		match.Unset("detail." + done)
-		// 	}
-
-		// 	loopMatch.Set("detail."+field, true)
-
-		// 	pipes = append(pipes, tk.M{"$unwind": "$detail"})
-		// 	pipes = append(pipes, tk.M{"$match": loopMatch})
-		// 	if topType == "duration" {
-		// 		pipes = append(pipes,
-		// 			tk.M{
-		// 				"$group": tk.M{"_id": tk.M{"id3": "$" + Id, "id4": title},
-		// 					"result": tk.M{"$sum": "$detail.duration"},
-		// 				},
-		// 			},
-		// 		)
-		// 	} else if topType == "frequency" {
-		// 		pipes = append(pipes,
-		// 			tk.M{
-		// 				"$group": tk.M{"_id": tk.M{"id3": "$" + Id, "id4": title},
-		// 					"result": tk.M{"$sum": 1},
-		// 				},
-		// 			},
-		// 		)
-		// 	} else if topType == "loss" {
-		// 		pipes = append(pipes,
-		// 			tk.M{
-		// 				"$group": tk.M{"_id": tk.M{"id3": "$" + Id, "id4": title},
-		// 					"result": tk.M{"$sum": "$detail.powerlost"},
-		// 				},
-		// 			},
-		// 		)
-		// 	}
-
-		// 	pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
-
-		// 	csr, e := DB().Connection.NewQuery().
-		// 		From(new(Alarm).TableName()).
-		// 		Command("pipe", pipes).
-		// 		Cursor(nil)
-
-		// 	if e != nil {
-		// 		return result, e
-		// 	}
-
-		// 	resLoop := []tk.M{}
-		// 	e = csr.Fetch(&resLoop, 0, false)
-
-		// 	csr.Close()
-
-		// 	for _, res := range resLoop {
-		// 		tmpResult = append(tmpResult, res)
-		// 	}
-		// }
-
-		// resY := []tk.M{}
-
-		// for _, t := range downCause {
-		// 	title := tk.ToString(t)
-
-		// 	for _, turbine := range turbines {
-		// 		resX := tk.M{}
-		// 		resX.Set("_id", tk.M{"id3": turbine, "id4": title})
-		// 		resX.Set("result", 0)
-
-		// 	out:
-		// 		for _, res := range tmpResult {
-		// 			id3 := res.Get("_id").(tk.M).GetString("id3")
-		// 			id4 := res.Get("_id").(tk.M).GetString("id4")
-
-		// 			if id3 == turbine && id4 == title {
-		// 				resX = res
-		// 				break out
-		// 			}
-		// 		}
-		// 		resY = append(resY, resX)
-		// 	}
-		// }
-
-		// for _, turbine := range turbines {
-		// 	resVal := tk.M{}
-		// 	resVal.Set("_id", turbine)
-
-		// 	for _, val := range resY {
-		// 		valTurbine := val.Get("_id").(tk.M).GetString("id3")
-		// 		valResult := val.GetFloat64("result")
-		// 		valTitle := ""
-
-		// 		splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
-
-		// 		if len(splitTitle) > 1 {
-		// 			valTitle = splitTitle[0] + "" + splitTitle[1]
-		// 		} else {
-		// 			valTitle = splitTitle[0]
-		// 		}
-
-		// 		if turbine == valTurbine && valResult != 0 {
-		// 			resVal.Set(valTitle, valResult)
-		// 		} else if resVal.Get(valTitle) == nil {
-		// 			resVal.Set(valTitle, 0)
-		// 		}
-		// 	}
-
-		// 	resVal.Set("Total", turbinesVal.GetFloat64(turbine))
-		// 	result = append(result, resVal)
-		// }
+		if e != nil {
+			return dataSeries, e
+		}
 	}
 
-	return result, e
+	return dataSeries, e
 }
 
 func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebContext) interface{} {

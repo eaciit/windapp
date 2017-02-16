@@ -308,6 +308,7 @@ wr.ChangeSector = function(){
 wr.WindRose = function(){
     app.loading(true);
     fa.LoadData();
+    pm.showFilter();
     if(pm.isFirstWindRose() === true){
         setTimeout(function () {
             var breakDownVal = $("#nosection").data("kendoDropDownList").value();

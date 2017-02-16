@@ -3,6 +3,16 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-time-series.js?ANTI_CACHE={{.AntiCache}}"></script>
 <!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
+<script id="template" type="text/x-kendo-template">
+  <div><b>#: kendo.toString(category, 'dd MMM yyyy HH:mm') #</b></div>
+  # for (var i = 0; i < points.length; i++) {
+        if(i == 0) { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# m/s</span></div>
+  #     } else { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# MWh</span></div>
+  #     }
+    } #
+</script>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -23,11 +33,14 @@
 							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
 						</div>
 						<div class="clearfix">&nbsp;</div>
-						<div class="col-md-6">
+						<!-- <div class="col-md-6">
 							<div id="chartWindSpeed"></div>
 						</div>
 						<div class="col-md-6">
 							<div id="chartProduction"></div>
+						</div> -->
+						<div class="col-md-12">
+							<div id="chartTimeSeries"></div>
 						</div>
 					</div>
 				</div>
