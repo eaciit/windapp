@@ -103,46 +103,54 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 		// get latest scadadata from scadadata and put condition to get the scadadataoem based on latest scadadata
 		// put some match condition here
 
-		csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
-			Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
-		ErrorHandler(e, funcName)
+		for _, t := range refTurbines {
+			turbine := t.(string)
 
-		defer csr.Close()
+			filter := []*dbox.Filter{}
+			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+			filter = append(filter, dbox.Gt("timestamp", d.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
-		counter := 0
-		isDone := false
-		countPerProcess := 1000
-		countData := csr.Count()
+			csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
+				Where(filter...).Cursor(nil)
+			ErrorHandler(e, funcName)
 
-		for !isDone && countData > 0 {
-			scadas := []*ScadaDataOEM{}
-			e = csr.Fetch(&scadas, countPerProcess, false)
+			defer csr.Close()
 
-			if len(scadas) < countPerProcess {
-				isDone = true
-			}
+			counter := 0
+			isDone := false
+			countPerProcess := 1000
+			countData := csr.Count()
 
-			wg.Add(1)
-			go func(datas []*ScadaDataOEM, endIndex int) {
-				tk.Printf("Starting process %v data\n", endIndex)
+			for !isDone && countData > 0 {
+				scadas := []*ScadaDataOEM{}
+				e = csr.Fetch(&scadas, countPerProcess, false)
 
-				mtxOem.Lock()
-				logStart := time.Now()
-
-				for _, data := range datas {
-					d.updateScadaOEM(data)
+				if len(scadas) < countPerProcess {
+					isDone = true
 				}
 
-				logDuration := time.Now().Sub(logStart)
-				mtxOem.Unlock()
+				wg.Add(1)
+				go func(datas []*ScadaDataOEM, endIndex int) {
+					tk.Printf("Starting process %v data\n", endIndex)
 
-				tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
-				wg.Done()
-			}(scadas, ((counter + 1) * countPerProcess))
+					mtxOem.Lock()
+					logStart := time.Now()
 
-			counter++
-			if counter%10 == 0 || isDone {
-				wg.Wait()
+					for _, data := range datas {
+						d.updateScadaOEM(data)
+					}
+
+					logDuration := time.Now().Sub(logStart)
+					mtxOem.Unlock()
+
+					tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
+					wg.Done()
+				}(scadas, ((counter + 1) * countPerProcess))
+
+				counter++
+				if counter%10 == 0 || isDone {
+					wg.Wait()
+				}
 			}
 		}
 	}

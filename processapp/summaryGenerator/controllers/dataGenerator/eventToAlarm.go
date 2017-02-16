@@ -40,49 +40,57 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 	// add condition to get the eventdown started from the latest data that already in alarm, so no need to generate the alarm data from begining
 	// remove delete function
 
-	ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Ne("turbine", ""))
+	for _, t := range refTurbines {
+		turbine := t.(string)
 
-	csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
-		Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+		filter = append(filter, dbox.Gt("timeend", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
 
-	defer csr.Close()
+		ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("timeend", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
 
-	counter := 0
-	countData := csr.Count()
-	isDone := false
-	countPerProcess := 500
+		csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
+			Where(filter...).Cursor(nil)
 
-	for !isDone && countData > 0 {
-		events := []*EventDown{}
+		defer csr.Close()
 
-		// do process here
-		e = csr.Fetch(&events, countPerProcess, false)
-		ErrorHandler(e, funcName)
+		counter := 0
+		countData := csr.Count()
+		isDone := false
+		countPerProcess := 500
 
-		if len(events) < countPerProcess {
-			isDone = true
-		}
+		for !isDone && countData > 0 {
+			events := []*EventDown{}
 
-		wg.Add(1)
-		go func(datas []*EventDown, counter int) {
-			tk.Println("starting process ", countPerProcess*(counter+1))
-			for _, d := range datas {
+			// do process here
+			e = csr.Fetch(&events, countPerProcess, false)
+			ErrorHandler(e, funcName)
 
-				mtx.Lock()
-				dataInput := d
-				//tk.Printf("%s ", idx)
-
-				ev.doConversion(dataInput)
-				mtx.Unlock()
+			if len(events) < countPerProcess {
+				isDone = true
 			}
-			tk.Println("end process ", countPerProcess*(counter+1))
 
-			wg.Done()
-		}(events, counter)
+			wg.Add(1)
+			go func(datas []*EventDown, counter int) {
+				tk.Println("starting process ", countPerProcess*(counter+1))
+				for _, d := range datas {
 
-		counter++
-		if counter%10 == 0 || isDone {
-			wg.Wait()
+					mtx.Lock()
+					dataInput := d
+					//tk.Printf("%s ", idx)
+
+					ev.doConversion(dataInput)
+					mtx.Unlock()
+				}
+				tk.Println("end process ", countPerProcess*(counter+1))
+
+				wg.Done()
+			}(events, counter)
+
+			counter++
+			if counter%10 == 0 || isDone {
+				wg.Wait()
+			}
 		}
 	}
 

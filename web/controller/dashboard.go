@@ -193,7 +193,7 @@ func (m *DashboardController) GetScadaLastUpdate(k *knot.WebContext) interface{}
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	csr, e := DB().Connection.NewQuery().From("rpt_scadalastupdate").Where(dbox.And(dbox.Eq("projectname", p.ProjectName))).Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From(new(ScadaLastUpdate).TableName()).Where(dbox.And(dbox.Eq("projectname", p.ProjectName))).Cursor(nil)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())

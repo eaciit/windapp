@@ -38,46 +38,54 @@ func (u *UpdateOEMToScada) RunMapping(base *BaseController) {
 
 	var wg sync.WaitGroup
 
-	csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
-		Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
-	ErrorHandler(e, funcName)
+	for _, t := range refTurbines {
+		turbine := t.(string)
 
-	defer csr.Close()
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+		filter = append(filter, dbox.Gt("timeend", u.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
-	counter := 0
-	isDone := false
-	countPerProcess := 1000
-	countData := csr.Count()
+		csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
+			Where(filter...).Cursor(nil)
+		ErrorHandler(e, funcName)
 
-	for !isDone && countData > 0 {
-		scadas := []*ScadaDataOEM{}
-		e = csr.Fetch(&scadas, countPerProcess, false)
+		defer csr.Close()
 
-		if len(scadas) < countPerProcess {
-			isDone = true
-		}
+		counter := 0
+		isDone := false
+		countPerProcess := 1000
+		countData := csr.Count()
 
-		wg.Add(1)
-		go func(datas []*ScadaDataOEM, endIndex int) {
-			tk.Printf("Starting process %v data\n", endIndex)
+		for !isDone && countData > 0 {
+			scadas := []*ScadaDataOEM{}
+			e = csr.Fetch(&scadas, countPerProcess, false)
 
-			mtxOem.Lock()
-			logStart := time.Now()
-
-			for _, data := range datas {
-				u.mapOEMToScada(data)
+			if len(scadas) < countPerProcess {
+				isDone = true
 			}
 
-			logDurationg := time.Now().Sub(logStart)
-			mtxOem.Unlock()
+			wg.Add(1)
+			go func(datas []*ScadaDataOEM, endIndex int) {
+				tk.Printf("Starting process %v data\n", endIndex)
 
-			tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDurationg.Seconds())
-			wg.Done()
-		}(scadas, ((counter + 1) * countPerProcess))
+				mtxOem.Lock()
+				logStart := time.Now()
 
-		counter++
-		if counter%10 == 0 || isDone {
-			wg.Wait()
+				for _, data := range datas {
+					u.mapOEMToScada(data)
+				}
+
+				logDurationg := time.Now().Sub(logStart)
+				mtxOem.Unlock()
+
+				tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDurationg.Seconds())
+				wg.Done()
+			}(scadas, ((counter + 1) * countPerProcess))
+
+			counter++
+			if counter%10 == 0 || isDone {
+				wg.Wait()
+			}
 		}
 	}
 }
