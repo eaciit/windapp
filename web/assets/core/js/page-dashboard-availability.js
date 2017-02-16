@@ -27,45 +27,60 @@ avail.loadData = function () {
     }
 
     if (lgd.isAvailability()) {
-        var request = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
+        var availReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getmachgridavailability", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-
             if (project == "Fleet") {
                 avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
                 avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
-                avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
-                avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
-                avail.TopTurbineByLoss(res.data.loss); /*"#fleetChartTopTurbineLoss"*/
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
-            }else{
+            } else {
                 avail.projectMachAvail(res.data.machineAvailability); /*"#projectChartMachAvail"*/
                 avail.projectGridAvail(res.data.gridAvailability); /*"#projectChartGridAvail"*/
+            }
+        });
+        var lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
+                avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+            } else {
                 avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
+            }
+        });
+        var downtimeTopReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimetop", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.TopTurbineByLoss(res.data.loss); /*"#fleetChartTopTurbineLoss"*/
+            } else {
                 avail.DTLoss(res.data.loss); /*#"projectChartTopTurbineLosses"*/
                 avail.DTDuration(res.data.duration); /*#"projectChartDTDuration"*/
                 avail.DTFrequency(res.data.frequency); /*#"projectChartDTFrequency"*/
+            }
+        });
+        var lossCatReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlosscategories", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
+            } else {
                 avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
                 avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times'); /*#"projectChartTopLossCatFreq"*/
             }
-            
-            if (project == "Fleet"){
-                avail.DTTurbines();
-            }            
-
-            if (avail.mdTypeList.length == 0) {
-                avail.getMDTypeList();
-            }
-
-            // app.loading(false);
-            // avail.refreshChart();S
         });
-
-        $.when(request).done(function(){
+        avail.DTTurbines();
+        if (avail.mdTypeList.length == 0) {
+            avail.getMDTypeList();
+        }
+        $.when(availReq, lostEnergyReq, downtimeTopReq, lossCatReq).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },300)
