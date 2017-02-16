@@ -338,6 +338,7 @@ func (d *UpdateScadaMinutes) GenerateDensity(base *BaseController) {
 }
 
 func GetPowerCurve(ctx dbox.IConnection, avgWs float64) (float64, float64, float64) {
+	funcName := "GetPowerCurve"
 	totalPower := 0.0
 
 	wsf0 := 0.0

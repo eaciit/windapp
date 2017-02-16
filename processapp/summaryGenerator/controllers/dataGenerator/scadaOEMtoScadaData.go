@@ -38,46 +38,55 @@ func (u *UpdateOEMToScada) RunMapping(base *BaseController) {
 
 	var wg sync.WaitGroup
 
-	csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
-		Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
-	ErrorHandler(e, funcName)
+	for turbine, _ := range u.BaseController.RefTurbines {
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+		filter = append(filter, dbox.Eq("turbine", turbine))
+		filter = append(filter, dbox.Gt("timestamp", u.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
-	defer csr.Close()
+		csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
+			Where(filter...).Cursor(nil)
+		ErrorHandler(e, funcName)
 
-	counter := 0
-	isDone := false
-	countPerProcess := 1000
-	countData := csr.Count()
+		defer csr.Close()
 
-	for !isDone && countData > 0 {
-		scadas := []*ScadaDataOEM{}
-		e = csr.Fetch(&scadas, countPerProcess, false)
+		counter := 0
+		isDone := false
+		countPerProcess := 1000
+		countData := csr.Count()
 
-		if len(scadas) < countPerProcess {
-			isDone = true
-		}
+		tk.Printf("\nOEM to Scada for %v | %v \n", turbine, countData)
 
-		wg.Add(1)
-		go func(datas []*ScadaDataOEM, endIndex int) {
-			tk.Printf("Starting process %v data\n", endIndex)
+		for !isDone && countData > 0 {
+			scadas := []*ScadaDataOEM{}
+			e = csr.Fetch(&scadas, countPerProcess, false)
 
-			mtxOem.Lock()
-			logStart := time.Now()
-
-			for _, data := range datas {
-				u.mapOEMToScada(data)
+			if len(scadas) < countPerProcess {
+				isDone = true
 			}
 
-			logDurationg := time.Now().Sub(logStart)
-			mtxOem.Unlock()
+			wg.Add(1)
+			go func(datas []*ScadaDataOEM, endIndex int) {
+				tk.Printf("Starting process %v data\n", endIndex)
 
-			tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDurationg.Seconds())
-			wg.Done()
-		}(scadas, ((counter + 1) * countPerProcess))
+				mtxOem.Lock()
+				logStart := time.Now()
 
-		counter++
-		if counter%10 == 0 || isDone {
-			wg.Wait()
+				for _, data := range datas {
+					u.mapOEMToScada(data)
+				}
+
+				logDurationg := time.Now().Sub(logStart)
+				mtxOem.Unlock()
+
+				tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDurationg.Seconds())
+				wg.Done()
+			}(scadas, ((counter + 1) * countPerProcess))
+
+			counter++
+			if counter%10 == 0 || isDone {
+				wg.Wait()
+			}
 		}
 	}
 }

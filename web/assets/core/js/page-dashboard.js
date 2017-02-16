@@ -121,6 +121,12 @@ $(function () {
 
     lgd.LoadData();
 
+    $(".prodToTable").on("change", function(){
+        if($("#chartProduction").data("kendoGrid") != undefined){
+            $("#chartProduction thead [data-field='category']").html("");
+        }
+    });
+
     $("#tabSummary").on("click", function () {
         lgd.isSummary(true);
         lgd.isProduction(false);

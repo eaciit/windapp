@@ -74,82 +74,68 @@ sum.loadData = function () {
 };
 
 sum.SummaryData = function (project) {
-    var filters = [
-        { field: "_id", operator: "eq", value: project },
-    ];
-    var filter = { filters: filters }
-    var param = { filter: filter };
-    $('#gridSummaryData').html("");
-    $("#gridSummaryData").kendoGrid({
-        height: 155,
-        theme: "flat",
-        dataSource: {
+    var param = {project: project};
+    var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getsummarydata", param, function (result) {
+        $('#gridSummaryData').html("");
+        $("#gridSummaryData").kendoGrid({
+            height: 155,
+            theme: "flat",
+            dataSource: {
+                // serverPaging: true,
+                // serverSorting: true,
+                data: result,
+                // pageSize: 2,
+                schema: {
+                    data: function (res) {
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+                        return res.data.Data
+                    },
+                    total: function (res) {
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+                        return res.data.Total;
+                    }
+                },
+            },
             serverPaging: true,
             serverSorting: true,
-            transport: {
-                read: {
-                    url: viewModel.appName + "dashboard/getsummarydata",
-                    type: "POST",
-                    data: param,
-                    dataType: "json",
-                    contentType: "application/json; charset=utf-8"
-                },
-                parameterMap: function (options) {
-                    return JSON.stringify(options);
-                }
+            pageable: {
+                pageSize: 2,
+                input: true, 
             },
-            pageSize: 2,
-            schema: {
-                data: function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    return res.data.Data
-                },
-                total: function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    return res.data.Total;
-                }
-            },
-            sort: [
-                { field: 'name', dir: 'asc' },
-            ],
-        },
-        /*serverPaging: true,
-        serverSorting: true,*/
-        pageable: {
-            pageSize: 2,
-            input: true, 
-        },
-        columns: [
-            { title: "Project Name", width: 100, field: "name", headerAttributes: { style: "text-align:left;" }, attributes: { style: "text-align:left;" } },
-            { title: "No. of WTG", width: 90,field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Production<br>(GWh)", width: 80,field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "PLF<br>(%)", field: "plf", width: 80, format: "{0:n2}", template: "#= kendo.toString(plf*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Lost Energy<br>(MWh)", width: 80,field: "lostenergy", template: "#= kendo.toString(lostenergy/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Downtime<br>(Hours)", width: 80,field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Machine Availability<br>(%)", width: 120,field: "machineavail", format: "{0:n2}", template: "#= kendo.toString(machineavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Total Availability<br>(%)", width: 120,field: "trueavail", format: "{0:n2}", template: "#= kendo.toString(trueavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-        ]
+            columns: [
+                { title: "Project Name", field: "name", headerAttributes: { style: "text-align:left;" }, attributes: { style: "text-align:left;" } },
+                { title: "No. of WTG", field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Production<br>(GWh)", field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "PLF<br>(%)", field: "plf", format: "{0:n2}", template: "#= kendo.toString(plf*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Lost Energy<br>(MWh)", field: "lostenergy", template: "#= kendo.toString(lostenergy/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Machine Availability<br>(%)", field: "machineavail", format: "{0:n2}", template: "#= kendo.toString(machineavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Total Availability<br>(%)", field: "trueavail", format: "{0:n2}", template: "#= kendo.toString(trueavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            ]
+        });
     });
 
-    setTimeout(function () {
-        var grid = $("#gridSummaryData").data("kendoGrid");
-        if (project == "Fleet") {
-            $("#gridSummaryData th[data-field=name]").html("Project Name")
-            grid.showColumn("noofwtg");
-        } else {
-            $("#gridSummaryData th[data-field=name]").html("Turbine Name")
-            grid.hideColumn("noofwtg");
-        }
-        var dataSource = grid.dataSource.data();
-        $.each(dataSource, function (i, row) {
-            $('tr[data-uid="' + row.uid + '"]').css("border-bottom", "1pt solid black");
-        });
-        $("#gridSummaryData").data("kendoGrid").refresh();
-    }, 100);
+    $.when(ajax1).done(function(){
+        setTimeout(function(){
+            var grid = $("#gridSummaryData").data("kendoGrid");
+            if (project == "Fleet") {
+                $("#gridSummaryData th[data-field=name]").html("Project Name")
+                grid.showColumn("noofwtg");
+            } else {
+                $("#gridSummaryData th[data-field=name]").html("Turbine Name")
+                grid.hideColumn("noofwtg");
+            }
+            var dataSource = grid.dataSource.data();
+            $.each(dataSource, function (i, row) {
+                $('tr[data-uid="' + row.uid + '"]').css("border-bottom", "1pt solid black");
+            });
+            $("#gridSummaryData").data("kendoGrid").refresh();
+        }, 100);        
+    })
 }
 
 sum.PLF = function (dataSource) {
