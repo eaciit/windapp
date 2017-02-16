@@ -91,23 +91,52 @@ avail.loadData = function () {
 avail.refreshChart = function () {
     if(lgd.isAvailability() == true){
         if($("#projectId").data("kendoDropDownList").value() == 'Fleet'){
-            $("#fleetChartMachAvail").data("kendoChart").refresh();
-            $("#fleetChartGridAvail").data("kendoChart").refresh();
-            $("#fleetChartTopTurbineLoss").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatEnergyLoss").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatFreq").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatDuration").data("kendoChart").refresh();
-            $("#chartDTLostEnergy").data("kendoChart").refresh();
-            $("#chartDTLEbyType").data("kendoChart").refresh();
+            if($("#fleetChartMachAvail").data("kendoChart") != undefined) {
+                $("#fleetChartMachAvail").data("kendoChart").refresh();
+            }
+            if($("#fleetChartGridAvail").data("kendoChart") != undefined) {
+                $("#fleetChartGridAvail").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopTurbineLoss").data("kendoChart") != undefined) {
+                $("#fleetChartTopTurbineLoss").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatEnergyLoss").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatEnergyLoss").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatFreq").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatFreq").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatDuration").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatDuration").data("kendoChart").refresh();
+            }
+            if($("#chartDTLostEnergy").data("kendoChart") != undefined) {
+                $("#chartDTLostEnergy").data("kendoChart").refresh();
+            }
+            if($("#chartDTLEbyType").data("kendoChart") != undefined) {
+                $("#chartDTLEbyType").data("kendoChart").refresh();
+            }
         }else{
-            $("#projectChartMachAvail").data("kendoChart").refresh();
-            $("#projectChartGridAvail").data("kendoChart").refresh();
-            $("#projectChartDTDuration").data("kendoChart").refresh();
-            $("#projectChartDTFrequency").data("kendoChart").refresh();
-            $("#projectChartTopLossCatEnergyLoss").data("kendoChart").refresh();
-            $("#projectChartTopLossCatFreq").data("kendoChart").refresh();
-            $("#projectChartTopLossCatDuration").data("kendoChart").refresh();
-
+            if($("#projectChartMachAvail").data("kendoChart") != undefined) {
+                $("#projectChartMachAvail").data("kendoChart").refresh();
+            }
+            if($("#projectChartGridAvail").data("kendoChart") != undefined) {
+                $("#projectChartGridAvail").data("kendoChart").refresh();
+            }
+            if($("#projectChartDTDuration").data("kendoChart") != undefined) {
+                $("#projectChartDTDuration").data("kendoChart").refresh();
+            }
+            if($("#projectChartDTFrequency").data("kendoChart") != undefined) {
+                $("#projectChartDTFrequency").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatEnergyLoss").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatEnergyLoss").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatFreq").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatFreq").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatDuration").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatDuration").data("kendoChart").refresh();
+            }
         }
     }else{
         return;
