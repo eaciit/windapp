@@ -638,6 +638,89 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "success")
 }
 
+func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	downtimeDatas := getDownTimeLostEnergy("project", p)
+	result.Set("lostenergy", downtimeDatas)
+
+	if !p.IsDetail {
+		if p.Type == "" && p.ProjectName == "Fleet" {
+			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
+		}
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *DashboardController) GetDowntimeTop(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if !p.IsDetail {
+		if p.ProjectName != "Fleet" {
+			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
+			result.Set("duration", getTurbineDownTimeTop("duration", p))
+			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
+		}
+		result.Set("loss", getTurbineDownTimeTop("loss", p))
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *DashboardController) GetLossCategories(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if !p.IsDetail {
+		lossD, lossF, loss := getLossCategoriesTopDFP(p)
+		result.Set("lossCatDuration", lossD)
+		result.Set("lossCatFrequency", lossF)
+		result.Set("lossCatLoss", loss)
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *DashboardController) GetMachGridAvailability(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if !p.IsDetail {
+		machAvail, gridAvail := getMGAvailability(p)
+
+		result.Set("machineAvailability", machAvail)
+		result.Set("gridAvailability", gridAvail)
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
 func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -657,7 +740,7 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 		if p.Type == "" && p.ProjectName == "Fleet" {
 			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
 		} else if p.ProjectName != "Fleet" {
-			/*tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya*/
+			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
 			result.Set("duration", getTurbineDownTimeTop("duration", p))
 			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
 		}

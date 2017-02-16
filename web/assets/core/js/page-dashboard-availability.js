@@ -27,45 +27,60 @@ avail.loadData = function () {
     }
 
     if (lgd.isAvailability()) {
-        var request = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
+        var availReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getmachgridavailability", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-
             if (project == "Fleet") {
                 avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
                 avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
-                avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
-                avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
-                avail.TopTurbineByLoss(res.data.loss); /*"#fleetChartTopTurbineLoss"*/
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
-            }else{
+            } else {
                 avail.projectMachAvail(res.data.machineAvailability); /*"#projectChartMachAvail"*/
                 avail.projectGridAvail(res.data.gridAvailability); /*"#projectChartGridAvail"*/
+            }
+        });
+        var lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
+                avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+            } else {
                 avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
+            }
+        });
+        var downtimeTopReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimetop", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.TopTurbineByLoss(res.data.loss); /*"#fleetChartTopTurbineLoss"*/
+            } else {
                 avail.DTLoss(res.data.loss); /*#"projectChartTopTurbineLosses"*/
                 avail.DTDuration(res.data.duration); /*#"projectChartDTDuration"*/
                 avail.DTFrequency(res.data.frequency); /*#"projectChartDTFrequency"*/
+            }
+        });
+        var lossCatReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlosscategories", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
+            } else {
                 avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
                 avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times'); /*#"projectChartTopLossCatFreq"*/
             }
-            
-            if (project == "Fleet"){
-                avail.DTTurbines();
-            }            
-
-            if (avail.mdTypeList.length == 0) {
-                avail.getMDTypeList();
-            }
-
-            // app.loading(false);
-            // avail.refreshChart();S
         });
-
-        $.when(request).done(function(){
+        avail.DTTurbines();
+        if (avail.mdTypeList.length == 0) {
+            avail.getMDTypeList();
+        }
+        $.when(availReq, lostEnergyReq, downtimeTopReq, lossCatReq).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },300)
@@ -76,23 +91,52 @@ avail.loadData = function () {
 avail.refreshChart = function () {
     if(lgd.isAvailability() == true){
         if($("#projectId").data("kendoDropDownList").value() == 'Fleet'){
-            $("#fleetChartMachAvail").data("kendoChart").refresh();
-            $("#fleetChartGridAvail").data("kendoChart").refresh();
-            $("#fleetChartTopTurbineLoss").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatEnergyLoss").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatFreq").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatDuration").data("kendoChart").refresh();
-            $("#chartDTLostEnergy").data("kendoChart").refresh();
-            $("#chartDTLEbyType").data("kendoChart").refresh();
+            if($("#fleetChartMachAvail").data("kendoChart") != undefined) {
+                $("#fleetChartMachAvail").data("kendoChart").refresh();
+            }
+            if($("#fleetChartGridAvail").data("kendoChart") != undefined) {
+                $("#fleetChartGridAvail").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopTurbineLoss").data("kendoChart") != undefined) {
+                $("#fleetChartTopTurbineLoss").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatEnergyLoss").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatEnergyLoss").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatFreq").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatFreq").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatDuration").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatDuration").data("kendoChart").refresh();
+            }
+            if($("#chartDTLostEnergy").data("kendoChart") != undefined) {
+                $("#chartDTLostEnergy").data("kendoChart").refresh();
+            }
+            if($("#chartDTLEbyType").data("kendoChart") != undefined) {
+                $("#chartDTLEbyType").data("kendoChart").refresh();
+            }
         }else{
-            $("#projectChartMachAvail").data("kendoChart").refresh();
-            $("#projectChartGridAvail").data("kendoChart").refresh();
-            $("#projectChartDTDuration").data("kendoChart").refresh();
-            $("#projectChartDTFrequency").data("kendoChart").refresh();
-            $("#projectChartTopLossCatEnergyLoss").data("kendoChart").refresh();
-            $("#projectChartTopLossCatFreq").data("kendoChart").refresh();
-            $("#projectChartTopLossCatDuration").data("kendoChart").refresh();
-
+            if($("#projectChartMachAvail").data("kendoChart") != undefined) {
+                $("#projectChartMachAvail").data("kendoChart").refresh();
+            }
+            if($("#projectChartGridAvail").data("kendoChart") != undefined) {
+                $("#projectChartGridAvail").data("kendoChart").refresh();
+            }
+            if($("#projectChartDTDuration").data("kendoChart") != undefined) {
+                $("#projectChartDTDuration").data("kendoChart").refresh();
+            }
+            if($("#projectChartDTFrequency").data("kendoChart") != undefined) {
+                $("#projectChartDTFrequency").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatEnergyLoss").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatEnergyLoss").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatFreq").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatFreq").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatDuration").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatDuration").data("kendoChart").refresh();
+            }
         }
     }else{
         return;
