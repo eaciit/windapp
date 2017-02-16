@@ -111,18 +111,18 @@ prod.gridProduction = function (project, enddate) {
         serverSorting: true,*/
         pageable: true,
         columns: [
-            { title: "Project Name",width: 90, field: "name", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:left;" } },
-            { title: "No. of WTG", width: 80, field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Max Capacity<br>(GWh)", width: 80,field: "maxcapacity", template: "#= kendo.toString(maxcapacity/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Production<br>(GWh)",width: 80, field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "PLF<br>(%)", width: 80,field: "plf", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(plf*100, 'n2') #%" },
-            { title: "Total Availability<br>(%)", width: 90,field: "totalavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(totalavail*100, 'n2') #%" },
+            { title: "Project Name", field: "name", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:left;" } },
+            { title: "No. of WTG", field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            { title: "Max Capacity<br>(GWh)", field: "maxcapacity", template: "#= kendo.toString(maxcapacity/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            { title: "Production<br>(GWh)", field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            { title: "PLF<br>(%)", field: "plf", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(plf*100, 'n2') #%" },
+            { title: "Total Availability<br>(%)", field: "totalavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(totalavail*100, 'n2') #%" },
             // { title: "Production Ratio", field: "lostEnergy",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-right" }},
             // { title: "Worst Single Production Ratio", field: "lostEnergy",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-right" }},
-            { title: "Lowest Machine Availability<br>(%)", width: 120,field: "lowestmachineavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-            { title: "Lowest PLF<br>(%)", width: 90,field: "lowestplf", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+            { title: "Lowest Machine Availability<br>(%)", field: "lowestmachineavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+            { title: "Lowest PLF<br>(%)", field: "lowestplf", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
             // { title: "Max. Lost Energy to Effeciency", field: "lostenergy",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-right" },template: "#= kendo.toString(lostenergy, 'n2') #"},
-            { title: "Max. Lost Energy due to Downtime<br>(KWh)", width: 120,field: "maxlossenergy", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+            { title: "Max. Lost Energy due to Downtime<br>(KWh)", field: "maxlossenergy", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
         ],
     });
 
