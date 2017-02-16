@@ -21,66 +21,8 @@ type UpdateScadaOemMinutes struct {
 }
 
 var (
-	mtxOem      = &sync.Mutex{}
-	refTurbines = tk.M{}
-	refAlarms   = tk.M{}
+	mtxOem = &sync.Mutex{}
 )
-
-func (u *UpdateScadaOemMinutes) prepareDataReff() {
-	tk.Println("Getting data refference")
-	logStart := time.Now()
-
-	turbines := []TurbineMaster{}
-	csrt, e := u.Ctx.Connection.NewQuery().From(new(TurbineMaster).TableName()).Cursor(nil)
-
-	e = csrt.Fetch(&turbines, 0, false)
-	ErrorHandler(e, "get turbine master")
-	csrt.Close()
-
-	refTurbines = tk.M{}
-	for _, t := range turbines {
-		refTurbines.Set(t.TurbineId, tk.M{}.
-			Set("turbinename", t.TurbineName).
-			Set("turbineelevation", t.Elevation))
-	}
-
-	// #faisal
-	// get latest alarm from alarm and put condition to get the eventdown based on latest alarm
-	// put some match condition here
-
-	refAlarms = tk.M{}
-
-	for _, t := range refTurbines {
-		turbine := t.(string)
-
-		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
-		filter = append(filter, dbox.Gt("timeend", u.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
-
-		alarms := []EventDown{}
-		csr2, e := u.Ctx.Connection.NewQuery().From(new(EventDown).TableName()).
-			Where(filter...).Cursor(nil)
-
-		e = csr2.Fetch(&alarms, 0, false)
-		ErrorHandler(e, "get alarm data")
-		csr2.Close()
-
-		details := []EventDown{}
-		for _, a := range alarms {
-			if refAlarms.Has(a.Turbine) {
-				details = refAlarms.Get(a.Turbine).([]EventDown)
-			} else {
-				details = []EventDown{}
-			}
-
-			details = append(details, a)
-			refAlarms.Set(a.Turbine, details)
-		}
-	}
-
-	logDuration := time.Now().Sub(logStart).Seconds()
-	tk.Printf("Getting refference data about %v secs\n", logDuration)
-}
 
 func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 	funcName := "UpdateScadaOemDensity Data"
@@ -94,55 +36,61 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 		}
 
 		tk.Println("UpdateScadaOemDensity Data")
-
-		d.prepareDataReff()
-
 		var wg sync.WaitGroup
 
 		// #faisal
 		// get latest scadadata from scadadata and put condition to get the scadadataoem based on latest scadadata
 		// put some match condition here
 
-		csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
-			Where(dbox.Eq("projectname", "Tejuva")).Cursor(nil)
-		ErrorHandler(e, funcName)
+		for turbine, _ := range d.BaseController.RefTurbines {
+			filter := []*dbox.Filter{}
+			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+			filter = append(filter, dbox.Eq("turbine", turbine))
+			filter = append(filter, dbox.Gt("timestamp", d.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
-		defer csr.Close()
+			csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
+				Where(filter...).Cursor(nil)
+			ErrorHandler(e, funcName)
 
-		counter := 0
-		isDone := false
-		countPerProcess := 1000
-		countData := csr.Count()
+			defer csr.Close()
 
-		for !isDone && countData > 0 {
-			scadas := []*ScadaDataOEM{}
-			e = csr.Fetch(&scadas, countPerProcess, false)
+			counter := 0
+			isDone := false
+			countPerProcess := 1000
+			countData := csr.Count()
 
-			if len(scadas) < countPerProcess {
-				isDone = true
-			}
+			tk.Printf("\nDensity for %v | %v \n", turbine, countData)
 
-			wg.Add(1)
-			go func(datas []*ScadaDataOEM, endIndex int) {
-				tk.Printf("Starting process %v data\n", endIndex)
+			for !isDone && countData > 0 {
+				scadas := []*ScadaDataOEM{}
+				e = csr.Fetch(&scadas, countPerProcess, false)
 
-				mtxOem.Lock()
-				logStart := time.Now()
-
-				for _, data := range datas {
-					d.updateScadaOEM(data)
+				if len(scadas) < countPerProcess {
+					isDone = true
 				}
 
-				logDuration := time.Now().Sub(logStart)
-				mtxOem.Unlock()
+				wg.Add(1)
+				go func(datas []*ScadaDataOEM, endIndex int) {
+					tk.Printf("Starting process %v data\n", endIndex)
 
-				tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
-				wg.Done()
-			}(scadas, ((counter + 1) * countPerProcess))
+					mtxOem.Lock()
+					logStart := time.Now()
 
-			counter++
-			if counter%10 == 0 || isDone {
-				wg.Wait()
+					for _, data := range datas {
+						d.updateScadaOEM(data)
+					}
+
+					logDuration := time.Now().Sub(logStart)
+					mtxOem.Unlock()
+
+					tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
+					wg.Done()
+				}(scadas, ((counter + 1) * countPerProcess))
+
+				counter++
+				if counter%10 == 0 || isDone {
+					wg.Wait()
+				}
 			}
 		}
 	}
@@ -152,7 +100,7 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	ctx := u.Ctx
 	turbine := GetExactTurbineId(strings.TrimSpace(data.Turbine))
 
-	turbines := refTurbines.Get(turbine)
+	turbines := u.BaseController.RefTurbines.Get(turbine)
 
 	power := data.AI_intern_ActivPower
 	energy := tk.Div(power, 6)
@@ -217,7 +165,7 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	unknownDowntime := 0.0
 
 	// getting alarms
-	refEvents := refAlarms.Get(turbine)
+	refEvents := u.BaseController.RefAlarms.Get(turbine)
 	alarms := []EventDown{}
 	if refEvents != nil {
 		dataAlarms := refEvents.([]EventDown)
