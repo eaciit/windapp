@@ -53,28 +53,52 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="staticViewTab" role="presentation" class="active"><a onclick="pg.StaticView()" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
+							<li id="staticViewTab" role="presentation" class="active"><a onclick="sv.StaticView()" href="#staticView" aria-controls="StaticView" role="tab" data-toggle="tab" class="tab-custom">Static View</a></li>
 
-							<li id="Top10DowntimeTab" role="presentation"><a onclick="pg.Downtime()" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
+							<li id="Top10DowntimeTab" role="presentation"><a onclick="dt.Downtime()" href="#top10downtime" aria-controls="Top 10 Downtime" role="tab" data-toggle="tab" class="tab-custom">Downtime</a></li>
 <!-- 
 							<li id="analysisTab" role="presentation"><a onclick="pg.refreshGrid();" href="#analysis" aria-controls="Analysis" role="tab" data-toggle="tab" class="tab-custom">Analysis</a></li>
  -->
-							<li id="availabilityTab" role="presentation"><a onclick="pg.Availability()" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
+							<li id="availabilityTab" role="presentation"><a onclick="av.Availability()" href="#availability" aria-controls="Availability" role="tab" data-toggle="tab" class="tab-custom">Availability</a></li>
 
-							<li id="lostenergyTab" role="presentation"><a onclick="pg.LossEnergy()" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
+							<li id="lostenergyTab" role="presentation"><a onclick="le.LossEnergy()" href="#lostenergy" aria-controls="LostEnergy" role="tab" data-toggle="tab" class="tab-custom">Lost Energy</a></li>
 
 							<li id="reliabilitykpiTab" role="presentation"><a onclick="pg.Reliability()" href="#reliabilitykpi" aria-controls="ReliabilityKPI" role="tab" data-toggle="tab" class="tab-custom">Reliability KPI's</a></li>
 
-							<li id="windspeedavailTab" role="presentation"><a onclick="pg.WindSpeed()" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
+							<li id="windspeedavailTab" role="presentation"><a onclick="wa.WindSpeed()" href="#windspeedavail" aria-controls="WindSpeedAvail" role="tab" data-toggle="tab" class="tab-custom">Wind Speed vs Availability</a></li>
 							
-							<li id="warningTab" role="presentation"><a onclick="pg.Warning()" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
+							<li id="warningTab" role="presentation"><a onclick="wf.Warning()" href="#warning" aria-controls="Warning" role="tab" data-toggle="tab" class="tab-custom">Warning Frequency</a></li>
 
-							<li id="CompAlarmTab" role="presentation"><a onclick="pg.Component()" href="#CompAlarm" aria-controls="ComponentAlarmType" role="tab" data-toggle="tab" class="tab-custom">Component / Alarm Type</a></li> <!-- onclick="pg.refreshGrid('CompAlarm');"  -->
+							<li id="CompAlarmTab" role="presentation"><a onclick="ca.Component()" href="#CompAlarm" aria-controls="ComponentAlarmType" role="tab" data-toggle="tab" class="tab-custom">Component / Alarm Type</a></li> <!-- onclick="pg.refreshGrid('CompAlarm');"  -->
 						</ul>
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="staticView">
-								<div id="lossGrid" class="grid-custom"></div>
+								{{template "static-view.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="top10downtime">
+                                {{template "downtime-top10.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="availability">
+								{{template "availability.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="lostenergy">
+								{{template "lost-energy.html"}}
+							</div>
+
+							<div role="tabpanel" class="tab-pane" id="reliabilitykpi">
+								<div id="reliabilitykpi" class="grid-custom"></div>
+							</div>
+
+							<div role="tabpanel" class="tab-pane" id="windspeedavail">
+								{{template "windspeed-availability.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="warning">
+								{{template "warning-frequency.html"}}
+							</div>
+							<!-- Component Alarm Tab -->
+							<div role="tabpanel" class="tab-pane" id="CompAlarm">
+								{{template "component-alarm.html"}}
 							</div>
  
 							<div role="tabpanel" class="tab-pane" id="analysis">
@@ -87,145 +111,6 @@
 								<div class="col-md-12">
 									<div id="lossChart"></div>
 								</div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="reliabilitykpi">
-								<div id="reliabilitykpi" class="grid-custom"></div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="windspeedavail">
-								<div class="col-md-12">
-									<div id="windAvailabilityChart"></div>
-								</div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="lostenergy">
-								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading ph-availability">Lost Energy (MWh) by Down Time Type</div>
-										<div class="panel-body">
-											<div id="chartDTLEbyType"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6 margin-bottom-25" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Loss Categories by Total Energy Loss (MWh)</div>
-										<div class="panel-body">
-											<div id="chartLCByTEL"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6 margin-bottom-30 margin-top-10" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Loss Categories by Duration (Hours)</div>
-										<div class="panel-body">
-											<div id="chartLCByDuration"></div>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-6 margin-bottom-30 margin-top-10" data-bind="visible:pg.isDetailDTTop()==false">
-									<div class="panel ez no-padding hardcore">
-										<div class="panel-heading">Top 10 Loss Categories by Frequency</div>
-										<div class="panel-body">
-											<div id="chartLCByFreq"></div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div role="tabpanel" class="tab-pane" id="availability">
-
-								<div class="col-md-3 col-md-offset-9 ontop">
-									<span class="pull-right">
-                                        <span style="font-size:12px;"><b>Breakdown By &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Show Chart based on the keys"></i></b></span>&nbsp;
-									<select class="form-control input-sm" id="breakdownlistavail"></select>
-									</span>
-								</div>
-								<div class="col-md-12"> 
-									<div class="clearfix">&nbsp;</div>
-									<br>
-									<div id="availabilityChart"></div>
-								</div>
-								<div class="col-md-12">
-									<div class="clearfix">&nbsp;</div>
-									<br>
-									<div id="productionChart"></div>
-								</div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="top10downtime">
-                                <div class="col-md-12">
-	 								<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
-										<div class="panel ez no-padding hardcore">
-											<div class="panel-heading">Top 10 Turbine Downtime by Duration (Hours)</div>
-											<div class="panel-body">
-												<div id="chartDTDuration"></div>
-											</div>
-										</div>
-									</div>
-									<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
-										<div class="panel ez no-padding hardcore">
-											<div class="panel-heading">Top 10 Turbine Downtime by Frequency</div>
-											<div class="panel-body">
-												<div id="chartDTFrequency"></div>
-											</div>
-										</div>
-									</div>
-									<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
-										<div class="panel ez no-padding hardcore">
-											<div class="panel-heading">Top 10 Turbine Downtime by Losses (MWh)</div>
-											<div class="panel-body">
-												<div id="chartTopTurbineLoss"></div>
-											</div>
-										</div>
-									</div>                               	
-                                </div>
-							</div>
-
-							<!-- Component Alarm Tab -->
-							<div role="tabpanel" class="tab-pane" id="CompAlarm">
-								<div class="col-md-12 Tcenter">
-									<div class="nav-CA">
-										<div class="btn-group" data-toggle="buttons" id="downtimeGroup">
-											<label class="btn btn-sm btn-primary active radio-filter" id="lblComp">
-		                                        <input type="radio" name="IsAlarm" id="comp" autocomplete="off" value="true" checked> Component
-		                                    </label>
-											<label class="btn btn-sm btn-primary radio-filter" id="lblAlarm">
-		                                        <input type="radio" name="IsAlarm" id="alarm" autocomplete="off" value="false"> Alarm Type
-		                                    </label>
-										</div>
-									</div>
-								</div>
-                                <div class="col-md-12">
-	 								<div class="col-md-4">
-										<div class="panel ez no-padding hardcore">
-											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Duration (Hours)'">Top 10 Turbine Downtime by Duration (Hours)</div>
-											<div class="panel-body">
-												<div id="chartCADuration"></div>
-											</div>
-										</div>
-									</div>
-									<div class="col-md-4" >
-										<div class="panel ez no-padding hardcore">
-											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Frequency'">Top 10 Turbine Downtime by Frequency</div>
-											<div class="panel-body">
-												<div id="chartCAFrequency"></div>
-											</div>
-										</div>
-									</div>
-									<div class="col-md-4" >
-										<div class="panel ez no-padding hardcore">
-											<div class="panel-heading" data-bind="text:pg.labelAlarm() + ' by Losses (MWh)'">Top 10 Turbine Downtime by Losses (MWh)</div>
-											<div class="panel-body">
-												<div id="chartCATurbineLoss"></div>
-											</div>
-										</div>
-									</div>                               	
-                                </div>
-							</div>
-
-							<div role="tabpanel" class="tab-pane" id="warning">
-								<div id="warningGrid" class="grid-custom"></div>
 							</div>
 						</div>
 					</div>

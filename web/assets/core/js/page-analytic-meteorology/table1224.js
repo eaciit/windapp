@@ -22,15 +22,21 @@ tb.generateGridTable = function (datatype) {
     $('#gridTable1224').html('');
 
     var dataSource = [];
+    var total = [];
+
     if(datatype == "turbine") {
         dataSource = tb.dataSourceTable().DataTurbine;
+        total = tb.dataSourceTable().TotalTurbine;
     } else {
         dataSource = tb.dataSourceTable().DataMet;
+        total = tb.dataSourceTable().TotalMet;
     }
+
+
     var config = {
         dataSource: {
             data: dataSource,
-            pageSize: 10
+            pageSize: 10,
         },
         pageable: {
             pageSize: 10,
@@ -39,7 +45,7 @@ tb.generateGridTable = function (datatype) {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+            { title: "Hours", field: "hours", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false,footerTemplate: "<center>Total</center>"},
         ],
          dataBound: function(){
             setTimeout(function(){
@@ -67,13 +73,18 @@ tb.generateGridTable = function (datatype) {
 
         $.each(keyIndex, function(j, key){
             var title = "";
+            var totalSum;
             if(key == "WS") {
                 title = key + " (m/s)";
+                totalSum = total[i].windspeed
             } else if(key == "Temp") {
                 title = key + " (" + String.fromCharCode(176) + "C)";
+                totalSum = total[i].temp;
             } else {
-                title = key + " (kWH)";
+                totalSum = total[i].power
+                title = key + " (MWH)";
             }
+
             var colChild = {
                 title: title,                
                 field: "details["+i+"].col."+ key,
@@ -84,8 +95,10 @@ tb.generateGridTable = function (datatype) {
                 },
                 format: "{0:n2}",
                 filterable: false, 
+                footerTemplate: "<div style='text-align:center'>#= kendo.toString("+totalSum+",'n2') # </div>"
             };
             column.columns.push(colChild);
+
         });
 
         config.columns.push(column);
@@ -157,6 +170,7 @@ tb.refreshTable = function(datatype){
 
 tb.Table = function(){
     app.loading(true);
+    pm.hideFilter();
     fa.LoadData();
     var datatype = '';
     if(pm.isFirstTwelve() === true){
@@ -192,15 +206,17 @@ tb.Table = function(){
             }
         });
     }else{
-        if($("#met").is(':checked')) {
-            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
-            $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
-        } else {
-            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        }
         setTimeout(function(){
-            tb.generateGridTable(datatype);
-        }, 300);
+            tb.refreshTable(datatype);
+            if($("#met").is(':checked')) {
+                pm.isMet(true);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
+            } else {
+                 pm.isMet(false);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+            }
+        },300);
     }
 }

@@ -26,40 +26,20 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="pm.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
+							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="aw.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
 							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.WindRose()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
 							<li id="windroseComparisonTab" role="presentation"><a href="#windrosecomparison" aria-controls="Wind Rose" role="tab" onclick="wrb.WindRoseComparison()" data-toggle="tab" class="tab-custom">Wind Rose Comparison</a></li>
-							<li id="winddistributionTab" role="presentation"><a onclick="pm.WindDis()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
+							<li id="winddistributionTab" role="presentation"><a onclick="wd.WindDis()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
 							<li id="turbulenceintencityTab" role="presentation"><a onclick="ti.RefreshData()" href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
 							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
-							<li id="turbineCorrelationTab" role="presentation" onclick="pm.TurbineCorrelation()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
+							<li id="turbineCorrelationTab" role="presentation" onclick="tc.TurbineCorrelation()"><a href="#turbineCorrelation" aria-controls="Turbine Correlation" role="tab" data-toggle="tab" class="tab-custom">Turbine Correlation</a></li>
 							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="tb.Table()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
-							<li id="mtbfTab" role="presentation"><a href="#mtbf" onclick="mt.Refreshchartmt()" aria-controls="mtbf" role="tab"  data-toggle="tab" class="tab-custom">MTBF</a></li>
+							<li id="mtbfTab" role="presentation"><a href="#mtbf" onclick="mt.RefreshData()" aria-controls="mtbf" role="tab"  data-toggle="tab" class="tab-custom">MTBF</a></li>
 						</ul>
 
 						<div class="tab-content">
 							<div role="tabpanel" class="tab-pane active" id="avgwindspeed">
-								<!--<div class="col-md-12">
-									<div class="col-md-3 col-xs-12">
-										<label class="control-label keyA-label">Series Breakdown</label>
-										<select id="seriesBreakdown" data-bind="kendoDropDownList: { data: aws.SeriesBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
-											style="width:120px;">
-		                                </select>&nbsp;
-									</div>
-									<div class="col-md-3 col-xs-12">
-										<label class="control-label keyA-label">Time Breakdown</label>
-										<select id="timeBreakdown" data-bind="kendoDropDownList: { data: aws.TimeBreakdown, dataValueField: 'value', dataTextField: 'text', suggest: true}"
-											style="width:120px;">
-		                                </select>&nbsp;
-									</div>
-								</div>
-								<div class="col-md-12">
-									<div id="averageWindSpeedChart"></div>
-								</div>-->
-								<div class="col-md-12">
-									<div id="gridAvgWs"></div>
-									<div class="clearfix">&nbsp;</div>
-								</div>
+								{{template "average-windspeed.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="windrose">
 								{{template "windrose.html"}}
@@ -68,21 +48,8 @@
 								{{template "windrose-comparison.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="winddistribution">
-<!-- 								<div class="date-info">
-                                    Data Available from: <strong><span id="availabledatestartscada2">-</span></strong> until: <strong><span id="availabledateendscada2">-</span></strong>
-                                </div> -->
-								<div class="col-md-9">
-									<div id="windDistribution"></div>
-									<div class="clearfix">&nbsp;</div>
-								</div>
-								<div class="col-md-3 turList">
-									<!-- <div class="panel-heading custom-header">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show detail"></i></div> -->
-									<div class="clearfix">&nbsp;</div>
-									<div class="checkbox" id="showHideChk"></div>
-									<div class="col-md-12 col-sm-12" id="right-turbine-list"></div>
-								</div>
+								{{template "wind-distribution.html"}}
 							</div>
-
 							<div role="tabpanel" class="tab-pane" id="turbulenceintencity">
 								{{template "turbulence-intensity.html"}}
 							</div>
@@ -90,18 +57,14 @@
 								
 							</div>
 							<div role="tabpanel" class="tab-pane" id="turbineCorrelation">
-								<div id="gridTurbineCorrelation"></div>
+								{{template "turbine-correlation.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="table1224">
-
-
 								{{template "table1224.html"}}
 							</div>
-
 							<div role="tabpanel" class="tab-pane" id="mtbf">
 								{{template "mtbf.html"}}
 							</div>
-
 						</div>
 					</div>
 				</div>

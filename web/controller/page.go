@@ -221,6 +221,15 @@ func (w *PageController) AnalyticKpi(r *knot.WebContext) interface{} {
 func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-analytic.html",
+		"page-loss-analysis/static-view.html",
+		"page-loss-analysis/downtime-top10.html",
+		"page-loss-analysis/availability.html",
+		"page-loss-analysis/lost-energy.html",
+		"page-loss-analysis/windspeed-availability.html",
+		"page-loss-analysis/warning-frequency.html",
+		"page-loss-analysis/component-alarm.html",
+	}...)
 	r.Config.ViewName = "page-loss-analysis.html"
 
 	return w.GetParams(r, true)
@@ -243,6 +252,9 @@ func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
 		"page-analytic-meteorology/mtbf.html",
 		"page-analytic-meteorology/windrose.html",
 		"page-analytic-meteorology/windrose-comparison.html",
+		"page-analytic-meteorology/wind-distribution.html",
+		"page-analytic-meteorology/average-windspeed.html",
+		"page-analytic-meteorology/turbine-correlation.html",
 	}...)
 	r.Config.ViewName = "page-analytic-meteorology.html"
 

@@ -5,9 +5,9 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 
+	"github.com/eaciit/crowd"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
-	"github.com/eaciit/crowd"
 	"sort"
 	// "time"
 )
@@ -30,13 +30,13 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 	turbine := p.Turbine
 	var (
-		query    []tk.M
-		querymet    []tk.M
-		pipes    []tk.M
-		pipesmet []tk.M
-		results  tk.M
-		datas    []tk.M
-		dataSeries []tk.M
+		query        []tk.M
+		querymet     []tk.M
+		pipes        []tk.M
+		pipesmet     []tk.M
+		results      tk.M
+		datas        []tk.M
+		dataSeries   []tk.M
 		sortTurbines []string
 	)
 
@@ -99,7 +99,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 	csrt.Close()
 
-	tk.Printf("metTowers : %s \n", len(metTowers))
+	// tk.Printf("metTowers : %s \n", len(metTowers))
 
 	for _, m := range metTowers {
 		iDs := m.Get("_id").(tk.M)
@@ -130,7 +130,6 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 			"tivalue":     tk.Div(avgwsstddev, avgws),
 		})
 	}
-
 
 	if len(p.Turbine) == 0 {
 		for _, listVal := range datas {
@@ -171,7 +170,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		turbineData.Set("idxseries", selArr)
 
 		for _, val := range exist {
-			dts = append(dts, []float64{val.GetFloat64("binws"), val.GetFloat64("tivalue")}) 
+			dts = append(dts, []float64{val.GetFloat64("binws"), val.GetFloat64("tivalue")})
 		}
 
 		if len(dts) > 0 {
