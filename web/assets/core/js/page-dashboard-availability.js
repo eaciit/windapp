@@ -590,25 +590,32 @@ avail.TopTurbineByLoss = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -1118,25 +1125,32 @@ avail.DTDuration = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -1219,25 +1233,32 @@ avail.DTLoss = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -1320,25 +1341,32 @@ avail.DTFrequency = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],

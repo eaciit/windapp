@@ -117,13 +117,13 @@ func getMachineDownType() (map[string]string, error) {
 	}*/
 
 	result := map[string]string{
-		"aebok":        "AEBOK",
-		"externalstop": "External Stop",
-		"griddown":     "Grid Down",
-		"internalgrid": "Internal Grid",
-		"machinedown":  "Machine Down",
-		"unknown":      "Unknown",
-		"weatherstop":  "Weather Stop",
+		// "aebok":        "AEBOK",
+		// "externalstop": "External Stop",
+		"griddown": "Grid Down",
+		// "internalgrid": "Internal Grid",
+		"machinedown": "Machine Down",
+		"unknown":     "Unknown",
+		// "weatherstop":  "Weather Stop",
 	}
 
 	return result, nil
@@ -1193,13 +1193,13 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 		match.Set("turbine", tk.M{"$in": turbines})
 
 		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
 		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("internalgrid", "Internal Grid")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause.Set("weatherstop", "Weather Stop")
 
 		tmpResult := []tk.M{}
 		downDone := []string{}
@@ -1565,13 +1565,13 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 		}
 
 		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
 		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("internalgrid", "Internal Grid")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause.Set("weatherstop", "Weather Stop")
 
 		tmpResult := []tk.M{}
 		tmpResultFreq := []tk.M{}

@@ -670,13 +670,13 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		match.Set("turbine", tk.M{"$in": turbines})
 
 		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
 		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("internalgrid", "Internal Grid")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause.Set("weatherstop", "Weather Stop")
 
 		tmpResult := []tk.M{}
 		downDone := []string{}
@@ -866,7 +866,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 			}
 
 			series.Set("_id", id)
-			series.Set("result",valueResult)
+			series.Set("result", valueResult)
 
 			dataSeries = append(dataSeries, series)
 		}
