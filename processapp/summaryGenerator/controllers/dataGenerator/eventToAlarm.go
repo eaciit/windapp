@@ -39,59 +39,59 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 	// #faisal
 	// add condition to get the eventdown started from the latest data that already in alarm, so no need to generate the alarm data from begining
 	// remove delete function
-
-	for _, t := range refTurbines {
-		turbine := t.(string)
-
+	countx := 0
+	for turbine, _ := range ev.BaseController.RefTurbines {
 		filter := []*dbox.Filter{}
 		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+		filter = append(filter, dbox.Eq("turbine", turbine))
 		filter = append(filter, dbox.Gt("timeend", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
 
-		ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("timeend", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
+		// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
 
 		csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
 			Where(filter...).Cursor(nil)
 
 		defer csr.Close()
 
-		counter := 0
+		// counter := 0
 		countData := csr.Count()
 		isDone := false
-		countPerProcess := 500
+		// countPerProcess := 5
 
-		for !isDone && countData > 0 {
-			events := []*EventDown{}
+		// for !isDone && countData > 0 {
+		events := []*EventDown{}
 
-			// do process here
-			e = csr.Fetch(&events, countPerProcess, false)
-			ErrorHandler(e, funcName)
+		// do process here
+		e = csr.Fetch(&events, 0, false)
+		ErrorHandler(e, funcName)
 
-			if len(events) < countPerProcess {
-				isDone = true
+		wg.Add(1)
+		go func(datas []*EventDown, count int, t string) {
+			tk.Printf("Event to Alarm for %v | %v \n", t, count)
+			for _, d := range datas {
+
+				mtx.Lock()
+				dataInput := d
+				//tk.Printf("%s ", idx)
+
+				ev.doConversion(dataInput)
+				mtx.Unlock()
 			}
+			tk.Printf("end process for %v \n", t)
 
-			wg.Add(1)
-			go func(datas []*EventDown, counter int) {
-				tk.Println("starting process ", countPerProcess*(counter+1))
-				for _, d := range datas {
+			wg.Done()
+		}(events, countData, turbine)
 
-					mtx.Lock()
-					dataInput := d
-					//tk.Printf("%s ", idx)
+		countx++
 
-					ev.doConversion(dataInput)
-					mtx.Unlock()
-				}
-				tk.Println("end process ", countPerProcess*(counter+1))
-
-				wg.Done()
-			}(events, counter)
-
-			counter++
-			if counter%10 == 0 || isDone {
-				wg.Wait()
-			}
+		if len(ev.BaseController.RefTurbines) == countx {
+			isDone = true
 		}
+
+		if countx%5 == 0 || isDone {
+			wg.Wait()
+		}
+		// }
 	}
 
 	tk.Println("End process converting Event to Alarm...")

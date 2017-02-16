@@ -21,66 +21,8 @@ type UpdateScadaOemMinutes struct {
 }
 
 var (
-	mtxOem      = &sync.Mutex{}
-	refTurbines = tk.M{}
-	refAlarms   = tk.M{}
+	mtxOem = &sync.Mutex{}
 )
-
-func (u *UpdateScadaOemMinutes) prepareDataReff() {
-	tk.Println("Getting data refference")
-	logStart := time.Now()
-
-	turbines := []TurbineMaster{}
-	csrt, e := u.Ctx.Connection.NewQuery().From(new(TurbineMaster).TableName()).Cursor(nil)
-
-	e = csrt.Fetch(&turbines, 0, false)
-	ErrorHandler(e, "get turbine master")
-	csrt.Close()
-
-	refTurbines = tk.M{}
-	for _, t := range turbines {
-		refTurbines.Set(t.TurbineId, tk.M{}.
-			Set("turbinename", t.TurbineName).
-			Set("turbineelevation", t.Elevation))
-	}
-
-	// #faisal
-	// get latest alarm from alarm and put condition to get the eventdown based on latest alarm
-	// put some match condition here
-
-	refAlarms = tk.M{}
-
-	for _, t := range refTurbines {
-		turbine := t.(string)
-
-		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
-		filter = append(filter, dbox.Gt("timeend", u.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
-
-		alarms := []EventDown{}
-		csr2, e := u.Ctx.Connection.NewQuery().From(new(EventDown).TableName()).
-			Where(filter...).Cursor(nil)
-
-		e = csr2.Fetch(&alarms, 0, false)
-		ErrorHandler(e, "get alarm data")
-		csr2.Close()
-
-		details := []EventDown{}
-		for _, a := range alarms {
-			if refAlarms.Has(a.Turbine) {
-				details = refAlarms.Get(a.Turbine).([]EventDown)
-			} else {
-				details = []EventDown{}
-			}
-
-			details = append(details, a)
-			refAlarms.Set(a.Turbine, details)
-		}
-	}
-
-	logDuration := time.Now().Sub(logStart).Seconds()
-	tk.Printf("Getting refference data about %v secs\n", logDuration)
-}
 
 func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 	funcName := "UpdateScadaOemDensity Data"
@@ -94,20 +36,16 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 		}
 
 		tk.Println("UpdateScadaOemDensity Data")
-
-		d.prepareDataReff()
-
 		var wg sync.WaitGroup
 
 		// #faisal
 		// get latest scadadata from scadadata and put condition to get the scadadataoem based on latest scadadata
 		// put some match condition here
 
-		for _, t := range refTurbines {
-			turbine := t.(string)
-
+		for turbine, _ := range d.BaseController.RefTurbines {
 			filter := []*dbox.Filter{}
 			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+			filter = append(filter, dbox.Eq("turbine", turbine))
 			filter = append(filter, dbox.Gt("timestamp", d.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
 			csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
@@ -120,6 +58,8 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 			isDone := false
 			countPerProcess := 1000
 			countData := csr.Count()
+
+			tk.Printf("\nDensity for %v | %v \n", turbine, countData)
 
 			for !isDone && countData > 0 {
 				scadas := []*ScadaDataOEM{}
@@ -160,7 +100,7 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	ctx := u.Ctx
 	turbine := GetExactTurbineId(strings.TrimSpace(data.Turbine))
 
-	turbines := refTurbines.Get(turbine)
+	turbines := u.BaseController.RefTurbines.Get(turbine)
 
 	power := data.AI_intern_ActivPower
 	energy := tk.Div(power, 6)
@@ -225,7 +165,7 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	unknownDowntime := 0.0
 
 	// getting alarms
-	refEvents := refAlarms.Get(turbine)
+	refEvents := u.BaseController.RefAlarms.Get(turbine)
 	alarms := []EventDown{}
 	if refEvents != nil {
 		dataAlarms := refEvents.([]EventDown)

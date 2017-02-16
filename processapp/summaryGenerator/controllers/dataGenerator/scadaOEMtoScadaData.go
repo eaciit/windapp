@@ -38,12 +38,11 @@ func (u *UpdateOEMToScada) RunMapping(base *BaseController) {
 
 	var wg sync.WaitGroup
 
-	for _, t := range refTurbines {
-		turbine := t.(string)
-
+	for turbine, _ := range u.BaseController.RefTurbines {
 		filter := []*dbox.Filter{}
 		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
-		filter = append(filter, dbox.Gt("timeend", u.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
+		filter = append(filter, dbox.Eq("turbine", turbine))
+		filter = append(filter, dbox.Gt("timestamp", u.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
 		csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
 			Where(filter...).Cursor(nil)
@@ -55,6 +54,8 @@ func (u *UpdateOEMToScada) RunMapping(base *BaseController) {
 		isDone := false
 		countPerProcess := 1000
 		countData := csr.Count()
+
+		tk.Printf("\nOEM to Scada for %v | %v \n", turbine, countData)
 
 		for !isDone && countData > 0 {
 			scadas := []*ScadaDataOEM{}
