@@ -732,30 +732,8 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	downtimeDatas := getDownTimeLostEnergy("project", p)
-	// tk.Printf("Payload => %#v\n", p)
-	// tk.Printf("Data LostEnergy ==> %#v\n", downtimeDatas)
 	result.Set("lostenergy", downtimeDatas)
 
-	if !p.IsDetail {
-		if p.Type == "" && p.ProjectName == "Fleet" {
-			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
-		} else if p.ProjectName != "Fleet" {
-			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
-			result.Set("duration", getTurbineDownTimeTop("duration", p))
-			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
-		}
-		result.Set("loss", getTurbineDownTimeTop("loss", p))
-
-		lossD, lossF, loss := getLossCategoriesTopDFP(p)
-		result.Set("lossCatDuration", lossD)
-		result.Set("lossCatFrequency", lossF)
-		result.Set("lossCatLoss", loss)
-
-		machAvail, gridAvail := getMGAvailability(p)
-
-		result.Set("machineAvailability", machAvail)
-		result.Set("gridAvailability", gridAvail)
-	}
 	return helper.CreateResult(true, result, "success")
 }
 
