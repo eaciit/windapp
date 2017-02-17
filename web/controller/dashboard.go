@@ -494,11 +494,11 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 			"_id":           "$_id",
 			"noofwtg":       tk.M{"$sum": "$dataitems.noofwtg"},
 			"production":    tk.M{"$sum": "$dataitems.production"},
-			"plf":           tk.M{"$sum": "$dataitems.plf"},
+			"plf":           tk.M{"$avg": "$dataitems.plf"},
 			"lostenergy":    tk.M{"$sum": "$dataitems.lostenergy"},
 			"downtimehours": tk.M{"$sum": "$dataitems.downtimehours"},
-			"machineavail":  tk.M{"$sum": "$dataitems.machineavail"},
-			"trueavail":     tk.M{"$sum": "$dataitems.trueavail"},
+			"machineavail":  tk.M{"$avg": "$dataitems.machineavail"},
+			"trueavail":     tk.M{"$avg": "$dataitems.trueavail"},
 		}})
 		pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
 	} else {
