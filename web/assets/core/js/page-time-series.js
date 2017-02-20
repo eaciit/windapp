@@ -121,7 +121,7 @@ pg.createChart = function(){
       },
       legend: {
         position: "top",
-        visible: false
+        visible: true
       },
       theme: "flat",
       seriesDefaults: {

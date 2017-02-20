@@ -46,6 +46,7 @@ avail.loadData = function () {
             if (project == "Fleet") {
                 avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
                 avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+                avail.DTTurbines();
             } else {
                 avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
             }
@@ -76,7 +77,6 @@ avail.loadData = function () {
                 avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times'); /*#"projectChartTopLossCatFreq"*/
             }
         });
-        avail.DTTurbines();
         if (avail.mdTypeList.length == 0) {
             avail.getMDTypeList();
         }

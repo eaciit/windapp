@@ -403,44 +403,48 @@ func GetPowerCurve(ctx dbox.IConnection, avgWs float64) (float64, float64, float
 	return totalPower, wsret, wsavgret
 }
 
-func GetPowerCurveCubicInterpolation(ctx dbox.IConnection, _model string, avgws float64) (cpower float64, err error) {
-	cpower = 0
-	err = nil
+func GetPowerCurveCubicInterpolation(ctx dbox.IConnection, _model string, avgws float64) (float64, error) {
+	cpower := 0.0
+	var err error
+	if avgws >= 3 && avgws <= 20 {
 
-	apcm := []PowerCurveModel{}
+		apcm := []PowerCurveModel{}
 
-	csr, err := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
-		Where(dbox.Eq("model", _model)).
-		Order("windspeed").Cursor(nil)
+		csr, err := ctx.NewQuery().From(new(PowerCurveModel).TableName()).
+			Where(dbox.Eq("model", _model)).
+			Order("windspeed").Cursor(nil)
 
-	if err != nil {
-		return
-	}
-	defer csr.Close()
+		if err != nil {
+			return cpower, err
+		}
+		defer csr.Close()
 
-	_ws := []float64{}
-	_power := []float64{}
+		_ws := []float64{}
+		_power := []float64{}
 
-	err = csr.Fetch(&apcm, 0, false)
-	if err != nil {
-		return
-	}
-
-	for _, _val := range apcm {
-		iws := _val.WindSpeed
-		ipower := _val.Power1
-
-		if tk.HasMember(_ws, iws) {
-			continue
+		err = csr.Fetch(&apcm, 0, false)
+		if err != nil {
+			return cpower, err
 		}
 
-		_ws = append(_ws, iws)
-		_power = append(_power, ipower)
-	}
-	// tk.Printfn(">>>> %v", _ws)
-	s := spline.Spline{}
-	s.Set_points(_ws, _power, true)
-	cpower = s.Operate(avgws)
+		for _, _val := range apcm {
+			iws := _val.WindSpeed
+			ipower := _val.Power1
 
-	return
+			if tk.HasMember(_ws, iws) {
+				continue
+			}
+
+			_ws = append(_ws, iws)
+			_power = append(_power, ipower)
+		}
+		// tk.Printfn(">>>> %v", _ws)
+		// tk.Printfn(">>>> %v", _power)
+		s := spline.Spline{}
+		s.Set_points(_ws, _power, true)
+		cpower = s.Operate(avgws)
+
+	}
+
+	return cpower, err
 }

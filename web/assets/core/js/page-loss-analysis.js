@@ -185,6 +185,20 @@ $(function(){
         }
     });
 
+    $("input[name=convertStatic]").on("change", function() {
+        if($("#gridStatic").is(':checked')) {
+            sv.isGrid(true);
+        } else {
+            sv.isGrid(false);
+        }
+
+        var view= this.id;
+        
+        setTimeout(function(){
+            sv.refreshView(view);
+        },300);
+    });
+
     /*$(window).resize(function() {
         $("#chartCADuration").data("kendoChart").refresh();
     });*/

@@ -2,9 +2,10 @@ package models
 
 import (
 	. "eaciit/wfdemo-git/library/helper"
+	"time"
+
 	"github.com/eaciit/orm"
 	"gopkg.in/mgo.v2/bson"
-	"time"
 )
 
 type ScadaLastUpdate struct {
@@ -123,6 +124,7 @@ type ScadaSummaryDaily struct {
 	OtherDownLoss      float64
 	ElectricalLosses   float64
 	ProductionRatio    float64
+	NoOfFailures       int
 }
 
 func (m *ScadaSummaryDaily) New() *ScadaSummaryDaily {

@@ -130,6 +130,22 @@ func (b *BaseController) SetCollectionLatestTime() {
 	b.LatestData.ScadaSummaryDaily, b.LatestData.MapScadaSummaryDaily = getLatestTime("projectname", "turbine", "dateinfo.dateid", new(ScadaSummaryDaily).TableName(), b.Ctx)
 }
 
+func (b *BaseController) GetLatest(collection string, project string, turbine string) (latest time.Time) {
+	if collection == "Alarm" {
+		latest = b.LatestData.MapAlarm[project+"#"+turbine]
+	} else if collection == "EventDown" {
+		latest = b.LatestData.MapEventDown[project+"#"+turbine]
+	} else if collection == "ScadaData" {
+		latest = b.LatestData.MapScadaData[project+"#"+turbine]
+	} else if collection == "ScadaDataOEM" {
+		latest = b.LatestData.MapScadaDataOEM[project+"#"+turbine]
+	} else if collection == "ScadaSummaryDaily" {
+		latest = b.LatestData.MapScadaSummaryDaily[project+"#"+turbine]
+	}
+
+	return
+}
+
 func getLatestTime(projectCol string, turbineCol string, timestampCol string, collection string, ctx *orm.DataContext) (res []TurbineLatest, resMap map[string]time.Time) {
 	var (
 		pipes []tk.M

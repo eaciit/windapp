@@ -51,7 +51,7 @@ var color = ["#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
     "#FFEE58", "#004D40", "#212121", "#607D8B", "#BDBDBD", "#FF00CC", "#9999FF"
 ];
 
-pm.isMet = ko.observable(true);
+pm.isMet = ko.observable(false);
 pm.isFirstAverage = ko.observable(true);
 pm.isFirstWindRose = ko.observable(true);
 pm.isFirstWindDis = ko.observable(true);

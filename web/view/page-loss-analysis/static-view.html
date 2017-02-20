@@ -1,3 +1,29 @@
 <script src="{{BaseUrl}}res/core/js/page-loss-analysis/static-view.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+	#lossGrid{
+		margin-top: 10px;
+	}
+</style>
+<span class="tools pull-right">
+  <div class="btn-group" data-toggle="buttons">
+      <label class="btn btn-primary btn-xs active prodToTable">
+          <input type="radio" name="convertStatic" id="gridStatic" value="true" autocomplete="off" checked ><i class="fa fa-table"></i>
+      </label>
+      <label class="btn btn-primary btn-xs">
+          <input type="radio" name="convertStatic" id="chartStatic" value="false" autocomplete="off" onclick="return false;"><i class="fa fa-bar-chart"></i>
+      </label>
+  </div>
+</span>
 
-<div id="lossGrid" class="grid-custom"></div>
+<div class="clearfix">&nbsp;</div>
+
+<div class="col-md-12" data-bind="visible:sv.isGrid() == true">
+	<div id="lossGrid" class="grid-custom"></div>
+</div>
+<div class="col-md-12" data-bind="visible:sv.isGrid() == false">
+	<div id="staticProductionChart"></div>
+	<div class="clearfix">&nbsp;</div>
+	<div id="staticDowntimeChart"></div>
+	<div class="clearfix">&nbsp;</div>
+	<div id="staticLossChart"></div>
+</div>

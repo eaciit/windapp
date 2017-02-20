@@ -66,8 +66,8 @@ var mt = {
 	                attributes: { class: "align-center"},
 	                width: 120,
 	            },{
-	                field: "avgmtbf",
-	                title: "Avg. MTBF (Hrs)",
+	                field: "mtbf",
+	                title: "MTBF (Hrs)",
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
@@ -75,8 +75,8 @@ var mt = {
 	                format: "{0:n2}",
 	                width: 120,
 	            },{
-	                field: "avgmttf",
-	                title: "Avg. MTTF (Hrs)",
+	                field: "mttf",
+	                title: "MTTF (Hrs)",
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
@@ -84,15 +84,42 @@ var mt = {
 	                format: "{0:n2}",
 	                width: 120,
 	            },{
-	                field: "avgmttr",
-	                title: "Avg. MTTR (Hrs)",
+	                field: "mttr",
+	                title: "MTTR (Hrs)",
 	                attributes: { class: "align-center"},
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
 	                format: "{0:n2}",
 	                width: 120,
-	            } ],
+	            },{
+	                field: "totoptime",
+	                title: "Total Operation Time (Hrs)",
+	                attributes: { class: "align-center"},
+	                headerAttributes: {
+	                    style: "text-align: center"
+	                },
+	                format: "{0:n2}",
+	                width: 120,
+	            },{
+	                field: "totnooffailure",
+	                title: "Total Number Of Failures",
+	                attributes: { class: "align-center"},
+	                headerAttributes: {
+	                    style: "text-align: center"
+	                },
+	                format: "{0:n2}",
+	                width: 120,
+	            },{
+	                field: "totdowntime",
+	                title: "Total Downtime (Hrs)",
+	                attributes: { class: "align-center"},
+	                headerAttributes: {
+	                    style: "text-align: center"
+	                },
+	                format: "{0:n2}",
+	                width: 120,
+	            }  ],
 			});
 			setTimeout(function() {
 				app.loading(false);

@@ -80,11 +80,15 @@ func main() {
 
 		// new(ConvScadaDataOEM).Generate(base)
 
+
+		///////// ************* DEPRECATED
+		///////// ************* FUNCTION BELOW ONLY APPLY WHEN YOU GENERATE DATA FOR ALL, NOT FOR LATEST DATA
+
 		// =========================================================================================== //
 		// step to prepare data for the application
 		// =========================================================================================== //
 
-		new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
+		// new(UpdateScadaOemMinutes).GenerateDensity(base) // step 0
 
 		// NewUpdateOEMToScada(base).RunMapping() // step 1
 

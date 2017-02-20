@@ -102,21 +102,28 @@ prod.gridProduction = function (project, enddate) {
                     }
                     return res.data.Total;
                 }
-            }/*,
+            },
+            aggregate: [
+                { field: "production", aggregate: "sum" },
+                { field: "plf", aggregate: "average" },
+                { field: "totalavail", aggregate: "average" },
+            ]
+        /*,
         sort: [
             { field: '_id', dir: 'asc' },
         ],*/
         },
+        groupable: false,
         /*serverPaging: true,
         serverSorting: true,*/
         pageable: true,
         columns: [
-            { title: "Project Name", field: "name", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:left;" } },
+            { title: "Project Name", field: "name", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
             { title: "No. of WTG", field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Max Capacity<br>(GWh)", field: "maxcapacity", template: "#= kendo.toString(maxcapacity/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Production<br>(GWh)", field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "PLF<br>(%)", field: "plf", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(plf*100, 'n2') #%" },
-            { title: "Total Availability<br>(%)", field: "totalavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(totalavail*100, 'n2') #%" },
+            // { title: "Max Capacity<br>(GWh)", field: "maxcapacity", template: "#= kendo.toString(maxcapacity/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            { title: "Production<br>(GWh)", field: "production", footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum/1000000, 'n2')#</div>", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            { title: "PLF<br>(%)", field: "plf", footerTemplate: "<div style='text-align:center'>#=kendo.toString(average*100, 'n2')#%</div>", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(plf*100, 'n2') #%" },
+            { title: "Total Availability<br>(%)", footerTemplate: "<div style='text-align:center'>#=kendo.toString(average*100, 'n2')#%</div>", field: "totalavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(totalavail*100, 'n2') #%" },
             // { title: "Production Ratio", field: "lostEnergy",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-right" }},
             // { title: "Worst Single Production Ratio", field: "lostEnergy",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-right" }},
             { title: "Lowest Machine Availability<br>(%)", field: "lowestmachineavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
