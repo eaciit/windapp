@@ -522,26 +522,23 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 	scadaOem := make([]tk.M, 0)
 
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
-	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
-	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 	if len(turbine) > 0 {
 		query = append(query, tk.M{"turbine": tk.M{"$in": turbine}})
 	}
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine",
-		"avgmttr":            tk.M{"$avg": "$mttr"},
-		"avgmttf":            tk.M{"$avg": "$mttf"},
-		"totmttf":            tk.M{"$sum": "$mttf"},
-		"totmachinedowntime": tk.M{"$sum": "$machinedowntime"},
-		"totunknowndowntime": tk.M{"$sum": "$unknowndowntime"},
-		"totgriddowntime":    tk.M{"$sum": "$griddowntime"},
+		"downtimehours": tk.M{"$sum": "$downtimehours"},
+		"oktime":        tk.M{"$sum": "$oktime"},
+		"nooffailures":  tk.M{"$sum": "$nooffailures"},
 	},
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaDataOEM).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
 
@@ -555,24 +552,27 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 
 	for _, m := range scadaOem {
 		id := m.GetString("_id")
-		avgmttr := m.GetFloat64("avgmttr")
-		avgmttf := m.GetFloat64("avgmttf")
-		totmttf := m.GetFloat64("totmttf")
-		totmachinedowntime := m.GetFloat64("totmachinedowntime")
-		totunknowndowntime := m.GetFloat64("totunknowndowntime")
-		totgriddowntime := m.GetFloat64("totgriddowntime")
-		totDowntime := totmachinedowntime + totunknowndowntime + totgriddowntime
+
+		oktime := m.GetFloat64("oktime")
+		nooffailures := m.GetFloat64("nooffailures")
+		downtimehours := m.GetFloat64("downtimehours")
+
+		if nooffailures == 0 && downtimehours > 0 {
+			nooffailures = 1
+		}
+
+		mtbf := tk.Div(oktime, nooffailures)
+		mttr := tk.Div(downtimehours, nooffailures)
+		mttf := mtbf - mttr
 
 		datas = append(datas, tk.M{
-			"id":                 id,
-			"avgmttr":            avgmttr,
-			"avgmttf":            avgmttf,
-			"totmttf":            totmttf,
-			"totmachinedowntime": totmachinedowntime,
-			"totunknowndowntime": totunknowndowntime,
-			"totgriddowntime":    totgriddowntime,
-			"totDowntime":        totDowntime,
-			"avgmtbf":            tk.Div(totmttf, totDowntime),
+			"id":             id,
+			"mtbf":           mtbf,
+			"mttr":           mttr,
+			"mttf":           mttf,
+			"totoptime":      oktime,
+			"totdowntime":    downtimehours,
+			"totnooffailure": nooffailures,
 		})
 	}
 
