@@ -438,6 +438,7 @@ func GetPowerCurveCubicInterpolation(ctx dbox.IConnection, _model string, avgws 
 		_power = append(_power, ipower)
 	}
 	// tk.Printfn(">>>> %v", _ws)
+	// tk.Printfn(">>>> %v", _power)
 	s := spline.Spline{}
 	s.Set_points(_ws, _power, true)
 	cpower = s.Operate(avgws)
