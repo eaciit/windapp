@@ -56,20 +56,81 @@ type TurbineLatest struct {
 }
 
 type BaseController struct {
-	base       IBaseController
-	Ctx        *orm.DataContext
-	LatestData LatestData
+	base        IBaseController
+	Ctx         *orm.DataContext
+	LatestData  LatestData
+	RefTurbines tk.M
+	RefAlarms   tk.M
+}
+
+func (b *BaseController) PrepareDataReff() {
+	tk.Println("Getting data refference")
+	logStart := time.Now()
+
+	turbines := []TurbineMaster{}
+	csrt, e := b.Ctx.Connection.NewQuery().From(new(TurbineMaster).TableName()).Cursor(nil)
+
+	tk.Println("Get Turbines")
+
+	e = csrt.Fetch(&turbines, 0, false)
+	ErrorHandler(e, "get turbine master")
+	csrt.Close()
+
+	b.RefTurbines = tk.M{}
+	for _, t := range turbines {
+		b.RefTurbines.Set(t.TurbineId, tk.M{}.
+			Set("turbinename", t.TurbineName).
+			Set("turbineelevation", t.Elevation))
+	}
+
+	tk.Printf("Turbines: %v \n", len(turbines))
+
+	tk.Println("Get EventDown")
+
+	b.RefAlarms = tk.M{}
+
+	for turbine, _ := range b.RefTurbines {
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+		filter = append(filter, dbox.Eq("turbine", turbine))
+		filter = append(filter, dbox.Gt("timeend", b.LatestData.MapAlarm["Tejuva#"+turbine]))
+
+		alarms := []EventDown{}
+		csr2, e := b.Ctx.Connection.NewQuery().From(new(EventDown).TableName()).
+			Where(filter...).Cursor(nil)
+
+		e = csr2.Fetch(&alarms, 0, false)
+		ErrorHandler(e, "get alarm data")
+		csr2.Close()
+
+		// tk.Printf("EventDown for: %v | %v \n", turbine, len(alarms))
+
+		details := []EventDown{}
+		for _, a := range alarms {
+			if b.RefAlarms.Has(a.Turbine) {
+				details = b.RefAlarms.Get(a.Turbine).([]EventDown)
+			} else {
+				details = []EventDown{}
+			}
+
+			details = append(details, a)
+			b.RefAlarms.Set(a.Turbine, details)
+		}
+	}
+
+	logDuration := time.Now().Sub(logStart).Seconds()
+	tk.Printf("\nGetting refference data about %v secs\n", logDuration)
 }
 
 func (b *BaseController) SetCollectionLatestTime() {
-	b.LatestData.Alarm, b.LatestData.MapAlarm = getLatestTime("farm", "turbine", new(Alarm).TableName(), b.Ctx)
-	b.LatestData.EventDown, b.LatestData.MapEventDown = getLatestTime("projectname", "turbine", new(EventDown).TableName(), b.Ctx)
-	b.LatestData.ScadaData, b.LatestData.MapScadaData = getLatestTime("projectname", "turbine", new(ScadaData).TableName(), b.Ctx)
-	b.LatestData.ScadaDataOEM, b.LatestData.MapScadaDataOEM = getLatestTime("projectname", "turbine", new(ScadaDataOEM).TableName(), b.Ctx)
-	b.LatestData.ScadaSummaryDaily, b.LatestData.MapScadaSummaryDaily = getLatestTime("projectname", "turbine", new(ScadaSummaryDaily).TableName(), b.Ctx)
+	b.LatestData.Alarm, b.LatestData.MapAlarm = getLatestTime("farm", "turbine", "enddate", new(Alarm).TableName(), b.Ctx)
+	b.LatestData.EventDown, b.LatestData.MapEventDown = getLatestTime("projectname", "turbine", "timeend", new(EventDown).TableName(), b.Ctx)
+	b.LatestData.ScadaData, b.LatestData.MapScadaData = getLatestTime("projectname", "turbine", "timestamp", new(ScadaData).TableName(), b.Ctx)
+	b.LatestData.ScadaDataOEM, b.LatestData.MapScadaDataOEM = getLatestTime("projectname", "turbine", "timestamp", new(ScadaDataOEM).TableName(), b.Ctx)
+	b.LatestData.ScadaSummaryDaily, b.LatestData.MapScadaSummaryDaily = getLatestTime("projectname", "turbine", "dateinfo.dateid", new(ScadaSummaryDaily).TableName(), b.Ctx)
 }
 
-func getLatestTime(projectCol string, turbineCol string, collection string, ctx *orm.DataContext) (res []TurbineLatest, resMap map[string]time.Time) {
+func getLatestTime(projectCol string, turbineCol string, timestampCol string, collection string, ctx *orm.DataContext) (res []TurbineLatest, resMap map[string]time.Time) {
 	var (
 		pipes []tk.M
 	)
@@ -79,7 +140,7 @@ func getLatestTime(projectCol string, turbineCol string, collection string, ctx 
 			"project": "$" + projectCol,
 			"turbine": "$" + turbineCol,
 		},
-		"timestamp": tk.M{"$max": "$enddate"},
+		"timestamp": tk.M{"$max": "$" + timestampCol},
 	}
 
 	pipes = append(pipes, tk.M{"$group": group})
@@ -100,6 +161,8 @@ func getLatestTime(projectCol string, turbineCol string, collection string, ctx 
 	if e != nil {
 		log.Printf("Error getLatestTime", e.Error())
 	}
+
+	resMap = map[string]time.Time{}
 
 	for _, r := range result {
 		id := r.Get("_id").(tk.M)

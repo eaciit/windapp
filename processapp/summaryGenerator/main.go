@@ -31,6 +31,7 @@ func main() {
 		defer base.Ctx.Close()
 
 		base.SetCollectionLatestTime()
+		base.PrepareDataReff()
 
 		new(UpdateScadaOemMinutes).GenerateDensity(base)    // step 0
 		new(UpdateOEMToScada).RunMapping(base)              // step 1

@@ -117,13 +117,13 @@ func getMachineDownType() (map[string]string, error) {
 	}*/
 
 	result := map[string]string{
-		"aebok":        "AEBOK",
-		"externalstop": "External Stop",
-		"griddown":     "Grid Down",
-		"internalgrid": "Internal Grid",
-		"machinedown":  "Machine Down",
-		"unknown":      "Unknown",
-		"weatherstop":  "Weather Stop",
+		// "aebok":        "AEBOK",
+		// "externalstop": "External Stop",
+		"griddown": "Grid Down",
+		// "internalgrid": "Internal Grid",
+		"machinedown": "Machine Down",
+		"unknown":     "Unknown",
+		// "weatherstop":  "Weather Stop",
 	}
 
 	return result, nil
@@ -193,7 +193,7 @@ func (m *DashboardController) GetScadaLastUpdate(k *knot.WebContext) interface{}
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	csr, e := DB().Connection.NewQuery().From("rpt_scadalastupdate").Where(dbox.And(dbox.Eq("projectname", p.ProjectName))).Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From(new(ScadaLastUpdate).TableName()).Where(dbox.And(dbox.Eq("projectname", p.ProjectName))).Cursor(nil)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -481,32 +481,30 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	p := new(helper.Payloads)
+	p := tk.M{}
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	filter, _ := p.ParseFilter()
-	fb := DB().Connection.Fb()
-	fb.AddFilter(dbox.And(filter...))
-	matches, e := fb.Build()
-	if e != nil {
-		helper.CreateResult(false, nil, e.Error())
+	pipe := []tk.M{}
+	pipe = append(pipe, tk.M{"$unwind": "$dataitems"})
+	if p.GetString("project") == "Fleet" {
+		pipe = append(pipe, tk.M{"$group": tk.M{
+			"_id":           "$_id",
+			"noofwtg":       tk.M{"$sum": "$dataitems.noofwtg"},
+			"production":    tk.M{"$sum": "$dataitems.production"},
+			"plf":           tk.M{"$sum": "$dataitems.plf"},
+			"lostenergy":    tk.M{"$sum": "$dataitems.lostenergy"},
+			"downtimehours": tk.M{"$sum": "$dataitems.downtimehours"},
+			"machineavail":  tk.M{"$sum": "$dataitems.machineavail"},
+			"trueavail":     tk.M{"$sum": "$dataitems.trueavail"},
+		}})
+		pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
+	} else {
+		pipe = append(pipe, tk.M{"$match": tk.M{"_id": p.GetString("project")}})
+		pipe = append(pipe, tk.M{"$sort": tk.M{"dataitems.name": 1}})
 	}
-
-	arrsort := tk.M{}
-	if len(p.Sort) > 0 {
-		for _, val := range p.Sort {
-			if val.Dir == "desc" {
-				arrsort.Set(strings.ToLower("dataitems."+val.Field), 0)
-			} else {
-				arrsort.Set(strings.ToLower("dataitems."+val.Field), 1)
-			}
-		}
-	}
-
-	pipe := []tk.M{{"$unwind": "$dataitems"}, {"$match": matches}, {"$sort": arrsort}, {"$skip": p.Skip}, {"$limit": p.Take}}
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryByProject).TableName()).
 		Command("pipe", pipe).
@@ -521,25 +519,23 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	e = csr.Fetch(&result, 0, false)
 	dataItem := []tk.M{}
 
-	for _, val := range result {
-		dataItem = append(dataItem, val["dataitems"].(tk.M))
+	if p.GetString("project") == "Fleet" {
+		for _, val := range result {
+			val.Set("name", val.GetString("_id"))
+			dataItem = append(dataItem, val)
+		}
+	} else {
+		for _, val := range result {
+			dataItem = append(dataItem, val["dataitems"].(tk.M))
+		}
 	}
-
-	csrCount, e := DB().Connection.NewQuery().From(new(ScadaSummaryByProject).TableName()).
-		Where(dbox.And(filter...)).Cursor(nil)
-	if e != nil {
-		helper.CreateResult(false, nil, e.Error())
-	}
-	defer csrCount.Close()
-	dataCount := new(ScadaSummaryByProject)
-	e = csrCount.Fetch(&dataCount, 1, false)
 
 	data := struct {
 		Data  []tk.M
 		Total int
 	}{
 		Data:  dataItem,
-		Total: tk.SliceLen(dataCount.DataItems),
+		Total: tk.SliceLen(dataItem),
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -642,6 +638,89 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "success")
 }
 
+func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	downtimeDatas := getDownTimeLostEnergy("project", p)
+	result.Set("lostenergy", downtimeDatas)
+
+	if !p.IsDetail {
+		if p.Type == "" && p.ProjectName == "Fleet" {
+			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
+		}
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *DashboardController) GetDowntimeTop(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if !p.IsDetail {
+		if p.ProjectName != "Fleet" {
+			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
+			result.Set("duration", getTurbineDownTimeTop("duration", p))
+			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
+		}
+		result.Set("loss", getTurbineDownTimeTop("loss", p))
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *DashboardController) GetLossCategories(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if !p.IsDetail {
+		lossD, lossF, loss := getLossCategoriesTopDFP(p)
+		result.Set("lossCatDuration", lossD)
+		result.Set("lossCatFrequency", lossF)
+		result.Set("lossCatLoss", loss)
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *DashboardController) GetMachGridAvailability(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if !p.IsDetail {
+		machAvail, gridAvail := getMGAvailability(p)
+
+		result.Set("machineAvailability", machAvail)
+		result.Set("gridAvailability", gridAvail)
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
 func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -661,7 +740,7 @@ func (m *DashboardController) GetDownTime(k *knot.WebContext) interface{} {
 		if p.Type == "" && p.ProjectName == "Fleet" {
 			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
 		} else if p.ProjectName != "Fleet" {
-			/*tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya*/
+			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
 			result.Set("duration", getTurbineDownTimeTop("duration", p))
 			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
 		}
@@ -1197,13 +1276,13 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 		match.Set("turbine", tk.M{"$in": turbines})
 
 		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
 		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("internalgrid", "Internal Grid")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause.Set("weatherstop", "Weather Stop")
 
 		tmpResult := []tk.M{}
 		downDone := []string{}
@@ -1569,13 +1648,13 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 		}
 
 		downCause := tk.M{}
-		downCause.Set("aebok", "AEBOK")
-		downCause.Set("externalstop", "External Stop")
+		// downCause.Set("aebok", "AEBOK")
+		// downCause.Set("externalstop", "External Stop")
 		downCause.Set("griddown", "Grid Down")
-		downCause.Set("internalgrid", "Internal Grid")
+		// downCause.Set("internalgrid", "Internal Grid")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
-		downCause.Set("weatherstop", "Weather Stop")
+		// downCause.Set("weatherstop", "Weather Stop")
 
 		tmpResult := []tk.M{}
 		tmpResultFreq := []tk.M{}
