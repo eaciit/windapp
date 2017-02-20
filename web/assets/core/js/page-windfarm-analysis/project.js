@@ -3,9 +3,9 @@ wfa.ProjectAnalysis = {
 		var param = { Project: $('#projectList').data('kendoDropDownList').value() };
 		toolkit.ajaxPost(viewModel.appName + "windfarmanalysis/getdatabyproject", param, function (data) {
             wfa.ProjectAnalysis.GenerateGrid(data.data);
-            // $.each(data.data.header, function(idx, val){
-            // 	wfa.GridHeader.push(val);
-            // });
+            $.each(data.data.header, function(idx, val){
+            	wfa.GridHeader.push(val);
+            });
         });
 	},
 	GenerateGrid: function(data) {
