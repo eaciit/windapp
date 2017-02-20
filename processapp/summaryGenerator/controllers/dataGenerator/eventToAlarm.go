@@ -44,7 +44,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 		filter := []*dbox.Filter{}
 		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
 		filter = append(filter, dbox.Eq("turbine", turbine))
-		filter = append(filter, dbox.Gt("timeend", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
+		filter = append(filter, dbox.Gt("timeend", ev.BaseController.GetLatest("Alarm", "Tejuva", turbine)))
 
 		// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
 
