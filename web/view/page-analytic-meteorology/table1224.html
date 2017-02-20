@@ -3,28 +3,28 @@
 	<div class="nav-meteor">
 		<div class="btn-group" data-toggle="buttons">
 			<label class="btn btn-sm btn-primary active radio-filter">
-                <input type="radio" name="isMet" id="met" autocomplete="off" value="true" checked> Met Tower
+                <input type="radio" name="isMet" id="turbine" autocomplete="off" value="true" checked=""> Turbine
             </label>
 			<label class="btn btn-sm btn-primary radio-filter">
-                <input type="radio" name="isMet" id="turbine" autocomplete="off" value="false" onclick="return false;"> Turbine
+                <input type="radio" name="isMet" id="met" autocomplete="off" value="false" onclick="return false;"> Met Tower
             </label>
 		</div>
 	</div>
 	<div class="pull-right" style="margin-top:-30px">
 		<span><strong>Select Comparison :</strong></span>
-		<div class="checkbox chk-custom" data-bind="{visible:pm.isMet() == true, foreach:tb.MetTowerColumn()}">
-                <label>
-                    <input type="checkbox" name="chk-column-met" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e, 'chk-column-met')}}}" >
-                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                    <span class="colRed" data-bind="text:text"></span>
-                </label>
-		</div>
 		<div class="checkbox chk-custom" data-bind="visible:pm.isMet() == false, foreach:tb.TurbineColumn()">
 			 <label>
                 <input type="checkbox" name="chk-column-turbine" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e,'chk-column-turbine')}}}" >
                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
                 <span class="colRed" data-bind="text:text"></span>
             </label>
+		</div>
+		<div class="checkbox chk-custom" data-bind="{visible:pm.isMet() == true, foreach:tb.MetTowerColumn()}">
+                <label>
+                    <input type="checkbox" name="chk-column-met" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e, 'chk-column-met')}}}" >
+                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                    <span class="colRed" data-bind="text:text"></span>
+                </label>
 		</div>
 	</div>
 </div>
