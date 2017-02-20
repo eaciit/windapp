@@ -28,8 +28,7 @@ lgd.detailDTLostEnergyTxt = ko.observable();
 lgd.isDetailDTTop = ko.observable(false);
 lgd.detailDTTopTxt = ko.observable();
 
-lgd.projectList = ko.observableArray([{ "value": "Fleet", "text": "Fleet" }]);
-lgd.projectItem = ko.observableArray([]);
+lgd.projectList = ko.observableArray();
 lgd.mdTypeList = ko.observableArray([]);
 lgd.projectName = ko.observable();
 lgd.isFleet = ko.observable(true);
@@ -47,27 +46,42 @@ var projectSelected = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
 var maxdate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 23, 59, 59, 0));
 
-lgd.getProjectList = function () {
-    app.ajaxPost(viewModel.appName + "/dashboard/getprojectlist", {}, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
+// lgd.getProjectList = function () {
+//     app.ajaxPost(viewModel.appName + "/dashboard/getprojectlist", {}, function (res) {
+//         if (!app.isFine(res)) {
+//             return;
+//         }
 
-        if (res.data.length == 0) {
-            res.data = [];
+//         if (res.data.length == 0) {
+//             res.data = [];
 
-        } else {
-            if (res.data.length > 0) {
-                $.each(res.data, function (key, val) {
-                    var data = {};
-                    data.value = val;
-                    data.text = val;
-                    lgd.projectList.push(data);
-                    lgd.projectItem.push(data);
-                });
-            }
+//         } else {
+//             if (res.data.length > 0) {
+//                 $.each(res.data, function (key, val) {
+//                     var data = {};
+//                     data.value = val;
+//                     data.text = val;
+//                     lgd.projectList.push(data);
+//                     lgd.projectItem.push(data);
+//                 });
+//             }
+//         }
+//     });
+// };
+
+lgd.populateProject = function (data) {
+    if(data.length > 0) {
+        var datavalue = [{ "value": "Fleet", "text": "Fleet" }];
+        if (data.length > 0) {
+            $.each(data, function (key, val) {
+                var data = {};
+                data.value = val.split("(")[0].trim();
+                data.text = val;
+                datavalue.push(data);
+            });
         }
-    });
+        lgd.projectList(datavalue);
+    }
 };
 
 lgd.LoadData = function () {
@@ -116,7 +130,7 @@ $(function () {
     lgd.isSummary(true);
     lgd.isProduction(false);
     lgd.isAvailability(false);
-    lgd.getProjectList();
+    // lgd.getProjectList();
     lgd.projectName("Fleet");
 
     lgd.LoadData();
