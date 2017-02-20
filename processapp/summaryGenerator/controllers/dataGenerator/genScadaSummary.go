@@ -698,7 +698,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			e = csr.Fetch(&scadaSums, 0, false)
 			csr.Close()
 
-			log.Printf("%#v \n", len(scadaSums))
+			log.Printf("%v | %v \n", turbine, len(scadaSums))
 
 			revenueMultiplier := 5.74
 			revenueDividerInLacs := 100000.0
@@ -772,7 +772,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 						Set("_id", "").
 						Set("duration", tk.M{}.Set("$sum", "$duration")).
 						Set("powerlost", tk.M{}.Set("$sum", "$powerlost")).
-						Set("count", tk.M{}.Set("$sum", "1"))),
+						Set("count", tk.M{}.Set("$sum", 1))),
 				}
 				csrAlarm, _ := ctx.NewQuery().
 					Command("pipe", pipeAlarm).
@@ -785,11 +785,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 				alarmDuration := 0.0
 				alarmPowerLost := 0.0
-				var noOfFailures int
+				noOfFailures := 0
+
 				if len(alarms) > 0 {
 					alarmDuration = alarms[0]["duration"].(float64)
 					alarmPowerLost = alarms[0]["powerlost"].(float64)
-					noOfFailures = alarms[0]["count"].(int)
+					noOfFailures = alarms[0].GetInt("count")
 				}
 
 				dt.DowntimeHours = alarmDuration
