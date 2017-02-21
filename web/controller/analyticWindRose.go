@@ -25,13 +25,22 @@ func CreateAnalyticWindRoseController() *AnalyticWindRoseController {
 
 /*color palette below already remove some colors that not sharp enough, beware out of index*/
 var colorWindrose = []string{
-	"#B71C1C", "#F44336", "#D81B60", "#F06292", "#880E4F",
-	"#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E",
+	"#B71C1C", "#F44336", "#D81B60",  "#ffb74f","#a2df53",
+	"#1c9ec4", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E",
 	"#5C6BC0", "#1E88E5", "#0277BD", "#0097A7", "#26A69A",
 	"#81C784", "#8BC34A", "#24752A", "#827717", "#004D40",
 	"#C0CA33", "#FF6F00", "#D6C847", "#FFB300", "#BA8914",
 	"#9999FF",
 }
+
+// var colorWindrose = []string{
+// 	"#B71C1C", "#F44336", "#D81B60", "#F06292", "#880E4F",
+// 	"#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E",
+// 	"#5C6BC0", "#1E88E5", "#0277BD", "#0097A7", "#26A69A",
+// 	"#81C784", "#8BC34A", "#24752A", "#827717", "#004D40",
+// 	"#C0CA33", "#FF6F00", "#D6C847", "#FFB300", "#BA8914",
+// 	"#9999FF",
+// }
 
 /*var colorWindrose = []string{
 	"#ff880e", "#21c4af", "#ff7663", "#ffb74f", "#a2df53",
