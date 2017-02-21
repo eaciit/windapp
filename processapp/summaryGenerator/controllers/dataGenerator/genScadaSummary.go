@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/eaciit/dbox"
@@ -643,10 +644,10 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			os.Exit(0)
 		}
 
-		// reset data summary first
-		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryDaily), dbox.And(dbox.Ne("projectname", "")))
-
+		var wg sync.WaitGroup
+		counter := 0
 		for turbine, _ := range d.BaseController.RefTurbines {
+			counter++
 			filter := tk.M{}
 			filter = filter.Set("projectname", tk.M{}.Set("$eq", "Tejuva"))
 			filter = filter.Set("turbine", tk.M{}.Set("$eq", turbine))
@@ -704,193 +705,203 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			revenueDividerInLacs := 100000.0
 			count := 0
 			total := 0
-			for _, data := range scadaSums {
-				id := data["_id"].(tk.M)
-				project := id["projectname"].(string)
-				// turbine := id["turbine"].(string)
-				dtInfo := id["dateinfo"].(tk.M)
-				dtId := dtInfo["dateid"].(time.Time)
-				//totaltime := data["totaltime"].(float64)
-				power := data["power"].(float64)
-				energy := data["energy"].(float64)
-				// pcvalue := data["pcvalue"].(float64)
-				pcdeviation := data["pcdeviation"].(float64)
-				oktime := data["oktime"].(float64)
-				totalts := data["totalts"].(int)
-				griddowntime := data["griddowntime"].(float64)
-				machinedowntime := data["machinedowntime"].(float64)
-				avgwindspeed := data["avgwindspeed"].(float64)
 
-				dt := new(ScadaSummaryDaily).New()
-				dt.DateInfo = GetDateInfo(dtId)
-				dt.ProjectName = project
-				dt.Turbine = turbine
-				dt.PowerKw = power
-				dt.Production = energy
-				dt.PCDeviation = pcdeviation
-				dt.Revenue = power * revenueMultiplier
-				dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
-				dt.OkTime = oktime
-				dt.TrueAvail = tk.Div(oktime, 144*600)
-				dt.ScadaAvail = tk.Div(float64(totalts), 144.0)
-				dt.MachineAvail = tk.Div(((600.0 * 144.0) - machinedowntime), 144.0*600.0)
-				dt.GridAvail = tk.Div(((600.0 * 144.0) - griddowntime), 144.0*600.0)
-				dt.TotalAvail = dt.TrueAvail
-				dt.PLF = tk.Div(energy, (2100.0 * 24.0))
+			wg.Add(1)
 
-				monthNo := 0
-				monthId := dtInfo["monthid"].(int)
-				sMonthNo := strconv.Itoa(monthId)[4:6]
-				monthNo, _ = strconv.Atoi(sMonthNo)
+			go func(scadas []tk.M) {
+				for _, data := range scadas {
+					id := data["_id"].(tk.M)
+					project := id["projectname"].(string)
+					// turbine := id["turbine"].(string)
+					dtInfo := id["dateinfo"].(tk.M)
+					dtId := dtInfo["dateid"].(time.Time)
+					//totaltime := data["totaltime"].(float64)
+					power := data["power"].(float64)
+					energy := data["energy"].(float64)
+					// pcvalue := data["pcvalue"].(float64)
+					pcdeviation := data["pcdeviation"].(float64)
+					oktime := data["oktime"].(float64)
+					totalts := data["totalts"].(int)
+					griddowntime := data["griddowntime"].(float64)
+					machinedowntime := data["machinedowntime"].(float64)
+					avgwindspeed := data["avgwindspeed"].(float64)
 
-				csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
-					Where(dbox.And(dbox.Eq("monthno", monthNo))).
-					Cursor(nil)
+					dt := new(ScadaSummaryDaily).New()
+					dt.DateInfo = GetDateInfo(dtId)
+					dt.ProjectName = project
+					dt.Turbine = turbine
+					dt.PowerKw = power
+					dt.Production = energy
+					dt.PCDeviation = pcdeviation
+					dt.Revenue = power * revenueMultiplier
+					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
+					dt.OkTime = oktime
+					dt.TrueAvail = tk.Div(oktime, 144*600)
+					dt.ScadaAvail = tk.Div(float64(totalts), 144.0)
+					dt.MachineAvail = tk.Div(((600.0 * 144.0) - machinedowntime), 144.0*600.0)
+					dt.GridAvail = tk.Div(((600.0 * 144.0) - griddowntime), 144.0*600.0)
+					dt.TotalAvail = dt.TrueAvail
+					dt.PLF = tk.Div(energy, (2100.0 * 24.0))
 
-				budgets := make([]ExpPValueModel, 0)
-				_ = csrBudget.Fetch(&budgets, 0, false)
-				csrBudget.Close()
+					monthNo := 0
+					monthId := dtInfo["monthid"].(int)
+					sMonthNo := strconv.Itoa(monthId)[4:6]
+					monthNo, _ = strconv.Atoi(sMonthNo)
 
-				budget := 0.0
-				totalDayInMonth := float64(daysIn(dtId.Month(), dtId.Year()))
-				if len(budgets) > 0 {
-					budget = tk.Div(budgets[0].P75NetGenMWH, totalDayInMonth)
+					csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+						Where(dbox.And(dbox.Eq("monthno", monthNo))).
+						Cursor(nil)
+
+					budgets := make([]ExpPValueModel, 0)
+					_ = csrBudget.Fetch(&budgets, 0, false)
+					csrBudget.Close()
+
+					budget := 0.0
+					totalDayInMonth := float64(daysIn(dtId.Month(), dtId.Year()))
+					if len(budgets) > 0 {
+						budget = tk.Div(budgets[0].P75NetGenMWH, totalDayInMonth)
+					}
+					dt.Budget = budget
+
+					dt.AvgWindSpeed = avgwindspeed
+
+					expws := 0.0
+					dt.ExpWindSpeed = expws
+
+					pipeAlarm := []tk.M{
+						tk.M{}.Set("$match", tk.M{}.
+							Set("projectname", project).
+							Set("turbine", turbine).
+							Set("startdateinfo.dateid", dtId)),
+						tk.M{}.Set("$group", tk.M{}.
+							Set("_id", "").
+							Set("duration", tk.M{}.Set("$sum", "$duration")).
+							Set("powerlost", tk.M{}.Set("$sum", "$powerlost")).
+							Set("count", tk.M{}.Set("$sum", 1))),
+					}
+					csrAlarm, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarm).
+						From(new(Alarm).TableName()).
+						Cursor(nil)
+
+					alarms := []tk.M{}
+					_ = csrAlarm.Fetch(&alarms, 0, false)
+					csrAlarm.Close()
+
+					alarmDuration := 0.0
+					alarmPowerLost := 0.0
+					noOfFailures := 0
+
+					if len(alarms) > 0 {
+						alarmDuration = alarms[0]["duration"].(float64)
+						alarmPowerLost = alarms[0]["powerlost"].(float64)
+						noOfFailures = alarms[0].GetInt("count")
+					}
+
+					dt.DowntimeHours = alarmDuration
+					dt.LostEnergy = alarmPowerLost
+					dt.NoOfFailures = noOfFailures
+					dt.RevenueLoss = (dt.LostEnergy * 6 * revenueMultiplier)
+
+					pipeAlarm0 := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("machinedown", true).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
+					csrAlarm0, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarm0).
+						From(new(Alarm).TableName()).
+						Cursor(nil)
+
+					alarms0 := []tk.M{}
+					_ = csrAlarm0.Fetch(&alarms0, 0, false)
+					csrAlarm0.Close()
+
+					alarmDuration0 := 0.0
+					alarmPowerLost0 := 0.0
+					if len(alarms0) > 0 {
+						alarmDuration0 = alarms0[0]["duration"].(float64)
+						alarmPowerLost0 = alarms0[0]["powerlost"].(float64)
+					}
+
+					pipeAlarm1 := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("griddown", true).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
+					csrAlarm1, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarm1).
+						From(new(Alarm).TableName()).
+						Cursor(nil)
+
+					alarms1 := []tk.M{}
+					_ = csrAlarm1.Fetch(&alarms1, 0, false)
+					csrAlarm1.Close()
+
+					alarmDuration1 := 0.0
+					alarmPowerLost1 := 0.0
+					if len(alarms1) > 0 {
+						alarmDuration1 = alarms1[0]["duration"].(float64)
+						alarmPowerLost1 = alarms1[0]["powerlost"].(float64)
+					}
+
+					pipeAlarm2 := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("machinedown", false).Set("griddown", false).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
+					csrAlarm2, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarm2).
+						From(new(Alarm).TableName()).
+						Cursor(nil)
+
+					alarms2 := []tk.M{}
+					_ = csrAlarm2.Fetch(&alarms2, 0, false)
+					csrAlarm2.Close()
+
+					alarmDuration2 := 0.0
+					alarmPowerLost2 := 0.0
+					if len(alarms2) > 0 {
+						alarmDuration2 = alarms2[0]["duration"].(float64)
+						alarmPowerLost2 = alarms2[0]["powerlost"].(float64)
+					}
+
+					dt.MachineDownHours = alarmDuration0
+					dt.GridDownHours = alarmDuration1
+					dt.OtherDowntimeHours = alarmDuration2
+					dt.MachineDownLoss = alarmPowerLost0
+					dt.GridDownLoss = alarmPowerLost1
+					dt.OtherDownLoss = alarmPowerLost2
+
+					pipeJmr := []tk.M{tk.M{}.Set("$unwind", "$sections"), tk.M{}.Set("$match", tk.M{}.Set("sections.turbine", turbine).Set("dateinfo.monthid", monthId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$sections.turbine").Set("boetotalloss", tk.M{}.Set("$sum", "$sections.boetotalloss")))}
+					csrJmr, _ := ctx.NewQuery().
+						Command("pipe", pipeJmr).
+						From(new(JMR).TableName()).
+						Cursor(nil)
+
+					// tk.Printf("%v\n", pipeJmr)
+
+					jmrs := []tk.M{}
+					_ = csrJmr.Fetch(&jmrs, 0, false)
+					csrJmr.Close()
+
+					// tk.Printf("%#v\n", jmrs)
+
+					boetotalloss := 0.0
+					if len(jmrs) > 0 {
+						boetotalloss = tk.Div(jmrs[0]["boetotalloss"].(float64), totalDayInMonth)
+					}
+
+					dt.ElectricalLosses = boetotalloss
+
+					dt.ProductionRatio = 0.0
+
+					d.BaseController.Ctx.Insert(dt)
+
+					count++
+					total++
+					if count == 1000 {
+						tk.Printf("Total processed data %v\n", total)
+						count = 0
+					}
+
+					// break
 				}
-				dt.Budget = budget
+				tk.Printf("Total processed data %v\n", total)
+				wg.Done()
+			}(scadaSums)
 
-				dt.AvgWindSpeed = avgwindspeed
-
-				expws := 0.0
-				dt.ExpWindSpeed = expws
-
-				pipeAlarm := []tk.M{
-					tk.M{}.Set("$match", tk.M{}.
-						Set("projectname", project).
-						Set("turbine", turbine).
-						Set("startdateinfo.dateid", dtId)),
-					tk.M{}.Set("$group", tk.M{}.
-						Set("_id", "").
-						Set("duration", tk.M{}.Set("$sum", "$duration")).
-						Set("powerlost", tk.M{}.Set("$sum", "$powerlost")).
-						Set("count", tk.M{}.Set("$sum", 1))),
-				}
-				csrAlarm, _ := ctx.NewQuery().
-					Command("pipe", pipeAlarm).
-					From(new(Alarm).TableName()).
-					Cursor(nil)
-
-				alarms := []tk.M{}
-				_ = csrAlarm.Fetch(&alarms, 0, false)
-				csrAlarm.Close()
-
-				alarmDuration := 0.0
-				alarmPowerLost := 0.0
-				noOfFailures := 0
-
-				if len(alarms) > 0 {
-					alarmDuration = alarms[0]["duration"].(float64)
-					alarmPowerLost = alarms[0]["powerlost"].(float64)
-					noOfFailures = alarms[0].GetInt("count")
-				}
-
-				dt.DowntimeHours = alarmDuration
-				dt.LostEnergy = alarmPowerLost
-				dt.NoOfFailures = noOfFailures
-				dt.RevenueLoss = (dt.LostEnergy * 6 * revenueMultiplier)
-
-				pipeAlarm0 := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("machinedown", true).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-				csrAlarm0, _ := ctx.NewQuery().
-					Command("pipe", pipeAlarm0).
-					From(new(Alarm).TableName()).
-					Cursor(nil)
-
-				alarms0 := []tk.M{}
-				_ = csrAlarm0.Fetch(&alarms0, 0, false)
-				csrAlarm0.Close()
-
-				alarmDuration0 := 0.0
-				alarmPowerLost0 := 0.0
-				if len(alarms0) > 0 {
-					alarmDuration0 = alarms0[0]["duration"].(float64)
-					alarmPowerLost0 = alarms0[0]["powerlost"].(float64)
-				}
-
-				pipeAlarm1 := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("griddown", true).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-				csrAlarm1, _ := ctx.NewQuery().
-					Command("pipe", pipeAlarm1).
-					From(new(Alarm).TableName()).
-					Cursor(nil)
-
-				alarms1 := []tk.M{}
-				_ = csrAlarm1.Fetch(&alarms1, 0, false)
-				csrAlarm1.Close()
-
-				alarmDuration1 := 0.0
-				alarmPowerLost1 := 0.0
-				if len(alarms1) > 0 {
-					alarmDuration1 = alarms1[0]["duration"].(float64)
-					alarmPowerLost1 = alarms1[0]["powerlost"].(float64)
-				}
-
-				pipeAlarm2 := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("machinedown", false).Set("griddown", false).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-				csrAlarm2, _ := ctx.NewQuery().
-					Command("pipe", pipeAlarm2).
-					From(new(Alarm).TableName()).
-					Cursor(nil)
-
-				alarms2 := []tk.M{}
-				_ = csrAlarm2.Fetch(&alarms2, 0, false)
-				csrAlarm2.Close()
-
-				alarmDuration2 := 0.0
-				alarmPowerLost2 := 0.0
-				if len(alarms2) > 0 {
-					alarmDuration2 = alarms2[0]["duration"].(float64)
-					alarmPowerLost2 = alarms2[0]["powerlost"].(float64)
-				}
-
-				dt.MachineDownHours = alarmDuration0
-				dt.GridDownHours = alarmDuration1
-				dt.OtherDowntimeHours = alarmDuration2
-				dt.MachineDownLoss = alarmPowerLost0
-				dt.GridDownLoss = alarmPowerLost1
-				dt.OtherDownLoss = alarmPowerLost2
-
-				pipeJmr := []tk.M{tk.M{}.Set("$unwind", "$sections"), tk.M{}.Set("$match", tk.M{}.Set("sections.turbine", turbine).Set("dateinfo.monthid", monthId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$sections.turbine").Set("boetotalloss", tk.M{}.Set("$sum", "$sections.boetotalloss")))}
-				csrJmr, _ := ctx.NewQuery().
-					Command("pipe", pipeJmr).
-					From(new(JMR).TableName()).
-					Cursor(nil)
-
-				// tk.Printf("%v\n", pipeJmr)
-
-				jmrs := []tk.M{}
-				_ = csrJmr.Fetch(&jmrs, 0, false)
-				csrJmr.Close()
-
-				// tk.Printf("%#v\n", jmrs)
-
-				boetotalloss := 0.0
-				if len(jmrs) > 0 {
-					boetotalloss = tk.Div(jmrs[0]["boetotalloss"].(float64), totalDayInMonth)
-				}
-
-				dt.ElectricalLosses = boetotalloss
-
-				dt.ProductionRatio = 0.0
-
-				d.BaseController.Ctx.Insert(dt)
-
-				count++
-				total++
-				if count == 1000 {
-					tk.Printf("Total processed data %v\n", total)
-					count = 0
-				}
-
-				// break
+			if counter%10 == 0 || len(d.BaseController.RefTurbines) == count {
+				wg.Wait()
 			}
-			tk.Printf("Total processed data %v\n", total)
 		}
 	}
 }
