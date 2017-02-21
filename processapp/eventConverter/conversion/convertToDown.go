@@ -150,7 +150,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("condition: %v | %v || %#v \n", tk.IsNilOrEmpty(trueFound[start.AlarmId]), start.AlarmDescription != data.AlarmDescription, trueFound[start.AlarmId].TimeStampInt)
 						}
 
-						if (strings.ToLower(data.TurbineStatus) == "production" || strings.ToLower(data.TurbineStatus) == "waiting for wind") && isTrue {
+						if ev.isProduction(data.TurbineStatus) && isTrue {
 							// log.Printf("Production: %#v \n", data)
 							trueFound = map[int]EventDownDetail{}
 							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
@@ -466,4 +466,15 @@ func (ev *DownConversion) getLatest() []GroupResult {
 	}*/
 
 	return result
+}
+
+func (ev *DownConversion) isProduction(check string) (status bool) {
+	strList := []string{"Production", "Boot", "Start", "Waiting", "LimSw", "Pitch", "Anemometer", "Accu", "Slow", "Syncron.", "Fast", "Turb."}
+
+	for _, b := range strList {
+		if b == strings.ToLower(check) {
+			return true
+		}
+	}
+	return false
 }

@@ -15,6 +15,9 @@ import (
 	tk "github.com/eaciit/toolkit"
 	"github.com/tealeg/xlsx"
 	// _ "github.com/tealeg/xlsx"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 )
 
 var (
@@ -491,4 +494,48 @@ func FirstDayOfISOWeek(year int, week int, timezone *time.Location) time.Time {
 		isoYear, isoWeek = date.ISOWeek()
 	}
 	return date
+}
+
+func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter, ctx dbox.IConnection) (min time.Time, max time.Time, err error) {
+	q := ctx.
+		NewQuery().
+		From(collectionName)
+
+	if where != nil {
+		q.Where(where)
+	}
+
+	csr, err := q.
+		Aggr(dbox.AggrMin, "$"+timestampColumn, "min").
+		Aggr(dbox.AggrMax, "$"+timestampColumn, "max").
+		Group("enable").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if err != nil {
+		csr.Close()
+		return
+	}
+
+	data := []tk.M{}
+	err = csr.Fetch(&data, 0, false)
+
+	if err != nil || len(data) == 0 {
+		csr.Close()
+		return
+	}
+
+	min = data[0].Get("min").(time.Time)
+	max = data[0].Get("max").(time.Time)
+
+	csr.Close()
+	return
+}
+
+func GetNormalAddDateMonth(dt time.Time, month int) (res time.Time) {
+	tmp, _ := time.Parse("060102_150405", dt.Format("0601")+"01_"+dt.Format("150405"))
+	res = tmp.AddDate(0, month, 0)
+
+	return
 }

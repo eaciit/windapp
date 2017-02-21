@@ -2,6 +2,7 @@ package helper
 
 import (
 	. "eaciit/wfdemo-git/library/core"
+	hp "eaciit/wfdemo-git/library/helper"
 	md "eaciit/wfdemo-git/library/models"
 	"errors"
 	"fmt"
@@ -723,38 +724,6 @@ func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machin
 }
 
 func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
-	q := DB().Connection.
-		NewQuery().
-		From(collectionName)
-
-	if where != nil {
-		q.Where(where)
-	}
-
-	csr, err := q.
-		Aggr(dbox.AggrMin, "$"+timestampColumn, "min").
-		Aggr(dbox.AggrMax, "$"+timestampColumn, "max").
-		Group("enable").
-		Cursor(nil)
-
-	defer csr.Close()
-
-	if err != nil {
-		csr.Close()
-		return
-	}
-
-	data := []toolkit.M{}
-	err = csr.Fetch(&data, 0, false)
-
-	if err != nil || len(data) == 0 {
-		csr.Close()
-		return
-	}
-
-	min = data[0].Get("min").(time.Time)
-	max = data[0].Get("max").(time.Time)
-
-	csr.Close()
+	min, max, err = hp.GetDataDateAvailable(collectionName, timestampColumn, where, DB().Connection)
 	return
 }
