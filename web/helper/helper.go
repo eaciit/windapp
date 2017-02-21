@@ -683,7 +683,6 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 	endStr := tEnd.Format("0601")
 
 	minDateStr := minDate.Format("0601")
-
 	maxDateStr := maxDate.Format("0601")
 
 	if startStr == minDateStr {
