@@ -30,6 +30,9 @@ func main() {
 		base.Ctx = orm.New(db)
 		defer base.Ctx.Close()
 
+		// x, _ := GetPowerCurveCubicInterpolation(base.Ctx.Connection, "Tejuva", 3.3)
+		// log.Println(x)
+
 		base.SetCollectionLatestTime()
 		base.PrepareDataReff()
 

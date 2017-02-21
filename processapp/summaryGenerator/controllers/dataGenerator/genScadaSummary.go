@@ -899,7 +899,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				wg.Done()
 			}(scadaSums)
 
-			if counter%10 == 0 || len(d.BaseController.RefTurbines) == count {
+			if counter%10 == 0 || len(d.BaseController.RefTurbines) == counter {
 				wg.Wait()
 			}
 		}
