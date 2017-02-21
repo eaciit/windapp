@@ -2720,8 +2720,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		{"$match": matches},
 		{"$group": group},
 		{"$sort": tk.M{"_id": 1}},
-		{"$skip": p.Skip},
-		{"$limit": p.Take},
+		// {"$skip": p.Skip},
+		// {"$limit": p.Take},
 	}
 
 	// tk.Printf("%v\n", pipe)

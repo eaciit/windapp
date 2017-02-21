@@ -121,11 +121,13 @@ sv.getChartView = function(gData){
         series: [{
             field: "MachineDownHours",
             name: "Machine",
+            color:"#0785ab",
         },{
             field: "GridDownHours",
             name: "Grid",
+            color: "#72CCCA",
         }],
-        seriesColors: colorField,
+        // seriesColors: colorField,
         valueAxes: [{
             visible: true,
             line: {
@@ -155,7 +157,7 @@ sv.getChartView = function(gData){
         },
         tooltip: {
             visible: true,
-            template: "#= series.name # at #= category # : #= kendo.toString(value, 'n2')# MWh",
+            template: "#= series.name # at #= category # : #= kendo.toString(value, 'n2')# Hrs",
             shared: false,
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
@@ -197,11 +199,13 @@ sv.getChartView = function(gData){
         series: [{
             field: "EnergyyMD",
             name: "Machine",
+            color:"#C82647",
         },{
             field: "EnergyyGD",
             name: "Grid",
+            color: "#F4998A",
         }],
-        seriesColors: colorField,
+        // seriesColors: colorField,
         valueAxes: [{
             visible: true,
             line: {
