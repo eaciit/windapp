@@ -378,7 +378,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	duration := time.Now().Sub(now)
 	log.Printf("Process %v | %v about %v sec(s) \n", loop.Project, loop.Turbine, duration.Seconds())
 	// mutex.Unlock()
-	csr.Close()
+	// csr.Close()
 	wg.Done()
 }
 
@@ -504,7 +504,6 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		tmp.LatestFrom = "Raw"
 		result = append(result, tmp)
 	}
-	csr.Close()
 
 	/*for _, res := range result {
 		log.Printf("res: %v | %v \n", res.Turbine, res.LatestProcessTime)
