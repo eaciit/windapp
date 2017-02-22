@@ -343,6 +343,10 @@ func (w *PageController) Dashboard(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-dashboard.html"
 	r.Config.IncludeFiles = append(DefaultIncludes, []string{"page-dashboard-summary.html", "page-dashboard-production.html", "page-dashboard-availability.html"}...)
+
+	projectList, _ := helper.GetProjectList()
+	w.Params.Set("ProjectList", projectList)
+
 	return w.GetParams(r, false)
 }
 
