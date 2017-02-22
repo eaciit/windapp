@@ -46,19 +46,16 @@ func (ev *DownConversion) Run() {
 	// _ = ev.getLatest()
 	var wg sync.WaitGroup
 	loops := ev.getLatest()
-	counter := 0
+
 	for _, loop := range loops {
-		counter++
 		// if loop.Turbine == "SSE017" {
 		// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
 		wg.Add(1)
 		go ev.processTurbine(loop, &wg)
 		// }
-
-		if counter%5 == 0 || len(loops) == counter {
-			wg.Wait()
-		}
 	}
+
+	wg.Wait()
 }
 
 func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
@@ -91,11 +88,11 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	eventRaws := []EventRaw{}
 
 	if err != nil {
-		log.Println("Error: " + err.Error())
+		tk.Println("Error: " + err.Error())
 	} else {
 		err = csr.Fetch(&eventRaws, 0, false)
 		if err != nil {
-			log.Println("Error: " + err.Error())
+			tk.Println("Error: " + err.Error())
 		} else {
 
 			loopData := eventRaws
@@ -107,7 +104,6 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 				details := []EventDownDetail{}
 				startIdx := -1
 				endIdx := -1
-				foundInProduction := false
 
 				var start, end EventRaw
 				// log.Printf("loopData: %#v \n", loopData)
@@ -160,12 +156,6 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
 							end = loopData[idx-1]
 
-							productionCondition := ev.checkTurbineIsProduction(loop, start.TimeStamp.UTC())
-							if end.TimeStamp.UTC().Sub(productionCondition.TimeStamp.UTC()).Seconds() > 0.0 && productionCondition.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds() != 0.0 {
-								end = productionCondition
-								foundInProduction = true
-							}
-
 							down := new(EventDown).New()
 
 							down.ProjectName = loop.Project
@@ -193,9 +183,11 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 								brakeType := start.BrakeType
 								if strings.Contains(strings.ToLower(brakeType), "grid") {
 									down.DownGrid = true
-								} else if strings.Contains(strings.ToLower(brakeType), "environment") {
+								}
+								if strings.Contains(strings.ToLower(brakeType), "environment") {
 									down.DownEnvironment = true
-								} else if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
+								}
+								if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
 									down.DownMachine = true
 								}
 
@@ -252,12 +244,6 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
 							if len(trueFound) == 0 || trueFound == nil {
 								end = data
-
-								productionCondition := ev.checkTurbineIsProduction(loop, start.TimeStamp.UTC())
-								if end.TimeStamp.UTC().Sub(productionCondition.TimeStamp.UTC()).Seconds() > 0.0 && productionCondition.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds() != 0.0 {
-									end = productionCondition
-									foundInProduction = true
-								}
 
 								down := new(EventDown).New()
 
@@ -325,45 +311,14 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 				// log.Printf("loopData: %v \n", len(loopData))
 
-				if !foundInProduction {
+				tmpLoopData := []EventRaw{}
 
-					tmpLoopData := []EventRaw{}
-
-					if endIdx > 0 {
-						tmpLoopData = append(tmpLoopData, loopData[endIdx+1:]...)
-					}
-
-					loopData = tmpLoopData
-				} else {
-					pipes = []tk.M{}
-					match = tk.M{
-						"projectname":  loop.Project,
-						"turbine":      loop.Turbine,
-						"eventtype":    "alarmchanged",
-						"brakeprogram": tk.M{"$gt": 0},
-					}
-
-					match.Set("timestamp", tk.M{"$gte": end.TimeStamp.UTC()})
-
-					pipes = append(pipes, tk.M{"$match": match})
-					pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
-
-					csrx, err := ev.Ctx.Connection.NewQuery().From(new(EventRaw).TableName()).Command("pipe", pipes).Cursor(nil)
-					defer csrx.Close()
-
-					eventRaws = []EventRaw{}
-
-					if err != nil {
-						log.Println("Error: " + err.Error())
-					} else {
-						err = csrx.Fetch(&eventRaws, 0, false)
-						if err != nil {
-							log.Println("Error: " + err.Error())
-						} else {
-							loopData = eventRaws
-						}
-					}
+				if endIdx > 0 {
+					tmpLoopData = append(tmpLoopData, loopData[endIdx+1:]...)
 				}
+
+				loopData = tmpLoopData
+
 				if len(loopData) == 0 {
 					break mainLoop
 				}
@@ -378,7 +333,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	duration := time.Now().Sub(now)
 	log.Printf("Process %v | %v about %v sec(s) \n", loop.Project, loop.Turbine, duration.Seconds())
 	// mutex.Unlock()
-	// csr.Close()
+	csr.Close()
 	wg.Done()
 }
 
@@ -409,13 +364,13 @@ func (ev *DownConversion) getLatest() []GroupResult {
 	eventDowns := []tk.M{}
 
 	if err != nil {
-		log.Println("Error: " + err.Error())
+		tk.Println("Error: " + err.Error())
 		return nil
 	}
 	err = csr.Fetch(&eventDowns, 0, false)
 
 	if err != nil {
-		log.Println("Error: " + err.Error())
+		tk.Println("Error: " + err.Error())
 		return nil
 	}
 
@@ -477,13 +432,13 @@ func (ev *DownConversion) getLatest() []GroupResult {
 	eventRaws := []tk.M{}
 
 	if err != nil {
-		log.Println("Error: " + err.Error())
+		tk.Println("Error: " + err.Error())
 		return nil
 	}
 	err = csr.Fetch(&eventRaws, 0, false)
 
 	if err != nil {
-		log.Println("Error: " + err.Error())
+		tk.Println("Error: " + err.Error())
 		return nil
 	}
 
@@ -491,7 +446,7 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		log.Printf("res: %v | %v \n", res.Turbine, res.LatestProcessTime)
 	}
 
-	log.Println()*/
+	tk.Println()*/
 
 	// log.Printf("len(eventRaws): %v \n", len(eventRaws))
 	for _, val := range eventRaws {
@@ -504,6 +459,7 @@ func (ev *DownConversion) getLatest() []GroupResult {
 		tmp.LatestFrom = "Raw"
 		result = append(result, tmp)
 	}
+	csr.Close()
 
 	/*for _, res := range result {
 		log.Printf("res: %v | %v \n", res.Turbine, res.LatestProcessTime)
@@ -521,41 +477,4 @@ func (ev *DownConversion) isProduction(check string) (status bool) {
 		}
 	}
 	return false
-}
-
-func (ev *DownConversion) checkTurbineIsProduction(loop GroupResult, startTime time.Time) (result EventRaw) {
-	match := tk.M{
-		"projectname":   loop.Project,
-		"turbine":       loop.Turbine,
-		"eventtype":     "turbinestatechanged",
-		"brakeprogram":  tk.M{"$eq": 0},
-		"turbinestatus": tk.M{"$in": []string{"Production", "Boot", "Start", "Waiting", "LimSw", "Pitch", "Anemometer", "Accu", "Slow", "Syncron.", "Fast", "Turb."}},
-	}
-
-	// if loop.LatestFrom == "Raw" {
-	match.Set("timestamp", tk.M{"$gte": startTime})
-	// } else {
-	// 	match.Set("timestamp", tk.M{"$gt": loop.LatestProcessTime})
-	// }
-
-	pipes := []tk.M{}
-	pipes = append(pipes, tk.M{"$match": match})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
-	pipes = append(pipes, tk.M{"$limit": 1})
-
-	csr, err := ev.Ctx.Connection.NewQuery().From(new(EventRaw).TableName()).Command("pipe", pipes).Cursor(nil)
-	defer csr.Close()
-
-	eventRaws := []EventRaw{}
-
-	if err != nil {
-		log.Println("Error: " + err.Error())
-	} else {
-		err = csr.Fetch(&eventRaws, 0, false)
-		if len(eventRaws) > 0 {
-			result = eventRaws[0]
-		}
-	}
-
-	return
 }
