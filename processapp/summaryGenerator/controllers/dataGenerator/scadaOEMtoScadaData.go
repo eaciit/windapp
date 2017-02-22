@@ -42,8 +42,11 @@ func (u *UpdateOEMToScada) RunMapping(base *BaseController) {
 		filter := []*dbox.Filter{}
 		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
 		filter = append(filter, dbox.Eq("turbine", turbine))
-		filter = append(filter, dbox.Gt("timestamp", u.BaseController.GetLatest("ScadaData", "Tejuva", turbine)))
 
+		latestDate := u.BaseController.GetLatest("ScadaData", "Tejuva", turbine)
+		if latestDate.Format("2006") != "0001" {
+			filter = append(filter, dbox.Gt("timestamp", latestDate))
+		}
 		// filter = append(filter, dbox.Gt("timestamp", u.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
 		csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).

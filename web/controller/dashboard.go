@@ -1990,7 +1990,10 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 	result := []tk.M{}
 	var fromDate time.Time
 	match := tk.M{}
+	// total turbine should follow projects, for now it's hardcoded
 	totalTurbine := 24.0
+
+	p.Date, _ = time.Parse("2006-01-02 15:04:05", p.Date.UTC().Format("2006-01")+"-01"+" 00:00:00")
 
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
@@ -2008,8 +2011,8 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			"mindate": tk.M{"$min": "$dateinfo.dateid"},
 		}
 
-		group.Set("machine", tk.M{"$sum": "$machinedowntime"})
-		group.Set("grid", tk.M{"$sum": "$griddowntime"})
+		group.Set("machineResult", tk.M{"$sum": "$machinedowntime"})
+		group.Set("gridResult", tk.M{"$sum": "$griddowntime"})
 
 		pipe := []tk.M{
 			{"$match": match},
@@ -2017,13 +2020,6 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			{"$sort": tk.M{"_id.id1": -1}},
 			{"$limit": 12},
 		}
-
-		// tk.Printf("pipe: %#v \n", pipe)
-
-		/*csr, e := DB().Connection.NewQuery().
-		From(new(ScadaSummaryDaily).TableName()).
-		Command("pipe", pipe).
-		Cursor(nil)*/
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(ScadaData).TableName()).
@@ -2053,13 +2049,13 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		// dayInYear := tk.M{}
 		tmpFromDate := fromDate.AddDate(0, 1, 0)
 		dateInfoTo := GetDateInfo(p.Date)
-		// tk.Println(availType)
 		for _, project := range projects {
 
 		done:
 
 			for {
 				dateInfoFrom := GetDateInfo(tmpFromDate)
+				// log.Printf("%v \n", dateInfoFrom.MonthDesc)
 				// if dayInYear.Get(tk.ToString(dateInfoFrom.Year)) == nil {
 				// 	dayInYear.Set(tk.ToString(dateInfoFrom.Year), GetDayInYear(dateInfoFrom.Year))
 				// }
@@ -2077,10 +2073,8 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 						break existData
 					}
 				}
-				// tk.Println()
+
 				if exist != nil {
-					// resVal := exist.GetFloat64("result") / tk.ToFloat64(days, 0, tk.RoundingAuto)
-					// exist.Set("result", resVal)
 					result = append(result, exist)
 				} else {
 					result = append(result, tk.M{
@@ -2095,31 +2089,39 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 				}
 
 				if dateInfoFrom.MonthId == dateInfoTo.MonthId {
+					tmpFromDate = fromDate.AddDate(0, 1, 0)
 					break done
 				}
 
 				tmpFromDate = tmpFromDate.AddDate(0, 1, 0)
 			}
 		}
+
 		for _, scada := range result {
-			m := scada.GetFloat64("machineResult")
-			g := scada.GetFloat64("gridResult")
 			if scada.Get("mindate") != nil {
+				m := scada.GetFloat64("machineResult") / 3600.0
+				g := scada.GetFloat64("gridResult") / 3600.0
 				minDate := scada.Get("mindate").(time.Time)
 				maxDate := scada.Get("maxdate").(time.Time)
 				minutes := scada.GetFloat64("minutes") / 60
 
-				hourValue := helper.GetHourValue(fromDate.UTC(), p.Date.UTC(), minDate.UTC(), maxDate.UTC())
-				mAvail := (minutes - (m / 3600.0)) / (totalTurbine * hourValue)
-				gAvail := (minutes - (g / 3600.0)) / (totalTurbine * hourValue)
+				fromDateSub, _ := time.Parse("060102_150405", minDate.Format("0601")+"01_000000")
+				tmpDt, _ := time.Parse("060102_150405", minDate.AddDate(0, 1, 0).Format("0601")+"01_000000")
+				toDateSub := tmpDt.AddDate(0, 0, -1)
 
-				scada.Set("machineResult", mAvail)
-				scada.Set("gridResult", gAvail)
+				hourValue := helper.GetHourValue(fromDateSub.UTC(), toDateSub.UTC(), minDate.UTC(), maxDate.UTC())
+				mAvail, gAvail, _, _, _ := helper.GetAvailAndPLF(totalTurbine, float64(0), float64(0), m, g, float64(0), hourValue, minutes)
+
+				// log.Printf("%v | %v \n", mAvail, gAvail)
+
+				scada.Set("machineResult", tk.ToFloat64((mAvail), 2, tk.RoundingAuto)/100)
+				scada.Set("gridResult", tk.ToFloat64((gAvail), 2, tk.RoundingAuto)/100)
+
+				// log.Printf(">>> %#v \n", scada)
 
 				// log.Printf("SCADA: %v | %v | %v | %v = %v | %v - %v - %v - %v \n", minutes, res/3600.0, totalTurbine, hourValue, tk.ToFloat64(avail, 2, tk.RoundingAuto), fromDate.UTC().String(), p.Date.UTC().String(), minDate.UTC().String(), maxDate.UTC().String())
-			} else {
-				// log.Printf("SCADA_X: %v | %#v \n", res, scada.Get("_id"))
 			}
+
 			scada.Unset("maxdate")
 			scada.Unset("mindate")
 			scada.Unset("minutes")
@@ -2718,8 +2720,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		{"$match": matches},
 		{"$group": group},
 		{"$sort": tk.M{"_id": 1}},
-		{"$skip": p.Skip},
-		{"$limit": p.Take},
+		// {"$skip": p.Skip},
+		// {"$limit": p.Take},
 	}
 
 	// tk.Printf("%v\n", pipe)
