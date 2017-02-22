@@ -100,11 +100,14 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 			loopData := eventRaws
 
+			dataInserted := 0
+
 		mainLoop:
 			for {
 				// log.Printf("loopData: %v \n", len(loopData))
 				trueFound := map[int]EventDownDetail{}
 				details := []EventDownDetail{}
+				_ = details
 				startIdx := -1
 				endIdx := -1
 				foundInProduction := false
@@ -160,65 +163,14 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
 							end = loopData[idx-1]
 
-							productionCondition := ev.checkTurbineIsProduction(loop, start.TimeStamp.UTC())
+							productionCondition := ev.getTurbineProduction(loop, start.TimeStamp.UTC())
 							if end.TimeStamp.UTC().Sub(productionCondition.TimeStamp.UTC()).Seconds() > 0.0 && productionCondition.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds() != 0.0 {
 								end = productionCondition
 								foundInProduction = true
 							}
 
-							down := new(EventDown).New()
-
-							down.ProjectName = loop.Project
-							down.Turbine = loop.Turbine
-
-							down.TimeStart = start.TimeStamp.UTC()
-							down.TimeStartInt = start.TimeStampInt
-							down.DateInfoStart = start.DateInfo
-
-							down.TimeEnd = end.TimeStamp.UTC()
-							down.TimeEndInt = end.TimeStampInt
-							down.DateInfoEnd = end.DateInfo
-
-							down.AlarmDescription = start.AlarmDescription
-
-							// add by ams, regarding to add new req | 20170130
-							down.BrakeType = start.BrakeType
-
-							down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
-
-							down.Detail = details
-
-							if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
-								mutex.Lock()
-								brakeType := start.BrakeType
-								if strings.Contains(strings.ToLower(brakeType), "grid") {
-									down.DownGrid = true
-								} else if strings.Contains(strings.ToLower(brakeType), "environment") {
-									down.DownEnvironment = true
-								} else if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
-									down.DownMachine = true
-								}
-
-								down := down.New()
-								count := 0
-								for {
-									e := ev.Ctx.Insert(down)
-									if e != nil {
-										log.Printf("error: %v \n", e.Error())
-										down = down.New()
-									} else {
-										break
-									}
-
-									if count == 2 {
-										break
-									}
-									count++
-								}
-
-								mutex.Unlock()
-								// log.Print("Insert Event Down")
-							}
+							ev.insertEventDown(loop, start, end)
+							dataInserted++
 
 							details = []EventDownDetail{}
 							endIdx = idx - 1
@@ -238,8 +190,8 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("y: %v \n", data.AlarmId)
 							// log.Printf("y: %v \n", trueFound[data.AlarmId])
 
-							details = append(details, trueFound[data.AlarmId])
-							details = append(details, tmp)
+							// details = append(details, trueFound[data.AlarmId])
+							// details = append(details, tmp)
 
 							tmpFound := map[int]EventDownDetail{}
 
@@ -253,67 +205,14 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							if len(trueFound) == 0 || trueFound == nil {
 								end = data
 
-								productionCondition := ev.checkTurbineIsProduction(loop, start.TimeStamp.UTC())
+								productionCondition := ev.getTurbineProduction(loop, start.TimeStamp.UTC())
 								if end.TimeStamp.UTC().Sub(productionCondition.TimeStamp.UTC()).Seconds() > 0.0 && productionCondition.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds() != 0.0 {
 									end = productionCondition
 									foundInProduction = true
 								}
 
-								down := new(EventDown).New()
-
-								down.ProjectName = loop.Project
-								down.Turbine = loop.Turbine
-
-								down.TimeStart = start.TimeStamp.UTC()
-								down.TimeStartInt = start.TimeStampInt
-								down.DateInfoStart = start.DateInfo
-
-								down.TimeEnd = end.TimeStamp.UTC()
-								down.TimeEndInt = end.TimeStampInt
-								down.DateInfoEnd = end.DateInfo
-
-								down.AlarmDescription = start.AlarmDescription
-
-								// add by ams, regarding to add new req | 20170130
-								down.BrakeType = start.BrakeType
-
-								down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
-
-								down.Detail = details
-
-								if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
-									mutex.Lock()
-									brakeType := data.BrakeType
-									if strings.Contains(strings.ToLower(brakeType), "grid") {
-										down.DownGrid = true
-									}
-									if strings.Contains(strings.ToLower(brakeType), "environment") {
-										down.DownEnvironment = true
-									}
-									if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
-										down.DownMachine = true
-									}
-
-									down := down.New()
-									count := 0
-									for {
-										e := ev.Ctx.Insert(down)
-										if e != nil {
-											log.Printf("error: %v \n", e.Error())
-											down = down.New()
-										} else {
-											break
-										}
-
-										if count == 2 {
-											break
-										}
-										count++
-									}
-
-									mutex.Unlock()
-									// log.Print("Insert Event Down")
-								}
+								ev.insertEventDown(loop, start, end)
+								dataInserted++
 
 								details = []EventDownDetail{}
 								endIdx = idx
@@ -335,37 +234,18 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 					loopData = tmpLoopData
 				} else {
-					pipes = []tk.M{}
-					match = tk.M{
-						"projectname":  loop.Project,
-						"turbine":      loop.Turbine,
-						"eventtype":    "alarmchanged",
-						"brakeprogram": tk.M{"$gt": 0},
-					}
-
-					match.Set("timestamp", tk.M{"$gte": end.TimeStamp.UTC()})
-
-					pipes = append(pipes, tk.M{"$match": match})
-					pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
-
-					csrx, err := ev.Ctx.Connection.NewQuery().From(new(EventRaw).TableName()).Command("pipe", pipes).Cursor(nil)
-					defer csrx.Close()
-
-					eventRaws = []EventRaw{}
-
-					if err != nil {
-						log.Println("Error: " + err.Error())
-					} else {
-						err = csrx.Fetch(&eventRaws, 0, false)
-						if err != nil {
-							log.Println("Error: " + err.Error())
-						} else {
-							loopData = eventRaws
-						}
-					}
+					loopData = ev.getLoopData(loop, end)
 				}
-				if len(loopData) == 0 {
+
+				if len(loopData) == 0 && dataInserted > 0 {
 					break mainLoop
+				} else if len(loopData) == 0 && dataInserted == 0 {
+					end = ev.getTurbineProduction(loop, start.TimeStamp.UTC())
+
+					ev.insertEventDown(loop, start, end)
+					loopData = ev.getLoopData(loop, end)
+
+					details = []EventDownDetail{}
 				}
 			}
 		}
@@ -523,7 +403,7 @@ func (ev *DownConversion) isProduction(check string) (status bool) {
 	return false
 }
 
-func (ev *DownConversion) checkTurbineIsProduction(loop GroupResult, startTime time.Time) (result EventRaw) {
+func (ev *DownConversion) getTurbineProduction(loop GroupResult, startTime time.Time) (result EventRaw) {
 	match := tk.M{
 		"projectname":   loop.Project,
 		"turbine":       loop.Turbine,
@@ -558,4 +438,89 @@ func (ev *DownConversion) checkTurbineIsProduction(loop GroupResult, startTime t
 	}
 
 	return
+}
+
+func (ev *DownConversion) getLoopData(loop GroupResult, end EventRaw) (eventRaws []EventRaw) {
+	pipes := []tk.M{}
+	match := tk.M{
+		"projectname":  loop.Project,
+		"turbine":      loop.Turbine,
+		"eventtype":    "alarmchanged",
+		"brakeprogram": tk.M{"$gt": 0},
+	}
+
+	match.Set("timestamp", tk.M{"$gte": end.TimeStamp.UTC()})
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
+
+	csrx, err := ev.Ctx.Connection.NewQuery().From(new(EventRaw).TableName()).Command("pipe", pipes).Cursor(nil)
+	defer csrx.Close()
+
+	if err != nil {
+		log.Println("Error: " + err.Error())
+	} else {
+		err = csrx.Fetch(&eventRaws, 0, false)
+		if err != nil {
+			log.Println("Error: " + err.Error())
+		}
+	}
+
+	return
+}
+
+func (ev *DownConversion) insertEventDown(loop GroupResult, start EventRaw, end EventRaw) {
+	down := new(EventDown).New()
+
+	down.ProjectName = loop.Project
+	down.Turbine = loop.Turbine
+
+	down.TimeStart = start.TimeStamp.UTC()
+	down.TimeStartInt = start.TimeStampInt
+	down.DateInfoStart = start.DateInfo
+
+	down.TimeEnd = end.TimeStamp.UTC()
+	down.TimeEndInt = end.TimeStampInt
+	down.DateInfoEnd = end.DateInfo
+
+	down.AlarmDescription = start.AlarmDescription
+
+	// add by ams, regarding to add new req | 20170130
+	down.BrakeType = start.BrakeType
+
+	down.Duration = end.TimeStamp.UTC().Sub(start.TimeStamp.UTC()).Seconds()
+
+	// down.Detail = details
+
+	if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
+		mutex.Lock()
+		brakeType := start.BrakeType
+		if strings.Contains(strings.ToLower(brakeType), "grid") {
+			down.DownGrid = true
+		} else if strings.Contains(strings.ToLower(brakeType), "environment") {
+			down.DownEnvironment = true
+		} else if !strings.Contains(strings.ToLower(brakeType), "grid") && !strings.Contains(strings.ToLower(brakeType), "environment") {
+			down.DownMachine = true
+		}
+
+		down := down.New()
+		count := 0
+		for {
+			e := ev.Ctx.Insert(down)
+			if e != nil {
+				log.Printf("error: %v \n", e.Error())
+				down = down.New()
+			} else {
+				break
+			}
+
+			if count == 2 {
+				break
+			}
+			count++
+		}
+
+		mutex.Unlock()
+		// log.Print("Insert Event Down")
+	}
 }
