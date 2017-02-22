@@ -55,7 +55,7 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
         },
         chartArea: {
             height: heightParam, 
-            width: wParam, 
+            // width: wParam, 
             padding: 0,
             margin: 0
         },
