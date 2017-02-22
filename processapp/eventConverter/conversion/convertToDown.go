@@ -156,6 +156,11 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
 							end = loopData[idx-1]
 
+							productionCondition := ev.checkTurbineIsProduce(loop, start.TimeStamp.UTC())
+							if end.TimeStamp.UTC().Sub(productionCondition.TimeStamp.UTC()).Minutes() > 0.0 {
+								end = productionCondition
+							}
+
 							down := new(EventDown).New()
 
 							down.ProjectName = loop.Project
@@ -244,6 +249,11 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 							// log.Printf("trueFoundXXXXXX: %v | %#v \n", idx, len(trueFound))
 							if len(trueFound) == 0 || trueFound == nil {
 								end = data
+
+								productionCondition := ev.checkTurbineIsProduce(loop, start.TimeStamp.UTC())
+								if end.TimeStamp.UTC().Sub(productionCondition.TimeStamp.UTC()).Minutes() > 0.0 {
+									end = productionCondition
+								}
 
 								down := new(EventDown).New()
 
@@ -477,4 +487,41 @@ func (ev *DownConversion) isProduction(check string) (status bool) {
 		}
 	}
 	return false
+}
+
+func (ev *DownConversion) checkTurbineIsProduce(loop GroupResult, startTime time.Time) (result EventRaw) {
+	match := tk.M{
+		"projectname":   loop.Project,
+		"turbine":       loop.Turbine,
+		"eventtype":     "turbinestatechanged",
+		"brakeprogram":  tk.M{"$eq": 0},
+		"turbinestatus": tk.M{"$in": []string{"Production", "Boot", "Start", "Waiting", "LimSw", "Pitch", "Anemometer", "Accu", "Slow", "Syncron.", "Fast", "Turb."}},
+	}
+
+	// if loop.LatestFrom == "Raw" {
+	match.Set("timestamp", tk.M{"$gte": startTime})
+	// } else {
+	// 	match.Set("timestamp", tk.M{"$gt": loop.LatestProcessTime})
+	// }
+
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
+	pipes = append(pipes, tk.M{"$limit": 1})
+
+	csr, err := ev.Ctx.Connection.NewQuery().From(new(EventRaw).TableName()).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
+
+	eventRaws := []EventRaw{}
+
+	if err != nil {
+		tk.Println("Error: " + err.Error())
+	} else {
+		err = csr.Fetch(&eventRaws, 0, false)
+		if len(eventRaws) > 0 {
+			result = eventRaws[0]
+		}
+	}
+
+	return
 }
