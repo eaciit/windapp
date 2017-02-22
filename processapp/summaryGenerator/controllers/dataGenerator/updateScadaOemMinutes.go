@@ -46,7 +46,11 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 			filter := []*dbox.Filter{}
 			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
 			filter = append(filter, dbox.Eq("turbine", turbine))
-			filter = append(filter, dbox.Gt("timestamp", d.BaseController.GetLatest("ScadaData", "Tejuva", turbine)))
+
+			latestDate := d.BaseController.GetLatest("ScadaData", "Tejuva", turbine)
+			if latestDate.Format("2006") != "0001" {
+				filter = append(filter, dbox.Gt("timestamp", latestDate))
+			}
 
 			// filter = append(filter, dbox.Gt("timestamp", d.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
