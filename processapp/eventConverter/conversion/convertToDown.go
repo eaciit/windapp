@@ -237,15 +237,17 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 					loopData = ev.getLoopData(loop, end)
 				}
 
-				if len(loopData) == 0 && dataInserted > 0 {
-					break mainLoop
-				} else if len(loopData) == 0 && dataInserted == 0 {
-					end = ev.getTurbineProduction(loop, start.TimeStamp.UTC())
+				if len(loopData) == 0 {
+					if dataInserted > 0 {
+						break mainLoop
+					} else if dataInserted == 0 {
+						end = ev.getTurbineProduction(loop, start.TimeStamp.UTC())
 
-					ev.insertEventDown(loop, start, end)
-					loopData = ev.getLoopData(loop, end)
+						ev.insertEventDown(loop, start, end)
+						loopData = ev.getLoopData(loop, end)
 
-					details = []EventDownDetail{}
+						details = []EventDownDetail{}
+					}
 				}
 			}
 		}
