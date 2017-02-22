@@ -386,6 +386,7 @@ page.ChangeKeyList = function (e) {
 		$list.append("<div data-value='" + val + "' class='selected-key'>" + value + "</div>");
 		$list2.find('div[data-value="default"]').remove();
 		$list2.append("<div data-value='" + val + "' class='result-selected-key'> &nbsp;<span style='float:right'> 0 </span></div>");
+		page.refreshAll();
 	} else {
 		page.selectedKeys.remove(val);
 		$list.find('div[data-value="' + val + '"]').slideUp("fast", function () {
@@ -401,7 +402,6 @@ page.ChangeKeyList = function (e) {
 			}
 		});
 	}
-	page.refreshAll();
 }
 
 page.getRandomId = function () {
