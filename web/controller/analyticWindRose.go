@@ -25,7 +25,7 @@ func CreateAnalyticWindRoseController() *AnalyticWindRoseController {
 
 /*color palette below already remove some colors that not sharp enough, beware out of index*/
 var colorWindrose = []string{
-	"#B71C1C", "#F44336", "#D81B60",  "#ffb74f","#a2df53",
+	"#B71C1C", "#F44336", "#D81B60", "#ffb74f", "#a2df53",
 	"#1c9ec4", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E",
 	"#5C6BC0", "#1E88E5", "#0277BD", "#0097A7", "#26A69A",
 	"#81C784", "#8BC34A", "#24752A", "#827717", "#004D40",
@@ -266,8 +266,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 		}
 	}
 
-	degree = toolkit.ToInt(p.BreakDown, toolkit.RoundingAuto)
-	section = degree
+	section = toolkit.ToInt(p.BreakDown, toolkit.RoundingAuto)
 	getFullWSCategory()
 
 	coId := 0
@@ -316,6 +315,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 
 	data := []MiniScada{}
 	_data := MiniScada{}
+	metDirection := 0.0
 
 	for _, turbineVal := range turbine {
 		coId++
@@ -470,8 +470,8 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 				datas := c.From(&dataMetTower).Apply(func(x interface{}) interface{} {
 					dt := x.(MiniMetTower)
 					var di DataItems
-
-					dirNo, dirDesc := getDirection(dt.DHubWD88mAvg, section)
+					metDirection = dt.DHubWD88mAvg + 300
+					dirNo, dirDesc := getDirection(metDirection, section)
 					wsNo, wsDesc := getWsCategory(dt.VHubWS90mAvg)
 
 					di.DirectionNo = dirNo
@@ -663,8 +663,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	degree = toolkit.ToInt(p.BreakDown, toolkit.RoundingAuto)
-	section = degree
+	section = toolkit.ToInt(p.BreakDown, toolkit.RoundingAuto)
 	categories := []string{}
 	direction := 0
 	divider := 360 / section
@@ -715,6 +714,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 	data := []MiniScada{}
 	_data := MiniScada{}
 	selArr := 0
+	metDirection := 0.0
 
 	for _, turbineVal := range turbine {
 		coId++
@@ -882,8 +882,8 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				datas := c.From(&dataMetTower).Apply(func(x interface{}) interface{} {
 					dt := x.(MiniMetTower)
 					var di DataItemsComp
-
-					dirNo, dirDesc := getDirection(dt.DHubWD88mAvg, section)
+					metDirection = dt.DHubWD88mAvg + 300
+					dirNo, dirDesc := getDirection(metDirection, section)
 
 					di.DirectionNo = dirNo
 					di.DirectionDesc = dirDesc
