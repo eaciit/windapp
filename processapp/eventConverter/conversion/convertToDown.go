@@ -241,7 +241,6 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						break mainLoop
 					} else if dataInserted == 0 {
 						end = ev.getTurbineProduction(loop, start.TimeStamp.UTC())
-
 						if end.TimeStamp.UTC().Year() != 1 {
 							ev.insertEventDown(loop, start, end)
 							loopData = ev.getLoopData(loop, end)
