@@ -62,10 +62,11 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	var maxKey1, maxKey2, minKey2 float64
 	catTitle := ""
 	start, _ := time.Parse("2006-01-02T15:04:05.000Z", p.Filter.Filters[0].Value.(string))
-	// tStart, _ := time.Parse("2006-01-02", start.UTC().Format("2006-01-02"))
 	end, _ := time.Parse("2006-01-02T15:04:05.000Z", p.Filter.Filters[1].Value.(string))
-	// tEnd, _ := time.Parse("2006-01-02 15:04:05", end.UTC().Format("2006-01-02")+" 23:59:59")
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Misc.GetString("period"), start, end)
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Misc.GetString("period"), start.UTC(), end.UTC())
+
+	// log.Printf("%v | %v \n", start.String(), end.String())
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -137,6 +138,10 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				Command("pipe", pipes).
 				Cursor(nil)
 
+			// for _, v := range pipes {
+			// 	log.Printf("%#v \n", v)
+			// }
+
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
@@ -186,22 +191,38 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			if strings.Contains(breakDown, "dateid") {
 				id := val.Get("_id").(tk.M)
 				id1 := id.Get("id1").(time.Time)
-				hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+				// hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+
+				hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time))
+
 			} else {
-				hourValue, minutes = getHourMinute(tStart, tEnd, val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+				// hourValue, minutes = getHourMinute(tStart.UTC(), tEnd.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+
+				hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time))
 			}
+
+			oktime := val.GetFloat64("oktime")
+			energy := val.GetFloat64("energy") / 1000
+			mDownTime := (val.GetFloat64("machinedowntime") / 3600.0)
+			gDownTime := (val.GetFloat64("griddowntime") / 3600.0)
+			sumTimeStamp := val.GetFloat64("countdata")
+			minutes = val.GetFloat64("minutes") / 60
+
+			machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
+			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 
 			switch key {
 			case "Machine Availability":
-				values = tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
+				values = machineAvail //tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Grid Availability":
-				values = tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
+				values = gridAvail //tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Total Availability":
-				values = tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
+				values = trueAvail //tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
 			case "Data Availability":
-				values = tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
+				values = dataAvail //tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
 			case "Actual PLF":
-				values = tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
+				values = plf //tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
 			case "Actual Production":
 				values = val.GetFloat64("energy") / 1000 /*MWh*/
 			case "P50 Generation":
