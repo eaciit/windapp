@@ -862,7 +862,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 
 			series := tk.M{}
 			valueResult := val.GetFloat64("result")
-			id := val.GetString("_id")
+			id := strings.Title(strings.Replace(val.GetString("_id"), "_", " ", -69))
 
 			if topType == "loss" {
 				valueResult = tk.Div(valueResult, 1000)

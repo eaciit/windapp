@@ -50,7 +50,7 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             align: "center",
             visible: legend,
             labels: {              
-                template: "#: kendo.toString(replaceString(text))#",
+                // template: "#: kendo.toString(replaceString(text))#",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
@@ -102,7 +102,7 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             },
             labels: {
                 rotation: rotate,                
-                template: "#: kendo.toString(replaceString(value))#",
+                // template: "#: kendo.toString(replaceString(value))#",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none",
@@ -113,7 +113,8 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: kendo.toString(replaceString(category)) #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
+            // template: "#: kendo.toString(replaceString(category)) #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
+            template: "#: category #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             border: {
                 color: "#eee",
                 width: "2px",
