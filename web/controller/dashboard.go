@@ -1193,6 +1193,17 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 
 	}
+	if p.Type != "All Types" && p.ProjectName != "Fleet" {
+		hasil := []tk.M{}
+		ids := tk.M{}
+		for _, val := range result {
+			ids, _ = tk.ToM(val["_id"])
+			if ids.GetString("id3") == p.Type {
+				hasil = append(hasil, val)
+			}
+		}
+		result = hasil
+	}
 
 	return
 }
@@ -2499,6 +2510,11 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 
 		filter = append(filter, dbox.Eq("projectname", p.ProjectName))
 		match = append(match, tk.M{"projectname": p.ProjectName})
+	} else {
+		if p.Type != "" && p.Type != "All Types" {
+			filter = append(filter, dbox.Eq("detail."+typeX, true))
+			match = append(match, tk.M{"detail." + typeX: true})
+		}
 	}
 
 	pipes = append(pipes, tk.M{"$unwind": "$detail"})

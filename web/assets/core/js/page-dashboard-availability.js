@@ -181,7 +181,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
             type: "column",
             field: "result",
         }],
-        seriesColor: colorField,
+        seriesColors: colorField,
         valueAxis: {
             labels: {
                 step: 2,
@@ -1781,6 +1781,7 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
                 }
 
                 param = lastParam;
+                param.DateStr = "fleet date";
                 paramChart = lastParamChart;
                 $("#projectList").data("kendoDropDownList").value(param.Type);
             } else if (source == "ddl") {
@@ -1859,13 +1860,15 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
 
         if (dtType == "All Types") {
             dtType = "";
+        } else if (source == "chart") {
+            dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
         }
 
         if (project == "Fleet") {
             if (source == "chart") {
-                param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: type };
+                param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: dtType };
                 lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(type);
+                $("#mdTypeList").data("kendoDropDownList").value(dtType);
             } else if (source == "ddl") {
                 param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParam.DateStr, Type: dtType };
                 $("#mdTypeList").data("kendoDropDownList").value(dtType);
@@ -1939,19 +1942,19 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
         },
         //resizable: true,
         columns: [
-            { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
+            { title: "Date", field: "detail.StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
             { title: "Turbine", field: "Turbine", width: 90, attributes: { style: "text-align:center;" } },
-            { title: "Start Time", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 75, attributes: { style: "text-align:center;" } },
+            { title: "Start Time", field: "detail.StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 75, attributes: { style: "text-align:center;" } },
             { title: "End Date", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
             { title: "End Time", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 70, attributes: { style: "text-align:center;" } },
             { title: "Alert Description", field: "AlertDescription", width: 200 },
-            { title: "External Stop", field: "ExternalStop", width: 80, sortable: false, template: '# if (ExternalStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "External Stop", field: "ExternalStop", width: 80, sortable: false, template: '# if (ExternalStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             { title: "Grid Down", field: "GridDown", width: 80, sortable: false, template: '# if (GridDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            { title: "Internal Grid", field: "InternalGrid", width: 80, sortable: false, template: '# if (InternalGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "Internal Grid", field: "InternalGrid", width: 80, sortable: false, template: '# if (InternalGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             { title: "Machine Down", field: "MachineDown", width: 80, sortable: false, template: '# if (MachineDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            { title: "AEbOK", field: "AEbOK", width: 80, sortable: false, template: '# if (AEbOK == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "AEbOK", field: "AEbOK", width: 80, sortable: false, template: '# if (AEbOK == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             { title: "Unknown", field: "Unknown", width: 80, sortable: false, template: '# if (Unknown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            { title: "Weather Stop", field: "WeatherStop", width: 80, sortable: false, template: '# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "Weather Stop", field: "WeatherStop", width: 80, sortable: false, template: '# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
         ]
     });
 }
