@@ -553,7 +553,7 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 	for _, m := range scadaOem {
 		id := m.GetString("_id")
 
-		oktime := m.GetFloat64("oktime")
+		oktime := m.GetFloat64("oktime") / 3600
 		nooffailures := m.GetFloat64("nooffailures")
 		downtimehours := m.GetFloat64("downtimehours")
 

@@ -258,14 +258,11 @@ avail.fleetMachAvail = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
-                // format: "{0:p0}",
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             line: {
                 visible: false
-            },
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             axisCrossingValue: -10,
             majorGridLines: {
@@ -343,8 +340,7 @@ avail.fleetGridAvail = function (dataSource) {
             labels: {
                 step: 2,
                 template: '#=  value * 100 #',
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                // format: "{0:p1}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             line: {
                 visible: false

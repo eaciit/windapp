@@ -47,6 +47,7 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
         },
         legend: {
             position: "top",
+            align: "center",
             visible: legend,
             labels: {              
                 template: "#: kendo.toString(replaceString(text))#",
@@ -55,7 +56,7 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
         },
         chartArea: {
             height: heightParam, 
-            width: wParam, 
+            // width: wParam, 
             padding: 0,
             margin: 0
         },
