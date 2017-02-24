@@ -26,7 +26,7 @@ pg.availabledateendwarning = ko.observable();
 pg.labelAlarm = ko.observable("Downtime ");
 
 var SeriesAlarm =  [{
-    type: "pie",
+    type: "donut",
     field: "result",
     categoryField: "_id",
 }]
@@ -169,7 +169,7 @@ $(function(){
             pg.labelAlarm(" Top 10 Downtime")
         }else{     
              SeriesAlarm = [{
-                type: "pie",
+                type: "donut",
                 field: "result",
                 categoryField: "_id",
             }]           

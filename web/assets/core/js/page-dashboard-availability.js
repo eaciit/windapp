@@ -439,7 +439,7 @@ avail.DTLEbyType = function (dataSource) {
                 visible: false
             }
         }],
-        seriesColor: colorField,
+        seriesColors: colorField,
         valueAxis: [{
             name: "PowerLost",
             labels: {

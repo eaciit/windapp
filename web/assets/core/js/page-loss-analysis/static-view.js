@@ -121,11 +121,11 @@ sv.getChartView = function(gData){
         series: [{
             field: "MachineDownHours",
             name: "Machine",
-            color:"#0785ab",
+            color:"#21c4af",
         },{
             field: "GridDownHours",
             name: "Grid",
-            color: "#72CCCA",
+            color: "#0097a4"
         }],
         // seriesColors: colorField,
         valueAxes: [{
@@ -199,11 +199,11 @@ sv.getChartView = function(gData){
         series: [{
             field: "EnergyyMD",
             name: "Machine",
-            color:"#C82647",
+            color:"#265c8a",
         },{
             field: "EnergyyGD",
             name: "Grid",
-            color: "#F4998A",
+            color:"#80deea",
         }],
         // seriesColors: colorField,
         valueAxes: [{
