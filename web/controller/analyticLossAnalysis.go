@@ -790,6 +790,9 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 				}
 
 				if turbine == valTurbine && valResult != 0 {
+					if topType == "loss" {
+						valResult = valResult / 1000
+					}
 					resVal.Set(valTitle, valResult)
 				} else if resVal.Get(valTitle) == nil {
 					resVal.Set(valTitle, 0)
@@ -859,7 +862,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 
 			series := tk.M{}
 			valueResult := val.GetFloat64("result")
-			id := val.GetString("_id")
+			id := strings.Title(strings.Replace(val.GetString("_id"), "_", " ", -69))
 
 			if topType == "loss" {
 				valueResult = tk.Div(valueResult, 1000)
