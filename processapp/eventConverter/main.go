@@ -43,11 +43,11 @@ func main() {
 	// event := NewEventRawConversion(ctx, dir)
 	// event.Run()
 
-	down := NewDownConversion(ctx, dir)
-	down.Run()
+	// down := NewDownConversion(ctx, dir)
+	// down.Run()
 
-	// alarm := NewAlarmConversion(ctx, dir)
-	// alarm.Run()
+	alarm := NewAlarmConversion(ctx, dir)
+	alarm.Run()
 
 	log.Println("End processing event data to down...")
 }

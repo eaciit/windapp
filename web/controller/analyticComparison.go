@@ -54,6 +54,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 
+		// log.Printf("%v | %v \n", tStart.String(), tEnd.String())
+
 		// log.Printf("EndDate: %v \n", tEnd)
 
 		if e != nil {
@@ -68,6 +70,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 		group := tk.M{
 			"power":           tk.M{"$sum": "$power"},
+			"energy":          tk.M{"$sum": "$energy"},
 			"machinedowntime": tk.M{"$sum": "$machinedowntime"},
 			"griddowntime":    tk.M{"$sum": "$griddowntime"},
 			"oktime":          tk.M{"$sum": "$oktime"},
@@ -124,7 +127,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
-			energy := power / 6
+			_ = power
+			energy := val.GetFloat64("energy") / 1000.0
 			revenue := energy * 5.740 * 1000
 			mDownTime := val.GetFloat64("machinedowntime") / 3600.0
 			gDownTime := val.GetFloat64("griddowntime") / 3600.0
@@ -132,6 +136,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			minutes := val.GetFloat64("minutes") / 60
 
 			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
+			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 
 			prod = energy
 
