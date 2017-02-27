@@ -76,7 +76,7 @@ av.createChartAvailability = function (dataSource) {
     var categories = dataSource.Categories;
     var max = dataSource.Max;
     var min = dataSource.Min;
-    colorField[0] = "#944dff";
+    colorField[0] = "#eb5b19";
 
     $("#availabilityChart").replaceWith('<div id="availabilityChart"></div>');
     $("#availabilityChart").kendoChart({
