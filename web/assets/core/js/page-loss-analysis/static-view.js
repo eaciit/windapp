@@ -199,7 +199,7 @@ sv.getChartView = function(gData){
         series: [{
             field: "EnergyyMD",
             name: "Machine",
-            color:"#265c8a",
+            color:"#4589b0",
         },{
             field: "EnergyyGD",
             name: "Grid",

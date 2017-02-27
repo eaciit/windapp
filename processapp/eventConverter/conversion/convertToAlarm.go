@@ -39,7 +39,8 @@ func (ev *AlarmConversion) Run() {
 		// if loop.Turbine == "SSE017" {
 		// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
 		wg.Add(1)
-		go ev.processTurbine(loop, &wg)
+		// go ev.processTurbine(loop, &wg)
+		go ev.processTurbineNew(loop, &wg)
 		// }
 
 		div := math.Mod(tk.ToFloat64(idx, 0, tk.RoundingAuto), tk.ToFloat64(maxRun, 0, tk.RoundingAuto))
@@ -227,6 +228,85 @@ func (ev *AlarmConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) 
 				if len(loopData) == 0 {
 					break mainLoop
 				}
+			}
+		}
+	}
+
+	/*for idx, data := range eventRaws {
+		log.Printf("idx: %v | %v | %v | %v \n", idx, data.AlarmId, data.TimeStamp.UTC(), data.AlarmToggle)
+	}*/
+
+	duration := time.Now().Sub(now)
+	log.Printf("Process %v | %v about %v sec(s) \n", loop.Project, loop.Turbine, duration.Seconds())
+	// mutex.Unlock()
+	csr.Close()
+	wg.Done()
+}
+
+func (ev *AlarmConversion) processTurbineNew(loop GroupResult, wg *sync.WaitGroup) {
+	// mutex.Lock()
+
+	now := time.Now()
+	log.Printf("Starting process %v | %v | %v \n", loop.Project, loop.Turbine, loop.LatestProcessTime.String())
+
+	pipes := []tk.M{}
+
+	match := tk.M{
+		"projectname":  loop.Project,
+		"turbine":      loop.Turbine,
+		"eventtype":    "alarmchanged",
+		"brakeprogram": 0,
+		"alarmtoggle":  true,
+	}
+
+	if loop.LatestFrom == "Raw" {
+		match.Set("timestamp", tk.M{"$gte": loop.LatestProcessTime})
+	} else {
+		match.Set("timestamp", tk.M{"$gt": loop.LatestProcessTime})
+	}
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
+
+	csr, err := ev.Ctx.Connection.NewQuery().From(new(EventRaw).TableName()).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
+
+	eventRaws := []EventRaw{}
+
+	if err != nil {
+		tk.Println("Error: " + err.Error())
+	} else {
+		err = csr.Fetch(&eventRaws, 0, false)
+		if err != nil {
+			tk.Println("Error: " + err.Error())
+		} else {
+			for _, event := range eventRaws {
+				alarm := new(EventAlarm).New()
+				alarm.ProjectName = loop.Project
+				alarm.Turbine = loop.Turbine
+				alarm.TimeStart = event.TimeStamp.UTC()
+				alarm.DateInfoStart = event.DateInfo
+				alarm.AlarmDescription = event.AlarmDescription
+
+				mutex.Lock()
+				alarm = alarm.New()
+				count := 0
+				for {
+					e := ev.Ctx.Insert(alarm)
+					if e != nil {
+						log.Printf("error: %v \n", e.Error())
+						alarm = alarm.New()
+					} else {
+						break
+					}
+
+					if count == 2 {
+						break
+					}
+					count++
+				}
+
+				mutex.Unlock()
 			}
 		}
 	}

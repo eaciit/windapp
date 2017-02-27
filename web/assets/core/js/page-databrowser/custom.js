@@ -182,11 +182,12 @@ dbc.getColumnCustom = function(){
     var onlyInB = b.filter(function(current){
         return a.filter(function(current_a){
             return current_a.id == current.id && current_a.label == current.label && current_a.source == current.source
-        }).length == 0 
+        }).length == 0
     });
 
     var result = onlyInA.concat(onlyInB);
 
     dbr.ColumnList(result);
-    console.log(dbr.ColumnList());
+
+    // console.log(dbr.ColumnList());
 }
