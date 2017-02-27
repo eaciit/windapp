@@ -27,7 +27,8 @@ pm.sectionsBreakdownList = ko.observableArray([
     { "text": 24, "value": 24 },
     { "text": 12, "value": 12 },
 ]);
-var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
+// var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
+var colorFieldsWR = ["#224373","#186baa","#25FEDF", "#f5a265","#eb5b19", "#9E0000","#e4cc37"];
 var listOfCategory = [
     { "category": "0 to 4m/s", "color": colorFieldsWR[0] },
     { "category": "4 to 8m/s", "color": colorFieldsWR[1] },
@@ -44,12 +45,7 @@ pm.valueCategory = ko.observableArray([
     { "value": "grid", "text": "Grid Availability" },
 ]);
 
-var color = ["#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
-    "#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E", "#5C6BC0",
-    "#1E88E5", "#0277BD", "#0097A7", "#26A69A", "#4DD0E1", "#81C784",
-    "#8BC34A", "#1B5E20", "#827717", "#C0CA33", "#DCE775", "#FF6F00", "#A1887F",
-    "#FFEE58", "#004D40", "#212121", "#607D8B", "#BDBDBD", "#FF00CC", "#9999FF"
-];
+var color = ["#87c5da","#cc2a35", "#d66b76", "#5d1b62", "#f1c175","#95204c","#8f4bc5","#7d287d","#00818e","#c8c8c8","#546698","#66c99a","#f3d752","#20adb8","#333d6b","#d077b1","#aab664","#01a278","#c1d41a","#807063","#ff5975","#01a3d4","#ca9d08","#026e51","#4c653f","#007ca7"];
 
 pm.isMet = ko.observable(false);
 pm.isFirstAverage = ko.observable(true);
@@ -60,8 +56,6 @@ pm.isFirstTemperature = ko.observable(true);
 pm.isFirstTurbine = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
-pm.isFirstMTBF = ko.observable(true);
-
 
 pm.loadData = function () {
     setTimeout(function () {
@@ -100,7 +94,6 @@ pm.resetStatus= function(){
     pm.isFirstWindRose(true);
     pm.isFirstWindDis(true);
     pm.isFirstTurbulence(true);
-    pm.isFirstMTBF(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstTwelve(true);

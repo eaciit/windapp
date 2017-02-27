@@ -10,7 +10,7 @@ import (
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
-	_ "math"
+	"math"
 	"sort"
 	_ "strconv"
 	"strings"
@@ -121,21 +121,26 @@ func getDirection(windDir float64, breakDown int) (int, int) {
 			break
 		}
 	}
-
-	//dirCalc := math.Mod(windDir, 360.0) /*modulus 360 biar kalo dibagi 'divider' hasilnya <= section*/
-	dirNo = int(toolkit.RoundingAuto64(toolkit.Div(windDir, float64(divider)), 0))
+	/*
+		modulus 360 agar ketika dibagi 'divider' hasilnya <= section dan
+		untuk mengakomodasi masalah kalibrasi di met tower
+		yang mengharuskan ditambah 300 terlebih dahulu
+	*/
+	dirCalc := math.Mod(windDir, 360.0)
+	dirNo = int(toolkit.RoundingAuto64(toolkit.Div(dirCalc, float64(divider)), 0))
+	// dirNo = int(toolkit.RoundingAuto64(toolkit.Div(windDir, float64(divider)), 0))
 
 	if dirNo > (breakDown - 1) {
 		dirNo = 0
 	}
-	dirNo45 := dirNo
+	// dirNo45 := dirNo
 	// if degree == 45 {
 	// 	if dirNo > 0 && dirNo < 8 {
 	// 		dirNo45 = dirNo * 3 /*adding section from 8 (45 degree) to 24 (15 degree)*/
 	// 	}
 	// }
 
-	return dirNo45, dirDescs[dirNo]
+	return dirNo, dirDescs[dirNo]
 }
 
 func (m *AnalyticWRFlexiDetailController) GetFlexiDataEachTurbine(k *knot.WebContext) interface{} {

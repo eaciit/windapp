@@ -100,8 +100,6 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 			loopData := eventRaws
 
-			dataInserted := 0
-
 		mainLoop:
 			for {
 				// log.Printf("loopData: %v \n", len(loopData))
@@ -119,9 +117,10 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 				/*for idx, data := range loopData {
 					log.Printf("loopData: %v | %#v \n", idx, data)
 				}*/
-
+				dataInserted := 0
 			reloop:
 				for idx, data := range loopData {
+					dataInserted = 0
 					// log.Printf("data: %v | %v | %v \n", data.TimeStamp.UTC(), data.AlarmToggle, data.AlarmId)
 					// log.Printf("loopData: %v \n", len(loopData))
 					// log.Printf("trueFound: %v | %#v \n", idx, len(trueFound))
@@ -242,11 +241,14 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						break mainLoop
 					} else if dataInserted == 0 {
 						end = ev.getTurbineProduction(loop, start.TimeStamp.UTC())
+						if end.TimeStamp.UTC().Year() != 1 {
+							ev.insertEventDown(loop, start, end)
+							loopData = ev.getLoopData(loop, end)
 
-						ev.insertEventDown(loop, start, end)
-						loopData = ev.getLoopData(loop, end)
-
-						details = []EventDownDetail{}
+							details = []EventDownDetail{}
+						} else {
+							break mainLoop
+						}
 					}
 				}
 			}

@@ -116,7 +116,6 @@ le.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
             type: "column",
             field: "result",
         }],
-        seriesColor: colorField,
         valueAxis: {
             labels: {
                 step: 2,
@@ -222,7 +221,7 @@ le.DTLEbyType = function (dataSource) {
                 visible: false
             }
         }],
-        seriesColor: colorField,
+        seriesColors: colorField,
         valueAxis: [{
             name: "PowerLost",
             labels: {

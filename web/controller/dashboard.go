@@ -489,22 +489,24 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 
 	pipe := []tk.M{}
 	pipe = append(pipe, tk.M{"$unwind": "$dataitems"})
-	if p.GetString("project") == "Fleet" {
-		pipe = append(pipe, tk.M{"$group": tk.M{
-			"_id":           "$_id",
-			"noofwtg":       tk.M{"$sum": "$dataitems.noofwtg"},
-			"production":    tk.M{"$sum": "$dataitems.production"},
-			"plf":           tk.M{"$avg": "$dataitems.plf"},
-			"lostenergy":    tk.M{"$sum": "$dataitems.lostenergy"},
-			"downtimehours": tk.M{"$sum": "$dataitems.downtimehours"},
-			"machineavail":  tk.M{"$avg": "$dataitems.machineavail"},
-			"trueavail":     tk.M{"$avg": "$dataitems.trueavail"},
-		}})
-		pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
-	} else {
-		pipe = append(pipe, tk.M{"$match": tk.M{"_id": p.GetString("project")}})
-		pipe = append(pipe, tk.M{"$sort": tk.M{"dataitems.name": 1}})
-	}
+	// if p.GetString("project") == "Fleet" {
+	// 	pipe = append(pipe, tk.M{"$group": tk.M{
+	// 		"_id":           "$_id",
+	// 		"noofwtg":       tk.M{"$sum": "$dataitems.noofwtg"},
+	// 		"production":    tk.M{"$sum": "$dataitems.production"},
+	// 		"plf":           tk.M{"$avg": "$dataitems.plf"},
+	// 		"lostenergy":    tk.M{"$sum": "$dataitems.lostenergy"},
+	// 		"downtimehours": tk.M{"$sum": "$dataitems.downtimehours"},
+	// 		"machineavail":  tk.M{"$avg": "$dataitems.machineavail"},
+	// 		"trueavail":     tk.M{"$avg": "$dataitems.trueavail"},
+	// 	}})
+	// 	pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
+	// } else {
+	// 	pipe = append(pipe, tk.M{"$match": tk.M{"_id": p.GetString("project")}})
+	// 	pipe = append(pipe, tk.M{"$sort": tk.M{"dataitems.name": 1}})
+	// }
+	pipe = append(pipe, tk.M{"$match": tk.M{"_id": p.GetString("project")}})
+	pipe = append(pipe, tk.M{"$sort": tk.M{"dataitems.name": 1}})
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryByProject).TableName()).
 		Command("pipe", pipe).
@@ -519,15 +521,18 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	e = csr.Fetch(&result, 0, false)
 	dataItem := []tk.M{}
 
-	if p.GetString("project") == "Fleet" {
-		for _, val := range result {
-			val.Set("name", val.GetString("_id"))
-			dataItem = append(dataItem, val)
-		}
-	} else {
-		for _, val := range result {
-			dataItem = append(dataItem, val["dataitems"].(tk.M))
-		}
+	// if p.GetString("project") == "Fleet" {
+	// 	for _, val := range result {
+	// 		val.Set("name", val.GetString("_id"))
+	// 		dataItem = append(dataItem, val)
+	// 	}
+	// } else {
+	// 	for _, val := range result {
+	// 		dataItem = append(dataItem, val["dataitems"].(tk.M))
+	// 	}
+	// }
+	for _, val := range result {
+		dataItem = append(dataItem, val["dataitems"].(tk.M))
 	}
 
 	data := struct {
@@ -1187,6 +1192,17 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			}
 		}
 
+	}
+	if p.Type != "All Types" && p.ProjectName != "Fleet" {
+		hasil := []tk.M{}
+		ids := tk.M{}
+		for _, val := range result {
+			ids, _ = tk.ToM(val["_id"])
+			if ids.GetString("id3") == p.Type {
+				hasil = append(hasil, val)
+			}
+		}
+		result = hasil
 	}
 
 	return
@@ -2494,6 +2510,11 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 
 		filter = append(filter, dbox.Eq("projectname", p.ProjectName))
 		match = append(match, tk.M{"projectname": p.ProjectName})
+	} else {
+		if p.Type != "" && p.Type != "All Types" {
+			filter = append(filter, dbox.Eq("detail."+typeX, true))
+			match = append(match, tk.M{"detail." + typeX: true})
+		}
 	}
 
 	pipes = append(pipes, tk.M{"$unwind": "$detail"})

@@ -125,6 +125,7 @@ type ScadaSummaryDaily struct {
 	ElectricalLosses   float64
 	ProductionRatio    float64
 	NoOfFailures       int
+	TotalMinutes       int
 }
 
 func (m *ScadaSummaryDaily) New() *ScadaSummaryDaily {
