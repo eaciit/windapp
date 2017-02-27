@@ -94,7 +94,6 @@ pm.resetStatus= function(){
     pm.isFirstWindRose(true);
     pm.isFirstWindDis(true);
     pm.isFirstTurbulence(true);
-    pm.isFirstMTBF(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstTwelve(true);
