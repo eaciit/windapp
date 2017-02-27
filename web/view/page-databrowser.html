@@ -28,13 +28,7 @@
                         Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
                     </div>
                     <div class="clearfix">&nbsp;</div>
-                    <ul class="nav nav-tabs " role="tablist">
-                        <li id="mainTab" role="presentation" class="active"><a onclick="Data.LoadData()" href="#Main" aria-controls="Main" role="tab" data-toggle="tab" class="tab-custom">Main</a></li>
-                        <li id="exceptionTab" role="presentation"><a onclick="Data.LoadData()" href="#Exception" aria-controls="Exception" role="tab" data-toggle="tab" class="tab-custom">Exception</a></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="Main">
-                            <ul class="nav nav-tabs" role="tablist">
+                    <ul class="nav nav-tabs" role="tablist">
                                 <li id="scadaTab" role="presentation" class="active"><a onclick="dbr.Scada()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
                                 <li id="scadahfdTab" role="presentation"><a onclick="dbr.ScadaHFD()" href="#scadahfd" aria-controls="scadahfd" role="tab" data-toggle="tab" class="tab-custom">Scada Data HFD</a></li>
                                 <li id="downtimeeventTab" role="presentation"><a onclick="dbr.Downtime()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event</a></li>
@@ -218,6 +212,13 @@
                                     </div>
                                 </div>
                             </div>
+                   <!--  <ul class="nav nav-tabs " role="tablist">
+                        <li id="mainTab" role="presentation" class="active"><a onclick="Data.LoadData()" href="#Main" aria-controls="Main" role="tab" data-toggle="tab" class="tab-custom">Main</a></li>
+                        <li id="exceptionTab" role="presentation"><a onclick="Data.LoadData()" href="#Exception" aria-controls="Exception" role="tab" data-toggle="tab" class="tab-custom">Exception</a></li>
+                    </ul> -->
+                    <!-- <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="Main">
+                            
                         </div>
                         <div role="tabpanel" class="tab-pane" id="Exception">
                             <ul class="nav nav-tabs" role="tablist">
@@ -358,7 +359,7 @@
 
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
