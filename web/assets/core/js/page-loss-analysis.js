@@ -24,6 +24,7 @@ pg.availabledatestartwarning = ko.observable();
 pg.availabledateendwarning = ko.observable();
 
 pg.labelAlarm = ko.observable("Downtime ");
+var availDateListLoss = {};
 
 var SeriesAlarm =  [{
     type: "donut",
@@ -39,6 +40,7 @@ pg.isFirstReliability = ko.observable(true);
 pg.isFirstWindSpeed = ko.observable(true);
 pg.isFirstWarning = ko.observable(true);
 pg.isFirstComponentAlarm = ko.observable(true);
+pg.isFirstMTBF = ko.observable(true);
 
 
 pg.getDataAvailableInfo =  function(){
@@ -66,6 +68,9 @@ pg.getDataAvailableInfo =  function(){
 
         pg.availabledatestartwarning(kendo.toString(moment.utc(res.data.Warning[0]).format('DD-MMMM-YYYY')));
         pg.availabledateendwarning(kendo.toString(moment.utc(res.data.Warning[1]).format('DD-MMMM-YYYY')));
+
+        availDateListLoss.startScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[0]).format('DD-MMMM-YYYY'));
+        availDateListLoss.endScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[1]).format('DD-MMMM-YYYY'));
 
         $('#availabledatestart').html(pg.availabledatestartscada());
         $('#availabledateend').html(pg.availabledateendscada());
@@ -96,6 +101,14 @@ pg.Reliability = function(){
     }
 }
 
+pg.showFilter = function(){
+    $("#periodList").closest(".k-widget").show();
+    $("#dateStart").closest(".k-widget").show();
+    $("#dateEnd").closest(".k-widget").show();
+    $(".control-label:contains('Period')").show();
+    $(".control-label:contains('to')").show();
+}
+
 pg.resetStatus = function(){
     pg.isFirstStaticView(true);
     pg.isFirstDowntime(true);
@@ -105,6 +118,7 @@ pg.resetStatus = function(){
     pg.isFirstWindSpeed(true);
     pg.isFirstWarning(true);
     pg.isFirstComponentAlarm(true);
+    pg.isFirstMTBF(true);
 }
 vm.currentMenu('Losses and Efficiency');
 vm.currentTitle('Losses and Efficiency');

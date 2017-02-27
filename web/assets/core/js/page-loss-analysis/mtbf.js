@@ -1,19 +1,19 @@
 
-pm.dtMt = ko.observable();
+pg.dtMt = ko.observable();
 
 var mt = {
 	RefreshData: function() {
 	    app.loading(true);
-	    pm.showFilter();
+	    pg.showFilter();
 	    fa.LoadData();
-	    if(pm.isFirstMTBF() === true){
+	    if(pg.isFirstMTBF() === true){
 	        mt.Refreshchartmt();
-	        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.startScadaOEM + '</strong> until: ');
-			$('#availabledateend').html('<strong>' + availDateList.endScadaOEM + '</strong>');
+	        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
+			$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
 
 	    }else{
-	        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.startScadaOEM + '</strong> until: ');
-			$('#availabledateend').html('<strong>' + availDateList.endScadaOEM + '</strong>');
+	        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
+			$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
 	        setTimeout(function(){
 	            $("#chartTI").data("kendoChart").refresh();
 	            app.loading(false);
@@ -33,9 +33,9 @@ var mt = {
         };
 
 		toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/GetListMtbf", param, function (data) {
-			pm.isFirstMTBF(false);
+			pg.isFirstMTBF(false);
 
-			pm.dtMt(data)
+			pg.dtMt(data)
 			var width = $(".main-header").width()
 			var Height = width*0.2
 
@@ -44,7 +44,7 @@ var mt = {
 			$("#gridmtbf").kendoGrid({
 				theme: "flat",
 	            dataSource: {
-	                data: pm.dtMt().data,
+	                data: pg.dtMt().data,
 	                pageSize: 10,
 	                sort: [{
 	                    field: 'id',

@@ -67,7 +67,7 @@ wr.ZoomChart = function(divID){
             }
         });
         var titleZoom = divID.replace("btn-zoom-", "");
-        if(titleZoom.indexOf("MetTower") > 0) {
+        if(titleZoom.indexOf("MetTower") >= 0) {
             titleZoom = "Chart Met Tower";
         }
         $('#titleWRZoom').html('<strong>' + titleZoom + '</strong>');
