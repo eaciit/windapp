@@ -34,7 +34,7 @@ var SeriesDowntime = [
 
 dt.GenChartDownAlarmComponent = function (tab, dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
     // var colours = ["#ff880e", "#21c4af", "#f44336","#feb64e","#a2df53", "#69d2e7","#4589b0","#ed5784"];
-    var colours = ["#ff880e","#21c4af","#b71c1c","#4589b0","#a2df53","#1c9ec4","#880d4e","#4a148c"];
+    var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c"];
     
     $("#" + id).kendoChart({
         dataSource: {
