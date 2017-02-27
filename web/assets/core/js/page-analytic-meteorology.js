@@ -56,8 +56,6 @@ pm.isFirstTemperature = ko.observable(true);
 pm.isFirstTurbine = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
-pm.isFirstMTBF = ko.observable(true);
-
 
 pm.loadData = function () {
     setTimeout(function () {
@@ -96,7 +94,6 @@ pm.resetStatus= function(){
     pm.isFirstWindRose(true);
     pm.isFirstWindDis(true);
     pm.isFirstTurbulence(true);
-    pm.isFirstMTBF(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstTwelve(true);

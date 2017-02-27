@@ -28,7 +28,8 @@ lgd.detailDTLostEnergyTxt = ko.observable();
 lgd.isDetailDTTop = ko.observable(false);
 lgd.detailDTTopTxt = ko.observable();
 
-lgd.projectList = ko.observableArray();
+lgd.projectList = ko.observableArray([]);
+lgd.projectItem = ko.observableArray([]);
 lgd.mdTypeList = ko.observableArray([]);
 lgd.projectName = ko.observable();
 lgd.isFleet = ko.observable(true);
@@ -81,6 +82,7 @@ lgd.populateProject = function (data) {
             });
         }
         lgd.projectList(datavalue);
+        lgd.projectItem(datavalue);
     }
 };
 

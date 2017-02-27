@@ -808,7 +808,7 @@ $(document).ready(function() {
 
     setTimeout(function() {
         Data.InitDefault();
-        // dbc.getColumnCustom();
+        dbc.getColumnCustom();
         dbsh.getColumnListHFD();
     }, 1000);
 });

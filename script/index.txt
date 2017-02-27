@@ -42,6 +42,7 @@ db.ScadaDataOEM.createIndex( { "timestamp": 1, "turbine": 1} )
 db.ScadaDataOEM.createIndex( { "timestamp": 1, "turbine": 1, "power": 1, "powerlost": 1, "ai_intern_activpower": 1, "ai_intern_windspeed": 1} )
 
 db.MetTower.createIndex( { "timestamp": 1} )
+db.MetTower.createIndex( { "timestamp": -1} )
 
 db.EventRaw.createIndex( { turbine: 1 } )
 db.EventRaw.createIndex( { brakeprogram: 1 } )
@@ -84,3 +85,7 @@ db.EventDownHFD.createIndex( { brakeprogram: -1 } )
 db.EventDownHFD.createIndex( { alarmtoggle: -1 } )
 db.EventDownHFD.createIndex( { timestamp: -1 } )
 db.EventDownHFD.createIndex( { timestamp: 1 , "dateinfostart.monthid":1, "timestart":1, "timeend":1} )
+
+
+db.EventAlarm.createIndex( { "dateinfostart.dateid": 1 , projectname: 1, turbine: 1} )
+db.EventAlarm.createIndex( { "dateinfostart.dateid": 1 , projectname: 1, turbine: 1, alarmdescription: 1} )

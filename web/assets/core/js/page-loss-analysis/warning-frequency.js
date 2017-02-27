@@ -57,8 +57,8 @@ wf.generateGrid = function (dataSource) {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 200, locked: true, filterable: false },
-            { title: "Total", field: "total", attributes: { class: "align-center row-custom" }, width: 50, locked: true, filterable: false },
+            { title: "Warning Description", field: "desc", attributes: { class: "align-left row-custom" }, width: 250, locked: true, filterable: false },
+            { title: "Total", field: "total", attributes: { class: "align-center row-custom" }, width: 70, locked: true, filterable: false },
         ],
         dataBound: function(){
             setTimeout(function(){
