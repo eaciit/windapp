@@ -89,15 +89,16 @@ dbr.ShowHideColumnScada = function(gridID, field, id, index) {
 var Data = {
     LoadData: function() {
         setTimeout(function(){
-            var idParent = $(".panel-body").find(".nav-tabs").find(".active")[0].id
-            switch (idParent) {
-                case 'mainTab':
-                    $("#Main").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-                    break;
-                case 'exceptionTab':
-                    $("#Exception").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-                    break;
-            }
+            // var idParent = $(".panel-body").find(".nav-tabs").find(".active")[0].id;
+            $(".panel-body").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
+            // switch (idParent) {
+            //     case 'mainTab':
+            //         $("#Main").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
+            //         break;
+            //     case 'exceptionTab':
+            //         $("#Exception").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
+            //         break;
+            // }
         }, 100)
     },
     InitDefault: function() {
