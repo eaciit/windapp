@@ -50,7 +50,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
 	query = append(query, tk.M{"fast_windspeed_bin": tk.M{"$gte": 0}})
-	query = append(query, tk.M{"fast_windspeed_bin": tk.M{"$lte": 50}})
+	query = append(query, tk.M{"fast_windspeed_bin": tk.M{"$lte": 25}})
 	query = append(query, tk.M{"fast_windspeed_ms": tk.M{"$gte": -200}})
 	query = append(query, tk.M{"fast_windspeed_ms_stddev": tk.M{"$gte": -200}})
 
@@ -68,7 +68,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	querymet = append(querymet, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	querymet = append(querymet, tk.M{"timestamp": tk.M{"$lte": tEnd}})
 	querymet = append(querymet, tk.M{"windspeedbin": tk.M{"$gte": 0}})
-	querymet = append(querymet, tk.M{"windspeedbin": tk.M{"$lte": 50}})
+	querymet = append(querymet, tk.M{"windspeedbin": tk.M{"$lte": 25}})
 	querymet = append(querymet, tk.M{"vhubws90mavg": tk.M{"$gte": -200}})
 	querymet = append(querymet, tk.M{"vhubws90mstddev": tk.M{"$gte": -200}})
 
