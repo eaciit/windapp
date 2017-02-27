@@ -32,8 +32,10 @@ var SeriesDowntime = [
     name: "Unknown"
 }]
 
-dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
-
+dt.GenChartDownAlarmComponent = function (tab, dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
+    // var colours = ["#ff880e", "#21c4af", "#f44336","#feb64e","#a2df53", "#69d2e7","#4589b0","#ed5784"];
+    var colours = ["#ff880e","#21c4af","#b71c1c","#4589b0","#a2df53","#1c9ec4","#880d4e","#4a148c"];
+    
     $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -70,7 +72,7 @@ dt.GenChartDownAlarmComponent = function (dataSource,id,Series,legend,name,axisL
                     }
         },
         series: Series,
-        seriesColors: colorField,
+        seriesColors: (tab == "component" ? colours : colorField),
         valueAxis: {
             title: {
                 text: axisLabel,
@@ -151,9 +153,9 @@ dt.Downtime = function(){
                 var wAll = $('#filter-analytic').width() * 0.275
 
                 /*Downtime Tab*/
-                dt.GenChartDownAlarmComponent(res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll,"N1");
-                dt.GenChartDownAlarmComponent(res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll,"N0");
-                dt.GenChartDownAlarmComponent(res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll,"N1");
+                dt.GenChartDownAlarmComponent("downtime",res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll,"N1");
+                dt.GenChartDownAlarmComponent("downtime",res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll,"N0");
+                dt.GenChartDownAlarmComponent("downtime",res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll,"N1");
 
                 pg.isFirstDowntime(false);
                 app.loading(false);
