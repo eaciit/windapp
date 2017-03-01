@@ -1407,7 +1407,7 @@ func (d *GenTenFromThreeSecond) getStdDevAvgMinMaxCount(ctx *DataContext, timest
 		field + "_max":    tk.M{"$max": "$" + field},
 		field + "_count":  tk.M{"$sum": 1},
 	}
-	1
+
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
