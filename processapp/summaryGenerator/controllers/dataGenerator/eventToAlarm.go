@@ -41,38 +41,34 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 	// remove delete function
 	countx := 0
 	for turbine, _ := range ev.BaseController.RefTurbines {
-		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
-		filter = append(filter, dbox.Eq("turbine", turbine))
-
-		latestDate := ev.BaseController.GetLatest("Alarm", "Tejuva", turbine)
-		if latestDate.Format("2006") != "0001" {
-			filter = append(filter, dbox.Gt("timeend", latestDate))
-		}
-
-		// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
-
-		csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
-			Where(filter...).Cursor(nil)
-
-		defer csr.Close()
-
-		// counter := 0
-		countData := csr.Count()
-		isDone := false
-		// countPerProcess := 5
-
-		// for !isDone && countData > 0 {
-		events := []*EventDown{}
-
-		// do process here
-		e = csr.Fetch(&events, 0, false)
-		ErrorHandler(e, funcName)
 
 		wg.Add(1)
-		go func(datas []*EventDown, count int, t string) {
-			tk.Printf("Event to Alarm for %v | %v \n", t, count)
-			for _, d := range datas {
+		go func(t string) {
+			filter := []*dbox.Filter{}
+			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+			filter = append(filter, dbox.Eq("turbine", t))
+
+			latestDate := ev.BaseController.GetLatest("Alarm", "Tejuva", t)
+			if latestDate.Format("2006") != "0001" {
+				filter = append(filter, dbox.Gt("timeend", latestDate))
+			}
+
+			// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
+
+			csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
+				Where(filter...).Cursor(nil)
+
+			defer csr.Close()
+
+			countData := csr.Count()
+			events := []*EventDown{}
+
+			// do process here
+			e = csr.Fetch(&events, 0, false)
+			ErrorHandler(e, funcName)
+
+			tk.Printf("Event to Alarm for %v | %v \n", t, countData)
+			for _, d := range events {
 
 				mtx.Lock()
 				dataInput := d
@@ -84,15 +80,11 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 			tk.Printf("end process for %v \n", t)
 
 			wg.Done()
-		}(events, countData, turbine)
+		}(turbine)
 
 		countx++
 
-		if len(ev.BaseController.RefTurbines) == countx {
-			isDone = true
-		}
-
-		if countx%5 == 0 || isDone {
+		if countx%5 == 0 || (len(ev.BaseController.RefTurbines) == countx) {
 			wg.Wait()
 		}
 		// }
