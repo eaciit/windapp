@@ -417,3 +417,17 @@ func (w *PageController) WindFarmAnalysis(r *knot.WebContext) interface{} {
 
 	return params
 }
+
+func (w *PageController) DataAvailability(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-data-availability.html"
+	// r.Config.IncludeFiles = append(DefaultIncludes, []string{"page-windfarm-analysis/project.html",
+	// 	"page-windfarm-analysis/turbine1.html",
+	// 	"page-windfarm-analysis/turbine2.html"}...)
+
+	params := w.GetParams(r, true)
+	// params.Set("AvailableDate", r.Session("availdate"))
+
+	return params
+}

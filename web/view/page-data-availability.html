@@ -1,0 +1,18 @@
+<script src="{{BaseUrl}}res/core/js/page-data-availability.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-availability.css">
+<div class="row">
+	{{template "_filter-analytic.html"}}
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-body">
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	fa.populateTurbine({{.TurbineList}});
+	fa.populateProject({{.ProjectList}});
+</script>
