@@ -400,7 +400,7 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 	}
 	defer workerconn.Close()
 
-	dtablename := tk.Sprintf("%s", new(ScadaConvTenMin).TableName())
+	dtablename := tk.Sprintf("%s-Algos", new(ScadaConvTenMin).TableName())
 
 	qSave := workerconn.NewQuery().
 		From(dtablename).
