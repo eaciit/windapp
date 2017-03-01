@@ -6,7 +6,35 @@
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-body">
-					
+					<div class="date-info">
+                        Data Available from: <strong><span id="availabledatestartscada">07-May-2016</span></strong> until: <strong><span id="availabledateendscada">20-February-2017</span></strong>
+                    </div>
+                    <div class="clearfix">&nbsp;</div>
+                    <div class="col-md-12">
+	                	<table class="table table consended">
+							<thead>
+					          	<tr>
+					              	<td width="10%" class="border-right">&nbsp;</td>
+								    <td width="15%" class="border-right">Jan </td>
+									<td width="15%" class="border-right">Feb </td>
+					                <td width="15%" class="border-right">Mar </td>
+					                <td width="15%" class="border-right">Apr </td>
+					                <td width="15%" class="border-right">May </td>
+					                <td width="15%" class="border-right">Jun </td>
+					            <tr>
+							</thead>
+					    	<tbody data-bind="foreach:page.dataDummy">
+								<tr>
+					               <td class="border-right"><span data-bind="text:Category"></span></td>
+								   <td colspan=6>
+					                 	<div class="progress" data-bind="foreach:Data">
+					                       <div aria-hidden="true" data-bind='attr :{class : "tooltipster tooltipstered "+$data.class, style: "width:"+$data.value, title: $data.tooltip}' role="progressbar"></div>
+					                    </div>
+					               </td>
+					            </tr>
+							</tbody>
+						</table>
+                    </div>
 				</div>
 			</div>
 		</div>
