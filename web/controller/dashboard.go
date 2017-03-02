@@ -1204,7 +1204,7 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			}
 		}
 		result = hasil
-	} else if p.Type != "All Types" && p.Type != "" && p.ProjectName != "Fleet" && tipe == "fleetdowntime" {
+	} else if p.Type != "All Types" && p.Type != "" && tipe == "fleetdowntime" {
 		hasil := []tk.M{}
 		for _, val := range result {
 			if val.GetString("type") == p.Type {
