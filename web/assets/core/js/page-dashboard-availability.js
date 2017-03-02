@@ -1133,7 +1133,7 @@ avail.LossEnergyByType = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailLossEnergyLevel2(e, "chart")
         }
     });
 
@@ -1857,6 +1857,9 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
     }
 
     if (source == "chart") {
+        if(projectSelected == "") { /*jika non fleet karena tidak melalui level 1*/
+            projectSelected = project;
+        }
         dtType = e.series.name;
         avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType + " (" + projectSelected + ")");
         detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
@@ -1866,6 +1869,11 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
             ddlVal = "All Types";
         }
         avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel2 + ddlVal + " (" + projectSelected + ")");
+    } else if (source == "chartperproject") {
+        dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
+        projectSelected = e.series.name;
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType + " (" + projectSelected + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
     }
 
     if (project == "Fleet") {
@@ -1878,10 +1886,12 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
         }
     } else {
         if (source == "chart") {
-            param = { ProjectName: project, DateStr: dateStr, Type: type };
-            $("#mdTypeList").data("kendoDropDownList").value(type);
+            param = { ProjectName: project, DateStr: dateStr, Type: dtType };
+            lastParamLevel2 = param; /*butuh last param karena tidak berasal dari level 1 melainkan langsung ke level 2*/
+            avail.LEFleetByDown(true); /*numpang variabel biar pas ganti ddl bisa balik lagi ke fungsi ini*/
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
         } else if (source == "ddl") {
-            param = { ProjectName: project, DateStr: lastParamChart.DateStr, Type: dtType };
+            param = { ProjectName: project, DateStr: lastParamLevel2.DateStr, Type: dtType };
             $("#mdTypeList").data("kendoDropDownList").value(dtType);
         }
     }

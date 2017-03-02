@@ -41,6 +41,7 @@ lgd.prodDateRangeStr = ko.observable('');
 
 var lastParam = {};
 var lastParamChart = {};
+var lastParamLevel2 = {};
 var dtType = '';
 var monthDetailDT = '';
 var projectSelected = '';
