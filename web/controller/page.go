@@ -330,6 +330,14 @@ func (w *PageController) User(r *knot.WebContext) interface{} {
 	return w.GetParams(r, false)
 }
 
+func (w *PageController) EmailManagement(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-email-management.html"
+
+	return w.GetParams(r, false)
+}
+
 func (w *PageController) Monitoring(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
