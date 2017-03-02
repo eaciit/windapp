@@ -48,7 +48,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 	}
 
 	countx := 0
-	maxPar := 1
+	maxPar := 5
 
 	details := []DataAvailabilityDetail{}
 
@@ -142,7 +142,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), latestDate.UTC().String(), hoursGap)
 
-			log.Printf(">> DONE: %v | %v secs", t, time.Now().Sub(start).Seconds())
+			log.Printf(">> DONE: %v | %v | %v secs", t, len(list), time.Now().Sub(start).Seconds())
 			wgs.Done()
 		}(turbine, &wg, &details)
 
@@ -160,7 +160,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 	return availability
 }
 
-func setDataAvailDetail(from time.Time, to time.Time, turbine string, project string, duration float64, isAvail bool) DataAvailabilityDetail {
+func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool) DataAvailabilityDetail {
 
 	res := DataAvailabilityDetail{
 		ProjectName: project,
