@@ -5,12 +5,11 @@ import (
 	"time"
 
 	"github.com/eaciit/orm"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type EmailManagement struct {
 	orm.ModelBase `bson:"-",json:"-"`
-	ID            bson.ObjectId ` bson:"_id" , json:"_id" `
+	ID            string ` bson:"_id" , json:"_id" `
 	Subject       string
 	Receivers     []string // list of userid
 	AlarmCodes    []string // list of alarm code
@@ -20,11 +19,6 @@ type EmailManagement struct {
 	LastUpdate    time.Time
 	CreateBy      string // userid
 	UpdateBy      string // userid
-}
-
-func (m *EmailManagement) New() *EmailManagement {
-	m.ID = bson.NewObjectId()
-	return m
 }
 
 func (m *EmailManagement) RecordID() interface{} {
