@@ -1,0 +1,101 @@
+<script src="{{BaseUrl}}res/core/js/page-email-management.js"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-group.css">
+
+<div class="row" style="padding-top: 15px;">
+	<div class="col-md-4 col-sm-4 ez panel-filter">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">Filter</h3>
+				<div class="panel-nav-button">
+					<div class="form-group relative align-right no-margin no-padding hardcore">
+						<button class="btn btn-sm btn-primary" data-bind="click: em.refreshData">
+							<i class="fa fa-refresh"></i> Reload Data
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div id="from-filter">
+					<p>Filter shown data.</p>
+					<div class="form-group form-group-table-name">
+						<div class="input-group input-group-sm ez width-full">
+							<span class="input-group-addon width-100 align-right">Search</span>
+							<input type="text" class="form-control" required data-required-msg="cannot be empty" placeholder="Type value here ..." data-bind="value: em.filter.search" />
+						</div>
+					</div>
+				</div>
+
+				<div class="clearfix"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-8 col-sm-8 ez panel-content">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading">
+				<h3 class="no-margin">
+					<button class="btn-toggle-filter no-padding">
+						<i class="fa fa-angle-double-left tooltipster color-grey" title="Toggle filter pane visibility"></i>
+					</button>
+					Data Email
+				</h3>
+				<div class="panel-nav-button">
+					<button class="btn btn-primary btn-sm" data-bind="click: em.newData">
+						<i class="fa fa-plus"></i> New Data
+					</button>
+					<button class="btn btn-danger btn-sm" data-bind="click: em.deletegroup">
+						<i class="fa fa-trash"></i> Delete
+					</button>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div data-bind="visible: em.contentIsLoading">
+					{{template "_loader.html"}}
+				</div>
+				<div data-bind="visible: !em.contentIsLoading()">
+					<p data-bind="visible: em.selectedTableID() != ''">
+						Data on table <span class="tag bg-orange">email management</span>.
+					</p>
+					<div class="grid-email"></div>
+					<div class="no-grid" data-bind="visible: app.is(em.selectedTableID, '')">No data to be shown.</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">
+        			<span data-bind="text: em.isNew() ? 'Create new' : 'Edit'"></span> email
+        		</h4>
+            </div>
+            <div class="modal-body" data-bind="with: em.config">
+                <form class="wrapper form-group" novalidate>
+                	<div class="col-md-12">
+						<div class="form-group">
+							<div class="input-group input-group-sm ez width-full">
+								<span class="input-group-addon align-right width-100">ID</span>
+								<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: _id" placeholder="Type value here ..." />
+							</div>
+						</div>
+					</div>
+                </form>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">
+		        	Cancel
+		        </button>
+                <button class="btn btn-sm btn-primary" data-bind="click: em.saveChanges">
+					<i class="fa fa-save"></i> Save
+				</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
