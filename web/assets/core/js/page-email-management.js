@@ -17,6 +17,10 @@ em.templateEmail = {
     Template: "",
     Enable: true
 };
+
+em.CategoryMailList = ko.observableArray([]);
+em.UserMailList = ko.observableArray([]);
+
 em.templateFilter = {
     search: ""
 };
@@ -94,10 +98,7 @@ em.editData = function (id) {
             return;
         }
         ko.mapping.fromJS(res.data, em.config);
-    }, function (err) {
-        toolkit.showError(err.responseText);
-    }, {
-        timeout: 5000
+        $('#modalUpdate').modal('show');
     });
 };
 

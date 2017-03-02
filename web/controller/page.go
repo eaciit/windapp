@@ -335,6 +335,12 @@ func (w *PageController) EmailManagement(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-email-management.html"
 
+	categorylist, _ := GetCategoryMail()
+	userList, _ := GetUserMail()
+
+	w.Params.Set("CategoryMailList", categorylist)
+	w.Params.Set("UserMailList", userList)
+
 	return w.GetParams(r, false)
 }
 

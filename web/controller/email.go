@@ -7,6 +7,7 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
+	"sort"
 	"strconv"
 )
 
@@ -17,6 +18,80 @@ type EmailController struct {
 func CreateEmailController() *EmailController {
 	var controller = new(EmailController)
 	return controller
+}
+
+func GetCategoryMail() (result []toolkit.M, e error) {
+	csr, e := DB().Connection.NewQuery().
+		Select("_id", "category").
+		From("ref_emailCategory").
+		Order("category").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []toolkit.M{}
+	e = csr.Fetch(&data, 0, false)
+
+	keyVal := map[string]string{}
+	keyList := []string{}
+	for _, val := range data {
+		keyVal[val.GetString("category")] = val.GetString("_id")
+		keyList = append(keyList, val.GetString("category"))
+	}
+	sort.Strings(keyList)
+
+	for _, val := range keyList {
+		res := toolkit.M{
+			"value": keyVal[val],
+			"text":  val,
+		}
+		result = append(result, res)
+	}
+	if e != nil {
+		return
+	}
+
+	return
+}
+
+func GetUserMail() (result []toolkit.M, e error) {
+	csr, e := DB().Connection.NewQuery().
+		Select("_id", "fullname").
+		From("acl_users").
+		Order("fullname").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []toolkit.M{}
+	e = csr.Fetch(&data, 0, false)
+
+	keyVal := map[string]string{}
+	keyList := []string{}
+	for _, val := range data {
+		keyVal[val.GetString("fullname")] = val.GetString("_id")
+		keyList = append(keyList, val.GetString("fullname"))
+	}
+	sort.Strings(keyList)
+
+	for _, val := range keyList {
+		res := toolkit.M{
+			"value": keyVal[val],
+			"text":  val,
+		}
+		result = append(result, res)
+	}
+	if e != nil {
+		return
+	}
+
+	return
 }
 
 func (a *EmailController) EditEmail(r *knot.WebContext) interface{} {
