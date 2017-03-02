@@ -11,14 +11,16 @@ type EmailManagement struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
 	Subject       string
+	Category      string   // refer to ref_emailCategory
 	Receivers     []string // list of userid
 	AlarmCodes    []string // list of alarm code
 	IntervalTime  int      // in minutes
 	Template      string
 	CreatedDate   time.Time
 	LastUpdate    time.Time
-	CreateBy      string // userid
-	UpdateBy      string // userid
+	CreatedBy     string // userid
+	UpdatedBy     string // userid
+	Enable        bool
 }
 
 func (m *EmailManagement) RecordID() interface{} {
