@@ -45,6 +45,7 @@ var lastParamLevel2 = {};
 var dtType = '';
 var monthDetailDT = '';
 var projectSelected = '';
+var projectSelectedLevel2 = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
 var maxdate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 23, 59, 59, 0));
 
