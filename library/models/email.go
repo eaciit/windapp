@@ -35,7 +35,7 @@ type EmailCategory struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
 	Category      string
-	Condition     string // isAlarmCode, isInterval
+	Condition     string // "isAlarmCode,isInterval"
 }
 
 func (m *EmailCategory) RecordID() interface{} {
