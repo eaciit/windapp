@@ -38,7 +38,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() {
 	}
 
 	countx := 0
-	maxPar := 5
+	maxPar := 10
 
 	for turbine, _ := range ev.BaseController.RefTurbines {
 		wg.Add(1)
@@ -93,7 +93,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() {
 		countx++
 
 		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			log.Println("wait....")
+			// log.Println("wait....")
 			wg.Wait()
 		}
 	}

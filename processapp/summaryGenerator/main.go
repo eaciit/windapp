@@ -36,7 +36,7 @@ func main() {
 		// dependent Generate
 		// new(UpdateScadaOemMinutes).GenerateDensity(base)    // step 0
 		// new(UpdateOEMToScada).RunMapping(base)              // step 1
-		// new(EventToAlarm).ConvertEventToAlarm(base)         // step 2
+		// new(EventToAlarm).ConvertEventToAlarm(base) // step 2
 		// new(GenAlarmSummary).Generate(base)                 // step 3
 		// new(GenDataPeriod).Generate(base)                   // step 4
 		// new(GenScadaLast24).Generate(base)                  // step 5

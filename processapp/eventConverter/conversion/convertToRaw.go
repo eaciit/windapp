@@ -37,6 +37,7 @@ func NewEventRawConversion(ctx *orm.DataContext, filePath string) *EventRawConve
 }
 
 func (ev *EventRawConversion) Run() {
+	log.Println("===================== Starting EVENT RAW")
 	var wg sync.WaitGroup
 
 	if ev.FilePath != "" {
@@ -80,6 +81,8 @@ func (ev *EventRawConversion) Run() {
 			}
 		}
 	}
+
+	log.Println("===================== End EVENT RAW")
 }
 
 func (ev *EventRawConversion) processFile(filename string, wg *sync.WaitGroup, brakes map[int]AlarmBrake) {

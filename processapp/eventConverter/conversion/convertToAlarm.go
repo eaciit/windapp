@@ -30,6 +30,7 @@ func NewAlarmConversion(ctx *orm.DataContext, filePath string) *AlarmConversion 
 }
 
 func (ev *AlarmConversion) Run() {
+	log.Println("===================== Starting EVENT ALARM")
 	// _ = ev.getLatest()
 	var wg sync.WaitGroup
 	loops := ev.getLatest()
@@ -49,6 +50,7 @@ func (ev *AlarmConversion) Run() {
 			wg.Wait()
 		}
 	}
+	log.Println("===================== End EVENT ALARM")
 }
 
 func (ev *AlarmConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {

@@ -38,47 +38,47 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 
 	// #faisal
 	// add condition to get the eventdown started from the latest data that already in alarm, so no need to generate the alarm data from begining
-	// remove delete function
 	countx := 0
 	for turbine, _ := range ev.BaseController.RefTurbines {
 
 		wg.Add(1)
 		go func(t string) {
-			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
-			filter = append(filter, dbox.Eq("turbine", t))
+			if t != "" {
+				filter := []*dbox.Filter{}
+				filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+				filter = append(filter, dbox.Eq("turbine", t))
 
-			latestDate := ev.BaseController.GetLatest("Alarm", "Tejuva", t)
-			if latestDate.Format("2006") != "0001" {
-				filter = append(filter, dbox.Gt("timeend", latestDate))
+				latestDate := ev.BaseController.GetLatest("Alarm", "Tejuva", t)
+				if latestDate.Format("2006") != "0001" {
+					filter = append(filter, dbox.Gt("timeend", latestDate))
+				}
+
+				// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
+
+				csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
+					Where(filter...).Cursor(nil)
+
+				defer csr.Close()
+
+				countData := csr.Count()
+				events := []*EventDown{}
+
+				// do process here
+				e = csr.Fetch(&events, 0, false)
+				ErrorHandler(e, funcName)
+
+				tk.Printf("Event to Alarm for %v | %v \n", t, countData)
+				for _, d := range events {
+
+					mtx.Lock()
+					dataInput := d
+					//tk.Printf("%s ", idx)
+
+					ev.doConversion(dataInput)
+					mtx.Unlock()
+				}
+				tk.Printf("end process for %v \n", t)
 			}
-
-			// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
-
-			csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
-				Where(filter...).Cursor(nil)
-
-			defer csr.Close()
-
-			countData := csr.Count()
-			events := []*EventDown{}
-
-			// do process here
-			e = csr.Fetch(&events, 0, false)
-			ErrorHandler(e, funcName)
-
-			tk.Printf("Event to Alarm for %v | %v \n", t, countData)
-			for _, d := range events {
-
-				mtx.Lock()
-				dataInput := d
-				//tk.Printf("%s ", idx)
-
-				ev.doConversion(dataInput)
-				mtx.Unlock()
-			}
-			tk.Printf("end process for %v \n", t)
-
 			wg.Done()
 		}(turbine)
 

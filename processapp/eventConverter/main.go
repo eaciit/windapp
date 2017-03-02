@@ -38,20 +38,14 @@ func main() {
 		event := NewCombineRaw(ctx)
 		event.Run()*/
 
-	log.Println("Starting EVENT RAW")
-	// event := NewEventRawConversion(ctx, dir)
-	// event.Run()
-	log.Println("===================== End EVENT RAW")
+	/*event := NewEventRawConversion(ctx, dir)
+	event.Run()*/
 
-	log.Println("===================== Starting EVENT DOWN")
 	down := NewDownConversion(ctx, dir)
 	down.Run()
-	log.Println("===================== End EVENT DOWN")
 
-	// log.Println("===================== Starting EVENT ALARM")
-	// alarm := NewAlarmConversion(ctx, dir)
-	// alarm.Run()
-	// log.Println("===================== End EVENT ALARM")
+	/*alarm := NewAlarmConversion(ctx, dir)
+	alarm.Run()*/
 
 }
 
