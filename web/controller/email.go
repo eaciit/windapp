@@ -4,8 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-
-	// "github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
@@ -77,12 +75,15 @@ func (a *EmailController) Search(r *knot.WebContext) interface{} {
 		}
 	}
 
-	csr, err := DB().Connection.NewQuery().
+	query := DB().Connection.NewQuery().
 		From(new(EmailManagement).TableName()).
-		Where(dbox.Or(filters...)).
-		Skip(payload.GetInt("take")).
-		Take(payload.GetInt("skip")).
-		Cursor(nil)
+		Skip(payload.GetInt("skip")).
+		Take(payload.GetInt("take"))
+
+	if payload.GetString("search") != "" {
+		query.Where(dbox.Or(filters...))
+	}
+	csr, err := query.Cursor(nil)
 
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
@@ -90,8 +91,12 @@ func (a *EmailController) Search(r *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	data := toolkit.M{}
-	result := make([]toolkit.M, 0, 0)
+	result := []toolkit.M{}
 	err = csr.Fetch(&result, 0, false)
+	toolkit.Println(err)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
 
 	data.Set("Data", result)
 	data.Set("total", csr.Count())

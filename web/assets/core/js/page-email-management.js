@@ -34,23 +34,8 @@ em.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
 }, {
     field: "category",
     title: "Category",
-    headerAttributes: { style: "text-align: center;" }
-}, {
-    field: "receivers",
-    title: "Receivers",
-    headerAttributes: { style: "text-align: center;" }
-}, {
-    field: "alarmCodes",
-    title: "AlarmCodes",
-    headerAttributes: { style: "text-align: center;" }
-}, {
-    field: "intervaltime",
-    title: "IntervalTime",
-    headerAttributes: { style: "text-align: center;" }
-}, {
-    field: "template",
-    title: "Template",
-    headerAttributes: { style: "text-align: center;" }
+    headerAttributes: { style: "text-align: center;" },
+    attributes: { style: "text-align: center;" }
 }, {
     field: "enable",
     title: "Enable",
