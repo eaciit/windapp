@@ -337,9 +337,11 @@ func (w *PageController) EmailManagement(r *knot.WebContext) interface{} {
 
 	categorylist, _ := GetCategoryMail()
 	userList, _ := GetUserMail()
+	alarmCodes, _ := GetAlarmCodesMail()
 
 	w.Params.Set("CategoryMailList", categorylist)
 	w.Params.Set("UserMailList", userList)
+	w.Params.Set("AlarmCodesMailList", alarmCodes)
 
 	return w.GetParams(r, false)
 }

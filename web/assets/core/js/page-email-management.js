@@ -20,6 +20,9 @@ em.templateEmail = {
 
 em.CategoryMailList = ko.observableArray([]);
 em.UserMailList = ko.observableArray([]);
+em.AlarmCodesMailList = ko.observableArray([]);
+em.isAlarmCode = ko.observable(false);
+em.isInterval = ko.observable(false);
 
 em.templateFilter = {
     search: ""
@@ -85,14 +88,38 @@ em.checkDeleteData = function (elem, e) {
     }
 };
 
+em.checkCategory = function() {
+    em.showHide($('#categoryList').data('kendoDropDownList').value());
+}
+
 em.resetDDL = function() {
     $('#categoryList').data('kendoDropDownList').select(0);
     $('#userList').data('kendoMultiSelect').value([]);
+    $('#alarmcodesList').data('kendoMultiSelect').value([]);
+}
+
+em.showHide = function(category) {
+    var resObj = em.CategoryMailList().filter(function(obj) {
+        return obj.value == category;
+    });
+    var condition = resObj[0].condition.split(",");
+    em.isAlarmCode(false);
+    em.isInterval(false);
+    $.each(condition, function(idx, val){
+        if(val.indexOf("isAlarmCode") >= 0) {
+            em.isAlarmCode(true);
+        } else if(val.indexOf("isInterval") >= 0) {
+            em.isInterval(true);
+        }
+    });
 }
 
 em.setDDL = function(data) {
     $('#categoryList').data('kendoDropDownList').value(data.category);
     $('#userList').data('kendoMultiSelect').value(data.receivers);
+    $('#alarmcodesList').data('kendoMultiSelect').value(data.alarmcodes);
+
+    em.showHide(data.category);
 }
 em.newData = function () {
     em.isNew(true);
@@ -125,7 +152,7 @@ em.setEditor = function() {
     $("#editor").kendoEditor({ 
         resizable: {
             content: true,
-            toolbar: true
+            toolbar: true,
         }
     });
     $('#editor').data('kendoEditor').refresh();
@@ -140,6 +167,7 @@ em.saveChanges = function () {
     param.intervaltime = parseInt(param.intervaltime);
     param.category = $('#categoryList').data('kendoDropDownList').value();
     param.receivers = $('#userList').data('kendoMultiSelect').value();
+    param.alarmcodes = $('#alarmcodesList').data('kendoMultiSelect').value();
     param.template = $('#editor').data('kendoEditor').value();
     toolkit.ajaxPost(viewModel.appName + 'email/saveemail', param, function (res) {
         if (!app.isFine(res)) {
