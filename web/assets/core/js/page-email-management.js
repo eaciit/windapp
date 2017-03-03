@@ -9,13 +9,13 @@ var em = viewModel.Email;
 
 em.templateEmail = {
     _id: "",
-    Subject: "",
-    Category: "", // refer to ref_emailCategory
-    Receivers: [], // list of user ACL
-    AlarmCodes: [], // list of alarm code from AlarmBrake > alarmname
-    IntervalTime: 0, // in minutes
-    Template: "",
-    Enable: true
+    subject: "",
+    category: "", // refer to ref_emailCategory
+    receivers: [], // list of user ACL
+    alarmcodes: [], // list of alarm code from AlarmBrake > alarmname
+    intervaltime: 0, // in minutes
+    template: "",
+    enable: true
 };
 
 em.CategoryMailList = ko.observableArray([]);
@@ -85,10 +85,24 @@ em.checkDeleteData = function (elem, e) {
     }
 };
 
+em.resetDDL = function() {
+    $('#categoryList').data('kendoDropDownList').select(0);
+    $('#userList').data('kendoMultiSelect').value([]);
+}
+
+em.setDDL = function(data) {
+    $('#categoryList').data('kendoDropDownList').value(data.category);
+    $('#userList').data('kendoMultiSelect').value(data.receivers);
+}
 em.newData = function () {
     em.isNew(true);
-    $('#modalUpdate').modal('show');
     ko.mapping.fromJS(em.templateEmail, em.config);
+    em.resetDDL();
+    em.setEditor();
+
+    setTimeout(function(){
+        $('#modalUpdate').modal('show');
+    }, 100);
 };
 
 em.editData = function (id) {
@@ -98,16 +112,36 @@ em.editData = function (id) {
             return;
         }
         ko.mapping.fromJS(res.data, em.config);
-        $('#modalUpdate').modal('show');
+        em.setDDL(res.data);
+        em.setEditor();
+
+        setTimeout(function(){
+            $('#modalUpdate').modal('show');
+        }, 100);
     });
 };
+
+em.setEditor = function() {
+    $("#editor").kendoEditor({ 
+        resizable: {
+            content: true,
+            toolbar: true
+        }
+    });
+    $('#editor').data('kendoEditor').refresh();
+}
 
 em.saveChanges = function () {
     if (!toolkit.isFormValid(".form-group")) {
         return;
     }
-    var parm = ko.mapping.toJS(em.config);
-    toolkit.ajaxPost(viewModel.appName + 'email/saveemail', parm, function (res) {
+    var param = ko.mapping.toJS(em.config);
+    param.id = param._id;
+    param.intervaltime = parseInt(param.intervaltime);
+    param.category = $('#categoryList').data('kendoDropDownList').value();
+    param.receivers = $('#userList').data('kendoMultiSelect').value();
+    param.template = $('#editor').data('kendoEditor').value();
+    toolkit.ajaxPost(viewModel.appName + 'email/saveemail', param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
