@@ -231,8 +231,6 @@ page.createView = function(){
 }
 
 $(function () {
-
-
     setTimeout(function() {
     	page.hideFilter();
 		page.createView();

@@ -13,7 +13,8 @@ type DataAvailability struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
 	Name          string
-	Timestamp     time.Time
+	PeriodTo      time.Time
+	PeriodFrom    time.Time
 	Details       []DataAvailabilityDetail
 }
 

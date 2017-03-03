@@ -52,11 +52,14 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 	details := []DataAvailabilityDetail{}
 
-	latestDate := time.Now().UTC()
-	id := latestDate.Format("20060102_150405_SCADAOEM")
+	periodTo, _ := time.Parse("20060102_150405", time.Now().UTC().Format("20060102_")+"000000")
+	id := periodTo.Format("20060102_150405_SCADAOEM")
+
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), -6)
 
 	availability.ID = id
-	availability.Timestamp = latestDate
+	availability.PeriodTo = periodTo
+	availability.PeriodFrom = periodFrom
 	projectName := "Tejuva"
 
 	for turbine, _ := range ev.BaseController.RefTurbines {
@@ -68,13 +71,12 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			filter := []*dbox.Filter{}
 			filter = append(filter, dbox.Eq("projectname", projectName))
 			filter = append(filter, dbox.Eq("turbine", t))
-			// latestDate := ev.BaseController.GetLatest("ScadaDataOEM", "Tejuva", turbine)
-
 			// latest 6 month
-			startDate := latestDate.AddDate(0, -6, 0).UTC()
-			if latestDate.Format("2006") != "0001" {
-				filter = append(filter, dbox.Gt("timestamp", startDate))
-			}
+			// periodFrom := periodTo.AddDate(0, -6, 0).UTC()
+
+			// if periodTo.Format("2006") != "0001" {
+			filter = append(filter, dbox.Gte("timestamp", periodFrom))
+			// }
 
 			csr, e := ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
 				Where(filter...).Order("timestamp").Cursor(nil)
@@ -119,9 +121,9 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 					from = oem
 
 					// set gap from stardate until first data in db
-					hoursGap = from.TimeStamp.UTC().Sub(startDate.UTC()).Hours()
+					hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
 					if hoursGap > 24 {
-						details = append(details, setDataAvailDetail(startDate, from.TimeStamp, projectName, turbine, hoursGap/24, false))
+						details = append(details, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, turbine, hoursGap/24, false))
 					}
 				}
 
@@ -134,13 +136,13 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, turbine, hoursGap/24, true))
 			}
 
-			hoursGap = latestDate.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
+			hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
 
 			if hoursGap > 24 {
-				details = append(details, setDataAvailDetail(latestData.TimeStamp, latestDate, projectName, turbine, hoursGap/24, false))
+				details = append(details, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, turbine, hoursGap/24, false))
 			}
 
-			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), latestDate.UTC().String(), hoursGap)
+			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), periodTo.UTC().String(), hoursGap)
 
 			log.Printf(">> DONE: %v | %v | %v secs", t, len(list), time.Now().Sub(start).Seconds())
 			wgs.Done()
