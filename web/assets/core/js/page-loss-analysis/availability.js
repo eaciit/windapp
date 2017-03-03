@@ -166,7 +166,7 @@ av.createChartProduction = function (dataSource) {
     var categories = dataSource.Categories;
     var max = dataSource.Max;
     var min = dataSource.Min;
-    colorField[0] = "#ff880e";
+    colorField[0] = "#ff9933";
 
     $("#productionChart").replaceWith('<div id="productionChart"></div>');
     $("#productionChart").height(height);

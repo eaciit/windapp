@@ -27,7 +27,7 @@ pg.labelAlarm = ko.observable("Downtime ");
 var availDateListLoss = {};
 
 var SeriesAlarm =  [{
-    type: "donut",
+    type: "pie",
     field: "result",
     categoryField: "_id",
 }]
@@ -176,14 +176,14 @@ $(function(){
                 name: "Downtime"
             }]             
             // ===== Alarm =====
-            dt.GenChartDownAlarmComponent(data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
-            dt.GenChartDownAlarmComponent(data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
-            dt.GenChartDownAlarmComponent(data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent("alarm",data.alarmduration,'chartCADuration',SeriesAlarm,false, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent("alarm",data.alarmfrequency,'chartCAFrequency',SeriesAlarm,false, "", "Times",false,-90,HAlarm,wAll,"N0");
+            dt.GenChartDownAlarmComponent("alarm",data.alarmloss,'chartCATurbineLoss',SeriesAlarm,false, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Top 10 Downtime")
         }else{     
              SeriesAlarm = [{
-                type: "donut",
+                type: "pie",
                 field: "result",
                 categoryField: "_id",
             }]           
@@ -191,9 +191,9 @@ $(function(){
             var componentduration = _.sortBy(data.componentduration, '_id');
             var componentfrequency = _.sortBy(data.componentfrequency, '_id');
             var componentloss = _.sortBy(data.componentloss, '_id');
-            dt.GenChartDownAlarmComponent(componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
-            dt.GenChartDownAlarmComponent(componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
-            dt.GenChartDownAlarmComponent(componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent("component",componentduration,'chartCADuration',SeriesAlarm,true, "", "Hours",false,-90,HAlarm,wAll,"N1");
+            dt.GenChartDownAlarmComponent("component",componentfrequency,'chartCAFrequency',SeriesAlarm,true, "", "Times",false,-90,HAlarm,wAll,"N0");
+            dt.GenChartDownAlarmComponent("component",componentloss,'chartCATurbineLoss',SeriesAlarm,true, "", "MWh",false,-90,HAlarm,wAll,"N1");
 
             pg.labelAlarm(" Downtime")
         }
