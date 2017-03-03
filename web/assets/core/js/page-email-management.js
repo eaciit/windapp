@@ -15,7 +15,11 @@ em.templateEmail = {
     alarmcodes: [], // list of alarm code from AlarmBrake > alarmname
     intervaltime: 0, // in minutes
     template: "",
-    enable: true
+    enable: true,
+    createddate: '',
+    lastupdate: '',
+    createdby: '',
+    updatedby: ''
 };
 
 em.CategoryMailList = ko.observableArray([]);
@@ -48,12 +52,14 @@ em.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
     title: "Enable",
     headerAttributes: { style: "text-align: center;" },
     attributes: { style: "text-align: center;" }
-}, {
+}, 
+/*{
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
         return ["<button class='btn btn-sm btn-warning' onclick='em.editData(\"" + d._id + "\")'><span class='fa fa-pencil' ></span></button>"].join(" ");
     }
-}]);
+}*/
+]);
 
 em.filter = ko.mapping.fromJS(em.templateFilter);
 em.config = ko.mapping.fromJS(em.templateEmail);
@@ -126,6 +132,7 @@ em.newData = function () {
     ko.mapping.fromJS(em.templateEmail, em.config);
     em.resetDDL();
     em.setEditor();
+    em.checkCategory();
 
     setTimeout(function(){
         $('#modalUpdate').modal('show');
@@ -169,6 +176,10 @@ em.saveChanges = function () {
     param.receivers = $('#userList').data('kendoMultiSelect').value();
     param.alarmcodes = $('#alarmcodesList').data('kendoMultiSelect').value();
     param.template = $('#editor').data('kendoEditor').value();
+    param.lastupdate = new Date();
+    if(em.isNew()) {
+        param.createddate = new Date();
+    }
     toolkit.ajaxPost(viewModel.appName + 'email/saveemail', param, function (res) {
         if (!app.isFine(res)) {
             return;
@@ -178,8 +189,6 @@ em.saveChanges = function () {
         em.refreshData();
     }, function (err) {
         toolkit.showError(err.responseText);
-    }, {
-        timeout: 5000
     });
 };
 
@@ -191,11 +200,11 @@ em.refreshData = function () {
     ko.mapping.fromJS(em.templateEmail, em.config);
 };
 
-em.deletegroup = function () {
+em.deleteemail = function () {
     if (em.tempCheckIdDelete().length === 0) {
         swal({
             title: "",
-            text: 'You havent choose any group to delete',
+            text: 'You havent choose any email to delete',
             type: "warning",
             confirmButtonColor: "#DD6B55",
             confirmButtonText: "OK",
@@ -204,7 +213,7 @@ em.deletegroup = function () {
     } else {
         swal({
             title: "Are you sure?",
-            text: 'Data group(s) ' + em.tempCheckIdDelete().toString() + ' will be deleted',
+            text: 'Data email(s) ' + em.tempCheckIdDelete().toString() + ' will be deleted',
             type: "warning",
             showCancelButton: true,
             confirmButtonColor: "#DD6B55",
@@ -268,12 +277,18 @@ em.generateGrid = function () {
             pageSizes: 10,
             buttonCount: 5
         },
-        columns: em.TableColumns()
+        columns: em.TableColumns(),
+        dataBound: function(e){
+            var that = this;
+            $(that.tbody).on("click", "tr", function (e) {
+                var rowData = that.dataItem(this);
+                em.editData(rowData._id);
+            });
+        }
     });
 };
 
 $(function () {
     $("#modalUpdate").insertAfter("body");
     em.generateGrid();
-    // adm.getGrant()
 });

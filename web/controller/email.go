@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
@@ -239,6 +240,14 @@ func (a *EmailController) SaveEmail(r *knot.WebContext) interface{} {
 	payload := new(EmailManagement)
 	if err := r.GetPayload(&payload); err != nil {
 		return helper.CreateResult(false, nil, err.Error())
+	}
+	userID, err := acl.FindUserBySessionID(toolkit.ToString(r.Session("sessionid", "")))
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	payload.UpdatedBy = userID
+	if payload.CreatedBy == "" {
+		payload.CreatedBy = userID
 	}
 
 	if err := DB().Save(payload); err != nil {
