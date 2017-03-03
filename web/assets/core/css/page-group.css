@@ -19,10 +19,18 @@ input[type=checkbox], input[type=radio] {
 	margin: 8px;
 }
 
-.editor-part {
-	margin-top: 15px;
+.additional-part {
+	padding-right: 0px;
+	padding-left: 0px;
 }
 
-.next-field {
-	margin-top: 3px;
+#editor {
+	border-color: #F0F3F4;
+}
+
+.panel {
+	margin-bottom: 10px;
+}
+.modal-body {
+	padding-bottom: 0px;
 }

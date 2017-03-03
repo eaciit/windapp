@@ -75,48 +75,62 @@
             </div>
             <div class="modal-body" data-bind="with: em.config">
                 <form class="wrapper form-group" novalidate>
-                	<div class="col-md-12">
-                		<div class="col-md-6">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">ID</span>
-									<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: _id" placeholder="Type value here ..." />
+                	<div class="panel panel-default">
+                    	<div class="panel-body">
+		                	<div class="col-md-12 additional-part">
+		                		<div class="col-md-6">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">ID</span>
+											<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: _id" placeholder="Type value here ..." />
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">Category</span>
-									<select class="form-control" id="categoryList" name="table" data-bind="kendoDropDownList: { data: em.CategoryMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+								<div class="col-md-6">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Category</span>
+											<select class="form-control" id="categoryList" name="table" data-bind="kendoDropDownList: { data: em.CategoryMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Enable</span>
+											<input type="checkbox" data-bind="checked: enable" />
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Interval Time</span>
+											<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: intervaltime" placeholder="Type value here ..." />
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-12 next-field">
-						<div class="col-md-6">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">Interval Time</span>
-									<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: IntervalTime" placeholder="Type value here ..." />
+					<div class="panel panel-default">
+                    	<div class="panel-body">
+                    		<div class="col-md-12">
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">To</span>
+										<select class="form-control" id="userList" name="table" data-bind="kendoMultiSelect: { data: em.UserMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+									</div>
 								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-12 editor-part">
-						<div class="col-md-12">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">To</span>
-									<select class="form-control" id="userList" name="table" data-bind="kendoMultiSelect: { data: em.UserMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+								<div class="form-group">
+									<div class="input-group input-group-sm ez width-full">
+										<span class="input-group-addon align-right width-100">Subject</span>
+										<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: subject" placeholder="Type value here ..." />
+									</div>
 								</div>
-							</div>
-						</div>
-						<div class="col-md-12">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">Subject</span>
-									<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: Subject" placeholder="Type value here ..." />
+								<div class="editor-part">
+									<textarea id="editor" class="form-control" data-bind="value: template" rows="10">
+									</textarea>
 								</div>
 							</div>
 						</div>

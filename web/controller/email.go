@@ -168,7 +168,6 @@ func (a *EmailController) Search(r *knot.WebContext) interface{} {
 	data := toolkit.M{}
 	result := []toolkit.M{}
 	err = csr.Fetch(&result, 0, false)
-	toolkit.Println(err)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
