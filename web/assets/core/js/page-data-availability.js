@@ -195,7 +195,16 @@ page.getData = function(){
         if (!app.isFine(res)) {
                 return;
             }
-        page.dataDummy(res.Data);
+
+        page.dataDummy(res.data.Data);
+
+        page.categoryHeader(res.data.Month);
+
+		colspan = page.categoryHeader().length;
+
+		page.widthColumn((90 / colspan) + "%");
+
+		page.createView();
     });
 }
 
@@ -250,9 +259,9 @@ page.createView = function(){
 }
 
 $(function () {
+	page.hideFilter();
+	page.getData();
     setTimeout(function() {
-    	page.hideFilter();
-		// page.createView();
 		app.prepareTooltipster();
 		$('.collapse').on('shown.bs.collapse', function(){
 			$(this).parent().find(".fa-chevron-right").removeClass("fa-chevron-right").addClass("fa-chevron-down");
@@ -261,5 +270,5 @@ $(function () {
 		});
 
         app.loading(false);    
-    }, 200);
+    }, 500);
 });
