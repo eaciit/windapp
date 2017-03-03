@@ -52,8 +52,10 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 	details := []DataAvailabilityDetail{}
 
-	periodTo, _ := time.Parse("20060102_150405", time.Now().UTC().Format("20060102_")+"000000")
-	id := periodTo.Format("20060102_150405_SCADAOEM")
+	now := time.Now().UTC()
+
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
+	id := now.Format("20060102_150405_SCADAOEM")
 
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), -6)
 

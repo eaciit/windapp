@@ -191,7 +191,7 @@ page.getData = function(){
         project: fa.project,
     };
 
-    toolkit.ajaxPost(viewModel.appName + "datasavailability/getdataavailability", param, function (res) {
+    toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
         if (!app.isFine(res)) {
                 return;
             }

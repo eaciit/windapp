@@ -75,7 +75,7 @@ func init() {
 
 	app.Register(controller.CreateWindFarmAnalysisController())
 	app.Register(controller.CreateMonitoringController())
-	app.Register(controller.CreateDatasAvailabilityController())
+	app.Register(controller.CreateDataAvailabilityController())
 	app.Register(controller.CreateEmailController())
 
 	// app.Route("/", func(r *knot.WebContext) interface{} {
