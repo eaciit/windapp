@@ -171,13 +171,32 @@ page.dataDummy = ko.observableArray([
 
 			]
 		}	
-	])
+	]); 
+
+
 page.hideFilter = function(){
     $("#periodList").closest(".k-widget").hide();
     $("#dateStart").closest(".k-widget").hide();
     $("#dateEnd").closest(".k-widget").hide();
     $(".control-label:contains('Period')").hide();
     $(".control-label:contains('to')").hide();
+}
+
+page.getData = function(){
+	var param = {
+        period: fa.period,
+        dateStart: fa.dateStart,
+        dateEnd: fa.dateEnd,
+        turbine: fa.turbine,
+        project: fa.project,
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "datasavailability/getdataavailability", param, function (res) {
+        if (!app.isFine(res)) {
+                return;
+            }
+        page.dataDummy(res.Data);
+    });
 }
 
 page.createView = function(){
@@ -233,7 +252,7 @@ page.createView = function(){
 $(function () {
     setTimeout(function() {
     	page.hideFilter();
-		page.createView();
+		// page.createView();
 		app.prepareTooltipster();
 		$('.collapse').on('shown.bs.collapse', function(){
 			$(this).parent().find(".fa-chevron-right").removeClass("fa-chevron-right").addClass("fa-chevron-down");
