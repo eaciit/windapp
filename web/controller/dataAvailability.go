@@ -93,6 +93,8 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 	to := time.Now()
 
 	if len(oems) > 0 {
+		datas := []tk.M{}
+
 		for _, oem := range oems {
 			t := oem.GetString("turbine")
 			p := oem.GetString("project")
@@ -141,7 +143,14 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 			resOEM = append(resOEM, turbine)
 		}
 
-		result = append(result, tk.M{"Category": name, "Turbine": resOEM})
+		// dummy
+		datas = append(datas, tk.M{
+			"tooltip": "xxx until xxx",
+			"class":   "progress-bar progress-bar-success",
+			"value":   "100%",
+		})
+
+		result = append(result, tk.M{"Category": name, "Turbine": resOEM, "Data": datas})
 	}
 
 	// log.Printf("%v | %v \n", from.String(), to.String())
