@@ -24,8 +24,6 @@ var (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	log.Println("Starting convert event data to Alarm/Warning...")
 	conn, err := PrepareConnection()
 	if err != nil {
 		log.Println(err)
@@ -40,16 +38,15 @@ func main() {
 		event := NewCombineRaw(ctx)
 		event.Run()*/
 
-	// event := NewEventRawConversion(ctx, dir)
-	// event.Run()
+	/*event := NewEventRawConversion(ctx, dir)
+	event.Run()*/
 
-	// down := NewDownConversion(ctx, dir)
-	// down.Run()
+	down := NewDownConversion(ctx, dir)
+	down.Run()
 
-	alarm := NewAlarmConversion(ctx, dir)
-	alarm.Run()
+	/*alarm := NewAlarmConversion(ctx, dir)
+	alarm.Run()*/
 
-	log.Println("End processing event data to Alarm/Warning...")
 }
 
 func PrepareConnection() (dbox.IConnection, error) {

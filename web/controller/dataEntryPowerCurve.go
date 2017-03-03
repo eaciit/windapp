@@ -3,6 +3,7 @@ package controller
 import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
@@ -28,7 +29,7 @@ func (m *DataEntryPowerCurveController) GetList(k *knot.WebContext) interface{} 
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
-		toolkit.Println(e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	csr, e := DB().Find(new(PowerCurveModel), toolkit.M{}.Set("skip", p.Skip).Set("limit", p.Take))
@@ -44,13 +45,16 @@ func (m *DataEntryPowerCurveController) GetList(k *knot.WebContext) interface{} 
 			}
 		}
 		csr, e = DB().Find(new(PowerCurveModel), toolkit.M{}.Set("order", arrsort).Set("skip", p.Skip).Set("limit", p.Take))
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
 		defer csr.Close()
 	}
 
 	results := make([]PowerCurveModel, 0)
 	e = csr.Fetch(&results, 0, false)
 	if e != nil {
-		return e.Error()
+		return helper.CreateResult(false, nil, e.Error())
 	}
 	results2 := results
 
@@ -60,7 +64,7 @@ func (m *DataEntryPowerCurveController) GetList(k *knot.WebContext) interface{} 
 	results = make([]PowerCurveModel, 0)
 	e = csr.Fetch(&results, 0, false)
 	if e != nil {
-		return e.Error()
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	data := struct {
@@ -71,7 +75,7 @@ func (m *DataEntryPowerCurveController) GetList(k *knot.WebContext) interface{} 
 		Total: len(results),
 	}
 
-	return data
+	return helper.CreateResult(true, data, "success")
 }
 
 func (m *DataEntryPowerCurveController) GetData(k *knot.WebContext) interface{} {
@@ -82,16 +86,16 @@ func (m *DataEntryPowerCurveController) GetData(k *knot.WebContext) interface{} 
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
-		toolkit.Println(e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	result := new(PowerCurveModel)
 	e = DB().GetById(result, p.Id)
 	if e != nil {
-		toolkit.Println(e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	return result
+	return helper.CreateResult(true, result, "success")
 }
 
 func (m *DataEntryPowerCurveController) Delete(k *knot.WebContext) interface{} {
@@ -102,18 +106,21 @@ func (m *DataEntryPowerCurveController) Delete(k *knot.WebContext) interface{} {
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
-		toolkit.Println(e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	result := new(PowerCurveModel)
 	e = DB().GetById(result, p.Id)
 	if e != nil {
-		toolkit.Println(e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	e = DB().Delete(result)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	return e
+	return helper.CreateResult(true, nil, "success")
 }
 
 func (m *DataEntryPowerCurveController) Save(k *knot.WebContext) interface{} {
@@ -127,7 +134,7 @@ func (m *DataEntryPowerCurveController) Save(k *knot.WebContext) interface{} {
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
-		toolkit.Println(e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	mdl := new(PowerCurveModel)
@@ -141,6 +148,9 @@ func (m *DataEntryPowerCurveController) Save(k *knot.WebContext) interface{} {
 	mdl.Power1 = p.Power1
 
 	e = DB().Save(mdl)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	return ""
+	return helper.CreateResult(true, nil, "success")
 }

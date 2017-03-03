@@ -7,6 +7,10 @@
 viewModel.availability = {};
 var avail = viewModel.availability;
 var isFleetDetail = false;
+var lastDataChartLevel1 = [];
+var detailDTLostEnergyTxtLevel1 = '';
+var detailDTLETxtForDDLLevel1 = '';
+var detailDTLETxtForDDLLevel2 = '';
 
 avail.isDetailDTLostEnergy = ko.observable(false);
 avail.detailDTLostEnergyTxt = ko.observable();
@@ -504,7 +508,7 @@ avail.DTLEbyType = function (dataSource) {
         //   $("#chartDTLEbyTypeCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, false, "chartbytype");
+            avail.toDetailDTLELevel1(e, "chartbytype");
         }
     });
     // $("#chartDTLEbyType").mouseleave(function(e){
@@ -595,7 +599,7 @@ avail.DTLostEnergy = function (dataSource) {
         //   $("#chartDTLostEnergyCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, false, "chart");
+            avail.toDetailLossEnergyLevel1(e, "chart");
         }
     });
     //  $("#chartDTLostEnergy").mouseleave(function(e){
@@ -712,8 +716,7 @@ avail.TopTurbineByLoss = function (dataSource) {
     });
 }
 
-avail.DTLostEnergyManeh = function (dataSource) {
-    avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months");
+avail.DTLostEnergyFleet = function (dataSource) {
     $("#chartDTLostEnergyDetail").kendoChart({
         dataSource: {
             data: dataSource,
@@ -796,7 +799,7 @@ avail.DTLostEnergyManeh = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailDTLELevel2(e, "chart");
         }
     });
     // $("#chartDTLostEnergyDetail").mouseleave(function(e){
@@ -876,7 +879,7 @@ avail.DTLostEnergyByDown = function (dataSource) {
             },
         },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailLossEnergyLevel2(e, "chart");
         }
     });
 
@@ -1129,7 +1132,7 @@ avail.LossEnergyByType = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailLossEnergyLevel2(e, "chart")
         }
     });
 
@@ -1745,8 +1748,100 @@ avail.DTTurbines = function () {
     });
 }
 
+avail.toDetailLossEnergyLevel1 = function (e, source) {
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isAvailability(false);
+    avail.isDetailDTLostEnergy(true);
 
-avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
+    var param = {}; /*buat parameter tabel*/
+    var paramChart = {}; /*buat parameter chart*/
+    var method = "getdowntimefleetbydown"; /*nama controller untuk generate chart*/
+
+    $(".show_hide_downtime").hide();
+    $(".show_hide_project").show();
+
+    if (source == "button" || source == "ddl") {
+        if (source == "button") {
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLostEnergyTxtLevel1);
+
+            /*set parameter for table*/
+            param = lastParam;
+            $("#projectList").data("kendoDropDownList").value(param.Type);
+
+            /*create chart & table*/
+            avail.DTLostEnergyByDown(lastDataChartLevel1);
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
+            });
+        } else if (source == "ddl") {
+            projectSelected = $("#projectList").data("kendoDropDownList").value();
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel1 + projectSelected);
+            detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
+
+            /*set parameter for chart and table*/
+            param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
+            paramChart = { ProjectName: projectSelected, DateStr: lastParamChart.DateStr, Type: dtType , IsDetail: true };
+            lastParam = param;
+            lastParamChart = paramChart;                
+
+            /*create chart & table*/
+            var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+
+                avail.DTLostEnergyByDown(res.data.lostenergy);
+                lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+            });
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(chartRequest, tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
+            });            
+        }
+    } else {
+        monthDetailDT = e.category;
+        $("#projectList").data("kendoDropDownList").value(e.series.name);
+        $("#mdTypeListFleet").data("kendoDropDownList").value(0); /*karena yang di select ada project maka by default 'All Types'*/
+        projectSelected = $("#projectList").data("kendoDropDownList").value();
+
+        /*set title label*/
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + e.series.name);
+        detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
+        detailDTLETxtForDDLLevel1 = "Lost Energy for " + monthDetailDT + " - "; /*digunakan ketika ingin ganti2 title via ddl */
+
+        /*set parameter for chart and table*/
+        paramChart = { ProjectName: projectSelected, DateStr: monthDetailDT, IsDetail: true };
+        param = { ProjectName: projectSelected, DateStr: monthDetailDT };            
+        lastParam = param;
+        lastParamChart = paramChart;
+
+        /*create chart & table*/
+        var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            avail.DTLostEnergyByDown(res.data.lostenergy);
+            lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+        });
+        var tableRequest = avail.toDetailDTLETTable(param);
+
+        $.when(chartRequest, tableRequest).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },50);
+        });
+    }
+}
+
+avail.toDetailLossEnergyLevel2 = function (e, source) {
     app.loading(true);
     vm.isDashboard(false);
     lgd.isAvailability(false);
@@ -1754,149 +1849,243 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
 
     var project = $("#projectId").data("kendoDropDownList").value();
     var dateStr = '';
-    var type = '';
-    var param = {};
-    var paramChart = {};
-    var method = "getdowntime";
+    var param = {};/*param grid & param chart is similar*/
 
-    if (source == "chart" || source == "chartbytype") {
-        monthDetailDT = e.category;
-        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + e.series.name);
-
-        if (source == "chart") {
-            dateStr = e.category;
-        }
-        type = e.series.name;
-    } else if (source == "button") {
-        avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months - " + lastParam.Type);
+    $(".show_hide_downtime").show();
+    $(".show_hide_project").hide();
+    if (project == "Fleet") {
+        isFleetDetail = true;
     }
-    if (project == "Fleet" && isDetailFleet == false) { /*by type level 1*/
-        $(".show_hide_downtime").hide();
-        $(".show_hide_project").show();
 
-        if (source == "button" || source == "ddl") {
-            if (source == "button") {
-                if (avail.LEFleetByDown() == true) {
-                    method = "getdowntimefleetbydown";
-                }
+    if(source != "ddl") { /*karena kalo dari ddl, nilai variabel 'e' adalah null, tidak ada button karena level 2*/
+        monthDetailDT = e.category;
+        dateStr = e.category;
+    }
 
-                param = lastParam;
-                param.DateStr = "fleet date";
-                paramChart = lastParamChart;
-                $("#projectList").data("kendoDropDownList").value(param.Type);
-            } else if (source == "ddl") {
-                if (avail.LEFleetByDown() == true) {
-                    method = "getdowntimefleetbydown";
-                    paramChart = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType , IsDetail: true };
-                } else {
-                    if (dtType == "") {
-                        dtType = "All Types"
-                    }
-                    paramChart = { ProjectName: projectSelected, Date: lastParamChart.Date, Type: dtType , IsDetail: true };
-                }
+    if (source == "chart") {
+        if(projectSelected == "") { /*jika non fleet karena tidak melalui level 1*/
+            projectSelected = project;
+        }
+        dtType = e.series.name;
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType + " (" + projectSelected + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
+    } else if (source == "ddl") {
+        var ddlVal = dtType;
+        if (ddlVal == "") {
+            ddlVal = "All Types";
+        }
+        avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel2 + ddlVal + " (" + projectSelected + ")");
+    } else if (source == "chartperproject") {
+        dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
+        projectSelected = e.series.name;
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType + " (" + projectSelected + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
+    }
 
-                param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
-                lastParam = param;
-                lastParamChart = paramChart;
-            }
-            toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
+    if (project == "Fleet") {
+        if (source == "chart") {
+            param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: dtType };
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        } else if (source == "ddl") {
+            param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParamChart.DateStr, Type: dtType };
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        }
+    } else {
+        if (source == "chart") {
+            param = { ProjectName: project, DateStr: dateStr, Type: dtType };
+            lastParamLevel2 = param; /*butuh last param karena tidak berasal dari level 1 melainkan langsung ke level 2*/
+            avail.LEFleetByDown(true); /*numpang variabel biar pas ganti ddl bisa balik lagi ke fungsi ini*/
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        } else if (source == "ddl") {
+            param = { ProjectName: project, DateStr: lastParamLevel2.DateStr, Type: dtType };
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        }
+    }
 
-                if (method == "getdowntimefleetbydown") {
-                    avail.DTLostEnergyByDown(res.data.lostenergy);
-                } else {
-                    avail.DTLostEnergyManeh(res.data.lostenergy);
-                }
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
 
-                app.loading(false);
-                avail.setDownTimeSeriesCheck();
+        var dataSource = res.data;
+        avail.DTLostEnergyDetail(dataSource);
+
+        app.loading(false);
+    });
+    avail.toDetailDTLETTable(param);
+}
+
+avail.toDetailDTLELevel1 = function (e, source) {
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isAvailability(false);
+    avail.isDetailDTLostEnergy(true);
+
+    var param = {}; /*buat parameter tabel*/
+    var paramChart = {}; /*buat parameter chart*/
+    var method = "getdowntime"; /*nama controller untuk generate chart*/
+
+    $(".show_hide_downtime").hide();
+    $(".show_hide_project").show();
+
+    if (source == "button" || source == "ddl") {
+        if (source == "button") {
+            $("#projectList").data("kendoDropDownList").value(projectSelected);
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLostEnergyTxtLevel1);
+
+            /*set parameter for table*/
+            param = lastParam;
+            param.DateStr = "fleet date";
+
+            /*create chart & table*/
+            avail.DTLostEnergyFleet(lastDataChartLevel1);
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
             });
-        } else {
-            $("#projectList").data("kendoDropDownList").select(0);
-            projectSelected = $("#projectList").data("kendoDropDownList").value();
-
-            if (source == "chart") {
-                $("#mdTypeListFleet").data("kendoDropDownList").value(0);
-                paramChart = { ProjectName: projectSelected, DateStr: e.category, IsDetail: true };
-                param = { ProjectName: projectSelected, DateStr: e.category };
-
-                method = "getdowntimefleetbydown";
-            } else {
-                $("#mdTypeListFleet").data("kendoDropDownList").value(e.category);
-                paramChart = { ProjectName: projectSelected, Date: maxdate, Type: e.category, IsDetail: true };
-                param = { ProjectName: projectSelected, DateStr: "fleet date", Type: e.category };
+        } else if (source == "ddl") {
+            if (dtType == "") {
+                dtType = "All Types"
             }
+            projectSelected = $("#projectList").data("kendoDropDownList").value();
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel1 + dtType);
+            detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
 
+            /*set parameter for chart and table*/
+            paramChart = { ProjectName: projectSelected, Date: lastParamChart.Date, Type: dtType , IsDetail: true };
+            param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
             lastParam = param;
             lastParamChart = paramChart;
 
-            toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
+            /*create chart & table*/
+            var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
-
-                if (method == "getdowntimefleetbydown") {
-                    avail.DTLostEnergyByDown(res.data.lostenergy);
-                } else {
-                    avail.DTLostEnergyManeh(res.data.lostenergy);
-                }
-
-                avail.FleetDTLEDownType = e.category;
-                avail.setDownTimeSeriesCheck();
-                app.loading(false);
+                avail.DTLostEnergyFleet(res.data.lostenergy);
+                lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+            });
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(chartRequest, tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
             });
         }
-    } else { /*bagian detail (level 2)*/
-        $(".show_hide_downtime").show();
-        $(".show_hide_project").hide();
-        $("#projectList").data("kendoDropDownList").value(projectSelected);
-        if (project == "Fleet" && isDetailFleet == true) {
-            isFleetDetail = true;
-        }
+    } else { /*chart*/
+        monthDetailDT = e.category;
+        $("#projectList").data("kendoDropDownList").select(0);
+        $("#mdTypeListFleet").data("kendoDropDownList").value(monthDetailDT);
+        projectSelected = $("#projectList").data("kendoDropDownList").value();
 
-        // dtType = $("#mdTypeList").data("kendoDropDownList").value();
+        /*set title label*/
+        avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months - " + monthDetailDT);
+        detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
+        detailDTLETxtForDDLLevel1 = "Lost Energy for Last 12 months - "; /*digunakan ketika ingin ganti2 title via ddl */
 
-        if (dtType == "All Types") {
-            dtType = "";
-        } else if (source == "chart") {
-            dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
-        }
+        /*set parameter for chart and table*/
+        paramChart = { ProjectName: projectSelected, Date: maxdate, Type: monthDetailDT, IsDetail: true };
+        param = { ProjectName: projectSelected, DateStr: "fleet date", Type: monthDetailDT };
+        lastParam = param;
+        lastParamChart = paramChart;
 
-        if (project == "Fleet") {
-            if (source == "chart") {
-                param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: dtType };
-                lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(dtType);
-            } else if (source == "ddl") {
-                param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParam.DateStr, Type: dtType };
-                $("#mdTypeList").data("kendoDropDownList").value(dtType);
-            }
-        } else {
-            if (source == "chart") {
-                param = { ProjectName: project, DateStr: dateStr, Type: type };
-                lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(type);
-            } else if (source == "ddl") {
-                param = { ProjectName: project, DateStr: lastParam.DateStr, Type: dtType };
-                lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(dtType);
-            }
-        }
-
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
+        /*create chart & table*/
+        var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
+            avail.DTLostEnergyFleet(res.data.lostenergy);
+            lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+        });
+        var tableRequest = avail.toDetailDTLETTable(param);
 
-            var dataSource = res.data;
-            avail.DTLostEnergyDetail(dataSource);
-
-            app.loading(false);
+        $.when(chartRequest, tableRequest).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         });
     }
+}
 
+avail.toDetailDTLELevel2 = function (e, source) {
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isAvailability(false);
+    avail.isDetailDTLostEnergy(true);
+
+    var dateStr = '';
+    var param = {};
+    var paramChart = {};
+
+    $(".show_hide_downtime").show();
+    $(".show_hide_project").hide();
+    isFleetDetail = true;
+
+    if(source != "ddl") { /*karena kalo dari ddl, nilai variabel 'e' adalah null*/
+        monthDetailDT = e.category;
+        dateStr = e.category;
+    }
+    
+    if (source == "chart") {
+        dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
+        /*set title label*/
+        
+        var ddlVal = dtType;
+        if(projectSelected == "Fleet") {
+            projectSelectedLevel2 = e.series.name;
+            if (ddlVal == "") {
+                ddlVal = "All Types";
+            }
+        } else {
+            projectSelectedLevel2 = projectSelected
+            ddlVal = e.series.name;
+            dtType = ddlVal;
+        }
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + ddlVal + " (" + projectSelectedLevel2 + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
+
+        $("#mdTypeList").data("kendoDropDownList").value(dtType);
+
+        /*set param chart & table*/
+        param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: dtType };
+        lastParam = param;
+    } else if (source == "ddl") {
+        var ddlVal = dtType;
+        if (ddlVal == "") {
+            ddlVal = "All Types";
+        }
+        /*set label*/
+        avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel2 + ddlVal + " (" + projectSelectedLevel2 + ")");
+
+        param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParam.DateStr, Type: dtType };
+        $("#mdTypeList").data("kendoDropDownList").value(dtType);
+    }
+
+    /*create chart & table*/
+    var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var dataSource = res.data;
+        avail.DTLostEnergyDetail(dataSource);
+
+        app.loading(false);
+    });
+    var tableRequest = avail.toDetailDTLETTable(param);
+
+    $.when(chartRequest, tableRequest).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+        },50);
+    });
+}
+
+avail.toDetailDTLETTable = function(param) {
     $('#gridDTLostEnergyDetail').html("");
     $('#gridDTLostEnergyDetail').kendoGrid({
         dataSource: {
@@ -2037,26 +2226,32 @@ avail.getMDTypeList = function () {
     });
 };
 
-avail.getDetailDT = function () {
+avail.getDetailDT = function () { /*ddl change in level 2*/
     if (!lgd.isFirst()) {
         dtType = $("#mdTypeList").data("kendoDropDownList").value();
 
-        if (dtType == "") {
-            avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - All Type");
+        // if (dtType == "") {
+        //     avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - All Types");
+        // } else {
+        //     avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType);
+        // }
+        if (avail.LEFleetByDown()) {
+            avail.toDetailLossEnergyLevel2(null, "ddl");
         } else {
-            avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType);
+            avail.toDetailDTLELevel2(null, "ddl");
         }
-
-        avail.toDetailDTLostEnergy(null, true, "ddl");
     }
 }
 
-avail.getDetailDTFromProject = function () {
+avail.getDetailDTFromProject = function () { /*ddl change & project in level 1*/
     if (!lgd.isFirst()) {
         projectSelected = $("#projectList").data("kendoDropDownList").value();
         dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
-        avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months - " + projectSelected);
-        avail.toDetailDTLostEnergy(null, false, "ddl");
+        if (avail.LEFleetByDown()) {
+            avail.toDetailLossEnergyLevel1(null, "ddl");
+        } else {
+            avail.toDetailDTLELevel1(null, "ddl");
+        }
     }
 }
 
@@ -2066,7 +2261,11 @@ avail.backToDownTimeChart = function () {
         vm.isDashboard(false);
         avail.isDetailDTLostEnergy(true);
         isFleetDetail = false;
-        avail.toDetailDTLostEnergy(null, false, "button");
+        if (avail.LEFleetByDown()) {
+            avail.toDetailLossEnergyLevel1(null, "button");
+        } else {
+            avail.toDetailDTLELevel1(null, "button");
+        }
         if ($("#projectList").data("kendoDropDownList") != null) {
             $("#projectList").data("kendoDropDownList").value(projectSelected);
         }

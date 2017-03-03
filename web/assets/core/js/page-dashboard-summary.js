@@ -422,7 +422,7 @@ sum.ProdMonth = function (dataSource) {
             name: "Production",
             field: "Production",
             // opacity : 0.7,
-            color: "#ff880e",
+            color: "#ff9933",
         }],
         // seriesColors: colorField,
         seriesClick: function (e) {
@@ -594,6 +594,7 @@ sum.ProdCurLast = function (dataSource) {
                 }
             }
         },
+        seriesColors: colorField,
         series: [{
             type: "column",
             style: "smooth",
@@ -601,7 +602,7 @@ sum.ProdCurLast = function (dataSource) {
             field: "Production",
             // opacity : 0.7,
             axis: "production",
-            color: "#21c4af",
+            // color: "#21c4af",
         }, {
             type: "column",
             style: "smooth",
@@ -609,14 +610,14 @@ sum.ProdCurLast = function (dataSource) {
             field: "ProductionLastYear",
             // opacity : 0.7,
             axis: "production",
-            color: "#ff880e",
+            // color: "#ff880e",
         }, {
             type: "line",
             style: "smooth",
             name: "Variance(%)",
             field: "Variance",
             axis: "variance",
-            color: "#ff7663",
+            // color: "#ff7663",
             markers: {
                 visible: false
             }
@@ -792,7 +793,7 @@ sum.ProductionChart = function (dataSource) {
             name: "Production",
             field: "EnergyKwh",
             // opacity : 0.5,
-            color: "#ff880e"
+            color: "#ff9933"
         }],
         valueAxis: {
             labels: {
@@ -887,7 +888,7 @@ sum.CumProduction = function (dataSource) {
             name: "Production",
             field: "CumProduction",
             // opacity : 0.5,
-            color: "#ff880e"
+            color: "#ff9933"
         }],
         // seriesColors: colorField,
         valueAxis: {
