@@ -65,7 +65,8 @@ us.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
         return ["<button class='btn btn-sm btn-warning' onclick='us.editData(\"" + d._id + "\")'><span class='fa fa-pencil' ></span></button>"].join(" ");
-    }
+    },
+    attributes: { style: "text-align: center;" }
 }]);
 
 us.listGroupsColumns = ko.observableArray([{

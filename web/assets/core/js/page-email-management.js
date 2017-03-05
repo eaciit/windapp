@@ -53,12 +53,13 @@ em.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
     headerAttributes: { style: "text-align: center;" },
     attributes: { style: "text-align: center;" }
 }, 
-/*{
+{
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
         return ["<button class='btn btn-sm btn-warning' onclick='em.editData(\"" + d._id + "\")'><span class='fa fa-pencil' ></span></button>"].join(" ");
-    }
-}*/
+    },
+    attributes: { style: "text-align: center;" }
+}
 ]);
 
 em.filter = ko.mapping.fromJS(em.templateFilter);
@@ -98,12 +99,6 @@ em.checkCategory = function() {
     em.showHide($('#categoryList').data('kendoDropDownList').value());
 }
 
-em.resetDDL = function() {
-    $('#categoryList').data('kendoDropDownList').select(0);
-    $('#userList').data('kendoMultiSelect').value([]);
-    $('#alarmcodesList').data('kendoMultiSelect').value([]);
-}
-
 em.showHide = function(category) {
     var resObj = em.CategoryMailList().filter(function(obj) {
         return obj.value == category;
@@ -120,6 +115,12 @@ em.showHide = function(category) {
     });
 }
 
+em.resetDDL = function() {
+    $('#categoryList').data('kendoDropDownList').select(0);
+    $('#userList').data('kendoMultiSelect').value([]);
+    $('#alarmcodesList').data('kendoMultiSelect').value([]);
+}
+
 em.setDDL = function(data) {
     $('#categoryList').data('kendoDropDownList').value(data.category);
     $('#userList').data('kendoMultiSelect').value(data.receivers);
@@ -130,8 +131,8 @@ em.setDDL = function(data) {
 em.newData = function () {
     em.isNew(true);
     ko.mapping.fromJS(em.templateEmail, em.config);
+    $('#editor').data('kendoEditor').value("");
     em.resetDDL();
-    em.setEditor();
     em.checkCategory();
 
     setTimeout(function(){
@@ -147,7 +148,7 @@ em.editData = function (id) {
         }
         ko.mapping.fromJS(res.data, em.config);
         em.setDDL(res.data);
-        em.setEditor();
+        $('#editor').data('kendoEditor').value(res.data.template);
 
         setTimeout(function(){
             $('#modalUpdate').modal('show');
@@ -156,13 +157,13 @@ em.editData = function (id) {
 };
 
 em.setEditor = function() {
+    $("#editor").html("");
     $("#editor").kendoEditor({ 
         resizable: {
             content: true,
             toolbar: true,
         }
     });
-    $('#editor').data('kendoEditor').refresh();
 }
 
 em.saveChanges = function () {
@@ -186,7 +187,8 @@ em.saveChanges = function () {
         }
 
         $('#modalUpdate').modal('hide');
-        em.refreshData();
+        em.refreshData();        
+        swal({ title: res.message, type: "success" });        
     }, function (err) {
         toolkit.showError(err.responseText);
     });
@@ -278,17 +280,18 @@ em.generateGrid = function () {
             buttonCount: 5
         },
         columns: em.TableColumns(),
-        dataBound: function(e){
+        /*dataBound: function(e){
             var that = this;
             $(that.tbody).on("click", "tr", function (e) {
                 var rowData = that.dataItem(this);
                 em.editData(rowData._id);
             });
-        }
+        }*/
     });
 };
 
 $(function () {
     $("#modalUpdate").insertAfter("body");
     em.generateGrid();
+    em.setEditor();
 });
