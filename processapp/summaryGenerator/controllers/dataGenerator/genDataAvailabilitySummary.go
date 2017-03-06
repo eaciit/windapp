@@ -10,7 +10,6 @@ import (
 
 	"time"
 
-	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
 )
@@ -67,18 +66,22 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 	for turbine, _ := range ev.BaseController.RefTurbines {
 		wg.Add(1)
-		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Eq("projectname", projectName))
-		filter = append(filter, dbox.Gte("timestamp", periodFrom))
 
 		go func(t string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
-			filterX := filter
-			filterX = append(filterX, dbox.Eq("turbine", t))
+
+			match := tk.M{}
+			match.Set("projectname", projectName)
+			match.Set("turbine", t)
+			match.Set("timestamp", tk.M{"$gte": periodFrom})
+
+			pipes := []tk.M{}
+			pipes = append(pipes, tk.M{"$match": match})
+			pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
 
 			csr, e := ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
-				Where(filterX...).Order("timestamp").Cursor(nil)
+				Command("pipe", pipes).Cursor(nil)
 
 			countError := 0
 
@@ -86,7 +89,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 				countError++
 				if e != nil {
 					csr, e = ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
-						Where(filterX...).Order("timestamp").Cursor(nil)
+						Command("pipe", pipes).Cursor(nil)
 					log.Printf("e: %v \n", e.Error())
 				} else {
 					break
