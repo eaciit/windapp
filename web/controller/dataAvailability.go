@@ -27,10 +27,10 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipes  []tk.M
-		oems   []tk.M
-		result []tk.M
-		months []string
+		pipesOEM []tk.M
+		oems     []tk.M
+		result   []tk.M
+		months   []string
 	)
 
 	p := new(tk.M)
@@ -38,8 +38,6 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
-	// ScadaDataOEM
 
 	group := tk.M{
 		"_id": tk.M{
@@ -68,14 +66,16 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 		"list":       1,
 	}
 
-	pipes = append(pipes, tk.M{"$unwind": "$details"})
-	pipes = append(pipes, tk.M{"$group": group})
-	pipes = append(pipes, tk.M{"$project": projection})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"turbine": 1}})
+	// ScadaDataOEM
+	pipesOEM = append(pipesOEM, tk.M{"$match": tk.M{"type": tk.M{"$eq": "SCADA_DATA_OEM"}}})
+	pipesOEM = append(pipesOEM, tk.M{"$unwind": "$details"})
+	pipesOEM = append(pipesOEM, tk.M{"$group": group})
+	pipesOEM = append(pipesOEM, tk.M{"$project": projection})
+	pipesOEM = append(pipesOEM, tk.M{"$sort": tk.M{"turbine": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(DataAvailability).TableName()).
-		Command("pipe", pipes).
+		Command("pipe", pipesOEM).
 		Cursor(nil)
 
 	if e != nil {

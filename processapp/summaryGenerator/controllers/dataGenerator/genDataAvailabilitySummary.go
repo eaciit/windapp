@@ -24,8 +24,8 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	tk.Println("===================== Start process Data Availability Summary...")
 
 	availability := new(DataAvailability)
-	availability.ID = "SCADA_DATA_OEM"
 	availability.Name = "Scada Data OEM"
+	availability.Type = "SCADA_DATA_OEM"
 
 	availability = ev.scadaOEMSummary(availability)
 	// mtx.Lock()
@@ -57,98 +57,146 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAOEM")
 
+	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), -6)
 
 	availability.ID = id
-	availability.PeriodTo = periodTo
 	availability.PeriodFrom = periodFrom
+	availability.PeriodTo = periodTo
 	projectName := "Tejuva"
 
 	for turbine, _ := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("projectname", projectName))
+		filter = append(filter, dbox.Gte("timestamp", periodFrom))
 
-		go func(t string, wgs *sync.WaitGroup, detail *[]DataAvailabilityDetail) {
+		go func(t string) {
+			detail := []DataAvailabilityDetail{}
 			start := time.Now()
-
-			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Eq("projectname", projectName))
-			filter = append(filter, dbox.Eq("turbine", t))
-			// latest 6 month
-			// periodFrom := periodTo.AddDate(0, -6, 0).UTC()
-
-			// if periodTo.Format("2006") != "0001" {
-			filter = append(filter, dbox.Gte("timestamp", periodFrom))
-			// }
+			filterX := filter
+			filterX = append(filterX, dbox.Eq("turbine", t))
 
 			csr, e := ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
-				Where(filter...).Order("timestamp").Cursor(nil)
+				Where(filterX...).Order("timestamp").Cursor(nil)
+
+			countError := 0
+
+			for {
+				countError++
+				if e != nil {
+					csr, e = ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
+						Where(filterX...).Order("timestamp").Cursor(nil)
+					log.Printf("e: %v \n", e.Error())
+				} else {
+					break
+				}
+
+				if countError == 5 {
+					break
+				}
+			}
 
 			defer csr.Close()
 
 			list := []ScadaDataOEM{}
 
-			e = csr.Fetch(&list, 0, false)
-			if e != nil {
-				log.Printf("e: %v \n", e.Error())
+			for {
+				countError++
+				e = csr.Fetch(&list, 0, false)
+				if e != nil {
+					log.Printf("e: %v \n", e.Error())
+				} else {
+					break
+				}
+
+				if countError == 5 {
+					break
+				}
 			}
-
-			// tData := csr.Count()
-
-			// log.Printf("turbine: %v | %v \n", t, len(list))
 
 			before := ScadaDataOEM{}
 			from := ScadaDataOEM{}
 			latestData := ScadaDataOEM{}
 			hoursGap := 0.0
+			duration := 0.0
+			countID := 0
 
-			for idx, oem := range list {
-				if idx != 0 {
-					before = list[idx-1]
-					hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
+			if len(list) > 0 {
+				for idx, oem := range list {
+					if idx > 0 {
+						before = list[idx-1]
+						hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
+						// log.Printf("xxx: %v - %v = %v \n", oem.TimeStamp.UTC().String(), from.TimeStamp.UTC().String(), hoursGap/24)
 
-					// log.Printf("xxx: %v - %v = %v \n", oem.TimeStamp.UTC().String(), before.TimeStamp.UTC().String(), hoursGap/24)
-
-					if hoursGap > 24 {
-						// log.Printf("hrs gap: %v \n", hoursGap)
-
-						duration := before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours() / 24
-						details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, turbine, duration, true))
-
-						duration = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours() / 24
-						details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, turbine, duration, false))
-
+						if hoursGap > 24 {
+							countID++
+							// log.Printf("hrs gap: %v \n", hoursGap)
+							// set duration for available datas
+							duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 0, tk.RoundingAuto)
+							details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
+							// set duration for unavailable datas
+							countID++
+							duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+							details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
+							from = oem
+						}
+					} else {
 						from = oem
-					}
-				} else {
-					from = oem
 
-					// set gap from stardate until first data in db
-					hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
-					if hoursGap > 24 {
-						details = append(details, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, turbine, hoursGap/24, false))
+						// set gap from stardate until first data in db
+						hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
+						// log.Printf("idx=0 hrs gap: %v | %v | %v \n", hoursGap, from.TimeStamp.UTC().String(), periodFrom.UTC().String())
+						if hoursGap > 24 {
+							countID++
+							duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+							detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
+						}
 					}
+
+					latestData = oem
 				}
 
-				latestData = oem
+				hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
+
+				if hoursGap > 24 {
+					countID++
+					duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+					details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, duration, true, countID))
+				}
+
+				// set gap from last data until periodTo
+				hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
+				if hoursGap > 24 {
+					countID++
+					duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+					detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
+				}
 			}
-
-			hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
-
-			if hoursGap > 24 {
-				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, turbine, hoursGap/24, true))
-			}
-
-			hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
-
-			if hoursGap > 24 {
-				details = append(details, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, turbine, hoursGap/24, false))
+			if len(detail) == 0 {
+				countID++
+				duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 0, tk.RoundingAuto)
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
 			}
 
 			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), periodTo.UTC().String(), hoursGap)
+			mtx.Lock()
+			// for _, filt := range filter {
+			// 	if filt.Field == "timestamp" {
+			// 		log.Printf("timestamp: %#v \n", filt.Value.(time.Time).String())
+			// 	} else {
+			// 		log.Printf("%#v \n", filt)
+			// 	}
+			// }
 
-			log.Printf(">> DONE: %v | %v | %v secs", t, len(list), time.Now().Sub(start).Seconds())
-			wgs.Done()
-		}(turbine, &wg, &details)
+			details = append(details, detail...)
+			log.Printf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds())
+			mtx.Unlock()
+			// defer wg.Done()
+
+			csr.Close()
+			wg.Done()
+		}(turbine)
 
 		countx++
 
@@ -159,14 +207,14 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 	}
 
 	availability.Details = details
-	// log.Printf("%#v \n", details)
 
 	return availability
 }
 
-func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool) DataAvailabilityDetail {
+func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool, id int) DataAvailabilityDetail {
 
 	res := DataAvailabilityDetail{
+		ID:          id,
 		ProjectName: project,
 		Turbine:     turbine,
 		Start:       from.UTC(),
