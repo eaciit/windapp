@@ -121,56 +121,57 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			duration := 0.0
 			countID := 0
 
-			for idx, oem := range list {
-				if idx > 0 {
-					before = list[idx-1]
-					hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
-					// log.Printf("xxx: %v - %v = %v \n", oem.TimeStamp.UTC().String(), from.TimeStamp.UTC().String(), hoursGap/24)
+			if len(list) > 0 {
+				for idx, oem := range list {
+					if idx > 0 {
+						before = list[idx-1]
+						hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
+						// log.Printf("xxx: %v - %v = %v \n", oem.TimeStamp.UTC().String(), from.TimeStamp.UTC().String(), hoursGap/24)
 
-					if hoursGap > 24 {
-						countID++
-						// log.Printf("hrs gap: %v \n", hoursGap)
-						// set duration for available datas
-						duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 0, tk.RoundingAuto)
-						details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
-						// set duration for unavailable datas
-						countID++
-						duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
-						details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
+						if hoursGap > 24 {
+							countID++
+							// log.Printf("hrs gap: %v \n", hoursGap)
+							// set duration for available datas
+							duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 0, tk.RoundingAuto)
+							details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
+							// set duration for unavailable datas
+							countID++
+							duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+							details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
+							from = oem
+						}
+					} else {
 						from = oem
-					}
-				} else {
-					from = oem
 
-					// set gap from stardate until first data in db
-					hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
-					log.Printf("idx=0 hrs gap: %v | %v | %v \n", hoursGap, from.TimeStamp.UTC().String(), periodFrom.UTC().String())
-					if hoursGap > 24 {
-						countID++
-						duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
-						detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
+						// set gap from stardate until first data in db
+						hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
+						// log.Printf("idx=0 hrs gap: %v | %v | %v \n", hoursGap, from.TimeStamp.UTC().String(), periodFrom.UTC().String())
+						if hoursGap > 24 {
+							countID++
+							duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+							detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
+						}
 					}
+
+					latestData = oem
 				}
 
-				latestData = oem
+				hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
+
+				if hoursGap > 24 {
+					countID++
+					duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+					details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, duration, true, countID))
+				}
+
+				// set gap from last data until periodTo
+				hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
+				if hoursGap > 24 {
+					countID++
+					duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+					detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
+				}
 			}
-
-			hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
-
-			if hoursGap > 24 {
-				countID++
-				duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
-				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, duration, true, countID))
-			}
-
-			// set gap from last data until periodTo
-			hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
-			if hoursGap > 24 {
-				countID++
-				duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
-				detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
-			}
-
 			if len(detail) == 0 {
 				countID++
 				duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 0, tk.RoundingAuto)
