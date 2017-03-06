@@ -79,15 +79,37 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			csr, e := ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
 				Where(filter...).Order("timestamp").Cursor(nil)
 
+			countError := 0
+
+			for {
+				countError++
+				if e != nil {
+					csr, e = ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
+						Where(filter...).Order("timestamp").Cursor(nil)
+					log.Printf("e: %v \n", e.Error())
+				} else {
+					break
+				}
+
+				if countError == 5 {
+					break
+				}
+			}
+
 			defer csr.Close()
 
 			list := []ScadaDataOEM{}
 
 			for {
+				countError++
 				e = csr.Fetch(&list, 0, false)
 				if e != nil {
 					log.Printf("e: %v \n", e.Error())
 				} else {
+					break
+				}
+
+				if countError == 5 {
 					break
 				}
 			}
@@ -109,10 +131,10 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 					if hoursGap > 24 {
 						// log.Printf("hrs gap: %v \n", hoursGap)
 						// set duration for available datas
-						duration = before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours() / 24
+						duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 0, tk.RoundingAuto)
 						details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
 						// set duration for unavailable datas
-						duration = hoursGap / 24
+						duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
 						details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
 						from = oem
 					}
@@ -123,7 +145,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 					hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
 					// log.Printf("idx=0 hrs gap: %v \n", hoursGap)
 					if hoursGap > 24 {
-						duration = hoursGap / 24
+						duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
 						detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
 					}
 				}
@@ -135,20 +157,21 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 			if hoursGap > 24 {
 				countID++
-				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, hoursGap/24, true, countID))
+				duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
+				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, duration, true, countID))
 			}
 
 			// set gap from last data until periodTo
 			hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
 			if hoursGap > 24 {
 				countID++
-				duration = hoursGap / 24
+				duration = tk.ToFloat64(hoursGap/24, 0, tk.RoundingAuto)
 				detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
 			}
 
 			if len(detail) == 0 {
 				countID++
-				duration = periodTo.Sub(periodFrom).Hours() / 24
+				duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 0, tk.RoundingAuto)
 				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
 			}
 
@@ -163,7 +186,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			}
 
 			details = append(details, detail...)
-			log.Printf(">> DONE: %v | %v | %v secs >> %v \n", t, len(list), time.Now().Sub(start).Seconds(), len(detail))
+			log.Printf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds())
 			mtx.Unlock()
 			// defer wg.Done()
 
