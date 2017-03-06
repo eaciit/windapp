@@ -12,6 +12,7 @@ import (
 type DataAvailability struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
+	Type          string
 	Name          string
 	PeriodTo      time.Time
 	PeriodFrom    time.Time

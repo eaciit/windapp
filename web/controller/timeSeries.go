@@ -52,6 +52,7 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 	match := tk.M{}
 
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+	match.Set("avgwindspeed", tk.M{"$lte": 25})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
