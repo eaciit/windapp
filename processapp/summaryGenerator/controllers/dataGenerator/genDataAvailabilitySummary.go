@@ -67,7 +67,6 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 	for turbine, _ := range ev.BaseController.RefTurbines {
 		wg.Add(1)
-
 		go func(t string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
@@ -98,8 +97,10 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			latestData := ScadaDataOEM{}
 			hoursGap := 0.0
 			duration := 0.0
+			countID := 0
 
 			for idx, oem := range list {
+				countID++
 				if idx > 0 {
 					before = list[idx-1]
 					hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
@@ -109,10 +110,10 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 						// log.Printf("hrs gap: %v \n", hoursGap)
 						// set duration for available datas
 						duration = before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours() / 24
-						details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true))
+						details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
 						// set duration for unavailable datas
 						duration = hoursGap / 24
-						details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false))
+						details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
 						from = oem
 					}
 				} else {
@@ -123,7 +124,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 					// log.Printf("idx=0 hrs gap: %v \n", hoursGap)
 					if hoursGap > 24 {
 						duration = hoursGap / 24
-						detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false))
+						detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
 					}
 				}
 
@@ -133,19 +134,22 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
 
 			if hoursGap > 24 {
-				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, hoursGap/24, true))
+				countID++
+				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, hoursGap/24, true, countID))
 			}
 
 			// set gap from last data until periodTo
 			hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
 			if hoursGap > 24 {
+				countID++
 				duration = hoursGap / 24
-				detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false))
+				detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
 			}
 
 			if len(detail) == 0 {
+				countID++
 				duration = periodTo.Sub(periodFrom).Hours() / 24
-				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true))
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
 			}
 
 			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), periodTo.UTC().String(), hoursGap)
@@ -161,7 +165,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 			details = append(details, detail...)
 			log.Printf(">> DONE: %v | %v | %v secs >> %v \n", t, len(list), time.Now().Sub(start).Seconds(), len(detail))
 			mtx.Unlock()
-			defer wg.Done()
+			// defer wg.Done()
 
 			csr.Close()
 			wg.Done()
@@ -180,9 +184,10 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 	return availability
 }
 
-func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool) DataAvailabilityDetail {
+func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool, id int) DataAvailabilityDetail {
 
 	res := DataAvailabilityDetail{
+		ID:          id,
 		ProjectName: project,
 		Turbine:     turbine,
 		Start:       from.UTC(),

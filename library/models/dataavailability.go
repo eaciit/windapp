@@ -20,6 +20,7 @@ type DataAvailability struct {
 }
 
 type DataAvailabilityDetail struct {
+	ID          int
 	ProjectName string
 	Turbine     string
 	Start       time.Time
