@@ -10,6 +10,10 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
 var timeSeriesData = [];
+var seriesOptions = [],
+    seriesCounter = 0;
+
+var yAxis = [];
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -127,9 +131,10 @@ pg.createChart = function(){
       seriesDefaults: {
           area: {
               line: {
-                  style: "smooth"
+                  style: "smooth",
               }
-          }
+          },
+          width: 1.3,
       },
       series: seriesList,
       navigator: {
@@ -326,12 +331,143 @@ pg.chartProduction = function(dataSource){
         }
     });
 } 
+
+
+
+pg.createStockChart = function(){
+    $("#chartTimeSeries").html("");
+
+    Highcharts.stockChart('chartTimeSeries', {
+        legend: {
+                layout: 'horizontal',
+                // align: 'top',
+                verticalAlign: 'top',
+                borderWidth: 0,
+                enabled: true,
+                margin : 5
+        },
+        rangeSelector: {
+            selected: 1
+        },
+         navigator: {
+            series: {
+                color: '#999',
+                lineWidth: 2
+            }
+        },
+        exporting: {
+          enabled: false
+        },
+        yAxis: yAxis,
+        plotOptions: {
+        series: {
+                lineWidth: 1,
+                states: {
+                    hover: {
+                        enabled: true,
+                        lineWidth: 1
+                    }
+                }
+            }
+        },
+        tooltip: {
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
+            valueDecimals: 2,
+            split: true
+        },
+
+        series: seriesOptions,
+
+    });
+
+    app.loading(false);
+}
+
+
+pg.getTimestamp = function(param){
+  var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
+      dateTimeParts = dateString.split(' '),
+      timeParts = dateTimeParts[1].split(':'),
+      dateParts = dateTimeParts[0].split('-'),
+      date;
+
+      date = new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, dateParts[0], timeParts[0], timeParts[1]);
+
+      return date.getTime();
+}
+pg.getDataStockChart = function(){
+    var param = {
+        period: fa.period,
+        Turbine: fa.turbine,
+        DateStart: fa.dateStart,
+        DateEnd: fa.dateEnd,
+        Project: fa.project
+    };
+    toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var data = res.data.Data;
+        var series = [];
+
+        var colors = ["#0066dd","#dc3912","#eee"];
+
+        $.each(data, function(id, ress){
+            series.push(id);
+        });
+
+        var i = 0;
+        $.each(data, function(idx, val){
+            var newData = [];
+            $.each(data[idx], function(y, result){
+                newData.push([pg.getTimestamp(result.timestamp), result.value]);
+            });
+
+             yAxis [i] = { 
+                gridLineWidth: 1,
+                labels: {
+                    format: '{value}',
+                },
+                title: {
+                    text: (idx == "windspeed" ? "(m/s)" : "(MWh)"),
+                },
+                opposite: (idx == "production" ? true : false)
+
+            }
+
+            seriesOptions[i] = {
+                  name : idx.substr(0,1).toUpperCase()+idx.substr(1), 
+                  data : newData,
+                  color: colors[i],
+                  type: 'line',
+                  yAxis: i,
+                  tooltip: {
+                      valueSuffix: (idx == "windspeed" ? " (m/s)" : " (MWh)"),
+                  }
+            }
+
+           
+
+          seriesCounter += 1;
+
+          if (seriesCounter === series.length) {
+              pg.createStockChart();
+          }
+
+          i++;
+
+        });
+    });
+}
+
 $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
-        pg.LoadData();
+        pg.getDataStockChart();
     });
 
     setTimeout(function () {
-        pg.LoadData();
+        // pg.LoadData();
+        pg.getDataStockChart();
     }, 1000);
 });
