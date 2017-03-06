@@ -337,6 +337,14 @@ pg.chartProduction = function(dataSource){
 pg.createStockChart = function(){
     $("#chartTimeSeries").html("");
 
+    Highcharts.setOptions({
+        chart: {
+            style: {
+                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            }
+        }
+    });
+
     Highcharts.stockChart('chartTimeSeries', {
         legend: {
                 layout: 'horizontal',
