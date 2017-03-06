@@ -183,6 +183,7 @@ page.hideFilter = function(){
 }
 
 page.getData = function(){
+
 	var param = {
         period: fa.period,
         dateStart: fa.dateStart,
@@ -209,6 +210,10 @@ page.getData = function(){
 }
 
 page.createView = function(){
+	$("#tableContent").html("");
+	$("#tableHeader").html("");
+	$("#tableHeader").append('<td width="10%" class="border-right" colspan="2">&nbsp;</td>');
+
 	$.each(page.categoryHeader(), function(id, ress){
 		var tdHeader = ' <td width="'+page.widthColumn()+'" class="border-right"><strong>'+ress+'</strong></td>';
 		$("#tableHeader").append(tdHeader);
@@ -255,10 +260,16 @@ page.createView = function(){
 		});
 	 	$("#tableContent").append(master);
 	});
-	
+	app.loading(false);
 }
 
 $(function () {
+	fa.LoadData();
+	$('#btnRefresh').on('click', function () {
+		app.loading(true);
+        page.getData();
+    });
+
 	page.hideFilter();
 	page.getData();
     setTimeout(function() {
