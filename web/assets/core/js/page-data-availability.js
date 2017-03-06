@@ -267,6 +267,9 @@ $(function () {
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
         page.getData();
+        setTimeout(function() {
+			app.prepareTooltipster();  
+	    }, 500);
     });
 
 	page.hideFilter();
