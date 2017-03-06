@@ -61,23 +61,24 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), -6)
 
 	availability.ID = id
-	availability.PeriodTo = periodTo
 	availability.PeriodFrom = periodFrom
+	availability.PeriodTo = periodTo
 	projectName := "Tejuva"
 
 	for turbine, _ := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Eq("projectname", projectName))
+		filter = append(filter, dbox.Gte("timestamp", periodFrom))
+
 		go func(t string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
-
-			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Eq("projectname", projectName))
-			filter = append(filter, dbox.Eq("turbine", t))
-			filter = append(filter, dbox.Gte("timestamp", periodFrom))
+			filterX := filter
+			filterX = append(filterX, dbox.Eq("turbine", t))
 
 			csr, e := ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
-				Where(filter...).Order("timestamp").Cursor(nil)
+				Where(filterX...).Order("timestamp").Cursor(nil)
 
 			countError := 0
 
@@ -85,7 +86,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 				countError++
 				if e != nil {
 					csr, e = ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
-						Where(filter...).Order("timestamp").Cursor(nil)
+						Where(filterX...).Order("timestamp").Cursor(nil)
 					log.Printf("e: %v \n", e.Error())
 				} else {
 					break
@@ -180,13 +181,13 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary(availability *DataAvailabilit
 
 			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), periodTo.UTC().String(), hoursGap)
 			mtx.Lock()
-			for _, filt := range filter {
-				if filt.Field == "timestamp" {
-					log.Printf("timestamp: %#v \n", filt.Value.(time.Time).String())
-				} else {
-					log.Printf("%#v \n", filt)
-				}
-			}
+			// for _, filt := range filter {
+			// 	if filt.Field == "timestamp" {
+			// 		log.Printf("timestamp: %#v \n", filt.Value.(time.Time).String())
+			// 	} else {
+			// 		log.Printf("%#v \n", filt)
+			// 	}
+			// }
 
 			details = append(details, detail...)
 			log.Printf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds())
