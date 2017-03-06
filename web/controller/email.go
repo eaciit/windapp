@@ -126,6 +126,36 @@ func GetAlarmCodesMail() (result []toolkit.M, e error) {
 	return
 }
 
+func GetTemplateMail() (result toolkit.M, e error) {
+	csr, e := DB().Connection.NewQuery().
+		From(new(EmailManagement).TableName()).
+		Where(dbox.In("_id", []interface{}{"alarmtemplate", "datatemplate"}...)).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []toolkit.M{}
+	e = csr.Fetch(&data, 0, false)
+	if e != nil {
+		return
+	}
+
+	res := toolkit.M{}
+	for _, val := range data {
+		if val.GetString("_id") == "alarmtemplate" {
+			res.Set("alarmTemplate", val.GetString("template"))
+		} else {
+			res.Set("dataTemplate", val.GetString("template"))
+		}
+	}
+	result = res
+
+	return
+}
+
 func (a *EmailController) EditEmail(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 
@@ -188,7 +218,9 @@ func (a *EmailController) Search(r *knot.WebContext) interface{} {
 		Take(payload.GetInt("take"))
 
 	if payload.GetString("search") != "" {
-		query.Where(dbox.Or(filters...))
+		query.Where(dbox.And(dbox.Nin("_id", []interface{}{"alarmtemplate", "datatemplate"}...), dbox.Or(filters...)))
+	} else {
+		query.Where(dbox.Nin("_id", []interface{}{"alarmtemplate", "datatemplate"}...))
 	}
 	csr, err := query.Cursor(nil)
 

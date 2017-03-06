@@ -25,6 +25,7 @@ em.templateEmail = {
 em.CategoryMailList = ko.observableArray([]);
 em.UserMailList = ko.observableArray([]);
 em.AlarmCodesMailList = ko.observableArray([]);
+em.TemplateMailList = ko.observable();
 em.isAlarmCode = ko.observable(false);
 em.isInterval = ko.observable(false);
 
@@ -113,6 +114,13 @@ em.showHide = function(category) {
             em.isInterval(true);
         }
     });
+
+    var catVal = $('#categoryList').data('kendoDropDownList').value();
+    if(catVal == "alarm01") {
+        $('#templateMail').html(em.TemplateMailList().alarmTemplate)
+    } else {
+        $('#templateMail').html(em.TemplateMailList().dataTemplate)
+    }
 }
 
 em.resetDDL = function() {
@@ -162,6 +170,11 @@ em.setEditor = function() {
         resizable: {
             content: true,
             toolbar: true,
+        },
+        messages: {
+            // fontName: "Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif"
+            fontNameInherit: "Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif",
+            fontSize: 12
         }
     });
 }

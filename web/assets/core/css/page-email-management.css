@@ -22,3 +22,25 @@
 #chk-enable {
 	margin: 10px;
 }
+.email-part {
+	padding-right: 0px;
+	padding-left: 0px;
+}
+.template-part {
+	margin-top: 10px;
+	padding-top: 5px;
+	border: 1px solid;
+	border-color: #F0F3F4;
+}
+#templateMail {
+	font-size: 12px;
+}
+
+#templateMail li {
+	margin-bottom: 5px;
+}
+
+#spanTemplate {
+	padding-top: 9px;
+	padding-bottom: 9px;
+}
