@@ -8,6 +8,7 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
+	"gopkg.in/gomail.v2"
 	"sort"
 	"strconv"
 )
@@ -183,6 +184,61 @@ func (a *EmailController) EditEmail(r *knot.WebContext) interface{} {
 
 	return helper.CreateResult(true, data, "success")
 
+}
+
+func SendEmail(templateID string) error {
+	csr, err := DB().Connection.NewQuery().
+		From(new(EmailManagement).TableName()).
+		Where(dbox.Eq("_id", templateID)).
+		Cursor(nil)
+	if err != nil {
+		return err
+	}
+	defer csr.Close()
+
+	dataEmail := new(EmailManagement)
+	err = csr.Fetch(&dataEmail, 1, false)
+	if err != nil {
+		return err
+	}
+
+	pipes := []toolkit.M{}
+	pipes = append(pipes, toolkit.M{"$match": toolkit.M{"_id": toolkit.M{"$in": dataEmail.Receivers}}})
+	pipes = append(pipes, toolkit.M{"$group": toolkit.M{
+		"_id":      "mailList",
+		"mailList": toolkit.M{"$push": "$email"},
+	}})
+	csrUser, err := DB().Connection.NewQuery().
+		From(new(acl.User).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	if err != nil {
+		return err
+	}
+	defer csrUser.Close()
+
+	dataUser := map[string][]string{}
+	err = csrUser.Fetch(&dataUser, 1, false)
+	if err != nil {
+		return err
+	}
+	mailList := []string{}
+	mailList = dataUser["mailList"]
+	m := gomail.NewMessage()
+
+	m.SetHeader("From", "admin.support@eaciit.com")
+	m.SetHeader("To", mailList...)
+	m.SetHeader("Subject", dataEmail.Subject)
+	m.SetBody("text/html", dataEmail.Template)
+
+	d := gomail.NewPlainDialer("smtp.office365.com", 587, "admin.support@eaciit.com", "B920Support")
+	err = d.DialAndSend(m)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *EmailController) Search(r *knot.WebContext) interface{} {
