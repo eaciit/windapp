@@ -183,7 +183,7 @@ page.hideFilter = function(){
 }
 
 page.getData = function(){
-
+	fa.LoadData();
 	var param = {
         period: fa.period,
         dateStart: fa.dateStart,
@@ -264,7 +264,6 @@ page.createView = function(){
 }
 
 $(function () {
-	fa.LoadData();
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
         page.getData();
