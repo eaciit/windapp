@@ -49,6 +49,7 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 		"periodFrom": tk.M{"$min": "$periodfrom"},
 		"list": tk.M{
 			"$push": tk.M{
+				"id":       "$details.id",
 				"start":    "$details.start",
 				"end":      "$details.end",
 				"duration": "$details.duration",
@@ -114,27 +115,35 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 
 			// log.Printf(">> %v | %v | %v | %v | %v | %v \n", p, t, pFrom.String(), pTo.String(), durationDays, name)
 
-			for _, av := range availList {
-				avail := av.(tk.M)
-				start := avail.Get("start").(time.Time).UTC()
-				end := avail.Get("end").(time.Time).UTC()
-				duration := avail.GetFloat64("duration")
-				isAvail := avail.Get("isavail").(bool)
-				class := "progress-bar progress-bar-success"
+			for index := 1; index <= len(availList); index++ {
+			breakAvail:
+				for _, av := range availList {
+					avail := av.(tk.M)
+					if index == avail.GetInt("id") {
 
-				if !isAvail {
-					class = "progress-bar progress-bar-red"
+						start := avail.Get("start").(time.Time).UTC()
+						end := avail.Get("end").(time.Time).UTC()
+						duration := avail.GetFloat64("duration")
+						isAvail := avail.Get("isavail").(bool)
+						class := "progress-bar progress-bar-success"
+
+						if !isAvail {
+							class = "progress-bar progress-bar-red"
+						}
+
+						percentage := duration / durationDays * 100
+
+						turbineDetails = append(turbineDetails, tk.M{
+							"tooltip": start.Format("2 Jan 2006") + " until " + end.Format("2 Jan 2006"),
+							"class":   class,
+							"value":   tk.ToString(percentage) + "%",
+						})
+
+						// log.Printf(">>>> %v | %v | %v \n", start.Format("2 Jan 2006")+" until "+end.Format("2 Jan 2006"), class, tk.ToString(percentage)+"%")
+
+						break breakAvail
+					}
 				}
-
-				percentage := duration / durationDays * 100
-
-				turbineDetails = append(turbineDetails, tk.M{
-					"tooltip": start.Format("2 Jan 2006") + " until " + end.Format("2 Jan 2006"),
-					"class":   class,
-					"value":   tk.ToString(percentage) + "%",
-				})
-
-				// log.Printf(">>>> %v | %v | %v \n", start.Format("2 Jan 2006")+" until "+end.Format("2 Jan 2006"), class, tk.ToString(percentage)+"%")
 			}
 
 			turbine := tk.M{"TurbineName": t}
