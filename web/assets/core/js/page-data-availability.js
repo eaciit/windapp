@@ -266,10 +266,12 @@ page.createView = function(){
 $(function () {
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
-        page.getData();
-        setTimeout(function() {
-			app.prepareTooltipster();  
-	    }, 500);
+
+        $.when(page.getData()).done(function(){
+        	setTimeout(function(){
+        		app.prepareTooltipster();
+        	},500);	
+        });
     });
 
 	page.hideFilter();
