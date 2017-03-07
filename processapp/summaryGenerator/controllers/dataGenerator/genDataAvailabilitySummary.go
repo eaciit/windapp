@@ -14,6 +14,10 @@ import (
 	tk "github.com/eaciit/toolkit"
 )
 
+const (
+	monthBefore = -5
+)
+
 type DataAvailabilitySummary struct {
 	*BaseController
 }
@@ -43,6 +47,7 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 }
 
 func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
+	tk.Println("===================== SCADA DATA OEM...")
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data OEM"
 	availability.Type = "SCADA_DATA_OEM"
@@ -66,7 +71,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	id := now.Format("20060102_150405_SCADAOEM")
 
 	// latest 6 month
-	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), -6)
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -185,11 +190,15 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
 					detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
 				}
-			}
-			if len(detail) == 0 {
+				if len(detail) == 0 {
+					countID++
+					duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
+					detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
+				}
+			} else {
 				countID++
 				duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
-				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, false, countID))
 			}
 
 			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), periodTo.UTC().String(), hoursGap)
@@ -225,6 +234,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
+	tk.Println("===================== SCADA DATA HFD...")
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data HFD"
 	availability.Type = "SCADA_DATA_HFD"
@@ -248,7 +258,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	id := now.Format("20060102_150405_SCADAHFD")
 
 	// latest 6 month
-	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), -6)
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -281,7 +291,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 			for {
 				countError++
 				if e != nil {
-					csr, e = ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
+					csr, e = ctx.NewQuery().From(new(ScadaDataHFD).TableName()).
 						Command("pipe", pipes).Cursor(nil)
 					log.Printf("e: %v \n", e.Error())
 				} else {
@@ -295,7 +305,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 			defer csr.Close()
 
-			list := []ScadaDataOEM{}
+			list := []ScadaDataHFD{}
 
 			for {
 				countError++
@@ -311,9 +321,9 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 				}
 			}
 
-			before := ScadaDataOEM{}
-			from := ScadaDataOEM{}
-			latestData := ScadaDataOEM{}
+			before := ScadaDataHFD{}
+			from := ScadaDataHFD{}
+			latestData := ScadaDataHFD{}
 			hoursGap := 0.0
 			duration := 0.0
 			countID := 0
@@ -368,11 +378,16 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
 					detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
 				}
-			}
-			if len(detail) == 0 {
+
+				if len(detail) == 0 {
+					countID++
+					duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
+					detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
+				}
+			} else {
 				countID++
 				duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
-				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, false, countID))
 			}
 
 			// log.Printf("xxx: %v - %v = %v \n", latestData.TimeStamp.UTC().String(), periodTo.UTC().String(), hoursGap)
