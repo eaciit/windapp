@@ -275,7 +275,11 @@ $(function () {
     });
 
 	page.hideFilter();
-	page.getData();
+	setTimeout(function() {
+		fa.LoadData();
+		page.getData();
+	},200);
+	
     setTimeout(function() {
 		app.prepareTooltipster();
 		$('.collapse').on('shown.bs.collapse', function(){
