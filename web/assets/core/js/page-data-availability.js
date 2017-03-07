@@ -171,7 +171,9 @@ page.dataDummy = ko.observableArray([
 
 			]
 		}	
-	])
+	]); 
+
+
 page.hideFilter = function(){
     $("#periodList").closest(".k-widget").hide();
     $("#dateStart").closest(".k-widget").hide();
@@ -180,7 +182,38 @@ page.hideFilter = function(){
     $(".control-label:contains('to')").hide();
 }
 
+page.getData = function(){
+	fa.LoadData();
+	var param = {
+        period: fa.period,
+        dateStart: fa.dateStart,
+        dateEnd: fa.dateEnd,
+        turbine: fa.turbine,
+        project: fa.project,
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
+        if (!app.isFine(res)) {
+                return;
+            }
+
+        page.dataDummy(res.data.Data);
+
+        page.categoryHeader(res.data.Month);
+
+		colspan = page.categoryHeader().length;
+
+		page.widthColumn((90 / colspan) + "%");
+
+		page.createView();
+    });
+}
+
 page.createView = function(){
+	$("#tableContent").html("");
+	$("#tableHeader").html("");
+	$("#tableHeader").append('<td width="10%" class="border-right" colspan="2">&nbsp;</td>');
+
 	$.each(page.categoryHeader(), function(id, ress){
 		var tdHeader = ' <td width="'+page.widthColumn()+'" class="border-right"><strong>'+ress+'</strong></td>';
 		$("#tableHeader").append(tdHeader);
@@ -194,8 +227,8 @@ page.createView = function(){
 		});
 
 		var icon = "";
-		if(value.Turbine.length > 1){
-			icon = '<i class="fa fa-chevron-right"></i>';
+		if(value.Turbine.length > 0){
+			icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
 		} 
 		var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
 						'<td>'+icon+'</td>'+
@@ -227,22 +260,35 @@ page.createView = function(){
 		});
 	 	$("#tableContent").append(master);
 	});
-	
+
+	$('.collapse').on('shown.bs.collapse', function(){
+		$(this).parent().find(".fa-chevron-right").removeClass("fa-chevron-right").addClass("fa-chevron-down");
+	}).on('hidden.bs.collapse', function(){
+		$(this).parent().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-right");
+	});
+
+	app.loading(false);
 }
 
 $(function () {
+	$('#btnRefresh').on('click', function () {
+		app.loading(true);
 
+        $.when(page.getData()).done(function(){
+        	setTimeout(function(){
+        		app.prepareTooltipster();
+        	},1000);	
+        });
+    });
 
+	page.hideFilter();
+	setTimeout(function() {
+		fa.LoadData();
+		page.getData();
+	},200);
+	
     setTimeout(function() {
-    	page.hideFilter();
-		page.createView();
 		app.prepareTooltipster();
-		$('.collapse').on('shown.bs.collapse', function(){
-			$(this).parent().find(".fa-chevron-right").removeClass("fa-chevron-right").addClass("fa-chevron-down");
-		}).on('hidden.bs.collapse', function(){
-			$(this).parent().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-right");
-		});
-
         app.loading(false);    
-    }, 200);
+    }, 500);
 });

@@ -9,17 +9,25 @@ var em = viewModel.Email;
 
 em.templateEmail = {
     _id: "",
-    Subject: "",
-    Category: "", // refer to ref_emailCategory
-    Receivers: [], // list of user ACL
-    AlarmCodes: [], // list of alarm code from AlarmBrake > alarmname
-    IntervalTime: 0, // in minutes
-    Template: "",
-    Enable: true
+    subject: "",
+    category: "", // refer to ref_emailCategory
+    receivers: [], // list of user ACL
+    alarmcodes: [], // list of alarm code from AlarmBrake > alarmname
+    intervaltime: 0, // in minutes
+    template: "",
+    enable: true,
+    createddate: '',
+    lastupdate: '',
+    createdby: '',
+    updatedby: ''
 };
 
 em.CategoryMailList = ko.observableArray([]);
 em.UserMailList = ko.observableArray([]);
+em.AlarmCodesMailList = ko.observableArray([]);
+em.TemplateMailList = ko.observable();
+em.isAlarmCode = ko.observable(false);
+em.isInterval = ko.observable(false);
 
 em.templateFilter = {
     search: ""
@@ -45,12 +53,15 @@ em.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
     title: "Enable",
     headerAttributes: { style: "text-align: center;" },
     attributes: { style: "text-align: center;" }
-}, {
+}, 
+{
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
         return ["<button class='btn btn-sm btn-warning' onclick='em.editData(\"" + d._id + "\")'><span class='fa fa-pencil' ></span></button>"].join(" ");
-    }
-}]);
+    },
+    attributes: { style: "text-align: center;" }
+}
+]);
 
 em.filter = ko.mapping.fromJS(em.templateFilter);
 em.config = ko.mapping.fromJS(em.templateEmail);
@@ -85,10 +96,56 @@ em.checkDeleteData = function (elem, e) {
     }
 };
 
+em.checkCategory = function() {
+    em.showHide($('#categoryList').data('kendoDropDownList').value());
+}
+
+em.showHide = function(category) {
+    var resObj = em.CategoryMailList().filter(function(obj) {
+        return obj.value == category;
+    });
+    var condition = resObj[0].condition.split(",");
+    em.isAlarmCode(false);
+    em.isInterval(false);
+    $.each(condition, function(idx, val){
+        if(val.indexOf("isAlarmCode") >= 0) {
+            em.isAlarmCode(true);
+        } else if(val.indexOf("isInterval") >= 0) {
+            em.isInterval(true);
+        }
+    });
+
+    var catVal = $('#categoryList').data('kendoDropDownList').value();
+    if(catVal == "alarm01") {
+        $('#templateMail').html(em.TemplateMailList().alarmTemplate)
+    } else {
+        $('#templateMail').html(em.TemplateMailList().dataTemplate)
+    }
+}
+
+em.resetDDL = function() {
+    $('#categoryList').data('kendoDropDownList').select(0);
+    $('#userList').data('kendoMultiSelect').value([]);
+    $('#alarmcodesList').data('kendoMultiSelect').value([]);
+}
+
+em.setDDL = function(data) {
+    $('#categoryList').data('kendoDropDownList').value(data.category);
+    $('#userList').data('kendoMultiSelect').value(data.receivers);
+    $('#alarmcodesList').data('kendoMultiSelect').value(data.alarmcodes);
+
+    em.showHide(data.category);
+}
 em.newData = function () {
     em.isNew(true);
-    $('#modalUpdate').modal('show');
     ko.mapping.fromJS(em.templateEmail, em.config);
+    $('#editor').data('kendoEditor').value("");
+    em.resetDDL();
+    em.checkCategory();
+
+    setTimeout(function(){
+        $('#modalUpdate').modal('show');
+    }, 100);
 };
 
 em.editData = function (id) {
@@ -98,26 +155,55 @@ em.editData = function (id) {
             return;
         }
         ko.mapping.fromJS(res.data, em.config);
-        $('#modalUpdate').modal('show');
+        em.setDDL(res.data);
+        $('#editor').data('kendoEditor').value(res.data.template);
+
+        setTimeout(function(){
+            $('#modalUpdate').modal('show');
+        }, 100);
     });
 };
+
+em.setEditor = function() {
+    $("#editor").html("");
+    $("#editor").kendoEditor({ 
+        resizable: {
+            content: true,
+            toolbar: true,
+        },
+        messages: {
+            // fontName: "Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif"
+            fontNameInherit: "Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif",
+            fontSize: 12
+        }
+    });
+}
 
 em.saveChanges = function () {
     if (!toolkit.isFormValid(".form-group")) {
         return;
     }
-    var parm = ko.mapping.toJS(em.config);
-    toolkit.ajaxPost(viewModel.appName + 'email/saveemail', parm, function (res) {
+    var param = ko.mapping.toJS(em.config);
+    param.id = param._id;
+    param.intervaltime = parseInt(param.intervaltime);
+    param.category = $('#categoryList').data('kendoDropDownList').value();
+    param.receivers = $('#userList').data('kendoMultiSelect').value();
+    param.alarmcodes = $('#alarmcodesList').data('kendoMultiSelect').value();
+    param.template = $('#editor').data('kendoEditor').value();
+    param.lastupdate = new Date();
+    if(em.isNew()) {
+        param.createddate = new Date();
+    }
+    toolkit.ajaxPost(viewModel.appName + 'email/saveemail', param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
         $('#modalUpdate').modal('hide');
-        em.refreshData();
+        em.refreshData();        
+        swal({ title: res.message, type: "success" });        
     }, function (err) {
         toolkit.showError(err.responseText);
-    }, {
-        timeout: 5000
     });
 };
 
@@ -129,11 +215,11 @@ em.refreshData = function () {
     ko.mapping.fromJS(em.templateEmail, em.config);
 };
 
-em.deletegroup = function () {
+em.deleteemail = function () {
     if (em.tempCheckIdDelete().length === 0) {
         swal({
             title: "",
-            text: 'You havent choose any group to delete',
+            text: 'You havent choose any email to delete',
             type: "warning",
             confirmButtonColor: "#DD6B55",
             confirmButtonText: "OK",
@@ -142,7 +228,7 @@ em.deletegroup = function () {
     } else {
         swal({
             title: "Are you sure?",
-            text: 'Data group(s) ' + em.tempCheckIdDelete().toString() + ' will be deleted',
+            text: 'Data email(s) ' + em.tempCheckIdDelete().toString() + ' will be deleted',
             type: "warning",
             showCancelButton: true,
             confirmButtonColor: "#DD6B55",
@@ -206,12 +292,19 @@ em.generateGrid = function () {
             pageSizes: 10,
             buttonCount: 5
         },
-        columns: em.TableColumns()
+        columns: em.TableColumns(),
+        /*dataBound: function(e){
+            var that = this;
+            $(that.tbody).on("click", "tr", function (e) {
+                var rowData = that.dataItem(this);
+                em.editData(rowData._id);
+            });
+        }*/
     });
 };
 
 $(function () {
     $("#modalUpdate").insertAfter("body");
     em.generateGrid();
-    // adm.getGrant()
+    em.setEditor();
 });
