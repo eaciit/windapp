@@ -227,7 +227,7 @@ page.createView = function(){
 		});
 
 		var icon = "";
-		if(value.Turbine.length > 1){
+		if(value.Turbine.length > 0){
 			icon = '<i class="fa fa-chevron-right"></i>';
 		} 
 		var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
