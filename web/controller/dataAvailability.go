@@ -5,11 +5,17 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"strings"
 
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
+)
+
+var (
+	from time.Time
+	to   time.Time
 )
 
 type DataAvailabilityController struct {
@@ -27,18 +33,49 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipesOEM []tk.M
-		oems     []tk.M
-		result   []tk.M
-		months   []string
+		result []tk.M
+		months []string
 	)
 
-	p := new(tk.M)
+	p := new(PayloadAnalytic)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	turbine := p.Turbine
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_OEM"))
+
+	for {
+		months = append(months, from.Format("Jan"))
+		if from.Format("0601") == to.Format("0601") {
+			break
+		}
+		from = GetNormalAddDateMonth(from.UTC(), 1)
+	}
+
+	data := struct {
+		Data  []tk.M
+		Month []string
+	}{
+		Data:  result,
+		Month: months,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func getAvailCollection(project string, turbines []interface{}, collType string) tk.M {
+	var (
+		pipes []tk.M
+		list  []tk.M
+	)
 	group := tk.M{
 		"_id": tk.M{
 			"name":    "$name",
@@ -67,36 +104,50 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 		"list":       1,
 	}
 
-	// ScadaDataOEM
-	pipesOEM = append(pipesOEM, tk.M{"$match": tk.M{"type": tk.M{"$eq": "SCADA_DATA_OEM"}}})
-	pipesOEM = append(pipesOEM, tk.M{"$unwind": "$details"})
-	pipesOEM = append(pipesOEM, tk.M{"$group": group})
-	pipesOEM = append(pipesOEM, tk.M{"$project": projection})
-	pipesOEM = append(pipesOEM, tk.M{"$sort": tk.M{"turbine": 1}})
+	pipes = append(pipes, tk.M{"$match": tk.M{"type": tk.M{"$eq": collType}}})
+	pipes = append(pipes, tk.M{"$unwind": "$details"})
+	pipes = append(pipes, tk.M{"$group": group})
+	pipes = append(pipes, tk.M{"$project": projection})
+
+	match := tk.M{}
+
+	if project != "" {
+		match.Set("project", project)
+	}
+
+	if len(turbines) > 0 {
+		match.Set("turbine", tk.M{"$in": turbines})
+	}
+
+	if match.Get("turbine") != nil || match.Get("project") != nil {
+		pipes = append(pipes, tk.M{"$match": match})
+	}
+
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbine": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(DataAvailability).TableName()).
-		Command("pipe", pipesOEM).
+		Command("pipe", pipes).
 		Cursor(nil)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	e = csr.Fetch(&oems, 0, false)
+	e = csr.Fetch(&list, 0, false)
 
 	defer csr.Close()
 
-	resOEM := []tk.M{}
+	res := []tk.M{}
 	name := ""
 
-	from := time.Now()
-	to := time.Now()
+	from = time.Now()
+	to = time.Now()
 
-	if len(oems) > 0 {
+	if len(list) > 0 {
 		datas := []tk.M{}
 
-		for _, oem := range oems {
+		for _, oem := range list {
 			t := oem.GetString("turbine")
 			p := oem.GetString("project")
 			_ = p
@@ -149,7 +200,7 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 			turbine := tk.M{"TurbineName": t}
 			turbine.Set("details", turbineDetails)
 
-			resOEM = append(resOEM, turbine)
+			res = append(res, turbine)
 		}
 
 		// dummy
@@ -159,27 +210,8 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 			"value":   "100%",
 		})
 
-		result = append(result, tk.M{"Category": name, "Turbine": resOEM, "Data": datas})
+		return tk.M{"Category": name, "Turbine": res, "Data": datas}
 	}
 
-	// log.Printf("%v | %v \n", from.String(), to.String())
-
-	for {
-		months = append(months, from.Format("Jan"))
-		if from.Format("0601") == to.Format("0601") {
-			break
-		}
-		// log.Printf("%v | %v \n", from.String(), to.String())
-		from = GetNormalAddDateMonth(from.UTC(), 1)
-	}
-
-	data := struct {
-		Data  []tk.M
-		Month []string
-	}{
-		Data:  result,
-		Month: months,
-	}
-
-	return helper.CreateResult(true, data, "success")
+	return nil
 }

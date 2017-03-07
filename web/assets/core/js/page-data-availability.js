@@ -270,7 +270,7 @@ $(function () {
         $.when(page.getData()).done(function(){
         	setTimeout(function(){
         		app.prepareTooltipster();
-        	},500);	
+        	},1000);	
         });
     });
 
