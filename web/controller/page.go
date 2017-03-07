@@ -330,6 +330,20 @@ func (w *PageController) User(r *knot.WebContext) interface{} {
 	return w.GetParams(r, false)
 }
 
+func (w *PageController) EmailManagement(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-email-management.html"
+
+	categorylist, _ := GetCategoryMail()
+	userList, _ := GetUserMail()
+
+	w.Params.Set("CategoryMailList", categorylist)
+	w.Params.Set("UserMailList", userList)
+
+	return w.GetParams(r, false)
+}
+
 func (w *PageController) Monitoring(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
@@ -414,6 +428,20 @@ func (w *PageController) WindFarmAnalysis(r *knot.WebContext) interface{} {
 
 	params := w.GetParams(r, true)
 	params.Set("AvailableDate", r.Session("availdate"))
+
+	return params
+}
+
+func (w *PageController) DataAvailability(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-data-availability.html"
+	// r.Config.IncludeFiles = append(DefaultIncludes, []string{"page-windfarm-analysis/project.html",
+	// 	"page-windfarm-analysis/turbine1.html",
+	// 	"page-windfarm-analysis/turbine2.html"}...)
+
+	params := w.GetParams(r, true)
+	// params.Set("AvailableDate", r.Session("availdate"))
 
 	return params
 }

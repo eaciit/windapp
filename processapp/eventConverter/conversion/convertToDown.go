@@ -43,6 +43,7 @@ func NewDownConversion(ctx *orm.DataContext, filePath string) *DownConversion {
 }
 
 func (ev *DownConversion) Run() {
+	log.Println("===================== Starting EVENT DOWN")
 	// _ = ev.getLatest()
 	var wg sync.WaitGroup
 	loops := ev.getLatest()
@@ -59,6 +60,8 @@ func (ev *DownConversion) Run() {
 			wg.Wait()
 		}
 	}
+
+	log.Println("===================== End EVENT DOWN")
 }
 
 func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {

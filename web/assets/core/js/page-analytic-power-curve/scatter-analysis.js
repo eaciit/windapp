@@ -3,8 +3,8 @@
 viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 page.colorPalette = ko.observable("websafe");
-page.lessSelectedColour = ko.observable("#ff7663");
-page.greaterSelectedColour = ko.observable("#a2df53");
+page.lessSelectedColour = ko.observable("#4589b0");
+page.greaterSelectedColour = ko.observable("#e4cc37");
 page.markerStyleList = ko.observableArray([
     {value:"circle",text:"Circle"},
     {value:"square",text:"Square"},
