@@ -1,0 +1,313 @@
+@-webkit-keyframes flash-animation {  
+    from { background: yellow!important; }
+    to   { background: default; }
+}
+
+@keyframes flash-animation {  
+    from { background: yellow!important; }
+    to   { background: default; }
+}
+.flash {
+    -webkit-animation-name: flash-animation;
+    -webkit-animation-duration: 1.5s;
+
+    animation-name: flash-animation;
+    animation-duration: 1.5s;
+}   
+.redvalue {
+    color: red;
+}
+.orangevalue {
+    color: #EA6020;
+}
+
+.margin-left-10 {
+    margin-left: 10px;
+}
+
+.margin-right-10 {
+    margin-right: 10px;
+}
+
+/*==================================== WEATHER FORECAST.css ========================*/
+#weatherChart.k-chart{
+    margin-top: -13px;
+    background: transparent;
+}
+
+/*==================================== CUSTOM.CSS =========================*/
+
+.k-grid-content, .k-grid-content-locked {
+    border-bottom: 1px solid #DCDCDC;
+}
+.k-grid-content-locked { 
+    min-height: 40px;
+}
+.panel-control {
+    text-align: right;
+}
+
+.input-grid{
+    padding: 0px 0px !important;
+}
+
+.float-right{
+    float: right;
+}
+
+.paramvalue-panel{
+    width: 420px;
+    margin: auto;
+}
+
+.financial-panel{
+    width: 350px;
+    margin: auto;
+}
+
+.expectedgeneration-panel{
+    width: 560px;
+    margin: auto;
+}
+
+.expectedenergydistribution-panel{
+    width: 307px;
+    margin: auto;
+}
+
+.powercurve-panel{
+    width: 540px;
+    margin: auto;
+}
+
+.preventive-panel{
+    width: 850px;
+    margin: auto;
+}
+
+.MT-panel{
+    width: 500px;
+    margin: auto;
+}
+
+
+.float-left{
+    float: left;
+}
+
+.modal-dialog{
+    margin-top: 150px;
+}
+
+.width-txt{
+    width: 50%;
+}
+
+.reportcomparison-panel{
+    width: 670px;
+    margin: auto;
+}
+
+.margin-top-6{
+    margin-top: 6px;
+}
+
+.breakdowndate .k-picker-wrap.k-state-default{
+    width: 66px !important;
+}
+
+.breakdowndate .k-widget.k-timepicker.k-header{
+    width: 90.5px !important;
+}
+
+.formulaparamdropdown{
+    width: 92px;
+}
+
+.selectperiodlabel{
+    margin-top: 4px;
+}
+
+.btngroupcomparison{
+    width: 175px;
+}
+
+.period1label{
+    width: 215px;
+}
+
+.period1label .k-widget.k-datepicker.k-header.k-input{
+    width: 110px !important;
+}
+
+.margin-bottom-6{
+    margin-bottom: 6px;
+}
+
+.reportcomparisontable .table-bordered>tbody>tr>td{
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+
+.bold{
+    font-weight: bold;
+}
+
+/*.list-group-item {
+    padding: 6px 10px 4px 10px;
+}
+
+.list-group-item.main-item {
+    padding: 0;
+}
+.list-group-item.main-item .left-side {
+    border-right: 1px solid #e0e0e0;
+    text-align: center;
+    padding: 10px 15px;
+}
+.list-group-item.main-item .right-side {
+    text-align: center;
+    padding: 35px 0;
+}*/
+h4.content-heading {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.project-icon {
+    border: 1px solid #EDEFF0;
+    margin: 0px 0px 10px 0;
+}
+.project-icon div {
+    border-right: 1px solid #EDEFF0;
+    padding: 5px 15px 5px 15px;
+    margin: 0;
+    min-height: 55px;
+    text-align: center;
+}
+.project-icon div:last-child {
+    border-right: none;
+}
+.project-icon h4 {
+  padding-top: 5px;
+}
+.project-info {
+    margin-top: -15px;
+    margin-bottom: -5px;
+    position: relative;
+}
+.project-info-last-update {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.fa-project-info.fa-green {
+  color: #31B445;
+}
+.fa-project-info.fa-red {
+  color: #db1e1e;
+}
+.fa-project-info.fa-yellow {
+  color: #f2d115;
+}
+.fa-project-info.fa-grey {
+  color: #7f7f7f;
+}
+.fa-project-info.fa-orange {
+  color: #EA6020;
+}
+
+.table.table-monitoring {
+
+}
+.table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
+.table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
+  padding: 3px 5px;
+  font-size: 11px;
+}
+.table-monitoring>tbody>tr:nth-child(even)>td, .table-monitoring>tbody>tr:nth-child(even)>th {
+  background: #F9F9F9;
+}
+
+  .project-icon { border: none; }
+  .project-icon div {    
+    border: 1px solid #e0e0e0;
+    margin-bottom: 5px;
+  }
+  .project-icon div:first-child {
+    border-left: 1px solid #e0e0e0;
+  }
+  .project-icon div:last-child {
+    border-right: 1px solid #e0e0e0;
+    display: none;
+  }  
+  .project-icon div.not-hide {
+    display: inline;
+  }
+  .project-icon div:last-child h4 { font-size: 16px; padding-bottom: 2px; }
+  div.source-info.pull-right {
+    margin-top: 25px;
+  }   
+}
+
+/* ===================================== MODAL CSS ====================================================*/
+
+.modal-dialog {
+  width: 97%;
+  /*height: 95%;*/
+  margin: 20px;
+  padding: 0;
+}
+
+.modal-content {
+  height: auto;
+  /*min-height: 95%;*/
+  border-radius: 0;
+}
+
+.modal-lg {
+     width: auto !important;
+}
+
+.sector-label {
+    padding: 3px 5px 3px 3px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.section-part {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+.legend-part {
+    text-align: center;
+    margin-bottom: 5px;
+}
+.modal-footer {
+    padding: 15px;
+    text-align: right;
+    border-top: 0px solid #e5e5e5; 
+}
+.margintop15{
+    margin-top: 15px;
+}
+.link-detail:hover{
+    cursor: pointer;
+}
+
+.span-legend {
+    font-size: 11px;
+    font-weight: bold;
+}
