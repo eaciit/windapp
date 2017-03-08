@@ -253,6 +253,7 @@ pg.chartWindSpeed = function(dataSource){
         }
     });
 } 
+
 pg.chartProduction = function(dataSource){
 	$("#chartProduction").kendoStockChart({
 	  title: {
@@ -387,8 +388,6 @@ pg.createStockChart = function(){
         series: seriesOptions,
 
     });
-
-    app.loading(false);
 }
 
 
@@ -404,6 +403,9 @@ pg.getTimestamp = function(param){
       return date.getTime();
 }
 pg.getDataStockChart = function(){
+    fa.LoadData();
+    app.loading(true);
+
     var param = {
         period: fa.period,
         Turbine: fa.turbine,
@@ -411,7 +413,8 @@ pg.getDataStockChart = function(){
         DateEnd: fa.dateEnd,
         Project: fa.project
     };
-    toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
+
+    var request = toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -466,6 +469,12 @@ pg.getDataStockChart = function(){
           i++;
 
         });
+    });
+
+    $.when(request).done(function(){
+        setTimeout(function(){
+           app.loading(false);
+         },200);
     });
 }
 
