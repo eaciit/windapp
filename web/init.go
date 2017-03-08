@@ -78,6 +78,8 @@ func init() {
 	app.Register(controller.CreateDataAvailabilityController())
 	app.Register(controller.CreateEmailController())
 
+	app.Register(controller.CreateMonitoringRealtimeController())
+
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")
 	// 	rURL := r.Request.URL.String()

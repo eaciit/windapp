@@ -15,6 +15,7 @@ type ScadaDataHFD struct {
 	DateInfo      DateInfo
 	ProjectName   string
 	Turbine       string
+	IsNull        bool
 
 	Fast_ActivePower_kW        float64
 	Fast_ActivePower_kW_StdDev float64
