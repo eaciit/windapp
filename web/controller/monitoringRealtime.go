@@ -65,7 +65,8 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	results := c.GetMonitoring()
+	// results := c.GetMonitoring()
+	results := c.GetMonitoringByProject("Tejuva")
 
 	return results
 }
@@ -74,6 +75,98 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 	retVal := 0.0
 
 	return retVal
+}
+
+func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (rtkm tk.M) {
+
+	rtkm = tk.M{}
+
+	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder").
+		From("ref_turbine").
+		Where(dbox.Eq("project", project)).Cursor(nil)
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	_result := []tk.M{}
+	err = csrt.Fetch(&_result, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	alldata := tk.M{}
+	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
+		"PitchAngle", "RotorRPM"}
+	lastUpdate := time.Time{}
+	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
+
+	for _, _tkm := range _result {
+		aturbine := tk.M{}
+		strturbine := _tkm.GetString("turbineid")
+		aturbine.Set("Turbine", strturbine)
+		aturbine.Set("DataComing", 0)
+
+		for _, afield := range arrfield {
+			aturbine.Set(afield, defaultValue)
+
+			_tlafield := strings.ToLower(afield)
+			icsrt, err := DB().Connection.NewQuery().Select("timestamp", _tlafield).From(new(ScadaRealTime).TableName()).
+				Where(dbox.And(dbox.Eq("turbine", strturbine), dbox.Ne(_tlafield, defaultValue), dbox.Eq("projectname", project))).
+				Order("-timestamp").Cursor(nil)
+			if err != nil {
+				tk.Println(err.Error())
+			}
+
+			_tdata := tk.M{}
+			if icsrt.Count() > 0 {
+				err = icsrt.Fetch(&_tdata, 1, false)
+			}
+			if err != nil {
+				tk.Println(err.Error())
+			}
+			icsrt.Close()
+
+			ifloat := _tdata.GetFloat64(_tlafield)
+			if len(_tdata) > 0 && ifloat != defaultValue {
+				tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
+				utime := aturbine.Get("TimeUpdate", time.Time{}).(time.Time)
+				aturbine.Set(afield, ifloat)
+				aturbine.Set("DataComing", 1)
+
+				if tstamp.After(utime) {
+					aturbine.Set("TimeUpdate", tstamp)
+				}
+
+				if tstamp.After(lastUpdate) {
+					lastUpdate = tstamp
+				}
+
+				switch afield {
+				case "ActivePower":
+					PowerGen += ifloat
+				case "WindSpeed":
+					AvgWindSpeed += ifloat
+					CountWS += 1
+				}
+			}
+		}
+
+		arrturbine := alldata.Get(_tkm.GetString("feeder"), []tk.M{}).([]tk.M)
+		arrturbine = append(arrturbine, aturbine)
+		alldata.Set(_tkm.GetString("feeder"), arrturbine)
+	}
+
+	rtkm.Set("Data", alldata)
+	rtkm.Set("TimeStamp", lastUpdate)
+	rtkm.Set("PowerGeneration", PowerGen)
+	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
+	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
+	rtkm.Set("TurbineActive", 24)
+	rtkm.Set("TurbineDown", 0)
+
+	return
 }
 
 func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
@@ -85,45 +178,8 @@ func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
 	defaultValue := -999999.00
 	defaultProject := "Tejuva"
 
-	// prefId := tk.Sprintf("%v_%v_%v", defaultProject, "Update", time.Now().UTC().Format("20060102000000"))
-	// _ = prefId
-	// csrm, err := DB().Connection.NewQuery().From(new(ScadaMonitoring).TableName()).
-	// 	//Where(dbox.And(dbox.Eq("_id", prefId))).
-	// 	Order("-timestamp").Cursor(nil)
-	// if err != nil {
-	// 	tk.Println(err.Error())
-	// }
-	// datas := make([]ScadaMonitoring, 0)
-	// err = csrm.Fetch(&datas, 1, false)
-	// if err != nil {
-	// 	tk.Println(err.Error())
-	// }
-	// csrm.Close()
-
 	mdl := new(ScadaMonitoring).New()
 
-	// if len(datas) > 0 {
-	// 	mdl.TimeStamp = datas[0].TimeStamp
-	// 	mdl.DateInfo = datas[0].DateInfo
-	// 	mdl.ProjectName = datas[0].ProjectName
-	// 	mdl.ActivePower = datas[0].ActivePower
-	// 	mdl.Production = datas[0].Production
-	// 	mdl.OprHours = datas[0].OprHours
-	// 	mdl.WtgOkHours = datas[0].WtgOkHours
-	// 	mdl.WindSpeed = datas[0].WindSpeed
-	// 	mdl.WindDirection = datas[0].WindDirection
-	// 	mdl.NacellePosition = datas[0].NacellePosition
-	// 	mdl.Temperature = datas[0].Temperature
-	// 	mdl.PitchAngle = datas[0].PitchAngle
-	// 	mdl.RotorRPM = datas[0].RotorRPM
-
-	// 	mdl.WindSpeedCount = datas[0].WindSpeedCount
-	// 	mdl.WindDirectionCount = datas[0].WindDirectionCount
-	// 	mdl.NacellePositionCount = datas[0].NacellePositionCount
-	// 	mdl.TemperatureCount = datas[0].TemperatureCount
-	// 	mdl.PitchAngleCount = datas[0].PitchAngleCount
-	// 	mdl.RotorRPMCount = datas[0].RotorRPMCount
-	// } else {
 	mdl.TimeStamp = time.Now()
 	mdl.DateInfo = GetDateInfo(mdl.TimeStamp)
 	mdl.ActivePower = defaultValue
@@ -144,7 +200,6 @@ func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
 	mdl.TemperatureCount = 0
 	mdl.PitchAngleCount = 0
 	mdl.RotorRPMCount = 0
-	// }
 
 	power := 0.0
 	windSpeed := 0.0
