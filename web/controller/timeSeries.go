@@ -51,6 +51,8 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 
 	match := tk.M{}
 
+	// log.Printf("%v - %v \n", tStart.String(), tEnd.String())
+
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 	match.Set("avgwindspeed", tk.M{"$lte": 25})
 
