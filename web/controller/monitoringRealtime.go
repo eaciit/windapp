@@ -477,12 +477,12 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	k.Config.NoLog = true
 
 	query := tk.M{}.Set("where", dbox.Eq("projectname", "Tejuva"))
-	csr, err := DB().Find(new(Alarm), query)
+	csr, err := DB().Find(new(AlarmRealtime), query)
 	defer csr.Close()
 	if err != nil {
 		return err.Error()
 	}
-	results := make([]Alarm, 0)
+	results := make([]AlarmRealtime, 0)
 	err = csr.Fetch(&results, 0, false)
 	if err != nil {
 		return err.Error()
