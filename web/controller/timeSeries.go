@@ -182,15 +182,6 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				projectName = strings.TrimRight(anProject[0], " ")
 			}
 
-			for _, val := range hdfs {
-				timestamp := val.Get("timestamp").(time.Time).Unix()
-				for _, tag := range tags {
-					tagVal := val.GetFloat64(tag)
-					dt := []interface{}{timestamp, tagVal}
-					resultChart = append(resultChart, tk.M{"name": tag, "data": dt, "unit": mapUnit[tag]})
-				}
-			}
-
 			for _, tag := range tags {
 				var dts [][]interface{}
 				for _, val := range hdfs {
