@@ -3,7 +3,7 @@ var page = viewModel.DataAvailability;
 
 vm.currentMenu('Data Availability');
 vm.currentTitle('Data Availability');
-vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'KPI Table', href: viewModel.appName + 'page/dataavailability' }]);
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Availability', href: viewModel.appName + 'page/dataavailability' }]);
 
 page.isExpanded = ko.observable();
 page.categoryHeader = ko.observableArray(["Jan", "Feb", "Mar", "Apr","May","Jun","Jul"]);
