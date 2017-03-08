@@ -75,6 +75,9 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 		"PitchAngle", "RotorRPM"}
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
+	turbinedown := 0
+
+	arrturbinestatus := getTurbineStatus(project)
 
 	for _, _tkm := range _result {
 		aturbine := tk.M{}
@@ -127,6 +130,14 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 			}
 		}
 
+		aturbine.Set("AlarmCode", arrturbinestatus[strturbine].AlarmCode).
+			Set("AlarmDesc", arrturbinestatus[strturbine].AlarmDesc).
+			Set("Status", arrturbinestatus[strturbine].Status).
+			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate)
+		if arrturbinestatus[strturbine].Status == 0 {
+			turbinedown += 1
+		}
+
 		arrturbine := alldata.Get(_tkm.GetString("feeder"), []tk.M{}).([]tk.M)
 		arrturbine = append(arrturbine, aturbine)
 		alldata.Set(_tkm.GetString("feeder"), arrturbine)
@@ -137,8 +148,8 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	rtkm.Set("PowerGeneration", PowerGen)
 	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
-	rtkm.Set("TurbineActive", 24)
-	rtkm.Set("TurbineDown", 0)
+	rtkm.Set("TurbineActive", len(_result)-turbinedown)
+	rtkm.Set("TurbineDown", turbinedown)
 
 	return
 }
@@ -658,8 +669,27 @@ func (c *MonitoringRealtimeController) GetDataLine(k *knot.WebContext) interface
 	return helper.CreateResult(true, data, "success")
 }
 
-func getTurbineStatus(project string) (res tk.M) {
-	res = tk.M{}
+func getTurbineStatus(project string) (res map[string]TurbineStatus) {
+	res = map[string]TurbineStatus{}
+
+	csr, err := DB().Connection.NewQuery().From(new(TurbineStatus).TableName()).
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	results := make([]TurbineStatus, 0)
+	err = csr.Fetch(&results, 0, false)
+	if err != nil {
+		return
+	}
+	csr.Close()
+
+	for _, result := range results {
+		res[result.ID] = result
+	}
+
 	return
 }
 
