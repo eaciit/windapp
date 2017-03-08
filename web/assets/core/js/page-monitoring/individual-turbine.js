@@ -134,10 +134,10 @@ it.ParseWeather = function(data) {
 };
 
 it.ShowData = function() {
-        var turbine = $('#turbine').data('kendoDropDownList').value();
-        it.LoadData(turbine);
-        it.GetData(turbine);
-    },
+    var turbine = $('#turbine').data('kendoDropDownList').value();
+    it.LoadData(turbine);
+    it.GetData(turbine);
+};
 
 
 $(document).ready(function(){
