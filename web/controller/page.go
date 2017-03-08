@@ -391,7 +391,14 @@ func (w *PageController) TimeSeries(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-time-series.html"
-	return w.GetParams(r, true)
+	return w.GetParams(r, true).Set("DataType", "OEM")
+}
+
+func (w *PageController) TimeSeriesHFD(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-time-series.html"
+	return w.GetParams(r, true).Set("DataType", "HFD")
 }
 
 func (w *PageController) DIYView(r *knot.WebContext) interface{} {
