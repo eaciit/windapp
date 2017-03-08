@@ -2,7 +2,7 @@ package controller
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	. "eaciit/wfdemo-git/library/helper"
+	// . "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
 	"eaciit/wfdemo-git/web/helper"
@@ -30,45 +30,19 @@ var (
 	defaultValue = -999999.0
 )
 
-// var (
-// 	colorFieldTLPRealtime = [...]string{"#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
-// 		"#4A148C", "#7B1FA2", "#9C27B0", "#BA68C8", "#1A237E", "#5C6BC0",
-// 		"#1E88E5", "#0277BD", "#0097A7", "#26A69A", "#4DD0E1", "#81C784",
-// 		"#8BC34A", "#1B5E20", "#827717", "#C0CA33", "#DCE775", "#FF6F00", "#A1887F",
-// 		"#FFEE58", "#004D40", "#212121", "#607D8B", "#BDBDBD", "#FF00CC", "#9999FF"}
-// )
-
 type MiniScada struct {
 	NacellePosition float64
 	WindSpeed       float64
 	Turbine         string
 }
 
-// func (c *MonitoringRealtimeController) Default(k *knot.WebContext) interface{} {
-// 	c.LoadBase(k)
-// 	includes := []string{
-// 		"dashboard/byproject.html", "dashboard/byturbine.html", "dashboard/alarm.html", "dashboard/weather.html", "dashboard/_modalDetailByProject.html",
-// 	}
-// 	c.LoadPartial(k, includes)
-
-// 	k.Config.OutputType = knot.OutputTemplate
-
-// 	infos := PageInfo{}
-// 	infos.PageTitle = "Dashboard"
-// 	infos.SelectedMenu = "dashboard"
-// 	infos.Breadcrumbs = make(map[string]string, 0)
-
-// 	return infos
-// }
-
 func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	// results := c.GetMonitoring()
 	results := c.GetMonitoringByProject("Tejuva")
 
-	return results
+	return helper.CreateResult(true, results, "success")
 }
 
 func (c *MonitoringRealtimeController) getValue() float64 {
@@ -167,309 +141,6 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	rtkm.Set("TurbineDown", 0)
 
 	return
-}
-
-func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
-	turbines := []string{
-		"SSE017", "SSE018", "SSE019", "SSE020", "TJ013", "TJ016", "HBR038", "TJ021", "TJ022", "TJ023", "TJ024",
-		"TJ025", "HBR004", "HBR005", "HBR006", "TJW024", "HBR007", "SSE001", "SSE002", "SSE007", "SSE006", "SSE011",
-		"SSE015", "SSE012",
-	}
-	defaultValue := -999999.00
-	defaultProject := "Tejuva"
-
-	mdl := new(ScadaMonitoring).New()
-
-	mdl.TimeStamp = time.Now()
-	mdl.DateInfo = GetDateInfo(mdl.TimeStamp)
-	mdl.ActivePower = defaultValue
-	mdl.Production = defaultValue
-	mdl.OprHours = 0.0
-	mdl.WtgOkHours = 0.0
-	mdl.WindSpeed = defaultValue
-	mdl.WindDirection = defaultValue
-	mdl.NacellePosition = defaultValue
-	mdl.Temperature = defaultValue
-	mdl.PitchAngle = defaultValue
-	mdl.RotorRPM = defaultValue
-	mdl.ProjectName = defaultProject
-
-	mdl.WindSpeedCount = 0
-	mdl.WindDirectionCount = 0
-	mdl.NacellePositionCount = 0
-	mdl.TemperatureCount = 0
-	mdl.PitchAngleCount = 0
-	mdl.RotorRPMCount = 0
-
-	power := 0.0
-	windSpeed := 0.0
-	cWindSpeed := 0
-	windDir := 0.0
-	cWindDir := 0
-	nacellePos := 0.0
-	cNacellePos := 0
-	temperature := 0.0
-	cTemperature := 0
-	pitch := 0.0
-	cPitch := 0
-	rotor := 0.0
-	cRotor := 0
-
-	timeUpdate := time.Now().UTC().Add(-720 * time.Hour)
-	details := make([]ScadaMonitoringItem, 0)
-	for _, t := range turbines {
-		var detail ScadaMonitoringItem
-		detail.Turbine = t
-		detail.DataComing = 0
-
-		csrt, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("activepower", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results := make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.ActivePower = result.ActivePower
-			detail.TimeUpdate = result.LastUpdate
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.ActivePower = defaultValue
-		}
-
-		if detail.ActivePower > defaultValue {
-			power += detail.ActivePower
-		}
-
-		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("windspeed", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results = make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.WindSpeed = result.WindSpeed
-			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
-				detail.TimeUpdate = result.LastUpdate
-			}
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.WindSpeed = defaultValue
-		}
-
-		if detail.WindSpeed != defaultValue {
-			windSpeed += detail.WindSpeed
-			cWindSpeed++
-		}
-
-		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("winddirection", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results = make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.WindDirection = result.WindDirection
-			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
-				detail.TimeUpdate = result.LastUpdate
-			}
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.WindDirection = defaultValue
-		}
-
-		if detail.WindDirection != defaultValue {
-			windDir += detail.WindDirection
-			cWindDir++
-		}
-
-		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("nacelleposition", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results = make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.NacellePosition = result.NacellePosition
-			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
-				detail.TimeUpdate = result.LastUpdate
-			}
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.NacellePosition = defaultValue
-		}
-
-		if detail.NacellePosition != defaultValue {
-			nacellePos += detail.NacellePosition
-			cNacellePos++
-		}
-
-		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("temperature", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results = make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.Temperature = result.Temperature
-			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
-				detail.TimeUpdate = result.LastUpdate
-			}
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.Temperature = defaultValue
-		}
-
-		if detail.Temperature != defaultValue {
-			temperature += detail.Temperature
-			cTemperature++
-		}
-
-		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("pitchangle", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results = make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.PitchAngle = result.PitchAngle
-			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
-				detail.TimeUpdate = result.LastUpdate
-			}
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.PitchAngle = defaultValue
-		}
-
-		if detail.PitchAngle != defaultValue {
-			pitch += detail.PitchAngle
-			cPitch++
-		}
-
-		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("rotorrpm", defaultValue))).
-			Order("-timestamp").Cursor(nil)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		results = make([]ScadaRealTime, 0)
-		err = csrt.Fetch(&results, 1, false)
-		if err != nil {
-			tk.Println(err.Error())
-		}
-		csrt.Close()
-
-		if len(results) > 0 {
-			result := results[0]
-			detail.RotorRPM = result.RotorRPM
-			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
-				detail.TimeUpdate = result.LastUpdate
-			}
-			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
-			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
-				detail.DataComing = 1
-			}
-		} else {
-			detail.RotorRPM = defaultValue
-		}
-
-		if detail.RotorRPM != defaultValue {
-			rotor += detail.RotorRPM
-			cRotor++
-		}
-
-		details = append(details, detail)
-		if detail.TimeUpdate.Sub(timeUpdate) >= 0 {
-			timeUpdate = detail.TimeUpdate
-		}
-	}
-
-	mdl.TimeStamp = timeUpdate
-	mdl.Detail = details
-
-	// getting turbine status
-	csra, err := DB().Connection.NewQuery().From(new(TurbineStatus).TableName()).
-		Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	rests := make([]TurbineStatus, 0)
-	err = csra.Fetch(&rests, 0, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csra.Close()
-
-	ret := tk.M{}.
-		Set("Data", mdl).
-		Set("TurbineStatus", rests)
-
-	return ret
 }
 
 func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interface{} {
@@ -970,3 +641,313 @@ func (c *MonitoringRealtimeController) GetDataLine(k *knot.WebContext) interface
 
 	return helper.CreateResult(true, data, "success")
 }
+
+func getTurbineStatus(project string) (res tk.M) {
+	res = tk.M{}
+	return
+}
+
+/*
+func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
+	turbines := []string{
+		"SSE017", "SSE018", "SSE019", "SSE020", "TJ013", "TJ016", "HBR038", "TJ021", "TJ022", "TJ023", "TJ024",
+		"TJ025", "HBR004", "HBR005", "HBR006", "TJW024", "HBR007", "SSE001", "SSE002", "SSE007", "SSE006", "SSE011",
+		"SSE015", "SSE012",
+	}
+	defaultValue := -999999.00
+	defaultProject := "Tejuva"
+
+	mdl := new(ScadaMonitoring).New()
+
+	mdl.TimeStamp = time.Now()
+	mdl.DateInfo = GetDateInfo(mdl.TimeStamp)
+	mdl.ActivePower = defaultValue
+	mdl.Production = defaultValue
+	mdl.OprHours = 0.0
+	mdl.WtgOkHours = 0.0
+	mdl.WindSpeed = defaultValue
+	mdl.WindDirection = defaultValue
+	mdl.NacellePosition = defaultValue
+	mdl.Temperature = defaultValue
+	mdl.PitchAngle = defaultValue
+	mdl.RotorRPM = defaultValue
+	mdl.ProjectName = defaultProject
+
+	mdl.WindSpeedCount = 0
+	mdl.WindDirectionCount = 0
+	mdl.NacellePositionCount = 0
+	mdl.TemperatureCount = 0
+	mdl.PitchAngleCount = 0
+	mdl.RotorRPMCount = 0
+
+	power := 0.0
+	windSpeed := 0.0
+	cWindSpeed := 0
+	windDir := 0.0
+	cWindDir := 0
+	nacellePos := 0.0
+	cNacellePos := 0
+	temperature := 0.0
+	cTemperature := 0
+	pitch := 0.0
+	cPitch := 0
+	rotor := 0.0
+	cRotor := 0
+
+	timeUpdate := time.Now().UTC().Add(-720 * time.Hour)
+	details := make([]ScadaMonitoringItem, 0)
+	for _, t := range turbines {
+		var detail ScadaMonitoringItem
+		detail.Turbine = t
+		detail.DataComing = 0
+
+		csrt, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("activepower", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results := make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.ActivePower = result.ActivePower
+			detail.TimeUpdate = result.LastUpdate
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.ActivePower = defaultValue
+		}
+
+		if detail.ActivePower > defaultValue {
+			power += detail.ActivePower
+		}
+
+		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("windspeed", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results = make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.WindSpeed = result.WindSpeed
+			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
+				detail.TimeUpdate = result.LastUpdate
+			}
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.WindSpeed = defaultValue
+		}
+
+		if detail.WindSpeed != defaultValue {
+			windSpeed += detail.WindSpeed
+			cWindSpeed++
+		}
+
+		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("winddirection", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results = make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.WindDirection = result.WindDirection
+			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
+				detail.TimeUpdate = result.LastUpdate
+			}
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.WindDirection = defaultValue
+		}
+
+		if detail.WindDirection != defaultValue {
+			windDir += detail.WindDirection
+			cWindDir++
+		}
+
+		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("nacelleposition", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results = make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.NacellePosition = result.NacellePosition
+			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
+				detail.TimeUpdate = result.LastUpdate
+			}
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.NacellePosition = defaultValue
+		}
+
+		if detail.NacellePosition != defaultValue {
+			nacellePos += detail.NacellePosition
+			cNacellePos++
+		}
+
+		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("temperature", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results = make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.Temperature = result.Temperature
+			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
+				detail.TimeUpdate = result.LastUpdate
+			}
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.Temperature = defaultValue
+		}
+
+		if detail.Temperature != defaultValue {
+			temperature += detail.Temperature
+			cTemperature++
+		}
+
+		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("pitchangle", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results = make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.PitchAngle = result.PitchAngle
+			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
+				detail.TimeUpdate = result.LastUpdate
+			}
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.PitchAngle = defaultValue
+		}
+
+		if detail.PitchAngle != defaultValue {
+			pitch += detail.PitchAngle
+			cPitch++
+		}
+
+		csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+			Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("rotorrpm", defaultValue))).
+			Order("-timestamp").Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		results = make([]ScadaRealTime, 0)
+		err = csrt.Fetch(&results, 1, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrt.Close()
+
+		if len(results) > 0 {
+			result := results[0]
+			detail.RotorRPM = result.RotorRPM
+			if result.LastUpdate.Sub(detail.TimeUpdate).Seconds() > 0 {
+				detail.TimeUpdate = result.LastUpdate
+			}
+			timeNow := time.Now() //.UTC().Add(5.5 * time.Hour)
+			if timeNow.Sub(result.LastUpdate).Minutes() <= 3 {
+				detail.DataComing = 1
+			}
+		} else {
+			detail.RotorRPM = defaultValue
+		}
+
+		if detail.RotorRPM != defaultValue {
+			rotor += detail.RotorRPM
+			cRotor++
+		}
+
+		details = append(details, detail)
+		if detail.TimeUpdate.Sub(timeUpdate) >= 0 {
+			timeUpdate = detail.TimeUpdate
+		}
+	}
+
+	mdl.TimeStamp = timeUpdate
+	mdl.Detail = details
+
+	// getting turbine status
+	csra, err := DB().Connection.NewQuery().From(new(TurbineStatus).TableName()).
+		Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	rests := make([]TurbineStatus, 0)
+	err = csra.Fetch(&rests, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csra.Close()
+
+	ret := tk.M{}.
+		Set("Data", mdl).
+		Set("TurbineStatus", rests)
+
+	return ret
+}
+*/
