@@ -25,10 +25,8 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipes    []tk.M
-		dataProd []tk.M
-		dataWind []tk.M
-		list     []tk.M
+		pipes []tk.M
+		list  []tk.M
 	)
 
 	p := new(PayloadAnalytic)
@@ -41,17 +39,8 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	/*breakDown := p.BreakDown
-
-	if breakDown == "Date" {
-
-	} else if breakDown == "" {
-
-	}*/
 
 	match := tk.M{}
-
-	// log.Printf("%v - %v \n", tStart.String(), tEnd.String())
 
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 	match.Set("avgwindspeed", tk.M{"$lte": 25})
@@ -85,26 +74,27 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 
 	csr.Close()
 
+	var dtProd, dtWS [][]interface{}
+
 	for _, val := range list {
+		intTimestamp := val.Get("_id").(time.Time).UTC().Unix()
+
 		energy := val.GetFloat64("energy") / 1000
 		wind := val.GetFloat64("windspeed")
 
-		prod := tk.M{}
-		prod.Set("timestamp", val.Get("_id").(time.Time).UTC().Format("2006-01-02 15:04:05"))
-		prod.Set("value", energy)
-
-		windspeed := tk.M{}
-		windspeed.Set("timestamp", val.Get("_id").(time.Time).UTC().Format("2006-01-02 15:04:05"))
-		windspeed.Set("value", wind)
-
-		dataProd = append(dataProd, prod)
-		dataWind = append(dataWind, windspeed)
+		dtProd = append(dtProd, []interface{}{intTimestamp, energy})
+		dtWS = append(dtWS, []interface{}{intTimestamp, wind})
 	}
 
+	result := []tk.M{}
+
+	result = append(result, tk.M{"name": "Production", "data": dtProd, "unit": "MWh"})
+	result = append(result, tk.M{"name": "Windspeed", "data": dtWS, "unit": "m/s"})
+
 	data := struct {
-		Data tk.M
+		Data []tk.M
 	}{
-		Data: tk.M{"production": dataProd, "windspeed": dataWind},
+		Data: result,
 	}
 
 	return helper.CreateResult(true, data, "success")
