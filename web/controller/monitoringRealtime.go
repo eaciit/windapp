@@ -13,6 +13,7 @@ import (
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 
+	"sort"
 	"strings"
 	"time"
 )
@@ -70,7 +71,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	}
 	csrt.Close()
 
-	alldata := tk.M{}
+	alldata, allturbine := tk.M{}, tk.M{}
 	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
 		"PitchAngle", "RotorRPM"}
 	lastUpdate := time.Time{}
@@ -141,8 +142,14 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 		arrturbine := alldata.Get(_tkm.GetString("feeder"), []tk.M{}).([]tk.M)
 		arrturbine = append(arrturbine, aturbine)
 		alldata.Set(_tkm.GetString("feeder"), arrturbine)
+
+		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
+		lturbine = append(lturbine, strturbine)
+		sort.Strings(lturbine)
+		allturbine.Set(_tkm.GetString("feeder"), lturbine)
 	}
 
+	rtkm.Set("ListOfTurbine", allturbine)
 	rtkm.Set("Data", alldata)
 	rtkm.Set("TimeStamp", lastUpdate)
 	rtkm.Set("PowerGeneration", PowerGen)
