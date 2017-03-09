@@ -1427,3 +1427,59 @@ func (m *TurbineStatus) RecordID() interface{} {
 func (m *TurbineStatus) TableName() string {
 	return "TurbineStatus"
 }
+
+type AlarmRawRealtime struct {
+	orm.ModelBase `bson:"-" json:"-"`
+	ID            bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName   string
+	Turbine       string
+	Time          time.Time
+	DateInfo      DateInfo
+	AlarmCode     int
+	AlarmDesc     string
+	BrakeProgram  int
+	BrakeType     string
+}
+
+func (m *AlarmRawRealtime) New() *AlarmRawRealtime {
+	m.ID = bson.NewObjectId()
+	return m
+}
+
+func (m *AlarmRawRealtime) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *AlarmRawRealtime) TableName() string {
+	return "AlarmRawRealtime"
+}
+
+type AlarmRealtime struct {
+	orm.ModelBase `bson:"-" json:"-"`
+	ID            bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName   string
+	Turbine       string
+	TimeStart     time.Time
+	TimeEnd       time.Time
+	DateInfoStart DateInfo
+	DateInfoEnd   DateInfo
+	Duration      float64
+	AlarmCode     int
+	AlarmDesc     string
+	BrakeProgram  int
+	BrakeType     string
+	Finish        int
+}
+
+func (m *AlarmRealtime) New() *AlarmRealtime {
+	m.ID = bson.NewObjectId()
+	return m
+}
+
+func (m *AlarmRealtime) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *AlarmRealtime) TableName() string {
+	return "AlarmRealtime"
+}
