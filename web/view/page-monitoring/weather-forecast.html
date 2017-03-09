@@ -27,79 +27,77 @@
                 </div> -->
                 <div class="panel-body">                        
                     <div class="row margin-left-10">
-                        <div class="col-md-3">
+                        <div class="col-md-3 list-group-part">
                             <h4 class="content-heading">Current</h4>
-                                <div class="list-group">
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Weather</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="weather"></span>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Sea Level</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="sea_level"></span>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Wind Speed</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="wind_speed"></span> m/s
-                                        </div>
-                                        </div>
-                                    </div>                      
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Wind Direction</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="wind_direction"></span> &deg;
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Pressure</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="pressure"></span> hpa
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Humidity</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="humidity"></span> %
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="form-group row">
-                                        <label class="col-md-5 col-xs-4">Last Update</label>
-                                        <div class="col-md-7 col-xs-8">
-                                            :&nbsp;&nbsp;&nbsp;<span id="last_update"></span>
-                                        </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <!-- <div class="list-group">
+                            <div class="list-group">
                                 <div class="list-group-item main-item">
                                     <div class="row">
-                                        <div class="col-md-5 left-side align-center">
+                                        <div class="col-md-5 align-center left-weather">
                                             <img id="img_weather" src="http://openweathermap.org/img/w/02d.png" />
                                             <h4><span id="temperature"></span> &deg; C</h4>
                                         </div>
-                                        <div class="col-md-7 right-side">
+                                        <div class="col-md-7 align-center right-location">
                                             <h4>Jaisalmer (IN)</h4>
                                         </div>              
-                                    </div>              
+                                    </div>
                                 </div>
-                            </div> -->
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Weather</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="weather"></span>
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Sea Level</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="sea_level"></span>
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Wind Speed</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="wind_speed"></span> m/s
+                                    </div>
+                                    </div>
+                                </div>                      
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Wind Direction</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="wind_direction"></span> &deg;
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Pressure</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="pressure"></span> hpa
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Humidity</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="humidity"></span> %
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-weather-item">
+                                    <div class="form-group row">
+                                    <label class="col-md-5 col-xs-4 weather-label">Last Update</label>
+                                    <div class="col-md-7 col-xs-8">
+                                        :&nbsp;&nbsp;&nbsp;<span id="last_update"></span>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-9">
                             <h4 class="content-heading">Forecast</h4>
