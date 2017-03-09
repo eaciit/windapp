@@ -9,6 +9,18 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series 
 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
+pg.pageType = ko.observable(pageType);
+pg.dataType = ko.observable("MIN");
+pg.TagList = ko.observableArray(["Wind Speed"]);
+pg.tags = ko.observableArray([
+    {text: "Wind Speed" , value:"Wind Speed"},
+    {text: "Wind Direction" , value:"Wind Direction"},
+    {text: "Nacelle Direction" , value:"Nacelle Direction"},
+    {text: "Rotor RPM" , value:"Rotor RPM"},
+    {text: "Temperature" , value:"Temperature"},
+    {text: "Power" , value:"Power"}
+  ]);
+
 var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
@@ -28,7 +40,7 @@ pg.LoadData = function(){
         Turbine: fa.turbine,
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
-        Project: fa.project
+        Project: fa.project,
     };
 
     var requestData = toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
@@ -401,7 +413,7 @@ pg.createStockChart = function(){
                       kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
               });
               
-               $("#testTooltip").html(s.join("&nbsp;"));
+               $("#legendTooltip").html(s.join("&nbsp;"));
                return false;
            }
         },
@@ -431,10 +443,16 @@ pg.getDataStockChart = function(){
         Turbine: fa.turbine,
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
-        Project: fa.project
+        Project: fa.project,
+        PageType: pg.pageType(),
+        DataType: pg.dataType() ,
+        TagList : pg.TagList(),
     };
 
-    var request = toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
+
+    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdata" )
+
+    var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -443,7 +461,7 @@ pg.getDataStockChart = function(){
 
         $.each(data, function(idx, val){
              yAxis [idx] = { 
-                startOnTick: false,
+                // startOnTick: false,
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
@@ -477,17 +495,32 @@ pg.getDataStockChart = function(){
           if (seriesCounter === data.length) {
               pg.createStockChart();
           }
+
         });
     });
 
     $.when(request).done(function(){
         setTimeout(function(){
+           chart.tooltip.refresh([chart.series[0].points[1]]);
+           chart.tooltip.refresh([chart.series[1].points[1]]);
            app.loading(false);
          },200);
     });
 }
 
 $(document).ready(function () {
+    $('.popover-markup>.trigger').popover({
+        html: true,
+        title: function () {
+            return $(this).parent().find('.head').html();
+        },
+        content: function () {
+            return $(this).parent().find('.content').html();
+        }
+    }).on('click',function () {
+            $('#TagList').kendoMultiSelect({dataSource: pg.tags(), value: pg.TagList() , dataValueField : 'value', dataTextField: 'text',suggest: true, maxSelectedItems: 4});
+    });
+
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart();
     });
