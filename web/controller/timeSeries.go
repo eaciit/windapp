@@ -147,7 +147,16 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	projectName := ""
+	_ = projectName
+
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		projectName = strings.TrimRight(anProject[0], " ")
+	}
+
 	dataType := "seconds"
+	pageType := "hfd"
 
 	if dataType == "seconds" {
 		mapUnit := map[string]string{}
@@ -155,6 +164,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		mapUnit["ActivePower_kW"] = "kW"
 
 		for {
+			// log.Printf(">> %v \n", tStart.String())
 			// log.Printf(">> %v \n", tEnd.UTC().Sub(tStart.UTC()).Seconds())
 			// log.Printf(">> %v \n", tStart.UTC().Sub(tEnd.UTC()).Seconds())
 
@@ -172,45 +182,55 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		// log.Printf("> %#v \n", periodList)
 
 		if len(periodList) > 0 {
-			current := periodList[34]
-			currStar := current.Get("starttime").(time.Time)
-			currEnd := current.Get("endtime").(time.Time)
+			var periodIdExist int
+			for idx, pl := range periodList {
+				current := pl
+				// log.Printf("current: %#v \n", current)
+				currStar := current.Get("starttime").(time.Time)
+				currEnd := current.Get("endtime").(time.Time)
 
-			tags := []string{"WindSpeed_ms", "ActivePower_kW"}
-			hdfs, e := GetHFDData("HBR004", currStar, currEnd, tags)
+				tags := []string{"WindSpeed_ms", "ActivePower_kW"}
+				hfds, e := GetHFDData("HBR004", currStar, currEnd, tags)
 
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			projectName := ""
-			_ = projectName
-			if p.Project != "" {
-				anProject := strings.Split(p.Project, "(")
-				projectName = strings.TrimRight(anProject[0], " ")
-			}
-
-			for _, tag := range tags {
-				var dts [][]interface{}
-				for _, val := range hdfs {
-					timestamp := val.Get("timestamp").(time.Time).Unix()
-					tagVal := val.GetFloat64(tag)
-					dt := []interface{}{timestamp, tagVal}
-					dts = append(dts, dt)
+				if e != nil {
+					return helper.CreateResult(false, nil, e.Error())
 				}
 
-				resultChart = append(resultChart, tk.M{"name": tag, "data": dts, "unit": mapUnit[tag]})
+				if len(hfds) > 0 {
+					for _, tag := range tags {
+						var dts [][]interface{}
+						for _, val := range hfds {
+							timestamp := val.Get("timestamp").(time.Time).Unix()
+							tagVal := val.GetFloat64(tag)
+							dt := []interface{}{timestamp, tagVal}
+							dts = append(dts, dt)
+						}
+
+						resultChart = append(resultChart, tk.M{"name": tag, "data": dts, "unit": mapUnit[tag]})
+					}
+
+					periodIdExist = idx
+					break
+				}
+
 			}
+			periodList = periodList[periodIdExist:]
 		}
 	} else {
+		var collName string
+		if pageType == "hfd" {
+			collName = new(ScadaDataHFD).TableName()
+		} else {
+			collName = new(ScadaDataOEM).TableName()
+		}
+
 		match := tk.M{}
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 		// match.Set("avgwindspeed", tk.M{"$lte": 25})
 
-		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+		if projectName != "" {
+			match.Set("projectname", projectName)
 		}
 
 		group := tk.M{
@@ -225,7 +245,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 		csr, e := DB().Connection.NewQuery().
-			From(new(ScadaDataHFD).TableName()).
+			From(collName).
 			Command("pipe", pipes).
 			Cursor(nil)
 
