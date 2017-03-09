@@ -14,6 +14,9 @@ var seriesOptions = [],
     seriesCounter = 0;
 
 var yAxis = [];
+var chart;
+var legend = [];
+var colors = ["#0066dd","#dc3912","#eee"];
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -334,7 +337,16 @@ pg.chartProduction = function(dataSource){
 } 
 
 
-
+pg.hideLegend = function(idx){
+  var series = chart.series[idx];
+  if (series.visible) {
+      series.hide();
+      // $button.html('Show series');
+  } else {
+      series.show();
+      // $button.html('Hide series');
+  }
+}
 pg.createStockChart = function(){
     $("#chartTimeSeries").html("");
 
@@ -342,18 +354,20 @@ pg.createStockChart = function(){
         chart: {
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            }
+            },
+            marginTop: 0
         }
     });
 
-    Highcharts.stockChart('chartTimeSeries', {
+    chart = Highcharts.stockChart('chartTimeSeries', {
         legend: {
                 layout: 'horizontal',
-                // align: 'top',
+                padding: 3,
                 verticalAlign: 'top',
                 borderWidth: 0,
                 enabled: true,
-                margin : 5
+                margin : 5,
+                enabled: false
         },
         rangeSelector: {
             selected: 1
@@ -379,12 +393,18 @@ pg.createStockChart = function(){
                 }
             }
         },
-        tooltip: {
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
-            valueDecimals: 2,
-            split: true
+        tooltip:{         
+          formatter : function() {
+            var s = [];
+              $.each(this.points, function(i, point) {
+                  s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+
+                      kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+              });
+              
+               $("#testTooltip").html(s.join("&nbsp;"));
+               return false;
+           }
         },
-
         series: seriesOptions,
 
     });
@@ -419,55 +439,44 @@ pg.getDataStockChart = function(){
             return;
         }
 
-        var data = res.data.Data;
-        var series = [];
+        var data = res.data.Data.Chart;
 
-        var colors = ["#0066dd","#dc3912","#eee"];
-
-        $.each(data, function(id, ress){
-            series.push(id);
-        });
-
-        var i = 0;
         $.each(data, function(idx, val){
-            var newData = [];
-            $.each(data[idx], function(y, result){
-                newData.push([pg.getTimestamp(result.timestamp), result.value]);
-            });
-
-             yAxis [i] = { 
+             yAxis [idx] = { 
+                startOnTick: false,
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
                 },
                 title: {
-                    text: (idx == "windspeed" ? "(m/s)" : "(MWh)"),
+                    text: val.unit,
                 },
-                opposite: (idx == "production" ? true : false)
+                opposite: (val.name == "Production" ? true : false)
 
             }
-
-            seriesOptions[i] = {
-                  name : idx.substr(0,1).toUpperCase()+idx.substr(1), 
-                  data : newData,
-                  color: colors[i],
+            seriesOptions[idx] = {
+                  name : val.name, 
+                  data : val.data,
+                  color: colors[idx],
                   type: 'line',
-                  yAxis: i,
+                  yAxis: idx,
                   tooltip: {
-                      valueSuffix: (idx == "windspeed" ? " (m/s)" : " (MWh)"),
+                      valueSuffix: val.unit,
                   }
             }
 
-           
+            
+
+            legend[idx] = {
+                name : val.name,
+                unit : val.unit
+            }
 
           seriesCounter += 1;
 
-          if (seriesCounter === series.length) {
+          if (seriesCounter === data.length) {
               pg.createStockChart();
           }
-
-          i++;
-
         });
     });
 

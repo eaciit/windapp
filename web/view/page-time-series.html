@@ -16,6 +16,14 @@
   #     }
     } #
 </script>
+<style type="text/css">
+	#testTooltip { 
+		text-align: center;
+		z-index: 10;
+		position: relative;
+		margin-bottom: -20px;
+	 }
+</style>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -43,6 +51,7 @@
 							<div id="chartProduction"></div>
 						</div> -->
 						<div class="col-md-12">
+							<div id="testTooltip"></div>
 							<div id="chartTimeSeries"></div>
 						</div>
 					</div>
