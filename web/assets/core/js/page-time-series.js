@@ -355,7 +355,8 @@ pg.createStockChart = function(){
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            marginTop: 0
+            marginTop: 0,
+            // zoomType: 'x'
         }
     });
 
@@ -381,6 +382,7 @@ pg.createStockChart = function(){
         exporting: {
           enabled: false
         },
+        xAxis: {type: 'datetime'},
         yAxis: yAxis,
         plotOptions: {
         series: {
