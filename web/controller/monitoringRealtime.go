@@ -77,6 +77,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown := 0
+	t0 := time.Now().UTC()
 
 	arrturbinestatus := getTurbineStatus(project)
 
@@ -111,14 +112,17 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 				tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 				utime := aturbine.Get("TimeUpdate", time.Time{}).(time.Time)
 				aturbine.Set(afield, ifloat)
-				aturbine.Set("DataComing", 1)
+
+				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+					aturbine.Set("DataComing", 1)
+				}
 
 				if tstamp.After(utime) {
-					aturbine.Set("TimeUpdate", tstamp)
+					aturbine.Set("TimeUpdate", tstamp.UTC())
 				}
 
 				if tstamp.After(lastUpdate) {
-					lastUpdate = tstamp
+					lastUpdate = tstamp.UTC()
 				}
 
 				switch afield {
@@ -134,7 +138,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 		aturbine.Set("AlarmCode", arrturbinestatus[strturbine].AlarmCode).
 			Set("AlarmDesc", arrturbinestatus[strturbine].AlarmDesc).
 			Set("Status", arrturbinestatus[strturbine].Status).
-			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate)
+			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate.UTC())
 		if arrturbinestatus[strturbine].Status == 0 {
 			turbinedown += 1
 		}
