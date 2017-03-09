@@ -38,30 +38,37 @@ ma.populateProject = function (data) {
     }
 };
 
-ma.LoadData = function() {
+// ma.LoadData = function() {
+//     app.loading(true);
+//     var param = {}
+//     toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataalarm", param, function (res) {
+//         ma.CreateGrid(res);
+//         var totalFreq = 0;
+//         var totalHour = 0;
+//         $.each(res, function(idx, val) {
+//             totalFreq++;
+//             totalHour += val.Duration;
+//         });
+//         $('#alarm_duration').text((totalHour/3600).toFixed(2));
+//         $('#alarm_frequency').text(totalFreq);
+//     });
+// };
+
+ma.CreateGrid = function() {
     app.loading(true);
-    var param = {}
-    toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataalarm", param, function (res) {
-        ma.CreateGrid(res);
-        var totalFreq = 0;
-        var totalHour = 0;
-        $.each(res, function(idx, val) {
-            totalFreq++;
-            totalHour += val.Duration;
-        });
-        $('#alarm_duration').text((totalHour/3600).toFixed(2));
-        $('#alarm_frequency').text(totalFreq);
-    });
-};
-ma.CreateGrid = function(data) {
+
+    var param = {
+    };
+
     $('#alarmGrid').html('');
     $('#alarmGrid').kendoGrid({
         dataSource: {
-            // data: data,
+            serverPaging: true,
             transport: {
                 read: {
                     url: viewModel.appName + "monitoringrealtime/getdataalarm",
                     type: "POST",
+                    data: param,
                     dataType: "json",
                     contentType: "application/json; charset=utf-8",
                 },
@@ -72,9 +79,21 @@ ma.CreateGrid = function(data) {
             schema: {
                 data: function data(res) {
                     app.loading(false);
-                    return res;
+
+                    var totalFreq = 0;
+                    var totalHour = 0;
+                    $.each(res.data.Data, function(idx, val) {
+                        totalFreq++;
+                        totalHour += val.Duration;
+                    });
+                    $('#alarm_duration').text((totalHour/3600).toFixed(2));
+                    $('#alarm_frequency').text(totalFreq);
+                    
+                    return res.data.Data;
                 },
-                total: "data.total"
+                total: function data(res) {
+                    return res.data.Total;
+                }
             },
             pageSize: 10,
             sort: [
@@ -122,5 +141,6 @@ function time(s) {
 
 
 $(document).ready(function(){
-    ma.LoadData();
+    ma.CreateGrid();
+    // ma.LoadData();
 });

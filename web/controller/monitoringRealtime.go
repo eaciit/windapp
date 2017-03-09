@@ -181,6 +181,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 
 	query.Set("take", p.Take).Set("skip", p.Skip)
 	csr, err = DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
+		Where(dbox.Eq("projectname", "Tejuva")).
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
