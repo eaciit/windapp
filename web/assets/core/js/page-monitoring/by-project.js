@@ -11,10 +11,12 @@ vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'By Project', href: viewModel.appName + 'page/monitoringbyproject' }]);
 
-bp.Turbines1 = ko.observableArray(
+/*bp.Turbines1 = ko.observableArray(
     ["HBR004", "HBR005", "HBR006", "TJW024", "HBR007", "SSE001", "SSE002", "SSE007", "SSE006", "SSE011", "SSE015", "SSE012"]);
 bp.Turbines2 = ko.observableArray(
-    ["SSE017", "SSE018", "SSE019", "SSE020", "TJ013", "TJ016", "HBR038", "TJ021", "TJ022", "TJ023", "TJ024", "TJ025"]);
+    ["SSE017", "SSE018", "SSE019", "SSE020", "TJ013", "TJ016", "HBR038", "TJ021", "TJ022", "TJ023", "TJ024", "TJ025"]);*/
+bp.Turbines1 = ko.observableArray([]);
+bp.Turbines2 = ko.observableArray([]);
 bp.selectedTurbine = ko.observable("");
 bp.selectedProject = ko.observable();
 bp.selectedMonitoring = ko.observable();
@@ -85,14 +87,6 @@ bp.PowerChartOpt = function(data) {
     };
 };
 
-bp.GetData = function(data) {
-    var param = {}
-    var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
-        bp.PlotData(res);
-    });
-    bp.CheckWeather();
-};
-
 bp.CheckWeather = function() {
     var surl = 'http://api.openweathermap.org/data/2.5/weather';
     var param = { "q": "Jaisalmer,in", "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
@@ -110,14 +104,28 @@ bp.CheckWeather = function() {
             // do nothing
         }  
     });
-}
+};
+
+bp.GetData = function(data) {
+    var param = {}
+    var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
+        bp.Turbines1(res.data.ListOfTurbine["Feeder 5"]);
+        bp.Turbines2(res.data.ListOfTurbine["Feeder 8"]);
+        bp.PlotData(res.data);
+    });
+    bp.CheckWeather();
+};
+
 bp.PlotData = function(data) {
-    var lastUpdate = moment.utc(data.Data.TimeStamp).add(5.5, 'hour');
+    var feeder5 = data.Data["Feeder 5"];
+    var allData = feeder5.concat(data.Data["Feeder 8"]);
+    var lastUpdate = moment.utc(data.TimeStamp);
+    // var lastUpdate = moment.utc(data.TimeStamp).add(5.5, 'hour');
     // var lastUpdate = moment.utc().add(5.5, 'hour');
-    var energy = data.Data.ActivePower * 1000 * (3/3600);
-    var plf = energy / (2100 * (3/3600) * 24 * 1000) * 100;
+    // var energy = data.Data.ActivePower * 1000 * (3/3600);
+    // var plf = energy / (2100 * (3/3600) * 24 * 1000) * 100;
     $('#project_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
-    $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
+    // $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
     //$('#project_generation').text(data.ActivePower.toFixed(2));
     //$('#project_wind_speed').text((data.WindSpeed>-999999?data.WindSpeed.toFixed(2):'N/A'));
     //$('#project_production').text(energy.toFixed(2));
@@ -128,18 +136,9 @@ bp.PlotData = function(data) {
     var totalPower = 0;
     var totalWs = 0;
     var countWs = 0;
-    var turbineIcons = new Array();
 
-    $.each(data.Data.Detail, function(idx, val){
+    $.each(allData, function(idx, val){
         var turbine = val.Turbine;
-        
-        // $('#power_'+ turbine).text('-');
-        // $('#wind_'+ turbine).text('-');
-        // $('#dir_'+ turbine).text('-');
-        // $('#rotor_'+ turbine).text('-');
-        // $('#pitch_'+ turbine).text('-');
-        // $('#temperature_'+ turbine).text('-');
-        turbineIcons[turbine] = val.DataComing;
 
         if(val.ActivePower > -999999) { 
             if(val.ActivePower.toFixed(2)!=$('#power_'+ turbine).text()) {
@@ -221,12 +220,8 @@ bp.PlotData = function(data) {
                 $('#temperature_'+ turbine).css('background-color', 'transparent'); 
             }, 750);
         }
-    });
 
-    var statusUp = 0;
-    var statusDown = 0;
-    $.each(data.TurbineStatus, function(idx, val){
-        var turbine = val.ID;
+        /* TURBINE STATUS PART */
         if(val.AlarmDesc!="") {
             $('#alarmdesc_'+ turbine).text(val.AlarmCode);
             $('#alarmdesc_'+ turbine).attr('data-original-title', val.AlarmDesc);
@@ -238,18 +233,22 @@ bp.PlotData = function(data) {
         var iconStatus = "fa fa-circle fa-project-info fa-green";
         if(val.Status==0) {
             iconStatus = "fa fa-circle fa-project-info fa-red"; // faa-flash animated
-            statusDown++;
-        } else {
-            statusUp++;
         }
-        if(turbineIcons[turbine]==0) {
+        if(val.DataComing==0) {
             iconStatus = "fa fa-circle fa-project-info fa-grey";
         }
         $('#status_'+ turbine).attr('class', iconStatus);
+
+        /* END OF TURBINE STATUS PART */
     });
 
-    $('#project_turbine_down').text(statusDown);
-    $('#project_turbine_active').text(statusUp);
+   
+    /*$.each(data.TurbineStatus, function(idx, val){
+        
+    });*/
+
+    $('#project_turbine_down').text(data.TurbineDown);
+    $('#project_turbine_active').text(data.TurbineActive);
 
     window.setTimeout(function(){ 
         $('#project_generation').text(totalPower.toFixed(2));

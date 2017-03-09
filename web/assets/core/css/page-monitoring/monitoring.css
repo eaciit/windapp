@@ -28,11 +28,65 @@
 .margin-right-10 {
     margin-right: 10px;
 }
-
+.feeder-title {
+  margin-bottom: 15px;
+}
 /*==================================== WEATHER FORECAST.css ========================*/
 #weatherChart.k-chart{
     margin-top: -13px;
     background: transparent;
+}
+
+/*======================== CONTROL SUMMARY =======================*/
+.control-summary {
+  padding: 0px 0px 0px 0px;
+  width: 150px;
+  height: 55px;
+  margin: 0px 10px 15px 0px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #dedeec;
+}
+
+.productivity-box {
+  width: 250px;
+}
+
+.control-summary-hs {
+  padding: 0px 0px 0px 0px;
+  width: 150px;
+  height: 50px;
+  margin: 0px 10px 0px 0px;    
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #dedeec;
+}
+
+label.summary-header {
+  padding: 5px 0px 0px 5px;
+  font-size: 12px;
+  color: #585555;
+  text-align: center;
+}
+
+label.summary-number {
+  padding: 0px 0px 5px 5px;
+  font-size: 19px;
+  color: #585555;
+  text-align: center;
+  margin-top: -5px;
+}
+
+.left-border-org {
+  background-color: #ffffff;
+  float: left;
+  border-left: 4px solid #eb5b19;
+}
+
+.left-border-green {
+  background-color: #ffffff;
+  float: left;
+  border-left: 4px solid #337ab7;
 }
 
 /*==================================== CUSTOM.CSS =========================*/
@@ -250,27 +304,25 @@ h4.content-heading {
   background: #F9F9F9;
 }
 
-  .project-icon { border: none; }
-  .project-icon div {    
-    border: 1px solid #e0e0e0;
-    margin-bottom: 5px;
-  }
-  .project-icon div:first-child {
-    border-left: 1px solid #e0e0e0;
-  }
-  .project-icon div:last-child {
-    border-right: 1px solid #e0e0e0;
-    display: none;
-  }  
-  .project-icon div.not-hide {
-    display: inline;
-  }
-  .project-icon div:last-child h4 { font-size: 16px; padding-bottom: 2px; }
-  div.source-info.pull-right {
-    margin-top: 25px;
-  }   
+.project-icon { border: none; }
+.project-icon div {    
+  border: 1px solid #e0e0e0;
+  margin-bottom: 5px;
 }
-
+.project-icon div:first-child {
+  border-left: 1px solid #e0e0e0;
+}
+.project-icon div:last-child {
+  border-right: 1px solid #e0e0e0;
+  display: none;
+} 
+.project-icon div.not-hide {
+  display: inline;
+}
+.project-icon div:last-child h4 { font-size: 16px; padding-bottom: 2px; }
+/*div.source-info.pull-right {
+  margin-top: 25px;
+}*/
 /* ===================================== MODAL CSS ====================================================*/
 
 .modal-dialog {
