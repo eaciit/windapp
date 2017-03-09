@@ -439,7 +439,7 @@ pg.getDataStockChart = function(){
             return;
         }
 
-        var data = res.data.Data;
+        var data = res.data.Data.Chart;
 
         $.each(data, function(idx, val){
              yAxis [idx] = { 
@@ -478,7 +478,6 @@ pg.getDataStockChart = function(){
               pg.createStockChart();
           }
         });
-        console.log(legend);
     });
 
     $.when(request).done(function(){
