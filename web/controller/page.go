@@ -427,7 +427,7 @@ func (w *PageController) TimeSeries(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-time-series.html"
-	return w.GetParams(r, true).Set("DataType", "OEM")
+	return w.GetParams(r, true).Set("PageType", "OEM")
 }
 
 func (w *PageController) TimeSeriesHFD(r *knot.WebContext) interface{} {

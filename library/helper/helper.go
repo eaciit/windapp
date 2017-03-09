@@ -539,3 +539,11 @@ func GetNormalAddDateMonth(dt time.Time, month int) (res time.Time) {
 
 	return
 }
+
+func UpperFirstLetter(str string) string {
+	if len(str) > 0 {
+		str = strings.ToUpper(str[:1]) + str[1:]
+	}
+
+	return str
+}

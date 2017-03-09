@@ -3,6 +3,7 @@ package controller
 import (
 	"bufio"
 	. "eaciit/wfdemo-git/library/core"
+	hpp "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
@@ -130,13 +131,15 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	var (
+		match       tk.M
+		group       tk.M
 		pipes       []tk.M
 		list        []tk.M
 		resultChart []tk.M
 		periodList  []tk.M
 	)
 
-	p := new(PayloadAnalytic)
+	p := new(PayloadTimeSeries)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -155,41 +158,46 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		projectName = strings.TrimRight(anProject[0], " ")
 	}
 
-	dataType := "seconds"
-	pageType := "hfd"
+	dataType := "SEC"
+	pageType := "HFD"
 
-	if dataType == "seconds" {
-		mapUnit := map[string]string{}
+	tags := []string{}
+	mapUnit := map[string]string{}
+
+	if pageType == "HFD" {
+		// set default value for HFD
+		tags = []string{"WindSpeed_ms", "ActivePower_kW"}
 		mapUnit["WindSpeed_ms"] = "m/s"
 		mapUnit["ActivePower_kW"] = "kW"
 
-		for {
-			// log.Printf(">> %v \n", tStart.String())
-			// log.Printf(">> %v \n", tEnd.UTC().Sub(tStart.UTC()).Seconds())
-			// log.Printf(">> %v \n", tStart.UTC().Sub(tEnd.UTC()).Seconds())
+		if len(p.TagList) > 0 {
+			tags = p.TagList
+		}
 
+	} else if pageType == "OEM" {
+		// set default value for OEM
+		tags = []string{"production", "windspeed"}
+		mapUnit["production"] = "m/s"
+		mapUnit["windspeed"] = "MWh"
+	}
+
+	if pageType == "HFD" && dataType == "SEC" {
+		for {
 			if tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
 				break
 			}
-
-			// log.Printf(">>> %v \n", tStart.String())
 
 			before := tStart.UTC()
 			tStart = tStart.UTC().Add(time.Duration(3) * time.Hour)
 			periodList = append(periodList, tk.M{"starttime": before, "endtime": tStart.UTC()})
 		}
 
-		// log.Printf("> %#v \n", periodList)
-
 		if len(periodList) > 0 {
-			var periodIdExist int
 			for idx, pl := range periodList {
 				current := pl
-				// log.Printf("current: %#v \n", current)
 				currStar := current.Get("starttime").(time.Time)
 				currEnd := current.Get("endtime").(time.Time)
 
-				tags := []string{"WindSpeed_ms", "ActivePower_kW"}
 				hfds, e := GetHFDData("HBR004", currStar, currEnd, tags)
 
 				if e != nil {
@@ -206,39 +214,44 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 							dts = append(dts, dt)
 						}
 
-						resultChart = append(resultChart, tk.M{"name": tag, "data": dts, "unit": mapUnit[tag]})
+						resultChart = append(resultChart, tk.M{"name": hpp.UpperFirstLetter(tag), "data": dts, "unit": mapUnit[tag]})
 					}
 
-					periodIdExist = idx
+					periodList = periodList[idx:]
 					break
 				}
 
 			}
-			periodList = periodList[periodIdExist:]
 		}
 	} else {
 		var collName string
-		if pageType == "hfd" {
+		if pageType == "HFD" {
 			collName = new(ScadaDataHFD).TableName()
+			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+			// match.Set("avgwindspeed", tk.M{"$lte": 25})
+
+			group = tk.M{
+				"energy":    tk.M{"$sum": "$energy"},
+				"windspeed": tk.M{"$avg": "$avgwindspeed"},
+			}
+
+			group.Set("_id", "$timestamp")
 		} else {
 			collName = new(ScadaDataOEM).TableName()
+			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+			// match.Set("avgwindspeed", tk.M{"$lte": 25})
+
+			group = tk.M{
+				"energy":    tk.M{"$sum": "$energy"},
+				"windspeed": tk.M{"$avg": "$avgwindspeed"},
+			}
+
+			group.Set("_id", "$timestamp")
 		}
-
-		match := tk.M{}
-
-		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
-		// match.Set("avgwindspeed", tk.M{"$lte": 25})
 
 		if projectName != "" {
 			match.Set("projectname", projectName)
 		}
-
-		group := tk.M{
-			"energy":    tk.M{"$sum": "$energy"},
-			"windspeed": tk.M{"$avg": "$avgwindspeed"},
-		}
-
-		group.Set("_id", "$timestamp")
 
 		pipes = append(pipes, tk.M{"$match": match})
 		pipes = append(pipes, tk.M{"$group": group})
@@ -257,20 +270,24 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 
 		csr.Close()
 
-		var dtProd, dtWS [][]interface{}
+		for _, tag := range tags {
+			var dts [][]interface{}
+			for _, val := range list {
+				timestamp := val.Get("timestamp").(time.Time).Unix()
+				var tagVal float64
 
-		for _, val := range list {
-			intTimestamp := val.Get("_id").(time.Time).UTC().Unix()
+				if tag == "production" {
+					tagVal = val.GetFloat64(tag) / 1000
+				} else {
+					tagVal = val.GetFloat64(tag)
+				}
 
-			energy := val.GetFloat64("energy") / 1000
-			wind := val.GetFloat64("windspeed")
+				dt := []interface{}{timestamp, tagVal}
+				dts = append(dts, dt)
+			}
 
-			dtProd = append(dtProd, []interface{}{intTimestamp, energy})
-			dtWS = append(dtWS, []interface{}{intTimestamp, wind})
+			resultChart = append(resultChart, tk.M{"name": hpp.UpperFirstLetter(tag), "data": dts, "unit": mapUnit[tag]})
 		}
-
-		resultChart = append(resultChart, tk.M{"name": "Production", "data": dtProd, "unit": "MWh"})
-		resultChart = append(resultChart, tk.M{"name": "Windspeed", "data": dtWS, "unit": "m/s"})
 	}
 
 	data := struct {
@@ -300,8 +317,6 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 
 		newTime := tStart.UTC().Add(time.Duration(600-minuteDiv) * time.Second).UTC()
 
-		// groupTime := hpp.GenNext10Minutes(newTime.UTC()).UTC()
-		// log.Printf(">> %v | %v \n", newTime, tStart.UTC())
 		folder := newTime.Format("20060102/15/") + newTime.Format("1504")
 		file := prefix + startStr + ".csv"
 		path := "/Volumes/Development/ostrorealtime/" + folder + "/" + file
