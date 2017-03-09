@@ -3,6 +3,7 @@
 	var pageType = '{{.PageType}}';
 </script>
 <script src="{{BaseUrl}}res/core/js/page-time-series.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-time-series.css">
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 <!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
@@ -16,14 +17,6 @@
   #     }
     } #
 </script>
-<style type="text/css">
-	#testTooltip { 
-		text-align: center;
-		z-index: 10;
-		position: relative;
-		margin-bottom: -20px;
-	 }
-</style>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -43,7 +36,13 @@
 						<div class="date-info">
 							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
 						</div>
-						<div class="clearfix">&nbsp;</div>
+						<!-- <div class="col-md-12" data-bind="visible:pg.pageType == 'HFD'"> -->
+						<div class="col-md-12">
+							<div class="pull-right data-type">
+								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType()">1 Sec</label>
+								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType()">10 Minutes</label>
+							</div>
+						</div>
 						<!-- <div class="col-md-6">
 							<div id="chartWindSpeed"></div>
 						</div>
@@ -51,7 +50,17 @@
 							<div id="chartProduction"></div>
 						</div> -->
 						<div class="col-md-12">
-							<div id="testTooltip"></div>
+							<div class="legend">
+								<span id="legendTooltip"></span>&nbsp; &nbsp;
+								<div class="popover-markup"> <a href='javascript:;' class="trigger"><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
+								    <div class="content hide">
+								        <div class="form-group">
+								            <select id="TagList"></select>
+								        </div>
+								        <button type="submit" class="btn btn-xs btn-primary btn-block"><i class="fa fa-check"></i></button>
+								    </div>
+								</div>
+							</div>
 							<div id="chartTimeSeries"></div>
 						</div>
 					</div>

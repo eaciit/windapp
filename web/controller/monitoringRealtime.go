@@ -13,6 +13,7 @@ import (
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 
+	"sort"
 	"strings"
 	"time"
 )
@@ -70,12 +71,13 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	}
 	csrt.Close()
 
-	alldata := tk.M{}
+	alldata, allturbine := tk.M{}, tk.M{}
 	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
 		"PitchAngle", "RotorRPM"}
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown := 0
+	t0 := time.Now().UTC()
 
 	arrturbinestatus := getTurbineStatus(project)
 
@@ -110,14 +112,17 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 				tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 				utime := aturbine.Get("TimeUpdate", time.Time{}).(time.Time)
 				aturbine.Set(afield, ifloat)
-				aturbine.Set("DataComing", 1)
+
+				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+					aturbine.Set("DataComing", 1)
+				}
 
 				if tstamp.After(utime) {
-					aturbine.Set("TimeUpdate", tstamp)
+					aturbine.Set("TimeUpdate", tstamp.UTC())
 				}
 
 				if tstamp.After(lastUpdate) {
-					lastUpdate = tstamp
+					lastUpdate = tstamp.UTC()
 				}
 
 				switch afield {
@@ -133,7 +138,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 		aturbine.Set("AlarmCode", arrturbinestatus[strturbine].AlarmCode).
 			Set("AlarmDesc", arrturbinestatus[strturbine].AlarmDesc).
 			Set("Status", arrturbinestatus[strturbine].Status).
-			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate)
+			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate.UTC())
 		if arrturbinestatus[strturbine].Status == 0 {
 			turbinedown += 1
 		}
@@ -141,8 +146,14 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 		arrturbine := alldata.Get(_tkm.GetString("feeder"), []tk.M{}).([]tk.M)
 		arrturbine = append(arrturbine, aturbine)
 		alldata.Set(_tkm.GetString("feeder"), arrturbine)
+
+		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
+		lturbine = append(lturbine, strturbine)
+		sort.Strings(lturbine)
+		allturbine.Set(_tkm.GetString("feeder"), lturbine)
 	}
 
+	rtkm.Set("ListOfTurbine", allturbine)
 	rtkm.Set("Data", alldata)
 	rtkm.Set("TimeStamp", lastUpdate)
 	rtkm.Set("PowerGeneration", PowerGen)
@@ -174,6 +185,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 
 	query.Set("take", p.Take).Set("skip", p.Skip)
 	csr, err = DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
+		Where(dbox.Eq("projectname", "Tejuva")).
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
