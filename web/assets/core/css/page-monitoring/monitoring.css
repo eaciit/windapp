@@ -28,7 +28,9 @@
 .margin-right-10 {
     margin-right: 10px;
 }
-
+.feeder-title {
+  margin-bottom: 15px;
+}
 /*==================================== WEATHER FORECAST.css ========================*/
 #weatherChart.k-chart{
     margin-top: -13px;
