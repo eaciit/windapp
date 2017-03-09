@@ -360,8 +360,6 @@ func (w *PageController) MonitoringByProject(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/by-project.html"
-	projectList, _ := helper.GetProjectList()
-	w.Params.Set("ProjectList", projectList)
 	return w.GetParams(r, true)
 }
 
@@ -369,17 +367,14 @@ func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/individual-turbine.html"
-	projectList, _ := helper.GetProjectList()
-	w.Params.Set("ProjectList", projectList)
 	return w.GetParams(r, true)
 }
 
 func (w *PageController) MonitoringAlarm(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"_filter-analytic.html"}...)
 	r.Config.ViewName = "page-monitoring/monitoring-alarm.html"
-	projectList, _ := helper.GetProjectList()
-	w.Params.Set("ProjectList", projectList)
 	return w.GetParams(r, true)
 }
 
@@ -387,8 +382,6 @@ func (w *PageController) MonitoringWeather(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/weather-forecast.html"
-	projectList, _ := helper.GetProjectList()
-	w.Params.Set("ProjectList", projectList)
 	return w.GetParams(r, true)
 }
 

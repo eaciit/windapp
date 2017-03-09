@@ -119,12 +119,13 @@ bp.GetData = function(data) {
 bp.PlotData = function(data) {
     var feeder5 = data.Data["Feeder 5"];
     var allData = feeder5.concat(data.Data["Feeder 8"]);
-    var lastUpdate = moment.utc(data.TimeStamp).add(5.5, 'hour');
+    var lastUpdate = moment.utc(data.TimeStamp);
+    // var lastUpdate = moment.utc(data.TimeStamp).add(5.5, 'hour');
     // var lastUpdate = moment.utc().add(5.5, 'hour');
     // var energy = data.Data.ActivePower * 1000 * (3/3600);
     // var plf = energy / (2100 * (3/3600) * 24 * 1000) * 100;
     $('#project_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
-    $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
+    // $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
     //$('#project_generation').text(data.ActivePower.toFixed(2));
     //$('#project_wind_speed').text((data.WindSpeed>-999999?data.WindSpeed.toFixed(2):'N/A'));
     //$('#project_production').text(energy.toFixed(2));
@@ -135,37 +136,9 @@ bp.PlotData = function(data) {
     var totalPower = 0;
     var totalWs = 0;
     var countWs = 0;
-    var turbineIcons = new Array();
-    var statusUp = 0;
-    var statusDown = 0;
 
     $.each(allData, function(idx, val){
-        /* TURBINE STATUS PART */
         var turbine = val.Turbine;
-        if(val.AlarmDesc!="") {
-            $('#alarmdesc_'+ turbine).text(val.AlarmCode);
-            $('#alarmdesc_'+ turbine).attr('data-original-title', val.AlarmDesc);
-        } else {
-            $('#alarmdesc_'+ turbine).text("-");
-            $('#alarmdesc_'+ turbine).attr('data-original-title', "This turbine already UP");
-        }
-
-        var iconStatus = "fa fa-circle fa-project-info fa-green";
-        if(val.Status==0) {
-            iconStatus = "fa fa-circle fa-project-info fa-red"; // faa-flash animated
-            statusDown++;
-        } else {
-            statusUp++;
-        }
-        if(turbineIcons[turbine]==0) {
-            iconStatus = "fa fa-circle fa-project-info fa-grey";
-        }
-        $('#status_'+ turbine).attr('class', iconStatus);
-
-        /* END OF TURBINE STATUS PART */
-
-        var turbine = val.Turbine;
-        turbineIcons[turbine] = val.DataComing;
 
         if(val.ActivePower > -999999) { 
             if(val.ActivePower.toFixed(2)!=$('#power_'+ turbine).text()) {
@@ -247,6 +220,26 @@ bp.PlotData = function(data) {
                 $('#temperature_'+ turbine).css('background-color', 'transparent'); 
             }, 750);
         }
+
+        /* TURBINE STATUS PART */
+        if(val.AlarmDesc!="") {
+            $('#alarmdesc_'+ turbine).text(val.AlarmCode);
+            $('#alarmdesc_'+ turbine).attr('data-original-title', val.AlarmDesc);
+        } else {
+            $('#alarmdesc_'+ turbine).text("-");
+            $('#alarmdesc_'+ turbine).attr('data-original-title', "This turbine already UP");
+        }
+
+        var iconStatus = "fa fa-circle fa-project-info fa-green";
+        if(val.Status==0) {
+            iconStatus = "fa fa-circle fa-project-info fa-red"; // faa-flash animated
+        }
+        if(val.DataComing==0) {
+            iconStatus = "fa fa-circle fa-project-info fa-grey";
+        }
+        $('#status_'+ turbine).attr('class', iconStatus);
+
+        /* END OF TURBINE STATUS PART */
     });
 
    
@@ -254,8 +247,8 @@ bp.PlotData = function(data) {
         
     });*/
 
-    $('#project_turbine_down').text(statusDown);
-    $('#project_turbine_active').text(statusUp);
+    $('#project_turbine_down').text(data.TurbineDown);
+    $('#project_turbine_active').text(data.TurbineActive);
 
     window.setTimeout(function(){ 
         $('#project_generation').text(totalPower.toFixed(2));

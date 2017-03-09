@@ -11,48 +11,6 @@ vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Alarm Data', href: viewModel.appName + 'page/monitoringalarm' }]);
 var intervalTurbine = null;
-ma.projectList = ko.observableArray([]);
-ma.project = ko.observable();
-
-ma.populateProject = function (data) {
-    if (data.length == 0) {
-        data = [];;
-        ma.projectList([{ value: "", text: "" }]);
-    } else {
-        var datavalue = [];
-        if (data.length > 0) {
-            $.each(data, function (key, val) {
-                var data = {};
-                data.value = val.split("(")[0].trim();
-                data.text = val;
-                datavalue.push(data);
-            });
-        }
-        ma.projectList(datavalue);
-
-        // override to set the value
-        setTimeout(function () {
-            $("#projectList").data("kendoDropDownList").select(0);
-            ma.project = $("#projectList").data("kendoDropDownList").value();
-        }, 300);
-    }
-};
-
-// ma.LoadData = function() {
-//     app.loading(true);
-//     var param = {}
-//     toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataalarm", param, function (res) {
-//         ma.CreateGrid(res);
-//         var totalFreq = 0;
-//         var totalHour = 0;
-//         $.each(res, function(idx, val) {
-//             totalFreq++;
-//             totalHour += val.Duration;
-//         });
-//         $('#alarm_duration').text((totalHour/3600).toFixed(2));
-//         $('#alarm_frequency').text(totalFreq);
-//     });
-// };
 
 ma.CreateGrid = function() {
     app.loading(true);
