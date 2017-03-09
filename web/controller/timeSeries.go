@@ -28,6 +28,11 @@ type HFDModel struct {
 	Value     float64
 }
 
+type ResDataAvail struct {
+	Chart      []tk.M
+	PeriodList []tk.M
+}
+
 func CreateTimeSeriesController() *TimeSeriesController {
 	var controller = new(TimeSeriesController)
 	return controller
@@ -37,8 +42,10 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		pipes []tk.M
-		list  []tk.M
+		pipes       []tk.M
+		list        []tk.M
+		resultChart []tk.M
+		periodList  []tk.M
 	)
 
 	p := new(PayloadAnalytic)
@@ -98,15 +105,16 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 		dtWS = append(dtWS, []interface{}{intTimestamp, wind})
 	}
 
-	result := []tk.M{}
-
-	result = append(result, tk.M{"name": "Production", "data": dtProd, "unit": "MWh"})
-	result = append(result, tk.M{"name": "Windspeed", "data": dtWS, "unit": "m/s"})
+	resultChart = append(resultChart, tk.M{"name": "Production", "data": dtProd, "unit": "MWh"})
+	resultChart = append(resultChart, tk.M{"name": "Windspeed", "data": dtWS, "unit": "m/s"})
 
 	data := struct {
-		Data []tk.M
+		Data ResDataAvail
 	}{
-		Data: result,
+		Data: ResDataAvail{
+			Chart:      resultChart,
+			PeriodList: periodList,
+		},
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -164,7 +172,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		// log.Printf("> %#v \n", periodList)
 
 		if len(periodList) > 0 {
-			current := periodList[0]
+			current := periodList[34]
 			currStar := current.Get("starttime").(time.Time)
 			currEnd := current.Get("endtime").(time.Time)
 
@@ -245,11 +253,6 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		resultChart = append(resultChart, tk.M{"name": "Windspeed", "data": dtWS, "unit": "m/s"})
 	}
 
-	type ResDataAvail struct {
-		Chart      []tk.M
-		PeriodList []tk.M
-	}
-
 	data := struct {
 		Data ResDataAvail
 	}{
@@ -288,30 +291,32 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 			// log.Printf("Err: %v \n", err.Error())
 		}
 
-		mapTag := map[string][]float64{}
-		res := tk.M{}
+		if len(tmpResult) > 0 {
 
-		for _, r := range tmpResult {
-			for _, tag := range tags {
-				if tag == r.Tag {
-					mapTag[tag] = append(mapTag[tag], r.Value)
+			mapTag := map[string][]float64{}
+			res := tk.M{}
+
+			for _, r := range tmpResult {
+				for _, tag := range tags {
+					if tag == r.Tag {
+						mapTag[tag] = append(mapTag[tag], r.Value)
+					}
 				}
 			}
-		}
 
-		res.Set("timestamp", tStart)
-		for n, mp := range mapTag {
-			var value float64
-			for _, v := range mp {
-				value += v
+			res.Set("timestamp", tStart)
+			for n, mp := range mapTag {
+				var value float64
+				for _, v := range mp {
+					value += v
+				}
+
+				value = value / float64(len(mp))
+				res.Set(n, value)
 			}
 
-			value = value / float64(len(mp))
-			res.Set(n, value)
+			result = append(result, res)
 		}
-
-		result = append(result, res)
-
 		if startStr == endStr {
 			break
 		}

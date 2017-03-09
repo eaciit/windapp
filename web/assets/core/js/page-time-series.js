@@ -414,7 +414,7 @@ pg.getDataStockChart = function(){
         Project: fa.project
     };
 
-    var request = toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
+    var request = toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
