@@ -11,7 +11,7 @@ pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
 pg.pageType = ko.observable(pageType);
 pg.dataType = ko.observable("MIN");
-pg.TagList = ko.observableArray(["WindSpeed_ms"]);
+pg.TagList = ko.observableArray(["windspeed"]);
 pg.tags = ko.observableArray([
     {text: "Wind Speed" , value:"Wind Speed"},
     {text: "Wind Direction" , value:"Wind Direction"},
@@ -452,7 +452,7 @@ pg.getDataStockChart = function(){
     };
 
 
-    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdata" )
+    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
 
     var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
         if (!app.isFine(res)) {
