@@ -203,7 +203,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	csr, err := DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
+	csr, err := DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
 		Aggr(dbox.AggrSum, "$duration", "duration").
 		Aggr(dbox.AggrSum, 1, "countdata").
 		Group("projectname").
@@ -220,14 +220,14 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	totalData := tkmgroup.GetInt("countdata")
 	totalDuration := tkmgroup.GetInt("duration")
 
-	csr, err = DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
+	csr, err = DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
 		Where(dbox.And(dfilter...)).
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	results := make([]AlarmRealtime, 0)
+	results := make([]AlarmHFD, 0)
 	err = csr.Fetch(&results, 0, false)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
@@ -280,32 +280,32 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	arrlabel := map[string]string{"Wind speed Avg": "windspeed", "Wind speed 1": "",
 		"Wind speed 2": "", "Wind Direction": "winddirection",
 		"Vane 1 wind direction": "", "Vane 2 wind direction": "",
-		"Nacelle Direction": "nacelleposition", "Rotor RPM": "",
-		"Generator RPM": "", "DFIG speed generator encoder": "",
-		"Blade Angle 1": "pitchangle", "Blade Angle 2": "",
-		"Blade Angle 3": "", "Volt. Battery - blade 1": "",
-		"Volt. Battery - blade 2": "", "Volt. Battery - blade 3": "",
-		"Current 1 Pitch Motor": "", "Current 2 Pitch Motor": "",
-		"Current 3 Pitch Motor": "", "Pitch motor temperature - Blade 1": "",
-		"Pitch motor temperature - Blade 2": "", "Pitch motor temperature - Blade 3": "",
-		"Phase 1 voltage": "", "Phase 2 voltage": "",
-		"Phase 3 voltage": "", "Phase 1 current": "",
-		"Phase 2 current": "", "Phase 3 current": "",
-		"Power": "activepower", "Power Reactive": "",
-		"Freq. Grid": "", "Production": "",
-		"Cos Phi": "", "DFIG active power": "",
+		"Nacelle Direction": "nacelleposition", "Rotor RPM": "rotorspeed_rpm",
+		"Generator RPM": "genspeed_rpm", "DFIG speed generator encoder": "",
+		"Blade Angle 1": "pitchangle1", "Blade Angle 2": "pitchangle2",
+		"Blade Angle 3": "pitchangle3", "Volt. Battery - blade 1": "pitchaccuv1",
+		"Volt. Battery - blade 2": "pitchaccuv2", "Volt. Battery - blade 3": "pitchaccuv3",
+		"Current 1 Pitch Motor": "pitchconvcurrent1", "Current 2 Pitch Motor": "pitchconvcurrent2",
+		"Current 3 Pitch Motor": "pitchconvcurrent3", "Pitch motor temperature - Blade 1": "tempconv1",
+		"Pitch motor temperature - Blade 2": "tempconv2", "Pitch motor temperature - Blade 3": "tempconv3",
+		"Phase 1 voltage": "voltagel1", "Phase 2 voltage": "voltagel2",
+		"Phase 3 voltage": "voltagel3", "Phase 1 current": "currentl1",
+		"Phase 2 current": "currentl2", "Phase 3 current": "currentl3",
+		"Power": "activepower", "Power Reactive": "reactivepower_kvar",
+		"Freq. Grid": "frequency_hz", "Production": "total_prod_day_kwh",
+		"Cos Phi": "powerfactor", "DFIG active power": "",
 		"DFIG reactive power": "", "DFIG mains Frequency": "",
 		"DFIG main voltage": "", "DFIG main current": "",
-		"DFIG DC link voltage": "", "Rotor R current ": "",
-		"Roter Y current ": "", "Roter B current ": "",
-		"Temp. generator 1 phase 1 coil": "temperature", "Temp. generator 1 phase 2 coil": "",
-		"Temp. generator 1 phase 3 coil": "", "Temp. generator bearing driven End": "",
-		"Temp. generator bearing non-driven End": "", "Temp. Gearbox driven end": "",
-		"Temp. Gearbox non-driven end": "", "Temp. Gearbox inter. driven end": "", "Temp. Gearbox inter. non-driven end": "",
-		"Pressure Gear box oil": "", "Temp. Gear box oil": "",
-		"Temp. Nacelle": "", "Temp. Ambient": "",
-		"Temp. Main bearing": "", "Damper Oscillation mag.": "",
-		"Drive train vibration": "", "Tower vibration": "",
+		"DFIG DC link voltage": "", "Rotor R current": "",
+		"Roter Y current": "", "Roter B current": "",
+		"Temp. generator 1 phase 1 coil": "tempg1l1", "Temp. generator 1 phase 2 coil": "tempg1l2",
+		"Temp. generator 1 phase 3 coil": "tempg1l3", "Temp. generator bearing driven End": "tempgeneratorbearingde",
+		"Temp. generator bearing non-driven End": "tempgeneratorbearingnde", "Temp. Gearbox driven end": "tempgearboxhssde",
+		"Temp. Gearbox non-driven end": "tempgearboxhssnde", "Temp. Gearbox inter. driven end": "tempgearboximsde",
+		"Temp. Gearbox inter. non-driven end": "tempgearboximsnde", "Pressure Gear box oil": "",
+		"Temp. Gear box oil": "tempgearboxoilsump", "Temp. Nacelle": "tempnacelle",
+		"Temp. Ambient": "tempoutdoor", "Temp. Main bearing": "temphubbearing",
+		"Damper Oscillation mag.": "", "Drive train vibration": "drtrvibvalue", "Tower vibration": "",
 	}
 
 	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", "Tejuva")

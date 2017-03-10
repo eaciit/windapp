@@ -109,6 +109,57 @@ type ScadaRealTime struct {
 	PitchAngle      float64
 	RotorRPM        float64
 	LastUpdate      time.Time
+
+	RotorSpeed_RPM float64
+	GenSpeed_RPM   float64
+
+	PitchAngle1 float64
+	PitchAngle2 float64
+	PitchAngle3 float64
+
+	PitchAccuV1 float64
+	PitchAccuV2 float64
+	PitchAccuV3 float64
+
+	PitchConvCurrent1 float64
+	PitchConvCurrent2 float64
+	PitchConvCurrent3 float64
+
+	TempConv1 float64
+	TempConv2 float64
+	TempConv3 float64
+
+	VoltageL1 float64
+	VoltageL2 float64
+	VoltageL3 float64
+
+	CurrentL1 float64
+	CurrentL2 float64
+	CurrentL3 float64
+
+	ReactivePower_kVAr float64
+	Frequency_Hz       float64
+
+	Total_Prod_Day_kWh float64
+	PowerFactor        float64
+
+	TempG1L1                float64
+	TempG1L2                float64
+	TempG1L3                float64
+	TempGeneratorBearingDE  float64
+	TempGeneratorBearingNDE float64
+
+	TempGearBoxHSSDE   float64
+	TempGearBoxHSSNDE  float64
+	TempGearBoxIMSDE   float64
+	TempGearBoxIMSNDE  float64
+	TempGearBoxOilSump float64
+
+	TempNacelle    float64
+	TempOutdoor    float64
+	TempHubBearing float64
+
+	DrTrVibValue float64
 }
 
 func (m *ScadaRealTime) New() *ScadaRealTime {
@@ -1428,7 +1479,7 @@ func (m *TurbineStatus) TableName() string {
 	return "TurbineStatus"
 }
 
-type AlarmRawRealtime struct {
+type AlarmRawHFD struct {
 	orm.ModelBase `bson:"-" json:"-"`
 	ID            bson.ObjectId ` bson:"_id" json:"_id" `
 	ProjectName   string
@@ -1441,20 +1492,20 @@ type AlarmRawRealtime struct {
 	BrakeType     string
 }
 
-func (m *AlarmRawRealtime) New() *AlarmRawRealtime {
+func (m *AlarmRawHFD) New() *AlarmRawHFD {
 	m.ID = bson.NewObjectId()
 	return m
 }
 
-func (m *AlarmRawRealtime) RecordID() interface{} {
+func (m *AlarmRawHFD) RecordID() interface{} {
 	return m.ID
 }
 
-func (m *AlarmRawRealtime) TableName() string {
-	return "AlarmRawRealtime"
+func (m *AlarmRawHFD) TableName() string {
+	return "AlarmRawHFD"
 }
 
-type AlarmRealtime struct {
+type AlarmHFD struct {
 	orm.ModelBase `bson:"-" json:"-"`
 	ID            bson.ObjectId ` bson:"_id" json:"_id" `
 	ProjectName   string
@@ -1471,15 +1522,15 @@ type AlarmRealtime struct {
 	Finish        int
 }
 
-func (m *AlarmRealtime) New() *AlarmRealtime {
+func (m *AlarmHFD) New() *AlarmHFD {
 	m.ID = bson.NewObjectId()
 	return m
 }
 
-func (m *AlarmRealtime) RecordID() interface{} {
+func (m *AlarmHFD) RecordID() interface{} {
 	return m.ID
 }
 
-func (m *AlarmRealtime) TableName() string {
-	return "AlarmRealtime"
+func (m *AlarmHFD) TableName() string {
+	return "AlarmHFD"
 }
