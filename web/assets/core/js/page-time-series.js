@@ -11,14 +11,15 @@ pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
 pg.pageType = ko.observable(pageType);
 pg.dataType = ko.observable("MIN");
-pg.TagList = ko.observableArray(["Wind Speed","Power"]);
+
+pg.TagList = ko.observableArray(["WindSpeed_ms","ActivePower_kW"]);
 pg.tags = ko.observableArray([
-    {text: "Wind Speed" , value:"Wind Speed"},
+    {text: "WindSpeed_ms" , value:"Wind Speed"},
     {text: "Wind Direction" , value:"Wind Direction"},
     {text: "Nacelle Direction" , value:"Nacelle Direction"},
     {text: "Rotor RPM" , value:"Rotor RPM"},
     {text: "Temperature" , value:"Temperature"},
-    {text: "Power" , value:"Power"}
+    {text: "ActivePower_kW" , value:"Power"}
   ]);
 
 var timeSeriesData = [];

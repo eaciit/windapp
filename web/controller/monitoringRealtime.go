@@ -7,7 +7,7 @@ import (
 
 	"eaciit/wfdemo-git/web/helper"
 
-	cr "github.com/eaciit/crowd"
+	// cr "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -169,23 +169,59 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	p := new(helper.Payloads)
+	type MyPayloads struct {
+		Turbine   []interface{}
+		DateStart time.Time
+		DateEnd   time.Time
+		Skip      int
+		Take      int
+		Project   string
+		Period    string
+	}
+
+	p := new(MyPayloads)
 	err := k.GetPayload(&p)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	query := tk.M{}.Set("where", dbox.Eq("projectname", "Tejuva"))
-	csr, err := DB().Find(new(AlarmRealtime), query)
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	dfilter := []*dbox.Filter{}
+	dfilter = append(dfilter, dbox.Eq("projectname", project))
+	dfilter = append(dfilter, dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd))
+	if len(p.Turbine) > 0 {
+		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
+	}
+
+	csr, err := DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
+		Aggr(dbox.AggrSum, "$duration", "duration").
+		Aggr(dbox.AggrSum, 1, "countdata").
+		Group("projectname").
+		Where(dbox.And(dfilter...)).Cursor(nil)
+
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
-	totalData := csr.Count()
+
+	tkmgroup := tk.M{}
+	_ = csr.Fetch(&tkmgroup, 1, false)
 	csr.Close()
 
-	query.Set("take", p.Take).Set("skip", p.Skip)
+	totalData := tkmgroup.GetInt("countdata")
+	totalDuration := tkmgroup.GetInt("duration")
+
 	csr, err = DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
-		Where(dbox.Eq("projectname", "Tejuva")).
+		Where(dbox.And(dfilter...)).
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
@@ -198,487 +234,119 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	}
 	csr.Close()
 
-	return helper.CreateResult(true, tk.M{}.Set("Data", results).Set("Total", totalData), "success")
+	return helper.CreateResult(true, tk.M{}.Set("Data", results).Set("Total", totalData).Set("Duration", totalDuration), "success")
 }
 
 func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
-	sessid := k.Session("sessionid", "")
-	accs := "GetDataTurbine"
 
 	p := struct {
 		Turbine string
 	}{}
-	e := k.GetPayload(&p)
-	if e != nil {
-		WriteLog(sessid, accs, e.Error())
-	}
 
-	power := 0.0
-	windSpeed := 0.0
-	cWindSpeed := 0
-	windDir := 0.0
-	cWindDir := 0
-	nacellePos := 0.0
-	cNacellePos := 0
-	temperature := 0.0
-	cTemperature := 0
-	pitch := 0.0
-	cPitch := 0
-	rotor := 0.0
-	cRotor := 0
-
-	t := p.Turbine
-
-	var detail ScadaMonitoringItem
-	detail.Turbine = t
-
-	csrt, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("activepower", defaultValue))).
-		Order("-timestamp").Cursor(nil)
+	alldata := tk.M{}
+	err := k.GetPayload(&p)
 	if err != nil {
-		tk.Println(err.Error())
+		return helper.CreateResult(false, nil, err.Error())
 	}
-	results := make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
+
+	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Aggr(dbox.AggrMax, "$timestamp", "timestamp").
+		Group("turbine").
+		Where(dbox.Eq("turbine", p.Turbine)).Cursor(nil)
+
 	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.ActivePower = result.ActivePower
-	} else {
-		detail.ActivePower = defaultValue
+		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	if detail.ActivePower > defaultValue {
-		power += detail.ActivePower
-	}
-
-	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("windspeed", defaultValue))).
-		Order("-timestamp").Cursor(nil)
+	tkmgroup := tk.M{}
+	err = csr.Fetch(&tkmgroup, 1, false)
 	if err != nil {
-		tk.Println(err.Error())
-	}
-	results = make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.WindSpeed = result.WindSpeed
-	} else {
-		detail.WindSpeed = defaultValue
-	}
-
-	if detail.WindSpeed != defaultValue {
-		windSpeed += detail.WindSpeed
-		cWindSpeed++
-	}
-
-	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("winddirection", defaultValue))).
-		Order("-timestamp").Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	results = make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.WindDirection = result.WindDirection
-	} else {
-		detail.WindDirection = defaultValue
-	}
-
-	if detail.WindDirection != defaultValue {
-		windDir += detail.WindDirection
-		cWindDir++
-	}
-
-	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("nacelleposition", defaultValue))).
-		Order("-timestamp").Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	results = make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.NacellePosition = result.NacellePosition
-	} else {
-		detail.NacellePosition = defaultValue
-	}
-
-	if detail.NacellePosition != defaultValue {
-		nacellePos += detail.NacellePosition
-		cNacellePos++
-	}
-
-	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("temperature", defaultValue))).
-		Order("-timestamp").Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	results = make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.Temperature = result.Temperature
-	} else {
-		detail.Temperature = defaultValue
-	}
-
-	if detail.Temperature != defaultValue {
-		temperature += detail.Temperature
-		cTemperature++
-	}
-
-	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("pitchangle", defaultValue))).
-		Order("-timestamp").Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	results = make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.PitchAngle = result.PitchAngle
-	} else {
-		detail.PitchAngle = defaultValue
-	}
-
-	if detail.PitchAngle != defaultValue {
-		pitch += detail.PitchAngle
-		cPitch++
-	}
-
-	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("rotorrpm", defaultValue))).
-		Order("-timestamp").Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	results = make([]ScadaRealTime, 0)
-	err = csrt.Fetch(&results, 1, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	if len(results) > 0 {
-		result := results[0]
-		detail.RotorRPM = result.RotorRPM
-	} else {
-		detail.RotorRPM = defaultValue
-	}
-
-	if detail.RotorRPM != defaultValue {
-		rotor += detail.RotorRPM
-		cRotor++
-	}
-
-	return detail
-}
-
-func (c *MonitoringRealtimeController) GetWindRoseData(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-	k.Config.NoLog = true
-	sessid := k.Session("sessionid", "")
-	accs := "GetWindRoseData"
-
-	// WindRoseResult = []tk.M{}
-
-	p := struct {
-		Turbine string
-	}{}
-	e := k.GetPayload(&p)
-	if e != nil {
-		WriteLog(sessid, accs, e.Error())
-	}
-
-	query := []tk.M{}
-	pipes := []tk.M{}
-	section = 12
-	getFullWSCategory()
-
-	data := []MiniScada{}
-	_data := MiniScada{}
-
-	lastDateData, e := time.Parse(time.RFC3339, "2017-01-22T00:00:00+00:00")
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	turbines := p.Turbine
-	defaultValue := -999999.00
-
-	groupdata := tk.M{}
-	groupdata.Set("Name", turbines)
-
-	query = append(query, tk.M{"_id": tk.M{"$ne": nil}})
-	query = append(query, tk.M{"nacelleposition": tk.M{"$ne": defaultValue}})
-	query = append(query, tk.M{"dateinfo.dateid": lastDateData})
-	query = append(query, tk.M{"turbine": turbines})
-	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
-	pipes = append(pipes, tk.M{"$project": tk.M{"nacelleposition": 1, "windspeed": 1}})
-	csr, e := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Command("pipe", pipes).Cursor(nil)
-
-	for {
-		e = csr.Fetch(&_data, 1, false)
-		if e != nil {
-			break
-		}
-		data = append(data, _data)
+		return helper.CreateResult(false, nil, err.Error())
 	}
 	csr.Close()
+	timemax := tkmgroup.Get("timestamp", time.Time{}).(time.Time)
 
-	if tk.SliceLen(data) > 0 {
-		totalDuration := float64(len(data)) /* Tot data * 2 for get total minutes*/
-		datas := cr.From(&data).Apply(func(x interface{}) interface{} {
-			dt := x.(MiniScada)
-			var di DataItems
-
-			dirNo, dirDesc := getDirection(dt.NacellePosition, section)
-			wsNo, wsDesc := getWsCategory(dt.WindSpeed)
-
-			di.DirectionNo = dirNo
-			di.DirectionDesc = dirDesc
-			di.WsCategoryNo = wsNo
-			di.WsCategoryDesc = wsDesc
-			di.Frequency = 1
-
-			return di
-		}).Exec().Group(func(x interface{}) interface{} {
-			dt := x.(DataItems)
-
-			var dig DataItemsGroup
-			dig.DirectionNo = dt.DirectionNo
-			dig.DirectionDesc = dt.DirectionDesc
-			dig.WsCategoryNo = dt.WsCategoryNo
-			dig.WsCategoryDesc = dt.WsCategoryDesc
-
-			return dig
-		}, nil).Exec()
-
-		dts := datas.Apply(func(x interface{}) interface{} {
-			kv := x.(cr.KV)
-			vv := kv.Key.(DataItemsGroup)
-			vs := kv.Value.([]DataItems)
-
-			sumFreq := cr.From(&vs).Sum(func(x interface{}) interface{} {
-				dt := x.(DataItems)
-				return dt.Frequency
-			}).Exec().Result.Sum
-
-			var di DataItemsResult
-
-			di.DirectionNo = vv.DirectionNo
-			di.DirectionDesc = vv.DirectionDesc
-			di.WsCategoryNo = vv.WsCategoryNo
-			di.WsCategoryDesc = vv.WsCategoryDesc
-			di.Hours = tk.Div(sumFreq, 6.0)
-			di.Contribution = tk.RoundingAuto64(tk.Div(sumFreq, totalDuration)*100.0, 2)
-
-			// key := turbines + "_" + tk.ToString(di.DirectionNo)
-
-			// if !tkMaxVal.Has(key) {
-			// 	tkMaxVal.Set(key, di.Contribution)
-			// } else {
-			// 	tkMaxVal.Set(key, tkMaxVal.GetFloat64(key)+di.Contribution)
-			// }
-
-			di.Frequency = int(sumFreq)
-
-			return di
-		}).Exec()
-
-		results := dts.Result.Data().([]DataItemsResult)
-		wsCategoryList := []string{}
-		for _, dataRes := range results {
-			wsCategoryList = append(wsCategoryList, tk.ToString(dataRes.DirectionNo)+
-				"_"+tk.ToString(dataRes.WsCategoryNo)+"_"+dataRes.WsCategoryDesc)
-		}
-		splitCatList := []string{}
-		for _, wsCat := range fullWSCatList {
-			if !tk.HasMember(wsCategoryList, wsCat) {
-				splitCatList = strings.Split(wsCat, "_")
-				emptyRes := DataItemsResult{}
-				emptyRes.DirectionNo = tk.ToInt(splitCatList[0], tk.RoundingAuto)
-				divider := section
-
-				emptyRes.DirectionDesc = (360 / divider) * emptyRes.DirectionNo
-				emptyRes.WsCategoryNo = tk.ToInt(splitCatList[1], tk.RoundingAuto)
-				emptyRes.WsCategoryDesc = splitCatList[2]
-				results = append(results, emptyRes)
-			}
-		}
-		groupdata.Set("Data", results)
-
-		// tk.Printf("results : %s \n", tk.SliceLen(results))
-		// tk.Printf("fullWSCatList : %s \n", fullWSCatList)
-
-		// WindRoseResult = append(WindRoseResult, groupdata)
-	} else {
-		splitCatList := []string{}
-		results := []DataItemsResult{}
-		for _, wsCat := range fullWSCatList {
-			splitCatList = strings.Split(wsCat, "_")
-			emptyRes := DataItemsResult{}
-			emptyRes.DirectionNo = tk.ToInt(splitCatList[0], tk.RoundingAuto)
-			divider := section
-
-			emptyRes.DirectionDesc = (360 / divider) * emptyRes.DirectionNo
-			emptyRes.WsCategoryNo = tk.ToInt(splitCatList[1], tk.RoundingAuto)
-			emptyRes.WsCategoryDesc = splitCatList[2]
-			results = append(results, emptyRes)
-		}
-		groupdata.Set("Data", results)
-		// WindRoseResult = append(WindRoseResult, groupdata)
-	}
-
-	// tk.Printf("groupdata : %s \n", tk.SliceLen(groupdata))
-
-	dataresult := struct {
-		WindRose tk.M
-	}{
-		WindRose: groupdata,
-	}
-
-	return helper.CreateResult(true, dataresult, "success")
-}
-
-func (c *MonitoringRealtimeController) GetDataLine(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-	k.Config.NoLog = true
-	sessid := k.Session("sessionid", "")
-	accs := "GetDataLine"
-
-	var (
-		pipes      []tk.M
-		filter     []*dbox.Filter
-		list       []tk.M
-		dataSeries []tk.M
-	)
-
-	p := struct {
-		Turbine string
-	}{}
-	e := k.GetPayload(&p)
-	if e != nil {
-		WriteLog(sessid, accs, e.Error())
-	}
-
-	lastDateData, e := time.Parse(time.RFC3339, "2017-01-22T00:00:00+00:00")
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	turbines := p.Turbine
-	defaultValue := -999999.00
-
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": "$timestamp", "Turbine": "$turbine"},
-		"avgwindspeed": tk.M{"$avg": "$windspeed"},
-		"sumwindspeed": tk.M{"$sum": "$windspeed"},
-		"activepower":  tk.M{"$sum": "$activepower"},
-		"rotorrpm":     tk.M{"$sum": "$rotorrpm"},
-		"totaldata":    tk.M{"$sum": 1}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	filter = nil
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Eq("dateinfo.dateid", lastDateData))
-	filter = append(filter, dbox.Eq("turbine", turbines))
-	filter = append(filter, dbox.Ne("activepower", defaultValue))
-	filter = append(filter, dbox.Ne("windspeed", defaultValue))
-
-	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaRealTime).TableName()).
-		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
+	csr, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", p.Turbine), dbox.Lte("timestamp", timemax), dbox.Gte("timestamp", timemax.AddDate(0, 0, -1)))).
+		Order("-timestamp").
 		Cursor(nil)
 
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	e = csr.Fetch(&list, 0, false)
-	defer csr.Close()
-
-	totactivepower := 0.0
-	totwindspeed := 0.0
-	totrotorrpm := 0.0
-	totData := 0.0
-	dataMonitoring := tk.M{}
-	for _, val := range list {
-
-		seriesData := tk.M{}
-		avgwindspeed := val.GetFloat64("avgwindspeed")
-		sumwindspeed := val.GetFloat64("sumwindspeed")
-		activepower := val.GetFloat64("activepower")
-		rotorrpm := val.GetFloat64("rotorrpm")
-		totaldata := val.GetFloat64("totaldata")
-		idD := val.Get("_id").(tk.M)
-		Turbine := idD.Get("Turbine")
-		timestamp := idD.Get("colId").(time.Time).UTC().Format("2006-01-02 15:04:05")
-
-		seriesData.Set("turbine", Turbine)
-		seriesData.Set("timestamp", timestamp)
-		seriesData.Set("activepower", tk.Div(activepower, 1000.0))
-		seriesData.Set("avgwindspeed", avgwindspeed)
-
-		dataSeries = append(dataSeries, seriesData)
-
-		totactivepower = totactivepower + activepower
-		totwindspeed = totwindspeed + sumwindspeed
-		totrotorrpm = totrotorrpm + rotorrpm
-		totData = totData + totaldata
-
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	dataMonitoring.Set("Power", tk.Div(totactivepower, 1000.0))
-	dataMonitoring.Set("WindSpeed", tk.Div(totwindspeed, totData))
-	dataMonitoring.Set("RotorRpm", totrotorrpm)
-
-	data := struct {
-		Data       []tk.M
-		Monitoring tk.M
-	}{
-		Data:       dataSeries,
-		Monitoring: dataMonitoring,
+	arrlabel := map[string]string{"Wind speed Avg": "windspeed", "Wind speed 1": "",
+		"Wind speed 2": "", "Wind Direction": "winddirection",
+		"Vane 1 wind direction": "", "Vane 2 wind direction": "",
+		"Nacelle Direction": "nacelleposition", "Rotor RPM": "",
+		"Generator RPM": "", "DFIG speed generator encoder": "",
+		"Blade Angle 1": "pitchangle", "Blade Angle 2": "",
+		"Blade Angle 3": "", "Volt. Battery - blade 1": "",
+		"Volt. Battery - blade 2": "", "Volt. Battery - blade 3": "",
+		"Current 1 Pitch Motor": "", "Current 2 Pitch Motor": "",
+		"Current 3 Pitch Motor": "", "Pitch motor temperature - Blade 1": "",
+		"Pitch motor temperature - Blade 2": "", "Pitch motor temperature - Blade 3": "",
+		"Phase 1 voltage": "", "Phase 2 voltage": "",
+		"Phase 3 voltage": "", "Phase 1 current": "",
+		"Phase 2 current": "", "Phase 3 current": "",
+		"Power": "activepower", "Power Reactive": "",
+		"Freq. Grid": "", "Production": "",
+		"Cos Phi": "", "DFIG active power": "",
+		"DFIG reactive power": "", "DFIG mains Frequency": "",
+		"DFIG main voltage": "", "DFIG main current": "",
+		"DFIG DC link voltage": "", "Rotor R current ": "",
+		"Roter Y current ": "", "Roter B current ": "",
+		"Temp. generator 1 phase 1 coil": "temperature", "Temp. generator 1 phase 2 coil": "",
+		"Temp. generator 1 phase 3 coil": "", "Temp. generator bearing driven End": "",
+		"Temp. generator bearing non-driven End": "", "Temp. Gearbox driven end": "",
+		"Temp. Gearbox non-driven end": "", "Temp. Gearbox inter. driven end": "", "Temp. Gearbox inter. non-driven end": "",
+		"Pressure Gear box oil": "", "Temp. Gear box oil": "",
+		"Temp. Nacelle": "", "Temp. Ambient": "",
+		"Temp. Main bearing": "", "Damper Oscillation mag.": "",
+		"Drive train vibration": "", "Tower vibration": "",
 	}
 
-	return helper.CreateResult(true, data, "success")
+	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", "Tejuva")
+
+	isComplete := false
+	for {
+		_tkm := tk.M{}
+		err = csr.Fetch(&_tkm, 1, false)
+		if err != nil {
+			break
+		}
+
+		isComplete = true
+		for key, str := range arrlabel {
+			if !alldata.Has(key) {
+				alldata.Set(key, 0)
+			}
+
+			if str == "" {
+				continue
+			}
+
+			if _tkm.Has(str) {
+				if _ival := _tkm.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == 0 {
+					alldata.Set(key, _ival)
+				}
+
+				if alldata.GetFloat64(key) == 0 {
+					isComplete = false
+				}
+			}
+		}
+
+		if isComplete {
+			break
+		}
+	}
+
+	csr.Close()
+
+	return helper.CreateResult(true, alldata, "success")
 }
 
 func getTurbineStatus(project string) (res map[string]TurbineStatus) {
@@ -1009,3 +677,485 @@ func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
 	return ret
 }
 */
+
+/*
+func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+	sessid := k.Session("sessionid", "")
+	accs := "GetDataTurbine"
+
+	p := struct {
+		Turbine string
+	}{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		WriteLog(sessid, accs, e.Error())
+	}
+
+	power := 0.0
+	windSpeed := 0.0
+	cWindSpeed := 0
+	windDir := 0.0
+	cWindDir := 0
+	nacellePos := 0.0
+	cNacellePos := 0
+	temperature := 0.0
+	cTemperature := 0
+	pitch := 0.0
+	cPitch := 0
+	rotor := 0.0
+	cRotor := 0
+
+	t := p.Turbine
+
+	var detail ScadaMonitoringItem
+	detail.Turbine = t
+
+	csrt, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("activepower", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results := make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.ActivePower = result.ActivePower
+	} else {
+		detail.ActivePower = defaultValue
+	}
+
+	if detail.ActivePower > defaultValue {
+		power += detail.ActivePower
+	}
+
+	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("windspeed", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results = make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.WindSpeed = result.WindSpeed
+	} else {
+		detail.WindSpeed = defaultValue
+	}
+
+	if detail.WindSpeed != defaultValue {
+		windSpeed += detail.WindSpeed
+		cWindSpeed++
+	}
+
+	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("winddirection", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results = make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.WindDirection = result.WindDirection
+	} else {
+		detail.WindDirection = defaultValue
+	}
+
+	if detail.WindDirection != defaultValue {
+		windDir += detail.WindDirection
+		cWindDir++
+	}
+
+	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("nacelleposition", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results = make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.NacellePosition = result.NacellePosition
+	} else {
+		detail.NacellePosition = defaultValue
+	}
+
+	if detail.NacellePosition != defaultValue {
+		nacellePos += detail.NacellePosition
+		cNacellePos++
+	}
+
+	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("temperature", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results = make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.Temperature = result.Temperature
+	} else {
+		detail.Temperature = defaultValue
+	}
+
+	if detail.Temperature != defaultValue {
+		temperature += detail.Temperature
+		cTemperature++
+	}
+
+	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("pitchangle", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results = make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.PitchAngle = result.PitchAngle
+	} else {
+		detail.PitchAngle = defaultValue
+	}
+
+	if detail.PitchAngle != defaultValue {
+		pitch += detail.PitchAngle
+		cPitch++
+	}
+
+	csrt, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", t), dbox.Ne("rotorrpm", defaultValue))).
+		Order("-timestamp").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	results = make([]ScadaRealTime, 0)
+	err = csrt.Fetch(&results, 1, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	if len(results) > 0 {
+		result := results[0]
+		detail.RotorRPM = result.RotorRPM
+	} else {
+		detail.RotorRPM = defaultValue
+	}
+
+	if detail.RotorRPM != defaultValue {
+		rotor += detail.RotorRPM
+		cRotor++
+	}
+
+	return detail
+}
+*/
+
+// func (c *MonitoringRealtimeController) GetWindRoseData(k *knot.WebContext) interface{} {
+// 	k.Config.OutputType = knot.OutputJson
+// 	k.Config.NoLog = true
+// 	sessid := k.Session("sessionid", "")
+// 	accs := "GetWindRoseData"
+
+// 	// WindRoseResult = []tk.M{}
+
+// 	p := struct {
+// 		Turbine string
+// 	}{}
+// 	e := k.GetPayload(&p)
+// 	if e != nil {
+// 		WriteLog(sessid, accs, e.Error())
+// 	}
+
+// 	query := []tk.M{}
+// 	pipes := []tk.M{}
+// 	section = 12
+// 	getFullWSCategory()
+
+// 	data := []MiniScada{}
+// 	_data := MiniScada{}
+
+// 	lastDateData, e := time.Parse(time.RFC3339, "2017-01-22T00:00:00+00:00")
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	turbines := p.Turbine
+// 	defaultValue := -999999.00
+
+// 	groupdata := tk.M{}
+// 	groupdata.Set("Name", turbines)
+
+// 	query = append(query, tk.M{"_id": tk.M{"$ne": nil}})
+// 	query = append(query, tk.M{"nacelleposition": tk.M{"$ne": defaultValue}})
+// 	query = append(query, tk.M{"dateinfo.dateid": lastDateData})
+// 	query = append(query, tk.M{"turbine": turbines})
+// 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+// 	pipes = append(pipes, tk.M{"$project": tk.M{"nacelleposition": 1, "windspeed": 1}})
+// 	csr, e := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+// 		Command("pipe", pipes).Cursor(nil)
+
+// 	for {
+// 		e = csr.Fetch(&_data, 1, false)
+// 		if e != nil {
+// 			break
+// 		}
+// 		data = append(data, _data)
+// 	}
+// 	csr.Close()
+
+// 	if tk.SliceLen(data) > 0 {
+// 		totalDuration := float64(len(data)) /* Tot data * 2 for get total minutes*/
+// 		datas := cr.From(&data).Apply(func(x interface{}) interface{} {
+// 			dt := x.(MiniScada)
+// 			var di DataItems
+
+// 			dirNo, dirDesc := getDirection(dt.NacellePosition, section)
+// 			wsNo, wsDesc := getWsCategory(dt.WindSpeed)
+
+// 			di.DirectionNo = dirNo
+// 			di.DirectionDesc = dirDesc
+// 			di.WsCategoryNo = wsNo
+// 			di.WsCategoryDesc = wsDesc
+// 			di.Frequency = 1
+
+// 			return di
+// 		}).Exec().Group(func(x interface{}) interface{} {
+// 			dt := x.(DataItems)
+
+// 			var dig DataItemsGroup
+// 			dig.DirectionNo = dt.DirectionNo
+// 			dig.DirectionDesc = dt.DirectionDesc
+// 			dig.WsCategoryNo = dt.WsCategoryNo
+// 			dig.WsCategoryDesc = dt.WsCategoryDesc
+
+// 			return dig
+// 		}, nil).Exec()
+
+// 		dts := datas.Apply(func(x interface{}) interface{} {
+// 			kv := x.(cr.KV)
+// 			vv := kv.Key.(DataItemsGroup)
+// 			vs := kv.Value.([]DataItems)
+
+// 			sumFreq := cr.From(&vs).Sum(func(x interface{}) interface{} {
+// 				dt := x.(DataItems)
+// 				return dt.Frequency
+// 			}).Exec().Result.Sum
+
+// 			var di DataItemsResult
+
+// 			di.DirectionNo = vv.DirectionNo
+// 			di.DirectionDesc = vv.DirectionDesc
+// 			di.WsCategoryNo = vv.WsCategoryNo
+// 			di.WsCategoryDesc = vv.WsCategoryDesc
+// 			di.Hours = tk.Div(sumFreq, 6.0)
+// 			di.Contribution = tk.RoundingAuto64(tk.Div(sumFreq, totalDuration)*100.0, 2)
+
+// 			// key := turbines + "_" + tk.ToString(di.DirectionNo)
+
+// 			// if !tkMaxVal.Has(key) {
+// 			// 	tkMaxVal.Set(key, di.Contribution)
+// 			// } else {
+// 			// 	tkMaxVal.Set(key, tkMaxVal.GetFloat64(key)+di.Contribution)
+// 			// }
+
+// 			di.Frequency = int(sumFreq)
+
+// 			return di
+// 		}).Exec()
+
+// 		results := dts.Result.Data().([]DataItemsResult)
+// 		wsCategoryList := []string{}
+// 		for _, dataRes := range results {
+// 			wsCategoryList = append(wsCategoryList, tk.ToString(dataRes.DirectionNo)+
+// 				"_"+tk.ToString(dataRes.WsCategoryNo)+"_"+dataRes.WsCategoryDesc)
+// 		}
+// 		splitCatList := []string{}
+// 		for _, wsCat := range fullWSCatList {
+// 			if !tk.HasMember(wsCategoryList, wsCat) {
+// 				splitCatList = strings.Split(wsCat, "_")
+// 				emptyRes := DataItemsResult{}
+// 				emptyRes.DirectionNo = tk.ToInt(splitCatList[0], tk.RoundingAuto)
+// 				divider := section
+
+// 				emptyRes.DirectionDesc = (360 / divider) * emptyRes.DirectionNo
+// 				emptyRes.WsCategoryNo = tk.ToInt(splitCatList[1], tk.RoundingAuto)
+// 				emptyRes.WsCategoryDesc = splitCatList[2]
+// 				results = append(results, emptyRes)
+// 			}
+// 		}
+// 		groupdata.Set("Data", results)
+
+// 		// tk.Printf("results : %s \n", tk.SliceLen(results))
+// 		// tk.Printf("fullWSCatList : %s \n", fullWSCatList)
+
+// 		// WindRoseResult = append(WindRoseResult, groupdata)
+// 	} else {
+// 		splitCatList := []string{}
+// 		results := []DataItemsResult{}
+// 		for _, wsCat := range fullWSCatList {
+// 			splitCatList = strings.Split(wsCat, "_")
+// 			emptyRes := DataItemsResult{}
+// 			emptyRes.DirectionNo = tk.ToInt(splitCatList[0], tk.RoundingAuto)
+// 			divider := section
+
+// 			emptyRes.DirectionDesc = (360 / divider) * emptyRes.DirectionNo
+// 			emptyRes.WsCategoryNo = tk.ToInt(splitCatList[1], tk.RoundingAuto)
+// 			emptyRes.WsCategoryDesc = splitCatList[2]
+// 			results = append(results, emptyRes)
+// 		}
+// 		groupdata.Set("Data", results)
+// 		// WindRoseResult = append(WindRoseResult, groupdata)
+// 	}
+
+// 	// tk.Printf("groupdata : %s \n", tk.SliceLen(groupdata))
+
+// 	dataresult := struct {
+// 		WindRose tk.M
+// 	}{
+// 		WindRose: groupdata,
+// 	}
+
+// 	return helper.CreateResult(true, dataresult, "success")
+// }
+
+// func (c *MonitoringRealtimeController) GetDataLine(k *knot.WebContext) interface{} {
+// 	k.Config.OutputType = knot.OutputJson
+// 	k.Config.NoLog = true
+// 	sessid := k.Session("sessionid", "")
+// 	accs := "GetDataLine"
+
+// 	var (
+// 		pipes      []tk.M
+// 		filter     []*dbox.Filter
+// 		list       []tk.M
+// 		dataSeries []tk.M
+// 	)
+
+// 	p := struct {
+// 		Turbine string
+// 	}{}
+// 	e := k.GetPayload(&p)
+// 	if e != nil {
+// 		WriteLog(sessid, accs, e.Error())
+// 	}
+
+// 	lastDateData, e := time.Parse(time.RFC3339, "2017-01-22T00:00:00+00:00")
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	turbines := p.Turbine
+// 	defaultValue := -999999.00
+
+// 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": "$timestamp", "Turbine": "$turbine"},
+// 		"avgwindspeed": tk.M{"$avg": "$windspeed"},
+// 		"sumwindspeed": tk.M{"$sum": "$windspeed"},
+// 		"activepower":  tk.M{"$sum": "$activepower"},
+// 		"rotorrpm":     tk.M{"$sum": "$rotorrpm"},
+// 		"totaldata":    tk.M{"$sum": 1}}})
+// 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+// 	filter = nil
+// 	filter = append(filter, dbox.Ne("_id", ""))
+// 	filter = append(filter, dbox.Eq("dateinfo.dateid", lastDateData))
+// 	filter = append(filter, dbox.Eq("turbine", turbines))
+// 	filter = append(filter, dbox.Ne("activepower", defaultValue))
+// 	filter = append(filter, dbox.Ne("windspeed", defaultValue))
+
+// 	csr, e := DB().Connection.NewQuery().
+// 		From(new(ScadaRealTime).TableName()).
+// 		Command("pipe", pipes).
+// 		Where(dbox.And(filter...)).
+// 		Cursor(nil)
+
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+// 	e = csr.Fetch(&list, 0, false)
+// 	defer csr.Close()
+
+// 	totactivepower := 0.0
+// 	totwindspeed := 0.0
+// 	totrotorrpm := 0.0
+// 	totData := 0.0
+// 	dataMonitoring := tk.M{}
+// 	for _, val := range list {
+
+// 		seriesData := tk.M{}
+// 		avgwindspeed := val.GetFloat64("avgwindspeed")
+// 		sumwindspeed := val.GetFloat64("sumwindspeed")
+// 		activepower := val.GetFloat64("activepower")
+// 		rotorrpm := val.GetFloat64("rotorrpm")
+// 		totaldata := val.GetFloat64("totaldata")
+// 		idD := val.Get("_id").(tk.M)
+// 		Turbine := idD.Get("Turbine")
+// 		timestamp := idD.Get("colId").(time.Time).UTC().Format("2006-01-02 15:04:05")
+
+// 		seriesData.Set("turbine", Turbine)
+// 		seriesData.Set("timestamp", timestamp)
+// 		seriesData.Set("activepower", tk.Div(activepower, 1000.0))
+// 		seriesData.Set("avgwindspeed", avgwindspeed)
+
+// 		dataSeries = append(dataSeries, seriesData)
+
+// 		totactivepower = totactivepower + activepower
+// 		totwindspeed = totwindspeed + sumwindspeed
+// 		totrotorrpm = totrotorrpm + rotorrpm
+// 		totData = totData + totaldata
+
+// 	}
+
+// 	dataMonitoring.Set("Power", tk.Div(totactivepower, 1000.0))
+// 	dataMonitoring.Set("WindSpeed", tk.Div(totwindspeed, totData))
+// 	dataMonitoring.Set("RotorRpm", totrotorrpm)
+
+// 	data := struct {
+// 		Data       []tk.M
+// 		Monitoring tk.M
+// 	}{
+// 		Data:       dataSeries,
+// 		Monitoring: dataMonitoring,
+// 	}
+
+// 	return helper.CreateResult(true, data, "success")
+// }

@@ -229,7 +229,7 @@ func WriteErrors(errorList tk.M, fileName string) (e error) {
 
 func ReadConfig() map[string]string {
 	ret := make(map[string]string)
-	file, err := os.Open(wd + "conf/app.conf")
+	file, err := os.Open(wd + "config/app.conf")
 	if err == nil {
 		defer file.Close()
 
