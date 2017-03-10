@@ -41,7 +41,7 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	results := c.GetMonitoringByProject("Tejuva")
+	results := c.GetMonitoringByProjectV2("Tejuva")
 
 	return helper.CreateResult(true, results, "success")
 }
@@ -164,6 +164,131 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 
 	return
 }
+func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) (rtkm tk.M) {
+
+	rtkm = tk.M{}
+
+	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder").
+		From("ref_turbine").
+		Where(dbox.Eq("project", project)).Cursor(nil)
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	_result := []tk.M{}
+	err = csrt.Fetch(&_result, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	alldata, allturbine := []tk.M{}, tk.M{}
+	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
+		"PitchAngle", "RotorRPM"}
+	lastUpdate := time.Time{}
+	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
+	turbinedown := 0
+	t0 := time.Now().UTC()
+
+	arrturbinestatus := getTurbineStatus(project)
+	timemax := getMaxRealTime("Tejuva", "")
+	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
+
+	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
+		Order("-timestamp", "-turbine").Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
+	for {
+		_tdata := tk.M{}
+		err = csr.Fetch(&_tdata, 1, false)
+		if err != nil {
+			break
+		}
+
+		if _iContinue {
+			continue
+		}
+
+		_tTurbine := _tdata.GetString("turbine")
+		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
+
+		if tstamp.After(lastUpdate) {
+			lastUpdate = tstamp.UTC()
+		}
+
+		if _iTurbine != _tTurbine {
+			if _iTurbine != "" {
+				alldata = append(alldata, _itkm)
+			}
+			_iContinue = false
+			_iTurbine = _tTurbine
+			_itkm = tk.M{}.
+				Set("Turbine", _tTurbine).
+				Set("DataComing", 0).
+				Set("AlarmCode", 0).
+				Set("AlarmDesc", "").
+				Set("Status", 1).
+				Set("AlarmUpdate", time.Time{})
+
+			if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+				_itkm.Set("DataComing", 1)
+			}
+
+			if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
+				_itkm.Set("AlarmCode", _idt.AlarmCode).
+					Set("AlarmDesc", _idt.AlarmDesc).
+					Set("Status", _idt.Status).
+					Set("AlarmUpdate", _idt.TimeUpdate.UTC())
+			}
+		}
+
+		_iContinue = true
+		for _, afield := range arrfield {
+			_lafield := strings.ToLower(afield)
+			if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && _itkm.GetFloat64(afield) == 0 {
+				_itkm.Set(afield, _ifloat)
+
+				switch afield {
+				case "ActivePower":
+					PowerGen += _ifloat
+				case "WindSpeed":
+					AvgWindSpeed += _ifloat
+					CountWS += 1
+				}
+
+			} else {
+				_iContinue = false
+			}
+		}
+	}
+	csr.Close()
+	if _iTurbine != "" {
+		alldata = append(alldata, _itkm)
+	}
+
+	for _, _tkm := range _result {
+		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
+		lturbine = append(lturbine, _tkm.GetString("turbineid"))
+		sort.Strings(lturbine)
+		allturbine.Set(_tkm.GetString("feeder"), lturbine)
+	}
+
+	rtkm.Set("ListOfTurbine", allturbine)
+	rtkm.Set("Detail", alldata)
+	rtkm.Set("TimeStamp", lastUpdate)
+	rtkm.Set("PowerGeneration", PowerGen)
+	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
+	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
+	rtkm.Set("TurbineActive", len(_result)-turbinedown)
+	rtkm.Set("TurbineDown", turbinedown)
+
+	return
+}
 
 func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
@@ -251,24 +376,9 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
+	timemax := getMaxRealTime("Tejuva", p.Turbine)
+
 	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Aggr(dbox.AggrMax, "$timestamp", "timestamp").
-		Group("turbine").
-		Where(dbox.Eq("turbine", p.Turbine)).Cursor(nil)
-
-	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
-	}
-
-	tkmgroup := tk.M{}
-	err = csr.Fetch(&tkmgroup, 1, false)
-	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
-	}
-	csr.Close()
-	timemax := tkmgroup.Get("timestamp", time.Time{}).(time.Time)
-
-	csr, err = DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
 		Where(dbox.And(dbox.Eq("turbine", p.Turbine), dbox.Lte("timestamp", timemax), dbox.Gte("timestamp", timemax.AddDate(0, 0, -1)))).
 		Order("-timestamp").
 		Cursor(nil)
@@ -369,6 +479,38 @@ func getTurbineStatus(project string) (res map[string]TurbineStatus) {
 	for _, result := range results {
 		res[result.ID] = result
 	}
+
+	return
+}
+
+func getMaxRealTime(project, turbine string) (timemax time.Time) {
+	timemax = time.Time{}
+
+	_Query := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Aggr(dbox.AggrMax, "$timestamp", "timestamp")
+
+	if turbine != "" {
+		_Query = _Query.Group("turbine").
+			Where(dbox.And(dbox.Eq("turbine", turbine), dbox.Eq("projectname", project)))
+	} else {
+		_Query = _Query.Group("projectname").
+			Where(dbox.Eq("projectname", project))
+	}
+
+	csr, err := _Query.Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	tkmgroup := tk.M{}
+	err = csr.Fetch(&tkmgroup, 1, false)
+	if err != nil {
+		return
+	}
+	csr.Close()
+
+	timemax = tkmgroup.Get("timestamp", time.Time{}).(time.Time)
 
 	return
 }
