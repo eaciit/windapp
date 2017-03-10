@@ -11,12 +11,8 @@ pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
 pg.pageType = ko.observable(pageType);
 pg.dataType = ko.observable("MIN");
-<<<<<<< HEAD
 pg.TagList = ko.observableArray(["windspeed"]);
-=======
-
-pg.TagList = ko.observableArray(["WindSpeed_ms","ActivePower_kW"]);
->>>>>>> df1751c5531a910436d4bf1b5985ed141308a57b
+// pg.TagList = ko.observableArray(["WindSpeed_ms","ActivePower_kW"]);
 pg.tags = ko.observableArray([
     {text: "WindSpeed_ms" , value:"Wind Speed"},
     {text: "Wind Direction" , value:"Wind Direction"},
