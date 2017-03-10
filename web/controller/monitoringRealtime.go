@@ -52,118 +52,6 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 	return retVal
 }
 
-func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (rtkm tk.M) {
-
-	rtkm = tk.M{}
-
-	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder").
-		From("ref_turbine").
-		Where(dbox.Eq("project", project)).Cursor(nil)
-
-	if err != nil {
-		tk.Println(err.Error())
-	}
-
-	_result := []tk.M{}
-	err = csrt.Fetch(&_result, 0, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrt.Close()
-
-	alldata, allturbine := tk.M{}, tk.M{}
-	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
-		"PitchAngle", "RotorRPM"}
-	lastUpdate := time.Time{}
-	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
-	turbinedown := 0
-	t0 := time.Now().UTC()
-
-	arrturbinestatus := getTurbineStatus(project)
-
-	for _, _tkm := range _result {
-		aturbine := tk.M{}
-		strturbine := _tkm.GetString("turbineid")
-		aturbine.Set("Turbine", strturbine)
-		aturbine.Set("DataComing", 0)
-
-		for _, afield := range arrfield {
-			aturbine.Set(afield, defaultValue)
-
-			_tlafield := strings.ToLower(afield)
-			icsrt, err := DB().Connection.NewQuery().Select("timestamp", _tlafield).From(new(ScadaRealTime).TableName()).
-				Where(dbox.And(dbox.Eq("turbine", strturbine), dbox.Ne(_tlafield, defaultValue), dbox.Eq("projectname", project))).
-				Order("-timestamp").Cursor(nil)
-			if err != nil {
-				tk.Println(err.Error())
-			}
-
-			_tdata := tk.M{}
-			if icsrt.Count() > 0 {
-				err = icsrt.Fetch(&_tdata, 1, false)
-			}
-			if err != nil {
-				tk.Println(err.Error())
-			}
-			icsrt.Close()
-
-			ifloat := _tdata.GetFloat64(_tlafield)
-			if len(_tdata) > 0 && ifloat != defaultValue {
-				tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
-				utime := aturbine.Get("TimeUpdate", time.Time{}).(time.Time)
-				aturbine.Set(afield, ifloat)
-
-				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
-					aturbine.Set("DataComing", 1)
-				}
-
-				if tstamp.After(utime) {
-					aturbine.Set("TimeUpdate", tstamp.UTC())
-				}
-
-				if tstamp.After(lastUpdate) {
-					lastUpdate = tstamp.UTC()
-				}
-
-				switch afield {
-				case "ActivePower":
-					PowerGen += ifloat
-				case "WindSpeed":
-					AvgWindSpeed += ifloat
-					CountWS += 1
-				}
-			}
-		}
-
-		aturbine.Set("AlarmCode", arrturbinestatus[strturbine].AlarmCode).
-			Set("AlarmDesc", arrturbinestatus[strturbine].AlarmDesc).
-			Set("Status", arrturbinestatus[strturbine].Status).
-			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate.UTC())
-		if arrturbinestatus[strturbine].Status == 0 {
-			turbinedown += 1
-		}
-
-		arrturbine := alldata.Get(_tkm.GetString("feeder"), []tk.M{}).([]tk.M)
-		arrturbine = append(arrturbine, aturbine)
-		alldata.Set(_tkm.GetString("feeder"), arrturbine)
-
-		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
-		lturbine = append(lturbine, strturbine)
-		sort.Strings(lturbine)
-		allturbine.Set(_tkm.GetString("feeder"), lturbine)
-	}
-
-	rtkm.Set("ListOfTurbine", allturbine)
-	rtkm.Set("Data", alldata)
-	rtkm.Set("TimeStamp", lastUpdate)
-	rtkm.Set("PowerGeneration", PowerGen)
-	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
-	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
-	rtkm.Set("TurbineActive", len(_result)-turbinedown)
-	rtkm.Set("TurbineDown", turbinedown)
-
-	return
-}
 func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) (rtkm tk.M) {
 
 	rtkm = tk.M{}
@@ -250,6 +138,9 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 					Set("AlarmDesc", _idt.AlarmDesc).
 					Set("Status", _idt.Status).
 					Set("AlarmUpdate", _idt.TimeUpdate.UTC())
+				if _idt.Status == 0 {
+					turbinedown += 1
+				}
 			}
 		}
 
@@ -513,6 +404,121 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 
 	return
 }
+
+/*
+func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (rtkm tk.M) {
+
+	rtkm = tk.M{}
+
+	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder").
+		From("ref_turbine").
+		Where(dbox.Eq("project", project)).Cursor(nil)
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	_result := []tk.M{}
+	err = csrt.Fetch(&_result, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+
+	alldata, allturbine := tk.M{}, tk.M{}
+	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
+		"PitchAngle", "RotorRPM"}
+	lastUpdate := time.Time{}
+	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
+	turbinedown := 0
+	t0 := time.Now().UTC()
+
+	arrturbinestatus := getTurbineStatus(project)
+
+	for _, _tkm := range _result {
+		aturbine := tk.M{}
+		strturbine := _tkm.GetString("turbineid")
+		aturbine.Set("Turbine", strturbine)
+		aturbine.Set("DataComing", 0)
+
+		for _, afield := range arrfield {
+			aturbine.Set(afield, defaultValue)
+
+			_tlafield := strings.ToLower(afield)
+			icsrt, err := DB().Connection.NewQuery().Select("timestamp", _tlafield).From(new(ScadaRealTime).TableName()).
+				Where(dbox.And(dbox.Eq("turbine", strturbine), dbox.Ne(_tlafield, defaultValue), dbox.Eq("projectname", project))).
+				Order("-timestamp").Cursor(nil)
+			if err != nil {
+				tk.Println(err.Error())
+			}
+
+			_tdata := tk.M{}
+			if icsrt.Count() > 0 {
+				err = icsrt.Fetch(&_tdata, 1, false)
+			}
+			if err != nil {
+				tk.Println(err.Error())
+			}
+			icsrt.Close()
+
+			ifloat := _tdata.GetFloat64(_tlafield)
+			if len(_tdata) > 0 && ifloat != defaultValue {
+				tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
+				utime := aturbine.Get("TimeUpdate", time.Time{}).(time.Time)
+				aturbine.Set(afield, ifloat)
+
+				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+					aturbine.Set("DataComing", 1)
+				}
+
+				if tstamp.After(utime) {
+					aturbine.Set("TimeUpdate", tstamp.UTC())
+				}
+
+				if tstamp.After(lastUpdate) {
+					lastUpdate = tstamp.UTC()
+				}
+
+				switch afield {
+				case "ActivePower":
+					PowerGen += ifloat
+				case "WindSpeed":
+					AvgWindSpeed += ifloat
+					CountWS += 1
+				}
+			}
+		}
+
+		aturbine.Set("AlarmCode", arrturbinestatus[strturbine].AlarmCode).
+			Set("AlarmDesc", arrturbinestatus[strturbine].AlarmDesc).
+			Set("Status", arrturbinestatus[strturbine].Status).
+			Set("AlarmUpdate", arrturbinestatus[strturbine].TimeUpdate.UTC())
+		if arrturbinestatus[strturbine].Status == 0 {
+			turbinedown += 1
+		}
+
+		arrturbine := alldata.Get(_tkm.GetString("feeder"), []tk.M{}).([]tk.M)
+		arrturbine = append(arrturbine, aturbine)
+		alldata.Set(_tkm.GetString("feeder"), arrturbine)
+
+		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
+		lturbine = append(lturbine, strturbine)
+		sort.Strings(lturbine)
+		allturbine.Set(_tkm.GetString("feeder"), lturbine)
+	}
+
+	rtkm.Set("ListOfTurbine", allturbine)
+	rtkm.Set("Data", alldata)
+	rtkm.Set("TimeStamp", lastUpdate)
+	rtkm.Set("PowerGeneration", PowerGen)
+	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
+	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
+	rtkm.Set("TurbineActive", len(_result)-turbinedown)
+	rtkm.Set("TurbineDown", turbinedown)
+
+	return
+}
+*/
 
 /*
 func (c *MonitoringRealtimeController) GetMonitoring() tk.M {
