@@ -11,7 +11,7 @@ pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
 pg.pageType = ko.observable(pageType);
 pg.dataType = ko.observable("MIN");
-pg.TagList = ko.observableArray(["Wind Speed"]);
+pg.TagList = ko.observableArray(["Wind Speed","Power"]);
 pg.tags = ko.observableArray([
     {text: "Wind Speed" , value:"Wind Speed"},
     {text: "Wind Direction" , value:"Wind Direction"},
@@ -442,7 +442,7 @@ pg.getDataStockChart = function(){
 
     var param = {
         period: fa.period,
-        Turbine: fa.turbine,
+        Turbine: [fa.turbine],
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
         Project: fa.project,
@@ -512,6 +512,8 @@ pg.getDataStockChart = function(){
 
 $(document).ready(function () {
     $('.popover-markup>.trigger').popover({
+        animation: true,
+        trigger: 'focus',
         html: true,
         title: function () {
             return $(this).parent().find('.head').html();
@@ -520,7 +522,24 @@ $(document).ready(function () {
             return $(this).parent().find('.content').html();
         }
     }).on('click',function () {
-            $('#TagList').kendoMultiSelect({dataSource: pg.tags(), value: pg.TagList() , dataValueField : 'value', dataTextField: 'text',suggest: true, maxSelectedItems: 4});
+            $('#TagList').kendoMultiSelect({
+              dataSource: pg.tags(), 
+              value: pg.TagList() , 
+              dataValueField : 'value', 
+              dataTextField: 'text',
+              suggest: true, 
+              maxSelectedItems: 4, 
+              minSelectedItems: 1,
+              change: function(e) {
+                  if (this.value().length == 0) {
+                      this.value("Wind Speed")
+                  }
+              }
+      });
+    });
+
+    $('#closePopOver').on('click', function () {
+       console.log("lalala");
     });
 
     $('#btnRefresh').on('click', function () {
