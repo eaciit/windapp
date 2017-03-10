@@ -305,9 +305,9 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 						tagVal = val.GetFloat64(tag) / 1000
 					} else if tag == "windspeed" {
 						tagVal = val.GetFloat64(tag)
-						if tagVal < 0 {
-							tagVal = 0.0
-						}
+						// if tagVal < 0 {
+						// 	tagVal = 0.0
+						// }
 					} else {
 						tagVal = val.GetFloat64(tag)
 					}
