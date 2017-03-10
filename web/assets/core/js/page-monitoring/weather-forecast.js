@@ -196,7 +196,11 @@ wf.CreateChart = function(data) {
 };
 
 $(document).ready(function(){
-    wf.GetData();
-    wf.RefreshChart()
+    app.loading(true);
+    $.when(wf.GetData(), wf.RefreshChart()).done(function () {
+        setTimeout(function() {
+            app.loading(false);
+        }, 2000);
+    });
     window.setInterval(wf.GetData, 60000);
 });
