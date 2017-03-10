@@ -122,4 +122,5 @@ type PayloadTimeSeries struct {
 	TagList   []string
 	DataType  string
 	PageType  string
+	IsHour    bool
 }

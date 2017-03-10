@@ -4,12 +4,12 @@
     "data": {
       "db": "wfdemo-oem",
       "driver": "mongo",
-      "host": "go.eaciit.com:27123",
-      "pass": "B1gD@ta",
+      "host": "52.77.236.193:27123",
+      "pass": "",
       "setting": {
         "timeout": 3000
       },
-      "user": "eaciit"
+      "user": ""
     }
   },
   {
@@ -17,12 +17,12 @@
     "data": {
       "db": "wfdemo-oem",
       "driver": "mongo",
-      "host": "go.eaciit.com:27123",
-      "pass": "B1gD@ta",
+      "host": "52.77.236.193:27123",
+      "pass": "",
       "setting": {
         "timeout": 3000
       },
-      "user": "eaciit"
+      "user": ""
     }
   },
   {

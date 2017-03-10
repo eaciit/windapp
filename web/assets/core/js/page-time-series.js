@@ -11,11 +11,11 @@ pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
 pg.pageType = ko.observable(pageType);
 pg.dataType = ko.observable("MIN");
-pg.isSecond = ko.observable(false);
 
-pg.TagList = ko.observableArray(["WindSpeed_ms","ActivePower_kW"]);
+pg.isSecond = ko.observable(false);
+pg.TagList = ko.observableArray(["windspeed","ActivePower_kW"]);
 pg.tags = ko.observableArray([
-    {text: "Wind Speed" , value:"WindSpeed_ms"},
+    {text: "Wind Speed" , value:"windspeed"},
     {text: "Wind Direction" , value:"Wind Direction"},
     {text: "Nacelle Direction" , value:"Nacelle Direction"},
     {text: "Rotor RPM" , value:"Rotor RPM"},
@@ -492,7 +492,7 @@ pg.getDataStockChart = function(param){
     };
 
 
-    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdata" )
+    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
 
     var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
         if (!app.isFine(res)) {
@@ -573,7 +573,7 @@ $(document).ready(function () {
               minSelectedItems: 1,
               change: function(e) {
                   if (this.value().length == 0) {
-                      this.value("WindSpeed_ms")
+                      this.value("windspeed")
                   }
               }
       });
