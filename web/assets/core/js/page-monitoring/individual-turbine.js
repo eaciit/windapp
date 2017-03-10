@@ -279,7 +279,18 @@ Wind speed 2        Vane 2 wind direction       Generator RPM - GenSpeed_RPM
         $('#temp_gear_oil').text(data["Temp. Gear box oil"].toFixed(2));
     else $('#temp_gear_oil').text('N/A');
 
-    /*ROTOR CURRENT PART*/
+    /*NACELLE PART*/
+    if(data["Temp. Nacelle"] != -999999)
+        $('#temp_nacelle').text(data["Temp. Nacelle"].toFixed(2));
+    else $('#temp_nacelle').text('N/A');
+    if(data["Temp. Ambient"] != -999999)
+        $('#temp_ambient').text(data["Temp. Ambient"].toFixed(2));
+    else $('#temp_ambient').text('N/A');
+    if(data["Temp. Main bearing"] != -999999)
+        $('#temp_main_bear').text(data["Temp. Main bearing"].toFixed(2));
+    else $('#temp_main_bear').text('N/A');
+
+    /*VIBRATION PART*/
     if(data["Damper Oscillation mag."] != -999999)
         $('#damper_osci_mag').text(data["Damper Oscillation mag."].toFixed(2));
     else $('#damper_osci_mag').text('N/A');
