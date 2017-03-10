@@ -44,12 +44,9 @@ ma.CreateGrid = function() {
                 data: function data(res) {
                     app.loading(false);
 
-                    var totalFreq = 0;
-                    var totalHour = 0;
-                    $.each(res.data.Data, function(idx, val) {
-                        totalFreq++;
-                        totalHour += val.Duration;
-                    });
+                    var totalFreq = res.data.Total;
+                    var totalHour = res.data.Duration;
+                    
                     $('#alarm_duration').text((totalHour/3600).toFixed(2));
                     $('#alarm_frequency').text(totalFreq);
                     
@@ -114,6 +111,10 @@ ma.InitDateValue = function () {
 }
 
 $(document).ready(function(){
+    $('#btnRefresh').on('click', function () {
+        ma.CreateGrid();
+    });
+
     setTimeout(function() {
         $.when(ma.InitDateValue()).done(function () {
             setTimeout(function() {

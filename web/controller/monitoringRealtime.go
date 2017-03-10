@@ -169,23 +169,59 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	p := new(helper.Payloads)
+	type MyPayloads struct {
+		Turbine   []interface{}
+		DateStart time.Time
+		DateEnd   time.Time
+		Skip      int
+		Take      int
+		Project   string
+		Period    string
+	}
+
+	p := new(MyPayloads)
 	err := k.GetPayload(&p)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	query := tk.M{}.Set("where", dbox.Eq("projectname", "Tejuva"))
-	csr, err := DB().Find(new(AlarmRealtime), query)
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	dfilter := []*dbox.Filter{}
+	dfilter = append(dfilter, dbox.Eq("projectname", project))
+	dfilter = append(dfilter, dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd))
+	if len(p.Turbine) > 0 {
+		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
+	}
+
+	csr, err := DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
+		Aggr(dbox.AggrSum, "$duration", "duration").
+		Aggr(dbox.AggrSum, 1, "countdata").
+		Group("projectname").
+		Where(dbox.And(dfilter...)).Cursor(nil)
+
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
-	totalData := csr.Count()
+
+	tkmgroup := tk.M{}
+	_ = csr.Fetch(&tkmgroup, 1, false)
 	csr.Close()
 
-	query.Set("take", p.Take).Set("skip", p.Skip)
+	totalData := tkmgroup.GetInt("countdata")
+	totalDuration := tkmgroup.GetInt("duration")
+
 	csr, err = DB().Connection.NewQuery().From(new(AlarmRealtime).TableName()).
-		Where(dbox.Eq("projectname", "Tejuva")).
+		Where(dbox.And(dfilter...)).
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
@@ -198,7 +234,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	}
 	csr.Close()
 
-	return helper.CreateResult(true, tk.M{}.Set("Data", results).Set("Total", totalData), "success")
+	return helper.CreateResult(true, tk.M{}.Set("Data", results).Set("Total", totalData).Set("Duration", totalDuration), "success")
 }
 
 func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interface{} {
