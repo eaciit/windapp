@@ -167,6 +167,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) (rtkm tk.M) {
 
 	rtkm = tk.M{}
+	alldata, allturbine := []tk.M{}, tk.M{}
 
 	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder").
 		From("ref_turbine").
@@ -182,8 +183,13 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 		tk.Println(err.Error())
 	}
 	csrt.Close()
+	for _, _tkm := range _result {
+		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
+		lturbine = append(lturbine, _tkm.GetString("turbineid"))
+		sort.Strings(lturbine)
+		allturbine.Set(_tkm.GetString("feeder"), lturbine)
+	}
 
-	alldata, allturbine := []tk.M{}, tk.M{}
 	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
 		"PitchAngle", "RotorRPM"}
 	lastUpdate := time.Time{}
@@ -197,7 +203,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 
 	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
 		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
-		Order("-timestamp", "-turbine").Cursor(nil)
+		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
 	}
@@ -269,13 +275,6 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	csr.Close()
 	if _iTurbine != "" {
 		alldata = append(alldata, _itkm)
-	}
-
-	for _, _tkm := range _result {
-		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
-		lturbine = append(lturbine, _tkm.GetString("turbineid"))
-		sort.Strings(lturbine)
-		allturbine.Set(_tkm.GetString("feeder"), lturbine)
 	}
 
 	rtkm.Set("ListOfTurbine", allturbine)
