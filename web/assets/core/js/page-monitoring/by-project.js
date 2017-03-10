@@ -11,10 +11,6 @@ vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'By Project', href: viewModel.appName + 'page/monitoringbyproject' }]);
 
-/*bp.Turbines1 = ko.observableArray(
-    ["HBR004", "HBR005", "HBR006", "TJW024", "HBR007", "SSE001", "SSE002", "SSE007", "SSE006", "SSE011", "SSE015", "SSE012"]);
-bp.Turbines2 = ko.observableArray(
-    ["SSE017", "SSE018", "SSE019", "SSE020", "TJ013", "TJ016", "HBR038", "TJ021", "TJ022", "TJ023", "TJ024", "TJ025"]);*/
 bp.Turbines1 = ko.observableArray([]);
 bp.Turbines2 = ko.observableArray([]);
 bp.selectedTurbine = ko.observable("");
@@ -117,8 +113,9 @@ bp.GetData = function(data) {
 };
 
 bp.PlotData = function(data) {
-    var feeder5 = data.Data["Feeder 5"];
-    var allData = feeder5.concat(data.Data["Feeder 8"]);
+    // var feeder5 = data.Data["Feeder 5"];
+    // var allData = feeder5.concat(data.Data["Feeder 8"]);
+    var allData = data.Detail
     var lastUpdate = moment.utc(data.TimeStamp);
     // var lastUpdate = moment.utc(data.TimeStamp).add(5.5, 'hour');
     // var lastUpdate = moment.utc().add(5.5, 'hour');
