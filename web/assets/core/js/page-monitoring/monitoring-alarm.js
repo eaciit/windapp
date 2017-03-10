@@ -15,7 +15,13 @@ var intervalTurbine = null;
 ma.CreateGrid = function() {
     app.loading(true);
 
+    fa.LoadData();
     var param = {
+        period: fa.period,
+        dateStart: fa.dateStart,
+        dateEnd: fa.dateEnd,
+        turbine: fa.turbine,
+        project: fa.project
     };
 
     $('#alarmGrid').html('');
@@ -97,8 +103,22 @@ function time(s) {
     return new Date(s * 1e3).toISOString().slice(-13, -5);
 }
 
+ma.InitDateValue = function () {
+    var maxDateData = new Date();
+
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0, 0));
+    var lastEndDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0, 0));
+
+    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
+    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+}
 
 $(document).ready(function(){
-    ma.CreateGrid();
-    // ma.LoadData();
+    setTimeout(function() {
+        $.when(ma.InitDateValue()).done(function () {
+            setTimeout(function() {
+                ma.CreateGrid();
+            }, 100);
+        });
+    }, 300);
 });
