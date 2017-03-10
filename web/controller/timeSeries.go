@@ -141,7 +141,15 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	var tStart, tEnd time.Time
+
+	if p.IsHour {
+		tStart = p.DateStart.UTC()
+		tEnd = p.DateEnd.UTC()
+	} else {
+		tStart, tEnd, e = helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	}
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
