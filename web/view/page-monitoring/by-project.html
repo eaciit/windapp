@@ -1,0 +1,295 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/by-project.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+
+<div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: bp.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-body">
+                    <div class="project-info">
+                        Location : <b>Jaisalmer</b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="project_temperature"></span> &deg; C</b> &nbsp;&nbsp;<span class="last-separator">|</span>&nbsp;&nbsp; <img id="project_img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                        <b><span id="project_weather"></span></b>
+                        <div class="source-info pull-right project-info-last-update">
+                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<span id="project_last_update"></span>
+                        </div>
+                    </div>
+                    <div class="control-summary left-border-org">
+                        <label class="summary-header">Power Generation (kW)</label><br />
+                        <label id="project_generation" class="summary-number">0</label>
+                    </div>
+                    <div class="control-summary left-border-green">
+                        <label class="summary-header">PLF (%)</label><br />
+                        <label id="project_plf" class="summary-number">0</label>
+                    </div>
+                    <div class="control-summary left-border-org">
+                        <label class="summary-header">Avg. Wind Speed (m/s)</label><br />
+                        <label id="project_wind_speed" class="summary-number">0</label>
+                    </div>
+                    <div class="control-summary left-border-green productivity-box not-hide">
+                        <label class="summary-header">Productivity</label><br />
+                        <label class="summary-header">Turbine Active : </label><label id="project_turbine_active" class="summary-number">0</label> 
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        <label class="summary-header">Turbine Down : </label><label id="project_turbine_down" class="summary-number">0</label> 
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-4">
+                            <h4 class="feeder-title">Feeder 5</h4>
+                            <table class="table table-monitoring">
+                                <thead>
+                                    <tr>
+                                        <!-- <th width="70">Turbine</th>
+                                        <th width="30" class="text-center"><i class="fa fa-bell" data-toggle="tooltip" title="Turbine Status"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-flash" data-toggle="tooltip" title="Actual Generation (KW)"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-location-arrow" data-toggle="tooltip" title="Avg. Wind Speed (m/s)"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-arrows" data-toggle="tooltip" title="Nacelle Position (deg)"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-dashboard" data-toggle="tooltip" title="Rotor RPM"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-circle-o-notch" data-toggle="tooltip" title="Pitch Angle"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-thermometer-half" data-toggle="tooltip" title="Temperature"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-exclamation-triangle" data-toggle="tooltip" title="Alarm Description"></i></th> -->
+                                        <th width="70">Turbine</th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Turbine Status">St.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Rotor RPM">Rtr.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Pitch Angle">P.A.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Temperature">Temp</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: bp.Turbines1()">
+                                    <tr>
+                                        <!-- <td><a onclick="Project.GenDetail(this.text)" ><span data-bind="text: $data"></span></a></td> -->
+                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.GenDetail($data)}"></td>
+                                        <td align="center"><i data-bind="attr: { id: 'status_'+ $data }" class="fa fa-circle fa-project-info fa-green"></i></td>
+                                        <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'dir_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'rotor_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'pitch_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'temperature_'+ $data }">-</span></td>
+                                        <td align="center"><span data-bind="attr: { id: 'alarmdesc_'+ $data }" data-toggle="tooltip" title="">-</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="feeder-title">Feeder 8</h4>
+                            <table class="table table-monitoring">
+                                <thead>
+                                    <tr>
+                                        <!-- <th width="70">Turbine</th>
+                                        <th width="30" class="text-center"><i class="fa fa-bell" data-toggle="tooltip" title="Turbine Status"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-flash" data-toggle="tooltip" title="Actual Generation (KW)"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-location-arrow" data-toggle="tooltip" title="Avg. Wind Speed (m/s)"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-arrows" data-toggle="tooltip" title="Nacelle Position (deg)"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-dashboard" data-toggle="tooltip" title="Rotor RPM"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-circle-o-notch" data-toggle="tooltip" title="Pitch Angle"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-thermometer-half" data-toggle="tooltip" title="Temperature"></i></th>
+                                        <th width="30" class="text-center"><i class="fa fa-exclamation-triangle" data-toggle="tooltip" title="Alarm Description"></i></th> -->
+                                        <th width="70">Turbine</th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Turbine Status">St.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Rotor RPM">Rtr.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Pitch Angle">P.A.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Temperature">Temp</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: bp.Turbines2()">
+                                    <tr>
+                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.GenDetail($data)}"></td>
+                                        <td align="center"><i data-bind="attr: { id: 'status_'+ $data }" class="fa fa-circle fa-project-info fa-green"></i></td>
+                                        <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'dir_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'rotor_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'pitch_'+ $data }">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'temperature_'+ $data }">-</span></td>
+                                        <td align="center"><span data-bind="attr: { id: 'alarmdesc_'+ $data }" data-toggle="tooltip" title="">-</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <b>Notes :</b> &nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-circle fa-project-info fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-circle fa-project-info fa-red"></i>&nbsp;&nbsp;Turbine Down&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-circle fa-project-info fa-grey"></i>&nbsp;&nbsp;Data N/A&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-circle fa-project-info fa-orange"></i>&nbsp;&nbsp;Turbine with Alarm&nbsp;&nbsp;&nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="panel panel-default">
+                                <div class="panel-body text-center">
+                                    <div class="col-md-12 text-center">
+                                        <strong><span data-bind="text:bp.selectedProject"></span></strong> (Last 24 Hours)
+                                    </div>
+                                    <div class="col-md-12 text-center" style="font-size: 27px;">
+                                        <i data-bind="attr : {class: (bp.selectedMonitoring().status == 'brake') ? 'fa fa-circle red' : (bp.selectedMonitoring().status == 'N/A') ? 'fa fa-circle dim' : 'fa fa-circle green'}"></i>&nbsp;<strong><span data-bind="text:bp.selectedTurbine"></span></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="panel panel-default">
+                                <div class="panel-body text-center">
+                                    <div class="col-md-12 text-center">
+                                        <strong><span data-bind='text:(bp.selectedMonitoring().statuscode=="" ? "none" : bp.selectedMonitoring().statuscode)'></span></strong>
+                                    </div>
+                                    <div class="col-md-12 text-center">
+                                        <span style="font-size: 27px;" data-bind='text:(bp.selectedMonitoring().statusdesc=="" ? "none" : bp.selectedMonitoring().statusdesc)'></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="col-md-4">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Total Prod.(KWh)</strong></span>
+                                        </div>
+                                        <div class="col-md-12 text-center">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(bp.selectedMonitoring().totalProduction,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>WS(m/s)</strong></span>
+                                        </div>
+                                        <div class="col-md-12 text-center">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(bp.selectedMonitoring().windspeed,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Rotor RPM</strong></span>
+                                        </div>                                        
+                                        <div class="col-md-12 text-center">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(bp.selectedMonitoring().rotorspeedrpm,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                        
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="col-md-6">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Wind Direction</strong></span>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <i class="fa fa-location-arrow rotation" style="font-size: 40px;" data-bind="attr: {rotationval:bp.selectedMonitoring().winddirection+45}"></i>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <span style="font-size: 30px;"><span data-bind="text: bp.selectedMonitoring().winddirection <= -999999 ? 'N/A' : kendo.toString(bp.selectedMonitoring().winddirection,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Pitch Angle</strong></span>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <i class="fa fa-location-arrow rotation" style="font-size: 40px;" data-bind="attr: {rotationval:bp.selectedMonitoring().pitchangle+45}"></i>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <span style="font-size: 30px;"><span data-bind="text: bp.selectedMonitoring().pitchangle <= -999999 ? 'N/A' : kendo.toString(bp.selectedMonitoring().pitchangle,'n1')"></span></span>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>                        
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="col-md-12 col-xs-12 section-part">
+                                        <label class="sector-label">Sectors</label>
+                                        <select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
+                                            style="width:50px;">
+                                        </select>&nbsp;
+                                        <label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
+                                    </div>
+                                    <div class="col-md-12 col-xs-12 legend-part">
+                                        <div id="legend-list" class="col-md-12 col-sm-12 pl15">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+                                        <div data-bind="attr:{id: 'chart-' + Name}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="row-fluid">
+                                        <div id="chartline"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                        
+                        <div class="col-md-3 detail-tbl">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <table class='table borderless able table-condensed table-hover table-striped'>
+                                        <tbody data-bind="foreach:bp.detailEvent"> 
+                                            <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
+                                                <td data-bind="text:TimeStampStr"></td>
+                                                <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></td>
+                                                <td data-bind="text:AlarmId"></td>
+                                                <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    bp.populateProject({{.ProjectList}});
+</script>

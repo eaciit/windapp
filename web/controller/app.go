@@ -59,16 +59,15 @@ type PayloadAnalytic struct {
 }
 
 type PayloadAnalyticTLP struct {
-	Period     	string
-	Project    	string
-	Turbine    	[]interface{}
-	DateStart  	time.Time
-	DateEnd   	time.Time
-	ColName 	string
-	DeviationStatus  	bool
-	Deviation  	float64
+	Period          string
+	Project         string
+	Turbine         []interface{}
+	DateStart       time.Time
+	DateEnd         time.Time
+	ColName         string
+	DeviationStatus bool
+	Deviation       float64
 }
-
 
 type PayloadAnalyticPC struct {
 	Period       string
@@ -101,16 +100,27 @@ type PayloadKPI struct {
 }
 
 type PayloadPCComparison struct {
-	PC1Period     string
-	PC1Project    string
-	PC1Turbine    string//[]interface{}
-	PC1DateStart  time.Time
-	PC1DateEnd    time.Time
+	PC1Period    string
+	PC1Project   string
+	PC1Turbine   string //[]interface{}
+	PC1DateStart time.Time
+	PC1DateEnd   time.Time
 
-	PC2Period     string
-	PC2Project    string
-	PC2Turbine    string//[]interface{}
-	PC2DateStart  time.Time
-	PC2DateEnd    time.Time
+	PC2Period    string
+	PC2Project   string
+	PC2Turbine   string //[]interface{}
+	PC2DateStart time.Time
+	PC2DateEnd   time.Time
+}
 
+type PayloadTimeSeries struct {
+	Period    string
+	Project   string
+	Turbine   []interface{}
+	DateStart time.Time
+	DateEnd   time.Time
+	TagList   []string
+	DataType  string
+	PageType  string
+	IsHour    bool
 }

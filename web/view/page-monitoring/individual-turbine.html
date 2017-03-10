@@ -1,0 +1,515 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/individual-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="turbine" name="table" data-bind="kendoDropDownList: { data: it.turbineList, dataValueField: 'Id', dataTextField: 'Id', suggest: true, change: it.ChangeSelection() }"
+                    style="width:145px"></select>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore mb-5">
+                <div class="panel-body">                        
+                    <div class="project-info">
+                        Lat : <span id="turbine_lat"></span> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <span id="turbine_lon"></span> &nbsp;&nbsp;|&nbsp;&nbsp; Location : <span id="turbine_location"><b>Jaisalmer</b></span> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="turbine_temperature"></span> &deg; C</b> &nbsp;&nbsp;|&nbsp;&nbsp; <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                        <b><span id="turbine_weather"></span></b>
+                        <div class="source-info pull-right project-info-last-update">
+                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<span id="turbine_last_update"></span>
+                        </div> 
+                    </div>
+
+                    <div class="col-md-8">
+                        <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th colspan="3" ><h5>Wind Speed & Direction</h5></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Wind speed Avg</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="windspeed_avg"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Wind Direction</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="wind_dir"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Nacelle Direction</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="nacel_dir"></span>
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Wind speed 1</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="windspeed1"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Vane 1 Wind Direction</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="wind_dir1"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Rotor RPM</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="rotor_rpm"></span>
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Wind speed 2</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="windspeed2"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Vane 2 Wind Direction</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="wind_dir2"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Generator RPM</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="gen_rpm"></span>
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250"></td>
+                                <td width="250"></td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG Speed Generator Encoder</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="speed_gen"></span>
+                                    </div>                                    
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th colspan="3" ><h5>Pitch System</h5></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td width="250" width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Blade Angle 1</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="blade_angle1"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Volt. Battery - blade 1</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="volt_battery1"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Current 1 Pitch Motor</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="cur_pitch_motor1"></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Blade Angle 2</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="blade_angle2"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Volt. Battery - blade 2</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="volt_battery2"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Current 2 Pitch Motor</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="cur_pitch_motor2"></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Blade Angle 3</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="blade_angle3"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Volt. Battery - blade 3</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="volt_battery3"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Current 3 Pitch Motor</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="cur_pitch_motor3"></span>
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <tbody>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Pitch motor temperature - Blade 1</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="pitch_motor_temp1"></span>
+                                </td>
+                                <td width="250"></td>
+                                <td width="250"></td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Pitch motor temperature - Blade 2</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="pitch_motor_temp2"></span>
+                                </td>
+                                <td width="250"></td>
+                                <td width="250"></td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Pitch motor temperature - Blade 3</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="pitch_motor_temp3"></span>
+                                    </div>
+                                </td>
+                                <td width="250"></td>
+                                <td width="250"></td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th colspan="3" ><h5>Electrical System</h5></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Phase 1 Voltage</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="phase_volt1"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Phase 1 Current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="phase_cur1"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Power</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="power"></span>
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Phase 2 Voltage</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="phase_volt2"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Phase 2 Current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="phase_cur2"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Power Reactive</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="power_react"></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Phase 3 Voltage</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="phase_volt3"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Phase 3 Current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="phase_cur3"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Freq. Grid</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="freq_grid"></span>
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <tbody>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG active power</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="dfig_act_power"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG main voltage</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="dfig_main_volt"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Rotor R current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="rotor_r_cur"></span>
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG reactive power</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="dfig_react_power"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG main current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="dfig_main_cur"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Rotor Y current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="rotor_y_cur"></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG mains Frequency</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="dfig_main_freq"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">DFIG DC link voltage</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="dfig_link_volt"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Rotor B current</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="rotor_b_cur"></span>
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <tbody>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Production</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="production"></span>
+                                </td>
+                                <td width="250">
+                                </td>
+                                <td width="250">
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Cos Phi</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="cos_phi"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                </td>
+                                <td width="250">
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th colspan="3" ><h5>Critical Temperature & Pressure</h5></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. generator 1 phase 1 coil</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_gen_coil1"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Gearbox driven end</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_gear_driven"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Nacelle</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="temp_nacelle"></span>
+                                    </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. generator 1 phase 2 coil</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="temp_gen_coil2"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Gearbox non-driven end</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_gear_non_driven"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Ambient</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_ambient"></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. generator 1 phase 3 coil</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="temp_gen_coil3"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Gearbox inter. driven end</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_gear_inter_driven"></span>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Main bearing</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_main_bear"></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. generator bearing driven End</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="temp_gen_bearing_driven"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Gearbox inter. non-driven end</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="temp_gear_inter_non_driven"></span>
+                                </td>
+                                <td width="250">
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. generator bearing non-driven End</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="temp_gen_bearing_non_driven"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Pressure Gear box oil</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="press_gear_oil"></span>
+                                </td>
+                                <td width="250">
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                </td>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Temp. Gear box oil</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="temp_gear_oil"></span>
+                                    </div>
+                                </td>
+                                <td width="250">
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-striped">
+                            <thead>
+                              <tr>
+                                <th colspan="3" ><h5>Pitch System</h5></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td width="250" width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Damper Oscillation mag.</label>
+                                    <div class="col-md-3 col-xs-2">
+                                    :&nbsp;&nbsp;&nbsp;<span id="damper_osci_mag"></span>
+                                </td>
+                                <td width="250" width="250">
+                                </td>
+                                <td width="250" width="250">
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Drive train vibration</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="drive_train_vibra"></span>
+                                    </div>
+                                </td>
+                                <td width="250" width="250">
+                                </td>
+                                <td width="250" width="250">
+                                </td>
+                              </tr>
+                              <tr>
+                                <td width="250">
+                                    <label class="col-md-9 col-xs-10 turbine-item-label">Tower vibration</label>
+                                    <div class="col-md-3 col-xs-2">
+                                        :&nbsp;&nbsp;&nbsp;<span id="tower_vibra"></span>
+                                    </div>
+                                </td>
+                                <td width="250" width="250">
+                                </td>
+                                <td width="250" width="250">
+                                </td>
+                              </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- GAMBAR TURBINE -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    it.populateProject({{.ProjectList}});
+</script>

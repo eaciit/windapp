@@ -9,11 +9,27 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series 
 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
+pg.pageType = ko.observable(pageType);
+pg.dataType = ko.observable("MIN");
+pg.TagList = ko.observableArray(["windspeed"]);
+// pg.TagList = ko.observableArray(["WindSpeed_ms","ActivePower_kW"]);
+pg.tags = ko.observableArray([
+    {text: "WindSpeed_ms" , value:"Wind Speed"},
+    {text: "Wind Direction" , value:"Wind Direction"},
+    {text: "Nacelle Direction" , value:"Nacelle Direction"},
+    {text: "Rotor RPM" , value:"Rotor RPM"},
+    {text: "Temperature" , value:"Temperature"},
+    {text: "ActivePower_kW" , value:"Power"}
+  ]);
+
 var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 
 var yAxis = [];
+var chart;
+var legend = [];
+var colors = ["#0066dd","#dc3912","#eee"];
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -25,7 +41,7 @@ pg.LoadData = function(){
         Turbine: fa.turbine,
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
-        Project: fa.project
+        Project: fa.project,
     };
 
     var requestData = toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
@@ -253,6 +269,7 @@ pg.chartWindSpeed = function(dataSource){
         }
     });
 } 
+
 pg.chartProduction = function(dataSource){
 	$("#chartProduction").kendoStockChart({
 	  title: {
@@ -333,7 +350,16 @@ pg.chartProduction = function(dataSource){
 } 
 
 
-
+pg.hideLegend = function(idx){
+  var series = chart.series[idx];
+  if (series.visible) {
+      series.hide();
+      // $button.html('Show series');
+  } else {
+      series.show();
+      // $button.html('Hide series');
+  }
+}
 pg.createStockChart = function(){
     $("#chartTimeSeries").html("");
 
@@ -341,18 +367,21 @@ pg.createStockChart = function(){
         chart: {
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            }
+            },
+            marginTop: 0,
+            // zoomType: 'x'
         }
     });
 
-    Highcharts.stockChart('chartTimeSeries', {
+    chart = Highcharts.stockChart('chartTimeSeries', {
         legend: {
                 layout: 'horizontal',
-                // align: 'top',
+                padding: 3,
                 verticalAlign: 'top',
                 borderWidth: 0,
                 enabled: true,
-                margin : 5
+                margin : 5,
+                enabled: false
         },
         rangeSelector: {
             selected: 1
@@ -366,6 +395,7 @@ pg.createStockChart = function(){
         exporting: {
           enabled: false
         },
+        xAxis: {type: 'datetime'},
         yAxis: yAxis,
         plotOptions: {
         series: {
@@ -378,17 +408,21 @@ pg.createStockChart = function(){
                 }
             }
         },
-        tooltip: {
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
-            valueDecimals: 2,
-            split: true
+        tooltip:{         
+          formatter : function() {
+            var s = [];
+              $.each(this.points, function(i, point) {
+                  s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+
+                      kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+              });
+              
+               $("#legendTooltip").html(s.join("&nbsp;"));
+               return false;
+           }
         },
-
         series: seriesOptions,
 
     });
-
-    app.loading(false);
 }
 
 
@@ -404,72 +438,111 @@ pg.getTimestamp = function(param){
       return date.getTime();
 }
 pg.getDataStockChart = function(){
+    fa.LoadData();
+    app.loading(true);
+
     var param = {
         period: fa.period,
-        Turbine: fa.turbine,
+        Turbine: [fa.turbine],
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
-        Project: fa.project
+        Project: fa.project,
+        PageType: pg.pageType(),
+        DataType: pg.dataType() ,
+        TagList : pg.TagList(),
     };
-    toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
+
+
+    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
+
+    var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
-        var data = res.data.Data;
-        var series = [];
+        var data = res.data.Data.Chart;
 
-        var colors = ["#0066dd","#dc3912","#eee"];
-
-        $.each(data, function(id, ress){
-            series.push(id);
-        });
-
-        var i = 0;
         $.each(data, function(idx, val){
-            var newData = [];
-            $.each(data[idx], function(y, result){
-                newData.push([pg.getTimestamp(result.timestamp), result.value]);
-            });
-
-             yAxis [i] = { 
+             yAxis [idx] = { 
+                // startOnTick: false,
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
                 },
                 title: {
-                    text: (idx == "windspeed" ? "(m/s)" : "(MWh)"),
+                    text: val.unit,
                 },
-                opposite: (idx == "production" ? true : false)
+                opposite: (val.name == "Production" ? true : false)
 
             }
-
-            seriesOptions[i] = {
-                  name : idx.substr(0,1).toUpperCase()+idx.substr(1), 
-                  data : newData,
-                  color: colors[i],
+            seriesOptions[idx] = {
+                  name : val.name, 
+                  data : val.data,
+                  color: colors[idx],
                   type: 'line',
-                  yAxis: i,
+                  yAxis: idx,
                   tooltip: {
-                      valueSuffix: (idx == "windspeed" ? " (m/s)" : " (MWh)"),
+                      valueSuffix: val.unit,
                   }
             }
 
-           
+            
+
+            legend[idx] = {
+                name : val.name,
+                unit : val.unit
+            }
 
           seriesCounter += 1;
 
-          if (seriesCounter === series.length) {
+          if (seriesCounter === data.length) {
               pg.createStockChart();
           }
 
-          i++;
-
         });
+    });
+
+    $.when(request).done(function(){
+        setTimeout(function(){
+           chart.tooltip.refresh([chart.series[0].points[1]]);
+           chart.tooltip.refresh([chart.series[1].points[1]]);
+           app.loading(false);
+         },200);
     });
 }
 
 $(document).ready(function () {
+    $('.popover-markup>.trigger').popover({
+        animation: true,
+        trigger: 'focus',
+        html: true,
+        title: function () {
+            return $(this).parent().find('.head').html();
+        },
+        content: function () {
+            return $(this).parent().find('.content').html();
+        }
+    }).on('click',function () {
+            $('#TagList').kendoMultiSelect({
+              dataSource: pg.tags(), 
+              value: pg.TagList() , 
+              dataValueField : 'value', 
+              dataTextField: 'text',
+              suggest: true, 
+              maxSelectedItems: 4, 
+              minSelectedItems: 1,
+              change: function(e) {
+                  if (this.value().length == 0) {
+                      this.value("Wind Speed")
+                  }
+              }
+      });
+    });
+
+    $('#closePopOver').on('click', function () {
+       console.log("lalala");
+    });
+
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart();
     });

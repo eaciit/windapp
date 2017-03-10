@@ -11,6 +11,7 @@ import (
 	"gopkg.in/gomail.v2"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type EmailController struct {
@@ -186,6 +187,32 @@ func (a *EmailController) EditEmail(r *knot.WebContext) interface{} {
 
 }
 
+func getMailListFromReceivers(receivers []string) (err error, mailList []string) {
+	pipes := []toolkit.M{}
+	pipes = append(pipes, toolkit.M{"$match": toolkit.M{"_id": toolkit.M{"$in": receivers}}})
+	pipes = append(pipes, toolkit.M{"$group": toolkit.M{
+		"_id":      "mailList",
+		"mailList": toolkit.M{"$push": "$email"},
+	}})
+	csrUser, err := DB().Connection.NewQuery().
+		From(new(acl.User).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csrUser.Close()
+
+	dataUser := map[string][]string{}
+	err = csrUser.Fetch(&dataUser, 1, false)
+	if err != nil {
+		return
+	}
+	mailList = dataUser["mailList"]
+
+	return
+}
+
 func SendEmail(templateID string) error {
 	csr, err := DB().Connection.NewQuery().
 		From(new(EmailManagement).TableName()).
@@ -201,29 +228,11 @@ func SendEmail(templateID string) error {
 	if err != nil {
 		return err
 	}
-
-	pipes := []toolkit.M{}
-	pipes = append(pipes, toolkit.M{"$match": toolkit.M{"_id": toolkit.M{"$in": dataEmail.Receivers}}})
-	pipes = append(pipes, toolkit.M{"$group": toolkit.M{
-		"_id":      "mailList",
-		"mailList": toolkit.M{"$push": "$email"},
-	}})
-	csrUser, err := DB().Connection.NewQuery().
-		From(new(acl.User).TableName()).
-		Command("pipe", pipes).
-		Cursor(nil)
+	err, mailList := getMailListFromReceivers(dataEmail.Receivers)
 	if err != nil {
 		return err
 	}
-	defer csrUser.Close()
 
-	dataUser := map[string][]string{}
-	err = csrUser.Fetch(&dataUser, 1, false)
-	if err != nil {
-		return err
-	}
-	mailList := []string{}
-	mailList = dataUser["mailList"]
 	m := gomail.NewMessage()
 
 	m.SetHeader("From", "admin.support@eaciit.com")
@@ -342,5 +351,28 @@ func (a *EmailController) SaveEmail(r *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	return helper.CreateResult(true, nil, "Save Email Success")
+	err, mailList := getMailListFromReceivers(payload.Receivers)
+	if err != nil {
+		return err
+	}
+	data := toolkit.M{}
+
+	data.Set("_id", payload.ID)
+	data.Set("subject", payload.Subject)
+	data.Set("category", payload.Category)
+	data.Set("receivers", strings.Join(mailList, ","))
+	if len(payload.AlarmCodes) > 0 {
+		data.Set("alarmcodes", strings.Join(payload.AlarmCodes, ","))
+	} else {
+		data.Set("alarmcodes", "")
+	}
+	data.Set("intervaltime", payload.IntervalTime)
+	data.Set("template", payload.Template)
+	data.Set("enable", payload.Enable)
+	data.Set("createddate", payload.CreatedDate)
+	data.Set("lastupdate", payload.LastUpdate)
+	data.Set("createdby", payload.CreatedBy)
+	data.Set("updatedby", payload.UpdatedBy)
+
+	return helper.CreateResult(true, data, "Save Email Success")
 }

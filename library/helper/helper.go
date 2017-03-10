@@ -229,7 +229,7 @@ func WriteErrors(errorList tk.M, fileName string) (e error) {
 
 func ReadConfig() map[string]string {
 	ret := make(map[string]string)
-	file, err := os.Open(wd + "conf/app.conf")
+	file, err := os.Open(wd + "config/app.conf")
 	if err == nil {
 		defer file.Close()
 
@@ -538,4 +538,12 @@ func GetNormalAddDateMonth(dt time.Time, month int) (res time.Time) {
 	res = tmp.AddDate(0, month, 0)
 
 	return
+}
+
+func UpperFirstLetter(str string) string {
+	if len(str) > 0 {
+		str = strings.ToUpper(str[:1]) + str[1:]
+	}
+
+	return str
 }

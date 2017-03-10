@@ -199,6 +199,26 @@ em.saveChanges = function () {
             return;
         }
 
+        var dataEmail = res.data;
+        var resCreate = em.UserMailList().filter(function(obj) {
+            return obj.value == dataEmail.createdby;
+        });
+        dataEmail.createdby = resCreate[0].text;
+        var resUpdate = em.UserMailList().filter(function(obj) {
+            return obj.value == dataEmail.updatedby;
+        });
+        dataEmail.updatedby = resUpdate[0].text;
+
+        var ajaxToFile = $.ajax({
+            url: "http://ostrowfm-realtime.eaciitapp.com/email/mailtofile",
+            data: dataEmail,
+            contentType: false,
+            dataType: "json",
+            type: 'GET',
+            success: function (data) {         
+            }
+        });
+
         $('#modalUpdate').modal('hide');
         em.refreshData();        
         swal({ title: res.message, type: "success" });        

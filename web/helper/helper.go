@@ -727,3 +727,9 @@ func GetDataDateAvailable(collectionName string, timestampColumn string, where *
 	min, max, err = hp.GetDataDateAvailable(collectionName, timestampColumn, where, DB().Connection)
 	return
 }
+
+func GetHFDFolder() string {
+	config := hp.ReadConfig()
+	source := config["hfdfolder"]
+	return source + string(os.PathSeparator)
+}

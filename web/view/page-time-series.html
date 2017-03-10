@@ -1,7 +1,9 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+	var pageType = '{{.PageType}}';
 </script>
 <script src="{{BaseUrl}}res/core/js/page-time-series.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-time-series.css">
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 <!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
@@ -17,7 +19,7 @@
 </script>
 <div>
 	<div class="row">
-		{{template "_filter-analytic.html"}}
+		{{template "page-filter-scatter.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
@@ -34,7 +36,13 @@
 						<div class="date-info">
 							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
 						</div>
-						<div class="clearfix">&nbsp;</div>
+						<!-- <div class="col-md-12" data-bind="visible:pg.pageType == 'HFD'"> -->
+						<div class="col-md-12">
+							<div class="pull-right data-type">
+								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType()">Second</label>
+								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType()">10 Minutes</label>
+							</div>
+						</div>
 						<!-- <div class="col-md-6">
 							<div id="chartWindSpeed"></div>
 						</div>
@@ -42,6 +50,18 @@
 							<div id="chartProduction"></div>
 						</div> -->
 						<div class="col-md-12">
+							<div class="legend">
+								<span id="legendTooltip"></span>&nbsp; &nbsp;
+								<div class="popover-markup" id="selectTags"> <a tabindex="0" data-toggle="popover" class="trigger" data-trigger="focus" data-placement="right"><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
+								    <div class="content hide">
+								        <div class="form-group">
+								            <select id="TagList"></select>
+								        </div>
+								        <button type="submit" id="closePopOver" class="btn btn-xs btn-danger btn-block"><i class="fa fa-times"></i> Cancel</button>
+								        <button type="submit" id="saveTags" class="btn btn-xs btn-primary btn-block"><i class="fa fa-check"></i> Select Tags</button>
+								    </div>
+								</div>
+							</div>
 							<div id="chartTimeSeries"></div>
 						</div>
 					</div>

@@ -1,0 +1,37 @@
+	.legend { 
+		text-align: center;
+		z-index: 10;
+		position: relative;
+		margin-bottom: -20px;
+	 }
+
+	 .popover-content{
+	 	width: 275px;
+	 }
+
+	 .data-type{
+	 	margin-bottom: 0px;
+	 	margin-right: 10px;
+	 }
+
+	.popover{
+		margin-top: -10px;
+    	margin-left: 15px !important;
+	}
+
+	 .k-multiselect-wrap {
+        max-height: 60px !important;
+        overflow: auto !important;
+        font-size: 12px !important;
+        font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+    }
+
+    .k-popup .k-list .k-item {
+	    font-size: 12px;
+	    font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+	}
+
+	.btn{
+		font-size: 12px;
+	    font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+	}
