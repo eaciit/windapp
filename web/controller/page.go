@@ -428,6 +428,7 @@ func (w *PageController) TimeSeriesHFD(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-time-series.html"
+	r.Config.IncludeFiles = append(DefaultIncludes, []string{"page-analytic-power-curve/page-filter-scatter.html"}...)
 	return w.GetParams(r, true).Set("PageType", "HFD")
 }
 
