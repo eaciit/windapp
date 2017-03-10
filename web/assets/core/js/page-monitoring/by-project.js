@@ -316,7 +316,6 @@ wr.GetData = function () {
 }
 
 wr.initChart = function () {
-    // app.loading(true)
     listOfChart = [];
     var breakDownVal = $("#nosection").data("kendoDropDownList").value();
     var stepNum = 1
@@ -910,6 +909,11 @@ bp.dataChartLine = function (data) {
 };
 
 $(document).ready(function() {
-    bp.GetData();
+    app.loading(true);
+    $.when(bp.GetData()).done(function () {
+        setTimeout(function() {
+            app.loading(false);
+        }, 2000);
+    });
     window.setInterval(bp.GetData, 4000);
 });

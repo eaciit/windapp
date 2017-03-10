@@ -81,10 +81,6 @@ it.GetData = function(turbine) {
 };
 
 it.PlotData = function(data) {
-    /*Wind speed Avg - WindSpeed_ms       Wind Direction - WindDirection      Nacelle Direction - NacellePos
-Wind speed 1        Vane 1 wind direction       Rotor RPM - RotorSpeed_RPM
-Wind speed 2        Vane 2 wind direction       Generator RPM - GenSpeed_RPM
-                DFIG speed generator encoder*/
 
     var lastUpdate = moment.utc(data["lastupdate"]);
     $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
@@ -345,6 +341,11 @@ it.ShowData = function() {
 
 
 $(document).ready(function(){
-    it.ShowData();
+    app.loading(true);
+    $.when(it.ShowData()).done(function () {
+        setTimeout(function() {
+            app.loading(false);
+        }, 1000);
+    });
     intervalTurbine = window.setInterval(it.ShowData, 6000);
 });
