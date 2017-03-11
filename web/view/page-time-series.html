@@ -37,10 +37,10 @@
 							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
 						</div>
 						<!-- <div class="col-md-12" data-bind="visible:pg.pageType == 'HFD'"> -->
-						<div class="col-md-12">
+						<div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
 							<div class="pull-right data-type">
-								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType()">Second</label>
-								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType()">10 Minutes</label>
+								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType, click:function(){ pg.isSecond(true); pg.getDataStockChart();  return true}">Second</label>
+								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
 							</div>
 						</div>
 						<!-- <div class="col-md-6">
@@ -52,17 +52,29 @@
 						<div class="col-md-12">
 							<div class="legend">
 								<span id="legendTooltip"></span>&nbsp; &nbsp;
-								<div class="popover-markup" id="selectTags"> <a tabindex="0" data-toggle="popover" class="trigger" data-trigger="focus" data-placement="right"><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
+								<div class="popover-markup" id="selectTags"> <a href='javascript:;' class="trigger" ><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
 								    <div class="content hide">
-								        <div class="form-group">
-								            <select id="TagList"></select>
-								        </div>
-								        <button type="submit" id="closePopOver" class="btn btn-xs btn-danger btn-block"><i class="fa fa-times"></i> Cancel</button>
-								        <button type="submit" id="saveTags" class="btn btn-xs btn-primary btn-block"><i class="fa fa-check"></i> Select Tags</button>
+								        <div class="form-group" id="selectTagsDiv"></div>
+								        <div class="btn-group pull-right m-btm-10">
+								    	<button type="submit" id="cancelPop" class="btn btn-xs btn-danger btn-block" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>
+									        <button type="submit" id="saveTags" class="btn btn-xs btn-primary btn-block" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
 								    </div>
+								    </div>
+								   
 								</div>
 							</div>
+							<div class="clearfix">&nbsp;</div>
 							<div id="chartTimeSeries"></div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="col-md-12 periodList text-center" data-bind="visible:pg.isSecond()">
+							<table>
+								<tr data-bind="foreach:pg.periodList()" id="periodlist">
+									<td>
+										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod');  return true}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;
+									</td>
+								</tr>
+							<table>
 						</div>
 					</div>
 				</div>

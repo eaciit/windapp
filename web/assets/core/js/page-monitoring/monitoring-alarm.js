@@ -42,13 +42,15 @@ ma.CreateGrid = function() {
             },
             schema: {
                 data: function data(res) {
-                    app.loading(false);
-
                     var totalFreq = res.data.Total;
                     var totalHour = res.data.Duration;
                     
                     $('#alarm_duration').text((totalHour/3600).toFixed(2));
                     $('#alarm_frequency').text(totalFreq);
+
+                    setTimeout(function(){
+                        app.loading(false);
+                    }, 300)
                     
                     return res.data.Data;
                 },
