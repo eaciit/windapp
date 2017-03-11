@@ -5,7 +5,28 @@ var pg = viewModel.TurbineHealth;
 
 vm.currentMenu('Time Series Plots');
 vm.currentTitle('Time Series Plots');
-vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
+
+pg.tags = ko.observableArray();
+
+if (pageType == "OEM") {
+    vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
+    pg.tags = ko.observableArray([
+        {text: "Wind Speed" , value:"windspeed"},        
+        {text: "Power" , value:"power"},
+        {text: "Production" , value:"production"}
+    ]);
+} else if (pageType == "HFD"){
+    vm.breadcrumb([{ title: 'Monitoring', href: '#' }, { title: 'Analysis', href: viewModel.appName + 'page/timeserieshfd' }]);
+    pg.tags = ko.observableArray([
+        {text: "Wind Speed" , value:"windspeed"},
+        {text: "Power" , value:"power"},
+        {text: "Wind Direction" , value:"winddirection"},
+        {text: "Nacelle Direction" , value:"nacellepos"},
+        {text: "Rotor RPM" , value:"rotorrpm"},
+        {text: "Generator RPM" , value:"genrpm"},        
+    ]);
+}
+
 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
@@ -13,15 +34,7 @@ pg.pageType = ko.observable(pageType);
 pg.dataType = ko.observable("MIN");
 
 pg.isSecond = ko.observable(false);
-pg.TagList = ko.observableArray(["windspeed","ActivePower_kW"]);
-pg.tags = ko.observableArray([
-    {text: "Wind Speed" , value:"windspeed"},
-    {text: "Wind Direction" , value:"Wind Direction"},
-    {text: "Nacelle Direction" , value:"Nacelle Direction"},
-    {text: "Rotor RPM" , value:"Rotor RPM"},
-    {text: "Temperature" , value:"Temperature"},
-    {text: "Power" , value:"ActivePower_kW"}
-  ]);
+pg.TagList = ko.observableArray(["windspeed","power"]);
 
 pg.startTime = ko.observable();
 pg.endTime = ko.observable();
@@ -35,7 +48,9 @@ var chart;
 var legend = [];
 var colors = ["#0066dd","#dc3912","#eee"];
 
-pg.periodList = ko.observableArray([{"endtime":"2017-02-17T15:00:00Z","starttime":"2017-02-17T12:00:00Z"},{"endtime":"2017-02-17T18:00:00Z","starttime":"2017-02-17T15:00:00Z"},{"endtime":"2017-02-17T21:00:00Z","starttime":"2017-02-17T18:00:00Z"},{"endtime":"2017-02-18T00:00:00Z","starttime":"2017-02-17T21:00:00Z"},{"endtime":"2017-02-18T03:00:00Z","starttime":"2017-02-18T00:00:00Z"},{"endtime":"2017-02-18T06:00:00Z","starttime":"2017-02-18T03:00:00Z"},{"endtime":"2017-02-18T09:00:00Z","starttime":"2017-02-18T06:00:00Z"},{"endtime":"2017-02-18T12:00:00Z","starttime":"2017-02-18T09:00:00Z"},{"endtime":"2017-02-18T15:00:00Z","starttime":"2017-02-18T12:00:00Z"},{"endtime":"2017-02-18T18:00:00Z","starttime":"2017-02-18T15:00:00Z"},{"endtime":"2017-02-18T21:00:00Z","starttime":"2017-02-18T18:00:00Z"},{"endtime":"2017-02-19T00:00:00Z","starttime":"2017-02-18T21:00:00Z"},{"endtime":"2017-02-19T03:00:00Z","starttime":"2017-02-19T00:00:00Z"},{"endtime":"2017-02-19T06:00:00Z","starttime":"2017-02-19T03:00:00Z"},{"endtime":"2017-02-19T09:00:00Z","starttime":"2017-02-19T06:00:00Z"},{"endtime":"2017-02-19T12:00:00Z","starttime":"2017-02-19T09:00:00Z"},{"endtime":"2017-02-19T15:00:00Z","starttime":"2017-02-19T12:00:00Z"},{"endtime":"2017-02-19T18:00:00Z","starttime":"2017-02-19T15:00:00Z"},{"endtime":"2017-02-19T21:00:00Z","starttime":"2017-02-19T18:00:00Z"},{"endtime":"2017-02-20T00:00:00Z","starttime":"2017-02-19T21:00:00Z"},{"endtime":"2017-02-20T03:00:00Z","starttime":"2017-02-20T00:00:00Z"},{"endtime":"2017-02-20T06:00:00Z","starttime":"2017-02-20T03:00:00Z"},{"endtime":"2017-02-20T09:00:00Z","starttime":"2017-02-20T06:00:00Z"},{"endtime":"2017-02-20T12:00:00Z","starttime":"2017-02-20T09:00:00Z"},{"endtime":"2017-02-20T15:00:00Z","starttime":"2017-02-20T12:00:00Z"},{"endtime":"2017-02-20T18:00:00Z","starttime":"2017-02-20T15:00:00Z"},{"endtime":"2017-02-20T21:00:00Z","starttime":"2017-02-20T18:00:00Z"},{"endtime":"2017-02-21T00:00:00Z","starttime":"2017-02-20T21:00:00Z"}])
+pg.periodList = ko.observableArray([]);
+
+// pg.periodList = ko.observableArray([{"endtime":"2017-02-17T15:00:00Z","starttime":"2017-02-17T12:00:00Z"},{"endtime":"2017-02-17T18:00:00Z","starttime":"2017-02-17T15:00:00Z"},{"endtime":"2017-02-17T21:00:00Z","starttime":"2017-02-17T18:00:00Z"},{"endtime":"2017-02-18T00:00:00Z","starttime":"2017-02-17T21:00:00Z"},{"endtime":"2017-02-18T03:00:00Z","starttime":"2017-02-18T00:00:00Z"},{"endtime":"2017-02-18T06:00:00Z","starttime":"2017-02-18T03:00:00Z"},{"endtime":"2017-02-18T09:00:00Z","starttime":"2017-02-18T06:00:00Z"},{"endtime":"2017-02-18T12:00:00Z","starttime":"2017-02-18T09:00:00Z"},{"endtime":"2017-02-18T15:00:00Z","starttime":"2017-02-18T12:00:00Z"},{"endtime":"2017-02-18T18:00:00Z","starttime":"2017-02-18T15:00:00Z"},{"endtime":"2017-02-18T21:00:00Z","starttime":"2017-02-18T18:00:00Z"},{"endtime":"2017-02-19T00:00:00Z","starttime":"2017-02-18T21:00:00Z"},{"endtime":"2017-02-19T03:00:00Z","starttime":"2017-02-19T00:00:00Z"},{"endtime":"2017-02-19T06:00:00Z","starttime":"2017-02-19T03:00:00Z"},{"endtime":"2017-02-19T09:00:00Z","starttime":"2017-02-19T06:00:00Z"},{"endtime":"2017-02-19T12:00:00Z","starttime":"2017-02-19T09:00:00Z"},{"endtime":"2017-02-19T15:00:00Z","starttime":"2017-02-19T12:00:00Z"},{"endtime":"2017-02-19T18:00:00Z","starttime":"2017-02-19T15:00:00Z"},{"endtime":"2017-02-19T21:00:00Z","starttime":"2017-02-19T18:00:00Z"},{"endtime":"2017-02-20T00:00:00Z","starttime":"2017-02-19T21:00:00Z"},{"endtime":"2017-02-20T03:00:00Z","starttime":"2017-02-20T00:00:00Z"},{"endtime":"2017-02-20T06:00:00Z","starttime":"2017-02-20T03:00:00Z"},{"endtime":"2017-02-20T09:00:00Z","starttime":"2017-02-20T06:00:00Z"},{"endtime":"2017-02-20T12:00:00Z","starttime":"2017-02-20T09:00:00Z"},{"endtime":"2017-02-20T15:00:00Z","starttime":"2017-02-20T12:00:00Z"},{"endtime":"2017-02-20T18:00:00Z","starttime":"2017-02-20T15:00:00Z"},{"endtime":"2017-02-20T21:00:00Z","starttime":"2017-02-20T18:00:00Z"},{"endtime":"2017-02-21T00:00:00Z","starttime":"2017-02-20T21:00:00Z"}])
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -427,7 +442,6 @@ pg.createStockChart = function(){
            }
         },
         series: seriesOptions,
-
     });
 }
 
@@ -492,7 +506,8 @@ pg.getDataStockChart = function(param){
     };
 
 
-    var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
+    // var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
+    var url = "timeseries/getdatahfd";
 
     var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
         if (!app.isFine(res)) {
@@ -500,6 +515,12 @@ pg.getDataStockChart = function(param){
         }
 
         var data = res.data.Data.Chart;
+        var periods = res.data.Data.PeriodList;
+
+        pg.periodList = periods;
+
+        // console.log(pg.periodList);
+        // console.log(data);
 
         $.each(data, function(idx, val){
              yAxis [idx] = { 
@@ -511,7 +532,7 @@ pg.getDataStockChart = function(param){
                 title: {
                     text: val.unit,
                 },
-                opposite: (val.name == "Production" ? true : false)
+                opposite: (val.name == "Power" ? true : false)
 
             }
             seriesOptions[idx] = {
@@ -523,9 +544,7 @@ pg.getDataStockChart = function(param){
                   tooltip: {
                       valueSuffix: val.unit,
                   }
-            }
-
-            
+            }            
 
             legend[idx] = {
                 name : val.name,
@@ -534,11 +553,12 @@ pg.getDataStockChart = function(param){
 
           seriesCounter += 1;
 
-          if (seriesCounter === data.length) {
-              pg.createStockChart();
-          }
-
+        //   if (seriesCounter === data.length) {
+        //       pg.createStockChart();
+        //   }
         });
+
+        pg.createStockChart();
     });
 
     $.when(request).done(function(){

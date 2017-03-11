@@ -162,6 +162,12 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		projectName = strings.TrimRight(anProject[0], " ")
 	}
 
+	turbine := ""
+
+	if len(p.Turbine) == 1 {
+		turbine = p.Turbine[0].(string)
+	}
+
 	dataType := p.DataType
 	pageType := p.PageType
 
@@ -170,10 +176,23 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	tags := []string{}
 	mapUnit := map[string]string{}
 
-	tags = []string{"windspeed", "power", "production"}
+	// default tags
+	tags = []string{"windspeed", "power"}
 	mapUnit["windspeed"] = "m/s"
 	mapUnit["power"] = "kW"
-	mapUnit["production"] = "MWh"
+	mapUnit["production"] = "kWh"
+	mapUnit["winddirection"] = "Degree"
+	mapUnit["nacellepos"] = "Degree"
+	mapUnit["rotorrpm"] = "RPM"
+	mapUnit["genrpm"] = "RPM"
+
+	mapSec := map[string]string{}
+	mapSec["windspeed"] = "WindSpeed_ms"
+	mapSec["power"] = "ActivePower_kW"
+	mapSec["winddirection"] = "WindDirection"
+	mapSec["nacellepos"] = "NacellePos"
+	mapSec["rotorrpm"] = "RotorSpeed_RPM"
+	mapSec["genrpm"] = "GenSpeed_RPM"
 
 	// if pageType == "HFD" {
 	// set default value for HFD
@@ -191,6 +210,13 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	// }
 
 	if pageType == "HFD" && dataType == "SEC" {
+		tmpTag := []string{}
+		for _, tg := range tags {
+			tmpTag = append(tmpTag, mapSec[tg])
+		}
+
+		tags = tmpTag
+
 		for {
 			if tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
 				break
@@ -201,29 +227,29 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			periodList = append(periodList, tk.M{"starttime": before, "endtime": tStart.UTC()})
 		}
 
-		if len(periodList) > 0 {
+		if len(periodList) > 0 || p.IsHour {
 			for idx, pl := range periodList {
 				current := pl
 				currStar := current.Get("starttime").(time.Time)
 				currEnd := current.Get("endtime").(time.Time)
 
-				hfds, e := GetHFDData("HBR004", currStar, currEnd, tags)
+				hfds, e := GetHFDData(turbine, currStar, currEnd, tags)
 
 				if e != nil {
 					return helper.CreateResult(false, nil, e.Error())
 				}
 
-				if len(hfds) > 0 {
-					for _, tag := range tags {
+				if len(hfds) > 0 || p.IsHour {
+					for _, tag := range p.TagList {
 						var dts [][]interface{}
 						for _, val := range hfds {
-							timestamp := val.Get("timestamp").(time.Time).Unix()
-							tagVal := val.GetFloat64(tag)
+							timestamp := tk.ToInt(tk.ToString(val.Get("timestamp").(time.Time).Unix())+"000", tk.RoundingAuto)
+							tagVal := val.GetFloat64(mapSec[tag])
 							dt := []interface{}{timestamp, tagVal}
 							dts = append(dts, dt)
 						}
 
-						resultChart = append(resultChart, tk.M{"name": hp.UpperFirstLetter(tag), "data": dts, "unit": mapUnit[tag]})
+						resultChart = append(resultChart, tk.M{"name": hp.UpperFirstLetter(mapSec[tag]), "data": dts, "unit": mapUnit[mapSec[tag]]})
 					}
 
 					periodList = periodList[idx:]
@@ -245,25 +271,30 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		if pageType == "HFD" {
 			collName = new(ScadaDataHFD).TableName()
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
-			// match.Set("avgwindspeed", tk.M{"$lte": 25})
-			// match.Set("turbine", p.Turbine)
+			match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
+			match.Set("turbine", turbine)
 
 			group = tk.M{
 				"_id": "$timestamp",
 				// "energy":    tk.M{"$sum": "$energy"},
-				"power":     tk.M{"$sum": "$fast_activepower_kw_stddevv"},
-				"windspeed": tk.M{"$avg": "$fast_windspeed_ms_stddev"},
+				"windspeed":     tk.M{"$avg": "$fast_windspeed_ms_stddev"},
+				"power":         tk.M{"$sum": "$fast_activepower_kw_stddevv"},
+				"winddirection": tk.M{"$avg": "$slow_winddirection_stddev"},
+				"nacellepos":    tk.M{"$avg": "$slow_nacellepos_stddev"},
+				"rotorrpm":      tk.M{"$avg": "$fast_rotorspeed_rpm_stddev"},
+				"genrpm":        tk.M{"$avg": "$fast_genspeed_rpm_stddev"},
 			}
 		} else {
 			collName = new(ScadaDataOEM).TableName()
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
-			// match.Set("avgwindspeed", tk.M{"$lte": 25})
-			// match.Set("turbine", p.Turbine)
+			match.Set("denwindspeed", tk.M{"$lte": 25})
+			match.Set("turbine", turbine)
 
 			group = tk.M{
-				"_id":       "$timestamp",
-				"power":     tk.M{"$sum": "$denpower"},
-				"windspeed": tk.M{"$avg": "$denwindspeed"},
+				"_id":        "$timestamp",
+				"power":      tk.M{"$sum": "$denpower"},
+				"windspeed":  tk.M{"$avg": "$denwindspeed"},
+				"production": tk.M{"$avg": "$energy"},
 			}
 		}
 
@@ -302,7 +333,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					var tagVal float64
 
 					if tag == "production" {
-						tagVal = val.GetFloat64(tag) / 1000
+						tagVal = val.GetFloat64(tag)
 					} else if tag == "windspeed" {
 						tagVal = val.GetFloat64(tag)
 						// if tagVal < 0 {
