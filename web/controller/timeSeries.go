@@ -249,7 +249,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 							dts = append(dts, dt)
 						}
 
-						resultChart = append(resultChart, tk.M{"name": hp.UpperFirstLetter(mapSec[tag]), "data": dts, "unit": mapUnit[mapSec[tag]]})
+						resultChart = append(resultChart, tk.M{"name": hp.UpperFirstLetter(tag), "data": dts, "unit": mapUnit[mapSec[tag]]})
 					}
 
 					periodList = periodList[idx:]
