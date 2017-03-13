@@ -2,6 +2,7 @@
 
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
+var maxSelectedItems = 4;
 
 vm.currentMenu('Time Series Plots');
 vm.currentTitle('Time Series Plots');
@@ -523,6 +524,11 @@ pg.getDataStockChart = function(param){
         // console.log(data);
 
         $.each(data, function(idx, val){
+            var isOpposite = false;
+            if (idx >= (maxSelectedItems/2)) {
+                isOpposite = true;
+            }
+
              yAxis [idx] = { 
                 // startOnTick: false,
                 gridLineWidth: 1,
@@ -532,7 +538,7 @@ pg.getDataStockChart = function(param){
                 title: {
                     text: val.unit,
                 },
-                opposite: (val.name == "Power" ? true : false)
+                opposite: isOpposite
 
             }
             seriesOptions[idx] = {
@@ -589,7 +595,7 @@ $(document).ready(function () {
               dataValueField : 'value', 
               dataTextField: 'text',
               suggest: true, 
-              maxSelectedItems: 4, 
+              maxSelectedItems: maxSelectedItems, 
               minSelectedItems: 1,
               change: function(e) {
                   if (this.value().length == 0) {
