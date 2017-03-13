@@ -44,6 +44,8 @@ var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 
+var breaks = [];    
+
 var yAxis = [];
 var chart;
 var legend = [];
@@ -417,7 +419,10 @@ pg.createStockChart = function(){
         exporting: {
           enabled: false
         },
-        xAxis: {type: 'datetime'},
+        xAxis: {
+            type: 'datetime',
+            breaks: breaks,
+        },
         yAxis: yAxis,
         plotOptions: {
         series: {
@@ -432,14 +437,14 @@ pg.createStockChart = function(){
         },
         tooltip:{         
           formatter : function() {
-            var s = [];
-              $.each(this.points, function(i, point) {
-                  s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+
-                      kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
-              });
-              
-               $("#legendTooltip").html(s.join("&nbsp;"));
-               return false;
+                var s = [];
+                $.each(this.points, function(i, point) {
+                    if (!point.series.name.includes("err_")){
+                        s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+                    }
+                });
+                $("#legendTooltip").html(s.join("&nbsp;"));
+                return false;
            }
         },
         series: seriesOptions,
@@ -517,11 +522,16 @@ pg.getDataStockChart = function(param){
 
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
+        // breaks = res.data.Data.Breaks;
+
+        // console.log(breaks);
 
         pg.periodList(periods);
 
         // console.log(pg.periodList);
         // console.log(data);
+
+        var xCounter = 0;
 
         $.each(data, function(idx, val){
             var isOpposite = false;
@@ -531,6 +541,8 @@ pg.getDataStockChart = function(param){
 
              yAxis [idx] = { 
                 // startOnTick: false,
+                min:val.minval,
+                max:val.maxval,
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
@@ -541,7 +553,7 @@ pg.getDataStockChart = function(param){
                 opposite: isOpposite
 
             }
-            seriesOptions[idx] = {
+            seriesOptions[xCounter] = {
                   name : val.name, 
                   data : val.data,
                   color: colors[idx],
@@ -549,15 +561,29 @@ pg.getDataStockChart = function(param){
                   yAxis: idx,
                   tooltip: {
                       valueSuffix: val.unit,
-                  }
+                  },
+                  id : "series"+idx,
             }            
+
+            xCounter+=1;
+
+            seriesOptions[xCounter] = {
+                type: 'column',
+                name: 'err_'+val.name,
+                data: val.dataerr,
+                color: '#ff0000',
+                pointWidth: 1,
+                // onSeries: "series"+idx,                
+            }
+
+            xCounter+=1;
 
             legend[idx] = {
                 name : val.name,
                 unit : val.unit
             }
 
-          seriesCounter += 1;
+            seriesCounter += 1;
 
         //   if (seriesCounter === data.length) {
         //       pg.createStockChart();
