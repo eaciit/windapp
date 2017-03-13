@@ -24,10 +24,10 @@
 	 }
 
 	 .periodList{
-	    width: 92%;
+	    width: 100%;
 	    overflow-x: auto;
 	    white-space: nowrap;
-	    margin-left: 65px;
+	    /*margin-left: 65px;*/
 	 }
 
 	 .data-type{

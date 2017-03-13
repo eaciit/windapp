@@ -441,7 +441,7 @@ pg.createStockChart = function(){
           formatter : function() {
                 var s = [];
                 $.each(this.points, function(i, point) {
-                    if (!point.series.name.includes("err_")){
+                    if (typeof legend[i] !== "undefined"){
                         s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
                     }
                 });
@@ -565,9 +565,9 @@ pg.getDataStockChart = function(param){
                   color: colors[idx],
                   type: 'line',
                   yAxis: idx,
-                  tooltip: {
-                      valueSuffix: val.unit,
-                  },
+                //   tooltip: {
+                //       valueSuffix: val.unit,
+                //   },
                   id : "series"+idx,
             }            
 
