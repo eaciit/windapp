@@ -2,6 +2,7 @@
 
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
+var maxSelectedItems = 4;
 
 vm.currentMenu('Time Series Plots');
 vm.currentTitle('Time Series Plots');
@@ -23,7 +24,7 @@ if (pageType == "OEM") {
         {text: "Wind Direction" , value:"winddirection"},
         {text: "Nacelle Direction" , value:"nacellepos"},
         {text: "Rotor RPM" , value:"rotorrpm"},
-        {text: "Generator RPM" , value:"genrpm"},        
+        {text: "Pitch Angle" , value:"pitchangle"},        
     ]);
 }
 
@@ -43,10 +44,13 @@ var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 
+var breaks = [];    
+
 var yAxis = [];
 var chart;
 var legend = [];
-var colors = ["#0066dd","#dc3912","#eee"];
+// var colors = ["#0066dd","#dc3912","#eee"];
+var colors = colorField
 
 pg.periodList = ko.observableArray([]);
 
@@ -405,7 +409,8 @@ pg.createStockChart = function(){
                 enabled: false
         },
         rangeSelector: {
-            selected: 1
+            selected: 1,
+            inputEnabled: (pg.isSecond() == true ? false : true)
         },
          navigator: {
             series: {
@@ -416,7 +421,10 @@ pg.createStockChart = function(){
         exporting: {
           enabled: false
         },
-        xAxis: {type: 'datetime'},
+        xAxis: {
+            type: 'datetime',
+            breaks: breaks,
+        },
         yAxis: yAxis,
         plotOptions: {
         series: {
@@ -431,14 +439,14 @@ pg.createStockChart = function(){
         },
         tooltip:{         
           formatter : function() {
-            var s = [];
-              $.each(this.points, function(i, point) {
-                  s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+
-                      kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
-              });
-              
-               $("#legendTooltip").html(s.join("&nbsp;"));
-               return false;
+                var s = [];
+                $.each(this.points, function(i, point) {
+                    if (typeof legend[i] !== "undefined"){
+                        s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+                    }
+                });
+                $("#legendTooltip").html(s.join("&nbsp;"));
+                return false;
            }
         },
         series: seriesOptions,
@@ -461,7 +469,6 @@ pg.hidePopover = function(){
   $('.popover-markup>.trigger').popover('hide');
 }
 pg.getDataStockChart = function(param){
-
     fa.LoadData();
     app.loading(true);
 
@@ -493,6 +500,8 @@ pg.getDataStockChart = function(param){
       dateEnd = fa.dateEnd;
     }
 
+    var IsHour = (param == 'detailPeriod' ? true : false);
+
     var param = {
         period: fa.period,
         Turbine: [fa.turbine],
@@ -502,7 +511,7 @@ pg.getDataStockChart = function(param){
         PageType: pg.pageType(),
         DataType: pg.dataType() ,
         TagList : pg.TagList(),
-        IsHour : (param == 'detailPeriod' ? true : false),
+        IsHour : IsHour,
     };
 
 
@@ -516,15 +525,30 @@ pg.getDataStockChart = function(param){
 
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
+        // breaks = res.data.Data.Breaks;
 
-        pg.periodList = periods;
+        // console.log(breaks);
+
+        if(!IsHour){
+              pg.periodList(periods);
+             
+        }
 
         // console.log(pg.periodList);
         // console.log(data);
 
+        var xCounter = 0;
+
         $.each(data, function(idx, val){
+            var isOpposite = false;
+            if (idx >= (maxSelectedItems/2)) {
+                isOpposite = true;
+            }
+
              yAxis [idx] = { 
                 // startOnTick: false,
+                min: val.minval,
+                max: val.maxval, 
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
@@ -532,26 +556,40 @@ pg.getDataStockChart = function(param){
                 title: {
                     text: val.unit,
                 },
-                opposite: (val.name == "Power" ? true : false)
+                opposite: isOpposite
 
             }
-            seriesOptions[idx] = {
+            seriesOptions[xCounter] = {
                   name : val.name, 
                   data : val.data,
                   color: colors[idx],
                   type: 'line',
                   yAxis: idx,
-                  tooltip: {
-                      valueSuffix: val.unit,
-                  }
+                //   tooltip: {
+                //       valueSuffix: val.unit,
+                //   },
+                  id : "series"+idx,
             }            
+
+            xCounter+=1;
+
+            seriesOptions[xCounter] = {
+                type: 'column',
+                name: 'err_'+val.name,
+                data: val.dataerr,
+                color: '#ff0000',
+                pointWidth: 1,
+                // onSeries: "series"+idx,                
+            }
+
+            xCounter+=1;
 
             legend[idx] = {
                 name : val.name,
                 unit : val.unit
             }
 
-          seriesCounter += 1;
+            seriesCounter += 1;
 
         //   if (seriesCounter === data.length) {
         //       pg.createStockChart();
@@ -571,6 +609,7 @@ pg.getDataStockChart = function(param){
 }
 
 $(document).ready(function () {
+
     $('.popover-markup>.trigger').popover({
         animation: true,
         html: true,
@@ -589,7 +628,7 @@ $(document).ready(function () {
               dataValueField : 'value', 
               dataTextField: 'text',
               suggest: true, 
-              maxSelectedItems: 4, 
+              maxSelectedItems: maxSelectedItems, 
               minSelectedItems: 1,
               change: function(e) {
                   if (this.value().length == 0) {

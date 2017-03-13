@@ -24,10 +24,10 @@
 	 }
 
 	 .periodList{
-	    width: 92%;
+	    width: 100%;
 	    overflow-x: auto;
 	    white-space: nowrap;
-	    margin-left: 65px;
+	    /*margin-left: 65px;*/
 	 }
 
 	 .data-type{
@@ -50,6 +50,12 @@
 	}
 
 	.btn-period:hover, .btn-period:active {
+	    color: #585555 !important;
+	    text-decoration: none !important;
+	    background-color: #d1dbed !important;
+	}
+
+	.btn-period .active {
 	    color: #585555 !important;
 	    text-decoration: none !important;
 	    background-color: #d1dbed !important;
