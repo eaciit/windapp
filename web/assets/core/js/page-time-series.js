@@ -517,7 +517,7 @@ pg.getDataStockChart = function(param){
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
 
-        pg.periodList = periods;
+        pg.periodList(periods);
 
         // console.log(pg.periodList);
         // console.log(data);
