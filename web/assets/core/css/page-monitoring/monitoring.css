@@ -208,6 +208,26 @@ label.summary-number {
 .bold{
     font-weight: bold;
 }
+
+/* =============== TURBINE PART =============== */
+
+.turbine-item-label {
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+.list-turbine-item {
+  padding: 0px 10px 0px 20px;
+}
+.form-group-turbine {
+  clear: both;
+  margin-bottom: -2px;  
+}
+.margin-top-min-10 {
+  margin-top: -10px;
+}
+.margin-top-min-5 {
+  margin-top: -5px;
+}
 /* =============== WEATHER PART ============ */
 .form-group {
   clear: both;
@@ -217,11 +237,6 @@ label.summary-number {
 .weather-label {
   margin-bottom: 5px;
   padding-left: 5px;
-  font-weight: 700;
-}
-
-.turbine-item-label {
-  margin-bottom: 5px;
   font-weight: 700;
 }
 
