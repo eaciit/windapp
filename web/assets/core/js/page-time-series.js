@@ -547,13 +547,8 @@ pg.getDataStockChart = function(param){
 
              yAxis [idx] = { 
                 // startOnTick: false,
-<<<<<<< HEAD
                 min: val.minval,
                 max: val.maxval, 
-=======
-                min:val.minval,
-                max:val.maxval,
->>>>>>> 96865bf5e15d1a24f88762abb27a1a0464df2f35
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
