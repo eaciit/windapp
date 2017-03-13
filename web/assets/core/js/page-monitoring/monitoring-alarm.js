@@ -3,6 +3,11 @@
 
 viewModel.MonitoringAlarm = new Object();
 var ma = viewModel.MonitoringAlarm;
+ma.minDatetemp = new Date();
+ma.maxDatetemp = new Date();
+
+ma.minDateRet = new Date();
+ma.maxDateRet = new Date();
 
 
 vm.currentMenu('Alarm Data');
@@ -44,7 +49,12 @@ ma.CreateGrid = function() {
                 data: function data(res) {
                     var totalFreq = res.data.Total;
                     var totalHour = res.data.Duration;
-                    
+
+                    ma.minDateRet = new Date(res.data.mindate);
+                    ma.maxDateRet = new Date(res.data.maxdate);
+
+                    ma.checkCompleteDate()
+
                     $('#alarm_duration').text((totalHour/3600).toFixed(2));
                     $('#alarm_frequency').text(totalFreq);
 
@@ -110,6 +120,52 @@ ma.InitDateValue = function () {
 
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
+
+    ma.LoadDataAvail()
+}
+
+ma.LoadDataAvail = function(){
+    fa.LoadData();
+    var payload = {
+        project: fa.project
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataalarmavaildate", payload, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        if (res.data.Data.length == 0) {
+            res.data.Data = [];
+        } else {
+            if (res.data.Data.length > 0) {
+                ma.minDatetemp = new Date(res.data.Data[0]);
+                ma.maxDatetemp = new Date(res.data.Data[1]);
+                app.currentDateData = new Date(res.data.Data[1]);
+
+                $('#availabledatestart').html(kendo.toString(moment.utc(ma.minDatetemp).format('DD-MMMM-YYYY')));
+                $('#availabledateend').html(kendo.toString(moment.utc(ma.maxDatetemp).format('DD-MMMM-YYYY')));
+
+                ma.checkCompleteDate()
+            }
+        }         
+    });
+}
+
+ma.checkCompleteDate = function () {
+    var currentDateData = moment.utc(ma.maxDatetemp).format('YYYY-MM-DD');
+    var prevDateData = moment.utc(ma.minDatetemp).format('YYYY-MM-DD');
+
+    var dateStart = moment.utc(ma.minDateRet).format('YYYY-MM-DD');
+    var dateEnd = moment.utc(ma.maxDateRet).format('YYYY-MM-DD');
+
+    if ((dateEnd > currentDateData) || (dateStart > currentDateData)) {
+        fa.infoPeriodIcon(true);
+    } else if ((dateEnd < prevDateData) || (dateStart < prevDateData)) {
+        fa.infoPeriodIcon(true);
+    } else {
+        fa.infoPeriodIcon(false);
+        fa.infoPeriodRange("");
+    }
 }
 
 $(document).ready(function(){

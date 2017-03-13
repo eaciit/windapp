@@ -249,7 +249,60 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	}
 	csr.Close()
 
-	return helper.CreateResult(true, tk.M{}.Set("Data", results).Set("Total", totalData).Set("Duration", totalDuration), "success")
+	// tStart, tEnd = tStart.UTC(), tEnd.UTC()
+
+	// rStart := time.Date(tStart.Y, month, day, hour, min, sec, nsec, loc)
+	retData := tk.M{}.Set("Data", results).
+		Set("Total", totalData).
+		Set("Duration", totalDuration).
+		Set("mindate", tStart.UTC()).
+		Set("maxdate", tEnd.UTC())
+
+	return helper.CreateResult(true, retData, "success")
+}
+
+func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+
+	type MyPayloads struct {
+		Project string
+	}
+
+	p := new(MyPayloads)
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	}
+
+	dfilter := []*dbox.Filter{}
+	dfilter = append(dfilter, dbox.Eq("projectname", project))
+	dfilter = append(dfilter, dbox.Ne("timestart", time.Time{}))
+
+	csr, err := DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
+		Aggr(dbox.AggrMin, "$timestart", "minstart").
+		Aggr(dbox.AggrMax, "$timestart", "maxstart").
+		Group("projectname").
+		Where(dbox.And(dfilter...)).Cursor(nil)
+
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+
+	tkmgroup := tk.M{}
+	_ = csr.Fetch(&tkmgroup, 1, false)
+	csr.Close()
+
+	minDate := tkmgroup.Get("minstart", time.Time{}).(time.Time).UTC()
+	maxDate := tkmgroup.Get("maxstart", time.Time{}).(time.Time).UTC()
+
+	return helper.CreateResult(true, tk.M{}.Set("Data", []time.Time{minDate, maxDate}), "success")
 }
 
 func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interface{} {
@@ -280,9 +333,9 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	arrlabel := map[string]string{"Wind speed Avg": "windspeed", "Wind speed 1": "",
 		"Wind speed 2": "", "Wind Direction": "winddirection",
 		"Vane 1 wind direction": "", "Vane 2 wind direction": "",
-		"Nacelle Direction": "nacelleposition", "Rotor RPM": "rotorspeed_rpm",
+		"Nacelle Direction": "nacelleposition", "Rotor RPM": "rotorrpm",
 		"Generator RPM": "genspeed_rpm", "DFIG speed generator encoder": "",
-		"Blade Angle 1": "pitchangle1", "Blade Angle 2": "pitchangle2",
+		"Blade Angle 1": "pitchangle", "Blade Angle 2": "pitchangle2",
 		"Blade Angle 3": "pitchangle3", "Volt. Battery - blade 1": "pitchaccuv1",
 		"Volt. Battery - blade 2": "pitchaccuv2", "Volt. Battery - blade 3": "pitchaccuv3",
 		"Current 1 Pitch Motor": "pitchconvcurrent1", "Current 2 Pitch Motor": "pitchconvcurrent2",
@@ -321,7 +374,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		isComplete = true
 		for key, str := range arrlabel {
 			if !alldata.Has(key) {
-				alldata.Set(key, 0)
+				alldata.Set(key, defaultValue)
 			}
 
 			if str == "" {
@@ -329,11 +382,11 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 			}
 
 			if _tkm.Has(str) {
-				if _ival := _tkm.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == 0 {
+				if _ival := _tkm.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == defaultValue {
 					alldata.Set(key, _ival)
 				}
 
-				if alldata.GetFloat64(key) == 0 {
+				if alldata.GetFloat64(key) == defaultValue {
 					isComplete = false
 				}
 			}
