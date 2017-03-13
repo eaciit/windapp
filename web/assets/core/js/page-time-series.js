@@ -47,7 +47,8 @@ var seriesOptions = [],
 var yAxis = [];
 var chart;
 var legend = [];
-var colors = ["#0066dd","#dc3912","#eee"];
+// var colors = ["#0066dd","#dc3912","#eee"];
+var colors = colorField
 
 pg.periodList = ko.observableArray([]);
 
@@ -406,7 +407,8 @@ pg.createStockChart = function(){
                 enabled: false
         },
         rangeSelector: {
-            selected: 1
+            selected: 1,
+            inputEnabled: (pg.isSecond() == true ? false : true)
         },
          navigator: {
             series: {
@@ -462,7 +464,6 @@ pg.hidePopover = function(){
   $('.popover-markup>.trigger').popover('hide');
 }
 pg.getDataStockChart = function(param){
-
     fa.LoadData();
     app.loading(true);
 
@@ -494,6 +495,8 @@ pg.getDataStockChart = function(param){
       dateEnd = fa.dateEnd;
     }
 
+    var IsHour = (param == 'detailPeriod' ? true : false);
+
     var param = {
         period: fa.period,
         Turbine: [fa.turbine],
@@ -503,7 +506,7 @@ pg.getDataStockChart = function(param){
         PageType: pg.pageType(),
         DataType: pg.dataType() ,
         TagList : pg.TagList(),
-        IsHour : (param == 'detailPeriod' ? true : false),
+        IsHour : IsHour,
     };
 
 
@@ -518,7 +521,10 @@ pg.getDataStockChart = function(param){
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
 
-        pg.periodList(periods);
+        if(!IsHour){
+              pg.periodList(periods);
+             
+        }
 
         // console.log(pg.periodList);
         // console.log(data);
@@ -531,6 +537,8 @@ pg.getDataStockChart = function(param){
 
              yAxis [idx] = { 
                 // startOnTick: false,
+                min: val.minval,
+                max: val.maxval, 
                 gridLineWidth: 1,
                 labels: {
                     format: '{value}',
@@ -577,6 +585,7 @@ pg.getDataStockChart = function(param){
 }
 
 $(document).ready(function () {
+
     $('.popover-markup>.trigger').popover({
         animation: true,
         html: true,

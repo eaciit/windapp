@@ -55,6 +55,12 @@
 	    background-color: #d1dbed !important;
 	}
 
+	.btn-period .active {
+	    color: #585555 !important;
+	    text-decoration: none !important;
+	    background-color: #d1dbed !important;
+	}
+
 	 .k-multiselect-wrap {
         max-height: 60px !important;
         overflow: auto !important;

@@ -71,7 +71,7 @@
 							<table>
 								<tr data-bind="foreach:pg.periodList()" id="periodlist">
 									<td>
-										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod');  return true}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;
+										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;
 									</td>
 								</tr>
 							<table>
