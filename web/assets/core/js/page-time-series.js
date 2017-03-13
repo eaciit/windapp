@@ -24,7 +24,7 @@ if (pageType == "OEM") {
         {text: "Wind Direction" , value:"winddirection"},
         {text: "Nacelle Direction" , value:"nacellepos"},
         {text: "Rotor RPM" , value:"rotorrpm"},
-        {text: "Generator RPM" , value:"genrpm"},        
+        {text: "Pitch Angle" , value:"pitchangle"},        
     ]);
 }
 
