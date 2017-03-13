@@ -1,5 +1,4 @@
-[
-	{
+[{
 		"_id": "db_acl",
 		"data": {
 			"db": "wfdemo-oem",
@@ -36,5 +35,4 @@
 	{
 		"_id": "default_password",
 		"data": "Password.1"
-	}
-]
+	}]

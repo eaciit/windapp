@@ -1,0 +1,73 @@
+	.legend { 
+		text-align: center;
+		z-index: 10 !important;
+		position: relative !important;
+		margin-bottom: -20px;
+	 }
+
+	 .popover-content{
+	 	width: 275px;
+	 }
+
+	 .m-btm-10{
+	 	margin-bottom: 10px;
+	 }
+
+	 #cancelPop{
+	 	width: 60px;
+	 	margin-right: 10px;
+	 }
+
+	 #saveTags{
+	 	width: 85px;
+	 	margin-top: 0px;
+	 }
+
+	 .periodList{
+	    width: 92%;
+	    overflow-x: auto;
+	    white-space: nowrap;
+	    margin-left: 65px;
+	 }
+
+	 .data-type{
+	 	position: relative;
+	 	z-index: 11;
+	 	margin-bottom: -15px;
+	 	margin-right: 10px;
+	 }
+
+	.popover{
+		margin-top: -10px;
+    	margin-left: 15px !important;
+	}
+
+	.btn-period{
+		background-color: #ffffff;
+	    color: #585555;
+	    border-color: #ea5b19;
+	    cursor: pointer;
+	}
+
+	.btn-period:hover, .btn-period:active {
+	    color: #585555 !important;
+	    text-decoration: none !important;
+	    background-color: #d1dbed !important;
+	}
+
+	 .k-multiselect-wrap {
+        max-height: 60px !important;
+        overflow: auto !important;
+        font-size: 12px !important;
+        font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+    }
+
+    .k-popup .k-list .k-item {
+	    font-size: 12px;
+	    font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+	}
+
+	.btn{
+		font-size: 12px;
+	    font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+	}

@@ -5,11 +5,52 @@ var pg = viewModel.TurbineHealth;
 
 vm.currentMenu('Time Series Plots');
 vm.currentTitle('Time Series Plots');
-vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
+
+pg.tags = ko.observableArray();
+
+if (pageType == "OEM") {
+    vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
+    pg.tags = ko.observableArray([
+        {text: "Wind Speed" , value:"windspeed"},        
+        {text: "Power" , value:"power"},
+        {text: "Production" , value:"production"}
+    ]);
+} else if (pageType == "HFD"){
+    vm.breadcrumb([{ title: 'Monitoring', href: '#' }, { title: 'Analysis', href: viewModel.appName + 'page/timeserieshfd' }]);
+    pg.tags = ko.observableArray([
+        {text: "Wind Speed" , value:"windspeed"},
+        {text: "Power" , value:"power"},
+        {text: "Wind Direction" , value:"winddirection"},
+        {text: "Nacelle Direction" , value:"nacellepos"},
+        {text: "Rotor RPM" , value:"rotorrpm"},
+        {text: "Generator RPM" , value:"genrpm"},        
+    ]);
+}
+
 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();
+pg.pageType = ko.observable(pageType);
+pg.dataType = ko.observable("MIN");
+
+pg.isSecond = ko.observable(false);
+pg.TagList = ko.observableArray(["windspeed","power"]);
+
+pg.startTime = ko.observable();
+pg.endTime = ko.observable();
+
 var timeSeriesData = [];
+var seriesOptions = [],
+    seriesCounter = 0;
+
+var yAxis = [];
+var chart;
+var legend = [];
+var colors = ["#0066dd","#dc3912","#eee"];
+
+pg.periodList = ko.observableArray([]);
+
+// pg.periodList = ko.observableArray([{"endtime":"2017-02-17T15:00:00Z","starttime":"2017-02-17T12:00:00Z"},{"endtime":"2017-02-17T18:00:00Z","starttime":"2017-02-17T15:00:00Z"},{"endtime":"2017-02-17T21:00:00Z","starttime":"2017-02-17T18:00:00Z"},{"endtime":"2017-02-18T00:00:00Z","starttime":"2017-02-17T21:00:00Z"},{"endtime":"2017-02-18T03:00:00Z","starttime":"2017-02-18T00:00:00Z"},{"endtime":"2017-02-18T06:00:00Z","starttime":"2017-02-18T03:00:00Z"},{"endtime":"2017-02-18T09:00:00Z","starttime":"2017-02-18T06:00:00Z"},{"endtime":"2017-02-18T12:00:00Z","starttime":"2017-02-18T09:00:00Z"},{"endtime":"2017-02-18T15:00:00Z","starttime":"2017-02-18T12:00:00Z"},{"endtime":"2017-02-18T18:00:00Z","starttime":"2017-02-18T15:00:00Z"},{"endtime":"2017-02-18T21:00:00Z","starttime":"2017-02-18T18:00:00Z"},{"endtime":"2017-02-19T00:00:00Z","starttime":"2017-02-18T21:00:00Z"},{"endtime":"2017-02-19T03:00:00Z","starttime":"2017-02-19T00:00:00Z"},{"endtime":"2017-02-19T06:00:00Z","starttime":"2017-02-19T03:00:00Z"},{"endtime":"2017-02-19T09:00:00Z","starttime":"2017-02-19T06:00:00Z"},{"endtime":"2017-02-19T12:00:00Z","starttime":"2017-02-19T09:00:00Z"},{"endtime":"2017-02-19T15:00:00Z","starttime":"2017-02-19T12:00:00Z"},{"endtime":"2017-02-19T18:00:00Z","starttime":"2017-02-19T15:00:00Z"},{"endtime":"2017-02-19T21:00:00Z","starttime":"2017-02-19T18:00:00Z"},{"endtime":"2017-02-20T00:00:00Z","starttime":"2017-02-19T21:00:00Z"},{"endtime":"2017-02-20T03:00:00Z","starttime":"2017-02-20T00:00:00Z"},{"endtime":"2017-02-20T06:00:00Z","starttime":"2017-02-20T03:00:00Z"},{"endtime":"2017-02-20T09:00:00Z","starttime":"2017-02-20T06:00:00Z"},{"endtime":"2017-02-20T12:00:00Z","starttime":"2017-02-20T09:00:00Z"},{"endtime":"2017-02-20T15:00:00Z","starttime":"2017-02-20T12:00:00Z"},{"endtime":"2017-02-20T18:00:00Z","starttime":"2017-02-20T15:00:00Z"},{"endtime":"2017-02-20T21:00:00Z","starttime":"2017-02-20T18:00:00Z"},{"endtime":"2017-02-21T00:00:00Z","starttime":"2017-02-20T21:00:00Z"}])
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -21,7 +62,7 @@ pg.LoadData = function(){
         Turbine: fa.turbine,
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
-        Project: fa.project
+        Project: fa.project,
     };
 
     var requestData = toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
@@ -127,9 +168,10 @@ pg.createChart = function(){
       seriesDefaults: {
           area: {
               line: {
-                  style: "smooth"
+                  style: "smooth",
               }
-          }
+          },
+          width: 1.3,
       },
       series: seriesList,
       navigator: {
@@ -248,6 +290,7 @@ pg.chartWindSpeed = function(dataSource){
         }
     });
 } 
+
 pg.chartProduction = function(dataSource){
 	$("#chartProduction").kendoStockChart({
 	  title: {
@@ -326,12 +369,242 @@ pg.chartProduction = function(dataSource){
         }
     });
 } 
+
+
+pg.hideLegend = function(idx){
+  var series = chart.series[idx];
+  if (series.visible) {
+      series.hide();
+      // $button.html('Show series');
+  } else {
+      series.show();
+      // $button.html('Hide series');
+  }
+}
+pg.createStockChart = function(){
+    $("#chartTimeSeries").html("");
+
+    Highcharts.setOptions({
+        chart: {
+            style: {
+                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            marginTop: 0,
+            // zoomType: 'x'
+        }
+    });
+
+    chart = Highcharts.stockChart('chartTimeSeries', {
+        legend: {
+                layout: 'horizontal',
+                padding: 3,
+                verticalAlign: 'top',
+                borderWidth: 0,
+                enabled: true,
+                margin : 5,
+                enabled: false
+        },
+        rangeSelector: {
+            selected: 1
+        },
+         navigator: {
+            series: {
+                color: '#999',
+                lineWidth: 2
+            }
+        },
+        exporting: {
+          enabled: false
+        },
+        xAxis: {type: 'datetime'},
+        yAxis: yAxis,
+        plotOptions: {
+        series: {
+                lineWidth: 1,
+                states: {
+                    hover: {
+                        enabled: true,
+                        lineWidth: 1
+                    }
+                }
+            }
+        },
+        tooltip:{         
+          formatter : function() {
+            var s = [];
+              $.each(this.points, function(i, point) {
+                  s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+
+                      kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+              });
+              
+               $("#legendTooltip").html(s.join("&nbsp;"));
+               return false;
+           }
+        },
+        series: seriesOptions,
+    });
+}
+
+
+pg.getTimestamp = function(param){
+  var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
+      dateTimeParts = dateString.split(' '),
+      timeParts = dateTimeParts[1].split(':'),
+      dateParts = dateTimeParts[0].split('-'),
+      date;
+
+      date = new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, dateParts[0], timeParts[0], timeParts[1]);
+
+      return date.getTime();
+}
+pg.hidePopover = function(){
+  $('.popover-markup>.trigger').popover('hide');
+}
+pg.getDataStockChart = function(param){
+
+    fa.LoadData();
+    app.loading(true);
+
+    if(param == "selectTags"){
+       pg.TagList($("#TagList").val());
+
+       $('.popover-markup>.trigger').popover("hide");
+
+    }
+
+    var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));
+    var max = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(1)').val()));
+
+    var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
+    var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
+
+    var dateStart; 
+    var dateEnd;
+
+    if(pg.dataType() == 'SEC'){
+      dateStart = minDate;
+      dateEnd = maxDate;
+      if(param == 'detailPeriod'){
+          dateStart = new Date(pg.startTime());
+          dateEnd = new Date(pg.endTime());
+      }
+    }else{
+      dateStart = fa.dateStart;
+      dateEnd = fa.dateEnd;
+    }
+
+    var param = {
+        period: fa.period,
+        Turbine: [fa.turbine],
+        DateStart: dateStart,
+        DateEnd: dateEnd,
+        Project: fa.project,
+        PageType: pg.pageType(),
+        DataType: pg.dataType() ,
+        TagList : pg.TagList(),
+        IsHour : (param == 'detailPeriod' ? true : false),
+    };
+
+
+    // var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
+    var url = "timeseries/getdatahfd";
+
+    var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var data = res.data.Data.Chart;
+        var periods = res.data.Data.PeriodList;
+
+        pg.periodList = periods;
+
+        // console.log(pg.periodList);
+        // console.log(data);
+
+        $.each(data, function(idx, val){
+             yAxis [idx] = { 
+                // startOnTick: false,
+                gridLineWidth: 1,
+                labels: {
+                    format: '{value}',
+                },
+                title: {
+                    text: val.unit,
+                },
+                opposite: (val.name == "Power" ? true : false)
+
+            }
+            seriesOptions[idx] = {
+                  name : val.name, 
+                  data : val.data,
+                  color: colors[idx],
+                  type: 'line',
+                  yAxis: idx,
+                  tooltip: {
+                      valueSuffix: val.unit,
+                  }
+            }            
+
+            legend[idx] = {
+                name : val.name,
+                unit : val.unit
+            }
+
+          seriesCounter += 1;
+
+        //   if (seriesCounter === data.length) {
+        //       pg.createStockChart();
+        //   }
+        });
+
+        pg.createStockChart();
+    });
+
+    $.when(request).done(function(){
+        setTimeout(function(){
+           // chart.tooltip.refresh([chart.series[0].points[1]]);
+           // chart.tooltip.refresh([chart.series[1].points[1]]);
+           app.loading(false);
+         },200);
+    });
+}
+
 $(document).ready(function () {
+    $('.popover-markup>.trigger').popover({
+        animation: true,
+        html: true,
+        title: function () {
+            return $(this).parent().find('.head').html();
+        },
+        content: function () {
+            return $(this).parent().find('.content').html();
+        }
+    }).on('click',function () {
+            $("#selectTagsDiv").html("");
+            $("#selectTagsDiv").html('<select id="TagList"></select>');
+            $('#TagList').kendoMultiSelect({
+              dataSource: pg.tags(), 
+              value: pg.TagList() , 
+              dataValueField : 'value', 
+              dataTextField: 'text',
+              suggest: true, 
+              maxSelectedItems: 4, 
+              minSelectedItems: 1,
+              change: function(e) {
+                  if (this.value().length == 0) {
+                      this.value("windspeed")
+                  }
+              }
+      });
+    });
+
     $('#btnRefresh').on('click', function () {
-        pg.LoadData();
+        pg.getDataStockChart();
     });
 
     setTimeout(function () {
-        pg.LoadData();
+        // pg.LoadData();
+        pg.getDataStockChart();
     }, 1000);
 });

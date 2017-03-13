@@ -18,11 +18,3 @@
 input[type=checkbox], input[type=radio] {
 	margin: 8px;
 }
-
-.editor-part {
-	margin-top: 15px;
-}
-
-.next-field {
-	margin-top: 3px;
-}

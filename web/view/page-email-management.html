@@ -1,5 +1,5 @@
 <script src="{{BaseUrl}}res/core/js/page-email-management.js"></script>
-<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-group.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-email-management.css">
 
 <div class="row" style="padding-top: 15px;">
 	<div class="col-md-4 col-sm-4 ez panel-filter">
@@ -43,7 +43,7 @@
 					<button class="btn btn-primary btn-sm" data-bind="click: em.newData">
 						<i class="fa fa-plus"></i> New Data
 					</button>
-					<button class="btn btn-danger btn-sm" data-bind="click: em.deletegroup">
+					<button class="btn btn-danger btn-sm" data-bind="click: em.deleteemail">
 						<i class="fa fa-trash"></i> Delete
 					</button>
 				</div>
@@ -65,7 +65,7 @@
 </div>
 
 <div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -75,48 +75,86 @@
             </div>
             <div class="modal-body" data-bind="with: em.config">
                 <form class="wrapper form-group" novalidate>
-                	<div class="col-md-12">
-                		<div class="col-md-6">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">ID</span>
-									<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: _id" placeholder="Type value here ..." />
+                	<div class="panel panel-default">
+                    	<div class="panel-body">
+		                	<div class="col-md-12 additional-part">
+		                		<div class="col-md-4">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">ID</span>
+											<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: _id, enable: em.isNew()" placeholder="Type value here ..." />
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-						<div class="col-md-6">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">Category</span>
-									<select class="form-control" id="categoryList" name="table" data-bind="kendoDropDownList: { data: em.CategoryMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+								<div class="col-md-4">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Category</span>
+											<select class="form-control" id="categoryList" name="table" data-bind="kendoDropDownList: { data: em.CategoryMailList, dataValueField: 'value', dataTextField: 'text', change: function() {em.checkCategory()}, suggest: true }"></select>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Enable</span>
+											<input id="chk-enable" type="checkbox" data-bind="checked: enable" />
+										</div>
+									</div>
+								</div>
+								<div class="col-md-4" data-bind="visible: em.isInterval()">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Interval Time</span>
+											<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: intervaltime" placeholder="Type value here ..." />
+										</div>
+									</div>
+								</div>
+								<div class="col-md-8" data-bind="visible: em.isAlarmCode()">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Alarm Codes</span>
+											<select class="form-control" id="alarmcodesList" name="table" data-bind="kendoMultiSelect: { data: em.AlarmCodesMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-12 next-field">
-						<div class="col-md-6">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">Interval Time</span>
-									<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: IntervalTime" placeholder="Type value here ..." />
+					<div class="panel panel-default">
+                    	<div class="panel-body">
+                    		<div class="col-md-12 email-part">
+								<div class="col-md-12">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">To</span>
+											<select class="form-control" id="userList" name="table" data-bind="kendoMultiSelect: { data: em.UserMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-12 editor-part">
-						<div class="col-md-12">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">To</span>
-									<select class="form-control" id="userList" name="table" data-bind="kendoMultiSelect: { data: em.UserMailList, dataValueField: 'value', dataTextField: 'text', suggest: true }"></select>
+								<div class="col-md-12">
+									<div class="form-group">
+										<div class="input-group input-group-sm ez width-full">
+											<span class="input-group-addon align-right width-100">Subject</span>
+											<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: subject" placeholder="Type value here ..." />
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-						<div class="col-md-12">
-							<div class="form-group">
-								<div class="input-group input-group-sm ez width-full">
-									<span class="input-group-addon align-right width-100">Subject</span>
-									<input type="text" class="form-control" required data-required-msg="cannot be empty" data-bind="value: Subject" placeholder="Type value here ..." />
+								<div class="col-md-8">
+									<div class="form-group">
+										<div class="editor-part">
+											<textarea id="editor" class="form-control">
+											</textarea>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="input-group input-group-sm ez width-full">
+										<span id="spanTemplate" class="input-group-addon align-center width-100">Template</span>
+									</div>									
+									<div class="template-part">
+										<span id="templateMail"></span>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -141,4 +179,6 @@
 <script>
     em.CategoryMailList({{.CategoryMailList}});
     em.UserMailList({{.UserMailList}});
+    em.AlarmCodesMailList({{.AlarmCodesMailList}});
+    em.TemplateMailList({{.TemplateMailList}});
 </script>
