@@ -444,6 +444,12 @@ function secondsToHms(d) {
     return res;
 }
 
+bp.ToIndividualTurbine = function(turbine) {
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
+    window.location = viewModel.appName + "page/monitoringbyturbine";
+}
 bp.GenDetail = function(turbine){
     var param = {
         turbine: [turbine],

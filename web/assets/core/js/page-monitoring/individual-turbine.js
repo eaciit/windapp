@@ -334,7 +334,23 @@ it.ParseWeather = function(data) {
 };
 
 it.ShowData = function() {
-    var turbine = $('#turbine').data('kendoDropDownList').value();
+    var COOKIES = {};
+    var cookieStr = document.cookie;
+    var turbine = "";
+    
+    if(cookieStr.indexOf("turbine=") >= 0) {
+        document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        cookieStr.split(/; /).forEach(function(keyValuePair) {
+            var cookieName = keyValuePair.replace(/=.*$/, "");
+            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+            COOKIES[cookieName] = cookieValue;
+        });
+        turbine = COOKIES["turbine"];
+        $('#turbine').data('kendoDropDownList').value(turbine);
+    } else {
+        turbine = $('#turbine').data('kendoDropDownList').value();
+    }
+    
     it.LoadData(turbine);
     it.GetData(turbine);
 };
