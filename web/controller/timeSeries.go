@@ -214,7 +214,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			}
 
 			before := tStart.UTC()
-			tStart = tStart.UTC().Add(time.Duration(3) * time.Hour)
+			tStart = tStart.UTC().Add(time.Duration(24) * time.Hour)
 
 			beforeInt := tk.ToInt(tk.ToString(before.UTC().Unix())+"000", tk.RoundingAuto)
 			afterInt := tk.ToInt(tk.ToString(tStart.UTC().Unix())+"000", tk.RoundingAuto)
@@ -464,7 +464,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 		// else {
 		// 	res := tk.M{}
 		// 	res.Set("from", tStart)
-		// 	res.Set("to", tStart.Add(1*time.Second))
+		// 	res.Set("to", tStart.Add(5*time.Second))
 
 		// 	empty = append(empty, res)
 		// }
@@ -473,7 +473,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 			break
 		}
 
-		tStart = tStart.Add(1 * time.Second)
+		tStart = tStart.Add(5 * time.Second)
 	}
 
 	return

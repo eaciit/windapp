@@ -39,7 +39,7 @@
 						<!-- <div class="col-md-12" data-bind="visible:pg.pageType == 'HFD'"> -->
 						<div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
 							<div class="pull-right data-type">
-								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType, click:function(){ pg.isSecond(true); pg.getDataStockChart();  return true}">Second</label>
+								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType, click:function(){ pg.isSecond(true); pg.getDataStockChart();  return true}">5 Seconds</label>
 								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
 							</div>
 						</div>
@@ -55,10 +55,10 @@
 								<div class="popover-markup" id="selectTags"> <a href='javascript:;' class="trigger" ><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
 								    <div class="content hide">
 								        <div class="form-group" id="selectTagsDiv"></div>
-								        <div class="btn-group pull-right m-btm-10">
-								    	<button type="submit" id="cancelPop" class="btn btn-xs btn-danger btn-block" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>
-									        <button type="submit" id="saveTags" class="btn btn-xs btn-primary btn-block" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
-								    </div>
+								        <div >
+											<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>
+											<button type="submit" id="saveTags" class="btn btn-xs btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
+								    	</div>
 								    </div>
 								   
 								</div>
@@ -71,7 +71,8 @@
 							<table>
 								<tr data-bind="foreach:pg.periodList()" id="periodlist">
 									<td>
-										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;
+										<!--<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;-->
+										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span>00:00 - 24:00</span></button>&nbsp;
 									</td>
 								</tr>
 							<table>
