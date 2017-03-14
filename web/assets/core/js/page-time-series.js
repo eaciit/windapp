@@ -50,7 +50,8 @@ var yAxis = [];
 var chart;
 var legend = [];
 // var colors = ["#0066dd","#dc3912","#eee"];
-var colors = colorField
+var colors = colorField;
+var seriesSelectedColor = [];
 
 pg.periodList = ko.observableArray([]);
 
@@ -385,6 +386,19 @@ pg.hideLegend = function(idx){
       // $button.html('Hide series');
   }
 }
+
+pg.hideLegendByName = function(name){
+    $.each(chart.series, function(i, series) {
+        if (series.name === name || series.name === (name+"_err")){
+            if (series.visible) {
+                series.hide();
+            } else {
+                series.show();
+            }
+        }
+    });
+}
+
 pg.createStockChart = function(){
     $("#chartTimeSeries").html("");
 
@@ -394,25 +408,25 @@ pg.createStockChart = function(){
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             marginTop: 0,
-            // zoomType: 'x'
+            zoomType: 'x'
         }
     });
 
     chart = Highcharts.stockChart('chartTimeSeries', {
         legend: {
-                layout: 'horizontal',
-                padding: 3,
-                verticalAlign: 'top',
-                borderWidth: 0,
-                enabled: true,
-                margin : 5,
-                enabled: false
+            layout: 'horizontal',
+            // padding: 3,
+            verticalAlign: 'top',
+            borderWidth: 0,
+            enabled: true,
+            margin : 5,
+            enabled: false
         },
         rangeSelector: {
             selected: 1,
             inputEnabled: (pg.isSecond() == true ? false : true)
         },
-         navigator: {
+        navigator: {
             series: {
                 color: '#999',
                 lineWidth: 2
@@ -428,7 +442,7 @@ pg.createStockChart = function(){
         yAxis: yAxis,
         plotOptions: {
         series: {
-                lineWidth: 1,
+                lineWidth: 2,
                 states: {
                     hover: {
                         enabled: true,
@@ -440,9 +454,22 @@ pg.createStockChart = function(){
         tooltip:{         
           formatter : function() {
                 var s = [];
+                // console.log("-----------------------");
                 $.each(this.points, function(i, point) {
                     if (typeof legend[i] !== "undefined"){
-                        s.push('<span style="color:'+colors[i]+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegend('+i+')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+                        // console.log(point.series.name);
+                        if (point.series.name.indexOf("_err") < 0){                            
+                            var color = "";
+
+                            $.each(seriesSelectedColor, function(ic, n){
+                                if (n==point.series.name) {
+                                    color = colors[ic];
+                                }
+                            });
+
+
+                            s.push('<span style="color:'+color+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegendByName(\''+point.series.name+'\')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
+                        }
                     }
                 });
                 $("#legendTooltip").html(s.join("&nbsp;"));
@@ -530,8 +557,7 @@ pg.getDataStockChart = function(param){
         // console.log(breaks);
 
         if(!IsHour){
-              pg.periodList(periods);
-             
+            pg.periodList(periods);             
         }
 
         // console.log(pg.periodList);
@@ -545,8 +571,11 @@ pg.getDataStockChart = function(param){
                 isOpposite = true;
             }
 
-             yAxis [idx] = { 
+            yAxis [idx] = { 
                 // startOnTick: false,
+                // endOnTick: false,
+                // maxPadding: 0.5,
+                // minPadding: 0.5,
                 min: val.minval,
                 max: val.maxval, 
                 gridLineWidth: 1,
@@ -557,37 +586,38 @@ pg.getDataStockChart = function(param){
                     text: val.unit,
                 },
                 opposite: isOpposite
-
             }
             seriesOptions[xCounter] = {
-                  name : val.name, 
-                  data : val.data,
-                  color: colors[idx],
-                  type: 'line',
-                  yAxis: idx,
-                //   tooltip: {
-                //       valueSuffix: val.unit,
-                //   },
-                  id : "series"+idx,
-            }            
+                name : val.name, 
+                data : val.data,
+                color: colors[idx],
+                type: 'line',
+                yAxis: idx,
+                id : "series"+idx,
+            }      
+
+            seriesSelectedColor[idx] = val.name;
+
+            legend[idx] = {
+                name : val.name,
+                unit : val.unit,
+                // isCol : false,
+            }      
 
             xCounter+=1;
 
             seriesOptions[xCounter] = {
                 type: 'column',
-                name: 'err_'+val.name,
+                name: val.name+"_err",
                 data: val.dataerr,
-                color: '#ff0000',
-                pointWidth: 1,
+                color: colors[idx],
+                pointWidth: 2,
+                yAxis: idx,
+                id : "series_col"+idx,
                 // onSeries: "series"+idx,                
             }
 
             xCounter+=1;
-
-            legend[idx] = {
-                name : val.name,
-                unit : val.unit
-            }
 
             seriesCounter += 1;
 

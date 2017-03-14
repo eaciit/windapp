@@ -26,7 +26,7 @@
                         Location : <b>Jaisalmer</b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="project_temperature"></span> &deg; C</b> &nbsp;&nbsp;<span class="last-separator">|</span>&nbsp;&nbsp; <img id="project_img_weather" src="http://openweathermap.org/img/w/02d.png" />
                         <b><span id="project_weather"></span></b>
                         <div class="source-info pull-right project-info-last-update">
-                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<span id="project_last_update"></span>
+                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="project_last_update"></span></b>
                         </div>
                     </div>
                     <div class="control-summary left-border-org">
@@ -76,7 +76,7 @@
                                 <tbody data-bind="foreach: bp.Turbines1()">
                                     <tr>
                                         <!-- <td><a onclick="Project.GenDetail(this.text)" ><span data-bind="text: $data"></span></a></td> -->
-                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.GenDetail($data)}"></td>
+                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}"></td>
                                         <td align="center"><i data-bind="attr: { id: 'status_'+ $data }" class="fa fa-circle fa-project-info fa-green"></i></td>
                                         <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
@@ -116,7 +116,7 @@
                                 </thead>
                                 <tbody data-bind="foreach: bp.Turbines2()">
                                     <tr>
-                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.GenDetail($data)}"></td>
+                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}"></td>
                                         <td align="center"><i data-bind="attr: { id: 'status_'+ $data }" class="fa fa-circle fa-project-info fa-green"></i></td>
                                         <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
