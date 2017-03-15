@@ -612,7 +612,7 @@ pg.getDataStockChart = function(param, idBtn){
                 name: val.name+"_err",
                 data: val.dataerr,
                 color: colors[idx],
-                pointWidth: 2,
+                // pointWidth: 2,
                 yAxis: idx,
                 id : "series_col"+idx,
                 // onSeries: "series"+idx,                
