@@ -4,9 +4,14 @@
 	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-time-series.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/scroller/horizontal.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-time-series.css">
+
+
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<!-- <script src="{{BaseUrl}}res/scroller/horizontal.js"></script> -->
+<script src="{{BaseUrl}}res/scroller/sly.min.js"></script>
 <!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
 <script id="template" type="text/x-kendo-template">
   <div><b>#: kendo.toString(category, 'dd MMM yyyy HH:mm') #</b></div>
@@ -68,16 +73,32 @@
 							<div id="chartTimeSeries"></div>
 						</div>
 						<div class="clearfix">&nbsp;</div>
-						<div class="col-md-12 periodList text-center" data-bind="visible:pg.isSecond()">
+
+						<div data-bind="visible:pg.isSecond()">
+						<div class="wrap">
+							<div class="scrollbar">
+								<div class="handle">
+									<div class="mousearea"></div>
+								</div>
+							</div>
+							<div class="frame" id="basic">
+								<ul class="clearfix" data-bind="foreach:pg.periodList()">
+									<li data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod',$index()); return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span>00:00 - 24:00</span></li>
+								</ul>
+							</div>
+
+							<ul class="pages"></ul>
+						</div>
+						<!-- <div class="col-md-12 periodList text-center" data-bind="visible:pg.isSecond()">
 							<table>
 								<tr data-bind="foreach:pg.periodList()" id="periodlist">
 									<td>
-										<!--<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;-->
-										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span>00:00 - 24:00</span></button>&nbsp;
+										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;
+										<button class="btn btn-period btn-xs btn-group" role="group"  data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod',$index()); return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span>00:00 - 24:00</span></button>&nbsp;
 									</td>
 								</tr>
 							<table>
-						</div>
+						</div> -->
 					</div>
 				</div>
 			</div>

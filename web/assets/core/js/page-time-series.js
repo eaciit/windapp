@@ -498,7 +498,7 @@ pg.getTimestamp = function(param){
 pg.hidePopover = function(){
   $('.popover-markup>.trigger').popover('hide');
 }
-pg.getDataStockChart = function(param){
+pg.getDataStockChart = function(param, idBtn){
     fa.LoadData();
     app.loading(true);
 
@@ -515,8 +515,8 @@ pg.getDataStockChart = function(param){
     var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
-    var dateStart; 
-    var dateEnd;
+    var dateStart = fa.dateStart; 
+    var dateEnd = fa.dateEnd;
 
     if(pg.dataType() == 'SEC'){
       dateStart = minDate;
@@ -525,9 +525,11 @@ pg.getDataStockChart = function(param){
           dateStart = new Date(pg.startTime());
           dateEnd = new Date(pg.endTime());
       }
-    }else{
-      dateStart = fa.dateStart;
-      dateEnd = fa.dateEnd;
+    }
+
+    if(param == "refresh"){
+        dateStart = fa.dateStart; 
+        dateEnd = fa.dateEnd;
     }
 
     var IsHour = (param == 'detailPeriod' ? true : false);
@@ -543,7 +545,6 @@ pg.getDataStockChart = function(param){
         TagList : pg.TagList(),
         IsHour : IsHour,
     };
-
 
     // var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
     var url = "timeseries/getdatahfd";
@@ -615,7 +616,7 @@ pg.getDataStockChart = function(param){
                 name: val.name+"_err",
                 data: val.dataerr,
                 color: colors[idx],
-                pointWidth: 2,
+                // pointWidth: 2,
                 yAxis: idx,
                 id : "series_col"+idx,
                 // showInNavigator: true,
@@ -636,15 +637,89 @@ pg.getDataStockChart = function(param){
 
     $.when(request).done(function(){
         setTimeout(function(){
-           // chart.tooltip.refresh([chart.series[0].points[1]]);
-           // chart.tooltip.refresh([chart.series[1].points[1]]);
            app.loading(false);
          },200);
+
+        if(pg.dataType() == "SEC"){
+          setTimeout(function(){
+            pg.prepareScroll();
+          },500);
+
+        }
     });
 }
 
-$(document).ready(function () {
+pg.prepareScroll = function(){
+        var $frame  = $('#basic');
+        var $slidee = $frame.children('ul').eq(0);
+        var $wrap   = $frame.parent();
 
+        // Call Sly on frame
+        $frame.sly({
+          horizontal: 1,
+          itemNav: 'basic',
+          smart: 1,
+          activateOn: 'click',
+          mouseDragging: 1,
+          touchDragging: 1,
+          releaseSwing: 1,
+          // startAt: 3,
+          scrollBar: $wrap.find('.scrollbar'),
+          scrollBy: 1,
+          pagesBar: $wrap.find('.pages'),
+          activatePageOn: 'click',
+          speed: 300,
+          elasticBounds: 1,
+          easing: 'easeOutExpo',
+          dragHandle: 1,
+          dynamicHandle: 1,
+          clickBar: 1,
+
+          // Buttons
+          forward: $wrap.find('.forward'),
+          backward: $wrap.find('.backward'),
+          prev: $wrap.find('.prev'),
+          next: $wrap.find('.next'),
+          prevPage: $wrap.find('.prevPage'),
+          nextPage: $wrap.find('.nextPage')
+        });
+
+        // To Start button
+        $wrap.find('.toStart').on('click', function () {
+          var item = $(this).data('item');
+          // Animate a particular item to the start of the frame.
+          // If no item is provided, the whole content will be animated.
+          $frame.sly('toStart', item);
+        });
+
+        // To Center button
+        $wrap.find('.toCenter').on('click', function () {
+          var item = $(this).data('item');
+          // Animate a particular item to the center of the frame.
+          // If no item is provided, the whole content will be animated.
+          $frame.sly('toCenter', item);
+        });
+
+        // To End button
+        $wrap.find('.toEnd').on('click', function () {
+          var item = $(this).data('item');
+          // Animate a particular item to the end of the frame.
+          // If no item is provided, the whole content will be animated.
+          $frame.sly('toEnd', item);
+        });
+
+        // Add item
+        $wrap.find('.add').on('click', function () {
+          $frame.sly('add', '<li>' + $slidee.children().length + '</li>');
+        });
+
+        // Remove item
+        $wrap.find('.remove').on('click', function () {
+          $frame.sly('remove', -1);
+        });
+}
+
+$(document).ready(function () {
     $('.popover-markup>.trigger').popover({
         animation: true,
         html: true,
@@ -674,11 +749,12 @@ $(document).ready(function () {
     });
 
     $('#btnRefresh').on('click', function () {
-        pg.getDataStockChart();
+        pg.getDataStockChart("refresh");
     });
 
     setTimeout(function () {
         // pg.LoadData();
         pg.getDataStockChart();
+        // pg.prepareScroll();
     }, 1000);
 });
