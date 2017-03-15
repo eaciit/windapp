@@ -4,12 +4,12 @@ viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
 
-vm.currentMenu('Time Series Plots');
-vm.currentTitle('Time Series Plots');
-
 pg.tags = ko.observableArray();
 
 if (pageType == "OEM") {
+    vm.currentMenu('Time Series Plots');
+    vm.currentTitle('Time Series Plots');
+
     vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
     pg.tags = ko.observableArray([
         {text: "Wind Speed" , value:"windspeed"},        
@@ -17,6 +17,9 @@ if (pageType == "OEM") {
         {text: "Production" , value:"production"}
     ]);
 } else if (pageType == "HFD"){
+    vm.currentMenu('Analysis');
+    vm.currentTitle('Analysis');
+
     vm.breadcrumb([{ title: 'Monitoring', href: '#' }, { title: 'Analysis', href: viewModel.appName + 'page/timeserieshfd' }]);
     pg.tags = ko.observableArray([
         {text: "Wind Speed" , value:"windspeed"},
@@ -594,6 +597,7 @@ pg.getDataStockChart = function(param){
                 type: 'line',
                 yAxis: idx,
                 id : "series"+idx,
+                showInNavigator: true,
             }      
 
             seriesSelectedColor[idx] = val.name;
@@ -614,6 +618,7 @@ pg.getDataStockChart = function(param){
                 pointWidth: 2,
                 yAxis: idx,
                 id : "series_col"+idx,
+                // showInNavigator: true,
                 // onSeries: "series"+idx,                
             }
 
