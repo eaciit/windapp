@@ -155,12 +155,23 @@ pg.createStockChart = function(){
         var chart = Highcharts.charts[0];
         // console.log(Math.round(e.min));
         // console.log(Math.round(e.max));
-         chart.showLoading('Loading data from server...');
-         var param = {
+
+        var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
+        var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
+
+        var hours = Math.abs(date1 - date2) / 36e5;
+        if (hours <= 24) {
+            pg.pageType("SEC");
+        }else{
+            pg.pageType("MIN");
+        }
+
+        chart.showLoading('Loading data from server...');
+        var param = {
             period: fa.period,
             Turbine: [fa.turbine],
-            DateStart: new Date(new Date(Math.round(e.min)).toUTCString()),
-            DateEnd: new Date(new Date(Math.round(e.max)).toUTCString()),
+            DateStart: date1,
+            DateEnd: date2,
             Project: fa.project,
             PageType: pg.pageType(),
             DataType: pg.dataType() ,
@@ -191,10 +202,10 @@ pg.createStockChart = function(){
 
     $("#chartTimeSeries").html("");
 
-    var minRange = 600 * 1000;
-    if(pg.dataType() == 'SEC'){
-        minRange = 5 * 1000;
-    }
+    // var minRange = 600 * 1000;
+    // if(pg.dataType() == 'SEC'){
+        var minRange = 5 * 1000;
+    // }
 
     Highcharts.setOptions({
         chart: {
