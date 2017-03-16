@@ -453,7 +453,7 @@ func getLastValueFromRaw(timemax time.Time, turbine string) (tkm tk.M) {
 
 	for _, _tFolder := range aTimeFolder {
 		fullpath := filepath.Join(helper.GetHFDFolder(),
-			"data",
+			// "data",
 			_tFolder.Format("20060102"), // "20170210",
 			_tFolder.Format("15"),       // "11",
 			_tFolder.Format("1504"),     // "1120",
