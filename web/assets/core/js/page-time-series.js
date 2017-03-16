@@ -150,18 +150,42 @@ pg.hideLegendByName = function(name){
 }
 
 pg.createStockChart = function(){
-  
+
     function afterSetExtremes(e) {
         var chart = Highcharts.charts[0];
-        console.log(Math.round(e.min));
-        console.log(Math.round(e.max));
-        // chart.showLoading('Loading data from server...');
-        // $.getJSON('https://www.highcharts.com/samples/data/from-sql.php?start=' + Math.round(e.min) +
-        //         '&end=' + Math.round(e.max) + '&callback=?', function (data) {
+        // console.log(Math.round(e.min));
+        // console.log(Math.round(e.max));
+         chart.showLoading('Loading data from server...');
+         var param = {
+            period: fa.period,
+            Turbine: [fa.turbine],
+            DateStart: new Date(new Date(Math.round(e.min)).toUTCString()),
+            DateEnd: new Date(new Date(Math.round(e.max)).toUTCString()),
+            Project: fa.project,
+            PageType: pg.pageType(),
+            DataType: pg.dataType() ,
+            TagList : pg.TagList(),
+            IsHour : true,
+        };
 
-        //     chart.series[0].setData(data);
-        //     chart.hideLoading();
-        // });
+        var url = "timeseries/getdatahfd";
+
+        var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
+          if (!app.isFine(res)) {
+              return;
+          }
+
+            var data = res.data.Data.Chart;
+
+            $.each(data, function(idx, val){
+              chart.series[idx].setData(val.data);
+            });
+
+            chart.hideLoading();
+        });
+
+
+
     }
 
 
