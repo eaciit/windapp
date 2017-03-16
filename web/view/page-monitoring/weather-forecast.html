@@ -1,5 +1,6 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-monitoring/weather-forecast.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
@@ -95,7 +96,7 @@
                     </div>
                     <div class="col-md-9">
                         <div class="source-info pull-right">
-                            Source&nbsp;&nbsp;&nbsp;<a href="https://openweathermap.org/" target="_blank"><img src="/web/res/img/logo_OpenWeatherMap_orange.svg" width="120" /></a>
+                            Source&nbsp;&nbsp;&nbsp;<a href="https://openweathermap.org/" target="_blank"><img src="{{BaseUrl}}/res/img/logo_OpenWeatherMap_orange.svg" width="120" /></a>
                         </div>
                         <h4 class="content-heading">Forecast</h4>
                         <div id="weatherChart"></div>

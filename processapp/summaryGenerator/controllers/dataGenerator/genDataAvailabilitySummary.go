@@ -29,6 +29,7 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	// mtx.Lock()
 	// OEM
 	availOEM := ev.scadaOEMSummary()
+	ev.Ctx.DeleteMany(availOEM, nil)
 	e := ev.Ctx.Insert(availOEM)
 	if e != nil {
 		log.Printf("e: ", e.Error())
