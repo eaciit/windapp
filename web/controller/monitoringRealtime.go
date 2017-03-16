@@ -13,6 +13,11 @@ import (
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 
+	"bufio"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -319,85 +324,50 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	timemax := getMaxRealTime("Tejuva", p.Turbine)
+	timemax := getMaxRealTime("Tejuva", p.Turbine).UTC()
+	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
 
-	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(dbox.Eq("turbine", p.Turbine), dbox.Lte("timestamp", timemax), dbox.Gte("timestamp", timemax.AddDate(0, 0, -1)))).
-		Order("-timestamp").
-		Cursor(nil)
-
-	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
-	}
-
-	arrlabel := map[string]string{"Wind speed Avg": "windspeed", "Wind speed 1": "",
-		"Wind speed 2": "", "Wind Direction": "winddirection",
-		"Vane 1 wind direction": "", "Vane 2 wind direction": "",
-		"Nacelle Direction": "nacelleposition", "Rotor RPM": "rotorrpm",
-		"Generator RPM": "genspeed_rpm", "DFIG speed generator encoder": "",
-		"Blade Angle 1": "pitchangle", "Blade Angle 2": "pitchangle2",
-		"Blade Angle 3": "pitchangle3", "Volt. Battery - blade 1": "pitchaccuv1",
-		"Volt. Battery - blade 2": "pitchaccuv2", "Volt. Battery - blade 3": "pitchaccuv3",
-		"Current 1 Pitch Motor": "pitchconvcurrent1", "Current 2 Pitch Motor": "pitchconvcurrent2",
-		"Current 3 Pitch Motor": "pitchconvcurrent3", "Pitch motor temperature - Blade 1": "tempconv1",
-		"Pitch motor temperature - Blade 2": "tempconv2", "Pitch motor temperature - Blade 3": "tempconv3",
-		"Phase 1 voltage": "voltagel1", "Phase 2 voltage": "voltagel2",
-		"Phase 3 voltage": "voltagel3", "Phase 1 current": "currentl1",
-		"Phase 2 current": "currentl2", "Phase 3 current": "currentl3",
-		"Power": "activepower", "Power Reactive": "reactivepower_kvar",
-		"Freq. Grid": "frequency_hz", "Production": "total_prod_day_kwh",
-		"Cos Phi": "powerfactor", "DFIG active power": "",
-		"DFIG reactive power": "", "DFIG mains Frequency": "",
-		"DFIG main voltage": "", "DFIG main current": "",
-		"DFIG DC link voltage": "", "Rotor R current": "",
-		"Roter Y current": "", "Roter B current": "",
-		"Temp. generator 1 phase 1 coil": "tempg1l1", "Temp. generator 1 phase 2 coil": "tempg1l2",
-		"Temp. generator 1 phase 3 coil": "tempg1l3", "Temp. generator bearing driven End": "tempgeneratorbearingde",
-		"Temp. generator bearing non-driven End": "tempgeneratorbearingnde", "Temp. Gearbox driven end": "tempgearboxhssde",
-		"Temp. Gearbox non-driven end": "tempgearboxhssnde", "Temp. Gearbox inter. driven end": "tempgearboximsde",
-		"Temp. Gearbox inter. non-driven end": "tempgearboximsnde", "Pressure Gear box oil": "",
-		"Temp. Gear box oil": "tempgearboxoilsump", "Temp. Nacelle": "tempnacelle",
-		"Temp. Ambient": "tempoutdoor", "Temp. Main bearing": "temphubbearing",
-		"Damper Oscillation mag.": "", "Drive train vibration": "drtrvibvalue", "Tower vibration": "",
+	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
+		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
+		"Vane 2 wind direction": "", "Nacelle Direction": "NacellePos",
+		"Rotor RPM": "RotorSpeed_RPM", "Generator RPM": "GenSpeed_RPM",
+		"DFIG speed generator encoder": "", "Blade Angle 1": "PitchAngle1",
+		"Blade Angle 2": "PitchAngle2", "Blade Angle 3": "PitchAngle3",
+		"Volt. Battery - blade 1": "PitchAccuV1", "Volt. Battery - blade 2": "PitchAccuV2",
+		"Volt. Battery - blade 3": "PitchAccuV3", "Current 1 Pitch Motor": "PitchConvCurrent1",
+		"Current 2 Pitch Motor": "PitchConvCurrent2", "Current 3 Pitch Motor": "PitchConvCurrent3",
+		"Pitch motor temperature - Blade 1": "TempConv1", "Pitch motor temperature - Blade 2": "TempConv2",
+		"Pitch motor temperature - Blade 3": "TempConv3", "Phase 1 voltage": "VoltageL1",
+		"Phase 2 voltage": "VoltageL2", "Phase 3 voltage": "VoltageL3", "Phase 1 current": "CurrentL1",
+		"Phase 2 current": "CurrentL2", "Phase 3 current": "CurrentL3", "Power": "ActivePower_kW",
+		"Power Reactive": "ReactivePower_kVAr", "Freq. Grid": "Frequency_Hz", "Production": "Total_Prod_Day_kWh",
+		"Cos Phi": "PowerFactor", "DFIG active power": "", "DFIG reactive power": "", "DFIG mains Frequency": "",
+		"DFIG main voltage": "", "DFIG main current": "", "DFIG DC link voltage": "",
+		"Rotor R current ": "", "Roter Y current ": "", "Roter B current ": "",
+		"Temp. generator 1 phase 1 coil": "TempG1L1", "Temp. generator 1 phase 2 coil": "TempG1L2", "Temp. generator 1 phase 3 coil": "TempG1L3",
+		"Temp. generator bearing driven End": "TempGeneratorBearingDE", "Temp. generator bearing non-driven End": "TempGeneratorBearingNDE",
+		"Temp. Gearbox driven end": "TempGearBoxHSSDE", "Temp. Gearbox non-driven end": "TempGearBoxHSSNDE", "Temp. Gearbox inter. driven end": "TempGearBoxIMSDE",
+		"Temp. Gearbox inter. non-driven end": "TempGearBoxIMSNDE", "Pressure Gear box oil": "",
+		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
+		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
 	}
 
 	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", "Tejuva")
-
-	isComplete := false
-	for {
-		_tkm := tk.M{}
-		err = csr.Fetch(&_tkm, 1, false)
-		if err != nil {
-			break
+	for key, str := range arrlabel {
+		if !alldata.Has(key) {
+			alldata.Set(key, defaultValue)
 		}
 
-		isComplete = true
-		for key, str := range arrlabel {
-			if !alldata.Has(key) {
-				alldata.Set(key, defaultValue)
-			}
-
-			if str == "" {
-				continue
-			}
-
-			if _tkm.Has(str) {
-				if _ival := _tkm.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == defaultValue {
-					alldata.Set(key, _ival)
-				}
-
-				if alldata.GetFloat64(key) == defaultValue {
-					isComplete = false
-				}
-			}
+		if str == "" {
+			continue
 		}
 
-		if isComplete {
-			break
+		if alltkmdata.Has(str) {
+			if _ival := alltkmdata.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == defaultValue {
+				alldata.Set(key, _ival)
+			}
 		}
 	}
-
-	csr.Close()
 
 	return helper.CreateResult(true, alldata, "success")
 }
@@ -455,6 +425,101 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 
 	timemax = tkmgroup.Get("timestamp", time.Time{}).(time.Time)
 
+	return
+}
+
+func getNext10Min(current time.Time) time.Time {
+	date1, _ := time.Parse("2006-01-02", current.Format("2006-01-02"))
+
+	thour := current.Hour()
+	tminute := current.Minute()
+	tsecond := current.Second()
+	tminutevalue := float64(tminute) + tk.Div(float64(tsecond), 60.0)
+	tminutecategory := tk.ToInt(tk.RoundingUp64(tk.Div(tminutevalue, 10), 0)*10, "0")
+	if tminutecategory == 60 {
+		tminutecategory = 0
+		thour = thour + 1
+	}
+	newTimeStamp := date1.Add(time.Duration(thour) * time.Hour).Add(time.Duration(tminutecategory) * time.Minute)
+	timestampconverted := newTimeStamp.UTC()
+
+	return timestampconverted
+}
+
+func getLastValueFromRaw(timemax time.Time, turbine string) (tkm tk.M) {
+	tkm = tk.M{}
+	timeFolder := getNext10Min(timemax).UTC()
+	aTimeFolder := []time.Time{timeFolder.Add(time.Minute * -10), timeFolder}
+
+	for _, _tFolder := range aTimeFolder {
+		fullpath := filepath.Join(helper.GetHFDFolder(),
+			"data",
+			_tFolder.Format("20060102"), // "20170210",
+			_tFolder.Format("15"),       // "11",
+			_tFolder.Format("1504"),     // "1120",
+		)
+
+		afile := getListFile(fullpath)
+		for _, _file := range afile {
+			ffile := filepath.Join(fullpath, _file)
+			loadFileByTurbine(turbine, ffile, tkm)
+		}
+	}
+
+	return
+}
+
+func getListFile(dir string) (_arrfile []string) {
+	_arrfile = []string{}
+	_pattern := "^(data_.*)(\\.[Cc][Ss][Vv])$"
+
+	files, e := ioutil.ReadDir(dir)
+	if e != nil {
+		tk.Printfn("Get list file found %s", e.Error())
+		return
+	}
+
+	icount := 0
+	for _, file := range files {
+		icount++
+		filename := file.Name()
+		if cond, _ := regexp.MatchString(_pattern, filename); cond {
+			_arrfile = append(_arrfile, filename)
+		}
+	}
+
+	return
+}
+
+func loadFileByTurbine(turbine, _fpath string, tkm tk.M) {
+	_file, err := os.Open(_fpath)
+	if err != nil {
+		tk.Printfn("Open %s found %s", _fpath, err.Error())
+		return
+	}
+
+	scanner := bufio.NewScanner(_file)
+	for scanner.Scan() {
+
+		_tData := strings.Split(scanner.Text(), ",")
+		if len(_tData) < 4 || _tData[1] != turbine {
+			continue
+		}
+
+		_val := tk.ToFloat64(_tData[3], 6, tk.RoundingAuto)
+		if _val == defaultValue {
+			continue
+		}
+
+		tkm.Set(_tData[2], _val)
+
+	}
+
+	if err := scanner.Err(); err != nil {
+		tk.Printfn("Fetch %s found %s", _fpath, err.Error())
+	}
+
+	_file.Close()
 	return
 }
 
