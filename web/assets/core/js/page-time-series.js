@@ -405,6 +405,11 @@ pg.hideLegendByName = function(name){
 pg.createStockChart = function(){
     $("#chartTimeSeries").html("");
 
+    var minRange = 600 * 1000;
+    if(pg.dataType() == 'SEC'){
+        minRange = 5 * 1000;
+    }
+
     Highcharts.setOptions({
         chart: {
             style: {
@@ -441,6 +446,7 @@ pg.createStockChart = function(){
         xAxis: {
             type: 'datetime',
             breaks: breaks,
+            minRange: minRange,
         },
         yAxis: yAxis,
         plotOptions: {
@@ -616,7 +622,7 @@ pg.getDataStockChart = function(param, idBtn){
                 name: val.name+"_err",
                 data: val.dataerr,
                 color: colors[idx],
-                // pointWidth: 2,
+                pointWidth: 2,
                 yAxis: idx,
                 id : "series_col"+idx,
                 // showInNavigator: true,
