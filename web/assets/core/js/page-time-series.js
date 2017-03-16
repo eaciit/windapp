@@ -43,6 +43,9 @@ pg.TagList = ko.observableArray(["windspeed","power"]);
 pg.startTime = ko.observable();
 pg.endTime = ko.observable();
 
+pg.rangeData = ko.observable(true);
+pg.errorValue = ko.observable(true);
+
 var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
