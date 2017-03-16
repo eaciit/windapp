@@ -1,8 +1,8 @@
 	.chk-custom{
-		display: inline;
+	/*	display: inline;
 		font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
 		font-size: 12px;
-		margin-left: -20px;
+		margin-left: -20px;*/
 	}
 
 	.mt-10{
@@ -48,7 +48,7 @@
 	 .data-type{
 	 	position: relative;
 	 	z-index: 11;
-	 	margin-bottom: -15px;
+	 	margin-bottom: -25px;
 	 	margin-right: 10px;
 	 }
 

@@ -43,10 +43,31 @@
 							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
 						</div>
 						<!-- <div class="col-md-12" data-bind="visible:pg.pageType == 'HFD'"> -->
-						<div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
+						<!-- <div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
 							<div class="pull-right data-type">
 								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType, click:function(){ pg.isSecond(true); pg.getDataStockChart();  return true}">5 Seconds</label>
 								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
+							</div>
+						</div> -->
+						<div class="col-md-12">
+							<div class="pull-right data-type">
+								<div class="checkbox chk-custom">
+									<label>
+					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.live()}">
+					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+					                    <span class="colRed"><strong>Live</strong></span>
+					                </label>
+					                <label>
+					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData()}">
+					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+					                    <span class="colRed"><strong>Default range</strong></span>
+					                </label>
+					                <label>
+					                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue()}">
+					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+					                    <span class="colRed"><strong>Error value</strong></span>
+					                </label>
+								</div>
 							</div>
 						</div>
 						<!-- <div class="col-md-6">
@@ -61,20 +82,7 @@
 								<div class="popover-markup" id="selectTags"> <a href='javascript:;' class="trigger" ><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
 								    <div class="content hide">
 								        <div class="form-group" id="selectTagsDiv"></div>
-								        <div class="checkbox chk-custom">
-							                <label>
-							                    <input type="checkbox" name="chk-column-range">
-							                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok" data-bind="{checked:pg.rangeData}"></i></span>
-							                    <span class="colRed">Default range</span>
-							                </label>
-							                <label>
-							                    <input type="checkbox" name="chk-column-error" >
-							                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok" data-bind="{checked:pg.errorValue}"></i></span>
-							                    <span class="colRed">Error value</span>
-							                </label>
-										</div>
-										<div class="clearfix">&nbsp;</div>
-								        <div class="mt-10">
+								        <div>
 											<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>
 											<button type="submit" id="saveTags" class="btn btn-xs btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
 								    	</div>
@@ -86,7 +94,7 @@
 							<div id="chartTimeSeries"></div>
 						</div>
 						<div class="clearfix">&nbsp;</div>
-
+<!-- 
 						<div data-bind="visible:pg.isSecond()">
 						<div class="wrap">
 							<div class="scrollbar">
@@ -101,7 +109,7 @@
 							</div>
 
 							<ul class="pages"></ul>
-						</div>
+						</div> -->
 						<!-- <div class="col-md-12 periodList text-center" data-bind="visible:pg.isSecond()">
 							<table>
 								<tr data-bind="foreach:pg.periodList()" id="periodlist">

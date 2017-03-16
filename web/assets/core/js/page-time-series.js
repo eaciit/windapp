@@ -45,6 +45,9 @@ pg.endTime = ko.observable();
 
 pg.rangeData = ko.observable(true);
 pg.errorValue = ko.observable(true);
+pg.live = ko.observable(false);
+
+pg.isFirst = ko.observable(true);
 
 var timeSeriesData = [];
 var seriesOptions = [],
@@ -55,13 +58,10 @@ var breaks = [];
 var yAxis = [];
 var chart;
 var legend = [];
-// var colors = ["#0066dd","#dc3912","#eee"];
 var colors = colorField;
 var seriesSelectedColor = [];
 
 pg.periodList = ko.observableArray([]);
-
-// pg.periodList = ko.observableArray([{"endtime":"2017-02-17T15:00:00Z","starttime":"2017-02-17T12:00:00Z"},{"endtime":"2017-02-17T18:00:00Z","starttime":"2017-02-17T15:00:00Z"},{"endtime":"2017-02-17T21:00:00Z","starttime":"2017-02-17T18:00:00Z"},{"endtime":"2017-02-18T00:00:00Z","starttime":"2017-02-17T21:00:00Z"},{"endtime":"2017-02-18T03:00:00Z","starttime":"2017-02-18T00:00:00Z"},{"endtime":"2017-02-18T06:00:00Z","starttime":"2017-02-18T03:00:00Z"},{"endtime":"2017-02-18T09:00:00Z","starttime":"2017-02-18T06:00:00Z"},{"endtime":"2017-02-18T12:00:00Z","starttime":"2017-02-18T09:00:00Z"},{"endtime":"2017-02-18T15:00:00Z","starttime":"2017-02-18T12:00:00Z"},{"endtime":"2017-02-18T18:00:00Z","starttime":"2017-02-18T15:00:00Z"},{"endtime":"2017-02-18T21:00:00Z","starttime":"2017-02-18T18:00:00Z"},{"endtime":"2017-02-19T00:00:00Z","starttime":"2017-02-18T21:00:00Z"},{"endtime":"2017-02-19T03:00:00Z","starttime":"2017-02-19T00:00:00Z"},{"endtime":"2017-02-19T06:00:00Z","starttime":"2017-02-19T03:00:00Z"},{"endtime":"2017-02-19T09:00:00Z","starttime":"2017-02-19T06:00:00Z"},{"endtime":"2017-02-19T12:00:00Z","starttime":"2017-02-19T09:00:00Z"},{"endtime":"2017-02-19T15:00:00Z","starttime":"2017-02-19T12:00:00Z"},{"endtime":"2017-02-19T18:00:00Z","starttime":"2017-02-19T15:00:00Z"},{"endtime":"2017-02-19T21:00:00Z","starttime":"2017-02-19T18:00:00Z"},{"endtime":"2017-02-20T00:00:00Z","starttime":"2017-02-19T21:00:00Z"},{"endtime":"2017-02-20T03:00:00Z","starttime":"2017-02-20T00:00:00Z"},{"endtime":"2017-02-20T06:00:00Z","starttime":"2017-02-20T03:00:00Z"},{"endtime":"2017-02-20T09:00:00Z","starttime":"2017-02-20T06:00:00Z"},{"endtime":"2017-02-20T12:00:00Z","starttime":"2017-02-20T09:00:00Z"},{"endtime":"2017-02-20T15:00:00Z","starttime":"2017-02-20T12:00:00Z"},{"endtime":"2017-02-20T18:00:00Z","starttime":"2017-02-20T15:00:00Z"},{"endtime":"2017-02-20T21:00:00Z","starttime":"2017-02-20T18:00:00Z"},{"endtime":"2017-02-21T00:00:00Z","starttime":"2017-02-20T21:00:00Z"}])
 
 pg.LoadData = function(){
 	// fa.getProjectInfo();
@@ -124,262 +124,6 @@ pg.setSeries = function(name, axis, color, data){
   }
 }
 
-pg.setValueAxis = function(name, titleText, crossingVal){
-  return {
-    name: name,
-    title: {
-        text: titleText,
-        visible: true,
-        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-    },
-    labels: {
-        // format: "{0:p2}"
-        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-        format: "{0}"
-    },
-    majorGridLines: {
-        visible: true,
-        color: "#eee",
-        width: 0.8,
-    },
-    line: {
-        visible: false
-    },
-    axisCrossingValue: crossingVal
-  }
-}
-
-pg.createChart = function(){
-  var seriesList = [];
-  seriesList.push(pg.setSeries("Wind Speed", "windspeedAxis", "#337ab7", timeSeriesData.windspeed));
-  seriesList.push(pg.setSeries("Production", "productionAxis", "#ea5b19", timeSeriesData.production));
-  
-  var valueAxisList = [];
-  valueAxisList.push(pg.setValueAxis("windspeedAxis", "m/s", 0));
-  valueAxisList.push(pg.setValueAxis("productionAxis", "MWh", 0));
-
-  var naviSeriesList = [];
-  var series1 = pg.setSeries("Wind Speed", "windspeedAxis", "#337ab7", timeSeriesData.windspeed);
-  series1.shared = true;
-  var series2 = pg.setSeries("Production", "productionAxis", "#ea5b19", timeSeriesData.production);
-  series2.shared = true;
-  naviSeriesList.push(series1);
-  naviSeriesList.push(series2);
-
-  $("#chartTimeSeries").kendoStockChart({
-    title: {
-        text: "Wind Speed & Production",
-        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-      },
-      legend: {
-        position: "top",
-        visible: true
-      },
-      theme: "flat",
-      seriesDefaults: {
-          area: {
-              line: {
-                  style: "smooth",
-              }
-          },
-          width: 1.3,
-      },
-      series: seriesList,
-      navigator: {
-        categoryAxis: {
-          roundToBaseUnit: true
-        },
-        series: naviSeriesList
-      },
-      valueAxis: valueAxisList,
-      categoryAxis: {
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            majorGridLines: {
-                visible: false
-            },
-            majorTickType: "none",
-            axisCrossingValues: [0, 1000],
-            autoBaseUnitSteps: {
-                // Would produce 31 groups
-                // => Skip to weeks
-                minutes: [10],
-            }
-      },
-      tooltip: {
-            visible: true,
-            template: "#= kendo.toString(value,'n2') # MWh",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-            shared: true,
-            sharedTemplate: kendo.template($("#template").html())
-        }
-    });
-} 
-
-pg.chartWindSpeed = function(dataSource){
-	$("#chartWindSpeed").kendoStockChart({
-	  title: {
-        text: "Wind Speed",
-        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-      },
-      legend: {
-        position: "top",
-        visible: false
-      },
-      dataSource: {
-        data: dataSource
-      },
-      theme: "flat",
-      seriesDefaults: {
-	        area: {
-	            line: {
-	                style: "smooth"
-	            }
-	        }
-	    },
-      dateField: "timestamp",
-      series: [{
-        type: "area",
-        field: "value",
-        aggregate: "avg", 
-        color: "#337ab7",
-      }],
-      navigator: {
-        categoryAxis: {
-          roundToBaseUnit: true
-        },
-        series: [{
-          type: "area",
-          field: "value",
-          aggregate: "avg",
-          color: "#337ab7",
-        }]
-      },
-      valueAxis: {
-        title: {
-            text: "m/s",
-            visible: true,
-            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-        },
-        labels: {
-            // format: "{0:p2}"
-            format: "{0}"
-        },
-        majorGridLines: {
-            visible: true,
-            color: "#eee",
-            width: 0.8,
-        },
-        line: {
-            visible: false
-        },
-        axisCrossingValue: 0
-      },
-	  categoryAxis: {
-            majorGridLines: {
-                visible: false
-            },
-            majorTickType: "none"
-      },
-      tooltip: {
-            visible: true,
-            template: "#= kendo.toString(value,'n2') # m/s",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            }
-        }
-    });
-} 
-
-pg.chartProduction = function(dataSource){
-	$("#chartProduction").kendoStockChart({
-	  title: {
-        text: "Production",
-        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-      },
-      legend: {
-        position: "top",
-        visible: false
-      },
-      dataSource: {
-        data: dataSource
-      },
-      theme: "flat",
-      seriesDefaults: {
-	        area: {
-	            line: {
-	                style: "smooth"
-	            }
-	        }
-	    },
-      dateField: "timestamp",
-      series: [{
-        type: "area",
-        field: "value",
-        aggregate: "sum", 
-        color: "#ea5b19",
-      }],
-      navigator: {
-        categoryAxis: {
-          roundToBaseUnit: true
-        },
-        series: [{
-          type: "area",
-          field: "value",
-          aggregate: "sum",
-          color: "#ea5b19",
-        }]
-      },
-      valueAxis: {
-        title: {
-            text: "MWh",
-            visible: true,
-            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-        },
-        labels: {
-            // format: "{0:p2}"
-            format: "{0}"
-        },
-        majorGridLines: {
-            visible: true,
-            color: "#eee",
-            width: 0.8,
-        },
-        line: {
-            visible: false
-        },
-        axisCrossingValue: 0
-      },
-	  categoryAxis: {
-            majorGridLines: {
-                visible: false
-            },
-            majorTickType: "none"
-      },
-      tooltip: {
-            visible: true,
-            template: "#= kendo.toString(value,'n2') # MWh",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            }
-        }
-    });
-} 
 
 
 pg.hideLegend = function(idx){
@@ -406,6 +150,21 @@ pg.hideLegendByName = function(name){
 }
 
 pg.createStockChart = function(){
+  
+    function afterSetExtremes(e) {
+        var chart = Highcharts.charts[0];
+        console.log(Math.round(e.min));
+        console.log(Math.round(e.max));
+        // chart.showLoading('Loading data from server...');
+        // $.getJSON('https://www.highcharts.com/samples/data/from-sql.php?start=' + Math.round(e.min) +
+        //         '&end=' + Math.round(e.max) + '&callback=?', function (data) {
+
+        //     chart.series[0].setData(data);
+        //     chart.hideLoading();
+        // });
+    }
+
+
     $("#chartTimeSeries").html("");
 
     var minRange = 600 * 1000;
@@ -433,11 +192,32 @@ pg.createStockChart = function(){
             margin : 5,
             enabled: false
         },
-        rangeSelector: {
-            selected: 1,
-            inputEnabled: (pg.isSecond() == true ? false : true)
+         rangeSelector: {
+            buttons: [{
+                type: 'hour',
+                count: 1,
+                text: '1h'
+            }, {
+                type: 'day',
+                count: 1,
+                text: '1d'
+            }, {
+                type: 'month',
+                count: 1,
+                text: '1m'
+            }, {
+                type: 'year',
+                count: 1,
+                text: '1y'
+            }, {
+                type: 'all',
+                text: 'All'
+            }],
+            inputEnabled: (pg.isSecond() == true ? false : true),
+            selected: 4 // all
         },
         navigator: {
+            adaptToUpdatedData: false,
             series: {
                 color: '#999',
                 lineWidth: 2
@@ -447,6 +227,9 @@ pg.createStockChart = function(){
           enabled: false
         },
         xAxis: {
+            events: {
+                afterSetExtremes: afterSetExtremes
+            },
             type: 'datetime',
             breaks: breaks,
             minRange: minRange,
@@ -504,9 +287,11 @@ pg.getTimestamp = function(param){
 
       return date.getTime();
 }
+
 pg.hidePopover = function(){
   $('.popover-markup>.trigger').popover('hide');
 }
+
 pg.getDataStockChart = function(param, idBtn){
     fa.LoadData();
     app.loading(true);
@@ -523,6 +308,14 @@ pg.getDataStockChart = function(param, idBtn){
 
     var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
+
+
+    if(pg.isFirst() == true){
+      fa.period = "custom";
+      var now = new Date()
+      fa.dateEnd = new Date();
+      fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
+    }
 
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
@@ -541,7 +334,10 @@ pg.getDataStockChart = function(param, idBtn){
         dateEnd = fa.dateEnd;
     }
 
-    var IsHour = (param == 'detailPeriod' ? true : false);
+
+
+    // var IsHour = (param == 'detailPeriod' ? true : false);
+    var IsHour = (pg.isFirst() == true ? false : true);
 
     var param = {
         period: fa.period,
@@ -645,6 +441,7 @@ pg.getDataStockChart = function(param, idBtn){
     });
 
     $.when(request).done(function(){
+        pg.isFirst(false);
         setTimeout(function(){
            app.loading(false);
          },200);
@@ -729,6 +526,13 @@ pg.prepareScroll = function(){
 }
 
 $(document).ready(function () {
+
+    $("#periodList").closest(".k-widget").hide();
+    $("#dateStart").closest(".k-widget").hide();
+    $("#dateEnd").closest(".k-widget").hide();
+    $(".label-filters:contains('Period')").hide();
+    $(".label-filters:contains('to')").hide();
+
     $('.popover-markup>.trigger').popover({
         animation: true,
         html: true,
