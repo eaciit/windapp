@@ -343,7 +343,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		"Power Reactive": "ReactivePower_kVAr", "Freq. Grid": "Frequency_Hz", "Production": "Total_Prod_Day_kWh",
 		"Cos Phi": "PowerFactor", "DFIG active power": "", "DFIG reactive power": "", "DFIG mains Frequency": "",
 		"DFIG main voltage": "", "DFIG main current": "", "DFIG DC link voltage": "",
-		"Rotor R current ": "", "Roter Y current ": "", "Roter B current ": "",
+		"Rotor R current": "", "Roter Y current": "", "Roter B current": "",
 		"Temp. generator 1 phase 1 coil": "TempG1L1", "Temp. generator 1 phase 2 coil": "TempG1L2", "Temp. generator 1 phase 3 coil": "TempG1L3",
 		"Temp. generator bearing driven End": "TempGeneratorBearingDE", "Temp. generator bearing non-driven End": "TempGeneratorBearingNDE",
 		"Temp. Gearbox driven end": "TempGearBoxHSSDE", "Temp. Gearbox non-driven end": "TempGearBoxHSSNDE", "Temp. Gearbox inter. driven end": "TempGearBoxIMSDE",
