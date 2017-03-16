@@ -380,11 +380,7 @@ pg.getDataStockChart = function(param, idBtn){
                 isOpposite = true;
             }
 
-            yAxis [idx] = { 
-                // startOnTick: false,
-                // endOnTick: false,
-                // maxPadding: 0.5,
-                // minPadding: 0.5,
+            yAxis[xCounter] = {
                 min: val.minval,
                 max: val.maxval, 
                 gridLineWidth: 1,
@@ -401,7 +397,7 @@ pg.getDataStockChart = function(param, idBtn){
                 data : val.data,
                 color: colors[idx],
                 type: 'line',
-                yAxis: idx,
+                yAxis: xCounter,
                 id : "series"+idx,
                 showInNavigator: true,
             }      
@@ -411,10 +407,23 @@ pg.getDataStockChart = function(param, idBtn){
             legend[idx] = {
                 name : val.name,
                 unit : val.unit,
-                // isCol : false,
             }      
 
             xCounter+=1;
+
+            yAxis[xCounter] = {
+                min: 0,
+                max: 100, 
+                gridLineWidth: 1,
+                labels: {
+                    format: '{value}',
+                },
+                title: {
+                    text: val.unit,
+                },
+                opposite: isOpposite,
+                visible: false,
+            }
 
             seriesOptions[xCounter] = {
                 type: 'column',
@@ -422,7 +431,7 @@ pg.getDataStockChart = function(param, idBtn){
                 data: val.dataerr,
                 color: colors[idx],
                 pointWidth: 2,
-                yAxis: idx,
+                yAxis: xCounter,
                 id : "series_col"+idx,
                 // showInNavigator: true,
                 // onSeries: "series"+idx,                

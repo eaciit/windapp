@@ -137,7 +137,7 @@ func (m *TimeSeriesController) GetAvailDate(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
 
-func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
+func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	breaks := []tk.M{}
@@ -188,10 +188,10 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 
 	mapField := map[string]MappingColumn{}
 	mapField["windspeed"] = MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 25.0}
-	mapField["power"] = MappingColumn{"Power", "ActivePower_kW", "kW", 0, 500.0}
-	mapField["production"] = MappingColumn{"Production", "", "kWh", 0, 1000.0}
-	mapField["winddirection"] = MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0}
-	mapField["nacellepos"] = MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0}
+	mapField["power"] = MappingColumn{"Power", "ActivePower_kW", "kW", -100, 2121.0}
+	mapField["production"] = MappingColumn{"Production", "", "kWh", -100, 2121.0}
+	mapField["winddirection"] = MappingColumn{"Wind Direction", "WindDirection", "Degree", -10.0, 120.0}
+	mapField["nacellepos"] = MappingColumn{"Nacelle Direction", "NacellePos", "Degree", -10.0, 120.0}
 	mapField["rotorrpm"] = MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0}
 	mapField["genrpm"] = MappingColumn{"Generator RPM", "WindSpeed_ms", "RPM", 0.0, 30.0}
 	mapField["pitchangle"] = MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0}
@@ -283,7 +283,7 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 				"_id": "$timestamp",
 				// "energy":    tk.M{"$sum": "$energy"},
 				"windspeed":     tk.M{"$avg": "$fast_windspeed_ms_stddev"},
-				"power":         tk.M{"$sum": "$fast_activepower_kw_stddevv"},
+				"power":         tk.M{"$sum": "$fast_activepower_kw_stddev"},
 				"winddirection": tk.M{"$avg": "$slow_winddirection_stddev"},
 				"nacellepos":    tk.M{"$avg": "$slow_nacellepos_stddev"},
 				"rotorrpm":      tk.M{"$avg": "$fast_rotorspeed_rpm_stddev"},
@@ -330,7 +330,7 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 		} else {
 			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": -1}})
-			pipes = append(pipes, tk.M{"$limit": 10})
+			pipes = append(pipes, tk.M{"$limit": 1})
 		}
 
 		// log.Printf("%v \n", collName)
@@ -380,7 +380,7 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 					dts = append(dts, dt)
 
 					if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
-						dterr = append(dterr, []interface{}{timestamp, columnTag.MaxValue})
+						dterr = append(dterr, []interface{}{timestamp, 100.0})
 					}
 				}
 
@@ -404,7 +404,7 @@ func (m *TimeSeriesController) GetData(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
-func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
+func (m *TimeSeriesController) GetDataHFDX(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	breaks := []tk.M{}
@@ -457,8 +457,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	mapField["windspeed"] = MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 25.0}
 	mapField["power"] = MappingColumn{"Power", "ActivePower_kW", "kW", 0, 500.0}
 	mapField["production"] = MappingColumn{"Production", "", "kWh", 0, 1000.0}
-	mapField["winddirection"] = MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0}
-	mapField["nacellepos"] = MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0}
+	mapField["winddirection"] = MappingColumn{"Wind Direction", "WindDirection", "Degree", -10.0, 120.0}
 	mapField["rotorrpm"] = MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0}
 	mapField["genrpm"] = MappingColumn{"Generator RPM", "WindSpeed_ms", "RPM", 0.0, 30.0}
 	mapField["pitchangle"] = MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0}
@@ -702,31 +701,33 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 			// log.Printf("Err: %v \n", err.Error())
 		}
 
-		if len(tmpResult) > 0 {
-			mapTag := map[string][]float64{}
-			res := tk.M{}
+		// if len(tmpResult) > 0 {
+		mapTag := map[string][]float64{}
+		res := tk.M{}
 
-			for _, r := range tmpResult {
-				for _, tag := range tags {
-					if tag == r.Tag {
-						mapTag[tag] = append(mapTag[tag], r.Value)
-					}
+		for _, r := range tmpResult {
+			for _, tag := range tags {
+				if tag == r.Tag {
+					mapTag[tag] = append(mapTag[tag], r.Value)
 				}
 			}
+		}
 
-			res.Set("timestamp", tStart)
-			for n, mp := range mapTag {
-				var value float64
+		res.Set("timestamp", tStart)
+		for n, mp := range mapTag {
+			var value float64
+			if len(mp) > 0 {
 				for _, v := range mp {
 					value += v
 				}
 
 				value = value / float64(len(mp))
-				res.Set(n, value)
 			}
-
-			result = append(result, res)
+			res.Set(n, value)
 		}
+
+		result = append(result, res)
+		// }
 
 		// else {
 		// 	res := tk.M{}
@@ -740,7 +741,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 			break
 		}
 
-		tStart = tStart.Add(5 * time.Second)
+		tStart = tStart.Add(1 * time.Second)
 	}
 
 	return
