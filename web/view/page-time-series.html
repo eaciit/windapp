@@ -10,6 +10,7 @@
 
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://rawgithub.com/highslide-software/value-in-legend/master/value-in-legend.js"></script>
 <!-- <script src="{{BaseUrl}}res/scroller/horizontal.js"></script> -->
 <script src="{{BaseUrl}}res/scroller/sly.min.js"></script>
 <!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
@@ -49,7 +50,7 @@
 								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
 							</div>
 						</div> -->
-						<div class="col-md-12">
+						<div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
 							<div class="pull-right data-type">
 								<div class="checkbox chk-custom">
 									<label>
@@ -58,12 +59,12 @@
 					                    <span class="colRed"><strong>Live</strong></span>
 					                </label>
 					                <label>
-					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData()}">
+					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData(),event:{change:function(e){pg.hideRange()}}}">
 					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 					                    <span class="colRed"><strong>Default range</strong></span>
 					                </label>
 					                <label>
-					                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue()}">
+					                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue(),event:{change:function(e){pg.hideErr()}}}">
 					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 					                    <span class="colRed"><strong>Error value</strong></span>
 					                </label>
