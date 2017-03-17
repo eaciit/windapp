@@ -140,9 +140,17 @@ it.damper_osci_mag = ko.observable('');
 it.drive_train_vibra = ko.observable('');
 it.tower_vibra = ko.observable('');
 
+it.rotor_status = ko.observable(true);
+
 it.PlotData = function(data) {
     var lastUpdate = moment.utc(data["lastupdate"]);
     $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
+
+    if (it.rotor_status()) {
+        $('#rotorPic').css({"fill": "#33a821"});
+    } else {
+        $('#rotorPic').css({"fill": "#ed1c24"});
+    }
 
     /*WIND SPEED PART*/
     if(data["Wind speed Avg"] != -999999)
