@@ -217,6 +217,10 @@ label.summary-number {
   padding-right: 0px;
   margin-right: 0px;
 }
+.turbine-item-value {
+  float: right;
+  margin-right: 5px;
+}
 .list-turbine-item {
   padding: 0px 10px 0px 15px;
 }
