@@ -214,6 +214,8 @@ label.summary-number {
 .turbine-item-label {
   margin-bottom: 5px;
   font-weight: 700;
+  padding-right: 0px;
+  margin-right: 0px;
 }
 .list-turbine-item {
   padding: 0px 10px 0px 15px;
