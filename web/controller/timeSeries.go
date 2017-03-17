@@ -250,7 +250,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 							if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
 								// dte := []interface{}{timestamp, tagVal}
 								// dterr = append(dterr, tk.M{"x": timestamp})
-								dterr = append(dterr, []interface{}{timestamp, columnTag.MaxValue})
+								dterr = append(dterr, []interface{}{timestamp, 100.0})
 							}
 						}
 
@@ -741,7 +741,14 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 			break
 		}
 
-		tStart = tStart.Add(1 * time.Second)
+		modSecond := math.Mod(second, float64(5))
+		if modSecond == 0 {
+			tStart = tStart.Add(5 * time.Second)
+		} else {
+			tStart = tStart.UTC().Add(time.Duration(5-modSecond) * time.Second).UTC()
+		}
+
+		// tStart = tStart.Add(1 * time.Second)
 	}
 
 	return

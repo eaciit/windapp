@@ -162,12 +162,7 @@ pg.hideErr = function(){
 }
 
 pg.createStockChart = function(){
-
     function afterSetExtremes(e) {
-        // var chart = Highcharts.charts;
-        // console.log(Math.round(e.min));
-        // console.log(Math.round(e.max));
-
         var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
         var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
 
@@ -198,20 +193,19 @@ pg.createStockChart = function(){
             }
 
             var data = res.data.Data.Chart;
-            $.each(chart.series, function(id, val){
-                $.each(data, function(idx, valx){
-                    if (val.name == valx.name){
-                        chart.series[id] = valx.data;
-                        chart.series[id+1] = valx.dataerr;
-                    }
-                })
+            var periods = res.data.Data.PeriodList;
+
+            pg.generateSeriesOption(data, periods);
+            // chart.addSeries(seriesOptions);
+            $.each(seriesOptions, function(id, val){
+                chart.series[id].setData(val.data);
             });
+
+            // chart.series = seriesOptions;
+            // chart.yAxis = yAxis;
 
             chart.hideLoading();
         });
-
-
-
     }
 
 
@@ -384,8 +378,6 @@ pg.getDataStockChart = function(param, idBtn){
         dateEnd = fa.dateEnd;
     }
 
-
-
     // var IsHour = (param == 'detailPeriod' ? true : false);
     var IsHour = (pg.isFirst() == true ? false : true);
 
@@ -401,7 +393,6 @@ pg.getDataStockChart = function(param, idBtn){
         IsHour : IsHour,
     };
 
-    // var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
     var url = "timeseries/getdatahfd";
 
     var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
@@ -413,89 +404,7 @@ pg.getDataStockChart = function(param, idBtn){
         var periods = res.data.Data.PeriodList;
         // breaks = res.data.Data.Breaks;
 
-        // console.log(breaks);
-
-        if(!IsHour){
-            pg.periodList(periods);             
-        }
-
-        // console.log(pg.periodList);
-        // console.log(data);
-
-        var xCounter = 0;
-
-        $.each(data, function(idx, val){
-            var isOpposite = false;
-            if (idx >= (maxSelectedItems/2)) {
-                isOpposite = true;
-            }
-
-            yAxis[xCounter] = {
-                min: val.minval,
-                max: val.maxval, 
-                gridLineWidth: 1,
-                labels: {
-                    format: '{value}',
-                },
-                title: {
-                    text: val.unit,
-                },
-                opposite: isOpposite
-            }
-            seriesOptions[xCounter] = {
-                name : val.name, 
-                data : val.data,
-                color: colors[idx],
-                type: 'line',
-                yAxis: xCounter,
-                id : "series"+idx,
-                showInNavigator: true,
-            }      
-
-            seriesSelectedColor[idx] = val.name;
-
-            legend[idx] = {
-                name : val.name,
-                unit : val.unit,
-            }      
-
-            xCounter+=1;
-
-            yAxis[xCounter] = {
-                min: 0,
-                max: 100, 
-                gridLineWidth: 1,
-                labels: {
-                    format: '{value}',
-                },
-                title: {
-                    text: val.unit,
-                },
-                opposite: isOpposite,
-                visible: false,
-            }
-
-            seriesOptions[xCounter] = {
-                type: 'column',
-                name: val.name+"_err",
-                data: val.dataerr,
-                color: colors[idx],
-                pointWidth: 2,
-                yAxis: xCounter,
-                id : "series_col"+idx,
-                // showInNavigator: true,
-                // onSeries: "series"+idx,                
-            }
-
-            xCounter+=1;
-
-            seriesCounter += 1;
-
-        //   if (seriesCounter === data.length) {
-        //       pg.createStockChart();
-        //   }
-        });
-
+        pg.generateSeriesOption(data, periods);        
         pg.createStockChart();
     });
 
@@ -511,6 +420,87 @@ pg.getDataStockChart = function(param, idBtn){
           },500);
 
         }
+    });
+}
+
+pg.generateSeriesOption = function(data, periods){
+    var IsHour = (pg.isFirst() == true ? false : true);
+
+    if(!IsHour){
+        pg.periodList(periods);             
+    }
+
+    yAxis = [];
+    seriesOptions = [];
+
+    var xCounter = 0;
+
+    $.each(data, function(idx, val){
+        var isOpposite = false;
+        if (idx >= (maxSelectedItems/2)) {
+            isOpposite = true;
+        }
+
+        yAxis[xCounter] = {
+            min: val.minval,
+            max: val.maxval, 
+            gridLineWidth: 1,
+            labels: {
+                format: '{value}',
+            },
+            title: {
+                text: val.unit,
+            },
+            opposite: isOpposite
+        }
+        seriesOptions[xCounter] = {
+            name : val.name, 
+            data : val.data,
+            color: colors[idx],
+            type: 'line',
+            yAxis: xCounter,
+            id : "series"+idx,
+            showInNavigator: true,
+        }      
+
+        seriesSelectedColor[idx] = val.name;
+
+        legend[idx] = {
+            name : val.name,
+            unit : val.unit,
+        }      
+
+        xCounter+=1;
+
+        yAxis[xCounter] = {
+            min: 0,
+            max: 100, 
+            gridLineWidth: 1,
+            labels: {
+                format: '{value}',
+            },
+            title: {
+                text: val.unit,
+            },
+            opposite: isOpposite,
+            visible: false,
+        }
+
+        seriesOptions[xCounter] = {
+            type: 'column',
+            name: val.name+"_err",
+            data: val.dataerr,
+            color: colors[idx],
+            pointWidth: 2,
+            yAxis: xCounter,
+            id : "series_col"+idx,
+            // showInNavigator: true,
+            // onSeries: "series"+idx,                
+        }
+
+        xCounter+=1;
+
+        seriesCounter += 1;
     });
 }
 
