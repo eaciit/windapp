@@ -22,8 +22,12 @@
         fill: url(#linear-gradient-2);
       }
 
-      .cls-12, .cls-13, .cls-14, .cls-15, .cls-16, .cls-17, .cls-18, .cls-23, .cls-25, .cls-26, .cls-3, .cls-41, .cls-42, .cls-54, .cls-56, .cls-57, .cls-59, .cls-60, .cls-61, .cls-62, .cls-68, .cls-7, .cls-71, .cls-72 {
+      .cls-12, .cls-13, .cls-14, .cls-15, .cls-16, .cls-17, .cls-18, .cls-23, .cls-25, .cls-26, .cls-3, .cls-41, .cls-42, .cls-54, .cls-56, .cls-57, .cls-59, .cls-60, .cls-61, .cls-62, .cls-7, .cls-71, .cls-72 {
         stroke-width: 0.5px;
+      }
+
+      .cls-68 {
+        stroke-width: 1px;
       }
 
       .cls-3 {
@@ -792,10 +796,8 @@
   </g>
 
   <!-- BLADE VOLT PART -->
-  <g>
-    <circle class="cls-67" cx="127.67" cy="25" r="4"/>
-    <polyline class="cls-68" points="125.69 23.02 117.4 15.07 95 15.07"/>
-  </g>
+  <circle class="cls-67" cx="127.67" cy="25" r="4"/>
+  <polyline class="cls-68" points="125.69 23.02 117.4 15.07 95 15.07"/>
   <text class="cls-69" transform="translate(135.09 30.87)">BLADE VOLT.</text>
   <text data-bind="text:'Battery 1: '+it.volt_battery1()" class="cls-70" transform="translate(135.96 50.15)"></text>
   <text data-bind="text:'Battery 2: '+it.volt_battery2()" class="cls-70" transform="translate(135.96 64.15)"></text>
@@ -803,20 +805,20 @@
 
   <!-- WIND SPEED PART -->
   <circle class="cls-67" cx="289.61" cy="24.68" r="4"/>
-  <polyline class="cls-68" points="234.71 76.87 253.89 24.7 286.63 24.7"/>
+  <polyline class="cls-68" points="234.71 73.87 253.89 24.7 286.63 24.7"/>
   <text class="cls-69" transform="translate(298.02 30.55)">WIND SPEED</text>
   <text data-bind="text:'Average: '+it.windspeed_avg()" class="cls-70" transform="translate(298.89 49.83)"></text>
   <text data-bind="text:'Speed 1: '+it.windspeed1()" class="cls-70" transform="translate(298.89 63.83)"></text>
   <text data-bind="text:'Speed 2: '+it.windspeed2()" class="cls-70" transform="translate(298.89 77.83)"></text>
   
   <!-- ROTOR PART -->
-  <circle class="cls-67" cx="57.6" cy="135.6" r="4"/>
-  <text class="cls-69" transform="translate(2.09 140.47)">ROTOR</text>
-  <text data-bind="text:'RPM: '+it.rotor_rpm()" class="cls-70" transform="translate(2.96 155.76)"></text>
-  <text data-bind="text:'R Cur.: '+it.rotor_r_cur()" class="cls-70" transform="translate(2.96 169.76)"></text>
-  <text data-bind="text:'Y Cur.: '+it.rotor_y_cur()" class="cls-70" transform="translate(2.96 183.76)"></text>
-  <text data-bind="text:'B Cur.: '+it.rotor_b_cur()" class="cls-70" transform="translate(2.96 197.76)"></text>
-  <polyline class="cls-68" points="80.13 171.99 80.31 135.62 60.52 135.79"/>
+  <circle class="cls-67" cx="55.6" cy="135.6" r="4"/>
+  <polyline class="cls-68" points="80.13 171.99 80.31 135.62 58.52 135.79"/>
+  <text class="cls-69" transform="translate(0.09 140.47)">ROTOR</text>
+  <text data-bind="text:'RPM: '+it.rotor_rpm()" class="cls-70" transform="translate(0.96 155.76)"></text>
+  <text data-bind="text:'R Cur.: '+it.rotor_r_cur()" class="cls-70" transform="translate(0.96 169.76)"></text>
+  <text data-bind="text:'Y Cur.: '+it.rotor_y_cur()" class="cls-70" transform="translate(0.96 183.76)"></text>
+  <text data-bind="text:'B Cur.: '+it.rotor_b_cur()" class="cls-70" transform="translate(0.96 197.76)"></text>
 
   <!-- PITCH MOTOR PART -->
   <circle class="cls-67" cx="143.01" cy="107.47" r="4"/>
@@ -828,25 +830,23 @@
 
   <!-- GEAR BOX PART -->
   <circle class="cls-67" cx="276.53" cy="113.7" r="4"/>
-  <polyline class="cls-68" points="214.72 235.56 256.82 113.72 273.55 113.72"/>
+  <polyline class="cls-68" points="214.72 235.56 276.53 235.56 276.53 116.72"/>
   <text class="cls-69" transform="translate(284.95 119.57)">GEAR BOX</text>
   <text data-bind="text:'Temp Driven: '+it.temp_gear_driven()" class="cls-70" transform="translate(285.82 138.85)"></text>
   <text data-bind="text:'Temp non Driven: '+it.temp_gear_non_driven()" class="cls-70" transform="translate(285.82 152.85)"></text>
   <text data-bind="text:'Pressure Oil: '+it.press_gear_oil()" class="cls-70" transform="translate(285.82 166.85)"></text>
 
   <!-- PITCH TEMP PART -->
-  <circle class="cls-67" cx="52.6" cy="337.6" r="4"/>
-  <text class="cls-69" transform="translate(58.09 342.47)">PITCH TEMP</text>
-  <text data-bind="text:'Blade 1: '+it.pitch_motor_temp1()" class="cls-70" transform="translate(58.96 361.76)"></text>
-  <text data-bind="text:'Blade 2: '+it.pitch_motor_temp2()" class="cls-70" transform="translate(58.96 375.76)"></text>
-  <text data-bind="text:'Blade 3: '+it.pitch_motor_temp3()" class="cls-70" transform="translate(58.96 389.76)"></text>
-  <polyline class="cls-68" points="102.5 216.51 52.6 258.24 52.6 334.68"/>
+  <circle class="cls-67" cx="48.6" cy="340.6" r="4"/>
+  <polyline class="cls-68" points="102.5 216.51 48.6 258.24 48.6 337.68"/>
+  <text class="cls-69" transform="translate(57.09 345.47)">PITCH TEMP</text>
+  <text data-bind="text:'Blade 1: '+it.pitch_motor_temp1()" class="cls-70" transform="translate(61.96 364.76)"></text>
+  <text data-bind="text:'Blade 2: '+it.pitch_motor_temp2()" class="cls-70" transform="translate(61.96 378.76)"></text>
+  <text data-bind="text:'Blade 3: '+it.pitch_motor_temp3()" class="cls-70" transform="translate(61.96 392.76)"></text>  
 
   <!-- BLADES PART -->
-  <g>
-    <circle class="cls-67" cx="62.86" cy="30.01" r="4"/>
-    <polyline class="cls-68" points="67 28 75.69 23.02 90.4 23.02"/>
-  </g>
+  <circle class="cls-67" cx="62.86" cy="30.01" r="4"/>
+  <polyline class="cls-68" points="67 28 75.69 23.02 90.4 23.02"/>
   <text class="cls-69" transform="translate(0 35.88)">BLADES </text>
   <text data-bind="text:'Angle 1: '+it.blade_angle1()" class="cls-70" transform="translate(0.87 55.16)"></text>
   <text data-bind="text:'Angle 2: '+it.blade_angle2()" class="cls-70" transform="translate(0.87 69.16)"></text>
@@ -854,35 +854,36 @@
   
   <!-- GENERATOR PART -->
   <circle class="cls-67" cx="97.6" cy="414.6" r="4"/>
+  <polyline class="cls-68" points="221.41 291.8 221.41 414.61 100.52 414.61"/>
   <text class="cls-69" transform="translate(6.09 419.47)">GENERATOR</text>  
   <text data-bind="text:'Temp phase 1 coil: '+it.temp_gen_coil1()" class="cls-70" transform="translate(6.96 438.76)"></text>
   <text data-bind="text:'Temp phase 2 coil: '+it.temp_gen_coil2()" class="cls-70" transform="translate(6.96 452.76)"></text>
   <text data-bind="text:'Temp phase 3 coil: '+it.temp_gen_coil3()" class="cls-70" transform="translate(6.96 466.76)"></text>
-  <polyline class="cls-68" points="221.41 291.8 221.41 414.61 100.52 414.61"/>
 
   <!-- WIND DIR PART -->
   <circle class="cls-67" cx="329.66" cy="347.69" r="4"/>
+  <polyline class="cls-68" points="329.66 290.97 329.66 344.76"/>
   <text class="cls-69" transform="translate(338.25 352.56)">WIND DIR.</text>
   <text data-bind="text:'Wind: '+it.wind_dir()" class="cls-70" transform="translate(339.12 371.84)"></text>
   <text data-bind="text:'Vane 1: '+it.wind_dir1()" class="cls-70" transform="translate(339.12 385.84)"></text>
   <text data-bind="text:'Vane 2: '+it.wind_dir2()" class="cls-70" transform="translate(339.12 399.84)"></text>
-  <polyline class="cls-68" points="329.66 290.97 329.66 344.76"/>
+
+  <!-- NACELLE PART -->
+  
+  <circle class="cls-67" cx="238.75" cy="347.69" r="4"/>
+  <line class="cls-68" x1="238.75" y1="323.94" x2="238.75" y2="344.76"/>
+  <text class="cls-69" transform="translate(247.25 352.56)">NAC. TEMP</text>
+  <text data-bind="text:'Nacelle: '+it.temp_nacelle()" class="cls-70" transform="translate(248.12 371.84)"></text>
+  <text data-bind="text:'Ambient: '+it.temp_ambient()" class="cls-70" transform="translate(248.12 385.84)"></text>
+  <text data-bind="text:'Bearing: '+it.temp_main_bear()" class="cls-70" transform="translate(248.12 399.84)"></text>
 
   <!-- DFIG PART -->
-  
-  <circle class="cls-67" cx="239.75" cy="347.69" r="4"/>
-  <text class="cls-69" transform="translate(245.25 352.56)">NAC. TEMP</text>
-  <text data-bind="text:'Nacelle: '+it.temp_nacelle()" class="cls-70" transform="translate(246.12 371.84)"></text>
-  <text data-bind="text:'Ambient: '+it.temp_ambient()" class="cls-70" transform="translate(246.12 385.84)"></text>
-  <text data-bind="text:'Bearing: '+it.temp_main_bear()" class="cls-70" transform="translate(246.12 399.84)"></text>
-  <line class="cls-68" x1="239.75" y1="316.94" x2="239.75" y2="344.76"/>
-
   <circle class="cls-67" cx="229.75" cy="417.69" r="4"/>
-  <text class="cls-69" transform="translate(235.25 422.56)">DFIG</text>
-  <text data-bind="text:'Speed Encoder: '+it.speed_gen()" class="cls-70" transform="translate(236.12 441.84)"></text>
-  <text data-bind="text:'Active Power: '+it.dfig_act_power()" class="cls-70" transform="translate(236.12 455.84)"></text>
-  <text data-bind="text:'React. Power: '+it.dfig_react_power()" class="cls-70" transform="translate(236.12 469.84)"></text>
-  <line class="cls-68" x1="229.75" y1="316.94" x2="229.75" y2="414.76"/>
+  <line class="cls-68" x1="229.75" y1="300.94" x2="229.75" y2="414.76"/>
+  <text class="cls-69" transform="translate(239.25 422.56)">DFIG</text>
+  <text data-bind="text:'Speed Encoder: '+it.speed_gen()" class="cls-70" transform="translate(240.12 441.84)"></text>
+  <text data-bind="text:'Active Power: '+it.dfig_act_power()" class="cls-70" transform="translate(240.12 455.84)"></text>
+  <text data-bind="text:'React. Power: '+it.dfig_react_power()" class="cls-70" transform="translate(240.12 469.84)"></text>
 
   <path class="cls-68" d="M291.16,517.75" transform="translate(-3.41 0.38)"/>
   <path class="cls-71" d="M260.27,306l16,9.34,6.09-6.44-16.64-9.69C262,297.73,258.94,302.91,260.27,306Z" transform="translate(-3.41 0.38)"/>
