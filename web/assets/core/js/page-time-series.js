@@ -108,40 +108,19 @@ pg.hideLegendByName = function(name){
 pg.hideRange = function(){
     var yA = [];
     $.each(yAxis, function(i, res){
-        var y = {
+        chart.yAxis[i].update({
             min: ($('[name=chk-column-range]:checked').length == 1 ? res.min : null),
             max: ($('[name=chk-column-range]:checked').length == 1 ? res.max : null),
-            gridLineWidth: 1,
-            labels: {
-                format: '{value}',
-            },
-            title: {
-                text: res.title.text,
-            },
-            opposite: res.opposite,
-            visible: res.visible,
-        }
-
-        yA.push(y);
+        });
     });
-
-    newyAxis = yA;
-
-    pg.createStockChart(newyAxis);
 }
 
 pg.hideErr = function(){
-    $.each(seriesOptions, function(i, res){
-          if(res.name.indexOf("_err") > 0){
-              res.visible = ($('[name=chk-column-error]:checked').length == 1 ? true : false);
-          }
+    $.each(chart.series, function(i, res){
+        if(res.name.indexOf("_err") > 0){
+            res.setVisible(($('[name=chk-column-error]:checked').length == 1 ? true : false));
+        }
     });
-    if($('[name=chk-column-range]:checked').length == 1){
-        pg.createStockChart();
-    }else{
-        pg.createStockChart(newyAxis);
-    }
-    
 }
 
 pg.getLocalSeries = function(startInt, endInt){
@@ -149,19 +128,21 @@ pg.getLocalSeries = function(startInt, endInt){
 
     $.each(seriesOriTmp, function(id, val){
         var len = val.length;
-        var newData = [];
         var i = 0;
+        var startIdx, endIdx = 0;
 
         while (i < len){
             var curr = val[i];
-            if (curr[0]>=startInt && curr[0]<=endInt) {
-                newData.push(curr);
+            if (curr[0]==startInt) {
+                startIdx = i;
+            } else if (curr[0]==endInt) {
+                endIdx = i;
             }
+
             i++;
         }
 
-        // console.log(id+" >>> "+newData.length);
-        chart.series[id].setData(newData, true, true, false);
+        chart.series[id].setData(val.slice(startIdx, endIdx), true, true, false);
     });
 }
 
@@ -263,7 +244,7 @@ pg.createStockChart = function(y){
                 type: 'all',
                 text: 'All'
             }],
-            inputEnabled: (pg.isSecond() == true ? false : true),
+            inputEnabled: true,
             selected: 4 ,// all,
             y: 50
         },
@@ -271,16 +252,16 @@ pg.createStockChart = function(y){
             adaptToUpdatedData: false,
             series: {
                 color: '#999',
-                lineWidth: 2
+                lineWidth: 1
             }
         },
         exporting: {
           enabled: false
         },
         xAxis: {
-            // events: {
-            //     afterSetExtremes: afterSetExtremes
-            // },
+            events: {
+                afterSetExtremes: afterSetExtremes
+            },
             type: 'datetime',
             breaks: breaks,
             minRange: minRange,
@@ -288,11 +269,11 @@ pg.createStockChart = function(y){
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
         series: {
-                lineWidth: 2,
+                lineWidth: 1,
                 states: {
                     hover: {
                         enabled: true,
-                        lineWidth: 1
+                        lineWidth: 2
                     }
                 },
                 events: {
@@ -496,7 +477,7 @@ pg.generateSeriesOption = function(data, periods){
             name: val.name+"_err",
             data: val.dataerr,
             color: colors[idx],
-            pointWidth: 2,
+            pointWidth: 1,
             yAxis: xCounter,
             id : "series_col"+idx,
             showInLegend : false,
