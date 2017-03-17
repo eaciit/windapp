@@ -56,7 +56,6 @@ var seriesOptions = [],
 var breaks = [];    
 
 var yAxis = [];
-var newyAxis = [];
 var chart;
 var legend = [];
 var colors = colorField;
@@ -150,49 +149,20 @@ pg.hideLegendByName = function(name){
     });
 }
 
-pg.hideRange = function(){
-    var yA = [];
-    $.each(yAxis, function(i, res){
-        var y = {
-            min: ($('[name=chk-column-range]:checked').length == 1 ? res.min : null),
-            max: ($('[name=chk-column-range]:checked').length == 1 ? res.max : null),
-            gridLineWidth: 1,
-            labels: {
-                format: '{value}',
-            },
-            title: {
-                text: res.title.text,
-            },
-            opposite: res.opposite,
-            visible: res.visible,
-        }
-
-        yA.push(y);
-    });
-
-    newyAxis = yA;
-
-    pg.createStockChart(newyAxis);
-}
-
 pg.hideErr = function(){
-    $.each(seriesOptions, function(i, res){
-          if(res.name.indexOf("_err") > 0){
-              res.visible = ($('[name=chk-column-error]:checked').length == 1 ? true : false);
-          }
+    $.each(chart.series, function(i, series) {
+        if (series.name.indexOf("_err") > 0){
+            if (series.visible) {
+                series.hide();
+            } else {
+                series.show();
+            }
+        }
     });
-    if($('[name=chk-column-range]:checked').length == 1){
-        pg.createStockChart();
-    }else{
-        pg.createStockChart(newyAxis);
-    }
-    
 }
 
-pg.createStockChart = function(y){
-
+pg.createStockChart = function(){
     function afterSetExtremes(e) {
-
         var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
         var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
 
@@ -223,20 +193,19 @@ pg.createStockChart = function(y){
             }
 
             var data = res.data.Data.Chart;
-            $.each(chart.series, function(id, val){
-                $.each(data, function(idx, valx){
-                    if (val.name == valx.name){
-                        chart.series[id] = valx.data;
-                        chart.series[id+1] = valx.dataerr;
-                    }
-                })
+            var periods = res.data.Data.PeriodList;
+
+            pg.generateSeriesOption(data, periods);
+            // chart.addSeries(seriesOptions);
+            $.each(seriesOptions, function(id, val){
+                chart.series[id].setData(val.data);
             });
+
+            // chart.series = seriesOptions;
+            // chart.yAxis = yAxis;
 
             chart.hideLoading();
         });
-
-
-
     }
 
 
@@ -309,7 +278,7 @@ pg.createStockChart = function(y){
             breaks: breaks,
             minRange: minRange,
         },
-        yAxis: (y == undefined ? yAxis : y),
+        yAxis: yAxis,
         plotOptions: {
         series: {
                 lineWidth: 2,
@@ -385,7 +354,7 @@ pg.getDataStockChart = function(param, idBtn){
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
 
-    if(pg.isFirst() == true || param == "refresh"){
+    if(pg.isFirst() == true){
       fa.period = "custom";
       var now = new Date()
       fa.dateEnd = new Date();
@@ -404,7 +373,10 @@ pg.getDataStockChart = function(param, idBtn){
       }
     }
 
-
+    if(param == "refresh"){
+        dateStart = fa.dateStart; 
+        dateEnd = fa.dateEnd;
+    }
 
     // var IsHour = (param == 'detailPeriod' ? true : false);
     var IsHour = (pg.isFirst() == true ? false : true);
@@ -421,7 +393,6 @@ pg.getDataStockChart = function(param, idBtn){
         IsHour : IsHour,
     };
 
-    // var url = (pg.pageType() == "HFD"? "timeseries/getdatahfd" : "timeseries/getdatahfd" )
     var url = "timeseries/getdatahfd";
 
     var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
@@ -433,89 +404,7 @@ pg.getDataStockChart = function(param, idBtn){
         var periods = res.data.Data.PeriodList;
         // breaks = res.data.Data.Breaks;
 
-        // console.log(breaks);
-
-        if(!IsHour){
-            pg.periodList(periods);             
-        }
-
-        // console.log(pg.periodList);
-        // console.log(data);
-
-        var xCounter = 0;
-
-        $.each(data, function(idx, val){
-            var isOpposite = false;
-            if (idx >= (maxSelectedItems/2)) {
-                isOpposite = true;
-            }
-
-            yAxis[xCounter] = {
-                min: val.minval,
-                max: val.maxval, 
-                gridLineWidth: 1,
-                labels: {
-                    format: '{value}',
-                },
-                title: {
-                    text: val.unit,
-                },
-                opposite: isOpposite
-            }
-            seriesOptions[xCounter] = {
-                name : val.name, 
-                data : val.data,
-                color: colors[idx],
-                type: 'line',
-                yAxis: xCounter,
-                id : "series"+idx,
-                showInNavigator: true,
-            }      
-
-            seriesSelectedColor[idx] = val.name;
-
-            legend[idx] = {
-                name : val.name,
-                unit : val.unit,
-            }      
-
-            xCounter+=1;
-
-            yAxis[xCounter] = {
-                min: 0,
-                max: 100, 
-                gridLineWidth: 1,
-                labels: {
-                    format: '{value}',
-                },
-                title: {
-                    text: val.unit,
-                },
-                opposite: isOpposite,
-                visible: false,
-            }
-
-            seriesOptions[xCounter] = {
-                type: 'column',
-                name: val.name+"_err",
-                data: val.dataerr,
-                color: colors[idx],
-                pointWidth: 2,
-                yAxis: xCounter,
-                id : "series_col"+idx,
-                // showInNavigator: true,
-                // onSeries: "series"+idx,                
-            }
-
-            xCounter+=1;
-
-            seriesCounter += 1;
-
-        //   if (seriesCounter === data.length) {
-        //       pg.createStockChart();
-        //   }
-        });
-
+        pg.generateSeriesOption(data, periods);        
         pg.createStockChart();
     });
 
@@ -531,6 +420,87 @@ pg.getDataStockChart = function(param, idBtn){
           },500);
 
         }
+    });
+}
+
+pg.generateSeriesOption = function(data, periods){
+    var IsHour = (pg.isFirst() == true ? false : true);
+
+    if(!IsHour){
+        pg.periodList(periods);             
+    }
+
+    yAxis = [];
+    seriesOptions = [];
+
+    var xCounter = 0;
+
+    $.each(data, function(idx, val){
+        var isOpposite = false;
+        if (idx >= (maxSelectedItems/2)) {
+            isOpposite = true;
+        }
+
+        yAxis[xCounter] = {
+            min: val.minval,
+            max: val.maxval, 
+            gridLineWidth: 1,
+            labels: {
+                format: '{value}',
+            },
+            title: {
+                text: val.unit,
+            },
+            opposite: isOpposite
+        }
+        seriesOptions[xCounter] = {
+            name : val.name, 
+            data : val.data,
+            color: colors[idx],
+            type: 'line',
+            yAxis: xCounter,
+            id : "series"+idx,
+            showInNavigator: true,
+        }      
+
+        seriesSelectedColor[idx] = val.name;
+
+        legend[idx] = {
+            name : val.name,
+            unit : val.unit,
+        }      
+
+        xCounter+=1;
+
+        yAxis[xCounter] = {
+            min: 0,
+            max: 100, 
+            gridLineWidth: 1,
+            labels: {
+                format: '{value}',
+            },
+            title: {
+                text: val.unit,
+            },
+            opposite: isOpposite,
+            visible: false,
+        }
+
+        seriesOptions[xCounter] = {
+            type: 'column',
+            name: val.name+"_err",
+            data: val.dataerr,
+            color: colors[idx],
+            pointWidth: 2,
+            yAxis: xCounter,
+            id : "series_col"+idx,
+            // showInNavigator: true,
+            // onSeries: "series"+idx,                
+        }
+
+        xCounter+=1;
+
+        seriesCounter += 1;
     });
 }
 
@@ -605,14 +575,12 @@ pg.prepareScroll = function(){
 }
 
 $(document).ready(function () {
-    newyAxis = yAxis;
-    if(pg.pageType() === "HFD"){
-        $("#periodList").closest(".k-widget").hide();
-        $("#dateStart").closest(".k-widget").hide();
-        $("#dateEnd").closest(".k-widget").hide();
-        $(".label-filters:contains('Period')").hide();
-        $(".label-filters:contains('to')").hide();
-    }
+
+    $("#periodList").closest(".k-widget").hide();
+    $("#dateStart").closest(".k-widget").hide();
+    $("#dateEnd").closest(".k-widget").hide();
+    $(".label-filters:contains('Period')").hide();
+    $(".label-filters:contains('to')").hide();
 
     $('.popover-markup>.trigger').popover({
         animation: true,
