@@ -41,6 +41,34 @@
                             <div class="list-group">
                                 <div class="list-group-item list-turbine-item">
                                     <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label" style="font-size: 16px;">Power</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power()" style="font-size: 16px; font-weight: 700"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Power Reactive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power_react()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Freq. Grid</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.freq_grid()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
                                         <label class="col-md-8 col-xs-9 turbine-item-label">Phase 1 Voltage</label>
                                         <div class="col-md-4 col-xs-3">
                                             :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt1()"></span>
@@ -88,34 +116,6 @@
                                         <label class="col-md-8 col-xs-9 turbine-item-label">Phase 3 Current</label>
                                         <div class="col-md-4 col-xs-3">
                                             :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur3()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="list-group">
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label" style="font-size: 16px;">Power</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power()" style="font-size: 16px; font-weight: 700"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Power Reactive</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power_react()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Freq. Grid</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.freq_grid()"></span>
                                         </div>
                                     </div>
                                 </div>
