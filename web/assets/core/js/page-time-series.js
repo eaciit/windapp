@@ -64,35 +64,6 @@ var seriesSelectedColor = [];
 
 pg.periodList = ko.observableArray([]);
 
-pg.LoadData = function(){
-	// fa.getProjectInfo();
-    fa.LoadData();
-    app.loading(true);
-
-    var param = {
-        period: fa.period,
-        Turbine: fa.turbine,
-        DateStart: fa.dateStart,
-        DateEnd: fa.dateEnd,
-        Project: fa.project,
-    };
-
-    var requestData = toolkit.ajaxPost(viewModel.appName + "timeseries/getdata", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        // pg.chartWindSpeed(res.data.Data.windspeed);
-        // pg.chartProduction(res.data.Data.production);
-        timeSeriesData = res.data.Data;
-        pg.createChart();
-    });
-
-    $.when(requestData).done(function(){
-        setTimeout(function(){
-            app.loading(false);
-        },500);
-    });
-}
 
 toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
     if (!app.isFine(res)) {
@@ -108,23 +79,6 @@ toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, fu
     $('#availabledateend').html(pg.availabledateendscada());
 
 })
-
-pg.setSeries = function(name, axis, color, data){
-  return {
-    name: name,
-    type: "line",
-    field: "value",
-    categoryField: "timestamp",
-    axis: axis,
-    color: color,
-    data: data,
-    aggregate: "sum",
-    markers : {
-        visible : false,
-    },
-  }
-}
-
 
 
 pg.hideLegend = function(idx){
@@ -250,20 +204,22 @@ pg.createStockChart = function(y){
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            marginTop: 0,
             zoomType: 'x'
         }
     });
 
     chart = Highcharts.stockChart('chartTimeSeries', {
-        legend: {
-            layout: 'horizontal',
-            // padding: 3,
-            verticalAlign: 'top',
-            borderWidth: 0,
+         legend: {
+            symbolHeight: 12,
+            symbolWidth: 12,
+            symbolRadius: 6,
             enabled: true,
-            margin : 5,
-            enabled: false
+            floating: false,
+            align: 'center',
+            verticalAlign: 'top',
+            labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            borderWidth: 0,
+            marginTop: -70,
         },
          rangeSelector: {
             buttons: [{
@@ -287,7 +243,8 @@ pg.createStockChart = function(y){
                 text: 'All'
             }],
             inputEnabled: (pg.isSecond() == true ? false : true),
-            selected: 4 // all
+            selected: 4 ,// all,
+            y: 50
         },
         navigator: {
             adaptToUpdatedData: false,
@@ -300,9 +257,9 @@ pg.createStockChart = function(y){
           enabled: false
         },
         xAxis: {
-            events: {
-                afterSetExtremes: afterSetExtremes
-            },
+            // events: {
+            //     afterSetExtremes: afterSetExtremes
+            // },
             type: 'datetime',
             breaks: breaks,
             minRange: minRange,
@@ -316,33 +273,14 @@ pg.createStockChart = function(y){
                         enabled: true,
                         lineWidth: 1
                     }
+                },
+                events: {
+                    legendItemClick: function () {
+                        pg.hideLegendByName(this.name);
+                        return false;
+                    }
                 }
             }
-        },
-        tooltip:{         
-          formatter : function() {
-                var s = [];
-                // console.log("-----------------------");
-                $.each(this.points, function(i, point) {
-                    if (typeof legend[i] !== "undefined"){
-                        // console.log(point.series.name);
-                        if (point.series.name.indexOf("_err") < 0){                            
-                            var color = "";
-
-                            $.each(seriesSelectedColor, function(ic, n){
-                                if (n==point.series.name) {
-                                    color = colors[ic];
-                                }
-                            });
-
-
-                            s.push('<span style="color:'+color+';font-weight:bold;cursor:pointer" id="btn-'+i+'" onClick="pg.hideLegendByName(\''+point.series.name+'\')"><i class="fa fa-circle"></i> &nbsp;</span><span style="color:#585555;font-weight:bold;">'+ point.series.name +' : '+kendo.toString(point.y , "n2")+" " +legend[i].unit+'<span>');
-                        }
-                    }
-                });
-                $("#legendTooltip").html(s.join("&nbsp;"));
-                return false;
-           }
         },
         series: seriesOptions,
     });
@@ -490,6 +428,9 @@ pg.generateSeriesOption = function(data, periods){
             yAxis: xCounter,
             id : "series"+idx,
             showInNavigator: true,
+            tooltip: {
+                valueSuffix: val.unit
+            }
         }      
 
         seriesSelectedColor[idx] = val.name;
@@ -523,6 +464,7 @@ pg.generateSeriesOption = function(data, periods){
             pointWidth: 2,
             yAxis: xCounter,
             id : "series_col"+idx,
+            showInLegend : false,
             // showInNavigator: true,
             // onSeries: "series"+idx,                
         }
