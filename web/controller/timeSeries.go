@@ -7,6 +7,7 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
 	"io"
+	"log"
 	"math"
 	"os"
 	"strings"
@@ -671,11 +672,12 @@ func (m *TimeSeriesController) GetDataHFDX(k *knot.WebContext) interface{} {
 }
 
 func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string) (result []tk.M, empty []tk.M, e error) {
+	log.Printf(">>> %v - %v | %v - %v \n", tStart.String(), tStart.UTC().String(), tEnd.String(), tEnd.UTC().String())
 	prefix := "data_"
 
 	for {
 		startStr := tStart.Format("20060102150405")
-		endStr := tEnd.Format("20060102150405")
+		// endStr := tEnd.Format("20060102150405")
 
 		minute := tk.ToFloat64(tk.ToInt(tStart.UTC().Format("4"), tk.RoundingAuto)*60, 0, tk.RoundingAuto)
 		second := tk.ToFloat64(tStart.UTC().Format("5"), 0, tk.RoundingAuto)
@@ -737,9 +739,11 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 		// 	empty = append(empty, res)
 		// }
 
-		if startStr == endStr {
+		if tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
 			break
 		}
+
+		// log.Printf(">>> %v \n", startStr)
 
 		modSecond := math.Mod(second, float64(5))
 		if modSecond == 0 {

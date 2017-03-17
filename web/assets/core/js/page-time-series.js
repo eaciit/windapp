@@ -52,6 +52,7 @@ pg.isFirst = ko.observable(true);
 var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
+var seriesOri = [];
 
 var breaks = [];    
 
@@ -94,20 +95,20 @@ pg.LoadData = function(){
     });
 }
 
-toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-    if (!app.isFine(res)) {
-        return;
-    }
-    var minDatetemp = new Date(res.data.ScadaData[0]);
-    var maxDatetemp = new Date(res.data.ScadaData[1]);
+// toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+//     if (!app.isFine(res)) {
+//         return;
+//     }
+//     var minDatetemp = new Date(res.data.ScadaData[0]);
+//     var maxDatetemp = new Date(res.data.ScadaData[1]);
 
-    pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-    pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+//     pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+//     pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
-    $('#availabledatestart').html(pg.availabledatestartscada());
-    $('#availabledateend').html(pg.availabledateendscada());
+//     $('#availabledatestart').html(pg.availabledatestartscada());
+//     $('#availabledateend').html(pg.availabledateendscada());
 
-})
+// })
 
 pg.setSeries = function(name, axis, color, data){
   return {
@@ -189,6 +190,27 @@ pg.hideErr = function(){
     
 }
 
+pg.getLocalSeries = function(startInt, endInt){
+    var seriesOriTmp = seriesOri.slice(0);
+
+    $.each(seriesOriTmp, function(id, val){
+        var len = val.length;
+        var newData = [];
+        var i = 0;
+
+        while (i < len){
+            var curr = val[i];
+            if (curr[0]>=startInt && curr[0]<=endInt) {
+                newData.push(curr);
+            }
+            i++;
+        }
+
+        // console.log(id+" >>> "+newData.length);
+        chart.series[id].setData(newData, true, true, false);
+    });
+}
+
 
 pg.createStockChart = function(y){
     function afterSetExtremes(e) {
@@ -202,48 +224,47 @@ pg.createStockChart = function(y){
             pg.dataType("MIN");
         }
 
-        chart.showLoading('Loading data from server...');
-        var param = {
-            period: fa.period,
-            Turbine: [fa.turbine],
-            DateStart: date1,
-            DateEnd: date2,
-            Project: fa.project,
-            PageType: pg.pageType(),
-            DataType: pg.dataType() ,
-            TagList : pg.TagList(),
-            IsHour : true,
-        };
+        if (hours <= 24) {
+            chart.showLoading('Loading data from server...');
+            var param = {
+                period: fa.period,
+                Turbine: [fa.turbine],
+                DateStart: date1,
+                DateEnd: date2,
+                Project: fa.project,
+                PageType: pg.pageType(),
+                DataType: pg.dataType() ,
+                TagList : pg.TagList(),
+                IsHour : true,
+            };
 
-        var url = "timeseries/getdatahfd";
-        var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
+            var url = "timeseries/getdatahfd";
+            toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
 
-            var data = res.data.Data.Chart;
-            var periods = res.data.Data.PeriodList;
+                var data = res.data.Data.Chart;
+                var periods = res.data.Data.PeriodList;
 
-            pg.generateSeriesOption(data, periods);
-            // chart.addSeries(seriesOptions);
-            $.each(seriesOptions, function(id, val){
-                chart.series[id].setData(val.data);
+                pg.generateSeriesOption(data, periods);
+                $.each(seriesOptions, function(id, val){
+                    chart.series[id].setData(val.data, true, true, false);
+                });
+                chart.hideLoading();
             });
-
-            // chart.series = seriesOptions;
-            // chart.yAxis = yAxis;
-
-            chart.hideLoading();
-        });
+        }else if (pg.dataType()=="MIN"){
+            pg.getLocalSeries(e.min, e.max);
+        }
     }
 
 
     $("#chartTimeSeries").html("");
 
-    // var minRange = 600 * 1000;
-    // if(pg.dataType() == 'SEC'){
+    var minRange = 600 * 1000;
+    if(pg.dataType() == 'SEC'){
         var minRange = 5 * 1000;
-    // }
+    }
 
     Highcharts.setOptions({
         chart: {
@@ -346,6 +367,8 @@ pg.createStockChart = function(y){
         },
         series: seriesOptions,
     });
+
+    // seriesOri = chart.series;
 }
 
 
@@ -410,7 +433,7 @@ pg.getDataStockChart = function(param, idBtn){
     // var IsHour = (param == 'detailPeriod' ? true : false);
     var IsHour = (pg.isFirst() == true ? false : true);
 
-    var param = {
+    var paramX = {
         period: fa.period,
         Turbine: [fa.turbine],
         DateStart: dateStart,
@@ -424,7 +447,7 @@ pg.getDataStockChart = function(param, idBtn){
 
     var url = "timeseries/getdatahfd";
 
-    var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
+    var request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -433,7 +456,19 @@ pg.getDataStockChart = function(param, idBtn){
         var periods = res.data.Data.PeriodList;
         // breaks = res.data.Data.Breaks;
 
-        pg.generateSeriesOption(data, periods);        
+        pg.generateSeriesOption(data, periods);
+        
+        if (param=="first" || param=="refresh"){
+            // console.log("sippp");
+            $.each(seriesOptions,function(idx, val){
+                var valx = val.data.slice(idx);
+                seriesOri.push(valx);
+            });
+            // seriesOri = seriesOptions.slice(0);
+        }        
+        
+        // console.log(">>>>> "+seriesOri[0].length);
+
         pg.createStockChart();
     });
 
@@ -649,7 +684,7 @@ $(document).ready(function () {
 
     setTimeout(function () {
         // pg.LoadData();
-        pg.getDataStockChart();
+        pg.getDataStockChart("first");
         // pg.prepareScroll();
     }, 1000);
 });
