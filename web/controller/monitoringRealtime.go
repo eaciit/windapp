@@ -350,6 +350,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		"Temp. Gearbox inter. non-driven end": "TempGearBoxIMSNDE", "Pressure Gear box oil": "",
 		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
 		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
+		"Tower vibration": "",
 	}
 
 	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", "Tejuva")
