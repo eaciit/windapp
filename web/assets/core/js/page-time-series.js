@@ -56,6 +56,7 @@ var seriesOptions = [],
 var breaks = [];    
 
 var yAxis = [];
+var newyAxis = [];
 var chart;
 var legend = [];
 var colors = colorField;
@@ -149,19 +150,47 @@ pg.hideLegendByName = function(name){
     });
 }
 
-pg.hideErr = function(){
-    $.each(chart.series, function(i, series) {
-        if (series.name.indexOf("_err") > 0){
-            if (series.visible) {
-                series.hide();
-            } else {
-                series.show();
-            }
+pg.hideRange = function(){
+    var yA = [];
+    $.each(yAxis, function(i, res){
+        var y = {
+            min: ($('[name=chk-column-range]:checked').length == 1 ? res.min : null),
+            max: ($('[name=chk-column-range]:checked').length == 1 ? res.max : null),
+            gridLineWidth: 1,
+            labels: {
+                format: '{value}',
+            },
+            title: {
+                text: res.title.text,
+            },
+            opposite: res.opposite,
+            visible: res.visible,
         }
+
+        yA.push(y);
     });
+
+    newyAxis = yA;
+
+    pg.createStockChart(newyAxis);
 }
 
-pg.createStockChart = function(){
+pg.hideErr = function(){
+    $.each(seriesOptions, function(i, res){
+          if(res.name.indexOf("_err") > 0){
+              res.visible = ($('[name=chk-column-error]:checked').length == 1 ? true : false);
+          }
+    });
+    if($('[name=chk-column-range]:checked').length == 1){
+        pg.createStockChart();
+    }else{
+        pg.createStockChart(newyAxis);
+    }
+    
+}
+
+
+pg.createStockChart = function(y){
     function afterSetExtremes(e) {
         var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
         var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
@@ -278,7 +307,7 @@ pg.createStockChart = function(){
             breaks: breaks,
             minRange: minRange,
         },
-        yAxis: yAxis,
+        yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
         series: {
                 lineWidth: 2,
@@ -576,11 +605,15 @@ pg.prepareScroll = function(){
 
 $(document).ready(function () {
 
-    $("#periodList").closest(".k-widget").hide();
-    $("#dateStart").closest(".k-widget").hide();
-    $("#dateEnd").closest(".k-widget").hide();
-    $(".label-filters:contains('Period')").hide();
-    $(".label-filters:contains('to')").hide();
+
+    newyAxis = yAxis;
+    if(pg.pageType() === "HFD"){
+        $("#periodList").closest(".k-widget").hide();
+        $("#dateStart").closest(".k-widget").hide();
+        $("#dateEnd").closest(".k-widget").hide();
+        $(".label-filters:contains('Period')").hide();
+        $(".label-filters:contains('to')").hide();
+    }
 
     $('.popover-markup>.trigger').popover({
         animation: true,
