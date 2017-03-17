@@ -149,10 +149,22 @@ pg.hideLegendByName = function(name){
     });
 }
 
+pg.hideErr = function(){
+    $.each(chart.series, function(i, series) {
+        if (series.name.indexOf("_err") > 0){
+            if (series.visible) {
+                series.hide();
+            } else {
+                series.show();
+            }
+        }
+    });
+}
+
 pg.createStockChart = function(){
 
     function afterSetExtremes(e) {
-        var chart = Highcharts.charts[0];
+        // var chart = Highcharts.charts;
         // console.log(Math.round(e.min));
         // console.log(Math.round(e.max));
 
@@ -161,9 +173,9 @@ pg.createStockChart = function(){
 
         var hours = Math.abs(date1 - date2) / 36e5;
         if (hours <= 24) {
-            pg.pageType("SEC");
+            pg.dataType("SEC");
         }else{
-            pg.pageType("MIN");
+            pg.dataType("MIN");
         }
 
         chart.showLoading('Loading data from server...');
@@ -180,16 +192,19 @@ pg.createStockChart = function(){
         };
 
         var url = "timeseries/getdatahfd";
-
         var request = toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
-          if (!app.isFine(res)) {
-              return;
-          }
+            if (!app.isFine(res)) {
+                return;
+            }
 
             var data = res.data.Data.Chart;
-
-            $.each(data, function(idx, val){
-              chart.series[idx].setData(val.data);
+            $.each(chart.series, function(id, val){
+                $.each(data, function(idx, valx){
+                    if (val.name == valx.name){
+                        chart.series[id] = valx.data;
+                        chart.series[id+1] = valx.dataerr;
+                    }
+                })
             });
 
             chart.hideLoading();
