@@ -217,7 +217,7 @@ pg.createStockChart = function(y){
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            zoomType: 'x'
+            zoomType: 'x',
         }
     });
 
@@ -333,12 +333,12 @@ pg.getDataStockChart = function(param, idBtn){
     var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
+    var now = new Date()
+    fa.dateEnd = new Date();
+    fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
 
     if(pg.isFirst() == true){
       fa.period = "custom";
-      var now = new Date()
-      fa.dateEnd = new Date();
-      fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
     }
 
     var dateStart = fa.dateStart; 
@@ -351,11 +351,6 @@ pg.getDataStockChart = function(param, idBtn){
           dateStart = new Date(pg.startTime());
           dateEnd = new Date(pg.endTime());
       }
-    }
-
-    if(param == "refresh"){
-        dateStart = fa.dateStart; 
-        dateEnd = fa.dateEnd;
     }
 
     // var IsHour = (param == 'detailPeriod' ? true : false);
@@ -443,6 +438,10 @@ pg.generateSeriesOption = function(data, periods){
             min: val.minval,
             max: val.maxval, 
             gridLineWidth: 1,
+            endOnTick: false,
+            startOnTick: false,
+            showLastLabel: true,
+            maxPadding: 0,
             labels: {
                 format: '{value}',
             },
@@ -496,6 +495,12 @@ pg.generateSeriesOption = function(data, periods){
             yAxis: xCounter,
             id : "series_col"+idx,
             showInLegend : false,
+            dataGrouping: {
+                approximation: function () {
+                    return 100;
+                },
+                forced: true
+            },
             // showInNavigator: true,
             // onSeries: "series"+idx,                
         }
