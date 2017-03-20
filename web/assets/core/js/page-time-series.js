@@ -124,19 +124,20 @@ pg.hideErr = function(){
 }
 
 pg.getLocalSeries = function(startInt, endInt){
-    // var seriesOriTmp = seriesOri.slice(0);
-
-    $.each(sessionStorage.seriesOri, function(id, val){
+    var seriesOriTmp = JSON.parse(sessionStorage.seriesOri);
+    $.each(seriesOriTmp, function(id, val){
         var len = val.length;
         var i = 0;
         var startIdx, endIdx = 0;
 
         while (i < len){
             var curr = val[i];
-            if (curr[0]==startInt) {
+
+            if (curr[0]>=startInt && startInt==0) {
                 startIdx = i;
-            } else if (curr[0]==endInt) {
+            } else if (curr[0]>=endInt && startIdx != 0) {
                 endIdx = i;
+                break;
             }
 
             i++;
@@ -188,7 +189,8 @@ pg.createStockChart = function(y){
                 });
                 chart.hideLoading();
             });
-        }else if (pg.dataType()=="MIN"){
+        }else {
+            // console.log(e.min+" - "+e.max);
             pg.getLocalSeries(e.min, e.max);
         }
     }
@@ -378,21 +380,18 @@ pg.getDataStockChart = function(param, idBtn){
         pg.generateSeriesOption(data, periods);
         
         if (param=="first" || param=="refresh"){
-            // console.log("sippp");
             if (sessionStorage.seriesOri){
                 sessionStorage.seriesOri = null;
             }
-
+            
             $.each(seriesOptions,function(idx, val){
                 var valx = val.data.slice(idx);
-                seriesOri.push(valx);
-                // localStorage.setItem("seriesOri", seriesOri);
+                // console.log(idx+" - "+valx.length);
+                seriesOri[idx] = (valx);
             });
 
-            sessionStorage.seriesOri = seriesOri;
+            sessionStorage.seriesOri = JSON.stringify(seriesOri);
             seriesOri = [];
-
-            // seriesOri = seriesOptions.slice(0);
         }        
         
         // console.log(">>>>> "+seriesOri[0].length);
