@@ -124,9 +124,9 @@ pg.hideErr = function(){
 }
 
 pg.getLocalSeries = function(startInt, endInt){
-    var seriesOriTmp = seriesOri.slice(0);
+    // var seriesOriTmp = seriesOri.slice(0);
 
-    $.each(seriesOriTmp, function(id, val){
+    $.each(sessionStorage.seriesOri, function(id, val){
         var len = val.length;
         var i = 0;
         var startIdx, endIdx = 0;
@@ -379,10 +379,19 @@ pg.getDataStockChart = function(param, idBtn){
         
         if (param=="first" || param=="refresh"){
             // console.log("sippp");
+            if (sessionStorage.seriesOri){
+                sessionStorage.seriesOri = null;
+            }
+
             $.each(seriesOptions,function(idx, val){
                 var valx = val.data.slice(idx);
                 seriesOri.push(valx);
+                // localStorage.setItem("seriesOri", seriesOri);
             });
+
+            sessionStorage.seriesOri = seriesOri;
+            seriesOri = [];
+
             // seriesOri = seriesOptions.slice(0);
         }        
         
@@ -491,7 +500,7 @@ pg.generateSeriesOption = function(data, periods){
     });
 }
 
-pg.prepareScroll = function(){
+/*pg.prepareScroll = function(){
         var $frame  = $('#basic');
         var $slidee = $frame.children('ul').eq(0);
         var $wrap   = $frame.parent();
@@ -559,11 +568,9 @@ pg.prepareScroll = function(){
         $wrap.find('.remove').on('click', function () {
           $frame.sly('remove', -1);
         });
-}
+}*/
 
 $(document).ready(function () {
-
-
     newyAxis = yAxis;
     if(pg.pageType() === "HFD"){
         $("#periodList").closest(".k-widget").hide();
