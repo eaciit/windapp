@@ -238,6 +238,10 @@ label.summary-number {
 .turbine-pic-part {
   text-align: center;
 }
+
+.title-outside {
+  margin-bottom: 15px;
+}
 /* =============== WEATHER PART ============ */
 .form-group {
   clear: both;
