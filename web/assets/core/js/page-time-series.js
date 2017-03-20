@@ -3,6 +3,7 @@
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
+var defaultHour = 12;
 
 pg.tags = ko.observableArray();
 
@@ -106,19 +107,23 @@ pg.hideLegendByName = function(name){
 }
 
 pg.hideRange = function(){
-    var yA = [];
-    $.each(yAxis, function(i, res){
+    var checked = $('[name=chk-column-range]:checked').length==1;
+    var len = yAxis.length();
+    while(i < len){
         chart.yAxis[i].update({
-            min: ($('[name=chk-column-range]:checked').length == 1 ? res.min : null),
-            max: ($('[name=chk-column-range]:checked').length == 1 ? res.max : null),
+            min: (checked ? res.min : null),
+            max: (checked == 1 ? res.max : null),
         });
-    });
+
+        i++;
+    };
 }
 
 pg.hideErr = function(){
+    var checked = $('[name=chk-column-error]:checked').length==1;
     $.each(chart.series, function(i, res){
         if(res.name.indexOf("_err") > 0){
-            res.setVisible(($('[name=chk-column-error]:checked').length == 1 ? true : false));
+            res.setVisible((checked ? true : false));
         }
     });
 }
@@ -152,15 +157,15 @@ pg.createStockChart = function(y){
     function afterSetExtremes(e) {
         var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
         var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
-
+        
         var hours = Math.abs(date1 - date2) / 36e5;
-        if (hours <= 24) {
+        if (hours <= defaultHour) {
             pg.dataType("SEC");
         }else{
             pg.dataType("MIN");
         }
 
-        if (hours <= 24) {
+        if (hours <= defaultHour) {
             chart.showLoading('Loading data from server...');
             var param = {
                 period: fa.period,
@@ -187,6 +192,11 @@ pg.createStockChart = function(y){
                 $.each(seriesOptions, function(id, val){
                     chart.series[id].setData(val.data, true, true, false);
                 });
+
+                chart.xAxis[0].update({
+                    minRange: 5*1000,
+                })
+
                 chart.hideLoading();
             });
         }else {
@@ -247,7 +257,7 @@ pg.createStockChart = function(y){
                 text: 'All'
             }],
             inputEnabled: true,
-            selected: 4 ,// all,
+            selected: 2 ,// all,
             y: 50
         },
         navigator: {
@@ -315,9 +325,7 @@ pg.getDataStockChart = function(param, idBtn){
 
     if(param == "selectTags"){
        pg.TagList($("#TagList").val());
-
        $('.popover-markup>.trigger').popover("hide");
-
     }
 
     var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));
