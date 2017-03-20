@@ -108,15 +108,14 @@ pg.hideLegendByName = function(name){
 
 pg.hideRange = function(){
     var checked = $('[name=chk-column-range]:checked').length==1;
-    var len = yAxis.length();
-    while(i < len){
+    $.each(yAxis, function(i, res){
         chart.yAxis[i].update({
             min: (checked ? res.min : null),
             max: (checked == 1 ? res.max : null),
         });
 
         i++;
-    };
+    });
 }
 
 pg.hideErr = function(){
