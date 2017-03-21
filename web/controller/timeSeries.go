@@ -283,13 +283,13 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			group = tk.M{
 				"_id": "$timestamp",
 				// "energy":    tk.M{"$sum": "$energy"},
-				"windspeed":     tk.M{"$avg": "$fast_windspeed_ms_stddev"},
-				"power":         tk.M{"$sum": "$fast_activepower_kw_stddev"},
-				"winddirection": tk.M{"$avg": "$slow_winddirection_stddev"},
-				"nacellepos":    tk.M{"$avg": "$slow_nacellepos_stddev"},
-				"rotorrpm":      tk.M{"$avg": "$fast_rotorspeed_rpm_stddev"},
-				"genrpm":        tk.M{"$avg": "$fast_genspeed_rpm_stddev"},
-				"pitchangle":    tk.M{"$avg": "$fast_pitchangle_stddev"},
+				"windspeed":     tk.M{"$avg": "$fast_windspeed_ms"},
+				"power":         tk.M{"$sum": "$fast_activepower_kw"},
+				"winddirection": tk.M{"$avg": "$slow_winddirection"},
+				"nacellepos":    tk.M{"$avg": "$slow_nacellepos"},
+				"rotorrpm":      tk.M{"$avg": "$fast_rotorspeed_rpm"},
+				"genrpm":        tk.M{"$avg": "$fast_genspeed_rpm"},
+				"pitchangle":    tk.M{"$avg": "$fast_pitchangle"},
 			}
 		} else if pageType == "LIVE" {
 			collName = new(ScadaRealTime).TableName()
@@ -362,6 +362,16 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			var dterr [][]interface{}
 			columnTag := mapField[tag]
 			if len(list) > 0 {
+				// get the time is not exist in collection
+				_first := list[0]
+				_firstTimestamp := _first.Get("_id").(time.Time).UTC()
+
+				first := getTime10MinutesNotExist(tStart, _firstTimestamp)
+
+				if len(first) > 0 {
+					dts = append(dts, first...)
+				}
+
 				for _, val := range list {
 					timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
 					var tagVal float64
@@ -378,11 +388,30 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					// }
 
 					dt := []interface{}{timestamp, tagVal}
+					if tagVal <= -99999.0 {
+						// res := tk.M{}
+						// res.Set("from", val.Get("_id").(time.Time).UTC())
+						// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
+						// breaks = append(breaks, res)
+
+						dt = []interface{}{timestamp, nil}
+					}
+
 					dts = append(dts, dt)
 
-					if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
+					if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > -99999.0 {
 						dterr = append(dterr, []interface{}{timestamp, 100.0})
 					}
+				}
+
+				// get the time is not exist in collection
+				_last := list[len(list)-1]
+				_lastTimestamp := _last.Get("_id").(time.Time).UTC()
+
+				last := getTime10MinutesNotExist(_lastTimestamp, tEnd)
+
+				if len(last) > 0 {
+					dts = append(dts, last...)
 				}
 
 				resultChart = append(resultChart, tk.M{"name": columnTag.Name, "data": dts, "dataerr": dterr, "unit": columnTag.Unit, "minval": columnTag.MinValue, "maxval": columnTag.MaxValue})
@@ -403,6 +432,25 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func getTime10MinutesNotExist(start time.Time, end time.Time) (result [][]interface{}) {
+	for {
+		// log.Printf(">> %v | %v \n", start.String(), end.String())
+
+		if end.UTC().Sub(start.UTC()).Minutes() <= 10 {
+			// log.Println(">>>> BREAK")
+			break
+		}
+
+		before := end.UTC()
+		timestamp := tk.ToInt(tk.ToString(before.UTC().Unix())+"000", tk.RoundingAuto)
+		result = append(result, []interface{}{timestamp, nil})
+
+		start = start.UTC().Add(time.Duration(10) * time.Minute)
+	}
+
+	return
 }
 
 func (m *TimeSeriesController) GetDataHFDX(k *knot.WebContext) interface{} {
@@ -724,8 +772,10 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 				}
 
 				value = value / float64(len(mp))
+				res.Set(n, value)
+			} else {
+				res.Set(n, nil)
 			}
-			res.Set(n, value)
 		}
 
 		result = append(result, res)

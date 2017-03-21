@@ -3,7 +3,7 @@
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
-var defaultHour = 12;
+var defaultHour = 1;
 
 pg.tags = ko.observableArray();
 
@@ -130,24 +130,26 @@ pg.hideErr = function(){
 pg.getLocalSeries = function(startInt, endInt){
     var seriesOriTmp = JSON.parse(sessionStorage.seriesOri);
     $.each(seriesOriTmp, function(id, val){
-        var len = val.length;
-        var i = 0;
-        var startIdx, endIdx = 0;
+        if (val != null){
+            var len = val.length;
+            var i = 0;
+            var startIdx, endIdx = 0;
 
-        while (i < len){
-            var curr = val[i];
+            while (i < len){
+                var curr = val[i];
 
-            if (curr[0]>=startInt && startInt==0) {
-                startIdx = i;
-            } else if (curr[0]>=endInt && startIdx != 0) {
-                endIdx = i;
-                break;
+                if (curr[0]>=startInt && startInt==0) {
+                    startIdx = i;
+                } else if (curr[0]>=endInt && startIdx != 0) {
+                    endIdx = i;
+                    break;
+                }
+
+                i++;
             }
 
-            i++;
+            chart.series[id].setData(val.slice(startIdx, endIdx), true, true, false);
         }
-
-        chart.series[id].setData(val.slice(startIdx, endIdx), true, true, false);
     });
 }
 
@@ -377,7 +379,7 @@ pg.getDataStockChart = function(param, idBtn){
 
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
-        // breaks = res.data.Data.Breaks;
+        breaks = res.data.Data.Breaks;
 
         pg.generateSeriesOption(data, periods);
         
@@ -387,16 +389,15 @@ pg.getDataStockChart = function(param, idBtn){
             }
             
             $.each(seriesOptions,function(idx, val){
-                var valx = val.data.slice(idx);
-                // console.log(idx+" - "+valx.length);
-                seriesOri[idx] = (valx);
+                if (val.data != null){
+                    var valx = val.data.slice(idx);
+                    seriesOri[idx] = valx;
+                }
             });
 
             sessionStorage.seriesOri = JSON.stringify(seriesOri);
             seriesOri = [];
-        }        
-        
-        // console.log(">>>>> "+seriesOri[0].length);
+        }
 
         pg.createStockChart();
     });
