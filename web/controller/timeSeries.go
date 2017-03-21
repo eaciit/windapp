@@ -331,7 +331,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 		} else {
 			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": -1}})
-			pipes = append(pipes, tk.M{"$limit": 1})
+			pipes = append(pipes, tk.M{"$limit": 5})
 		}
 
 		// log.Printf("%v \n", collName)
@@ -363,13 +363,14 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			columnTag := mapField[tag]
 			if len(list) > 0 {
 				// get the time is not exist in collection
-				_first := list[0]
-				_firstTimestamp := _first.Get("_id").(time.Time).UTC()
+				if pageType != "LIVE" {
+					_first := list[0]
+					_firstTimestamp := _first.Get("_id").(time.Time).UTC()
+					first := getTime10MinutesNotExist(tStart, _firstTimestamp)
 
-				first := getTime10MinutesNotExist(tStart, _firstTimestamp)
-
-				if len(first) > 0 {
-					dts = append(dts, first...)
+					if len(first) > 0 {
+						dts = append(dts, first...)
+					}
 				}
 
 				for _, val := range list {
@@ -405,13 +406,15 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				}
 
 				// get the time is not exist in collection
-				_last := list[len(list)-1]
-				_lastTimestamp := _last.Get("_id").(time.Time).UTC()
+				if pageType != "LIVE" {
+					_last := list[len(list)-1]
+					_lastTimestamp := _last.Get("_id").(time.Time).UTC()
 
-				last := getTime10MinutesNotExist(_lastTimestamp, tEnd)
+					last := getTime10MinutesNotExist(_lastTimestamp, tEnd)
 
-				if len(last) > 0 {
-					dts = append(dts, last...)
+					if len(last) > 0 {
+						dts = append(dts, last...)
+					}
 				}
 
 				resultChart = append(resultChart, tk.M{"name": columnTag.Name, "data": dts, "dataerr": dterr, "unit": columnTag.Unit, "minval": columnTag.MinValue, "maxval": columnTag.MaxValue})
