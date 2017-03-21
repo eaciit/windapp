@@ -54,7 +54,7 @@
 							<div class="pull-right data-type">
 								<div class="checkbox chk-custom">
 									<label>
-					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.live()}">
+					                    <input type="checkbox" name="chk-column-live" data-bind="{checked:pg.live(),event:{change:function(e){pg.getDataStockChart()}}}">
 					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 					                    <span class="colRed"><strong>Live</strong></span>
 					                </label>

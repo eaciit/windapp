@@ -140,16 +140,18 @@ it.damper_osci_mag = ko.observable('');
 it.drive_train_vibra = ko.observable('');
 it.tower_vibra = ko.observable('');
 
-it.rotor_status = ko.observable(true);
+it.rotor_status = ko.observable("N/A");
 
 it.PlotData = function(data) {
     var lastUpdate = moment.utc(data["lastupdate"]);
     $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
 
-    if (it.rotor_status()) {
-        $('#rotorPic').css({"fill": "#33a821"});
+    if (it.rotor_status() === "N/A") {
+        $('#rotorPic').css({"fill": "#b8b9bb"});
+    } else if (it.rotor_status() == "up") {
+        $('#rotorPic').css({"fill": "#31b445"});
     } else {
-        $('#rotorPic').css({"fill": "#ed1c24"});
+        $('#rotorPic').css({"fill": "#db1e1e"});
     }
 
     /*WIND SPEED PART*/

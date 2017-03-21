@@ -3,6 +3,7 @@
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
+var defaultHour = 1;
 
 pg.tags = ko.observableArray();
 
@@ -62,24 +63,10 @@ var chart;
 var legend = [];
 var colors = colorField;
 var seriesSelectedColor = [];
+var interval;
 
 pg.periodList = ko.observableArray([]);
 
-
-// toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-//     if (!app.isFine(res)) {
-//         return;
-//     }
-//     var minDatetemp = new Date(res.data.ScadaData[0]);
-//     var maxDatetemp = new Date(res.data.ScadaData[1]);
-
-//     pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-//     pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-//     $('#availabledatestart').html(pg.availabledatestartscada());
-//     $('#availabledateend').html(pg.availabledateendscada());
-
-// })
 
 
 pg.hideLegend = function(idx){
@@ -106,43 +93,49 @@ pg.hideLegendByName = function(name){
 }
 
 pg.hideRange = function(){
-    var yA = [];
+    var checked = $('[name=chk-column-range]:checked').length==1;
     $.each(yAxis, function(i, res){
         chart.yAxis[i].update({
-            min: ($('[name=chk-column-range]:checked').length == 1 ? res.min : null),
-            max: ($('[name=chk-column-range]:checked').length == 1 ? res.max : null),
+            min: (checked ? res.min : null),
+            max: (checked == 1 ? res.max : null),
         });
+
+        i++;
     });
 }
 
 pg.hideErr = function(){
+    var checked = $('[name=chk-column-error]:checked').length==1;
     $.each(chart.series, function(i, res){
         if(res.name.indexOf("_err") > 0){
-            res.setVisible(($('[name=chk-column-error]:checked').length == 1 ? true : false));
+            res.setVisible((checked ? true : false));
         }
     });
 }
 
 pg.getLocalSeries = function(startInt, endInt){
-    var seriesOriTmp = seriesOri.slice(0);
-
+    var seriesOriTmp = JSON.parse(sessionStorage.seriesOri);
     $.each(seriesOriTmp, function(id, val){
-        var len = val.length;
-        var i = 0;
-        var startIdx, endIdx = 0;
+        if (val != null){
+            var len = val.length;
+            var i = 0;
+            var startIdx, endIdx = 0;
 
-        while (i < len){
-            var curr = val[i];
-            if (curr[0]==startInt) {
-                startIdx = i;
-            } else if (curr[0]==endInt) {
-                endIdx = i;
+            while (i < len){
+                var curr = val[i];
+
+                if (curr[0]>=startInt && startInt==0) {
+                    startIdx = i;
+                } else if (curr[0]>=endInt && startIdx != 0) {
+                    endIdx = i;
+                    break;
+                }
+
+                i++;
             }
 
-            i++;
+            chart.series[id].setData(val.slice(startIdx, endIdx), true, true, false);
         }
-
-        chart.series[id].setData(val.slice(startIdx, endIdx), true, true, false);
     });
 }
 
@@ -151,15 +144,15 @@ pg.createStockChart = function(y){
     function afterSetExtremes(e) {
         var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
         var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
-
+        
         var hours = Math.abs(date1 - date2) / 36e5;
-        if (hours <= 24) {
+        if (hours <= defaultHour) {
             pg.dataType("SEC");
         }else{
             pg.dataType("MIN");
         }
 
-        if (hours <= 24) {
+        if (hours <= defaultHour) {
             chart.showLoading('Loading data from server...');
             var param = {
                 period: fa.period,
@@ -186,9 +179,15 @@ pg.createStockChart = function(y){
                 $.each(seriesOptions, function(id, val){
                     chart.series[id].setData(val.data, true, true, false);
                 });
+
+                chart.xAxis[0].update({
+                    minRange: 5*1000,
+                })
+
                 chart.hideLoading();
             });
-        }else if (pg.dataType()=="MIN"){
+        }else {
+            // console.log(e.min+" - "+e.max);
             pg.getLocalSeries(e.min, e.max);
         }
     }
@@ -206,7 +205,7 @@ pg.createStockChart = function(y){
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
-            zoomType: 'x'
+            zoomType: 'x',
         }
     });
 
@@ -245,7 +244,7 @@ pg.createStockChart = function(y){
                 text: 'All'
             }],
             inputEnabled: true,
-            selected: 4 ,// all,
+            selected: 2 ,// all,
             y: 50
         },
         navigator: {
@@ -310,12 +309,10 @@ pg.hidePopover = function(){
 pg.getDataStockChart = function(param, idBtn){
     fa.LoadData();
     app.loading(true);
-
+    clearInterval(interval);
     if(param == "selectTags"){
        pg.TagList($("#TagList").val());
-
        $('.popover-markup>.trigger').popover("hide");
-
     }
 
     var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));
@@ -324,12 +321,12 @@ pg.getDataStockChart = function(param, idBtn){
     var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
+    var now = new Date()
+    fa.dateEnd = new Date();
+    fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
 
     if(pg.isFirst() == true){
       fa.period = "custom";
-      var now = new Date()
-      fa.dateEnd = new Date();
-      fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
     }
 
     var dateStart = fa.dateStart; 
@@ -342,11 +339,6 @@ pg.getDataStockChart = function(param, idBtn){
           dateStart = new Date(pg.startTime());
           dateEnd = new Date(pg.endTime());
       }
-    }
-
-    if(param == "refresh"){
-        dateStart = fa.dateStart; 
-        dateEnd = fa.dateEnd;
     }
 
     // var IsHour = (param == 'detailPeriod' ? true : false);
@@ -365,31 +357,49 @@ pg.getDataStockChart = function(param, idBtn){
     };
 
     var url = "timeseries/getdatahfd";
+    if($('input[name="chk-column-live"]:checked').length > 0){
+        pg.live(true);
+    }else{
+        pg.live(false);
+    }
 
-    var request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
 
-        var data = res.data.Data.Chart;
-        var periods = res.data.Data.PeriodList;
-        // breaks = res.data.Data.Breaks;
+    var request;
+    if(pg.live() == false){
+        request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
 
-        pg.generateSeriesOption(data, periods);
-        
-        if (param=="first" || param=="refresh"){
-            // console.log("sippp");
-            $.each(seriesOptions,function(idx, val){
-                var valx = val.data.slice(idx);
-                seriesOri.push(valx);
-            });
-            // seriesOri = seriesOptions.slice(0);
-        }        
-        
-        // console.log(">>>>> "+seriesOri[0].length);
+            var data = res.data.Data.Chart;
+            var periods = res.data.Data.PeriodList;
+            breaks = res.data.Data.Breaks;
 
-        pg.createStockChart();
-    });
+            pg.generateSeriesOption(data, periods);
+            
+            if (param=="first" || param=="refresh"){
+                if (sessionStorage.seriesOri){
+                    sessionStorage.seriesOri = null;
+                }
+                
+                $.each(seriesOptions,function(idx, val){
+                    if (val.data != null){
+                        var valx = val.data.slice(idx);
+                        seriesOri[idx] = valx;
+                    }
+                });
+
+                sessionStorage.seriesOri = JSON.stringify(seriesOri);
+                seriesOri = [];
+            }
+
+            pg.createStockChart();
+        });
+
+    }else{
+        pg.createLiveChart(IsHour);
+    }
+
 
     $.when(request).done(function(){
         pg.isFirst(false);
@@ -406,6 +416,92 @@ pg.getDataStockChart = function(param, idBtn){
     });
 }
 
+pg.createLiveChart = function(IsHour){
+    var param = {
+        period: fa.period,
+        Turbine: [fa.turbine],
+        Project: fa.project,
+        PageType: "LIVE",
+        DataType: pg.dataType() ,
+        TagList : pg.TagList(),
+        IsHour : IsHour,
+    };
+    toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+       var seriesField = [];
+        $("#chartTimeSeries").html("");
+        Highcharts.setOptions({
+             style: {
+                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            zoomType: 'x',
+        });
+
+        Highcharts.chart('chartTimeSeries', {
+            chart: {
+                type: 'spline',
+                marginRight: 10,
+                events: {
+                    load: function () {
+                        interval = setInterval(function () {
+                            var paramX = {
+                                period: fa.period,
+                                Turbine: [fa.turbine],
+                                DateStart: new Date(),
+                                DateEnd: new Date(),
+                                Project: fa.project,
+                                PageType: "LIVE",
+                                DataType: pg.dataType() ,
+                                TagList : pg.TagList(),
+                                IsHour : IsHour,
+                            };
+
+                            toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", paramX, function (res) {
+                                if (!app.isFine(res)) {
+                                    return;
+                                }
+
+                                console.log(res.data);
+                            });
+                        }, 5000);
+                    }
+                }
+            },
+            xAxis: {
+                type: 'datetime',
+                tickPixelInterval: 150
+            },
+            yAxis: {
+                title: {
+                    text: 'Value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.series.name + '</b><br/>' +
+                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                        Highcharts.numberFormat(this.y, 2);
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            exporting: {
+                enabled: false
+            },
+            series: seriesField
+        });
+    });
+    
+}
 pg.generateSeriesOption = function(data, periods){
     var IsHour = (pg.isFirst() == true ? false : true);
 
@@ -428,6 +524,10 @@ pg.generateSeriesOption = function(data, periods){
             min: val.minval,
             max: val.maxval, 
             gridLineWidth: 1,
+            endOnTick: false,
+            startOnTick: false,
+            showLastLabel: true,
+            maxPadding: 0,
             labels: {
                 format: '{value}',
             },
@@ -481,6 +581,12 @@ pg.generateSeriesOption = function(data, periods){
             yAxis: xCounter,
             id : "series_col"+idx,
             showInLegend : false,
+            dataGrouping: {
+                approximation: function () {
+                    return 100;
+                },
+                forced: true
+            },
             // showInNavigator: true,
             // onSeries: "series"+idx,                
         }
@@ -491,7 +597,7 @@ pg.generateSeriesOption = function(data, periods){
     });
 }
 
-pg.prepareScroll = function(){
+/*pg.prepareScroll = function(){
         var $frame  = $('#basic');
         var $slidee = $frame.children('ul').eq(0);
         var $wrap   = $frame.parent();
@@ -559,11 +665,9 @@ pg.prepareScroll = function(){
         $wrap.find('.remove').on('click', function () {
           $frame.sly('remove', -1);
         });
-}
+}*/
 
 $(document).ready(function () {
-
-
     newyAxis = yAxis;
     if(pg.pageType() === "HFD"){
         $("#periodList").closest(".k-widget").hide();

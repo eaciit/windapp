@@ -25,15 +25,23 @@
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore mb-5">
                 <div class="panel-body">                        
-                    <div class="project-info">
-                        Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Location : <b><span id="turbine_location">Jaisalmer</span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="turbine_temperature"></span> &deg; C</b> &nbsp;&nbsp;|&nbsp;&nbsp; <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
-                        <b><span id="turbine_weather"></span></b>
-                        <div class="source-info pull-right project-info-last-update">
-                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="turbine_last_update"></span></b>
-                        </div> 
+                    <div class="col-md-4">
+                        <div class="col-md-12" style="font-size: 20px;">
+                            <h2 id="turbine_location"><b>Jaisalmer</b></h2>
+                            <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" /><b><span id="turbine_weather"></span></b> | <b><span id="turbine_temperature"></span> &deg; C</b><br>
+                            
+                            <b><span id="turbine_lat"></span></b>, <b><span id="turbine_lon"></span></b><br>
+                        </div>
+                        <div class="col-md-12">
+                            
+                        </div>
+                        <!--Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="turbine_last_update"></span></b>-->
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-4 turbine-pic-part">
+                        {{template "turbine-pic.html"}}
+                    </div>
+                    <div class="col-md-4">
                         <div class="col-md-12">
                             <h5 class="title-outside">Electrical System</h5>
                         </div>
@@ -204,10 +212,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="col-md-4 turbine-pic-part">
-                        {{template "turbine-pic.html"}}
                     </div>
                 </div>
             </div>
