@@ -63,24 +63,10 @@ var chart;
 var legend = [];
 var colors = colorField;
 var seriesSelectedColor = [];
+var interval;
 
 pg.periodList = ko.observableArray([]);
 
-
-// toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-//     if (!app.isFine(res)) {
-//         return;
-//     }
-//     var minDatetemp = new Date(res.data.ScadaData[0]);
-//     var maxDatetemp = new Date(res.data.ScadaData[1]);
-
-//     pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-//     pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-//     $('#availabledatestart').html(pg.availabledatestartscada());
-//     $('#availabledateend').html(pg.availabledateendscada());
-
-// })
 
 
 pg.hideLegend = function(idx){
@@ -323,7 +309,7 @@ pg.hidePopover = function(){
 pg.getDataStockChart = function(param, idBtn){
     fa.LoadData();
     app.loading(true);
-
+    clearInterval(interval);
     if(param == "selectTags"){
        pg.TagList($("#TagList").val());
        $('.popover-markup>.trigger').popover("hide");
@@ -371,36 +357,49 @@ pg.getDataStockChart = function(param, idBtn){
     };
 
     var url = "timeseries/getdatahfd";
+    if($('input[name="chk-column-live"]:checked').length > 0){
+        pg.live(true);
+    }else{
+        pg.live(false);
+    }
 
-    var request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
 
-        var data = res.data.Data.Chart;
-        var periods = res.data.Data.PeriodList;
-        breaks = res.data.Data.Breaks;
-
-        pg.generateSeriesOption(data, periods);
-        
-        if (param=="first" || param=="refresh"){
-            if (sessionStorage.seriesOri){
-                sessionStorage.seriesOri = null;
+    var request;
+    if(pg.live() == false){
+        request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
+            if (!app.isFine(res)) {
+                return;
             }
+
+            var data = res.data.Data.Chart;
+            var periods = res.data.Data.PeriodList;
+            breaks = res.data.Data.Breaks;
+
+            pg.generateSeriesOption(data, periods);
             
-            $.each(seriesOptions,function(idx, val){
-                if (val.data != null){
-                    var valx = val.data.slice(idx);
-                    seriesOri[idx] = valx;
+            if (param=="first" || param=="refresh"){
+                if (sessionStorage.seriesOri){
+                    sessionStorage.seriesOri = null;
                 }
-            });
+                
+                $.each(seriesOptions,function(idx, val){
+                    if (val.data != null){
+                        var valx = val.data.slice(idx);
+                        seriesOri[idx] = valx;
+                    }
+                });
 
-            sessionStorage.seriesOri = JSON.stringify(seriesOri);
-            seriesOri = [];
-        }
+                sessionStorage.seriesOri = JSON.stringify(seriesOri);
+                seriesOri = [];
+            }
 
-        pg.createStockChart();
-    });
+            pg.createStockChart();
+        });
+
+    }else{
+        pg.createLiveChart(IsHour);
+    }
+
 
     $.when(request).done(function(){
         pg.isFirst(false);
@@ -417,6 +416,92 @@ pg.getDataStockChart = function(param, idBtn){
     });
 }
 
+pg.createLiveChart = function(IsHour){
+    var param = {
+        period: fa.period,
+        Turbine: [fa.turbine],
+        Project: fa.project,
+        PageType: "LIVE",
+        DataType: pg.dataType() ,
+        TagList : pg.TagList(),
+        IsHour : IsHour,
+    };
+    toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+       var seriesField = [];
+        $("#chartTimeSeries").html("");
+        Highcharts.setOptions({
+             style: {
+                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            zoomType: 'x',
+        });
+
+        Highcharts.chart('chartTimeSeries', {
+            chart: {
+                type: 'spline',
+                marginRight: 10,
+                events: {
+                    load: function () {
+                        interval = setInterval(function () {
+                            var paramX = {
+                                period: fa.period,
+                                Turbine: [fa.turbine],
+                                DateStart: new Date(),
+                                DateEnd: new Date(),
+                                Project: fa.project,
+                                PageType: "LIVE",
+                                DataType: pg.dataType() ,
+                                TagList : pg.TagList(),
+                                IsHour : IsHour,
+                            };
+
+                            toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", paramX, function (res) {
+                                if (!app.isFine(res)) {
+                                    return;
+                                }
+
+                                console.log(res.data);
+                            });
+                        }, 5000);
+                    }
+                }
+            },
+            xAxis: {
+                type: 'datetime',
+                tickPixelInterval: 150
+            },
+            yAxis: {
+                title: {
+                    text: 'Value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.series.name + '</b><br/>' +
+                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                        Highcharts.numberFormat(this.y, 2);
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            exporting: {
+                enabled: false
+            },
+            series: seriesField
+        });
+    });
+    
+}
 pg.generateSeriesOption = function(data, periods){
     var IsHour = (pg.isFirst() == true ? false : true);
 
