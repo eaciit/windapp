@@ -362,8 +362,9 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			var dterr [][]interface{}
 			columnTag := mapField[tag]
 			if len(list) > 0 {
-				// get the time is not exist in collection
 				if pageType != "LIVE" {
+					// get the time is not exist in collection
+
 					_first := list[0]
 					_firstTimestamp := _first.Get("_id").(time.Time).UTC()
 					first := getTime10MinutesNotExist(tStart, _firstTimestamp)
@@ -371,42 +372,41 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					if len(first) > 0 {
 						dts = append(dts, first...)
 					}
-				}
 
-				for _, val := range list {
-					timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
-					var tagVal float64
+					for _, val := range list {
+						timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
+						var tagVal float64
 
-					// if tag == "production" {
-					// 	tagVal = val.GetFloat64(tag)
-					// } else if tag == "windspeed" {
-					// 	tagVal = val.GetFloat64(tag)
-					// if tagVal < 0 {
-					// 	tagVal = 0.0
-					// }
-					// } else {
-					tagVal = val.GetFloat64(tag)
-					// }
+						// if tag == "production" {
+						// 	tagVal = val.GetFloat64(tag)
+						// } else if tag == "windspeed" {
+						// 	tagVal = val.GetFloat64(tag)
+						// if tagVal < 0 {
+						// 	tagVal = 0.0
+						// }
+						// } else {
+						tagVal = val.GetFloat64(tag)
+						// }
 
-					dt := []interface{}{timestamp, tagVal}
-					if tagVal <= -99999.0 {
-						// res := tk.M{}
-						// res.Set("from", val.Get("_id").(time.Time).UTC())
-						// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
-						// breaks = append(breaks, res)
+						dt := []interface{}{timestamp, tagVal}
+						if tagVal <= -99999.0 {
+							// res := tk.M{}
+							// res.Set("from", val.Get("_id").(time.Time).UTC())
+							// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
+							// breaks = append(breaks, res)
 
-						dt = []interface{}{timestamp, nil}
+							dt = []interface{}{timestamp, nil}
+						}
+
+						dts = append(dts, dt)
+
+						if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > -99999.0 {
+							dterr = append(dterr, []interface{}{timestamp, 100.0})
+						}
 					}
 
-					dts = append(dts, dt)
+					// get the time is not exist in collection
 
-					if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > -99999.0 {
-						dterr = append(dterr, []interface{}{timestamp, 100.0})
-					}
-				}
-
-				// get the time is not exist in collection
-				if pageType != "LIVE" {
 					_last := list[len(list)-1]
 					_lastTimestamp := _last.Get("_id").(time.Time).UTC()
 
@@ -415,6 +415,33 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					if len(last) > 0 {
 						dts = append(dts, last...)
 					}
+				} else {
+					reverseCount := len(list) - 1
+
+					for {
+						if reverseCount < 0 {
+							break
+						}
+						val := list[reverseCount]
+
+						timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
+						var tagVal float64
+						tagVal = val.GetFloat64(tag)
+
+						dt := []interface{}{timestamp, tagVal}
+						if tagVal <= -99999.0 {
+							dt = []interface{}{timestamp, nil}
+						}
+
+						dts = append(dts, dt)
+
+						if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > -99999.0 {
+							dterr = append(dterr, []interface{}{timestamp, 100.0})
+						}
+
+						reverseCount--
+					}
+
 				}
 
 				resultChart = append(resultChart, tk.M{"name": columnTag.Name, "data": dts, "dataerr": dterr, "unit": columnTag.Unit, "minval": columnTag.MinValue, "maxval": columnTag.MaxValue})
