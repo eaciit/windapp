@@ -426,22 +426,50 @@ pg.createLiveChart = function(IsHour){
         TagList : pg.TagList(),
         IsHour : IsHour,
     };
-    toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
+
+    $("#chartTimeSeries").html("");
+        toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
-       var seriesField = [];
-        $("#chartTimeSeries").html("");
-        Highcharts.setOptions({
-             style: {
-                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            zoomType: 'x',
-        });
+        var data = res.data.Data.Chart;
+        var periods = res.data.Data.PeriodList;
+        breaks = res.data.Data.Breaks;
 
-        Highcharts.chart('chartTimeSeries', {
-            chart: {
+        pg.generateSeriesOption(data, periods);
+        
+        if (param=="first" || param=="refresh"){
+            if (sessionStorage.seriesOri){
+                sessionStorage.seriesOri = null;
+            }
+            
+            $.each(seriesOptions,function(idx, val){
+                if (val.data != null){
+                    var valx = val.data.slice(idx);
+                    seriesOri[idx] = valx;
+                }
+            });
+
+            sessionStorage.seriesOri = JSON.stringify(seriesOri);
+            seriesOri = [];
+        }
+
+       
+        $("#chartTimeSeries").html("");
+
+        var minRange = 600 * 1000;
+        if(pg.dataType() == 'SEC'){
+            var minRange = 5 * 1000;
+        }
+
+
+        chart = Highcharts.stockChart('chartTimeSeries', {
+             chart: {
+                tyle: {
+                    fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                zoomType: 'x',
                 type: 'spline',
                 marginRight: 10,
                 events: {
@@ -470,34 +498,77 @@ pg.createLiveChart = function(IsHour){
                     }
                 }
             },
-            xAxis: {
-                type: 'datetime',
-                tickPixelInterval: 150
+             legend: {
+                symbolHeight: 12,
+                symbolWidth: 12,
+                symbolRadius: 6,
+                enabled: true,
+                floating: false,
+                align: 'center',
+                verticalAlign: 'top',
+                labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                borderWidth: 0,
+                marginTop: -70,
             },
-            yAxis: {
-                title: {
-                    text: 'Value'
-                },
-                plotLines: [{
-                    value: 0,
-                    width: 1,
-                    color: '#808080'
-                }]
+             rangeSelector: {
+                buttons: [{
+                    type: 'hour',
+                    count: 1,
+                    text: '1h'
+                }, {
+                    type: 'day',
+                    count: 1,
+                    text: '1d'
+                }, {
+                    type: 'month',
+                    count: 1,
+                    text: '1m'
+                }, {
+                    type: 'year',
+                    count: 1,
+                    text: '1y'
+                }, {
+                    type: 'all',
+                    text: 'All'
+                }],
+                inputEnabled: true,
+                selected: 2 ,// all,
+                y: 50
             },
-            tooltip: {
-                formatter: function () {
-                    return '<b>' + this.series.name + '</b><br/>' +
-                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                        Highcharts.numberFormat(this.y, 2);
+            navigator: {
+                adaptToUpdatedData: false,
+                series: {
+                    color: '#999',
+                    lineWidth: 1
                 }
             },
-            legend: {
-                enabled: false
-            },
             exporting: {
-                enabled: false
+              enabled: false
             },
-            series: seriesField
+            xAxis: {
+                type: 'datetime',
+                breaks: breaks,
+                minRange: minRange,
+            },
+            yAxis: yAxis,
+            plotOptions: {
+            series: {
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            lineWidth: 2
+                        }
+                    },
+                    events: {
+                        legendItemClick: function () {
+                            pg.hideLegendByName(this.name);
+                            return false;
+                        }
+                    }
+                }
+            },
+            series: seriesOptions,
         });
     });
     
