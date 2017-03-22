@@ -71,11 +71,11 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	}
 
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids,
-		"Production":      tk.M{"$sum": "$production"},
-		"MachineDownLoss": tk.M{"$sum": "$machinedownloss"},
-		"GridDownLoss":    tk.M{"$sum": "$griddownloss"},
-		"PCDeviation":     tk.M{"$sum": "$pcdeviation"},
-		// "ElectricalLosses": tk.M{"$sum": "$electricallosses"},
+		"Production":       tk.M{"$sum": "$production"},
+		"MachineDownLoss":  tk.M{"$sum": "$machinedownloss"},
+		"GridDownLoss":     tk.M{"$sum": "$griddownloss"},
+		"PCDeviation":      tk.M{"$sum": "$pcdeviation"},
+		"ElectricLoss":     tk.M{"$sum": "$electricallosses"},
 		"OtherDownLoss":    tk.M{"$sum": "$otherdownloss"},
 		"DownTimeDuration": tk.M{"$sum": "$downtimehours"},
 		"MachineDownHours": tk.M{"$sum": "$machinedownhours"},
