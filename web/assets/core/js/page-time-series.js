@@ -407,12 +407,12 @@ pg.getDataStockChart = function(param, idBtn){
            app.loading(false);
          },200);
 
-        if(pg.dataType() == "SEC"){
-          setTimeout(function(){
-            pg.prepareScroll();
-          },500);
+        // if(pg.dataType() == "SEC"){
+        //   setTimeout(function(){
+        //     pg.prepareScroll();
+        //   },500);
 
-        }
+        // }
     });
 }
 
@@ -460,7 +460,7 @@ pg.createLiveChart = function(IsHour){
 
         var minRange = 600 * 1000;
         if(pg.dataType() == 'SEC'){
-            var minRange = 5 * 1000;
+            minRange = 5 * 1000;
         }
 
 
@@ -492,7 +492,25 @@ pg.createLiveChart = function(IsHour){
                                     return;
                                 }
 
-                                console.log(res.data);
+                                var seriesData = chart.series; 
+                                var results = res.data.Data.Chart;
+                                if(results.length > 0){
+                                    $.each(seriesOptions, function(id, val){
+                                        chart.series[id].setData(val.data, true, true, false);
+                                    });
+
+                                    $.each(seriesOptions, function(i, res){
+                                       $.each(results, function(id, val){
+                                            if(res.name == val.name){
+                                                var x = (new Date()).getTime();
+                                                chart.series[i].addPoint(val.data, true, true);
+                                            }
+                                       })
+                                    });
+                                }else{
+                                    return false;
+                                }
+
                             });
                         }, 5000);
                     }
@@ -548,7 +566,17 @@ pg.createLiveChart = function(IsHour){
             xAxis: {
                 type: 'datetime',
                 breaks: breaks,
-                minRange: 5*1000,
+                dateTimeLabelFormats : {
+                    millisecond: '%H:%M:%S.%L',
+                    second: '%H:%M:%S',
+                    minute: '%H:%M',
+                    hour: '%H:%M',
+                    day: '%e. %b',
+                    week: '%e. %b',
+                    month: '%b \'%y',
+                    year: '%Y'
+                },
+                // minRange: 5*1000,
             },
             yAxis: yAxis,
             plotOptions: {
