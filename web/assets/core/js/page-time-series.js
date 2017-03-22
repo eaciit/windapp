@@ -324,13 +324,15 @@ pg.getDataStockChart = function(param, idBtn){
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
     var now = new Date()
-    fa.dateEnd = new Date();
-    fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
 
     if(pg.isFirst() == true){
       fa.period = "custom";
     }
 
+    if(pg.pageType() == 'HFD'){
+        fa.dateEnd = new Date();
+        fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
+    }
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
 

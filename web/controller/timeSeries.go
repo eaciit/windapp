@@ -341,8 +341,6 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		// 	log.Printf(">>>>>> %#v \n", p)
 		// }
 
-		// log.Printf(">>>> %v \n", collName)
-
 		csr, e := DB().Connection.NewQuery().
 			From(collName).
 			Command("pipe", pipes).
