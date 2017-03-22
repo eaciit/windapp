@@ -142,53 +142,55 @@ pg.getLocalSeries = function(startInt, endInt){
 
 pg.createStockChart = function(y){
     function afterSetExtremes(e) {
-        var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
-        var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
-        
-        var hours = Math.abs(date1 - date2) / 36e5;
-        if (hours <= defaultHour) {
-            pg.dataType("SEC");
-        }else{
-            pg.dataType("MIN");
-        }
+        if (pageType != "OEM") {
+            var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
+            var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
+            
+            var hours = Math.abs(date1 - date2) / 36e5;
+            if (hours <= defaultHour) {
+                pg.dataType("SEC");
+            }else{
+                pg.dataType("MIN");
+            }
 
-        if (hours <= defaultHour) {
-            chart.showLoading('Loading data from server...');
-            var param = {
-                period: fa.period,
-                Turbine: [fa.turbine],
-                DateStart: date1,
-                DateEnd: date2,
-                Project: fa.project,
-                PageType: pg.pageType(),
-                DataType: pg.dataType() ,
-                TagList : pg.TagList(),
-                IsHour : true,
-            };
+            if (hours <= defaultHour) {
+                chart.showLoading('Loading data from server...');
+                var param = {
+                    period: fa.period,
+                    Turbine: [fa.turbine],
+                    DateStart: date1,
+                    DateEnd: date2,
+                    Project: fa.project,
+                    PageType: pg.pageType(),
+                    DataType: pg.dataType() ,
+                    TagList : pg.TagList(),
+                    IsHour : true,
+                };
 
-            var url = "timeseries/getdatahfd";
-            toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
+                var url = "timeseries/getdatahfd";
+                toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
 
-                var data = res.data.Data.Chart;
-                var periods = res.data.Data.PeriodList;
+                    var data = res.data.Data.Chart;
+                    var periods = res.data.Data.PeriodList;
 
-                pg.generateSeriesOption(data, periods);
-                $.each(seriesOptions, function(id, val){
-                    chart.series[id].setData(val.data, true, true, false);
+                    pg.generateSeriesOption(data, periods);
+                    $.each(seriesOptions, function(id, val){
+                        chart.series[id].setData(val.data, true, true, false);
+                    });
+
+                    chart.xAxis[0].update({
+                        minRange: 5*1000,
+                    })
+
+                    chart.hideLoading();
                 });
-
-                chart.xAxis[0].update({
-                    minRange: 5*1000,
-                })
-
-                chart.hideLoading();
-            });
-        }else {
-            // console.log(e.min+" - "+e.max);
-            pg.getLocalSeries(e.min, e.max);
+            }else {
+                // console.log(e.min+" - "+e.max);
+                pg.getLocalSeries(e.min, e.max);
+            }
         }
     }
 
