@@ -50,10 +50,10 @@
 								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
 							</div>
 						</div> -->
-						<div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
+						<div class="col-md-12">
 							<div class="pull-right data-type">
 								<div class="checkbox chk-custom">
-									<label>
+									<label data-bind="visible:pg.pageType() == 'HFD'">
 					                    <input type="checkbox" name="chk-column-live" data-bind="{checked:pg.live(),event:{change:function(e){pg.getDataStockChart()}}}">
 					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 					                    <span class="colRed"><strong>Live</strong></span>
