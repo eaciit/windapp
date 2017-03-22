@@ -22,6 +22,11 @@ sv.refreshView = function(view){
 }
 
 sv.getChartView = function(gData){
+    if (fa.project==""){
+        sv.type = "Projects";
+    }else{
+        sv.type = "Turbines";
+    }
     $("#staticProductionChart").replaceWith('<div id="staticProductionChart"></div>');
     $("#staticProductionChart").kendoChart({
         theme:"flat",

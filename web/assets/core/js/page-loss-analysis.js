@@ -83,11 +83,6 @@ pg.backToDownTime = function () {
 
 pg.LoadData = function(){
     fa.LoadData();
-    if (fa.project == "") {
-        sv.type = "Project Name";
-    } else {
-        sv.type = "Turbine";
-    }
     pg.getDataAvailableInfo();
 }
 
