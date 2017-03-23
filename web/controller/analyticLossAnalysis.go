@@ -61,13 +61,16 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	if project != "" {
 		filter = append(filter, dbox.Eq("projectname", project))
 	}
+
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
 
+	breakdown := "Turbine"
 	ids := "$turbine"
 	if project == "" {
 		ids = "$projectname"
+		breakdown = "Project"
 	}
 
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids,
@@ -98,6 +101,13 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
+
+	availability := getAvailabilityValue(tStart, tEnd, project, turbine, breakdown)
+
+	// for _, avail := range availability {
+	// 	log.Printf(">>> %#v \n", avail)
+	// }
+
 	/*======== JMR PART ==================*/
 	_, _, monthDay := helper.GetDurationInMonth(tStart, tEnd)
 	newKey := ""
@@ -154,7 +164,17 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	LossAnalysisResult := []tk.M{}
 
 	for _, val := range resultScada {
-		// dummyRes := []tk.M{}
+		id := val.GetString("_id")
+		var oktime, totalavail float64
+		for _, avail := range availability {
+			av := avail.Get(id)
+			if av != nil {
+				oktime = av.(tk.M).GetFloat64("oktime")
+				totalavail = av.(tk.M).GetFloat64("totalavail")
+				break
+			}
+		}
+
 		LossAnalysisResult = append(LossAnalysisResult, tk.M{
 			"Id":               val.GetString("_id"),
 			"Production":       val.GetFloat64("Production") / 1000,
@@ -168,6 +188,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 			"PCDeviation":      val.GetFloat64("PCDeviation") / 1000,
 			"Others":           val.GetFloat64("OtherDownLoss") / 1000,
 			"DownTimeDuration": val.GetFloat64("DownTimeDuration"),
+			"OKTime":           oktime / 3600,
+			"TotalAvail":       totalavail,
 		})
 	}
 
@@ -880,6 +902,121 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 	}
 
 	return dataSeries, e
+}
+
+func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turbine []interface{}, breakDown string) (result []tk.M) {
+	pipes := []tk.M{}
+	list := []tk.M{}
+	match := tk.M{}
+
+	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{"$in": turbine})
+	}
+
+	group := tk.M{
+		"power":           tk.M{"$sum": "$power"},
+		"machinedowntime": tk.M{"$sum": "$machinedowntime"},
+		"griddowntime":    tk.M{"$sum": "$griddowntime"},
+		"oktime":          tk.M{"$sum": "$oktime"},
+		"powerlost":       tk.M{"$sum": "$powerlost"},
+		"totaltimestamp":  tk.M{"$sum": 1},
+		"available":       tk.M{"$sum": "$available"},
+		"minutes":         tk.M{"$sum": "$minutes"},
+		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
+		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
+	}
+
+	if project != "" {
+		match.Set("projectname", project)
+	}
+
+	if breakDown == "Date" {
+		group.Set("_id", tk.M{"id1": "$dateinfo.dateid"})
+	} else if breakDown == "Month" {
+		group.Set("_id", tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc"})
+	} else if breakDown == "Year" {
+		group.Set("_id", tk.M{"id1": "$dateinfo.year"})
+	} else if breakDown == "Project" {
+		group.Set("_id", tk.M{"id1": "$projectname"})
+	} else if breakDown == "Turbine" {
+		group.Set("_id", tk.M{"id1": "$turbine"})
+	}
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": group})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id1": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return
+	}
+
+	e = csr.Fetch(&list, 0, false)
+
+	for _, val := range list {
+		var totalTurbine, hourValue float64
+
+		if breakDown == "Turbine" {
+			totalTurbine = 1.0
+		} else if len(turbine) == 0 {
+			totalTurbine = 24.0
+		} else {
+			totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
+		}
+
+		minDate := val.Get("mindate").(time.Time)
+		maxDate := val.Get("maxdate").(time.Time)
+
+		id := val.Get("_id").(tk.M)
+		key := ""
+
+		// if breakDown == "Date" {
+		// 	id1 := id.Get("id1").(time.Time)
+		// 	key = id1.Format("20060102_1504050000")
+		// 	hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
+		// } else {
+		key = id.GetString("id1")
+		hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+		// }
+
+		okTime := val.GetFloat64("oktime")
+		power := val.GetFloat64("power") / 1000.0
+		energy := power / 6
+		mDownTime := val.GetFloat64("machinedowntime") / 3600.0
+		gDownTime := val.GetFloat64("griddowntime") / 3600.0
+		sumTimeStamp := val.GetFloat64("totaltimestamp")
+		minutes := val.GetFloat64("minutes") / 60
+
+		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
+		res := tk.M{
+			key: tk.M{
+				"oktime":          okTime,
+				"power":           power,
+				"energy":          energy,
+				"machinedowntime": mDownTime,
+				"griddowntime":    gDownTime,
+				"count":           sumTimeStamp,
+				"minutes":         minutes,
+				"machineavail":    machineAvail,
+				"gridavail":       gridAvail,
+				"dataavail":       dataAvail,
+				"totalavail":      trueAvail,
+				"plf":             plf,
+			},
+		}
+		result = append(result, res)
+	}
+
+	return
 }
 
 func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebContext) interface{} {
