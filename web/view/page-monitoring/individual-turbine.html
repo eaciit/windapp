@@ -5,6 +5,11 @@
 <script src="{{BaseUrl}}res/core/js/page-monitoring/individual-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<script src="{{BaseUrl}}res/highstock/highstock.js"></script>
+<script src="{{BaseUrl}}res/highstock/exporting.js"></script>
+<script src="{{BaseUrl}}res/highstock/value-in-legend.js"></script>
+
+
 <div class="row">
     <div class="row">
         <div class="col-md-12 col-sm-12 ez panel-content">
@@ -25,15 +30,70 @@
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore mb-5">
                 <div class="panel-body">                        
-                    <div class="project-info">
-                        Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Location : <b><span id="turbine_location">Jaisalmer</span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="turbine_temperature"></span> &deg; C</b> &nbsp;&nbsp;|&nbsp;&nbsp; <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
-                        <b><span id="turbine_weather"></span></b>
-                        <div class="source-info pull-right project-info-last-update">
-                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="turbine_last_update"></span></b>
-                        </div> 
+                    <div class="col-md-4">
+                        <div class="col-md-12 div-info">
+                            <h3><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location">Jaisalmer</span></b></h3>
+                            <div class="col-md-12" style="display: inline;">
+                                <div class="col-md-6" style="text-align: right;">
+                                     <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                                </div>
+                               <div class="col-md-6" style="text-align: left;">
+                                   <span style="font-size: 30px"><span id="turbine_temperature"></span> &deg; C</span>
+                                    <div class="row" style="margin-top: -5px;margin-left: 0px;">
+                                         <span id="turbine_weather"></span>
+                                    </div>
+                               </div>
+                            </div>
+                            <div class="col-md-12" style="margin-top: -10px;margin-bottom: 10px;}">
+                                Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b>
+                            </div>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12" style="margin-top: 20px;">
+                            <div class="col-md-7" style="margin-top: -30px;">
+                                <div id="container"></div>
+                            </div>
+                            <div class="col-md-5" style="border-left: 2px solid #eee; margin-top: -25px;">
+                                <div class="col-md-6"><div id="compareWindChart"></div></div>
+                                <div class="col-md-6"><div id="comparePowerChart"></div></div>
+                            </div>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12" style="margin-top: 20px;">
+                            <div class="col-md-7" style="text-align: center;">
+                               <div class="col-md-12" style="margin-top: -35px;">
+                                <span><strong>Nacelle</strong></span>
+                                   <div id="windRoseChart"></div>
+                               </div>
+                            </div>
+                            <div class="col-md-5" style="border-left: 2px solid #eee;text-align: center; margin-top: -35px;">
+                                <span><strong>Rotor (RPM)</strong></span>
+                                <div id="rotorChart"></div>
+                                <hr style="border: 1px solid #eee;">
+                                <div class="col-md-12 text-center">
+                                     <div class="col-md-12" style="margin-top: -15px;"><span><strong><i class="fa fa-asterisk"></i>&nbsp;Pitch Angel</strong></span></div>
+                                     <div class="clearfix">&nbsp;</div>
+                                     <div class="col-md-4 circle" style="margin: 2px;border-color: #ffc700">
+                                         <span class="text-center" style="font-size: 10px">#1</span><br>
+                                         <span class="text-center"><strong>2.50</strong></span>
+                                     </div>
+                                     <div class="col-md-4 circle" style="margin: 2px;border-color: #ff7a00">
+                                         <span class="text-center" style="font-size: 10px;">#2</span><br>
+                                         <span class="text-center"><strong>2.50</strong></span>
+                                     </div>
+                                     <div class="col-md-4 circle" style="margin: 2px;">
+                                         <span class="text-center" style="font-size: 10px">#3</span><br>
+                                         <span class="text-center"><strong>2.50</strong></span>
+                                     </div>
+                                 </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-4 turbine-pic-part">
+                        {{template "turbine-pic.html"}}
+                    </div>
+                    <div class="col-md-3">
                         <div class="col-md-12">
                             <h5 class="title-outside">Electrical System</h5>
                         </div>
@@ -204,10 +264,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="col-md-4 turbine-pic-part">
-                        {{template "turbine-pic.html"}}
                     </div>
                 </div>
             </div>
