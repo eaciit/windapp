@@ -430,9 +430,972 @@ it.ShowData = function() {
     it.GetData(turbine);
 };
 
+it.showWindspeedColumnChart = function(){
+
+    $("#compareWindChart").kendoLinearGauge({
+        theme: "flat",
+        gaugeArea: {
+          height : 125
+        },
+        pointer: {
+            value: 65,
+            shape: "arrow"
+        },
+
+        scale: {
+            majorUnit: 40,
+            minorUnit: 5,
+            max: 180,
+            ranges: [
+                {
+                    from: 80,
+                    to: 120,
+                    color: "#ffc700"
+                }, {
+                    from: 120,
+                    to: 150,
+                    color: "#ff7a00"
+                }, {
+                    from: 150,
+                    to: 180,
+                    color: "#c20000"
+                }
+            ]
+        }
+    });
+    $("#comparePowerChart").kendoLinearGauge({
+        theme: "flat",
+        gaugeArea: {
+          height : 125
+        },
+        pointer: {
+            value: 65,
+            shape: "arrow"
+        },
+
+        scale: {
+            majorUnit: 80,
+            minorUnit: 5,
+            max: 180,
+            ranges: [
+                {
+                    from: 80,
+                    to: 120,
+                    color: "#ffc700"
+                }, {
+                    from: 120,
+                    to: 150,
+                    color: "#ff7a00"
+                }, {
+                    from: 150,
+                    to: 180,
+                    color: "#c20000"
+                }
+            ]
+        }
+    });
+
+}
+it.showWindspeedLiveChart = function(){
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+
+    Highcharts.setOptions({
+        chart: {
+            style: {
+                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                fontSize: '12px',
+                fontWeight: 'normal',
+            },
+        }
+    });
+    // Create the chart
+    Highcharts.stockChart('container', {
+        chart: {
+            marginTop: 50,
+            height: 150,
+            width: 260,
+            events: {
+                load: function () {
+
+                    // set up the updating of the chart each second
+                    var series = this.series[0];
+                    setInterval(function () {
+                        var x = (new Date()).getTime(), // current time
+                            y = Math.round(Math.random() * 100);
+                        series.addPoint([x, y], true, true);
+                    }, 1000);
+                }
+            }
+        },
+        credits: {
+              enabled: false
+        },
+        legend: {
+            enabled: true,
+            verticalAlign: 'top',
+            layout: "horizontal",
+
+        },
+        rangeSelector: {
+            buttons: [{
+                count: 1,
+                type: 'minute',
+                text: '1M'
+            }, {
+                count: 5,
+                type: 'minute',
+                text: '5M'
+            }, {
+                type: 'all',
+                text: 'All'
+            }],
+            inputEnabled: false,
+            selected: 0,
+            enabled:false,
+        },
+            scrollbar: {
+                enabled: false
+            },
+        exporting: {
+            enabled: false
+        },
+        yAxis: {
+          labels:
+          {
+            enabled: false
+          },
+          gridLineWidth: 0,
+          minorGridLineWidth: 0
+        },
+        xAxis: {
+           lineWidth: 0,
+           minorGridLineWidth: 0,
+           lineColor: 'transparent',
+           labels: {
+               enabled: false
+           },
+           minorTickLength: 0,
+           tickLength: 0
+        },
+
+            navigator: {
+            enabled: false,
+        },
+        plotOptions: {
+            series: {
+                lineWidth: 1
+            }
+        },
+        series: [{
+            color: colorField[0],
+            name: 'Wind Speed',
+            data: (function () {
+                // generate an array of random data
+                var data = [],
+                    time = (new Date()).getTime(),
+                    i;
+
+                for (i = -999; i <= 0; i += 1) {
+                    data.push([
+                        time + i * 1000,
+                        Math.round(Math.random() * 100)
+                    ]);
+                }
+                return data;
+            }())
+        },{
+            name: 'Power',
+            color: colorField[1],
+            data: (function () {
+                // generate an array of random data
+                var data = [],
+                    time = (new Date()).getTime(),
+                    i;
+
+                for (i = -999; i <= 0; i += 1) {
+                    data.push([
+                        time + i * 1000,
+                        Math.round(Math.random() * 100)
+                    ]);
+                }
+                return data;
+            }())
+        }]
+    });
+
+}
+
+it.showRotor = function(){
+    $("#rotorChart").kendoRadialGauge({
+        title: "Rotor RPM",
+        theme: "flat",
+        pointer: {
+            value: 65
+        },
+        gaugeArea: {
+          height : 125,
+        },
+        scale: {
+            majorUnit: 80,
+            minorUnit: 5,
+            startAngle: -30,
+            endAngle: 210,
+            max: 180,
+            labels: {
+                position: "inside"
+            },
+            ranges: [
+                {
+                    from: 80,
+                    to: 120,
+                    color: "#ffc700"
+                }, {
+                    from: 120,
+                    to: 150,
+                    color: "#ff7a00"
+                }, {
+                    from: 150,
+                    to: 180,
+                    color: "#c20000"
+                }
+            ]
+        }
+    });
+}
+
+it.showWindRoseChart = function(){
+    var data = [
+        {
+            "dir": 0,
+            "dirText": "N",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 0,
+            "dirText": "N",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 2
+        }, {
+            "dir": 0,
+            "dirText": "N",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 3
+        }, {
+            "dir": 0,
+            "dirText": "N",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 2.5
+        }, {
+            "dir": 0,
+            "dirText": "N",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 1
+        }, {
+            "dir": 0,
+            "dirText": "N",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0.5
+        }, {
+            "dir": 0,
+            "dirText": "N",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0.1
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 0.1
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 0.1
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 1,
+            "dirText": "NNE",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 0.2
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 0
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 2,
+            "dirText": "NE",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 0.2
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 0.1
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 3,
+            "dirText": "ENE",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 0.2
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 0.3
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 4,
+            "dirText": "E",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 0.4
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 0.4
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0.1
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0.1
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 5,
+            "dirText": "ESE",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 0.8
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 1.4
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 1.4
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 1
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0.1
+        }, {
+            "dir": 6,
+            "dirText": "SE",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0.1
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 6
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 2
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0.8
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0.5
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 7,
+            "dirText": "SSE",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0.2
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 10
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 1
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 8,
+            "dirText": "S",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0.1
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 8
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 1
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 0
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 9,
+            "dirText": "SSW",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 6
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 3
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 1
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0.1
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 10,
+            "dirText": "SW",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 3
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 4
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 1
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 11,
+            "dirText": "WSW",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 2
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 3
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 1
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 12,
+            "dirText": "W",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0.1
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 1
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 5
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 2
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 0.5
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0
+        }, {
+            "dir": 13,
+            "dirText": "WNW",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0.1
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 2
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 5
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 2
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 1
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 0.1
+        }, {
+            "dir": 14,
+            "dirText": "NW",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0.1
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 0,
+            "categoryText": "< 0.5",
+            "frequency": 0
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 1,
+            "categoryText": "0.5 to 2",
+            "frequency": 4
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 2,
+            "categoryText": "2 to 4",
+            "frequency": 5
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 3,
+            "categoryText": "4 to 6",
+            "frequency": 5
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 4,
+            "categoryText": "6 to 8",
+            "frequency": 3
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 5,
+            "categoryText": "8 to 10",
+            "frequency": 1
+        }, {
+            "dir": 15,
+            "dirText": "NNW",
+            "category": 6,
+            "categoryText": "> 10",
+            "frequency": 0.2
+        }
+    ]
+
+
+    $("#windRoseChart").kendoChart({
+        theme: "flat",
+        chartArea: {
+            height: 200,
+            width: 250,
+            margin: 0,
+            padding: 0,
+        },
+        legend: {
+            visible: false,
+            position: "top",
+            labels: {
+                template: "#= (series.data[0] || {}).categoryText # m/s"
+            }
+        },
+        dataSource: {
+            data: data,
+            group: {
+                field: "category",
+                dir: "asc"
+            },
+            sort: {
+                field: "dir",
+                dir: "asc"
+            }
+        },
+        series: [{
+            type: "radarColumn",
+            stack: true,
+            field: "frequency"
+        }],
+        categoryAxis: {
+            field: "dirText"
+        },
+        valueAxis: {
+            visible: false
+        },
+        tooltip: {
+            template: "#= category # (#= dataItem.categoryText # m/s) #= value #%",
+            visible: true
+        }
+    });
+}
 
 $(document).ready(function(){
     app.loading(true);
+    it.showWindRoseChart();
+    it.showWindspeedLiveChart();
+    it.showWindspeedColumnChart();
+    it.showRotor();
+
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
             app.loading(false);
