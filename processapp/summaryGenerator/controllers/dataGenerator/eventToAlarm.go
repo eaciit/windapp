@@ -49,11 +49,14 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 				filter = append(filter, dbox.Eq("turbine", t))
 
 				latestDate := ev.BaseController.GetLatest("Alarm", "Tejuva", t)
+
+				// log.Printf(">>> db.EventDown.find({turbine: \"%v\",timeend: {$gt: ISODate(%v+0000)}}).count()\n", t, latestDate.UTC().Format("2006-01-02T15:04:05.000"))
+
 				if latestDate.Format("2006") != "0001" {
 					filter = append(filter, dbox.Gt("timeend", latestDate))
 				}
 
-				// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", ev.BaseController.LatestData.MapAlarm["Tejuva#"+turbine]))
+				// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", latestDate))
 
 				csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
 					Where(filter...).Cursor(nil)
@@ -61,6 +64,7 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 				defer csr.Close()
 
 				countData := csr.Count()
+				_ = countData
 				events := []*EventDown{}
 
 				// do process here

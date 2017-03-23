@@ -3,7 +3,7 @@
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
-var defaultHour = 1;
+var defaultHour = 3;
 
 pg.tags = ko.observableArray();
 
@@ -54,7 +54,8 @@ var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 var seriesOri = [];
-
+var hourBefore = 0;
+var date1Before, date2Before;
 var breaks = [];    
 
 var yAxis = [];
@@ -153,7 +154,13 @@ pg.createStockChart = function(y){
                 pg.dataType("MIN");
             }
 
-            if (hours <= defaultHour) {
+            if (hourBefore == 0){
+                hourBefore = hours;
+                date1Before = date1;
+                date2Before = date2;
+            }
+
+            if ((hours <= defaultHour && hourBefore>defaultHour) || ((date1<date1Before && hours <= defaultHour) || (date2>date2Before && hours <= defaultHour)) ) {
                 chart.showLoading('Loading data from server...');
                 var param = {
                     period: fa.period,
@@ -187,10 +194,14 @@ pg.createStockChart = function(y){
 
                     chart.hideLoading();
                 });
-            }else {
+            }else if (hours > defaultHour) {
                 // console.log(e.min+" - "+e.max);
                 pg.getLocalSeries(e.min, e.max);
             }
+
+            hourBefore = hours;
+            date1Before = date1;
+            date2Before = date2;
         }
     }
 

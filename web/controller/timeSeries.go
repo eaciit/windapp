@@ -14,6 +14,7 @@ import (
 
 	"time"
 
+	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 )
@@ -152,6 +153,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	}
 
 	var tStart, tEnd time.Time
+	notAvailValue := -99999.0
 
 	if p.IsHour {
 		tStart = p.DateStart.UTC()
@@ -292,9 +294,9 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				"pitchangle":    tk.M{"$avg": "$fast_pitchangle"},
 			}
 		} else if pageType == "LIVE" {
-			collName = new(ScadaRealTime).TableName()
+			/*collName = new(ScadaRealTime).TableName()
 			if tStart.Year() != 1 && tEnd.Year() != 1 {
-				match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+				match.Set("dateinfo.dateid", tk.M{"$gte": tStart})
 			}
 
 			// match.Set("windspeed", tk.M{"$lte": 25})
@@ -309,8 +311,8 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				"nacellepos":    tk.M{"$avg": "$nacelleposition"},
 				"rotorrpm":      tk.M{"$avg": "$rotorrpm"},
 				"pitchangle":    tk.M{"$avg": "$pitchangle"},
-			}
-		} else {
+			}*/
+		} else if pageType == "OEM" {
 			collName = new(ScadaDataOEM).TableName()
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 			// match.Set("denwindspeed", tk.M{"$lte": 25})
@@ -324,36 +326,40 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			}
 		}
 
-		pipes = append(pipes, tk.M{"$match": match})
-		pipes = append(pipes, tk.M{"$group": group})
-
-		if tStart.Year() != 1 && tEnd.Year() != 1 {
-			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-		} else {
-			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": -1}})
-			pipes = append(pipes, tk.M{"$limit": 5})
-		}
-
-		// log.Printf("%v \n", collName)
-		// log.Printf("%v | %v \n", tStart.String(), tEnd.String())
-
-		// for _, p := range pipes {
-		// 	log.Printf(">>>>>> %#v \n", p)
-		// }
-
-		csr, e := DB().Connection.NewQuery().
-			From(collName).
-			Command("pipe", pipes).
-			Cursor(nil)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
 		list := []tk.M{}
-		e = csr.Fetch(&list, 0, false)
 
-		defer csr.Close()
+		if pageType != "LIVE" {
+			pipes = append(pipes, tk.M{"$match": match})
+			pipes = append(pipes, tk.M{"$group": group})
+
+			if tStart.Year() != 1 && tEnd.Year() != 1 {
+				pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+			} else {
+				pipes = append(pipes, tk.M{"$sort": tk.M{"_id": -1}})
+				pipes = append(pipes, tk.M{"$limit": 5})
+			}
+
+			// log.Printf("%v \n", collName)
+			// log.Printf("%v | %v \n", tStart.String(), tEnd.String())
+
+			// for _, p := range pipes {
+			// 	log.Printf(">>>>>> %#v \n", p)
+			// }
+
+			csr, e := DB().Connection.NewQuery().
+				From(collName).
+				Command("pipe", pipes).
+				Cursor(nil)
+
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
+
+			e = csr.Fetch(&list, 0, false)
+			defer csr.Close()
+		} else {
+			list = getDataLive(projectName, turbine, tStart, p.TagList)
+		}
 
 		// log.Printf(">>> %v \n", len(list))
 
@@ -362,9 +368,10 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			var dterr [][]interface{}
 			columnTag := mapField[tag]
 			if len(list) > 0 {
+				// if pageType != "LIVE" {
+
 				if pageType != "LIVE" {
 					// get the time is not exist in collection
-
 					_first := list[0]
 					_firstTimestamp := _first.Get("_id").(time.Time).UTC()
 					first := getTime10MinutesNotExist(tStart, _firstTimestamp)
@@ -372,41 +379,42 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					if len(first) > 0 {
 						dts = append(dts, first...)
 					}
+				}
 
-					for _, val := range list {
-						timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
-						var tagVal float64
+				for _, val := range list {
+					timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
+					var tagVal float64
 
-						// if tag == "production" {
-						// 	tagVal = val.GetFloat64(tag)
-						// } else if tag == "windspeed" {
-						// 	tagVal = val.GetFloat64(tag)
-						// if tagVal < 0 {
-						// 	tagVal = 0.0
-						// }
-						// } else {
-						tagVal = val.GetFloat64(tag)
-						// }
+					// if tag == "production" {
+					// 	tagVal = val.GetFloat64(tag)
+					// } else if tag == "windspeed" {
+					// 	tagVal = val.GetFloat64(tag)
+					// if tagVal < 0 {
+					// 	tagVal = 0.0
+					// }
+					// } else {
+					tagVal = val.GetFloat64(tag)
+					// }
 
-						dt := []interface{}{timestamp, tagVal}
-						if tagVal <= -99999.0 {
-							// res := tk.M{}
-							// res.Set("from", val.Get("_id").(time.Time).UTC())
-							// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
-							// breaks = append(breaks, res)
+					dt := []interface{}{timestamp, tagVal}
+					if tagVal <= notAvailValue {
+						// res := tk.M{}
+						// res.Set("from", val.Get("_id").(time.Time).UTC())
+						// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
+						// breaks = append(breaks, res)
 
-							dt = []interface{}{timestamp, nil}
-						}
-
-						dts = append(dts, dt)
-
-						if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > -99999.0 {
-							dterr = append(dterr, []interface{}{timestamp, 100.0})
-						}
+						dt = []interface{}{timestamp, nil}
 					}
 
-					// get the time is not exist in collection
+					dts = append(dts, dt)
 
+					if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > notAvailValue {
+						dterr = append(dterr, []interface{}{timestamp, 100.0})
+					}
+				}
+
+				if pageType != "LIVE" {
+					// get the time is not exist in collection
 					_last := list[len(list)-1]
 					_lastTimestamp := _last.Get("_id").(time.Time).UTC()
 
@@ -415,40 +423,40 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					if len(last) > 0 {
 						dts = append(dts, last...)
 					}
-				} else {
-					reverseCount := len(list) - 1
-
-					for {
-						if reverseCount < 0 {
-							break
-						}
-						val := list[reverseCount]
-
-						timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
-						var tagVal float64
-						tagVal = val.GetFloat64(tag)
-
-						dt := []interface{}{timestamp, tagVal}
-						if tagVal <= -99999.0 {
-							dt = []interface{}{timestamp, nil}
-						}
-
-						dts = append(dts, dt)
-
-						if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > -99999.0 {
-							dterr = append(dterr, []interface{}{timestamp, 100.0})
-						}
-
-						reverseCount--
-					}
-
 				}
+				// } else {
+				// 	reverseCount := len(list) - 1
+
+				// 	for {
+				// 		if reverseCount < 0 {
+				// 			break
+				// 		}
+				// 		val := list[reverseCount]
+
+				// 		timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
+				// 		var tagVal float64
+				// 		tagVal = val.GetFloat64(tag)
+
+				// 		dt := []interface{}{timestamp, tagVal}
+				// 		if tagVal <= notAvailValue {
+				// 			dt = []interface{}{timestamp, nil}
+				// 		}
+
+				// 		dts = append(dts, dt)
+
+				// 		if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > notAvailValue {
+				// 			dterr = append(dterr, []interface{}{timestamp, 100.0})
+				// 		}
+
+				// 		reverseCount--
+				// 	}
+
+				// }
 
 				resultChart = append(resultChart, tk.M{"name": columnTag.Name, "data": dts, "dataerr": dterr, "unit": columnTag.Unit, "minval": columnTag.MinValue, "maxval": columnTag.MaxValue})
 			}
 		}
 
-		csr.Close()
 	}
 
 	data := struct {
@@ -480,6 +488,75 @@ func getTime10MinutesNotExist(start time.Time, end time.Time) (result [][]interf
 		start = start.UTC().Add(time.Duration(10) * time.Minute)
 	}
 
+	return
+}
+
+func getDataLive(project string, turbine string, tStart time.Time, tags []string) (result []tk.M) {
+	filter := []*dbox.Filter{}
+	tmpRes := map[string]float64{}
+
+	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.Eq("turbine", turbine))
+
+	if tStart.Year() != 1 {
+		filter = append(filter, dbox.Gt("timestamp", tStart))
+	}
+
+	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+		Where(dbox.And(filter...)).
+		Order("-timestamp").
+		Cursor(nil)
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	tstamp := time.Time{}
+
+	mapFound := map[string]bool{}
+
+	log.Printf(">>> %v | %v \n", tStart.String(), csr.Count())
+
+	if csr.Count() > 0 {
+		for {
+			data := tk.M{}
+			err = csr.Fetch(&data, 1, false)
+			if err != nil {
+				break
+			}
+
+			tstamp = data.Get("timestamp", time.Time{}).(time.Time)
+
+			for _, tag := range tags {
+				if !mapFound[tag] {
+					tagVal := data.GetFloat64(tag)
+					if tagVal > -99999.0 {
+						tmpRes[tag] = tagVal
+						mapFound[tag] = true
+					}
+				}
+			}
+
+			count := 0
+			for _, mp := range mapFound {
+				if mp {
+					count++
+				}
+			}
+
+			if count == len(tags) {
+				break
+			}
+		}
+		csr.Close()
+
+		result = append(result, tk.M{"_id": tstamp})
+
+		for tag, mp := range tmpRes {
+			result[0].Set(tag, mp)
+		}
+
+	}
 	return
 }
 
