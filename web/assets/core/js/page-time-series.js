@@ -374,8 +374,12 @@ pg.getDataStockChart = function(param, idBtn){
     var url = "timeseries/getdatahfd";
     if($('input[name="chk-column-live"]:checked').length > 0){
         pg.live(true);
+        pg.rangeData(true);
+        pg.errorValue(true);
     }else{
         pg.live(false);
+        pg.rangeData(true);
+        pg.errorValue(true);
     }
 
 
@@ -442,14 +446,22 @@ pg.createLiveChart = function(IsHour){
         IsHour : IsHour,
     };
 
+    var dateStart, dateEnd; 
     $("#chartTimeSeries").html("");
         toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
+
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
+
+        dateStart = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
+        dateEnd = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
+
+        console.log(dateEnd);
+
         breaks = res.data.Data.Breaks;
 
         pg.generateSeriesOption(data, periods);
@@ -493,8 +505,8 @@ pg.createLiveChart = function(IsHour){
                             var paramX = {
                                 period: fa.period,
                                 Turbine: [fa.turbine],
-                                DateStart: new Date(),
-                                DateEnd: new Date(),
+                                DateStart: dateStart,
+                                DateEnd: dateEnd,
                                 Project: fa.project,
                                 PageType: "LIVE",
                                 DataType: pg.dataType() ,
@@ -510,10 +522,8 @@ pg.createLiveChart = function(IsHour){
                                 var seriesData = chart.series; 
                                 var results = res.data.Data.Chart;
                                 if(results.length > 0){
-                                    $.each(seriesOptions, function(id, val){
-                                        chart.series[id].setData(val.data, true, true, false);
-                                    });
-
+                                    dateStart = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
+                                    dateEnd = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
                                     $.each(seriesOptions, function(i, res){
                                        $.each(results, function(id, val){
                                             if(res.name == val.name){
@@ -522,7 +532,9 @@ pg.createLiveChart = function(IsHour){
                                             }
                                        })
                                     });
+                                    console.log(dateEnd);
                                 }else{
+                                    console.log(dateEnd);
                                     return false;
                                 }
 
@@ -821,6 +833,8 @@ $(document).ready(function () {
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");
+        pg.rangeData(true);
+        pg.errorValue(true);
     });
 
     setTimeout(function () {
