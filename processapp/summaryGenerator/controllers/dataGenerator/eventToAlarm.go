@@ -19,8 +19,9 @@ type EventToAlarm struct {
 }
 
 var (
-	mtx        = &sync.Mutex{}
-	counterRow = 0
+	mtx         = &sync.Mutex{}
+	counterRow  = 0
+	projectName = "Tejuva"
 )
 
 func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
@@ -38,59 +39,65 @@ func (ev *EventToAlarm) ConvertEventToAlarm(base *BaseController) {
 
 	// #faisal
 	// add condition to get the eventdown started from the latest data that already in alarm, so no need to generate the alarm data from begining
-	countx := 0
+	// countx := 0
+	// xTurbines := []string{}
+	_ = wg
 	for turbine, _ := range ev.BaseController.RefTurbines {
+		// xTurbines = append(xTurbines, turbine)
+		// wg.Add(1)
+		// go func(t string) {
+		t := turbine
+		filterX := []*dbox.Filter{}
+		filterX = append(filterX, dbox.Eq("projectname", projectName))
+		filterX = append(filterX, dbox.Eq("turbine", t))
 
-		wg.Add(1)
-		go func(t string) {
-			if t != "" {
-				filter := []*dbox.Filter{}
-				filter = append(filter, dbox.Eq("projectname", "Tejuva"))
-				filter = append(filter, dbox.Eq("turbine", t))
+		latestDate := ev.BaseController.GetLatest("Alarm", projectName, t)
 
-				latestDate := ev.BaseController.GetLatest("Alarm", "Tejuva", t)
+		// log.Printf(">>> db.EventDown.find({turbine: \"%v\",timeend: {$gt: ISODate(%v+0000)}}).count()\n", t, latestDate.UTC().Format("2006-01-02T15:04:05.000"))
 
-				// log.Printf(">>> db.EventDown.find({turbine: \"%v\",timeend: {$gt: ISODate(%v+0000)}}).count()\n", t, latestDate.UTC().Format("2006-01-02T15:04:05.000"))
-
-				if latestDate.Format("2006") != "0001" {
-					filter = append(filter, dbox.Gt("timeend", latestDate))
-				}
-
-				// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", latestDate))
-
-				csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
-					Where(filter...).Cursor(nil)
-
-				defer csr.Close()
-
-				countData := csr.Count()
-				_ = countData
-				events := []*EventDown{}
-
-				// do process here
-				e = csr.Fetch(&events, 0, false)
-				ErrorHandler(e, funcName)
-
-				tk.Printf("Event to Alarm for %v | %v \n", t, countData)
-				for _, d := range events {
-
-					mtx.Lock()
-					dataInput := d
-					//tk.Printf("%s ", idx)
-
-					ev.doConversion(dataInput)
-					mtx.Unlock()
-				}
-				tk.Printf("end process for %v \n", t)
-			}
-			wg.Done()
-		}(turbine)
-
-		countx++
-
-		if countx%5 == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
+		if latestDate.Format("2006") != "0001" {
+			filterX = append(filterX, dbox.Gt("timeend", latestDate.UTC()))
 		}
+
+		// ev.BaseController.Ctx.DeleteMany(new(Alarm), dbox.Gt("startdate", latestDate))
+
+		csr, e := ctx.NewQuery().From(new(EventDown).TableName()).
+			Where(dbox.And(filterX...)).Cursor(nil)
+
+		defer csr.Close()
+
+		countData := csr.Count()
+		events := []*EventDown{}
+
+		// do process here
+		e = csr.Fetch(&events, 0, false)
+		ErrorHandler(e, funcName)
+
+		tk.Printf("Event to Alarm for %v | %v \n", t, countData)
+		for _, d := range events {
+
+			mtx.Lock()
+			dataInput := d
+			//tk.Printf("%s ", idx)
+
+			ev.doConversion(dataInput)
+			mtx.Unlock()
+		}
+		tk.Printf("end process for %v \n", t)
+
+		csr.Close()
+		// wg.Done()
+		// }(turbine)
+
+		// countx++
+
+		// if countx%5 == 0 || (len(ev.BaseController.RefTurbines) == countx) {
+		// 	for _, tx := range xTurbines {
+		// 		log.Printf(">> %v \n", tx)
+		// 	}
+		// 	xTurbines = []string{}
+		// 	wg.Wait()
+		// }
 		// }
 	}
 
@@ -129,7 +136,7 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		scadas := make([]ScadaDataOEM, 0)
 		csr2, e := ctx.Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
 			Where(dbox.And(
-				dbox.Eq("projectname", "Tejuva"),
+				dbox.Eq("projectname", projectName),
 				dbox.Eq("turbine", event.Turbine),
 				dbox.Gte("timestamputc", timeStartWhr),
 				dbox.Lte("timestamputc", timeEndWhr))).
@@ -151,7 +158,7 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		// 	for _, scada := range scadas {
 		// 		//if (event.TimeStart.Sub(scada.TimeStamp) <= 0 && event.TimeEnd.Sub(scada.TimeStamp) <= 0) || (event.TimeStart.Sub(scada.TimeStamp) <= 0 && event.TimeEnd.Sub(scada.TimeStamp) >= 0) {
 		// 		if scada.DenPower > scada.AI_intern_ActivPower {
-		// 			power, err := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", scada.AI_intern_WindSpeed)
+		// 			power, err := GetPowerCurveCubicInterpolation(ctx.Connection, projectName, scada.AI_intern_WindSpeed)
 		// 			if err != nil {
 		// 				power = 0.0
 		// 			}
@@ -309,7 +316,7 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		if len(scadas) > 0 {
 			for _, scada := range scadas {
 				if scada.DenPower > scada.AI_intern_ActivPower {
-					power, err := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", scada.AI_intern_WindSpeed)
+					power, err := GetPowerCurveCubicInterpolation(ctx.Connection, projectName, scada.AI_intern_WindSpeed)
 					if err != nil {
 						power = 0.0
 					}

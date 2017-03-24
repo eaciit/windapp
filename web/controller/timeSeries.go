@@ -515,7 +515,7 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 
 	mapFound := map[string]bool{}
 
-	log.Printf(">>> %v | %v \n", tStart.String(), csr.Count())
+	// log.Printf(">>> %v | %v \n", tStart.String(), csr.Count())
 
 	if csr.Count() > 0 {
 		for {

@@ -65,10 +65,11 @@ type BaseController struct {
 
 func (b *BaseController) PrepareDataReff() {
 	tk.Println("Getting data refference")
+	// projectName := "Tejuva"
 	logStart := time.Now()
 
 	turbines := []TurbineMaster{}
-	csrt, e := b.Ctx.Connection.NewQuery().From(new(TurbineMaster).TableName()).Cursor(nil)
+	csrt, e := b.Ctx.Connection.NewQuery().From(new(TurbineMaster).TableName()).Order("turbineid").Cursor(nil)
 
 	tk.Println("Get Turbines")
 
@@ -85,15 +86,15 @@ func (b *BaseController) PrepareDataReff() {
 
 	tk.Printf("Turbines: %v \n", len(turbines))
 
-	tk.Println("Get EventDown")
+	/*tk.Println("Get EventDown")
 
 	b.RefAlarms = tk.M{}
 
 	for turbine, _ := range b.RefTurbines {
 		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+		filter = append(filter, dbox.Eq("projectname", projectName))
 		filter = append(filter, dbox.Eq("turbine", turbine))
-		filter = append(filter, dbox.Gt("timeend", b.LatestData.MapAlarm["Tejuva#"+turbine]))
+		filter = append(filter, dbox.Gt("timeend", b.LatestData.MapAlarm[projectName+"#"+turbine]))
 
 		alarms := []EventDown{}
 		csr2, e := b.Ctx.Connection.NewQuery().From(new(EventDown).TableName()).
@@ -116,7 +117,7 @@ func (b *BaseController) PrepareDataReff() {
 			details = append(details, a)
 			b.RefAlarms.Set(a.Turbine, details)
 		}
-	}
+	}*/
 
 	logDuration := time.Now().Sub(logStart).Seconds()
 	tk.Printf("\nGetting refference data about %v secs\n", logDuration)
@@ -164,6 +165,7 @@ func getLatestTime(projectCol string, turbineCol string, timestampCol string, co
 	csr, e := ctx.Connection.NewQuery().
 		From(collection).
 		Command("pipe", pipes).
+		Order("_id.turbine").
 		Cursor(nil)
 
 	defer csr.Close()
@@ -180,11 +182,13 @@ func getLatestTime(projectCol string, turbineCol string, timestampCol string, co
 
 	resMap = map[string]time.Time{}
 
+	// turbines := []string{}
+
 	for _, r := range result {
 		id := r.Get("_id").(tk.M)
 		project := id.GetString("project")
 		turbine := id.GetString("turbine")
-		timestamp := r.Get("timestamp").(time.Time)
+		timestamp := r.Get("timestamp").(time.Time).UTC()
 
 		res = append(res, TurbineLatest{
 			project:    project,
@@ -193,7 +197,18 @@ func getLatestTime(projectCol string, turbineCol string, timestampCol string, co
 		})
 
 		resMap[project+"#"+turbine] = timestamp
+
+		// if collection == new(Alarm).TableName() {
+		// 	turbines = append(turbines, turbine)
+		// }
 	}
+
+	// if collection == new(Alarm).TableName() {
+	// 	sort.Strings(turbines)
+	// 	for _, t := range turbines {
+	// 		log.Printf(">> %v | %v \n", t, resMap["Tejuva#"+t].Format("060102_150405_0000"))
+	// 	}
+	// }
 
 	return
 }
