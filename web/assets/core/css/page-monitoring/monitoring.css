@@ -7,6 +7,11 @@
     from { background: yellow!important; }
     to   { background: default; }
 }
+
+.btn{
+  font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+}
+
 .flash {
     -webkit-animation-name: flash-animation;
     -webkit-animation-duration: 1.5s;
@@ -238,6 +243,7 @@ label.summary-number {
 .turbine-pic-part {
   text-align: center;
   padding-left: 20px;
+  margin-top: 50px;
 }
 
 .title-outside {
@@ -441,6 +447,62 @@ h4.content-heading {
     border: 2px solid #dd4b39;
     width: 50px;
     height: 50px;
+}
+
+.vibrations{
+  margin-top: -15px;
+}
+
+.direct-part{
+  margin-top: -20px;
+}
+
+.txt-power{
+  padding-left: 25px;
+}
+
+.txt-windspeed{
+  padding-left: 15px;
+}
+
+.windpower-part{
+  margin-top: -25px;
+}
+.borderOrange{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #ff7a00;
+}
+.borderYellow{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #ffc700;
+}
+.borderRed{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #c20000;
+}
+.txt-pitch-angel{
+    font-size: 20px;
+}
+.border-left-grey{
+    border-left: 2px solid #eee;
+}
+ .border-right-grey{
+    border-right:2px solid #eee;
+}
+
+.panel-body{
+    margin-bottom: 50px;
+}
+
+.turbine-weather{
+    margin-top: -5px;margin-left: 0px;
+}
+
+.lat-info{
+    margin-top: -10px;margin-bottom: 10px;
 }
 /*#turbine_weather{
     font-size: 20px;

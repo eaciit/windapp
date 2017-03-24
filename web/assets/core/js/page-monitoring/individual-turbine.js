@@ -516,8 +516,8 @@ it.showWindspeedLiveChart = function(){
     Highcharts.stockChart('container', {
         chart: {
             marginTop: 50,
-            height: 150,
-            width: 260,
+            height: 200,
+            width: 350,
             events: {
                 load: function () {
 
@@ -1344,8 +1344,49 @@ it.showWindRoseChart = function(){
         }
     ]
 
-
     $("#windRoseChart").kendoChart({
+        theme: "flat",
+        chartArea: {
+            height: 200,
+            width: 250,
+            margin: 0,
+            padding: 0,
+        },
+        legend: {
+            visible: false,
+            position: "top",
+            labels: {
+                template: "#= (series.data[0] || {}).categoryText # m/s"
+            }
+        },
+        dataSource: {
+            data: data,
+            group: {
+                field: "category",
+                dir: "asc"
+            },
+            sort: {
+                field: "dir",
+                dir: "asc"
+            }
+        },
+        series: [{
+            type: "radarColumn",
+            stack: true,
+            field: "frequency"
+        }],
+        categoryAxis: {
+            field: "dirText"
+        },
+        valueAxis: {
+            visible: false
+        },
+        tooltip: {
+            template: "#= category # (#= dataItem.categoryText # m/s) #= value #%",
+            visible: true
+        }
+    });
+    $("#windDirectionChart").kendoChart({
         theme: "flat",
         chartArea: {
             height: 200,
