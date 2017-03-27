@@ -3,7 +3,7 @@
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
-var defaultHour = 3;
+var defaultHour = 5*24;
 
 pg.tags = ko.observableArray();
 
@@ -148,6 +148,9 @@ pg.createStockChart = function(y){
             var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
             
             var hours = Math.abs(date1 - date2) / 36e5;
+
+            // console.log("hours: "+hours);
+
             if (hours <= defaultHour) {
                 pg.dataType("SEC");
             }else{
@@ -223,7 +226,7 @@ pg.createStockChart = function(y){
     });
 
     chart = Highcharts.stockChart('chartTimeSeries', {
-         legend: {
+        legend: {
             symbolHeight: 12,
             symbolWidth: 12,
             symbolRadius: 6,
@@ -235,7 +238,7 @@ pg.createStockChart = function(y){
             borderWidth: 0,
             marginTop: -70,
         },
-         rangeSelector: {
+        rangeSelector: {
             buttons: [{
                 type: 'hour',
                 count: 1,
@@ -280,7 +283,7 @@ pg.createStockChart = function(y){
         },
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
-        series: {
+            series: {
                 lineWidth: 1,
                 states: {
                     hover: {
@@ -294,14 +297,13 @@ pg.createStockChart = function(y){
                         return false;
                     }
                 }
-            }
+            },
         },
         series: seriesOptions,
     });
 
     // seriesOri = chart.series;
 }
-
 
 pg.getTimestamp = function(param){
   var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
@@ -316,7 +318,7 @@ pg.getTimestamp = function(param){
 }
 
 pg.hidePopover = function(){
-  $('.popover-markup>.trigger').popover('hide');
+    $('.popover-markup>.trigger').popover('hide');
 }
 
 pg.getDataStockChart = function(param, idBtn){
@@ -342,7 +344,11 @@ pg.getDataStockChart = function(param, idBtn){
 
     if(pg.pageType() == 'HFD'){
         fa.dateEnd = new Date();
-        fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
+        fa.dateStart  = new Date(now.setMonth(now.getMonth() - 24));
+        
+        date1Before = fa.dateStart;
+        date2Before = fa.dateEnd;
+        hourBefore = Math.abs(date1Before - date2Before) / 36e5;
     }
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
@@ -630,6 +636,8 @@ pg.createLiveChart = function(IsHour){
 }
 pg.generateSeriesOption = function(data, periods){
     var IsHour = (pg.isFirst() == true ? false : true);
+    var IsGroup = (pg.dataType() == "SEC" ? false : true);
+    console.log("isgroup: "+IsGroup);
 
     if(!IsHour){
         pg.periodList(periods);             
@@ -672,6 +680,10 @@ pg.generateSeriesOption = function(data, periods){
             showInNavigator: true,
             tooltip: {
                 valueSuffix: val.unit
+            },
+            dataGrouping:{
+                enabled: IsGroup,
+                // units: [["day",[1]],["weel",[1]],["month",[1]]],
             }
         }      
 
@@ -713,8 +725,8 @@ pg.generateSeriesOption = function(data, periods){
                 },
                 forced: true
             },
-            // showInNavigator: true,
-            // onSeries: "series"+idx,                
+            showInNavigator: true,
+            onSeries: "series"+idx,                
         }
 
         xCounter+=1;

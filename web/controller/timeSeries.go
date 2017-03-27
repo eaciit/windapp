@@ -7,7 +7,6 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
 	"io"
-	"log"
 	"math"
 	"os"
 	"strings"
@@ -17,6 +16,10 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
+)
+
+var (
+	notAvailValue = -99999.0
 )
 
 type TimeSeriesController struct {
@@ -153,7 +156,6 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	}
 
 	var tStart, tEnd time.Time
-	notAvailValue := -99999.0
 
 	if p.IsHour {
 		tStart = p.DateStart.UTC()
@@ -217,7 +219,9 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			}
 
 			before := tStart.UTC()
-			tStart = tStart.UTC().Add(time.Duration(24) * time.Hour)
+			// tStart = tStart.UTC().Add(time.Duration(24) * time.Hour)
+			// log.Printf(">>>>>> %v | %v | %v \n", tEnd.UTC().Sub(tStart.UTC()).Seconds(), tStart.UTC(), tEnd.UTC())
+			tStart = tStart.UTC().Add(time.Duration(tEnd.Sub(tStart).Seconds()) * time.Second)
 
 			beforeInt := tk.ToInt(tk.ToString(before.UTC().Unix())+"000", tk.RoundingAuto)
 			afterInt := tk.ToInt(tk.ToString(tStart.UTC().Unix())+"000", tk.RoundingAuto)
@@ -827,7 +831,7 @@ func (m *TimeSeriesController) GetDataHFDX(k *knot.WebContext) interface{} {
 }
 
 func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string) (result []tk.M, empty []tk.M, e error) {
-	log.Printf(">>> %v - %v | %v - %v \n", tStart.String(), tStart.UTC().String(), tEnd.String(), tEnd.UTC().String())
+	// log.Printf(">>> %v - %v | %v - %v \n", tStart.String(), tStart.UTC().String(), tEnd.String(), tEnd.UTC().String())
 	prefix := "data_"
 
 	for {
@@ -878,8 +882,12 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string)
 					value += v
 				}
 
-				value = value / float64(len(mp))
-				res.Set(n, value)
+				if value <= notAvailValue {
+					res.Set(n, nil)
+				} else {
+					value = value / float64(len(mp))
+					res.Set(n, value)
+				}
 			} else {
 				res.Set(n, nil)
 			}
