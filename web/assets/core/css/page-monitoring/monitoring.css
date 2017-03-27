@@ -483,6 +483,11 @@ h4.content-heading {
     margin-bottom: 5px;
     border:1.5px solid #c20000;
 }
+.borderGrey{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #eee;
+}
 .txt-pitch-angel{
     font-size: 20px;
 }
@@ -504,6 +509,11 @@ h4.content-heading {
 .lat-info{
     margin-top: -10px;margin-bottom: 10px;
 }
+
+.list-group-item {
+    border: 1px solid #fff; 
+}
+
 /*#turbine_weather{
     font-size: 20px;
 }

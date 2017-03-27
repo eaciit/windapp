@@ -125,62 +125,27 @@
                         </div>
                         <div class="col-md-12">
                             <h5><strong>Critical Temperature & Pressure</strong></h5>
-                            <div class="list-group">
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 1 coil</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil1()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 2 coil</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil2()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 3 coil</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil3()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. bearing drive</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_bearing_driven()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. bearing non-drive</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_bearing_non_driven()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="col-md-7">
+                                 <span>Gen. 1 phase 1 coil</span><span class="pull-right"><strong data-bind="text: it.temp_gen_coil1()"></strong></span>
+                                 <hr class="borderGrey">
+                                 <span >Gen. 1 phase 2 coil</span><span class="pull-right"><strong data-bind="text: it.temp_gen_coil2()"></strong></span>
+                                 <hr class="borderGrey">
+                                 <span>Gen. 1 phase 3 coil</span><span class="pull-right"><strong data-bind="text: it.temp_gen_coil3()"></strong></span>
+                             </div>
+                              <div class="col-md-5 border-left-grey">
+                                 <span><strong>Gen. bearing  : </strong></span>
+                                  <hr class="borderGrey">
+                                 <span>Drive</span><span class="pull-right"><strong data-bind="text: it.temp_gen_bearing_driven()"></strong></span>
+                                 <hr class="borderGrey">
+                                 <span >Non-drive</span><span class="pull-right"><strong data-bind="text: it.temp_gen_bearing_non_driven()"></strong></span>
+                             </div>
                         </div>
-                        <div class="col-md-12 vibrations">
-                            <h5><strong>Vibrations</strong></h5>
-                            <div class="list-group">
-                                <div class="list-group-item list-turbine-item">
-                                    <div class="form-group-turbine row">
-                                        <label class="col-md-8 col-xs-9 turbine-item-label">Drive train</label>
-                                        <div class="col-md-4 col-xs-3">
-                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.drive_train_vibra()"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12">
+                            <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong><span class="pull-right badge bg-light-blue" data-bind="text: it.drive_train_vibra()"></span></h5>
                         </div>
+                        <hr class="borderGrey">
+                         <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12">
                             <div class="col-md-8 text-center">
                                 <span><strong>Rotor (RPM)</strong></span>
