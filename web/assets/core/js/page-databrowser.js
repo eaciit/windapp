@@ -264,16 +264,18 @@ dbr.Scada = function() {
             if (!app.isFine(res)) {
                 return;
             }
-            if (res.data.ScadaDataOEM.length == 0) {
-                res.data.ScadaDataOEM = [];
-            } else {
-                if (res.data.ScadaDataOEM.length > 0) {
-                    var minDatetemp = new Date(res.data.ScadaDataOEM[0]);
-                    var maxDatetemp = new Date(res.data.ScadaDataOEM[1]);
-                    availDateList.availabledatestartscadadataoem = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendscadadataoem = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartscadadataoem);
-                    $('#availabledateend').html(availDateList.availabledateendscadadataoem);
+            if (res.data.ScadaDataOEM != "undefined") {
+                if (res.data.ScadaDataOEM.length == 0) {
+                    res.data.ScadaDataOEM = [];
+                } else {
+                    if (res.data.ScadaDataOEM.length > 0) {
+                        var minDatetemp = new Date(res.data.ScadaDataOEM[0]);
+                        var maxDatetemp = new Date(res.data.ScadaDataOEM[1]);
+                        availDateList.availabledatestartscadadataoem = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
+                        availDateList.availabledateendscadadataoem = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
+                        $('#availabledatestart').html(availDateList.availabledatestartscadadataoem);
+                        $('#availabledateend').html(availDateList.availabledateendscadadataoem);
+                    }
                 }
             }
         });
@@ -294,18 +296,20 @@ dbr.ScadaHFD = function() {
             if (!app.isFine(res)) {
                 return;
             }
-            if (res.data.ScadaDataHFD.length == 0) {
-                res.data.ScadaDataHFD = [];
-            } else {
-                if (res.data.ScadaDataHFD.length > 0) {
-                    var minDatetemp = new Date(res.data.ScadaDataHFD[0]);
-                    var maxDatetemp = new Date(res.data.ScadaDataHFD[1]);
-                    availDateList.availabledatestartscadadatahfd = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendscadadatahfd = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartscadadatahfd);
-                    $('#availabledateend').html(availDateList.availabledateendscadadatahfd);
-                }
-            }         
+            if (res.data.ScadaDataHFD != "undefined"){
+                if (res.data.ScadaDataHFD.length == 0) {
+                    res.data.ScadaDataHFD = [];
+                } else {
+                    if (res.data.ScadaDataHFD.length > 0) {
+                        var minDatetemp = new Date(res.data.ScadaDataHFD[0]);
+                        var maxDatetemp = new Date(res.data.ScadaDataHFD[1]);
+                        availDateList.availabledatestartscadadatahfd = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
+                        availDateList.availabledateendscadadatahfd = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
+                        $('#availabledatestart').html(availDateList.availabledatestartscadadatahfd);
+                        $('#availabledateend').html(availDateList.availabledateendscadadatahfd);
+                    }
+                }   
+            }      
         });
     } else {
         $('#availabledatestart').html(availDateList.availabledatestartscadadatahfd);
@@ -761,7 +765,7 @@ function DataBrowserExporttoExcel(functionName) {
 dbr.exportToExcel = function(idGrid){
     app.loading(true);
     setTimeout(function(){
-        $("#"+idGrid).getKendoGrid().saveAsExcel()
+        $("#"+idGrid).getKendoGrid().saveAsExcel();
         app.loading(false);
     },500);
 }

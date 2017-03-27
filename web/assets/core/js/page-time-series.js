@@ -3,7 +3,7 @@
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
 var maxSelectedItems = 4;
-var defaultHour = 1;
+var defaultHour = 5*24;
 
 pg.tags = ko.observableArray();
 
@@ -54,7 +54,8 @@ var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 var seriesOri = [];
-
+var hourBefore = 0;
+var date1Before, date2Before;
 var breaks = [];    
 
 var yAxis = [];
@@ -142,53 +143,68 @@ pg.getLocalSeries = function(startInt, endInt){
 
 pg.createStockChart = function(y){
     function afterSetExtremes(e) {
-        var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
-        var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
-        
-        var hours = Math.abs(date1 - date2) / 36e5;
-        if (hours <= defaultHour) {
-            pg.dataType("SEC");
-        }else{
-            pg.dataType("MIN");
-        }
+        if (pageType != "OEM") {
+            var date1 = new Date(new Date(Math.round(e.min)).toUTCString())
+            var date2 = new Date(new Date(Math.round(e.max)).toUTCString())
+            
+            var hours = Math.abs(date1 - date2) / 36e5;
 
-        if (hours <= defaultHour) {
-            chart.showLoading('Loading data from server...');
-            var param = {
-                period: fa.period,
-                Turbine: [fa.turbine],
-                DateStart: date1,
-                DateEnd: date2,
-                Project: fa.project,
-                PageType: pg.pageType(),
-                DataType: pg.dataType() ,
-                TagList : pg.TagList(),
-                IsHour : true,
-            };
+            // console.log("hours: "+hours);
 
-            var url = "timeseries/getdatahfd";
-            toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
+            if (hours <= defaultHour) {
+                pg.dataType("SEC");
+            }else{
+                pg.dataType("MIN");
+            }
 
-                var data = res.data.Data.Chart;
-                var periods = res.data.Data.PeriodList;
+            if (hourBefore == 0){
+                hourBefore = hours;
+                date1Before = date1;
+                date2Before = date2;
+            }
 
-                pg.generateSeriesOption(data, periods);
-                $.each(seriesOptions, function(id, val){
-                    chart.series[id].setData(val.data, true, true, false);
+            if ((hours <= defaultHour && hourBefore>defaultHour) || ((date1<date1Before && hours <= defaultHour) || (date2>date2Before && hours <= defaultHour)) ) {
+                chart.showLoading('Loading data from server...');
+                var param = {
+                    period: fa.period,
+                    Turbine: [fa.turbine],
+                    DateStart: date1,
+                    DateEnd: date2,
+                    Project: fa.project,
+                    PageType: pg.pageType(),
+                    DataType: pg.dataType() ,
+                    TagList : pg.TagList(),
+                    IsHour : true,
+                };
+
+                var url = "timeseries/getdatahfd";
+                toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
+
+                    var data = res.data.Data.Chart;
+                    var periods = res.data.Data.PeriodList;
+
+                    pg.generateSeriesOption(data, periods);
+                    $.each(seriesOptions, function(id, val){
+                        chart.series[id].setData(val.data, true, true, false);
+                    });
+
+                    chart.xAxis[0].update({
+                        minRange: 5*1000,
+                    })
+
+                    chart.hideLoading();
                 });
+            }else if (hours > defaultHour) {
+                // console.log(e.min+" - "+e.max);
+                pg.getLocalSeries(e.min, e.max);
+            }
 
-                chart.xAxis[0].update({
-                    minRange: 5*1000,
-                })
-
-                chart.hideLoading();
-            });
-        }else {
-            // console.log(e.min+" - "+e.max);
-            pg.getLocalSeries(e.min, e.max);
+            hourBefore = hours;
+            date1Before = date1;
+            date2Before = date2;
         }
     }
 
@@ -197,7 +213,7 @@ pg.createStockChart = function(y){
 
     var minRange = 600 * 1000;
     if(pg.dataType() == 'SEC'){
-        var minRange = 5 * 1000;
+        minRange = 5 * 1000;
     }
 
     Highcharts.setOptions({
@@ -210,7 +226,7 @@ pg.createStockChart = function(y){
     });
 
     chart = Highcharts.stockChart('chartTimeSeries', {
-         legend: {
+        legend: {
             symbolHeight: 12,
             symbolWidth: 12,
             symbolRadius: 6,
@@ -222,7 +238,7 @@ pg.createStockChart = function(y){
             borderWidth: 0,
             marginTop: -70,
         },
-         rangeSelector: {
+        rangeSelector: {
             buttons: [{
                 type: 'hour',
                 count: 1,
@@ -267,7 +283,7 @@ pg.createStockChart = function(y){
         },
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
-        series: {
+            series: {
                 lineWidth: 1,
                 states: {
                     hover: {
@@ -281,14 +297,13 @@ pg.createStockChart = function(y){
                         return false;
                     }
                 }
-            }
+            },
         },
         series: seriesOptions,
     });
 
     // seriesOri = chart.series;
 }
-
 
 pg.getTimestamp = function(param){
   var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
@@ -303,7 +318,7 @@ pg.getTimestamp = function(param){
 }
 
 pg.hidePopover = function(){
-  $('.popover-markup>.trigger').popover('hide');
+    $('.popover-markup>.trigger').popover('hide');
 }
 
 pg.getDataStockChart = function(param, idBtn){
@@ -322,13 +337,19 @@ pg.getDataStockChart = function(param, idBtn){
     var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
     var now = new Date()
-    fa.dateEnd = new Date();
-    fa.dateStart  = new Date(now.setMonth(now.getMonth() - 6));
 
     if(pg.isFirst() == true){
       fa.period = "custom";
     }
 
+    if(pg.pageType() == 'HFD'){
+        fa.dateEnd = new Date();
+        fa.dateStart  = new Date(now.setMonth(now.getMonth() - 24));
+        
+        date1Before = fa.dateStart;
+        date2Before = fa.dateEnd;
+        hourBefore = Math.abs(date1Before - date2Before) / 36e5;
+    }
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
 
@@ -359,8 +380,12 @@ pg.getDataStockChart = function(param, idBtn){
     var url = "timeseries/getdatahfd";
     if($('input[name="chk-column-live"]:checked').length > 0){
         pg.live(true);
+        pg.rangeData(true);
+        pg.errorValue(true);
     }else{
         pg.live(false);
+        pg.rangeData(true);
+        pg.errorValue(true);
     }
 
 
@@ -407,12 +432,12 @@ pg.getDataStockChart = function(param, idBtn){
            app.loading(false);
          },200);
 
-        if(pg.dataType() == "SEC"){
-          setTimeout(function(){
-            pg.prepareScroll();
-          },500);
+        // if(pg.dataType() == "SEC"){
+        //   setTimeout(function(){
+        //     pg.prepareScroll();
+        //   },500);
 
-        }
+        // }
     });
 }
 
@@ -426,22 +451,58 @@ pg.createLiveChart = function(IsHour){
         TagList : pg.TagList(),
         IsHour : IsHour,
     };
-    toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
+
+    var dateStart, dateEnd; 
+    $("#chartTimeSeries").html("");
+        toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
-       var seriesField = [];
-        $("#chartTimeSeries").html("");
-        Highcharts.setOptions({
-             style: {
-                fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            zoomType: 'x',
-        });
 
-        Highcharts.chart('chartTimeSeries', {
-            chart: {
+        var data = res.data.Data.Chart;
+        var periods = res.data.Data.PeriodList;
+
+        dateStart = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
+        dateEnd = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
+
+        console.log(dateEnd);
+
+        breaks = res.data.Data.Breaks;
+
+        pg.generateSeriesOption(data, periods);
+        
+        if (param=="first" || param=="refresh"){
+            if (sessionStorage.seriesOri){
+                sessionStorage.seriesOri = null;
+            }
+            
+            $.each(seriesOptions,function(idx, val){
+                if (val.data != null){
+                    var valx = val.data.slice(idx);
+                    seriesOri[idx] = valx;
+                }
+            });
+
+            sessionStorage.seriesOri = JSON.stringify(seriesOri);
+            seriesOri = [];
+        }
+
+       
+        $("#chartTimeSeries").html("");
+
+        var minRange = 600 * 1000;
+        if(pg.dataType() == 'SEC'){
+            minRange = 5 * 1000;
+        }
+
+
+        chart = Highcharts.stockChart('chartTimeSeries', {
+             chart: {
+                tyle: {
+                    fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                zoomType: 'x',
                 type: 'spline',
                 marginRight: 10,
                 events: {
@@ -450,8 +511,8 @@ pg.createLiveChart = function(IsHour){
                             var paramX = {
                                 period: fa.period,
                                 Turbine: [fa.turbine],
-                                DateStart: new Date(),
-                                DateEnd: new Date(),
+                                DateStart: dateStart,
+                                DateEnd: dateEnd,
                                 Project: fa.project,
                                 PageType: "LIVE",
                                 DataType: pg.dataType() ,
@@ -464,46 +525,119 @@ pg.createLiveChart = function(IsHour){
                                     return;
                                 }
 
-                                console.log(res.data);
+                                var seriesData = chart.series; 
+                                var results = res.data.Data.Chart;
+                                if(results.length > 0){
+                                    dateStart = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
+                                    dateEnd = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
+                                    $.each(seriesOptions, function(i, res){
+                                       $.each(results, function(id, val){
+                                            if(res.name == val.name){
+                                                var x = (new Date()).getTime();
+                                                chart.series[i].addPoint(val.data, true, true);
+                                            }
+                                       })
+                                    });
+                                    console.log(dateEnd);
+                                }else{
+                                    console.log(dateEnd);
+                                    return false;
+                                }
+
                             });
                         }, 5000);
                     }
                 }
             },
-            xAxis: {
-                type: 'datetime',
-                tickPixelInterval: 150
+             legend: {
+                symbolHeight: 12,
+                symbolWidth: 12,
+                symbolRadius: 6,
+                enabled: true,
+                floating: false,
+                align: 'center',
+                verticalAlign: 'top',
+                labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                borderWidth: 0,
+                marginTop: -70,
             },
-            yAxis: {
-                title: {
-                    text: 'Value'
-                },
-                plotLines: [{
-                    value: 0,
-                    width: 1,
-                    color: '#808080'
-                }]
+             rangeSelector: {
+                buttons: [{
+                    type: 'hour',
+                    count: 1,
+                    text: '1h'
+                }, {
+                    type: 'day',
+                    count: 1,
+                    text: '1d'
+                }, {
+                    type: 'month',
+                    count: 1,
+                    text: '1m'
+                }, {
+                    type: 'year',
+                    count: 1,
+                    text: '1y'
+                }, {
+                    type: 'all',
+                    text: 'All'
+                }],
+                inputEnabled: true,
+                selected: 2 ,// all,
+                y: 50
             },
-            tooltip: {
-                formatter: function () {
-                    return '<b>' + this.series.name + '</b><br/>' +
-                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                        Highcharts.numberFormat(this.y, 2);
+            navigator: {
+                adaptToUpdatedData: false,
+                series: {
+                    color: '#999',
+                    lineWidth: 1
                 }
             },
-            legend: {
-                enabled: false
-            },
             exporting: {
-                enabled: false
+              enabled: false
             },
-            series: seriesField
+            xAxis: {
+                type: 'datetime',
+                breaks: breaks,
+                dateTimeLabelFormats : {
+                    millisecond: '%H:%M:%S.%L',
+                    second: '%H:%M:%S',
+                    minute: '%H:%M',
+                    hour: '%H:%M',
+                    day: '%e. %b',
+                    week: '%e. %b',
+                    month: '%b \'%y',
+                    year: '%Y'
+                },
+                // minRange: 5*1000,
+            },
+            yAxis: yAxis,
+            plotOptions: {
+            series: {
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            lineWidth: 2
+                        }
+                    },
+                    events: {
+                        legendItemClick: function () {
+                            pg.hideLegendByName(this.name);
+                            return false;
+                        }
+                    }
+                }
+            },
+            series: seriesOptions,
         });
     });
     
 }
 pg.generateSeriesOption = function(data, periods){
     var IsHour = (pg.isFirst() == true ? false : true);
+    var IsGroup = (pg.dataType() == "SEC" ? false : true);
+    console.log("isgroup: "+IsGroup);
 
     if(!IsHour){
         pg.periodList(periods);             
@@ -546,6 +680,10 @@ pg.generateSeriesOption = function(data, periods){
             showInNavigator: true,
             tooltip: {
                 valueSuffix: val.unit
+            },
+            dataGrouping:{
+                enabled: IsGroup,
+                // units: [["day",[1]],["weel",[1]],["month",[1]]],
             }
         }      
 
@@ -587,8 +725,8 @@ pg.generateSeriesOption = function(data, periods){
                 },
                 forced: true
             },
-            // showInNavigator: true,
-            // onSeries: "series"+idx,                
+            showInNavigator: true,
+            onSeries: "series"+idx,                
         }
 
         xCounter+=1;
@@ -707,6 +845,8 @@ $(document).ready(function () {
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");
+        pg.rangeData(true);
+        pg.errorValue(true);
     });
 
     setTimeout(function () {

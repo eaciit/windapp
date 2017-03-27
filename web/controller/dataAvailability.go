@@ -61,6 +61,7 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 
 	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_OEM"))
 	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_HFD"))
+	result = append(result, getAvailCollection(project, turbine, "MET_TOWER"))
 
 	for {
 		months = append(months, from.Format("Jan"))
@@ -229,7 +230,12 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 			}
 		}
 
-		return tk.M{"Category": name, "Turbine": res, "Data": datas}
+		if collType != "MET_TOWER" {
+			return tk.M{"Category": name, "Turbine": res, "Data": datas}
+		} else {
+			return tk.M{"Category": name, "Turbine": []tk.M{}, "Data": datas}
+		}
+
 	}
 
 	return nil
