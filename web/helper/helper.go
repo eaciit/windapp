@@ -585,6 +585,21 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	return
 }
 
+func GetAllTurbineList() (result []toolkit.M, e error) {
+	csr, e := DB().Connection.
+		NewQuery().
+		From("ref_turbine").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+	e = csr.Fetch(&result, 0, false)
+
+	return
+}
+
 func GetProjectList() (result []string, e error) {
 	csr, e := DB().Connection.NewQuery().From("ref_project").Cursor(nil)
 

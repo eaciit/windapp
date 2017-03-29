@@ -14,6 +14,7 @@ import (
 	tk "github.com/eaciit/toolkit"
 
 	"bufio"
+	c "github.com/eaciit/crowd"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -36,17 +37,254 @@ var (
 	defaultValue = -999999.0
 )
 
-type MiniScada struct {
-	NacellePosition float64
-	WindSpeed       float64
-	Turbine         string
+type MiniScadaHFD struct {
+	Slow_Nacellepos    float64
+	Fast_Windspeed_Ms  float64
+	Slow_Winddirection float64
+	Turbine            string
+}
+
+func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type PayloadWSMonitoring struct {
+		Project   string
+		Turbine   string
+		BreakDown int
+	}
+
+	p := new(PayloadWSMonitoring)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	var tStart, tEnd time.Time
+	now := time.Now().UTC()
+	// now := time.Date(2017, 3, 8, 9, 20, 0, 0, time.UTC)
+	last := now.AddDate(0, 0, -24)
+
+	tStart, _ = time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ = time.Parse("20060102", now.Format("200601")+"01")
+
+	section = p.BreakDown
+	getFullWSCategory()
+
+	query := []tk.M{}
+	pipes := []tk.M{}
+	query = append(query, tk.M{"_id": tk.M{"$ne": nil}})
+	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"timestamp": tk.M{"$lt": tEnd}})
+
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		query = append(query, tk.M{"projectname": strings.TrimRight(anProject[0], " ")})
+	}
+
+	data := []MiniScadaHFD{}
+	_data := MiniScadaHFD{}
+
+	turbineVal := p.Turbine
+
+	pipes = []tk.M{}
+	data = []MiniScadaHFD{}
+	queryT := query
+	queryT = append(queryT, tk.M{"turbine": turbineVal})
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": queryT}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"slow_nacellepos": 1, "fast_windspeed_ms": 1, "slow_winddirection": 1}})
+	csr, _ := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).
+		Command("pipe", pipes).Cursor(nil)
+
+	for {
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		data = append(data, _data)
+	}
+	csr.Close()
+	dataNacelle := GenerateWindRose(data, "nacelle", turbineVal)
+	dataWindDir := GenerateWindRose(data, "winddir", turbineVal)
+	datas := tk.M{
+		"nacelle": dataNacelle,
+		"winddir": dataWindDir,
+	}
+
+	return helper.CreateResult(true, datas, "success")
+
+}
+
+func GenerateWindRose(data []MiniScadaHFD, tipe, turbineVal string) tk.M {
+	WsMonitoringRes := []tk.M{}
+	maxValue := 0.0
+	tkMaxVal := tk.M{}
+	groupdata := tk.M{}
+	if tk.SliceLen(data) > 0 {
+		totalDuration := float64(len(data)) /* Tot data * 2 for get total minutes*/
+		datas := c.From(&data).Apply(func(x interface{}) interface{} {
+			dt := x.(MiniScadaHFD)
+			var di DataItems
+			var dirNo, dirDesc int
+
+			if tipe == "nacelle" {
+				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos, section)
+			} else {
+				dirNo, dirDesc = getDirection(dt.Slow_Winddirection, section)
+			}
+
+			wsNo, wsDesc := getWsCategory(dt.Fast_Windspeed_Ms)
+
+			di.DirectionNo = dirNo
+			di.DirectionDesc = dirDesc
+			di.WsCategoryNo = wsNo
+			di.WsCategoryDesc = wsDesc
+			di.Frequency = 1
+
+			return di
+		}).Exec().Group(func(x interface{}) interface{} {
+			dt := x.(DataItems)
+
+			var dig DataItemsGroup
+			dig.DirectionNo = dt.DirectionNo
+			dig.DirectionDesc = dt.DirectionDesc
+			dig.WsCategoryNo = dt.WsCategoryNo
+			dig.WsCategoryDesc = dt.WsCategoryDesc
+
+			return dig
+		}, nil).Exec()
+
+		dts := datas.Apply(func(x interface{}) interface{} {
+			kv := x.(c.KV)
+			vv := kv.Key.(DataItemsGroup)
+			vs := kv.Value.([]DataItems)
+
+			sumFreq := c.From(&vs).Sum(func(x interface{}) interface{} {
+				dt := x.(DataItems)
+				return dt.Frequency
+			}).Exec().Result.Sum
+
+			var di DataItemsResult
+
+			di.DirectionNo = vv.DirectionNo
+			di.DirectionDesc = vv.DirectionDesc
+			di.WsCategoryNo = vv.WsCategoryNo
+			di.WsCategoryDesc = vv.WsCategoryDesc
+			di.Hours = tk.Div(sumFreq, 6.0)
+			di.Contribution = tk.RoundingAuto64(tk.Div(sumFreq, totalDuration)*100.0, 2)
+
+			key := turbineVal + "_" + tk.ToString(di.DirectionNo)
+
+			if !tkMaxVal.Has(key) {
+				tkMaxVal.Set(key, di.Contribution)
+			} else {
+				tkMaxVal.Set(key, tkMaxVal.GetFloat64(key)+di.Contribution)
+			}
+
+			di.Frequency = int(sumFreq)
+
+			return di
+		}).Exec()
+
+		results := dts.Result.Data().([]DataItemsResult)
+		wsCategoryList := []string{}
+		for _, dataRes := range results {
+			wsCategoryList = append(wsCategoryList, tk.ToString(dataRes.DirectionNo)+
+				"_"+tk.ToString(dataRes.WsCategoryNo)+"_"+dataRes.WsCategoryDesc)
+		}
+		splitCatList := []string{}
+		for _, wsCat := range fullWSCatList {
+			if !tk.HasMember(wsCategoryList, wsCat) {
+				splitCatList = strings.Split(wsCat, "_")
+				emptyRes := DataItemsResult{}
+				emptyRes.DirectionNo = tk.ToInt(splitCatList[0], tk.RoundingAuto)
+				divider := section
+
+				emptyRes.DirectionDesc = (360 / divider) * emptyRes.DirectionNo
+				emptyRes.WsCategoryNo = tk.ToInt(splitCatList[1], tk.RoundingAuto)
+				emptyRes.WsCategoryDesc = splitCatList[2]
+				results = append(results, emptyRes)
+			}
+		}
+		groupdata.Set("Data", results)
+
+		WsMonitoringRes = append(WsMonitoringRes, groupdata)
+	} else {
+		splitCatList := []string{}
+		results := []DataItemsResult{}
+		for _, wsCat := range fullWSCatList {
+			splitCatList = strings.Split(wsCat, "_")
+			emptyRes := DataItemsResult{}
+			emptyRes.DirectionNo = tk.ToInt(splitCatList[0], tk.RoundingAuto)
+			divider := section
+
+			emptyRes.DirectionDesc = (360 / divider) * emptyRes.DirectionNo
+			emptyRes.WsCategoryNo = tk.ToInt(splitCatList[1], tk.RoundingAuto)
+			emptyRes.WsCategoryDesc = splitCatList[2]
+			results = append(results, emptyRes)
+		}
+		groupdata.Set("Data", results)
+		WsMonitoringRes = append(WsMonitoringRes, groupdata)
+	}
+
+	for _, val := range tkMaxVal {
+		if val.(float64) > maxValue {
+			maxValue = val.(float64)
+		}
+	}
+
+	switch {
+	case maxValue >= 90 && maxValue <= 100:
+		maxValue = 100
+	case maxValue >= 80 && maxValue < 90:
+		maxValue = 90
+	case maxValue >= 70 && maxValue < 80:
+		maxValue = 80
+	case maxValue >= 60 && maxValue < 70:
+		maxValue = 70
+	case maxValue >= 50 && maxValue < 60:
+		maxValue = 60
+	case maxValue >= 40 && maxValue < 50:
+		maxValue = 50
+	case maxValue >= 30 && maxValue < 40:
+		maxValue = 40
+	case maxValue >= 20 && maxValue < 30:
+		maxValue = 30
+	case maxValue >= 10 && maxValue < 20:
+		maxValue = 20
+	case maxValue >= 0 && maxValue < 10:
+		maxValue = 10
+	}
+
+	result := tk.M{
+		"WindRose": WsMonitoringRes,
+		"MaxValue": maxValue,
+	}
+
+	return result
 }
 
 func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	results := c.GetMonitoringByProjectV2("Tejuva")
+	p := struct {
+		Project string
+	}{}
+
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	} else {
+		project = "Tejuva"
+	}
+
+	results := c.GetMonitoringByProjectV2(project)
 
 	return helper.CreateResult(true, results, "success")
 }
@@ -315,6 +553,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	k.Config.NoLog = true
 
 	p := struct {
+		Project string
 		Turbine string
 	}{}
 
@@ -324,7 +563,15 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	timemax := getMaxRealTime("Tejuva", p.Turbine).UTC()
+	project := ""
+	if p.Project != "" {
+		anProject := strings.Split(p.Project, "(")
+		project = strings.TrimRight(anProject[0], " ")
+	} else {
+		project = "Tejuva"
+	}
+
+	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
@@ -353,7 +600,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		"Tower vibration": "",
 	}
 
-	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", "Tejuva")
+	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", project)
 	for key, str := range arrlabel {
 		if !alldata.Has(key) {
 			alldata.Set(key, defaultValue)
