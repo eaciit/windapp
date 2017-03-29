@@ -11,6 +11,7 @@ vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Individual Turbine', href: viewModel.appName + 'page/monitoringindividualturbine' }]);
 var intervalTurbine = null;
+var chart;
 it.projectList = ko.observableArray([]);
 it.project = ko.observable();
 
@@ -76,6 +77,16 @@ it.ChangeSelection = function() {
 it.GetData = function(turbine) {
     var param = { Turbine: turbine }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
+
+        var time = (new Date).getTime();
+        console.log(time);
+        it.dataWindspeed([time, parseInt(res.data["Wind speed Avg"].toFixed(2))]);
+        it.dataPower([time, parseInt(res.data["Power"].toFixed(2))]);
+
+        if(it.isFirst() == false){
+            chart.series[0].addPoint([time, parseInt(res.data["Wind speed Avg"].toFixed(2))], true, false);  
+            chart.series[1].addPoint([time, parseInt(res.data["Power"].toFixed(2))], true, false); 
+        }
         it.PlotData(res.data);
     });
 };
@@ -139,8 +150,24 @@ it.temp_main_bear = ko.observable('');
 it.damper_osci_mag = ko.observable('');
 it.drive_train_vibra = ko.observable('');
 it.tower_vibra = ko.observable('');
+it.isFirst = ko.observable(true);
+
+it.dataWindspeed = ko.observableArray([]);
+it.dataPower = ko.observableArray([]);
 
 it.rotor_status = ko.observable("N/A");
+
+it.getTimestamp = function(param){
+  var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
+      dateTimeParts = dateString.split(' '),
+      timeParts = dateTimeParts[1].split(':'),
+      dateParts = dateTimeParts[0].split('-'),
+      date;
+
+      date = new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, dateParts[0], timeParts[0], timeParts[1]);
+
+      return date.getTime();
+}
 
 it.PlotData = function(data) {
     var lastUpdate = moment.utc(data["lastupdate"]);
@@ -269,7 +296,7 @@ it.PlotData = function(data) {
     else it.power_react('N/A');
     if(data["Freq. Grid"] != -999999)
         it.freq_grid(data["Freq. Grid"].toFixed(2));
-    else it.freq_grid('N/A');
+    else it.freq_grid('N/A'); 
 
     /*DFIG PART*/
     if(data["DFIG active power"] != -999999)
@@ -376,7 +403,6 @@ it.PlotData = function(data) {
     if(data["Tower vibration"] != -999999)
         it.tower_vibra(data["Tower vibration"].toFixed(2));
     else it.tower_vibra('N/A');
-
 
     it.changeRotation();
 };
@@ -513,11 +539,6 @@ it.showWindspeedColumnChart = function(){
 
 }
 it.showWindspeedLiveChart = function(){
-    Highcharts.setOptions({
-        global: {
-            useUTC: false
-        }
-    });
 
     Highcharts.setOptions({
         chart: {
@@ -526,26 +547,17 @@ it.showWindspeedLiveChart = function(){
                 fontSize: '12px',
                 fontWeight: 'normal',
             },
+        },
+        global: {
+            useUTC: false
         }
     });
-    
-    Highcharts.stockChart('container', {
+
+    chart = Highcharts.stockChart('container', {
         chart: {
             marginTop: 50,
             height: 200,
             width: 340,
-            events: {
-                load: function () {
-
-                    // set up the updating of the chart each second
-                    var series = this.series[0];
-                    setInterval(function () {
-                        var x = (new Date()).getTime(), // current time
-                            y = Math.round(Math.random() * 100);
-                        series.addPoint([x, y], true, true);
-                    }, 1000);
-                }
-            }
         },
         credits: {
               enabled: false
@@ -609,37 +621,11 @@ it.showWindspeedLiveChart = function(){
         series: [{
             color: colorField[0],
             name: 'Wind Speed',
-            data: (function () {
-                // generate an array of random data
-                var data = [],
-                    time = (new Date()).getTime(),
-                    i;
-
-                for (i = -999; i <= 0; i += 1) {
-                    data.push([
-                        time + i * 1000,
-                        Math.round(Math.random() * 100)
-                    ]);
-                }
-                return data;
-            }())
+            data: [it.dataWindspeed()]
         },{
             name: 'Power',
             color: colorField[1],
-            data: (function () {
-                // generate an array of random data
-                var data = [],
-                    time = (new Date()).getTime(),
-                    i;
-
-                for (i = -999; i <= 0; i += 1) {
-                    data.push([
-                        time + i * 1000,
-                        Math.round(Math.random() * 100)
-                    ]);
-                }
-                return data;
-            }())
+            data: [it.dataPower()]
         }]
     });
 
@@ -784,11 +770,11 @@ it.changeRotation = function(){
 $(document).ready(function(){
     app.loading(true);
     it.showWindRoseChart();
-    it.showWindspeedLiveChart();
-    it.showWindspeedColumnChart();
 
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
+            it.showWindspeedLiveChart();
+            it.isFirst(false);
             app.loading(false);
         }, 1000);
     });
