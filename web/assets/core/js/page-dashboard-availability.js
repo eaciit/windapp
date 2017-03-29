@@ -1727,7 +1727,7 @@ avail.DTTurbines = function () {
             return;
         }
 
-        if (res.data.length == 0){
+        if (res.data == null){
             $("#dtturbines").html("<center><h2>NONE</h2></center>");
         }else{
             $.each(res.data, function (idx, val) {
