@@ -165,6 +165,8 @@ it.PlotData = function(data) {
         it.windspeed2(data["Wind speed 2"].toFixed(2));
     else it.windspeed2('N/A');
 
+    it.showWindspeedColumnChart();
+
     /*WIND DIRECTION PART*/
     if(data["Wind Direction"] != -999999)
         it.wind_dir(data["Wind Direction"].toFixed(2));
@@ -189,6 +191,8 @@ it.PlotData = function(data) {
     if(data["DFIG speed generator encoder"] != -999999)
         it.speed_gen(data["DFIG speed generator encoder"].toFixed(2));
     else it.speed_gen('N/A');
+
+    it.showRotor();
 
     /*BLADE ANGLE PART*/
     if(data["Blade Angle 1"] != -999999)
@@ -305,6 +309,7 @@ it.PlotData = function(data) {
         it.rotor_b_cur(data["Roter B current"].toFixed(2));
     else it.rotor_b_cur('N/A');
 
+
     /*PRODUCTION PART*/
     if(data["Production"] != -999999)
         it.production(data["Production"].toFixed(2));
@@ -371,6 +376,9 @@ it.PlotData = function(data) {
     if(data["Tower vibration"] != -999999)
         it.tower_vibra(data["Tower vibration"].toFixed(2));
     else it.tower_vibra('N/A');
+
+
+    it.changeRotation();
 };
 
 it.LoadData = function(turbine) {
@@ -438,26 +446,30 @@ it.showWindspeedColumnChart = function(){
           height : 125
         },
         pointer: {
-            value: 65,
+            value: it.windspeed_avg(),
             shape: "arrow"
         },
-
         scale: {
-            majorUnit: 40,
+            majorUnit: 10,
             minorUnit: 5,
-            max: 180,
+            // max: 180,
             ranges: [
                 {
-                    from: 80,
-                    to: 120,
+                    from: 30,
+                    to: 50,
+                    color : "#8dcb2a"
+                },
+                {
+                    from: 20,
+                    to: 30,
                     color: "#ffc700"
                 }, {
-                    from: 120,
-                    to: 150,
+                    from: 10,
+                    to: 20,
                     color: "#ff7a00"
                 }, {
-                    from: 150,
-                    to: 180,
+                    from: 0,
+                    to: 10,
                     color: "#c20000"
                 }
             ]
@@ -469,26 +481,30 @@ it.showWindspeedColumnChart = function(){
           height : 125
         },
         pointer: {
-            value: 65,
+            value: it.power(),
             shape: "arrow"
         },
-
         scale: {
-            majorUnit: 80,
             minorUnit: 5,
-            max: 180,
+            // max: 180,
+            majorUnit: 10,
             ranges: [
                 {
-                    from: 80,
-                    to: 120,
+                    from: 30,
+                    to: 50,
+                    color : "#8dcb2a"
+                },
+                {
+                    from: 20,
+                    to: 30,
                     color: "#ffc700"
                 }, {
-                    from: 120,
-                    to: 150,
+                    from: 10,
+                    to: 20,
                     color: "#ff7a00"
                 }, {
-                    from: 150,
-                    to: 180,
+                    from: 0,
+                    to: 10,
                     color: "#c20000"
                 }
             ]
@@ -512,12 +528,12 @@ it.showWindspeedLiveChart = function(){
             },
         }
     });
-    // Create the chart
+    
     Highcharts.stockChart('container', {
         chart: {
             marginTop: 50,
             height: 200,
-            width: 350,
+            width: 340,
             events: {
                 load: function () {
 
@@ -634,14 +650,14 @@ it.showRotor = function(){
         title: "Rotor RPM",
         theme: "flat",
         pointer: {
-            value: 65
+            value: it.rotor_rpm()
         },
         gaugeArea: {
           height : 125,
         },
         scale: {
-            majorUnit: 80,
             minorUnit: 5,
+            majorUnit: 40,
             startAngle: -30,
             endAngle: 210,
             max: 180,
@@ -649,17 +665,22 @@ it.showRotor = function(){
                 position: "inside"
             },
             ranges: [
+                 {
+                    from: 100,
+                    to: 160,
+                    color : "#8dcb2a"
+                },
                 {
-                    from: 80,
-                    to: 120,
+                    from: 60,
+                    to: 100,
                     color: "#ffc700"
                 }, {
-                    from: 120,
-                    to: 150,
+                    from: 20,
+                    to: 60,
                     color: "#ff7a00"
                 }, {
-                    from: 150,
-                    to: 180,
+                    from: 0,
+                    to: 20,
                     color: "#c20000"
                 }
             ]
@@ -745,12 +766,26 @@ it.showWindRoseChart = function(){
     });
 }
 
+it.ToTimeSeriesHfd = function() {
+    var turbine = $("#turbine").val();
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
+    window.location = viewModel.appName + "page/timeserieshfd";
+}
+
+it.changeRotation = function(){
+    $.each( $('.rotation'), function( key, value ) {
+        var deg = $(value).attr("rotationval")
+        $(value).attr("style", $(value).attr("style")+"-ms-transform: rotate("+deg+"deg);-webkit-transform: rotate("+deg+"deg);transform: rotate("+deg+"deg);");
+    });
+}
+
 $(document).ready(function(){
     app.loading(true);
     it.showWindRoseChart();
     it.showWindspeedLiveChart();
     it.showWindspeedColumnChart();
-    it.showRotor();
 
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
