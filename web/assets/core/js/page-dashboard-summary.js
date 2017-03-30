@@ -51,16 +51,19 @@ sum.loadData = function () {
             if (!app.isFine(res)) {
                 return;
             }
-            sum.dataSourceScada(res.data);
-            sum.PLF(res.data);
-            sum.LostEnergy(res.data);
-            sum.Windiness(res.data);
-            sum.ProdMonth(res.data);
-            sum.AvailabilityChart(res.data);
-            sum.ProdCurLast(res.data);
-            sum.indiaMap(project);
-            sum.isDetailProd(false);
-            sum.isDetailProdByProject(false);
+
+            if (res.data.length > 0 ){
+                sum.dataSourceScada(res.data);
+                sum.PLF(res.data);
+                sum.LostEnergy(res.data);
+                sum.Windiness(res.data);
+                sum.ProdMonth(res.data);
+                sum.AvailabilityChart(res.data);
+                sum.ProdCurLast(res.data);
+                sum.indiaMap(project);
+                sum.isDetailProd(false);
+                sum.isDetailProdByProject(false);
+            }
         });
 
 

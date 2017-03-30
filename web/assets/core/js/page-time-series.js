@@ -321,13 +321,33 @@ pg.hidePopover = function(){
     $('.popover-markup>.trigger').popover('hide');
 }
 
-pg.getDataStockChart = function(param, idBtn){
+pg.getDataStockChart = function(param){
     fa.LoadData();
     app.loading(true);
     clearInterval(interval);
     if(param == "selectTags"){
        pg.TagList($("#TagList").val());
        $('.popover-markup>.trigger').popover("hide");
+    }
+
+    var IsHour = (pg.isFirst() == true ? false : true);
+
+    var COOKIES = {};
+    var cookieStr = document.cookie;
+    var turbine = "";
+    
+    console.log(cookieStr);
+    if(cookieStr.indexOf("turbine=") >= 0) {
+        document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        cookieStr.split(/; /).forEach(function(keyValuePair) {
+            var cookieName = keyValuePair.replace(/=.*$/, "");
+            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+            COOKIES[cookieName] = cookieValue;
+        });
+        turbine = COOKIES["turbine"];
+        $('#turbineList').data('kendoDropDownList').value(turbine);
+    } else {
+        turbine = $('#turbineList').data('kendoDropDownList').value();
     }
 
     var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));
@@ -363,11 +383,9 @@ pg.getDataStockChart = function(param, idBtn){
     }
 
     // var IsHour = (param == 'detailPeriod' ? true : false);
-    var IsHour = (pg.isFirst() == true ? false : true);
-
     var paramX = {
         period: fa.period,
-        Turbine: [fa.turbine],
+        Turbine: [turbine],
         DateStart: dateStart,
         DateEnd: dateEnd,
         Project: fa.project,
@@ -403,9 +421,9 @@ pg.getDataStockChart = function(param, idBtn){
             pg.generateSeriesOption(data, periods);
             
             if (param=="first" || param=="refresh"){
-                if (sessionStorage.seriesOri){
-                    sessionStorage.seriesOri = null;
-                }
+                // if (sessionStorage.seriesOri){
+                    sessionStorage.seriesOri = [];
+                // }
                 
                 $.each(seriesOptions,function(idx, val){
                     if (val.data != null){
@@ -414,13 +432,14 @@ pg.getDataStockChart = function(param, idBtn){
                     }
                 });
 
-                sessionStorage.seriesOri = JSON.stringify(seriesOri);
-                seriesOri = [];
+                // if (seriesOri != null) {
+                    sessionStorage.seriesOri = JSON.stringify(seriesOri);
+                    seriesOri = [];    
+                // }
             }
 
             pg.createStockChart();
         });
-
     }else{
         pg.createLiveChart(IsHour);
     }
@@ -650,7 +669,7 @@ pg.generateSeriesOption = function(data, periods){
 
     $.each(data, function(idx, val){
         var isOpposite = false;
-        if (idx >= (maxSelectedItems/2)) {
+        if (idx >= (maxSelectedItems/2) || (idx == 1 && data.length==2)) {
             isOpposite = true;
         }
 
@@ -719,12 +738,12 @@ pg.generateSeriesOption = function(data, periods){
             yAxis: xCounter,
             id : "series_col"+idx,
             showInLegend : false,
-            dataGrouping: {
-                approximation: function () {
-                    return 100;
-                },
-                forced: true
-            },
+            // dataGrouping: {
+            //     approximation: function () {
+            //         return 100;
+            //     },
+            //     forced: true
+            // },
             showInNavigator: true,
             onSeries: "series"+idx,                
         }
