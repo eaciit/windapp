@@ -669,7 +669,7 @@ pg.generateSeriesOption = function(data, periods){
 
     $.each(data, function(idx, val){
         var isOpposite = false;
-        if (idx >= (maxSelectedItems/2)) {
+        if (idx >= (maxSelectedItems/2) || (idx == 1 && data.length==2)) {
             isOpposite = true;
         }
 
