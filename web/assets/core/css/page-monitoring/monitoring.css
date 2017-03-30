@@ -7,6 +7,11 @@
     from { background: yellow!important; }
     to   { background: default; }
 }
+
+.btn{
+  font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+}
+
 .flash {
     -webkit-animation-name: flash-animation;
     -webkit-animation-duration: 1.5s;
@@ -208,6 +213,42 @@ label.summary-number {
 .bold{
     font-weight: bold;
 }
+
+/* =============== TURBINE PART =============== */
+
+.turbine-item-label {
+  margin-bottom: 5px;
+  font-weight: 700;
+  padding-right: 0px;
+  margin-right: 0px;
+}
+.turbine-item-value {
+  float: right;
+  margin-right: 5px;
+}
+.list-turbine-item {
+  padding: 0px 10px 0px 15px;
+}
+.form-group-turbine {
+  clear: both;
+  margin-bottom: -2px;  
+}
+.margin-top-min-10 {
+  margin-top: -10px;
+}
+.margin-top-min-5 {
+  margin-top: -5px;
+}
+
+.turbine-pic-part {
+  text-align: center;
+  padding-left: 20px;
+  margin-top: 50px;
+}
+
+.title-outside {
+  margin-bottom: 15px;
+}
 /* =============== WEATHER PART ============ */
 .form-group {
   clear: both;
@@ -217,11 +258,6 @@ label.summary-number {
 .weather-label {
   margin-bottom: 5px;
   padding-left: 5px;
-  font-weight: 700;
-}
-
-.turbine-item-label {
-  margin-bottom: 5px;
   font-weight: 700;
 }
 
@@ -382,3 +418,123 @@ h4.content-heading {
     font-size: 11px;
     font-weight: bold;
 }
+
+.div-info{
+    background: #f1f2f2;
+    text-align: center;
+    border-radius: 10px;
+    font-weight: 400;
+}
+#turbine_weather{
+  font-size: 14px;
+  font-weight: 400;
+}
+#turbine_img_weather{
+    width: 100px;
+    height: 100px;
+    margin-top: -20px;
+}
+#turbine_temperature{
+    font-size: 30px;
+    margin-bottom: -20px;
+}
+
+.circle{
+  -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    padding-top: 7px;
+    border-radius: 30px;
+    border: 2px solid #dd4b39;
+    width: 50px;
+    height: 50px;
+}
+
+.vibrations{
+  margin-top: -15px;
+}
+
+.direct-part{
+  margin-top: -20px;
+}
+
+.txt-power{
+  padding-left: 25px;
+}
+
+.txt-windspeed{
+  padding-left: 15px;
+}
+
+.windpower-part{
+  margin-top: -25px;
+}
+.borderOrange{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #ff7a00;
+}
+.borderYellow{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #ffc700;
+}
+.borderRed{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #c20000;
+}
+.borderGrey{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #eee;
+}
+.txt-pitch-angel{
+    font-size: 20px;
+}
+.border-left-grey{
+    border-left: 2px solid #eee;
+}
+ .border-right-grey{
+    border-right:2px solid #eee;
+}
+
+.panel-body{
+    margin-bottom: 50px;
+}
+
+.turbine-weather{
+    margin-top: -5px;margin-left: 0px;
+}
+
+.lat-info{
+    margin-top: -10px;margin-bottom: 10px;
+}
+
+.list-group-item {
+    border: 1px solid #fff; 
+}
+
+
+.gaugeVal {
+    font-size: 20px;
+    font-weight: bold;
+    position: relative;
+    left: 0;
+    right: 0;
+    top: -20px;
+    text-align: center;
+    color: #555;
+}
+
+/*#turbine_weather{
+    font-size: 20px;
+}
+#turbine_temperature{
+    font-size: 20px;
+}
+#turbine_lat{
+    font-size: 20px;
+}
+#turbine_lon{
+    font-size: 20px;
+}*/

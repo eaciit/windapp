@@ -1,0 +1,621 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/individual-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="turbine" name="table" data-bind="kendoDropDownList: { data: it.turbineList, dataValueField: 'Id', dataTextField: 'Id', suggest: true, change: it.ChangeSelection() }"
+                    style="width:145px"></select>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore mb-5">
+                <div class="panel-body">                        
+                    <div class="project-info">
+                        Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Location : <b><span id="turbine_location">Jaisalmer</span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="turbine_temperature"></span> &deg; C</b> &nbsp;&nbsp;|&nbsp;&nbsp; <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                        <b><span id="turbine_weather"></span></b>
+                        <div class="source-info pull-right project-info-last-update">
+                            Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="turbine_last_update"></span></b>
+                        </div> 
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="col-md-12">
+                            <h5 class="margin-top-min-5">Wind Speed & Direction</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Wind speed Avg</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" class="turbine-item-value" data-bind="text: it.windspeed_avg()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Wind speed 1</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.windspeed1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Wind speed 2</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.windspeed2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Wind Direction</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.wind_dir()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Vane 1 Wind Direction</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.wind_dir1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Vane 2 Wind Direction</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.wind_dir2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Nacelle Direction</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.nacel_dir()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Rotor RPM</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text:it.rotor_rpm()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Generator RPM</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.gen_rpm()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG Speed Generator Encoder</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.speed_gen()"></span>
+                                        </div> 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-md-12">
+                            <h5 class="margin-top-min-10">Pitch System</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Blade Angle 1</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.blade_angle1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Blade Angle 2</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.blade_angle2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Blade Angle 3</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.blade_angle3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Volt. Battery - blade 1</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.volt_battery1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Volt. Battery - blade 2</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.volt_battery2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Volt. Battery - blade 3</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.volt_battery3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Current 1 Motor</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.cur_pitch_motor1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Current 2 Motor</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.cur_pitch_motor2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Current 3 Motor</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.cur_pitch_motor3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Motor temp. - blade 1</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.pitch_motor_temp1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Motor temp. - blade 2</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.pitch_motor_temp2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Motor temp. - blade 3</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.pitch_motor_temp3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <h5 class="margin-top-min-10">Electrical System</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 1 Voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 2 Voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 3 Voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 1 Current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 2 Current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 3 Current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Power</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Power Reactive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power_react()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Freq. Grid</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.freq_grid()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG active power</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.dfig_act_power()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG reactive power</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.dfig_react_power()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG mains Frequency</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.dfig_main_freq()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 margin-top-min-10">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG main voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.dfig_main_volt()"></span>
+                                        </div>
+                                    </div>
+                                </div>                                
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG main current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.dfig_main_cur()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">DFIG DC link voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.dfig_link_volt()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 margin-top-min-10">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Rotor R current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text:it.rotor_r_cur()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Rotor Y current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.rotor_y_cur()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Rotor B current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.rotor_b_cur"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 margin-top-min-10">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Production</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.production()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Cos Phi</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.cos_phi()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <h5 class="margin-top-min-10">Critical Temperature & Pressure</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 1 coil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 2 coil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 3 coil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. bearing drive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_bearing_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. bearing non-drive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_bearing_non_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gear driven</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gear_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gear non-driven</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gear_non_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gear inter driven</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gear_inter_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gear inter non drive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gear_inter_non_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Pressure Gear box oil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.press_gear_oil()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gear box oil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gear_oil()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Nacelle</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_nacelle()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Ambient</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_ambient()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Main bearing</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_main_bear()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <h5 class="margin-top-min-10">Vibrations</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Damper Magnetic</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.damper_osci_mag()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Drive train</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.drive_train_vibra()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Tower</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.tower_vibra()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 turbine-pic-part">
+                        {{template "turbine-pic.html"}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    it.populateProject({{.ProjectList}});
+</script>

@@ -219,6 +219,12 @@ func (m *DashboardController) GetScadaLastUpdate(k *knot.WebContext) interface{}
 			val.CummulativeProductions[idxCumm] = cumm
 		}
 
+		turbineDownOneDays := getDownTurbine(val.ProjectName, val.LastUpdate, 1)
+		turbineDownTwoDays := getDownTurbine(val.ProjectName, val.LastUpdate, 2)
+
+		val.CurrentDown = len(turbineDownOneDays)
+		val.TwoDaysDown = len(turbineDownTwoDays)
+
 		result = append(result, val)
 	}
 
@@ -2263,20 +2269,26 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	result := getDownTurbine(p.ProjectName, p.Date, 1)
+
+	return helper.CreateResult(true, result, "success")
+}
+
+func getDownTurbine(project string, currentDate time.Time, dayDuration int) (result []tk.M) {
 	var fromDate time.Time
 	var pipes []tk.M
 
-	fromDate = p.Date.AddDate(0, 0, -1)
+	fromDate = currentDate.UTC().AddDate(0, 0, dayDuration*-1)
 
-	pipes = append(pipes, tk.M{"$match": tk.M{"startdate": tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()}}})
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	match := tk.M{"startdate": tk.M{"$gte": fromDate.UTC(), "$lte": currentDate.UTC()}}
 
-	/*for _, v := range pipes {
-		log.Printf("pipes: %#v \n", v)
+	if project != "Fleet" {
+		match.Set("farm", project)
 	}
 
-	log.Printf("date: %v | %v \n", fromDate.UTC().String(), p.Date.UTC().String())*/
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$duration"}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(Alarm).TableName()).
@@ -2284,34 +2296,27 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 		Cursor(nil)
 
 	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+		return
 	}
 
 	tmpResult := []tk.M{}
-	result := []tk.M{}
 
 	e = csr.Fetch(&tmpResult, 0, false)
-	// add by ams, 2016-10-07
+	defer csr.Close()
 	csr.Close()
 
 	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+		return
 	}
-
-	// log.Printf("len: %v \n", len(tmpResult))
 
 	for _, val := range tmpResult {
-		val.Set("isdown", false)
-		if val.GetFloat64("result") > 24 {
+		if val.GetFloat64("result") >= float64(24*dayDuration) {
 			val.Set("isdown", true)
+			result = append(result, val)
 		}
-
-		result = append(result, val)
 	}
 
-	// log.Printf("lenResult: %v \n", len(result))
-
-	return helper.CreateResult(true, result, "success")
+	return
 }
 
 func getMapCol(colname string) tk.Ms {

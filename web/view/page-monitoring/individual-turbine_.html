@@ -1,0 +1,229 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/individual-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<script src="{{BaseUrl}}res/highstock/highstock.js"></script>
+<script src="{{BaseUrl}}res/highstock/exporting.js"></script>
+<script src="{{BaseUrl}}res/highstock/value-in-legend.js"></script>
+
+
+<div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="turbine" name="table" data-bind="kendoDropDownList: { data: it.turbineList, dataValueField: 'Id', dataTextField: 'Id', suggest: true, change: it.ChangeSelection() }"
+                    style="width:145px"></select>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore mb-5">
+                <div class="panel-body">                        
+                    <div class="col-md-4">
+                        <div class="col-md-12" style="font-size: 20px;">
+                            <h2 id="turbine_location"><b>Jaisalmer</b></h2>
+                            <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" /><b><span id="turbine_weather"></span></b> | <b><span id="turbine_temperature"></span> &deg; C</b><br>
+                            
+                            <b><span id="turbine_lat"></span></b>, <b><span id="turbine_lon"></span></b><br>
+                        </div>
+                        <div class="col-md-12">
+                            
+                        </div>
+                        <!--Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="turbine_last_update"></span></b>-->
+                    </div>
+
+                    <div class="col-md-4 turbine-pic-part">
+                        {{template "turbine-pic.html"}}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="col-md-12">
+                            <h5 class="title-outside">Electrical System</h5>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label" style="font-size: 18px;">Power</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power()" style="font-size: 18px; font-weight: 700"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Power Reactive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.power_react()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Freq. Grid</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.freq_grid()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 1 Voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 2 Voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 3 Voltage</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_volt3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 1 Current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 2 Current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Phase 3 Current</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.phase_cur3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Production</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.production()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Cos Phi</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.cos_phi()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                        </div>
+                        <div class="col-md-3">
+                            <h5>Critical Temperature & Pressure</h5>
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 1 coil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil1()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 2 coil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil2()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. 1 phase 3 coil</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_coil3()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. bearing drive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_bearing_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Gen. bearing non-drive</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.temp_gen_bearing_non_driven()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="col-md-12">
+                        </div> -->
+                        <div class="col-md-3">
+                            <h5>Vibrations</h5>
+                            <div class="list-group">
+                                <div class="list-group-item list-turbine-item">
+                                    <div class="form-group-turbine row">
+                                        <label class="col-md-8 col-xs-9 turbine-item-label">Drive train</label>
+                                        <div class="col-md-4 col-xs-3">
+                                            :&nbsp;<span class="turbine-item-value" data-bind="text: it.drive_train_vibra()"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    it.populateProject({{.ProjectList}});
+</script>

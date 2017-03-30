@@ -22,6 +22,11 @@ sv.refreshView = function(view){
 }
 
 sv.getChartView = function(gData){
+    if (fa.project==""){
+        sv.type = "Projects";
+    }else{
+        sv.type = "Turbines";
+    }
     $("#staticProductionChart").replaceWith('<div id="staticProductionChart"></div>');
     $("#staticProductionChart").kendoChart({
         theme:"flat",
@@ -257,7 +262,7 @@ sv.getGridView = function(gData){
     $('#lossGrid').kendoGrid({
         dataSource: {
             data: gData,
-            pageSize: 10,
+            pageSize: 24,
             aggregate: [
                 { field: "Production", aggregate: "sum" },
                 { field: "LossEnergy", aggregate: "sum" },
@@ -268,21 +273,44 @@ sv.getGridView = function(gData){
                 { field: "ElectricLoss", aggregate: "sum" },
                 { field: "PCDeviation", aggregate: "sum" },
                 { field: "Others", aggregate: "sum" },
-            ]
+                { field: "TotalAvail", aggregate: "average" },
+                { field: "OKTime", aggregate: "sum" },
+            ],
+            serverPaging: false,
         },
+        scrollable: false,
         groupable: false,
         sortable: true,
         filterable: false,
         // height: $(".content-wrapper").height() - ($("#filter-analytic").height()+209),
-        height: 399,
-        pageable: {
-            pageSize: 10,
-            input: true, 
-        },
+        // height: 399,
+        pageable: false,
+        // pageable: {
+        //     pageSize: 24,
+        //     input: true, 
+        // },
         columns: [
-            { title: sv.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total (All Turbines)</center>"}, 
+            { title: sv.type,field: "Id",width: 100,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total</center>"}, 
             { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
             { title: "Lost Energy (MWh)",headerAttributes: {style: "text-align:center;"},field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
+            {
+                title: "Availability",
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;'
+                },
+                columns: [
+                    {
+                        title: "Total Avail. (%)",
+                        headerAttributes: { style: "text-align:center;" },
+                        field: "TotalAvail", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(average, 'n2')#</div>" 
+                    },
+                    {
+                        title: "Uptime (Hrs)",
+                        headerAttributes: { style: "text-align:center;" },
+                        field: "OKTime", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                    },
+                ]
+            },
             {
                 title: "Downtime : Duration (Hrs)",
                 headerAttributes: {

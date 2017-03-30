@@ -103,7 +103,9 @@ bp.CheckWeather = function() {
 };
 
 bp.GetData = function(data) {
-    var param = {}
+    var param = {
+        Project: $("#projectList").data("kendoDropDownList").value()
+    };
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
         bp.Turbines1(res.data.ListOfTurbine["Feeder 5"]);
         bp.Turbines2(res.data.ListOfTurbine["Feeder 8"]);
@@ -444,6 +446,13 @@ function secondsToHms(d) {
     return res;
 }
 
+bp.ToIndividualTurbine = function(turbine) {
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    window.location = viewModel.appName + "page/monitoringbyturbine";
+}
 bp.GenDetail = function(turbine){
     var param = {
         turbine: [turbine],

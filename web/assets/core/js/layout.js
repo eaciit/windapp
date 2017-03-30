@@ -202,7 +202,6 @@ vm.logout = function () {
 };
 
 $(function () {
-
     if (document.URL.indexOf(viewModel.appName + 'page/login') == -1) {
         $( '.navbar' ).append( '<span class="nav-bg"></span>' );
         jQuery(".dropdown-menu li.dropdown").on("mouseenter", function () {
@@ -214,7 +213,7 @@ $(function () {
             jQuery(this).find( ".dropdown-menu").css({ "display": "none" }, "slow" );
              
         });
-        vm.getMenuList();
+        // vm.getMenuList();
         // vm.prepareDropDownMenu();
         vm.prepareFilterToggle();
         vm.adjustLayout();

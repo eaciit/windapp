@@ -1,5 +1,6 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser.js?ANTI_CACHE={{.AntiCache}}"></script>
 <!-- Main -->
@@ -84,7 +85,7 @@
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
                                                  <a href="#" data-toggle="collapse" class="k-grid-showHideColumnHFD btn btn-sm btn-primary tooltipster tooltipstered" title="Click to show column list"><i class="fa fa-eye-slash"></i></a>&nbsp;&nbsp;
-                                                 <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="dbr.exportToExcel('scadahfdGrid')"><i class="fa fa-file-excel-o"></i></button>   
+                                                 <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelscadahfd')"><i class="fa fa-file-excel-o"></i></button>   
                                             </div>
                                             <div id="scadahfdGrid"></div>
                                         </div>
