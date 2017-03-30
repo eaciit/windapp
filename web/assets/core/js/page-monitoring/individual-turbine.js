@@ -11,35 +11,13 @@ vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Individual Turbine', href: viewModel.appName + 'page/monitoringindividualturbine' }]);
 var intervalTurbine = null;
+var chart;
+var maxSamples = 20,count = 0;
+
 it.projectList = ko.observableArray([]);
 it.project = ko.observable();
-
-it.turbineList = ko.observableArray([
-    { Id: "HBR004", Lat: 27.1314613912264, Lon: 70.6185588069878 },
-    { Id: "HBR005", Lat: 27.1270877985472, Lon: 70.622884146285 },
-    { Id: "HBR006", Lat: 27.1236484571162, Lon: 70.6283625931435 },
-    { Id: "HBR007", Lat: 27.1207371982508, Lon: 70.631881314612 },
-    { Id: "SSE001", Lat: 27.01307895, Lon: 70.49387633 },
-    { Id: "SSE002", Lat: 27.010279756987, Lon: 70.4973565360181 },
-    { Id: "SSE006", Lat: 27.0210933331988, Lon: 70.5024788963212 },
-    { Id: "SSE007", Lat: 27.0248279694312, Lon: 70.5001700425682 },
-    { Id: "SSE011", Lat: 27.0402772539165, Lon: 70.5014338714604 },
-    { Id: "SSE012", Lat: 27.0337931496561, Lon: 70.5042405803792 },
-    { Id: "SSE015", Lat: 27.0388148011425, Lon: 70.5123920837843 },
-    { Id: "SSE017", Lat: 27.0548841404124, Lon: 70.5080202799257 },
-    { Id: "SSE018", Lat: 27.0528220756451, Lon: 70.5125899817518 },
-    { Id: "SSE019", Lat: 27.0495446014842, Lon: 70.5168508007021 },
-    { Id: "SSE020", Lat: 27.044182589382, Lon: 70.5210429390468 },
-    { Id: "TJ013", Lat: 27.1176472129651, Lon: 70.6360125744664 },
-    { Id: "TJ016", Lat: 27.1132054610326, Lon: 70.6391757345863 },
-    { Id: "TJ021", Lat: 27.0972435993558, Lon: 70.6640052338389 },
-    { Id: "TJ022", Lat: 27.0987203759723, Lon: 70.6566747880341 },
-    { Id: "TJ023", Lat: 27.10074814474, Lon: 70.6515811382493 },
-    { Id: "TJ024", Lat: 27.1030071512702, Lon: 70.6459964756472 },
-    { Id: "TJ025", Lat: 27.1067003493502, Lon: 70.6412494768147 },
-    { Id: "HBR038", Lat: 27.0920863398176, Lon: 70.6257778736997 },
-    { Id: "TJW024", Lat: 27.0590442370984, Lon: 70.6309369071587 },
-]);
+it.turbineList = ko.observableArray([{}]);
+it.allTurbineList = ko.observableArray([{}]);
 
 it.populateProject = function (data) {
     if (data.length == 0) {
@@ -65,6 +43,44 @@ it.populateProject = function (data) {
     }
 };
 
+it.populateTurbine = function (project, turbine, isChange) {
+    if (turbine.length == 0) {
+        turbine = [];;
+        it.turbineList([{ Id: "", Lat: 0.0, Lon: 0.0 }]);
+    } else {
+        var turbinevalue = [];
+        if (turbine.length > 0) {
+            it.allTurbineList = turbine;
+            $.each(turbine, function (key, val) {
+                if(val.project == project[0].split("(")[0].trim()) {
+                    var data = {};
+                    data.Id = val.turbineid;
+                    data.Lat = val.latitude;
+                    data.Lon = val.longitude;
+                    turbinevalue.push(data);
+                }
+            });
+        }
+        it.turbineList(turbinevalue);
+
+        if(isChange) {
+            setTimeout(function () {
+                $("#turbine").data("kendoDropDownList").select(0);
+            }, 100);
+        }
+    }
+};
+
+it.ChangeProject = function() {
+    return function() {
+        it.project = $("#projectList").data("kendoDropDownList").value();
+        var projects = [];
+        projects.push(it.project);
+        it.populateTurbine(projects, it.allTurbineList, true);
+        it.ShowData();
+    };
+};
+
 it.ChangeSelection = function() {
     return function() {
         // clearInterval(intervalTurbine);
@@ -73,9 +89,35 @@ it.ChangeSelection = function() {
     };
 };
 
-it.GetData = function(turbine) {
-    var param = { Turbine: turbine }
+it.getTimestamp = function(param){
+  var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
+      dateTimeParts = dateString.split(' '),
+      timeParts = dateTimeParts[1].split(':'),
+      dateParts = dateTimeParts[0].split('-'),
+      date;
+
+      date = new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, dateParts[0], timeParts[0], timeParts[1]);
+
+      return date.getTime();
+}
+
+it.GetData = function(project, turbine) {
+    var param = { 
+        Project: project,
+        Turbine: turbine
+    }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
+        var time = (new Date).getTime();
+
+        it.dataWindspeed([time, parseInt(res.data["Wind speed Avg"].toFixed(2))]);
+        it.dataPower([time, parseInt(res.data["Power"].toFixed(2))]);
+
+
+        if(it.isFirst() == false){
+            chart.series[0].addPoint([time, parseInt(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
+            chart.series[1].addPoint([time, parseInt(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+        }
+
         it.PlotData(res.data);
     });
 };
@@ -139,6 +181,10 @@ it.temp_main_bear = ko.observable('');
 it.damper_osci_mag = ko.observable('');
 it.drive_train_vibra = ko.observable('');
 it.tower_vibra = ko.observable('');
+it.isFirst = ko.observable(true);
+
+it.dataWindspeed = ko.observableArray([]);
+it.dataPower = ko.observableArray([]);
 
 it.rotor_status = ko.observable("N/A");
 
@@ -165,6 +211,8 @@ it.PlotData = function(data) {
         it.windspeed2(data["Wind speed 2"].toFixed(2));
     else it.windspeed2('N/A');
 
+    it.showWindspeedColumnChart();
+
     /*WIND DIRECTION PART*/
     if(data["Wind Direction"] != -999999)
         it.wind_dir(data["Wind Direction"].toFixed(2));
@@ -189,6 +237,8 @@ it.PlotData = function(data) {
     if(data["DFIG speed generator encoder"] != -999999)
         it.speed_gen(data["DFIG speed generator encoder"].toFixed(2));
     else it.speed_gen('N/A');
+
+    it.showRotor();
 
     /*BLADE ANGLE PART*/
     if(data["Blade Angle 1"] != -999999)
@@ -305,6 +355,7 @@ it.PlotData = function(data) {
         it.rotor_b_cur(data["Roter B current"].toFixed(2));
     else it.rotor_b_cur('N/A');
 
+
     /*PRODUCTION PART*/
     if(data["Production"] != -999999)
         it.production(data["Production"].toFixed(2));
@@ -371,6 +422,10 @@ it.PlotData = function(data) {
     if(data["Tower vibration"] != -999999)
         it.tower_vibra(data["Tower vibration"].toFixed(2));
     else it.tower_vibra('N/A');
+
+
+    it.changeRotation();
+    it.changeColor();
 };
 
 it.LoadData = function(turbine) {
@@ -412,22 +467,28 @@ it.ShowData = function() {
     var COOKIES = {};
     var cookieStr = document.cookie;
     var turbine = "";
+    var project = "";
     
-    if(cookieStr.indexOf("turbine=") >= 0) {
-        document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
+        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         cookieStr.split(/; /).forEach(function(keyValuePair) {
             var cookieName = keyValuePair.replace(/=.*$/, "");
             var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
             COOKIES[cookieName] = cookieValue;
         });
         turbine = COOKIES["turbine"];
+        project = COOKIES["project"];
         $('#turbine').data('kendoDropDownList').value(turbine);
+        $('#projectList').data('kendoDropDownList').value(project);
     } else {
         turbine = $('#turbine').data('kendoDropDownList').value();
+        project = $('#projectList').data('kendoDropDownList').value();
     }
     
     it.LoadData(turbine);
-    it.GetData(turbine);
+    it.GetData(project, turbine);
+    it.showWindRoseChart();
 };
 
 it.showWindspeedColumnChart = function(){
@@ -438,26 +499,30 @@ it.showWindspeedColumnChart = function(){
           height : 125
         },
         pointer: {
-            value: 65,
+            value: it.windspeed_avg(),
             shape: "arrow"
         },
-
         scale: {
-            majorUnit: 40,
+            majorUnit: 10,
             minorUnit: 5,
-            max: 180,
+            // max: 180,
             ranges: [
                 {
-                    from: 80,
-                    to: 120,
+                    from: 30,
+                    to: 50,
+                    color : "#8dcb2a"
+                },
+                {
+                    from: 20,
+                    to: 30,
                     color: "#ffc700"
                 }, {
-                    from: 120,
-                    to: 150,
+                    from: 10,
+                    to: 20,
                     color: "#ff7a00"
                 }, {
-                    from: 150,
-                    to: 180,
+                    from: 0,
+                    to: 10,
                     color: "#c20000"
                 }
             ]
@@ -469,26 +534,30 @@ it.showWindspeedColumnChart = function(){
           height : 125
         },
         pointer: {
-            value: 65,
+            value: it.power(),
             shape: "arrow"
         },
-
         scale: {
-            majorUnit: 80,
             minorUnit: 5,
-            max: 180,
+            // max: 180,
+            majorUnit: 10,
             ranges: [
                 {
-                    from: 80,
-                    to: 120,
+                    from: 30,
+                    to: 50,
+                    color : "#8dcb2a"
+                },
+                {
+                    from: 20,
+                    to: 30,
                     color: "#ffc700"
                 }, {
-                    from: 120,
-                    to: 150,
+                    from: 10,
+                    to: 20,
                     color: "#ff7a00"
                 }, {
-                    from: 150,
-                    to: 180,
+                    from: 0,
+                    to: 10,
                     color: "#c20000"
                 }
             ]
@@ -497,11 +566,6 @@ it.showWindspeedColumnChart = function(){
 
 }
 it.showWindspeedLiveChart = function(){
-    Highcharts.setOptions({
-        global: {
-            useUTC: false
-        }
-    });
 
     Highcharts.setOptions({
         chart: {
@@ -510,26 +574,17 @@ it.showWindspeedLiveChart = function(){
                 fontSize: '12px',
                 fontWeight: 'normal',
             },
+        },
+        global: {
+            useUTC: false
         }
     });
-    // Create the chart
-    Highcharts.stockChart('container', {
+
+    chart = Highcharts.stockChart('container', {
         chart: {
             marginTop: 50,
             height: 200,
-            width: 350,
-            events: {
-                load: function () {
-
-                    // set up the updating of the chart each second
-                    var series = this.series[0];
-                    setInterval(function () {
-                        var x = (new Date()).getTime(), // current time
-                            y = Math.round(Math.random() * 100);
-                        series.addPoint([x, y], true, true);
-                    }, 1000);
-                }
-            }
+            width: 340,
         },
         credits: {
               enabled: false
@@ -587,61 +642,41 @@ it.showWindspeedLiveChart = function(){
         },
         plotOptions: {
             series: {
-                lineWidth: 1
-            }
+                lineWidth: 1,
+                marker: {
+                    enabled: true,
+                    radius: 3
+                },
+                tooltip: {
+                    valueDecimals: 2
+                }
+            },
         },
         series: [{
             color: colorField[0],
             name: 'Wind Speed',
-            data: (function () {
-                // generate an array of random data
-                var data = [],
-                    time = (new Date()).getTime(),
-                    i;
-
-                for (i = -999; i <= 0; i += 1) {
-                    data.push([
-                        time + i * 1000,
-                        Math.round(Math.random() * 100)
-                    ]);
-                }
-                return data;
-            }())
+            data: [it.dataWindspeed()]
         },{
             name: 'Power',
             color: colorField[1],
-            data: (function () {
-                // generate an array of random data
-                var data = [],
-                    time = (new Date()).getTime(),
-                    i;
-
-                for (i = -999; i <= 0; i += 1) {
-                    data.push([
-                        time + i * 1000,
-                        Math.round(Math.random() * 100)
-                    ]);
-                }
-                return data;
-            }())
+            data: [it.dataPower()]
         }]
     });
 
 }
-
 it.showRotor = function(){
     $("#rotorChart").kendoRadialGauge({
         title: "Rotor RPM",
         theme: "flat",
         pointer: {
-            value: 65
+            value: it.rotor_rpm()
         },
         gaugeArea: {
           height : 125,
         },
         scale: {
-            majorUnit: 80,
             minorUnit: 5,
+            majorUnit: 40,
             startAngle: -30,
             endAngle: 210,
             max: 180,
@@ -649,17 +684,22 @@ it.showRotor = function(){
                 position: "inside"
             },
             ranges: [
+                 {
+                    from: 100,
+                    to: 160,
+                    color : "#8dcb2a"
+                },
                 {
-                    from: 80,
-                    to: 120,
+                    from: 60,
+                    to: 100,
                     color: "#ffc700"
                 }, {
-                    from: 120,
-                    to: 150,
+                    from: 20,
+                    to: 60,
                     color: "#ff7a00"
                 }, {
-                    from: 150,
-                    to: 180,
+                    from: 0,
+                    to: 20,
                     color: "#c20000"
                 }
             ]
@@ -668,92 +708,163 @@ it.showRotor = function(){
 }
 
 it.showWindRoseChart = function(){
-    
-    $("#windRoseChart").kendoChart({
-        theme: "flat",
-        chartArea: {
-            height: 200,
-            width: 250,
-            margin: 0,
-            padding: 0,
-        },
-        legend: {
-            visible: false,
-            position: "top",
-            labels: {
-                template: "#= (series.data[0] || {}).categoryText # m/s"
-            }
-        },
-        series: [{
-            type: "radarColumn",
-            name: "Nutrients",
-            data: [
-                5, 1, 1, 5, 0, 1,
-                1, 2, 1, 2, 1, 0,
-                0, 2, 1, 0, 3, 1,
-                1, 1, 0, 0, 0
-            ]
-        }],
-        categoryAxis: {
-            categories: [
-                "Df", "Pr", "A", "C", "D", "E",
-                "Th", "Ri", "Ni", "B", "F", "B",
-                "Se", "Mn", "Cu", "Zn", "K", "P",
-                "Fe", "Ca", "Na", "Ch", "Sf"
-            ]
-        },
-        valueAxis: {
-            visible: false
+    var param = {
+        turbine: $("#turbine").data("kendoDropDownList").value(),
+        project: $("#projectList").data("kendoDropDownList").value(),
+        breakDown: 12,
+    };
+    toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getwindrosemonitoring", param, function (res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
         }
+        if (res.data != null) {
+            var nacelleData = res.data["nacelle"]["WindRose"][0].Data;
+            var winddirData = res.data["winddir"]["WindRose"][0].Data;
+
+            $("#windRoseChart").kendoChart({
+                theme: "flat",
+                chartArea: {
+                    height: 200,
+                    width: 250,
+                    margin: 0,
+                    padding: 0,
+                },
+                dataSource: {
+                    data: nacelleData,
+                    group: {
+                        field: "WsCategoryNo",
+                        dir: "asc"
+                    },
+                    sort: {
+                        field: "DirectionNo",
+                        dir: "asc"
+                    }
+                },
+                legend: {
+                    visible: false,
+                },
+                series: [{
+                    type: "radarColumn",
+                    stack: true,
+                    field: "Contribution",
+                    gap: 0,
+                    border: {
+                        width: 1,
+                        color: "#7f7f7f",
+                        opacity: 0.5
+                    },
+                }],
+                categoryAxis: {
+                    field: "DirectionDesc",
+                    visible: true,
+                    majorGridLines: {
+                        visible: true,
+                        step: 1
+                    },
+                    labels: {
+                        font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        visible: true,
+                        step: 1
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                        font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    }
+                },
+            });
+
+            $("#windDirectionChart").kendoChart({
+                theme: "flat",
+                chartArea: {
+                    height: 200,
+                    width: 250,
+                    margin: 0,
+                    padding: 0,
+                },
+                dataSource: {
+                    data: winddirData,
+                    group: {
+                        field: "WsCategoryNo",
+                        dir: "asc"
+                    },
+                    sort: {
+                        field: "DirectionNo",
+                        dir: "asc"
+                    }
+                },
+                legend: {
+                    visible: false,
+                },
+                series: [{
+                    type: "radarColumn",
+                    stack: true,
+                    field: "Contribution",
+                    gap: 0,
+                    border: {
+                        width: 1,
+                        color: "#7f7f7f",
+                        opacity: 0.5
+                    },
+                }],
+                categoryAxis: {
+                    field: "DirectionDesc",
+                    visible: true,
+                    majorGridLines: {
+                        visible: true,
+                        step: 1
+                    },
+                    labels: {
+                        font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        visible: true,
+                        step: 1
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                        font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    }
+                },
+            });
+        }
+    })
+}
+
+it.ToTimeSeriesHfd = function() {
+    var turbine = $("#turbine").val();
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
+    window.location = viewModel.appName + "page/timeserieshfd";
+}
+
+it.changeRotation = function(){
+    $.each( $('.rotation'), function( key, value ) {
+        var deg = $(value).attr("rotationval")
+        $(value).attr("style", $(value).attr("style")+"-ms-transform: rotate("+deg+"deg);-webkit-transform: rotate("+deg+"deg);transform: rotate("+deg+"deg);");
     });
-    $("#windDirectionChart").kendoChart({
-        theme: "flat",
-        chartArea: {
-            height: 200,
-            width: 250,
-            margin: 0,
-            padding: 0,
-        },
-        legend: {
-            visible: false,
-            position: "top",
-            labels: {
-                template: "#= (series.data[0] || {}).categoryText # m/s"
-            }
-        },
-        series: [{
-            type: "radarColumn",
-            name: "Nutrients",
-            data: [
-                5, 1, 1, 5, 0, 1,
-                1, 2, 1, 2, 1, 0,
-                0, 2, 1, 0, 3, 1,
-                1, 1, 0, 0, 0
-            ]
-        }],
-        categoryAxis: {
-            categories: [
-                "Df", "Pr", "A", "C", "D", "E",
-                "Th", "Ri", "Ni", "B", "F", "B",
-                "Se", "Mn", "Cu", "Zn", "K", "P",
-                "Fe", "Ca", "Na", "Ch", "Sf"
-            ]
-        },
-        valueAxis: {
-            visible: false
-        }
+}
+
+it.changeColor = function(){
+    $('span').each(function(){
+      if($(this).html() == 'N/A'){
+         $( this ).css( "color", "red" );
+      }else{
+        $( this ).css( "color", "#585555" );
+      }
     });
 }
 
 $(document).ready(function(){
     app.loading(true);
-    it.showWindRoseChart();
-    it.showWindspeedLiveChart();
-    it.showWindspeedColumnChart();
-    it.showRotor();
 
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
+            it.showWindspeedLiveChart();
+            it.isFirst(false);
             app.loading(false);
         }, 1000);
     });
