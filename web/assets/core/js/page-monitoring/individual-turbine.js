@@ -107,15 +107,17 @@ it.GetData = function(project, turbine) {
         Turbine: turbine
     }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
-        var time = (new Date).getTime();
+        // var time = (new Date).getTime();
 
-        it.dataWindspeed([time, parseInt(res.data["Wind speed Avg"].toFixed(2))]);
-        it.dataPower([time, parseInt(res.data["Power"].toFixed(2))]);
+        var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
+
+        it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
+        it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
 
 
         if(it.isFirst() == false){
-            chart.series[0].addPoint([time, parseInt(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
-            chart.series[1].addPoint([time, parseInt(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+            chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
+            chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
         }
 
         it.PlotData(res.data);
@@ -593,7 +595,7 @@ it.showWindspeedLiveChart = function(){
             enabled: true,
             verticalAlign: 'top',
             layout: "horizontal",
-
+            labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
         },
         rangeSelector: {
             buttons: [{
@@ -618,13 +620,14 @@ it.showWindspeedLiveChart = function(){
         exporting: {
             enabled: false
         },
-        yAxis: {
+        yAxis:{
           labels:
           {
             enabled: false
           },
           gridLineWidth: 0,
-          minorGridLineWidth: 0
+          minorGridLineWidth: 0,
+          opposite:false
         },
         xAxis: {
            lineWidth: 0,
@@ -647,19 +650,35 @@ it.showWindspeedLiveChart = function(){
                     enabled: true,
                     radius: 3
                 },
-                tooltip: {
-                    valueDecimals: 2
-                }
             },
         },
+        // tooltip: {
+        //    useHTML: true,
+        //    shared: false,
+        //    borderRadius: 0,
+        //    borderWidth: 0,
+        //    shadow: false,
+        //    enabled: true,
+        //    backgroundColor: 'none',
+        //    formatter: function() {
+        //       console.log(this.point.x)
+        //       return '<span style="border-color:'+this.point.color+'">' + this.point.y + '</span>';
+        //    }
+        // },
         series: [{
             color: colorField[0],
             name: 'Wind Speed',
-            data: [it.dataWindspeed()]
+            data: [it.dataWindspeed()],
+            tooltip: {
+                valueSuffix: 'm/s'
+            },
         },{
             name: 'Power',
             color: colorField[1],
-            data: [it.dataPower()]
+            data: [it.dataPower()],
+            tooltip: {
+                valueSuffix: 'kW'
+            },
         }]
     });
 
