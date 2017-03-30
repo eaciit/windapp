@@ -403,9 +403,9 @@ pg.getDataStockChart = function(param, idBtn){
             pg.generateSeriesOption(data, periods);
             
             if (param=="first" || param=="refresh"){
-                if (sessionStorage.seriesOri){
-                    sessionStorage.seriesOri = null;
-                }
+                // if (sessionStorage.seriesOri){
+                    sessionStorage.seriesOri = [];
+                // }
                 
                 $.each(seriesOptions,function(idx, val){
                     if (val.data != null){
@@ -414,13 +414,14 @@ pg.getDataStockChart = function(param, idBtn){
                     }
                 });
 
-                sessionStorage.seriesOri = JSON.stringify(seriesOri);
-                seriesOri = [];
+                // if (seriesOri != null) {
+                    sessionStorage.seriesOri = JSON.stringify(seriesOri);
+                    seriesOri = [];    
+                // }
             }
 
             pg.createStockChart();
         });
-
     }else{
         pg.createLiveChart(IsHour);
     }
@@ -719,12 +720,12 @@ pg.generateSeriesOption = function(data, periods){
             yAxis: xCounter,
             id : "series_col"+idx,
             showInLegend : false,
-            dataGrouping: {
-                approximation: function () {
-                    return 100;
-                },
-                forced: true
-            },
+            // dataGrouping: {
+            //     approximation: function () {
+            //         return 100;
+            //     },
+            //     forced: true
+            // },
             showInNavigator: true,
             onSeries: "series"+idx,                
         }
