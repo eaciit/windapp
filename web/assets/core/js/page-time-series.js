@@ -300,6 +300,12 @@ pg.createStockChart = function(y){
             },
         },
         series: seriesOptions,
+        tooltip:{
+             formatter : function() {
+                $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                return false ;
+             }
+        },
     });
 
     // seriesOri = chart.series;
@@ -649,6 +655,12 @@ pg.createLiveChart = function(IsHour){
                 }
             },
             series: seriesOptions,
+            tooltip:{
+                 formatter : function() {
+                    $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                    return false ;
+                 }
+            },
         });
     });
     

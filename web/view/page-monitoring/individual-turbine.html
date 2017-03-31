@@ -12,7 +12,7 @@
 <div class="row">
     <div class="row">
         <div class="col-md-12 col-sm-12 ez panel-content">
-            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+            <div class="nav nav-pills nav-replace-title">
                 <div class="col-md-12 col-sm-12 filter-content">
                     <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
                     <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: it.ChangeProject() }"
@@ -49,9 +49,10 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12" style="margin-top: 30px;">
-                            <div class="col-md-8" style="margin-top: -55px;margin-bottom: 10px">
-                                <div id="container" style="padding-top: 15px;"></div>
-                                <div class="col-md-12" style="margin-top: -200px"><a href="#"  onclick="it.ToTimeSeriesHfd()" class="pull-left">Go to Analysis</a></div>
+                            <div class="col-md-8 live-chart-div">
+                                <div id="container"></div>
+                                <div class="col-md-12 gotoAnalysis" ><a href="#"  onclick="it.ToTimeSeriesHfd()" class="pull-left">Go to Analysis</a></div>
+                                <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
                             </div>
                             <div class="col-md-4 windpower-part">
                                 <div class="col-md-6 text-center">
@@ -70,13 +71,13 @@
                         <div class="col-md-12 direct-part">
                             <div class="col-md-6 text-center">
                                <div class="col-md-12">
-                                <span style="padding-left: 25px;"><strong>Nacelle Pos. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></span>
+                                <span class="directTitle"><strong>Nacelle Pos. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></span>
                                    <div id="windRoseChart"></div>
                                </div>
                             </div>
                             <div class="col-md-6 text-center">
                                <div class="col-md-12">
-                                <span style="padding-left: 25px;"><strong>Wind Dir. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></span>
+                                <span class="directTitle"><strong>Wind Dir. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></span>
                                    <div id="windDirectionChart"></div>
                                </div>
                             </div>
