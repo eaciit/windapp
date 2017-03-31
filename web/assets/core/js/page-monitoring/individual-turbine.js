@@ -84,6 +84,7 @@ it.ChangeProject = function() {
 it.ChangeSelection = function() {
     return function() {
         // clearInterval(intervalTurbine);
+        it.isFirst(true);
         it.ShowData();
         // intervalTurbine = window.setInterval(it.ShowData, 3000);
     };
@@ -118,9 +119,13 @@ it.GetData = function(project, turbine) {
         if(it.isFirst() == false){
             chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
             chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+        }else{
+            it.showWindspeedLiveChart();
         }
 
         it.PlotData(res.data);
+        it.isFirst(false);
+        app.loading(false);
     });
 };
 
@@ -466,6 +471,9 @@ it.ParseWeather = function(data) {
 };
 
 it.ShowData = function() {
+    if(it.isFirst() == true){
+        app.loading(true);
+    }
     var COOKIES = {};
     var cookieStr = document.cookie;
     var turbine = "";
@@ -585,7 +593,7 @@ it.showWindspeedLiveChart = function(){
     chart = Highcharts.stockChart('container', {
         chart: {
             marginTop: 50,
-            height: 200,
+            height: 180,
             width: 340,
         },
         credits: {
@@ -652,19 +660,12 @@ it.showWindspeedLiveChart = function(){
                 },
             },
         },
-        // tooltip: {
-        //    useHTML: true,
-        //    shared: false,
-        //    borderRadius: 0,
-        //    borderWidth: 0,
-        //    shadow: false,
-        //    enabled: true,
-        //    backgroundColor: 'none',
-        //    formatter: function() {
-        //       console.log(this.point.x)
-        //       return '<span style="border-color:'+this.point.color+'">' + this.point.y + '</span>';
-        //    }
-        // },
+        tooltip:{
+             formatter : function() {
+                $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                return false ;
+             }
+        },
         series: [{
             color: colorField[0],
             name: 'Wind Speed',
@@ -878,11 +879,8 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
-    app.loading(true);
-
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
-            it.showWindspeedLiveChart();
             it.isFirst(false);
             app.loading(false);
         }, 1000);

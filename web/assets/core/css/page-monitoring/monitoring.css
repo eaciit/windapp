@@ -526,6 +526,33 @@ h4.content-heading {
     color: #555;
 }
 
+.directTitle{
+  padding-left: 25px;
+}
+
+.gotoAnalysis {
+  margin-top: -180px
+}
+
+.live-chart-div{
+  margin-top: -55px;
+  margin-bottom: 10px
+}
+
+.nav-replace-title{
+  padding-left: 5px;
+}
+
+#dateInfo{
+    margin-left: 15px;
+    font-weight: bold;
+    margin-top: -20px;
+}
+
+#container{
+  padding-top: 15px;
+}
+
 /*#turbine_weather{
     font-size: 20px;
 }
