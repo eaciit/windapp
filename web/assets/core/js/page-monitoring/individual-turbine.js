@@ -84,6 +84,7 @@ it.ChangeProject = function() {
 it.ChangeSelection = function() {
     return function() {
         // clearInterval(intervalTurbine);
+        it.isFirst(true);
         it.ShowData();
         // intervalTurbine = window.setInterval(it.ShowData, 3000);
     };
@@ -118,9 +119,13 @@ it.GetData = function(project, turbine) {
         if(it.isFirst() == false){
             chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
             chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+        }else{
+            it.showWindspeedLiveChart();
         }
 
         it.PlotData(res.data);
+        it.isFirst(false);
+        app.loading(false);
     });
 };
 
@@ -466,6 +471,9 @@ it.ParseWeather = function(data) {
 };
 
 it.ShowData = function() {
+    if(it.isFirst() == true){
+        app.loading(true);
+    }
     var COOKIES = {};
     var cookieStr = document.cookie;
     var turbine = "";
@@ -878,11 +886,8 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
-    app.loading(true);
-
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
-            it.showWindspeedLiveChart();
             it.isFirst(false);
             app.loading(false);
         }, 1000);
