@@ -247,6 +247,10 @@ pg.createStockChart = function(y){
                 type: 'day',
                 count: 1,
                 text: '1d'
+            },{
+                type: 'day',
+                count: 5,
+                text: '5d'
             }, {
                 type: 'month',
                 count: 1,
@@ -260,14 +264,16 @@ pg.createStockChart = function(y){
                 text: 'All'
             }],
             inputEnabled: true,
-            selected: 2 ,// all,
+            selected: 3 ,// all,
             y: 50
         },
         navigator: {
+            enabled: true,
             adaptToUpdatedData: false,
             series: {
                 color: '#999',
-                lineWidth: 1
+                lineWidth: 1,
+                id: 'navigator',
             }
         },
         exporting: {
@@ -606,7 +612,7 @@ pg.createLiveChart = function(IsHour){
                 y: 50
             },
             navigator: {
-                adaptToUpdatedData: false,
+                adaptToUpdatedData: true,
                 series: {
                     color: '#999',
                     lineWidth: 1
