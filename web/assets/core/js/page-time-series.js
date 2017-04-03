@@ -348,7 +348,7 @@ pg.getDataStockChart = function(param){
     var cookieStr = document.cookie;
     var turbine = "";
     
-    console.log(cookieStr);
+    // console.log(cookieStr);
     if(cookieStr.indexOf("turbine=") >= 0) {
         document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         cookieStr.split(/; /).forEach(function(keyValuePair) {
@@ -674,7 +674,7 @@ pg.createLiveChart = function(IsHour){
 pg.generateSeriesOption = function(data, periods){
     var IsHour = (pg.isFirst() == true ? false : true);
     var IsGroup = (pg.dataType() == "SEC" ? false : true);
-    console.log("isgroup: "+IsGroup);
+    // console.log("isgroup: "+IsGroup);
 
     if(!IsHour){
         pg.periodList(periods);             
@@ -762,7 +762,7 @@ pg.generateSeriesOption = function(data, periods){
             //     },
             //     forced: true
             // },
-            showInNavigator: true,
+            showInNavigator: false,
             onSeries: "series"+idx,                
         }
 
