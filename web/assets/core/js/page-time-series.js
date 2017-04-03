@@ -268,13 +268,12 @@ pg.createStockChart = function(y){
             y: 50
         },
         navigator: {
-            enabled: true,
             adaptToUpdatedData: false,
             series: {
                 color: '#999',
                 lineWidth: 1,
-                id: 'navigator',
-            }
+            },
+            margin: 2,
         },
         exporting: {
           enabled: false
@@ -284,8 +283,9 @@ pg.createStockChart = function(y){
                 afterSetExtremes: afterSetExtremes
             },
             type: 'datetime',
-            breaks: breaks,
+            // breaks: breaks,
             minRange: minRange,
+            // ordinal: false,
         },
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
