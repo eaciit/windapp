@@ -216,6 +216,11 @@ pg.createStockChart = function(y){
         minRange = 5 * 1000;
     }
 
+    var rangeSelected = 3;
+    if(pg.pageType() == 'OEM'){
+        rangeSelected = 5;
+    }
+
     Highcharts.setOptions({
         chart: {
             style: {
@@ -264,7 +269,7 @@ pg.createStockChart = function(y){
                 text: 'All'
             }],
             inputEnabled: true,
-            selected: 3 ,// all,
+            selected: rangeSelected,
             y: 50
         },
         navigator: {
