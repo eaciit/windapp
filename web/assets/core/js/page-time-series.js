@@ -276,9 +276,23 @@ pg.createStockChart = function(y){
             adaptToUpdatedData: false,
             series: {
                 color: '#999',
-                lineWidth: 1,
+                lineWidth: 0.7,
             },
-            margin: 2,
+            // margin: 2,
+            xAxis: {
+                dateTimeLabelFormats: {
+                    day: '%Y',
+                    week: '%Y',
+                    month: '%Y',
+                    year: '%Y'
+                },
+                labels: {
+                    style: {
+                        color: '#585555',
+                        fontWeight: 'bold',
+                    },
+                }
+            }
         },
         exporting: {
           enabled: false
@@ -630,7 +644,21 @@ pg.createLiveChart = function(IsHour){
                 adaptToUpdatedData: true,
                 series: {
                     color: '#999',
-                    lineWidth: 1
+                    lineWidth: 0.7
+                },
+               xAxis: {
+                    dateTimeLabelFormats: {
+                        day: '%Y',
+                        week: '%Y',
+                        month: '%b %Y',
+                        year: '%Y'
+                    },
+                    labels: {
+                        style: {
+                            color: '#585555',
+                            fontWeight: 'bold',
+                        },
+                    }
                 }
             },
             exporting: {
