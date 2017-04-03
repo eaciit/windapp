@@ -44,7 +44,7 @@ pg.TagList = ko.observableArray(["windspeed","power"]);
 pg.startTime = ko.observable();
 pg.endTime = ko.observable();
 
-pg.rangeData = ko.observable(true);
+// pg.rangeData = ko.observable(true);
 pg.errorValue = ko.observable(true);
 pg.live = ko.observable(false);
 
@@ -339,6 +339,10 @@ pg.hidePopover = function(){
 }
 
 pg.getDataStockChart = function(param){
+    // if (param == "refresh") {
+    pg.dataType("MIN");
+    // }
+
     fa.LoadData();
     app.loading(true);
     clearInterval(interval);
@@ -390,14 +394,14 @@ pg.getDataStockChart = function(param){
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
 
-    if(pg.dataType() == 'SEC'){
-      dateStart = minDate;
-      dateEnd = maxDate;
-      if(param == 'detailPeriod'){
-          dateStart = new Date(pg.startTime());
-          dateEnd = new Date(pg.endTime());
-      }
-    }
+    // if(pg.dataType() == 'SEC'){
+    //   dateStart = minDate;
+    //   dateEnd = maxDate;
+    //   if(param == 'detailPeriod'){
+    //       dateStart = new Date(pg.startTime());
+    //       dateEnd = new Date(pg.endTime());
+    //   }
+    // }
 
     // var IsHour = (param == 'detailPeriod' ? true : false);
     var paramX = {
@@ -415,12 +419,12 @@ pg.getDataStockChart = function(param){
     var url = "timeseries/getdatahfd";
     if($('input[name="chk-column-live"]:checked').length > 0){
         pg.live(true);
-        pg.rangeData(true);
-        pg.errorValue(true);
+        // pg.rangeData(true);
+        // pg.errorValue(true);
     }else{
         pg.live(false);
-        pg.rangeData(true);
-        pg.errorValue(true);
+        // pg.rangeData(true);
+        // pg.errorValue(true);
     }
 
 
@@ -887,8 +891,8 @@ $(document).ready(function () {
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");
-        pg.rangeData(true);
-        pg.errorValue(true);
+        // pg.rangeData(true);
+        // pg.errorValue(true);
     });
 
     setTimeout(function () {
