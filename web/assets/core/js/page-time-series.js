@@ -281,10 +281,10 @@ pg.createStockChart = function(y){
             // margin: 2,
             xAxis: {
                 dateTimeLabelFormats: {
-                    day: '%Y',
-                    week: '%Y',
-                    month: '%Y',
-                    year: '%Y'
+                    // day: '%Y',
+                    // week: '%Y',
+                    // month: '%Y',
+                    // year: '%Y'
                 },
                 labels: {
                     style: {
