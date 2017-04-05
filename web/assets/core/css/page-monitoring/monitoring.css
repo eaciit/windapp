@@ -466,7 +466,7 @@ h4.content-heading {
 }
 
 .windpower-part{
-  margin-top: -25px;
+  z-index: 10;
 }
 .borderOrange{
     margin-top: 5px;
