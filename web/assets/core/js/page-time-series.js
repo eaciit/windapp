@@ -216,6 +216,11 @@ pg.createStockChart = function(y){
         minRange = 5 * 1000;
     }
 
+    var rangeSelected = 3;
+    if(pg.pageType() == 'OEM'){
+        rangeSelected = 5;
+    }
+
     Highcharts.setOptions({
         chart: {
             style: {
@@ -247,6 +252,10 @@ pg.createStockChart = function(y){
                 type: 'day',
                 count: 1,
                 text: '1d'
+            },{
+                type: 'day',
+                count: 5,
+                text: '5d'
             }, {
                 type: 'month',
                 count: 1,
@@ -260,14 +269,29 @@ pg.createStockChart = function(y){
                 text: 'All'
             }],
             inputEnabled: true,
-            selected: 2 ,// all,
+            selected: rangeSelected,
             y: 50
         },
         navigator: {
             adaptToUpdatedData: false,
             series: {
                 color: '#999',
-                lineWidth: 1
+                lineWidth: 0.7,
+            },
+            // margin: 2,
+            xAxis: {
+                dateTimeLabelFormats: {
+                    // day: '%Y',
+                    // week: '%Y',
+                    // month: '%Y',
+                    // year: '%Y'
+                },
+                labels: {
+                    style: {
+                        color: '#585555',
+                        fontWeight: 'bold',
+                    },
+                }
             }
         },
         exporting: {
@@ -278,8 +302,9 @@ pg.createStockChart = function(y){
                 afterSetExtremes: afterSetExtremes
             },
             type: 'datetime',
-            breaks: breaks,
+            // breaks: breaks,
             minRange: minRange,
+            // ordinal: false,
         },
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
@@ -300,6 +325,12 @@ pg.createStockChart = function(y){
             },
         },
         series: seriesOptions,
+        tooltip:{
+             formatter : function() {
+                $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                return false ;
+             }
+        },
     });
 
     // seriesOri = chart.series;
@@ -322,6 +353,10 @@ pg.hidePopover = function(){
 }
 
 pg.getDataStockChart = function(param){
+    // if (param == "refresh") {
+    pg.dataType("MIN");
+    // }
+
     fa.LoadData();
     app.loading(true);
     clearInterval(interval);
@@ -336,7 +371,7 @@ pg.getDataStockChart = function(param){
     var cookieStr = document.cookie;
     var turbine = "";
     
-    console.log(cookieStr);
+    // console.log(cookieStr);
     if(cookieStr.indexOf("turbine=") >= 0) {
         document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         cookieStr.split(/; /).forEach(function(keyValuePair) {
@@ -373,14 +408,14 @@ pg.getDataStockChart = function(param){
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
 
-    if(pg.dataType() == 'SEC'){
-      dateStart = minDate;
-      dateEnd = maxDate;
-      if(param == 'detailPeriod'){
-          dateStart = new Date(pg.startTime());
-          dateEnd = new Date(pg.endTime());
-      }
-    }
+    // if(pg.dataType() == 'SEC'){
+    //   dateStart = minDate;
+    //   dateEnd = maxDate;
+    //   if(param == 'detailPeriod'){
+    //       dateStart = new Date(pg.startTime());
+    //       dateEnd = new Date(pg.endTime());
+    //   }
+    // }
 
     // var IsHour = (param == 'detailPeriod' ? true : false);
     var paramX = {
@@ -398,12 +433,12 @@ pg.getDataStockChart = function(param){
     var url = "timeseries/getdatahfd";
     if($('input[name="chk-column-live"]:checked').length > 0){
         pg.live(true);
-        pg.rangeData(true);
-        pg.errorValue(true);
+        // pg.rangeData(true);
+        // pg.errorValue(true);
     }else{
         pg.live(false);
-        pg.rangeData(true);
-        pg.errorValue(true);
+        // pg.rangeData(true);
+        // pg.errorValue(true);
     }
 
 
@@ -606,10 +641,24 @@ pg.createLiveChart = function(IsHour){
                 y: 50
             },
             navigator: {
-                adaptToUpdatedData: false,
+                adaptToUpdatedData: true,
                 series: {
                     color: '#999',
-                    lineWidth: 1
+                    lineWidth: 0.7
+                },
+               xAxis: {
+                    dateTimeLabelFormats: {
+                        day: '%Y',
+                        week: '%Y',
+                        month: '%b %Y',
+                        year: '%Y'
+                    },
+                    labels: {
+                        style: {
+                            color: '#585555',
+                            fontWeight: 'bold',
+                        },
+                    }
                 }
             },
             exporting: {
@@ -649,6 +698,12 @@ pg.createLiveChart = function(IsHour){
                 }
             },
             series: seriesOptions,
+            tooltip:{
+                 formatter : function() {
+                    $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                    return false ;
+                 }
+            },
         });
     });
     
@@ -656,7 +711,7 @@ pg.createLiveChart = function(IsHour){
 pg.generateSeriesOption = function(data, periods){
     var IsHour = (pg.isFirst() == true ? false : true);
     var IsGroup = (pg.dataType() == "SEC" ? false : true);
-    console.log("isgroup: "+IsGroup);
+    // console.log("isgroup: "+IsGroup);
 
     if(!IsHour){
         pg.periodList(periods);             
@@ -744,7 +799,7 @@ pg.generateSeriesOption = function(data, periods){
             //     },
             //     forced: true
             // },
-            showInNavigator: true,
+            showInNavigator: false,
             onSeries: "series"+idx,                
         }
 
@@ -864,8 +919,8 @@ $(document).ready(function () {
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");
-        pg.rangeData(true);
-        pg.errorValue(true);
+        // pg.rangeData(true);
+        // pg.errorValue(true);
     });
 
     setTimeout(function () {

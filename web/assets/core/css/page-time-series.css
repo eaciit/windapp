@@ -5,6 +5,11 @@
 		margin-left: -20px;*/
 	}
 
+	#dateInfo{
+		font-weight: bold;
+		margin-top: -365px;
+	}
+
 	.mt-10{
 		margin-top: -10px;
 	}
