@@ -7,8 +7,8 @@ import (
 
 	"eaciit/wfdemo-git/web/helper"
 
-	// cr "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
@@ -328,8 +328,8 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	turbinedown := 0
 	t0 := time.Now().UTC()
 
-	arrturbinestatus := getTurbineStatus(project)
-	timemax := getMaxRealTime("Tejuva", "")
+	arrturbinestatus := getTurbineStatus(project, "")
+	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
 	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
@@ -347,11 +347,10 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 			break
 		}
 
-		if _iContinue {
+		_tTurbine := _tdata.GetString("turbine")
+		if _iContinue && _iTurbine == _tTurbine {
 			continue
 		}
-
-		_tTurbine := _tdata.GetString("turbine")
 		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 
 		if tstamp.After(lastUpdate) {
@@ -480,6 +479,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 
 	csr, err = DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
 		Where(dbox.And(dfilter...)).
+		Order("-timestart").
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
@@ -573,6 +573,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
+	arrturbinestatus := getTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
@@ -617,13 +618,30 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		}
 	}
 
+	if _idt, _cond := arrturbinestatus[p.Turbine]; _cond {
+		alldata.Set("Turbine Status", _idt.Status)
+	} else {
+		alldata.Set("Turbine Status", -999)
+	}
+
+	t0 := time.Now().UTC()
+	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+		alldata.Set("Turbine Status", -999)
+	}
+
 	return helper.CreateResult(true, alldata, "success")
 }
 
-func getTurbineStatus(project string) (res map[string]TurbineStatus) {
+func getTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
 	res = map[string]TurbineStatus{}
 
+	filtercond := []*dbox.Filter{dbox.Eq("projectname", project)}
+	if turbine != "" {
+		filtercond = append(filtercond, dbox.Eq("_id", turbine))
+	}
+
 	csr, err := DB().Connection.NewQuery().From(new(TurbineStatus).TableName()).
+		Where(dbox.And(filtercond...)).
 		Cursor(nil)
 
 	if err != nil {
