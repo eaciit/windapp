@@ -193,15 +193,13 @@ it.isFirst = ko.observable(true);
 it.dataWindspeed = ko.observableArray([]);
 it.dataPower = ko.observableArray([]);
 
-it.rotor_status = ko.observable("N/A");
-
 it.PlotData = function(data) {
     var lastUpdate = moment.utc(data["lastupdate"]);
     $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
 
-    if (it.rotor_status() === "N/A") {
+    if (data["Turbine Status"] === -999) {
         $('#rotorPic').css({"fill": "#b8b9bb"});
-    } else if (it.rotor_status() == "up") {
+    } else if (data["Turbine Status"] == 1) {
         $('#rotorPic').css({"fill": "#31b445"});
     } else {
         $('#rotorPic').css({"fill": "#db1e1e"});
