@@ -21,11 +21,11 @@ import (
 var (
 	notAvailValue = -99999.0
 	mapField      = map[string]MappingColumn{
-		"windspeed":     MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 25.0},
-		"power":         MappingColumn{"Power", "ActivePower_kW", "kW", -100, 2121.0},
-		"production":    MappingColumn{"Production", "", "kWh", -100, 2121.0},
-		"winddirection": MappingColumn{"Wind Direction", "WindDirection", "Degree", -10.0, 120.0},
-		"nacellepos":    MappingColumn{"Nacelle Direction", "NacellePos", "Degree", -10.0, 120.0},
+		"windspeed":     MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0},
+		"power":         MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0},
+		"production":    MappingColumn{"Production", "", "kWh", -200, 2100.0},
+		"winddirection": MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0},
+		"nacellepos":    MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0},
 		"rotorrpm":      MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0},
 		"genrpm":        MappingColumn{"Generator RPM", "WindSpeed_ms", "RPM", 0.0, 30.0},
 		"pitchangle":    MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0},

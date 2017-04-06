@@ -25,8 +25,8 @@ if (pageType == "OEM") {
     pg.tags = ko.observableArray([
         {text: "Wind Speed" , value:"windspeed"},
         {text: "Power" , value:"power"},
-        {text: "Wind Direction" , value:"winddirection"},
-        {text: "Nacelle Direction" , value:"nacellepos"},
+        // {text: "Wind Direction" , value:"winddirection"},
+        // {text: "Nacelle Direction" , value:"nacellepos"},
         {text: "Rotor RPM" , value:"rotorrpm"},
         {text: "Pitch Angle" , value:"pitchangle"},        
     ]);
@@ -295,7 +295,31 @@ pg.createStockChart = function(y){
             }
         },
         exporting: {
-          enabled: false
+          enabled: true,
+          buttons: {
+                contextButton:{
+                    enabled: false,
+                },
+                optionsButton: {
+                    id: '_idoption',
+                    text: 'Options',
+                    symbol:'menu',
+                    onclick: function () {
+                        // alert('You pressed the button!');
+                        $('.popover-markup>.trigger').popover('toggle');
+                    }
+                },
+                liveButton: {
+                    id: '_idlive',
+                    text: 'Live',
+                    symbol: 'circle',
+                    onclick: function () {
+                        // alert('You pressed the button!');
+                        pg.live(!pg.live());
+                        pg.getDataStockChart();
+                    }
+                }
+            }
         },
         xAxis: {
             events: {
@@ -431,15 +455,15 @@ pg.getDataStockChart = function(param){
     };
 
     var url = "timeseries/getdatahfd";
-    if($('input[name="chk-column-live"]:checked').length > 0){
-        pg.live(true);
-        // pg.rangeData(true);
-        // pg.errorValue(true);
-    }else{
-        pg.live(false);
-        // pg.rangeData(true);
-        // pg.errorValue(true);
-    }
+    // if($('input[name="chk-column-live"]:checked').length > 0){
+    //     pg.live(true);
+    //     // pg.rangeData(true);
+    //     // pg.errorValue(true);
+    // }else{
+    //     pg.live(false);
+    //     // pg.rangeData(true);
+    //     // pg.errorValue(true);
+    // }
 
 
     var request;
@@ -662,7 +686,32 @@ pg.createLiveChart = function(IsHour){
                 }
             },
             exporting: {
-              enabled: false
+                enabled: true,
+                buttons: {
+                        contextButton:{
+                            enabled: false,
+                        },
+                        optionsButton: {
+                            id: '_idoption',
+                            text: 'Options',
+                            symbol:'menu',
+                            onclick: function () {
+                                // alert('You pressed the button!');
+                                $('.popover-markup>.trigger').popover('toggle');
+                            }
+                        },
+                        liveButton: {
+                            id: '_idlive',
+                            text: 'Live',
+                            symbol: 'circle',
+                            symbolFill: '#31B445',
+                            symbolStroke: '#31B445',
+                            onclick: function () {
+                                pg.live(!pg.live());
+                                pg.getDataStockChart();
+                            }
+                        }
+                    }
             },
             xAxis: {
                 type: 'datetime',
@@ -909,6 +958,7 @@ $(document).ready(function () {
     $('.popover-markup>.trigger').popover({
         animation: true,
         html: true,
+        placement: 'right',
         title: function () {
             return $(this).parent().find('.head').html();
         },
@@ -916,21 +966,21 @@ $(document).ready(function () {
             return $(this).parent().find('.content').html();
         }
     }).on('click',function () {
-            $("#selectTagsDiv").html("");
-            $("#selectTagsDiv").html('<select id="TagList"></select>');
-            $('#TagList').kendoMultiSelect({
-              dataSource: pg.tags(), 
-              value: pg.TagList() , 
-              dataValueField : 'value', 
-              dataTextField: 'text',
-              suggest: true, 
-              maxSelectedItems: maxSelectedItems, 
-              minSelectedItems: 1,
-              change: function(e) {
-                  if (this.value().length == 0) {
-                      this.value("windspeed")
-                  }
-              }
+        $("#selectTagsDiv").html("");
+        $("#selectTagsDiv").html('<select id="TagList"></select>');
+        $('#TagList').kendoMultiSelect({
+            dataSource: pg.tags(), 
+            value: pg.TagList() , 
+            dataValueField : 'value', 
+            dataTextField: 'text',
+            suggest: true, 
+            maxSelectedItems: maxSelectedItems, 
+            minSelectedItems: 1,
+            change: function(e) {
+                if (this.value().length == 0) {
+                    this.value("windspeed")
+                }
+        }
       });
     });
 
