@@ -3,6 +3,15 @@
 		font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
 		font-size: 12px;
 		margin-left: -20px;*/
+		margin-top: 0px;
+	}
+
+	#group-chk{
+		display: inline-block;
+	    padding: 5px;
+	    margin-left: 26px;
+	    background: #ecf0f5;
+	    border: 1px solid #d2d6de;
 	}
 
 	#dateInfo{

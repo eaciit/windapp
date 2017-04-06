@@ -58,16 +58,18 @@
 					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 					                    <span class="colRed"><strong>Live</strong></span>
 					                </label>
-					                <label>
-					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
-					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-					                    <span class="colRed"><strong>Default range</strong></span>
-					                </label>
-					                <label>
-					                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
-					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-					                    <span class="colRed"><strong>Error value</strong></span>
-					                </label>
+					                <div id="group-chk">
+						                <label>
+						                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
+						                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+						                    <span class="colRed"><strong>Fix Axis</strong></span>
+						                </label>
+						                <label>
+						                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
+						                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+						                    <span class="colRed"><strong>Outliers</strong></span>
+						                </label>
+						            </div>
 								</div>
 							</div>
 						</div>

@@ -97,7 +97,7 @@ pg.hideRange = function(){
     var checked = $('[name=chk-column-range]:checked').length==1;
     $.each(yAxis, function(i, res){
         chart.yAxis[i].update({
-            min: (checked ? res.min : null),
+            min: (checked == 1 ? res.min : null),
             max: (checked == 1 ? res.max : null),
         });
 
@@ -727,6 +727,19 @@ pg.generateSeriesOption = function(data, periods){
         if (idx >= (maxSelectedItems/2) || (idx == 1 && data.length==2)) {
             isOpposite = true;
         }
+        
+        var tickInterval = 0; 
+
+        var mathMinMax = val.maxval - val.minval; 
+
+        if(mathMinMax % 2 == 0){
+            tickInterval = mathMinMax / 4;
+        }else{
+            tickInterval = mathMinMax /5 ;
+        }
+
+
+        console.log(tickInterval);
 
         yAxis[xCounter] = {
             min: val.minval,
@@ -735,6 +748,8 @@ pg.generateSeriesOption = function(data, periods){
             endOnTick: false,
             startOnTick: false,
             showLastLabel: true,
+            showFirstLabel: true,
+            // tickInterval: tickInterval,
             maxPadding: 0,
             labels: {
                 format: '{value}',
@@ -774,6 +789,8 @@ pg.generateSeriesOption = function(data, periods){
             min: 0,
             max: 100, 
             gridLineWidth: 1,
+            endOnTick: false,
+            startOnTick: false,
             labels: {
                 format: '{value}',
             },
