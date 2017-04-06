@@ -12,7 +12,8 @@ vm.breadcrumb([
     { title: 'Individual Turbine', href: viewModel.appName + 'page/monitoringindividualturbine' }]);
 var intervalTurbine = null;
 var chart;
-var maxSamples = 20,count = 0;
+
+var maxSamples = 50,count = 0;
 
 it.projectList = ko.observableArray([]);
 it.project = ko.observable();
@@ -108,17 +109,20 @@ it.GetData = function(project, turbine) {
         Turbine: turbine
     }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
-        // var time = (new Date).getTime();
+        var time = (new Date).getTime();
 
-        var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
+        // var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
+
 
         it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
         it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
 
 
         if(it.isFirst() == false){
-            chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
-            chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+            // chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
+            // chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+            chart.series[0].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
+            chart.series[1].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
         }else{
             it.showWindspeedLiveChart();
         }
@@ -592,7 +596,7 @@ it.showWindspeedLiveChart = function(){
         chart: {
             marginTop: 50,
             height: 180,
-            width: 500,
+            width: 475,
         },
         credits: {
               enabled: false
@@ -631,16 +635,16 @@ it.showWindspeedLiveChart = function(){
           {
             enabled: false
           },
-          gridLineWidth: 0,
+          gridLineWidth: 1,
           minorGridLineWidth: 0,
           opposite:false
         },
         xAxis: {
-           lineWidth: 0,
-           minorGridLineWidth: 0,
+           lineWidth: 1,
+           minorGridLineWidth: 1,
            lineColor: 'transparent',
            labels: {
-               enabled: false
+               enabled: true
            },
            minorTickLength: 0,
            tickLength: 0
@@ -737,19 +741,20 @@ it.showWindRoseChart = function(){
             return;
         }
         if (res.data != null) {
-            var nacelleData = res.data["nacelle"]["WindRose"][0].Data;
-            var winddirData = res.data["winddir"]["WindRose"][0].Data;
+            // var nacelleData = res.data["nacelle"]["WindRose"][0].Data;
+            // var winddirData = res.data["winddir"]["WindRose"][0].Data;
+            var windRoseData = res.data["WindRose"][0].Data;
 
             $("#windRoseChart").kendoChart({
                 theme: "flat",
                 chartArea: {
-                    height: 200,
-                    width: 250,
+                    height: 225,
+                    width: 300,
                     margin: 0,
                     padding: 0,
                 },
                 dataSource: {
-                    data: nacelleData,
+                    data: windRoseData,
                     group: {
                         field: "WsCategoryNo",
                         dir: "asc"
@@ -794,59 +799,59 @@ it.showWindRoseChart = function(){
                 },
             });
 
-            $("#windDirectionChart").kendoChart({
-                theme: "flat",
-                chartArea: {
-                    height: 200,
-                    width: 250,
-                    margin: 0,
-                    padding: 0,
-                },
-                dataSource: {
-                    data: winddirData,
-                    group: {
-                        field: "WsCategoryNo",
-                        dir: "asc"
-                    },
-                    sort: {
-                        field: "DirectionNo",
-                        dir: "asc"
-                    }
-                },
-                legend: {
-                    visible: false,
-                },
-                series: [{
-                    type: "radarColumn",
-                    stack: true,
-                    field: "Contribution",
-                    gap: 0,
-                    border: {
-                        width: 1,
-                        color: "#7f7f7f",
-                        opacity: 0.5
-                    },
-                }],
-                categoryAxis: {
-                    field: "DirectionDesc",
-                    visible: true,
-                    majorGridLines: {
-                        visible: true,
-                        step: 1
-                    },
-                    labels: {
-                        font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        visible: true,
-                        step: 1
-                    }
-                },
-                valueAxis: {
-                    labels: {
-                        template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                        font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                    }
-                },
-            });
+            // $("#windDirectionChart").kendoChart({
+            //     theme: "flat",
+            //     chartArea: {
+            //         height: 200,
+            //         width: 250,
+            //         margin: 0,
+            //         padding: 0,
+            //     },
+            //     dataSource: {
+            //         data: winddirData,
+            //         group: {
+            //             field: "WsCategoryNo",
+            //             dir: "asc"
+            //         },
+            //         sort: {
+            //             field: "DirectionNo",
+            //             dir: "asc"
+            //         }
+            //     },
+            //     legend: {
+            //         visible: false,
+            //     },
+            //     series: [{
+            //         type: "radarColumn",
+            //         stack: true,
+            //         field: "Contribution",
+            //         gap: 0,
+            //         border: {
+            //             width: 1,
+            //             color: "#7f7f7f",
+            //             opacity: 0.5
+            //         },
+            //     }],
+            //     categoryAxis: {
+            //         field: "DirectionDesc",
+            //         visible: true,
+            //         majorGridLines: {
+            //             visible: true,
+            //             step: 1
+            //         },
+            //         labels: {
+            //             font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            //             visible: true,
+            //             step: 1
+            //         }
+            //     },
+            //     valueAxis: {
+            //         labels: {
+            //             template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+            //             font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            //         }
+            //     },
+            // });
         }
     })
 }
