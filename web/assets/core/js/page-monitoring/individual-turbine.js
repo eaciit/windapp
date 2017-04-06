@@ -109,9 +109,9 @@ it.GetData = function(project, turbine) {
         Turbine: turbine
     }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
-        var time = (new Date).getTime();
+        // var time = (new Date).getTime();
 
-        // var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
+        var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
 
 
         it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
@@ -119,10 +119,10 @@ it.GetData = function(project, turbine) {
 
 
         if(it.isFirst() == false){
-            // chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
-            // chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
-            chart.series[0].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
-            chart.series[1].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
+            chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
+            chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+            // chart.series[0].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
+            // chart.series[1].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
         }else{
             it.showWindspeedLiveChart();
         }
