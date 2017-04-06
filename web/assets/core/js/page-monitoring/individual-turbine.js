@@ -797,6 +797,17 @@ it.showWindRoseChart = function(){
                         font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                     }
                 },
+                tooltip: {
+                    visible: true,
+                    template: "#= category #"+String.fromCharCode(176)+" (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                }
             });
 
             // $("#windDirectionChart").kendoChart({
