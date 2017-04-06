@@ -103,12 +103,9 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 		data = append(data, _data)
 	}
 	csr.Close()
-	dataNacelle := GenerateWindRose(data, "nacelle", turbineVal)
-	dataWindDir := GenerateWindRose(data, "winddir", turbineVal)
-	datas := tk.M{
-		"nacelle": dataNacelle,
-		"winddir": dataWindDir,
-	}
+	// dataNacelle := GenerateWindRose(data, "nacelle", turbineVal)
+	// dataWindDir := GenerateWindRose(data, "winddir", turbineVal)
+	datas := GenerateWindRose(data, "NacellePlusWind", turbineVal)
 
 	return helper.CreateResult(true, datas, "success")
 
@@ -128,8 +125,10 @@ func GenerateWindRose(data []MiniScadaHFD, tipe, turbineVal string) tk.M {
 
 			if tipe == "nacelle" {
 				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos, section)
+			} else if tipe == "winddir" {
+				dirNo, dirDesc = getDirection(dt.Slow_Winddirection+300, section)
 			} else {
-				dirNo, dirDesc = getDirection(dt.Slow_Winddirection, section)
+				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos+dt.Slow_Winddirection+300, section)
 			}
 
 			wsNo, wsDesc := getWsCategory(dt.Fast_Windspeed_Ms)
