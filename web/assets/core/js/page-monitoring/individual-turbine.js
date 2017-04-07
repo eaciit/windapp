@@ -129,7 +129,7 @@ it.GetData = function(project, turbine) {
 
         it.PlotData(res.data);
         it.isFirst(false);
-        app.loading(false);
+        // app.loading(false);
     });
 };
 
@@ -895,7 +895,6 @@ it.changeColor = function(){
 $(document).ready(function(){
     $.when(it.ShowData()).done(function () {
         setTimeout(function() {
-            it.isFirst(false);
             app.loading(false);
         }, 1000);
     });
