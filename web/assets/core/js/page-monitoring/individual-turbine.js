@@ -110,18 +110,14 @@ it.GetData = function(project, turbine) {
     }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
         // var time = (new Date).getTime();
-
         var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
-
-
-        it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
-        it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
-
 
         if(it.isFirst() == false){
             chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
             chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
         }else{
+            it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
+            it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
             it.showWindspeedLiveChart();
         }
 
@@ -626,9 +622,9 @@ it.showWindspeedLiveChart = function(){
             selected: 0,
             enabled:false,
         },
-            scrollbar: {
-                enabled: false
-            },
+        scrollbar: {
+            enabled: false
+        },
         exporting: {
             enabled: false
         },

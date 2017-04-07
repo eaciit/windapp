@@ -637,9 +637,9 @@ pg.createLiveChart = function(IsHour){
                                             }
                                        })
                                     });
-                                    console.log(dateEnd);
+                                    // console.log(dateEnd);
                                 }else{
-                                    console.log(dateEnd);
+                                    // console.log(dateEnd);
                                     return false;
                                 }
 
