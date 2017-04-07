@@ -494,10 +494,15 @@ it.ShowData = function() {
         turbine = $('#turbine').data('kendoDropDownList').value();
         project = $('#projectList').data('kendoDropDownList').value();
     }
-    
+
     it.LoadData(turbine);
     it.GetData(project, turbine);
-    it.showWindRoseChart();
+    
+    $.when(it.showWindRoseChart()).done(function () {
+        setTimeout(function() {
+            app.loading(false);
+        }, 1500);
+    });
 };
 
 it.showWindspeedColumnChart = function(){
@@ -834,10 +839,6 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
-    $.when(it.ShowData()).done(function () {
-        setTimeout(function() {
-            app.loading(false);
-        }, 1000);
-    });
+    it.ShowData();
     intervalTurbine = window.setInterval(it.ShowData, 6000);
 });
