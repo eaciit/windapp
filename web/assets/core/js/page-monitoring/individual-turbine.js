@@ -121,15 +121,12 @@ it.GetData = function(project, turbine) {
         if(it.isFirst() == false){
             chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
             chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
-            // chart.series[0].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
-            // chart.series[1].addPoint([time, Math.floor((Math.random() * 10) + 1)], true, (++count >= maxSamples));
         }else{
             it.showWindspeedLiveChart();
         }
 
         it.PlotData(res.data);
         it.isFirst(false);
-        app.loading(false);
     });
 };
 
@@ -497,10 +494,15 @@ it.ShowData = function() {
         turbine = $('#turbine').data('kendoDropDownList').value();
         project = $('#projectList').data('kendoDropDownList').value();
     }
-    
+
     it.LoadData(turbine);
     it.GetData(project, turbine);
-    it.showWindRoseChart();
+    
+    $.when(it.showWindRoseChart()).done(function () {
+        setTimeout(function() {
+            app.loading(false);
+        }, 1500);
+    });
 };
 
 it.showWindspeedColumnChart = function(){
@@ -741,8 +743,6 @@ it.showWindRoseChart = function(){
             return;
         }
         if (res.data != null) {
-            // var nacelleData = res.data["nacelle"]["WindRose"][0].Data;
-            // var winddirData = res.data["winddir"]["WindRose"][0].Data;
             var windRoseData = res.data["WindRose"][0].Data;
 
             $("#windRoseChart").kendoChart({
@@ -809,60 +809,6 @@ it.showWindRoseChart = function(){
                     },
                 }
             });
-
-            // $("#windDirectionChart").kendoChart({
-            //     theme: "flat",
-            //     chartArea: {
-            //         height: 200,
-            //         width: 250,
-            //         margin: 0,
-            //         padding: 0,
-            //     },
-            //     dataSource: {
-            //         data: winddirData,
-            //         group: {
-            //             field: "WsCategoryNo",
-            //             dir: "asc"
-            //         },
-            //         sort: {
-            //             field: "DirectionNo",
-            //             dir: "asc"
-            //         }
-            //     },
-            //     legend: {
-            //         visible: false,
-            //     },
-            //     series: [{
-            //         type: "radarColumn",
-            //         stack: true,
-            //         field: "Contribution",
-            //         gap: 0,
-            //         border: {
-            //             width: 1,
-            //             color: "#7f7f7f",
-            //             opacity: 0.5
-            //         },
-            //     }],
-            //     categoryAxis: {
-            //         field: "DirectionDesc",
-            //         visible: true,
-            //         majorGridLines: {
-            //             visible: true,
-            //             step: 1
-            //         },
-            //         labels: {
-            //             font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            //             visible: true,
-            //             step: 1
-            //         }
-            //     },
-            //     valueAxis: {
-            //         labels: {
-            //             template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-            //             font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            //         }
-            //     },
-            // });
         }
     })
 }
@@ -893,11 +839,6 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
-    $.when(it.ShowData()).done(function () {
-        setTimeout(function() {
-            it.isFirst(false);
-            app.loading(false);
-        }, 1000);
-    });
+    it.ShowData();
     intervalTurbine = window.setInterval(it.ShowData, 6000);
 });
