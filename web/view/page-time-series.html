@@ -149,15 +149,7 @@
 <div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
-			<div class="modal-body">
-				<div class="btn-group" data-toggle="buttons">
-					<label class="btn btn-primary active" onclick="pg.hideRange();">
-						<input type="checkbox" name="options" id="option1" autocomplete="off" checked> Fix yAxis
-					</label>
-					<label class="btn btn-primary active" onclick="pg.hideErr();">
-						<input type="checkbox" name="options" id="option2" autocomplete="off" checked> Outliers
-					</label>
-				</div>
+			<div class="modal-body row">
 				<!--<div class="checkbox">
 					<label>
 						<input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
@@ -170,11 +162,22 @@
 						<span class="colRed"><strong>Outliers</strong></span>
 					</label>
 				</div>-->
-				<div class="row">
-					<div class="form-group col-md-9" id="selectTagsDiv"></div>
-					<div class="col-md-3">
+				<div class="col-md-12">
+					<div class="col-md-12" id="selectTagsDiv"></div>
+					<div class="col-md-12">
 						<!--<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>-->
 						<button type="submit" id="saveTags" class="btn btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<br>
+					<div class="btn-group col-md-12" data-toggle="buttons">
+						<label class="btn btn-primary active" onclick="pg.hideRange();">
+							<input type="checkbox" name="options" id="option1" autocomplete="off" checked> Fix yAxis
+						</label>
+						<label class="btn btn-primary active" onclick="pg.hideErr();">
+							<input type="checkbox" name="options" id="option2" autocomplete="off" checked> Outliers
+						</label>
 					</div>
 				</div>
 			</div>

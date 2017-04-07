@@ -149,4 +149,7 @@
 	    color: #fff;
 	    background: #f39c12;
 	}
-}
+
+	.modal-dialog{
+		width: 350px;
+	}
