@@ -454,7 +454,10 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 		filter = append(filter, dbox.Gt("timestamp", tStart))
 	}
 
-	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+	rconn := getConnRealtime()
+	defer rconn.Close()
+
+	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
 		Where(dbox.And(filter...)).
 		Order("-timestamp").
 		Cursor(nil)
