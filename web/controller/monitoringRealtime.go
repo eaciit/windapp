@@ -14,7 +14,6 @@ import (
 	tk "github.com/eaciit/toolkit"
 
 	"bufio"
-	c "github.com/eaciit/crowd"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,6 +21,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	c "github.com/eaciit/crowd"
 )
 
 type MonitoringRealtimeController struct {
@@ -331,7 +332,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
-	rconn := getConnRealtime()
+	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
@@ -462,7 +463,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	rconn := getConnRealtime()
+	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
 	csr, err := rconn.NewQuery().From("Alarm").
@@ -533,7 +534,7 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	dfilter = append(dfilter, dbox.Ne("timestart", time.Time{}))
 
-	rconn := getConnRealtime()
+	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
 	csr, err := rconn.NewQuery().From("Alarm").
@@ -648,7 +649,7 @@ func getTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 		filtercond = append(filtercond, dbox.Eq("_id", turbine))
 	}
 
-	rconn := getConnRealtime()
+	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
 	csr, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).
@@ -676,7 +677,7 @@ func getTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	timemax = time.Time{}
 
-	rconn := getConnRealtime()
+	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
 	_Query := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
@@ -801,24 +802,6 @@ func loadFileByTurbine(turbine, _fpath string, tkm tk.M) {
 
 	_file.Close()
 	return
-}
-
-func getConnRealtime() dbox.IConnection {
-	config := lh.ReadConfig()
-
-	ci := &dbox.ConnectionInfo{config["host"], config["dbrealtime"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
-	c, _ := dbox.NewConnection("mongo", ci)
-
-	for {
-		e := c.Connect()
-		if e != nil {
-			tk.Println("Realtime DB Connection Found ", e.Error())
-		} else {
-			break
-		}
-	}
-
-	return c
 }
 
 /*

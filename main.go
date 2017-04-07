@@ -48,12 +48,9 @@ func main() {
 			rURL := r.Request.URL.String()
 			sessionid := r.Session("sessionid", "")
 			helper.WC = r
-
 			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
-
 				if !active {
-					r.SetSession("sessionid", "")
 					urlSplit := strings.Split(rURL, "/")
 
 					if len(urlSplit) > 2 {
