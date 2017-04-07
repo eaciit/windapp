@@ -94,22 +94,22 @@ pg.hideLegendByName = function(name){
 }
 
 pg.hideRange = function(){
-    var checked = $('[name=chk-column-range]:checked').length==1;
+    // var checked = $('[name=chk-column-range]:checked').length==1;
+    var checked = $('#option1:checked').length==1;
     $.each(yAxis, function(i, res){
         chart.yAxis[i].update({
-            min: (checked == 1 ? res.min : null),
-            max: (checked == 1 ? res.max : null),
+            min: (!checked ? res.min : null),
+            max: (!checked ? res.max : null),
         });
-
         i++;
     });
 }
 
 pg.hideErr = function(){
-    var checked = $('[name=chk-column-error]:checked').length==1;
+    var checked = $('#option2:checked').length==1;
     $.each(chart.series, function(i, res){
         if(res.name.indexOf("_err") > 0){
-            res.setVisible((checked ? true : false));
+            res.setVisible(!checked);
         }
     });
 }
@@ -305,8 +305,7 @@ pg.createStockChart = function(y){
                     text: 'Options',
                     symbol:'menu',
                     onclick: function () {
-                        // alert('You pressed the button!');
-                        $('.popover-markup>.trigger').popover('toggle');
+                        pg.options();
                     }
                 },
                 liveButton: {
@@ -317,7 +316,8 @@ pg.createStockChart = function(y){
                         // alert('You pressed the button!');
                         pg.live(!pg.live());
                         pg.getDataStockChart();
-                    }
+                    },
+                    enabled: pg.pageType() == 'HFD',
                 }
             }
         },
@@ -372,9 +372,30 @@ pg.getTimestamp = function(param){
       return date.getTime();
 }
 
-pg.hidePopover = function(){
-    $('.popover-markup>.trigger').popover('hide');
+pg.options = function(){
+    $("#modalDetail").on("shown.bs.modal", function () { 
+        $("#selectTagsDiv").html("");
+        $("#selectTagsDiv").html('<select id="TagList"></select>');
+        $('#TagList').kendoMultiSelect({
+            dataSource: pg.tags(), 
+            value: pg.TagList() , 
+            dataValueField : 'value', 
+            dataTextField: 'text',
+            suggest: true, 
+            maxSelectedItems: maxSelectedItems, 
+            minSelectedItems: 1,
+            change: function(e) {
+                if (this.value().length == 0) {
+                    this.value("windspeed")
+                }
+            }
+        })
+    }).modal('show');
 }
+
+// pg.hidePopover = function(){
+//     $('.popover-markup>.trigger').popover('hide');
+// }
 
 pg.getDataStockChart = function(param){
     // if (param == "refresh") {
@@ -386,7 +407,7 @@ pg.getDataStockChart = function(param){
     clearInterval(interval);
     if(param == "selectTags"){
        pg.TagList($("#TagList").val());
-       $('.popover-markup>.trigger').popover("hide");
+    //    $('.popover-markup>.trigger').popover("hide");
     }
 
     var IsHour = (pg.isFirst() == true ? false : true);
@@ -696,8 +717,9 @@ pg.createLiveChart = function(IsHour){
                             text: 'Options',
                             symbol:'menu',
                             onclick: function () {
+                                pg.options();
                                 // alert('You pressed the button!');
-                                $('.popover-markup>.trigger').popover('toggle');
+                                // $('.popover-markup>.trigger').popover('toggle');
                             }
                         },
                         liveButton: {
@@ -955,7 +977,7 @@ $(document).ready(function () {
         $(".label-filters:contains('to')").hide();
     }
 
-    $('.popover-markup>.trigger').popover({
+    /*$('.popover-markup>.trigger').popover({
         animation: true,
         html: true,
         placement: 'right',
@@ -982,7 +1004,7 @@ $(document).ready(function () {
                 }
         }
       });
-    });
+    });*/
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");
@@ -994,5 +1016,7 @@ $(document).ready(function () {
         // pg.LoadData();
         pg.getDataStockChart("first");
         // pg.prepareScroll();
+        // pg.hideRange();
+        // pg.hideErr();
     }, 1000);
 });

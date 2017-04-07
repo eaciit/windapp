@@ -52,7 +52,7 @@ func main() {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
 				if !active {
 					urlSplit := strings.Split(rURL, "/")
-
+					r.SetSession("sessionid", "")
 					if len(urlSplit) > 2 {
 						if urlSplit[2] == "page" {
 							http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)

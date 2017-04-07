@@ -28,7 +28,7 @@ var (
 		"winddirection": MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0},
 		"nacellepos":    MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0},
 		"rotorrpm":      MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0},
-		"genrpm":        MappingColumn{"Generator RPM", "WindSpeed_ms", "RPM", 0.0, 30.0},
+		"genrpm":        MappingColumn{"Generator RPM", "GenSpeed_RPM", "RPM", 0.0, 30.0},
 		"pitchangle":    MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0},
 	}
 )
