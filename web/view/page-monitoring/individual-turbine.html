@@ -72,17 +72,22 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12 direct-part">
-                            <div class="col-md-6 text-center">
+                            <div class="col-md-8 text-center">
                                <div class="col-md-12">
-                                <span class="directTitle"><strong>Nacelle Pos. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></span>
+                                <!-- <span class="directTitle"><strong>Nacelle Pos. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></span> -->
                                    <div id="windRoseChart"></div>
                                </div>
                             </div>
-                            <div class="col-md-6 text-center">
-                               <div class="col-md-12">
+                            <div class="col-md-4 text-center border-left-grey" style="margin-top: 20px">
+                               <!-- <div class="col-md-12">
                                 <span class="directTitle"><strong>Wind Dir. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></span>
                                    <div id="windDirectionChart"></div>
-                               </div>
+                               </div> -->
+                                 <!-- <div class="col-md-12"><span><strong>&nbsp;Pitch Angle</strong></span></div> -->
+                                  <div class="clearfix">&nbsp;</div>
+                                 <span class="text-center">Nacelle Pos.</span> <br><h3> <strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></h3>
+                                 <hr class="borderGrey">
+                                 <span class="text-center">Wind Dir.</span> <br><h3><strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></h3>
                             </div>
                             
                         </div>

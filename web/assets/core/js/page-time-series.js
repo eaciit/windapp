@@ -25,8 +25,8 @@ if (pageType == "OEM") {
     pg.tags = ko.observableArray([
         {text: "Wind Speed" , value:"windspeed"},
         {text: "Power" , value:"power"},
-        {text: "Wind Direction" , value:"winddirection"},
-        {text: "Nacelle Direction" , value:"nacellepos"},
+        // {text: "Wind Direction" , value:"winddirection"},
+        // {text: "Nacelle Direction" , value:"nacellepos"},
         {text: "Rotor RPM" , value:"rotorrpm"},
         {text: "Pitch Angle" , value:"pitchangle"},        
     ]);
@@ -94,22 +94,22 @@ pg.hideLegendByName = function(name){
 }
 
 pg.hideRange = function(){
-    var checked = $('[name=chk-column-range]:checked').length==1;
+    // var checked = $('[name=chk-column-range]:checked').length==1;
+    var checked = $('#option1:checked').length==1;
     $.each(yAxis, function(i, res){
         chart.yAxis[i].update({
-            min: (checked ? res.min : null),
-            max: (checked == 1 ? res.max : null),
+            min: (!checked ? res.min : null),
+            max: (!checked ? res.max : null),
         });
-
         i++;
     });
 }
 
 pg.hideErr = function(){
-    var checked = $('[name=chk-column-error]:checked').length==1;
+    var checked = $('#option2:checked').length==1;
     $.each(chart.series, function(i, res){
         if(res.name.indexOf("_err") > 0){
-            res.setVisible((checked ? true : false));
+            res.setVisible(!checked);
         }
     });
 }
@@ -295,7 +295,31 @@ pg.createStockChart = function(y){
             }
         },
         exporting: {
-          enabled: false
+          enabled: true,
+          buttons: {
+                contextButton:{
+                    enabled: false,
+                },
+                optionsButton: {
+                    id: '_idoption',
+                    text: 'Options',
+                    symbol:'menu',
+                    onclick: function () {
+                        pg.options();
+                    }
+                },
+                liveButton: {
+                    id: '_idlive',
+                    text: 'Live',
+                    symbol: 'circle',
+                    onclick: function () {
+                        // alert('You pressed the button!');
+                        pg.live(!pg.live());
+                        pg.getDataStockChart();
+                    },
+                    enabled: pg.pageType() == 'HFD',
+                }
+            }
         },
         xAxis: {
             events: {
@@ -348,9 +372,30 @@ pg.getTimestamp = function(param){
       return date.getTime();
 }
 
-pg.hidePopover = function(){
-    $('.popover-markup>.trigger').popover('hide');
+pg.options = function(){
+    $("#modalDetail").on("shown.bs.modal", function () { 
+        $("#selectTagsDiv").html("");
+        $("#selectTagsDiv").html('<select id="TagList"></select>');
+        $('#TagList').kendoMultiSelect({
+            dataSource: pg.tags(), 
+            value: pg.TagList() , 
+            dataValueField : 'value', 
+            dataTextField: 'text',
+            suggest: true, 
+            maxSelectedItems: maxSelectedItems, 
+            minSelectedItems: 1,
+            change: function(e) {
+                if (this.value().length == 0) {
+                    this.value("windspeed")
+                }
+            }
+        })
+    }).modal('show');
 }
+
+// pg.hidePopover = function(){
+//     $('.popover-markup>.trigger').popover('hide');
+// }
 
 pg.getDataStockChart = function(param){
     // if (param == "refresh") {
@@ -362,7 +407,7 @@ pg.getDataStockChart = function(param){
     clearInterval(interval);
     if(param == "selectTags"){
        pg.TagList($("#TagList").val());
-       $('.popover-markup>.trigger').popover("hide");
+    //    $('.popover-markup>.trigger').popover("hide");
     }
 
     var IsHour = (pg.isFirst() == true ? false : true);
@@ -431,15 +476,15 @@ pg.getDataStockChart = function(param){
     };
 
     var url = "timeseries/getdatahfd";
-    if($('input[name="chk-column-live"]:checked').length > 0){
-        pg.live(true);
-        // pg.rangeData(true);
-        // pg.errorValue(true);
-    }else{
-        pg.live(false);
-        // pg.rangeData(true);
-        // pg.errorValue(true);
-    }
+    // if($('input[name="chk-column-live"]:checked').length > 0){
+    //     pg.live(true);
+    //     // pg.rangeData(true);
+    //     // pg.errorValue(true);
+    // }else{
+    //     pg.live(false);
+    //     // pg.rangeData(true);
+    //     // pg.errorValue(true);
+    // }
 
 
     var request;
@@ -592,9 +637,9 @@ pg.createLiveChart = function(IsHour){
                                             }
                                        })
                                     });
-                                    console.log(dateEnd);
+                                    // console.log(dateEnd);
                                 }else{
-                                    console.log(dateEnd);
+                                    // console.log(dateEnd);
                                     return false;
                                 }
 
@@ -662,7 +707,33 @@ pg.createLiveChart = function(IsHour){
                 }
             },
             exporting: {
-              enabled: false
+                enabled: true,
+                buttons: {
+                        contextButton:{
+                            enabled: false,
+                        },
+                        optionsButton: {
+                            id: '_idoption',
+                            text: 'Options',
+                            symbol:'menu',
+                            onclick: function () {
+                                pg.options();
+                                // alert('You pressed the button!');
+                                // $('.popover-markup>.trigger').popover('toggle');
+                            }
+                        },
+                        liveButton: {
+                            id: '_idlive',
+                            text: 'Live',
+                            symbol: 'circle',
+                            symbolFill: '#31B445',
+                            symbolStroke: '#31B445',
+                            onclick: function () {
+                                pg.live(!pg.live());
+                                pg.getDataStockChart();
+                            }
+                        }
+                    }
             },
             xAxis: {
                 type: 'datetime',
@@ -727,6 +798,19 @@ pg.generateSeriesOption = function(data, periods){
         if (idx >= (maxSelectedItems/2) || (idx == 1 && data.length==2)) {
             isOpposite = true;
         }
+        
+        var tickInterval = 0; 
+
+        var mathMinMax = val.maxval - val.minval; 
+
+        if(mathMinMax % 2 == 0){
+            tickInterval = mathMinMax / 4;
+        }else{
+            tickInterval = mathMinMax /5 ;
+        }
+
+
+        console.log(tickInterval);
 
         yAxis[xCounter] = {
             min: val.minval,
@@ -735,6 +819,8 @@ pg.generateSeriesOption = function(data, periods){
             endOnTick: false,
             startOnTick: false,
             showLastLabel: true,
+            showFirstLabel: true,
+            // tickInterval: tickInterval,
             maxPadding: 0,
             labels: {
                 format: '{value}',
@@ -774,6 +860,8 @@ pg.generateSeriesOption = function(data, periods){
             min: 0,
             max: 100, 
             gridLineWidth: 1,
+            endOnTick: false,
+            startOnTick: false,
             labels: {
                 format: '{value}',
             },
@@ -889,9 +977,10 @@ $(document).ready(function () {
         $(".label-filters:contains('to')").hide();
     }
 
-    $('.popover-markup>.trigger').popover({
+    /*$('.popover-markup>.trigger').popover({
         animation: true,
         html: true,
+        placement: 'right',
         title: function () {
             return $(this).parent().find('.head').html();
         },
@@ -899,23 +988,23 @@ $(document).ready(function () {
             return $(this).parent().find('.content').html();
         }
     }).on('click',function () {
-            $("#selectTagsDiv").html("");
-            $("#selectTagsDiv").html('<select id="TagList"></select>');
-            $('#TagList').kendoMultiSelect({
-              dataSource: pg.tags(), 
-              value: pg.TagList() , 
-              dataValueField : 'value', 
-              dataTextField: 'text',
-              suggest: true, 
-              maxSelectedItems: maxSelectedItems, 
-              minSelectedItems: 1,
-              change: function(e) {
-                  if (this.value().length == 0) {
-                      this.value("windspeed")
-                  }
-              }
+        $("#selectTagsDiv").html("");
+        $("#selectTagsDiv").html('<select id="TagList"></select>');
+        $('#TagList').kendoMultiSelect({
+            dataSource: pg.tags(), 
+            value: pg.TagList() , 
+            dataValueField : 'value', 
+            dataTextField: 'text',
+            suggest: true, 
+            maxSelectedItems: maxSelectedItems, 
+            minSelectedItems: 1,
+            change: function(e) {
+                if (this.value().length == 0) {
+                    this.value("windspeed")
+                }
+        }
       });
-    });
+    });*/
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");
@@ -927,5 +1016,7 @@ $(document).ready(function () {
         // pg.LoadData();
         pg.getDataStockChart("first");
         // pg.prepareScroll();
+        // pg.hideRange();
+        // pg.hideErr();
     }, 1000);
 });

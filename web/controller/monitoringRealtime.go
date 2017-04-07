@@ -2,19 +2,18 @@ package controller
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	// . "eaciit/wfdemo-git/library/helper"
+	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
 	"eaciit/wfdemo-git/web/helper"
 
-	// cr "github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 
 	"bufio"
-	c "github.com/eaciit/crowd"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,6 +21,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	c "github.com/eaciit/crowd"
 )
 
 type MonitoringRealtimeController struct {
@@ -103,12 +104,9 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 		data = append(data, _data)
 	}
 	csr.Close()
-	dataNacelle := GenerateWindRose(data, "nacelle", turbineVal)
-	dataWindDir := GenerateWindRose(data, "winddir", turbineVal)
-	datas := tk.M{
-		"nacelle": dataNacelle,
-		"winddir": dataWindDir,
-	}
+	// dataNacelle := GenerateWindRose(data, "nacelle", turbineVal)
+	// dataWindDir := GenerateWindRose(data, "winddir", turbineVal)
+	datas := GenerateWindRose(data, "NacellePlusWind", turbineVal)
 
 	return helper.CreateResult(true, datas, "success")
 
@@ -128,8 +126,10 @@ func GenerateWindRose(data []MiniScadaHFD, tipe, turbineVal string) tk.M {
 
 			if tipe == "nacelle" {
 				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos, section)
+			} else if tipe == "winddir" {
+				dirNo, dirDesc = getDirection(dt.Slow_Winddirection+300, section)
 			} else {
-				dirNo, dirDesc = getDirection(dt.Slow_Winddirection, section)
+				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos+dt.Slow_Winddirection+300, section)
 			}
 
 			wsNo, wsDesc := getWsCategory(dt.Fast_Windspeed_Ms)
@@ -328,11 +328,14 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	turbinedown := 0
 	t0 := time.Now().UTC()
 
-	arrturbinestatus := getTurbineStatus(project)
-	timemax := getMaxRealTime("Tejuva", "")
+	arrturbinestatus := getTurbineStatus(project, "")
+	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
-	csr, err := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+	rconn := lh.GetConnRealtime()
+	defer rconn.Close()
+
+	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
 		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
@@ -347,11 +350,10 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 			break
 		}
 
-		if _iContinue {
+		_tTurbine := _tdata.GetString("turbine")
+		if _iContinue && _iTurbine == _tTurbine {
 			continue
 		}
-
-		_tTurbine := _tdata.GetString("turbine")
 		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 
 		if tstamp.After(lastUpdate) {
@@ -461,7 +463,10 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	csr, err := DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
+	rconn := lh.GetConnRealtime()
+	defer rconn.Close()
+
+	csr, err := rconn.NewQuery().From("Alarm").
 		Aggr(dbox.AggrSum, "$duration", "duration").
 		Aggr(dbox.AggrSum, 1, "countdata").
 		Group("projectname").
@@ -478,8 +483,9 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	totalData := tkmgroup.GetInt("countdata")
 	totalDuration := tkmgroup.GetInt("duration")
 
-	csr, err = DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
+	csr, err = rconn.NewQuery().From("Alarm").
 		Where(dbox.And(dfilter...)).
+		Order("-timestart").
 		Skip(p.Skip).Take(p.Take).Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
@@ -528,7 +534,10 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	dfilter = append(dfilter, dbox.Ne("timestart", time.Time{}))
 
-	csr, err := DB().Connection.NewQuery().From(new(AlarmHFD).TableName()).
+	rconn := lh.GetConnRealtime()
+	defer rconn.Close()
+
+	csr, err := rconn.NewQuery().From("Alarm").
 		Aggr(dbox.AggrMin, "$timestart", "minstart").
 		Aggr(dbox.AggrMax, "$timestart", "maxstart").
 		Group("projectname").
@@ -573,6 +582,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
+	arrturbinestatus := getTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
@@ -617,13 +627,33 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		}
 	}
 
+	if _idt, _cond := arrturbinestatus[p.Turbine]; _cond {
+		alldata.Set("Turbine Status", _idt.Status)
+	} else {
+		alldata.Set("Turbine Status", -999)
+	}
+
+	t0 := time.Now().UTC()
+	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+		alldata.Set("Turbine Status", -999)
+	}
+
 	return helper.CreateResult(true, alldata, "success")
 }
 
-func getTurbineStatus(project string) (res map[string]TurbineStatus) {
+func getTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
 	res = map[string]TurbineStatus{}
 
-	csr, err := DB().Connection.NewQuery().From(new(TurbineStatus).TableName()).
+	filtercond := []*dbox.Filter{dbox.Eq("projectname", project)}
+	if turbine != "" {
+		filtercond = append(filtercond, dbox.Eq("_id", turbine))
+	}
+
+	rconn := lh.GetConnRealtime()
+	defer rconn.Close()
+
+	csr, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).
+		Where(dbox.And(filtercond...)).
 		Cursor(nil)
 
 	if err != nil {
@@ -647,7 +677,10 @@ func getTurbineStatus(project string) (res map[string]TurbineStatus) {
 func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	timemax = time.Time{}
 
-	_Query := DB().Connection.NewQuery().From(new(ScadaRealTime).TableName()).
+	rconn := lh.GetConnRealtime()
+	defer rconn.Close()
+
+	_Query := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
 		Aggr(dbox.AggrMax, "$timestamp", "timestamp")
 
 	if turbine != "" {

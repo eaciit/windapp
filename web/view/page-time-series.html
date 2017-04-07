@@ -50,7 +50,7 @@
 								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
 							</div>
 						</div> -->
-						<div class="col-md-12">
+						<!--<div class="col-md-12">
 							<div class="pull-right data-type">
 								<div class="checkbox chk-custom">
 									<label data-bind="visible:pg.pageType() == 'HFD'">
@@ -58,19 +58,21 @@
 					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 					                    <span class="colRed"><strong>Live</strong></span>
 					                </label>
-					                <label>
-					                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
-					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-					                    <span class="colRed"><strong>Default range</strong></span>
-					                </label>
-					                <label>
-					                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
-					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-					                    <span class="colRed"><strong>Error value</strong></span>
-					                </label>
+					                <div id="group-chk">
+						                <label>
+						                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
+						                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+						                    <span class="colRed"><strong>Fix yAxis</strong></span>
+						                </label>
+						                <label>
+						                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
+						                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+						                    <span class="colRed"><strong>Outliers</strong></span>
+						                </label>
+						            </div>
 								</div>
 							</div>
-						</div>
+						</div>-->
 						<!-- <div class="col-md-6">
 							<div id="chartWindSpeed"></div>
 						</div>
@@ -78,7 +80,7 @@
 							<div id="chartProduction"></div>
 						</div> -->
 						<div class="col-md-12">
-							<div class="legend">
+							<!--<div class="legend">
 								<span id="legendTooltip"></span>&nbsp; &nbsp;
 								<div class="popover-markup" id="selectTags"> <a href='javascript:;' class="trigger" ><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
 								    <div class="content hide">
@@ -87,10 +89,26 @@
 											<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>
 											<button type="submit" id="saveTags" class="btn btn-xs btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
 								    	</div>
+
+										<div class="checkbox chk-custom">
+											<div id="group-chk">
+												<label>
+													<input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
+													<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+													<span class="colRed"><strong>Fix yAxis</strong></span>
+												</label>
+												<label>
+													<input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
+													<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+													<span class="colRed"><strong>Outliers</strong></span>
+												</label>
+											</div>
+										</div>
+
 								    </div>
 								   
 								</div>
-							</div>
+							</div>-->
 							<div class="clearfix">&nbsp;</div>
 							<div id="chartTimeSeries"></div>
 							<div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
@@ -124,6 +142,49 @@
 						</div> -->
 					</div>
 				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-body row">
+				<!--<div class="checkbox">
+					<label>
+						<input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
+						<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+						<span class="colRed"><strong>Fix yAxis</strong></span>
+					</label>
+					<label>
+						<input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
+						<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+						<span class="colRed"><strong>Outliers</strong></span>
+					</label>
+				</div>-->
+				<div class="col-md-12">
+					<div class="col-md-12" id="selectTagsDiv"></div>
+					<div class="col-md-12">
+						<!--<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>-->
+						<button type="submit" id="saveTags" class="btn btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<br>
+					<div class="btn-group col-md-12" data-toggle="buttons">
+						<label class="btn btn-primary active" onclick="pg.hideRange();">
+							<input type="checkbox" name="options" id="option1" autocomplete="off" checked> Fix yAxis
+						</label>
+						<label class="btn btn-primary active" onclick="pg.hideErr();">
+							<input type="checkbox" name="options" id="option2" autocomplete="off" checked> Outliers
+						</label>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+					Close
+				</button>
 			</div>
 		</div>
 	</div>

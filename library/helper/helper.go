@@ -250,6 +250,24 @@ func ReadConfig() map[string]string {
 	return ret
 }
 
+func GetConnRealtime() dbox.IConnection {
+	config := ReadConfig()
+
+	ci := &dbox.ConnectionInfo{config["host"], config["dbrealtime"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
+	c, _ := dbox.NewConnection("mongo", ci)
+
+	for {
+		e := c.Connect()
+		if e != nil {
+			tk.Println("Realtime DB Connection Found ", e.Error())
+		} else {
+			break
+		}
+	}
+
+	return c
+}
+
 func GetDateRange(dt time.Time, isBefore bool) (result time.Time) {
 	_, minute, _ := dt.Clock()
 

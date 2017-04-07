@@ -48,14 +48,11 @@ func main() {
 			rURL := r.Request.URL.String()
 			sessionid := r.Session("sessionid", "")
 			helper.WC = r
-
 			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
-
 				if !active {
-					r.SetSession("sessionid", "")
 					urlSplit := strings.Split(rURL, "/")
-
+					r.SetSession("sessionid", "")
 					if len(urlSplit) > 2 {
 						if urlSplit[2] == "page" {
 							http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
