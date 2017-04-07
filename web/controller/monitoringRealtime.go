@@ -76,6 +76,9 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 	query = append(query, tk.M{"_id": tk.M{"$ne": nil}})
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lt": tEnd}})
+	query = append(query, tk.M{"fast_windspeed_ms": tk.M{"$gt": -999999.0}})
+	query = append(query, tk.M{"slow_winddirection": tk.M{"$gt": -999999.0}})
+	query = append(query, tk.M{"slow_nacellepos": tk.M{"$gt": -999999.0}})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
