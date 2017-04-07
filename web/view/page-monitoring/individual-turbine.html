@@ -30,29 +30,23 @@
             <div class="panel ez no-padding hardcore mb-5">
                 <div class="panel-body">                        
                     <div class="col-md-5">
-                        <div class="col-md-12 div-info">
-                            <h3><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location">Jaisalmer</span></b></h3>
-                            <div class="col-md-12" style="display: inline;">
-                                <div class="col-md-6 text-right">
-                                     <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
-                                </div>
-                               <div class="col-md-6 text-left">
-                                   <span style="font-size: 30px"><span id="turbine_temperature"></span> &deg; C</span>
-                                    <div class="row turbine-weather">
-                                         <span id="turbine_weather"></span>
+                        <div class="col-md-12">
+                            <div class="col-md-8 div-info">
+                                <h3><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location">Jaisalmer</span></b></h3>
+                                <div class="col-md-12" style="display: inline;">
+                                    <div class="col-md-6 text-right">
+                                         <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
                                     </div>
-                               </div>
-                            </div>
-                            <div class="col-md-12 lat-info">
-                                Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b>
-                            </div>
-                        </div>
-                        <div class="clearfix">&nbsp;</div>
-                        <div class="col-md-12" style="margin-top: 30px;">
-                            <div class="col-md-8 live-chart-div">
-                                <div id="container"></div>
-                                <div class="col-md-12 gotoAnalysis" ><a href="#"  onclick="it.ToTimeSeriesHfd()" class="pull-left">Go to Analysis</a></div>
-                                <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
+                                   <div class="col-md-6 text-left">
+                                       <span style="font-size: 30px"><span id="turbine_temperature"></span> &deg; C</span>
+                                        <div class="row turbine-weather">
+                                             <span id="turbine_weather"></span>
+                                        </div>
+                                   </div>
+                                </div>
+                                <div class="col-md-12 lat-info">
+                                    Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b>
+                                </div>
                             </div>
                             <div class="col-md-4 windpower-part">
                                 <div class="col-md-6 text-center">
@@ -65,6 +59,15 @@
                                     <div id="comparePowerChart"></div>
                                     <span><strong><span data-bind="text:it.power()"></span> kW</strong></span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12" style="margin-top: 30px;">
+                            <div class="col-md-12 live-chart-div">
+                                <div id="container"></div>
+                                <div class="col-md-12 gotoAnalysis" ><a href="#"  onclick="it.ToTimeSeriesHfd()" class="pull-left">Go to Analysis</a></div>
+                                <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
                             </div>
                         </div>
                         <div class="clearfix">&nbsp;</div>
@@ -145,18 +148,18 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12">
-                            <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong><span class="pull-right badge bg-light-blue" data-bind="text: it.drive_train_vibra()"></span></h5>
+                            <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong>&nbsp;<span class="badge bg-light-blue" data-bind="text: it.drive_train_vibra()"></span></h5>
                         </div>
-                        <hr class="borderGrey">
+                        <!-- <hr class="borderGrey"> -->
                          <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12">
-                            <div class="col-md-8 text-center">
+                            <div class="col-md-12 text-center">
                                 <span><strong>Rotor (RPM)</strong></span>
                                 <div id="rotorChart"></div>
                                 <div id="valRotor" class="gaugeVal" data-bind="text:it.rotor_rpm()"></div>
                                 <!-- <hr style="border: 1px solid #eee;"> -->
                             </div>
-                            <div class="col-md-4 text-center border-left-grey">
+                          <!--   <div class="col-md-4 text-center border-left-grey">
                                  <div class="col-md-12"><span><strong>&nbsp;Pitch Angle</strong></span></div>
                                   <div class="clearfix">&nbsp;</div>
                                  <span class="text-center">#1</span> : <strong><span class="text-center txt-pitch-angel" data-bind="text:it.blade_angle1()"></span></strong>
@@ -164,7 +167,7 @@
                                  <span class="text-center">#2</span> : <strong><span class="text-center txt-pitch-angel" data-bind="text:it.blade_angle2()"></span></strong>
                                  <hr class="borderOrange">
                                  <span class="text-center">#3</span> : <strong><span class="text-center txt-pitch-angel" data-bind="text:it.blade_angle3()"></span></strong>
-                             </div>
+                             </div> -->
                         </div>
                     </div>
                     <div class="col-md-4 turbine-pic-part">
