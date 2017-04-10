@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	notAvailValue = -99999.0
-	mapField      = map[string]MappingColumn{
+	notAvailValue    = -999999.0
+	notAvailValueOEM = -99999.0
+	mapField         = map[string]MappingColumn{
 		"windspeed":     MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0},
 		"power":         MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0},
 		"production":    MappingColumn{"Production", "", "kWh", -200, 2100.0},

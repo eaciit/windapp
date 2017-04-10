@@ -100,8 +100,9 @@ pg.hideRange = function(){
         chart.yAxis[i].update({
             min: (!checked ? res.min : null),
             max: (!checked ? res.max : null),
+            tickInterval: (!checked ? res.max/4 : null),
+            alignTicks: (!checked ? false : true),
         });
-        i++;
     });
 }
 
@@ -799,28 +800,16 @@ pg.generateSeriesOption = function(data, periods){
             isOpposite = true;
         }
         
-        var tickInterval = 0; 
-
-        var mathMinMax = val.maxval - val.minval; 
-
-        if(mathMinMax % 2 == 0){
-            tickInterval = mathMinMax / 4;
-        }else{
-            tickInterval = mathMinMax /5 ;
-        }
-
-
-        console.log(tickInterval);
-
         yAxis[xCounter] = {
             min: val.minval,
             max: val.maxval, 
+            tickInterval: val.maxval/4,
+            alignTicks: false,
             gridLineWidth: 1,
             endOnTick: false,
             startOnTick: false,
             showLastLabel: true,
             showFirstLabel: true,
-            // tickInterval: tickInterval,
             maxPadding: 0,
             labels: {
                 format: '{value}',
@@ -860,8 +849,9 @@ pg.generateSeriesOption = function(data, periods){
             min: 0,
             max: 100, 
             gridLineWidth: 1,
-            endOnTick: false,
-            startOnTick: false,
+            alignTicks: false,
+            // endOnTick: false,
+            // startOnTick: false,
             labels: {
                 format: '{value}',
             },
