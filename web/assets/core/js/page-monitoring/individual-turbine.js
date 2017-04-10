@@ -12,7 +12,8 @@ vm.breadcrumb([
     { title: 'Individual Turbine', href: viewModel.appName + 'page/monitoringindividualturbine' }]);
 var intervalTurbine = null;
 var chart;
-var maxSamples = 20,count = 0;
+
+var maxSamples = 50,count = 0;
 
 it.projectList = ko.observableArray([]);
 it.project = ko.observable();
@@ -109,23 +110,19 @@ it.GetData = function(project, turbine) {
     }
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
         // var time = (new Date).getTime();
-
         var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
-
-        it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
-        it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
-
 
         if(it.isFirst() == false){
             chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
             chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
         }else{
+            it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
+            it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
             it.showWindspeedLiveChart();
         }
 
         it.PlotData(res.data);
         it.isFirst(false);
-        app.loading(false);
     });
 };
 
@@ -193,15 +190,13 @@ it.isFirst = ko.observable(true);
 it.dataWindspeed = ko.observableArray([]);
 it.dataPower = ko.observableArray([]);
 
-it.rotor_status = ko.observable("N/A");
-
 it.PlotData = function(data) {
     var lastUpdate = moment.utc(data["lastupdate"]);
     $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
 
-    if (it.rotor_status() === "N/A") {
+    if (data["Turbine Status"] === -999) {
         $('#rotorPic').css({"fill": "#b8b9bb"});
-    } else if (it.rotor_status() == "up") {
+    } else if (data["Turbine Status"] == 1) {
         $('#rotorPic').css({"fill": "#31b445"});
     } else {
         $('#rotorPic').css({"fill": "#db1e1e"});
@@ -495,10 +490,15 @@ it.ShowData = function() {
         turbine = $('#turbine').data('kendoDropDownList').value();
         project = $('#projectList').data('kendoDropDownList').value();
     }
-    
+
     it.LoadData(turbine);
     it.GetData(project, turbine);
-    it.showWindRoseChart();
+    
+    $.when(it.showWindRoseChart()).done(function () {
+        setTimeout(function() {
+            app.loading(false);
+        }, 1500);
+    });
 };
 
 it.showWindspeedColumnChart = function(){
@@ -594,7 +594,7 @@ it.showWindspeedLiveChart = function(){
         chart: {
             marginTop: 50,
             height: 180,
-            width: 500,
+            width: 475,
         },
         credits: {
               enabled: false
@@ -622,9 +622,9 @@ it.showWindspeedLiveChart = function(){
             selected: 0,
             enabled:false,
         },
-            scrollbar: {
-                enabled: false
-            },
+        scrollbar: {
+            enabled: false
+        },
         exporting: {
             enabled: false
         },
@@ -633,16 +633,16 @@ it.showWindspeedLiveChart = function(){
           {
             enabled: false
           },
-          gridLineWidth: 0,
+          gridLineWidth: 1,
           minorGridLineWidth: 0,
           opposite:false
         },
         xAxis: {
-           lineWidth: 0,
-           minorGridLineWidth: 0,
+           lineWidth: 1,
+           minorGridLineWidth: 1,
            lineColor: 'transparent',
            labels: {
-               enabled: false
+               enabled: true
            },
            minorTickLength: 0,
            tickLength: 0
@@ -739,19 +739,18 @@ it.showWindRoseChart = function(){
             return;
         }
         if (res.data != null) {
-            var nacelleData = res.data["nacelle"]["WindRose"][0].Data;
-            var winddirData = res.data["winddir"]["WindRose"][0].Data;
+            var windRoseData = res.data["WindRose"][0].Data;
 
             $("#windRoseChart").kendoChart({
                 theme: "flat",
                 chartArea: {
-                    height: 200,
-                    width: 250,
+                    height: 225,
+                    width: 300,
                     margin: 0,
                     padding: 0,
                 },
                 dataSource: {
-                    data: nacelleData,
+                    data: windRoseData,
                     group: {
                         field: "WsCategoryNo",
                         dir: "asc"
@@ -794,60 +793,17 @@ it.showWindRoseChart = function(){
                         font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                     }
                 },
-            });
-
-            $("#windDirectionChart").kendoChart({
-                theme: "flat",
-                chartArea: {
-                    height: 200,
-                    width: 250,
-                    margin: 0,
-                    padding: 0,
-                },
-                dataSource: {
-                    data: winddirData,
-                    group: {
-                        field: "WsCategoryNo",
-                        dir: "asc"
-                    },
-                    sort: {
-                        field: "DirectionNo",
-                        dir: "asc"
-                    }
-                },
-                legend: {
-                    visible: false,
-                },
-                series: [{
-                    type: "radarColumn",
-                    stack: true,
-                    field: "Contribution",
-                    gap: 0,
-                    border: {
-                        width: 1,
-                        color: "#7f7f7f",
-                        opacity: 0.5
-                    },
-                }],
-                categoryAxis: {
-                    field: "DirectionDesc",
+                tooltip: {
                     visible: true,
-                    majorGridLines: {
-                        visible: true,
-                        step: 1
+                    template: "#= category #"+String.fromCharCode(176)+" (#= dataItem.WsCategoryDesc #) #= kendo.toString(value, 'n2') #% for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
                     },
-                    labels: {
-                        font: '11px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        visible: true,
-                        step: 1
-                    }
-                },
-                valueAxis: {
-                    labels: {
-                        template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                        font: '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                    }
-                },
+                }
             });
         }
     })
@@ -879,11 +835,6 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
-    $.when(it.ShowData()).done(function () {
-        setTimeout(function() {
-            it.isFirst(false);
-            app.loading(false);
-        }, 1000);
-    });
+    it.ShowData();
     intervalTurbine = window.setInterval(it.ShowData, 6000);
 });

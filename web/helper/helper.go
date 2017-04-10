@@ -340,7 +340,8 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 	}
 	sessionid := WC.Session("sessionid", "")
 	if toolkit.ToString(sessionid) == "" {
-		if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
 			dataX := struct {
 				Data []toolkit.M
 			}{
