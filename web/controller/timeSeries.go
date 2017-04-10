@@ -14,15 +14,17 @@ import (
 
 	"time"
 
+	"sort"
+
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 )
 
 var (
-	notAvailValue    = -999999.0
-	notAvailValueOEM = -99999.0
-	mapField         = map[string]MappingColumn{
+	// notAvailValue    = -9999999.0
+	// notAvailValueOEM = -99999.0
+	mapField = map[string]MappingColumn{
 		"windspeed":     MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0},
 		"power":         MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0},
 		"production":    MappingColumn{"Production", "", "kWh", -200, 2100.0},
@@ -49,6 +51,7 @@ type ResDataAvail struct {
 	Chart      []tk.M
 	PeriodList []tk.M
 	Breaks     []tk.M
+	Outliers   [][]interface{}
 }
 
 type MappingColumn struct {
@@ -160,6 +163,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	breaks := []tk.M{}
 	resultChart := []tk.M{}
 	periodList := []tk.M{}
+	outliers := map[int]bool{}
 
 	p := new(PayloadTimeSeries)
 	e := k.GetPayload(&p)
@@ -254,13 +258,15 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 							timestamp := tk.ToInt(tk.ToString(val.Get("timestamp").(time.Time).Unix())+"000", tk.RoundingAuto)
 							tagVal := val.GetFloat64(columnTag.SecField)
 							dt := []interface{}{timestamp, tagVal}
-							dts = append(dts, dt)
 
-							if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
-								// dte := []interface{}{timestamp, tagVal}
-								// dterr = append(dterr, tk.M{"x": timestamp})
+							if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+								dt = []interface{}{timestamp, nil}
+							} else if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
 								dterr = append(dterr, []interface{}{timestamp, 100.0})
+								outliers[timestamp] = true
 							}
+
+							dts = append(dts, dt)
 						}
 
 						resultChart = append(resultChart, tk.M{"name": mapField[tag].Name, "data": dts, "dataerr": dterr, "unit": mapField[tag].Unit, "minval": mapField[tag].MinValue, "maxval": mapField[tag].MaxValue})
@@ -381,20 +387,24 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 					// }
 
 					dt := []interface{}{timestamp, tagVal}
-					if tagVal <= notAvailValue {
+					if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
 						// res := tk.M{}
 						// res.Set("from", val.Get("_id").(time.Time).UTC())
 						// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
 						// breaks = append(breaks, res)
 
 						dt = []interface{}{timestamp, nil}
+					} else if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
+						dterr = append(dterr, []interface{}{timestamp, 100.0})
+						outliers[timestamp] = true
 					}
 
 					dts = append(dts, dt)
 
-					if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && tagVal > notAvailValue {
-						dterr = append(dterr, []interface{}{timestamp, 100.0})
-					}
+					// if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && (tagVal != float64(-99999.00) || tagVal != float64(-999999.00) || tagVal != float64(-9999999.00)) {
+					// 	dterr = append(dterr, []interface{}{timestamp, 100.0})
+					// }
+
 				}
 
 				if pageType != "LIVE" {
@@ -415,6 +425,29 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 
 	}
 
+	revOutliers := [][]interface{}{}
+	tmpOutliers := []int{}
+
+	for it := range outliers {
+		found := false
+		for _, t := range tmpOutliers {
+			if t == it {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			tmpOutliers = append(tmpOutliers, it)
+		}
+	}
+
+	sort.Ints(tmpOutliers)
+
+	for _, timestamp := range tmpOutliers {
+		revOutliers = append(revOutliers, []interface{}{timestamp, 100.0})
+	}
+
 	data := struct {
 		Data ResDataAvail
 	}{
@@ -422,6 +455,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			Chart:      resultChart,
 			PeriodList: periodList,
 			Breaks:     breaks,
+			Outliers:   revOutliers,
 		},
 	}
 
@@ -643,7 +677,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 						value += v
 					}
 
-					if value <= notAvailValue {
+					if value == float64(-99999.00) && value == float64(-999999.00) && value == float64(-9999999.00) {
 						res.Set(n, nil)
 					} else {
 						value = value / float64(len(mp))

@@ -97,19 +97,24 @@ pg.hideRange = function(){
     // var checked = $('[name=chk-column-range]:checked').length==1;
     var checked = $('#option1:checked').length==1;
     $.each(yAxis, function(i, res){
-        chart.yAxis[i].update({
-            min: (!checked ? res.min : null),
-            max: (!checked ? res.max : null),
-            tickInterval: (!checked ? res.max/4 : null),
-            alignTicks: (!checked ? false : true),
-        });
+        if(chart.series[i].name != "_err"){
+            chart.yAxis[i].update({
+                min: (!checked ? res.min : null),
+                max: (!checked ? res.max : null),
+                tickInterval: (!checked ? res.max/5 : null),
+                alignTicks: (!checked ? false : true),
+            });
+        }
     });
 }
 
 pg.hideErr = function(){
     var checked = $('#option2:checked').length==1;
     $.each(chart.series, function(i, res){
-        if(res.name.indexOf("_err") > 0){
+        // if(res.name.indexOf("_err") > 0){
+        //     res.setVisible(!checked);
+        // }
+        if(res.name == "_err"){
             res.setVisible(!checked);
         }
     });
@@ -186,8 +191,11 @@ pg.createStockChart = function(y){
 
                     var data = res.data.Data.Chart;
                     var periods = res.data.Data.PeriodList;
+                    var outliers = res.data.Data.Outliers;
 
                     pg.generateSeriesOption(data, periods);
+                    pg.generateOutliers(outliers);
+
                     $.each(seriesOptions, function(id, val){
                         chart.series[id].setData(val.data, true, true, false);
                     });
@@ -510,9 +518,11 @@ pg.getDataStockChart = function(param){
             var data = res.data.Data.Chart;
             var periods = res.data.Data.PeriodList;
             breaks = res.data.Data.Breaks;
+            var outliers = res.data.Data.Outliers;
 
             pg.generateSeriesOption(data, periods);
-            
+            pg.generateOutliers(outliers);
+
             if (param=="first" || param=="refresh"){
                 // if (sessionStorage.seriesOri){
                     sessionStorage.seriesOri = [];
@@ -574,15 +584,17 @@ pg.createLiveChart = function(IsHour){
 
         var data = res.data.Data.Chart;
         var periods = res.data.Data.PeriodList;
+        var outliers = res.data.Data.Outliers;
 
         dateStart = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
         dateEnd = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
 
-        console.log(dateEnd);
+        // console.log(dateEnd);
 
         breaks = res.data.Data.Breaks;
 
         pg.generateSeriesOption(data, periods);
+        pg.generateOutliers(outliers);
         
         if (param=="first" || param=="refresh"){
             if (sessionStorage.seriesOri){
@@ -815,9 +827,9 @@ pg.generateSeriesOption = function(data, periods){
         yAxis[xCounter] = {
             min: val.minval,
             max: val.maxval, 
-            tickInterval: val.maxval/4,
+            tickInterval: val.maxval/5,
             alignTicks: false,
-            gridLineWidth: 1,
+            gridLineWidth: 0.75,
             endOnTick: false,
             startOnTick: false,
             showLastLabel: true,
@@ -857,13 +869,14 @@ pg.generateSeriesOption = function(data, periods){
 
         xCounter+=1;
 
-        yAxis[xCounter] = {
+        /*yAxis[xCounter] = {
             min: 0,
             max: 100, 
-            gridLineWidth: 1,
+            gridLineWidth: 0,
+            tickInterval: 100/5,
             alignTicks: false,
-            // endOnTick: false,
-            // startOnTick: false,
+            endOnTick: false,
+            startOnTick: false,
             labels: {
                 format: '{value}',
             },
@@ -893,10 +906,45 @@ pg.generateSeriesOption = function(data, periods){
             onSeries: "series"+idx,                
         }
 
-        xCounter+=1;
+        xCounter+=1;*/
 
         seriesCounter += 1;
     });
+}
+
+pg.generateOutliers = function(data){
+    if (data.length>0){
+        var counter = yAxis.length;
+        yAxis[counter] = {
+            min: 0,
+            max: 100, 
+            gridLineWidth: 0,
+            tickInterval: 100/5,
+            alignTicks: false,
+            endOnTick: false,
+            startOnTick: false,
+            labels: {
+                format: '{value}',
+            },
+            // title: {
+            //     text: val.unit,
+            // },
+            visible: false,
+        }
+
+        seriesOptions[counter] = {
+            type: 'column',
+            name: "_err",
+            data: data,
+            color: '#ff0000',
+            pointWidth: 1,
+            yAxis: counter,
+            id : "series_col"+counter,
+            showInLegend : false,
+            showInNavigator: false,
+            // onSeries: "series"+idx,                
+        }
+    }
 }
 
 /*pg.prepareScroll = function(){
