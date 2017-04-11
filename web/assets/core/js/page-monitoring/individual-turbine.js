@@ -638,6 +638,17 @@ it.showWindspeedLiveChart = function(){
           opposite:false
         },
         xAxis: {
+           type: 'datetime',
+           dateTimeLabelFormats : {
+                millisecond: '%H:%M:%S',
+                second: '%H:%M:%S',
+                minute: '%H:%M',
+                hour: '%H:%M',
+                day: '%e. %b',
+                week: '%e. %b',
+                month: '%b \'%y',
+                year: '%Y'
+           },
            lineWidth: 1,
            minorGridLineWidth: 1,
            lineColor: 'transparent',
