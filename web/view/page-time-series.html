@@ -11,9 +11,7 @@
 <script src="{{BaseUrl}}res/highstock/highstock.js"></script>
 <script src="{{BaseUrl}}res/highstock/exporting.js"></script>
 <script src="{{BaseUrl}}res/highstock/value-in-legend.js"></script>
-<!-- <script src="{{BaseUrl}}res/scroller/horizontal.js"></script> -->
 <script src="{{BaseUrl}}res/scroller/sly.min.js"></script>
-<!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
 <script id="template" type="text/x-kendo-template">
   <div><b>#: kendo.toString(category, 'dd MMM yyyy HH:mm') #</b></div>
   # for (var i = 0; i < points.length; i++) {
@@ -30,116 +28,13 @@
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<!--<div class="panel-heading">
-						Time Series Plots&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
-						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
-						<div class="">
-								<div class="date-info">
-                                    Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
-                                </div>
-						</div>
-					</div>-->
 					<div class="panel-body">
-						<!--<div class="date-info">
-							Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
-						</div>-->
-						<!-- <div class="col-md-12" data-bind="visible:pg.pageType == 'HFD'"> -->
-						<!-- <div class="col-md-12" data-bind="visible:pg.pageType() == 'HFD'">
-							<div class="pull-right data-type">
-								<label class="radio-inline"><input type="radio" name="datatype" value="SEC" data-bind="checked: pg.dataType, click:function(){ pg.isSecond(true); pg.getDataStockChart();  return true}">5 Seconds</label>
-								<label class="radio-inline"><input type="radio" name="datatype" value="MIN" data-bind="checked: pg.dataType, click:function(){pg.isSecond(false); pg.getDataStockChart();  return true}">10 Minutes</label>
-							</div>
-						</div> -->
-						<!--<div class="col-md-12">
-							<div class="pull-right data-type">
-								<div class="checkbox chk-custom">
-									<label data-bind="visible:pg.pageType() == 'HFD'">
-					                    <input type="checkbox" name="chk-column-live" data-bind="{checked:pg.live,event:{change:function(e){pg.getDataStockChart()}}}">
-					                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-					                    <span class="colRed"><strong>Live</strong></span>
-					                </label>
-					                <div id="group-chk">
-						                <label>
-						                    <input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
-						                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-						                    <span class="colRed"><strong>Fix yAxis</strong></span>
-						                </label>
-						                <label>
-						                    <input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
-						                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-						                    <span class="colRed"><strong>Outliers</strong></span>
-						                </label>
-						            </div>
-								</div>
-							</div>
-						</div>-->
-						<!-- <div class="col-md-6">
-							<div id="chartWindSpeed"></div>
-						</div>
-						<div class="col-md-6">
-							<div id="chartProduction"></div>
-						</div> -->
 						<div class="col-md-12">
-							<!--<div class="legend">
-								<span id="legendTooltip"></span>&nbsp; &nbsp;
-								<div class="popover-markup" id="selectTags"> <a href='javascript:;' class="trigger" ><i class="fa fa-pencil"></i> &nbsp;Select Tags</a>
-								    <div class="content hide">
-								        <div class="form-group" id="selectTagsDiv"></div>
-								        <div>
-											<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>
-											<button type="submit" id="saveTags" class="btn btn-xs btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
-								    	</div>
-
-										<div class="checkbox chk-custom">
-											<div id="group-chk">
-												<label>
-													<input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
-													<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-													<span class="colRed"><strong>Fix yAxis</strong></span>
-												</label>
-												<label>
-													<input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
-													<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-													<span class="colRed"><strong>Outliers</strong></span>
-												</label>
-											</div>
-										</div>
-
-								    </div>
-								   
-								</div>
-							</div>-->
 							<div class="clearfix">&nbsp;</div>
 							<div id="chartTimeSeries"></div>
 							<div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
 						</div>
 						<div class="clearfix">&nbsp;</div>
-<!-- 
-						<div data-bind="visible:pg.isSecond()">
-						<div class="wrap">
-							<div class="scrollbar">
-								<div class="handle">
-									<div class="mousearea"></div>
-								</div>
-							</div>
-							<div class="frame" id="basic">
-								<ul class="clearfix" data-bind="foreach:pg.periodList()">
-									<li data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod',$index()); return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span>00:00 - 24:00</span></li>
-								</ul>
-							</div>
-
-							<ul class="pages"></ul>
-						</div> -->
-						<!-- <div class="col-md-12 periodList text-center" data-bind="visible:pg.isSecond()">
-							<table>
-								<tr data-bind="foreach:pg.periodList()" id="periodlist">
-									<td>
-										<button class="btn btn-period btn-xs" data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod'); $(this).siblings().removeClass('active'); $(this).toggleClass('active');return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span data-bind="text: kendo.toString(new Date(starttime), 't')+' - '+kendo.toString(new Date(endtime), 't')"></span></button>&nbsp;
-										<button class="btn btn-period btn-xs btn-group" role="group"  data-bind="checked: pg.dataType, click:function(){pg.startTime(new Date(starttime)); pg.endTime(new Date(endtime)); pg.getDataStockChart('detailPeriod',$index()); return true}, attr: {id: 'btn-period'+$index()}"><span data-bind="text:kendo.toString(new Date(starttime), 'd/M/yyyy')"></span><br><span>00:00 - 24:00</span></button>&nbsp;
-									</td>
-								</tr>
-							<table>
-						</div> -->
 					</div>
 				</div>
 			</div>
@@ -150,22 +45,9 @@
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-body row">
-				<!--<div class="checkbox">
-					<label>
-						<input type="checkbox" name="chk-column-range" data-bind="{checked:pg.rangeData,event:{change:function(e){pg.hideRange()}}}">
-						<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-						<span class="colRed"><strong>Fix yAxis</strong></span>
-					</label>
-					<label>
-						<input type="checkbox" name="chk-column-error" data-bind="{checked:pg.errorValue,event:{change:function(e){pg.hideErr()}}}">
-						<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-						<span class="colRed"><strong>Outliers</strong></span>
-					</label>
-				</div>-->
 				<div class="col-md-12">
 					<div class="col-md-8" id="selectTagsDiv"></div>
 					<div class="col-md-4">
-						<!--<button type="submit" id="cancelPop" class="btn btn-xs btn-danger" onclick="pg.hidePopover();"><i class="fa fa-times"></i> Cancel </button>-->
 						<button type="submit" id="saveTags" class="btn btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
 					</div>
 				</div>
