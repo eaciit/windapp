@@ -68,7 +68,16 @@ var seriesSelectedColor = [];
 var interval;
 var minXAxis, maxXAxis;
 var isSelected = false;
-
+var dateTimeLabelFormats = {
+    millisecond: '%H:%M:%S',
+    second: '%H:%M:%S',
+    minute: '%H:%M',
+    hour: '%H:%M',
+    day: '%e. %b',
+    week: '%e. %b',
+    month: '%b \'%y',
+    year: '%Y'
+};
 pg.periodList = ko.observableArray([]);
 
 
@@ -327,12 +336,7 @@ pg.createStockChart = function(y){
             },
             // margin: 2,
             xAxis: {
-                dateTimeLabelFormats: {
-                    // day: '%Y',
-                    // week: '%Y',
-                    // month: '%Y',
-                    // year: '%Y'
-                },
+                dateTimeLabelFormats: dateTimeLabelFormats,
                 labels: {
                     style: {
                         color: '#585555',
@@ -376,6 +380,7 @@ pg.createStockChart = function(y){
             // breaks: breaks,
             minRange: minRange,
             // ordinal: false,
+            dateTimeLabelFormats : dateTimeLabelFormats,
         },
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
@@ -874,16 +879,7 @@ pg.createLiveChart = function(IsHour){
             xAxis: {
                 type: 'datetime',
                 breaks: breaks,
-                dateTimeLabelFormats : {
-                    millisecond: '%H:%M:%S.%L',
-                    second: '%H:%M:%S',
-                    minute: '%H:%M',
-                    hour: '%H:%M',
-                    day: '%e. %b',
-                    week: '%e. %b',
-                    month: '%b \'%y',
-                    year: '%Y'
-                },
+                dateTimeLabelFormats : dateTimeLabelFormats,
                 // minRange: 5*1000,
             },
             yAxis: yAxis,
