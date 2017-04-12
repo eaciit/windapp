@@ -46,21 +46,33 @@
 		<div class="modal-content">
 			<div class="modal-body row">
 				<div class="col-md-12">
-					<div class="col-md-8" id="selectTagsDiv"></div>
-					<div class="col-md-4">
-						<button type="submit" id="saveTags" class="btn btn-primary" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> Select Tags</button>
+					<div class="col-md-10" id="selectTagsDiv"></div>
+					<div class="col-md-2">
+						<button type="submit" id="saveTags" class="btn btn-primary tooltipster tooltipstered" title="Select Tags" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> </button>
 					</div>
 				</div>
 				<div class="col-md-12">
 					<br>
-					<div class="btn-group col-md-12" data-toggle="buttons">
+					<div class="checkbox" style="margin: -10px -10px;">
+						<label>
+                            <input type="checkbox" name="options" onclick="pg.hideRange();" id="option1" checked>
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="colRed"><b class="colBlack">Fix yAxis</b></span>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="options" onclick="pg.hideErr();" id="option2" checked>
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="colRed"><b class="colBlack">Outliers</b></span>
+                        </label>
+					</div>
+					<!-- <div class="btn-group col-md-12" data-toggle="buttons">
 						<label class="btn btn-primary active" onclick="pg.hideRange();">
 							<input type="checkbox" name="options" id="option1" autocomplete="off" checked> Fix yAxis
 						</label>
 						<label class="btn btn-primary active" onclick="pg.hideErr();">
 							<input type="checkbox" name="options" id="option2" autocomplete="off" checked> Outliers
 						</label>
-					</div>
+					</div> -->
 				</div>
 			</div>
 			<div class="modal-footer">
