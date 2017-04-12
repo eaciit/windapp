@@ -54,6 +54,7 @@ var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 var seriesOri = [];
+var seriesOriX = [];
 var hourBefore = 0;
 var date1Before, date2Before;
 var breaks = [];    
@@ -65,6 +66,8 @@ var legend = [];
 var colors = colorField;
 var seriesSelectedColor = [];
 var interval;
+var minXAxis, maxXAxis;
+var isSelected = false;
 
 pg.periodList = ko.observableArray([]);
 
@@ -121,8 +124,8 @@ pg.hideErr = function(){
 }
 
 pg.getLocalSeries = function(startInt, endInt){
-    var seriesOriTmp = JSON.parse(sessionStorage.seriesOri);
-    $.each(seriesOriTmp, function(id, val){
+    // var seriesOriTmp = JSON.parse(seriesOriX);
+    $.each(JSON.parse(seriesOriX), function(id, val){
         if (val != null){
             var len = val.length;
             var i = 0;
@@ -171,6 +174,7 @@ pg.createStockChart = function(y){
 
             if ((hours <= defaultHour && hourBefore>defaultHour) || ((date1<date1Before && hours <= defaultHour) || (date2>date2Before && hours <= defaultHour)) ) {
                 chart.showLoading('Loading data from server...');
+                $('.highcharts-range-selector-buttons').hide();
                 var param = {
                     period: fa.period,
                     Turbine: [fa.turbine],
@@ -205,9 +209,17 @@ pg.createStockChart = function(y){
                     })
 
                     chart.hideLoading();
+                    $('.highcharts-range-selector-buttons').show();
+
+                    // $.each($('.highcharts-button'), function(i, res){
+                    //     if (i==6){
+                    //         $(this).show();
+                    //     } else if (i==7){
+                    //         $(this).show();
+                    //     }
+                    // });
                 });
             }else if (hours > defaultHour) {
-                // console.log(e.min+" - "+e.max);
                 pg.getLocalSeries(e.min, e.max);
             }
 
@@ -230,16 +242,22 @@ pg.createStockChart = function(y){
         rangeSelected = 5;
     }
 
-    Highcharts.setOptions({
+    var chartOptions = {
         chart: {
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             zoomType: 'x',
-        }
-    });
-
-    chart = Highcharts.stockChart('chartTimeSeries', {
+            events: {
+                selection: function(event) {
+                    if(event.xAxis != null){
+                        isSelected = true;
+                        minXAxis = event.xAxis[0].min;
+                        maxXAxis = event.xAxis[0].max;
+                    }
+                },
+            },
+        },
         legend: {
             symbolHeight: 12,
             symbolWidth: 12,
@@ -288,7 +306,15 @@ pg.createStockChart = function(y){
             }, {
                 type: 'all',
                 text: 'All'
-            }],
+            }, 
+            {
+                type: '+',
+                text: '+',
+            }, {
+                type: '-',
+                text: '-'
+            }
+            ],
             inputEnabled: true,
             selected: rangeSelected,
             y: 50
@@ -376,7 +402,63 @@ pg.createStockChart = function(y){
                 return false ;
              }
         },
-    });
+    };
+
+    var chartCallback = function(e){
+        setTimeout(function() {
+            $.each($('.highcharts-button'), function(i, res){
+                if (i==6){
+                    $(this).attr("id", "");
+                    $(this).attr("id", "zoomin");
+                } else if (i==7){
+                    $(this).attr("id", "");
+                    $(this).attr("id", "zoomout");
+                }
+            });
+
+            // set default value
+            minXAxis = e.xAxis[0].getExtremes().min;
+            maxXAxis = e.xAxis[0].getExtremes().max;
+
+            $('#zoomin').click(function(){
+                var newMin = (minXAxis + 12 * 3600 * 1000), //<= dataMin ? dataMin : (min + (12 * 3600 * 1000)),
+                    newMax = (maxXAxis - 12 * 3600 * 1000); //>= dataMax ? dataMax : (max - (12 * 3600 * 1000));
+                
+                // console.log("> min "+min+" | "+newMin);
+                // console.log("> max "+max+" | "+newMax);
+
+                e.xAxis[0].setExtremes(newMin,newMax);
+
+                if (isSelected){
+                    isSelected=false;
+                }else{
+                    minXAxis = minXAxis + 12 * 3600 * 1000;
+                    maxXAxis = maxXAxis - 12 * 3600 * 1000;
+                }
+            });
+
+            $('#zoomout').click(function(){
+                var newMin = (minXAxis - 12 * 3600 * 1000), //<= dataMin ? dataMin : (min - (12 * 3600 * 1000)),
+                    newMax = (maxXAxis + 12 * 3600 * 1000); //>= dataMax ? dataMax : (max + (12 * 3600 * 1000));
+
+                // console.log("> min "+min+" | "+newMin);
+                // console.log("> max "+max+" | "+newMax);
+
+                e.xAxis[0].setExtremes(newMin,newMax);
+
+                if (isSelected){
+                    isSelected=false;
+                }else{
+                    minXAxis = minXAxis - 12 * 3600 * 1000;
+                    maxXAxis = maxXAxis + 12 * 3600 * 1000;
+                }
+            });
+
+            isSelected = false;
+        }, 200);
+    };
+
+    chart = new Highcharts.StockChart('chartTimeSeries', chartOptions, chartCallback);
 
     // seriesOri = chart.series;
 }
@@ -523,9 +605,9 @@ pg.getDataStockChart = function(param){
             pg.generateSeriesOption(data, periods);
             pg.generateOutliers(outliers);
 
-            if (param=="first" || param=="refresh"){
-                // if (sessionStorage.seriesOri){
-                    sessionStorage.seriesOri = [];
+            if (param=="first" || param=="refresh" || param=="selectTags"){
+                // if (seriesOriX){
+                    seriesOriX = [];
                 // }
                 
                 $.each(seriesOptions,function(idx, val){
@@ -536,7 +618,7 @@ pg.getDataStockChart = function(param){
                 });
 
                 // if (seriesOri != null) {
-                    sessionStorage.seriesOri = JSON.stringify(seriesOri);
+                    seriesOriX = JSON.stringify(seriesOri);
                     seriesOri = [];    
                 // }
             }
@@ -551,8 +633,27 @@ pg.getDataStockChart = function(param){
     $.when(request).done(function(){
         pg.isFirst(false);
         setTimeout(function(){
-           app.loading(false);
-         },200);
+            app.loading(false);
+            // $('.highcharts-button').click(function(){
+            //     var idx = $('.highcharts-button').index(this);
+            //     if (idx==6){
+            //         $(this).click(function(){
+            //             chart.xAxis[0].setExtremes((chart.xAxis[0].getExtremes().min + 12 * 3600 * 1000),(chart.xAxis[0].getExtremes().max - 12 * 3600 * 1000));
+            //         });
+            //     } else if (idx==7){
+            //         $(this).click(function(){
+            //             chart.xAxis[0].setExtremes((chart.xAxis[0].getExtremes().min - 12 * 3600 * 1000),(chart.xAxis[0].getExtremes().max + 12 * 3600 * 1000));
+            //         });
+            //     }
+            // });
+            // $.each($('.highcharts-button'), function(i, res){
+            //     if (i==6){
+            //         $(this).hide();
+            //     } else if (i==7){
+            //         $(this).hide();
+            //     }
+            // });
+        },200);
 
         // if(pg.dataType() == "SEC"){
         //   setTimeout(function(){
@@ -597,8 +698,8 @@ pg.createLiveChart = function(IsHour){
         pg.generateOutliers(outliers);
         
         if (param=="first" || param=="refresh"){
-            if (sessionStorage.seriesOri){
-                sessionStorage.seriesOri = null;
+            if (seriesOriX){
+                seriesOriX = null;
             }
             
             $.each(seriesOptions,function(idx, val){
@@ -608,7 +709,7 @@ pg.createLiveChart = function(IsHour){
                 }
             });
 
-            sessionStorage.seriesOri = JSON.stringify(seriesOri);
+            seriesOriX = JSON.stringify(seriesOri);
             seriesOri = [];
         }
 
@@ -652,16 +753,26 @@ pg.createLiveChart = function(IsHour){
                                 var seriesData = chart.series; 
                                 var results = res.data.Data.Chart;
                                 if(results.length > 0){
-                                    dateStart = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
-                                    dateEnd = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
-                                    $.each(seriesOptions, function(i, res){
-                                       $.each(results, function(id, val){
-                                            if(res.name == val.name){
+                                    // dateStart = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
+                                    // dateEnd = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
+                                    
+                                    $.each(results, function(id, tag){
+                                        $.each(seriesOptions, function(i, series){
+                                            if(series.name == tag.name){
                                                 var x = (new Date()).getTime();
-                                                chart.series[i].addPoint(val.data, true, true);
+                                                chart.series[i].addPoint(tag.data, true, true);
                                             }
-                                       })
+                                        });    
                                     });
+
+                                    // $.each(seriesOptions, function(i, res){
+                                    //    $.each(results, function(id, val){
+                                    //         if(res.name == val.name){
+                                    //             var x = (new Date()).getTime();
+                                    //             chart.series[i].addPoint(val.data, true, true);
+                                    //         }
+                                    //    })
+                                    // });
                                     // console.log(dateEnd);
                                 }else{
                                     // console.log(dateEnd);
@@ -857,7 +968,16 @@ pg.generateSeriesOption = function(data, periods){
             dataGrouping:{
                 enabled: IsGroup,
                 // units: [["day",[1]],["weel",[1]],["month",[1]]],
-            }
+            },
+            // zones: [{
+            //     value: val.minval,
+            //     color: '#CD4B5B'
+            // }, {
+            //     color: colors[idx]
+            // }, {
+            //     value: val.maxval,
+            //     color: '#CD4B5B'
+            // }]
         }      
 
         seriesSelectedColor[idx] = val.name;
@@ -942,7 +1062,9 @@ pg.generateOutliers = function(data){
             id : "series_col"+counter,
             showInLegend : false,
             showInNavigator: false,
-            // onSeries: "series"+idx,                
+            // dataGrouping:{
+            //     enabled: false,
+            // }
         }
     }
 }
