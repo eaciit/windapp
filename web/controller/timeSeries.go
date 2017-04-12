@@ -204,12 +204,11 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	// log.Printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %v | %v \n", dataType, pageType)
 
 	// default tags
-	tags := []string{}
-	tags = []string{"windspeed", "power"}
+	tags := p.TagList
 
-	if len(p.TagList) > 0 {
-		tags = p.TagList
-	}
+	// if len(p.TagList) == 0 {
+	// 	tags = []string{"windspeed", "power"}
+	// }
 
 	if pageType == "HFD" && dataType == "SEC" {
 		secTags := []string{}
@@ -487,7 +486,7 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 	filter = append(filter, dbox.Eq("turbine", turbine))
 
 	if tStart.Year() != 1 {
-		filter = append(filter, dbox.Gt("timestamp", tStart))
+		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
 	}
 
 	rconn := lh.GetConnRealtime()

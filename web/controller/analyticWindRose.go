@@ -342,7 +342,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 				datas := c.From(&data).Apply(func(x interface{}) interface{} {
 					dt := x.(MiniScada)
 					var di DataItems
-					calibratedWindDir = dt.WindDirection + 300
+					calibratedWindDir = dt.WindDirection //+ 300
 					dirNo, dirDesc := getDirection(dt.NacelDirection+calibratedWindDir, section)
 					wsNo, wsDesc := getWsCategory(dt.AvgWindSpeed)
 
@@ -749,7 +749,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 					dt := x.(MiniScada)
 					var di DataItemsComp
 
-					calibratedWindDir = dt.WindDirection + 300
+					calibratedWindDir = dt.WindDirection //+ 300
 					dirNo, dirDesc := getDirection(dt.NacelDirection+calibratedWindDir, section)
 
 					di.DirectionNo = dirNo
