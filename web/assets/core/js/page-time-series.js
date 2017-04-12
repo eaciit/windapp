@@ -639,25 +639,6 @@ pg.getDataStockChart = function(param){
         pg.isFirst(false);
         setTimeout(function(){
             app.loading(false);
-            // $('.highcharts-button').click(function(){
-            //     var idx = $('.highcharts-button').index(this);
-            //     if (idx==6){
-            //         $(this).click(function(){
-            //             chart.xAxis[0].setExtremes((chart.xAxis[0].getExtremes().min + 12 * 3600 * 1000),(chart.xAxis[0].getExtremes().max - 12 * 3600 * 1000));
-            //         });
-            //     } else if (idx==7){
-            //         $(this).click(function(){
-            //             chart.xAxis[0].setExtremes((chart.xAxis[0].getExtremes().min - 12 * 3600 * 1000),(chart.xAxis[0].getExtremes().max + 12 * 3600 * 1000));
-            //         });
-            //     }
-            // });
-            // $.each($('.highcharts-button'), function(i, res){
-            //     if (i==6){
-            //         $(this).hide();
-            //     } else if (i==7){
-            //         $(this).hide();
-            //     }
-            // });
         },200);
 
         // if(pg.dataType() == "SEC"){
