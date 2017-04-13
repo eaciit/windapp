@@ -54,6 +54,7 @@ var timeSeriesData = [];
 var seriesOptions = [],
     seriesCounter = 0;
 var seriesOri = [];
+var seriesOriX = [];
 var hourBefore = 0;
 var date1Before, date2Before;
 var breaks = [];    
@@ -65,7 +66,18 @@ var legend = [];
 var colors = colorField;
 var seriesSelectedColor = [];
 var interval;
-
+var minXAxis, maxXAxis;
+var isSelected = false;
+var dateTimeLabelFormats = {
+    millisecond: '%H:%M:%S',
+    second: '%H:%M:%S',
+    minute: '%H:%M',
+    hour: '%H:%M',
+    day: '%e. %b',
+    week: '%e. %b',
+    month: '%b \'%y',
+    year: '%Y'
+};
 pg.periodList = ko.observableArray([]);
 
 
@@ -74,27 +86,26 @@ pg.hideLegend = function(idx){
   var series = chart.series[idx];
   if (series.visible) {
       series.hide();
-      // $button.html('Show series');
   } else {
       series.show();
-      // $button.html('Hide series');
   }
 }
 
 pg.hideLegendByName = function(name){
     $.each(chart.series, function(i, series) {
         if (series.name === name || series.name === (name+"_err")){
-            if (series.visible) {
-                series.hide();
+            if (series.color == "rgba(0, 0, 255, 0)") {
+                series.options.color =  colors[i];
+                series.update(series.options);
             } else {
-                series.show();
+                series.options.color = 'rgba(0, 0, 255, 0)';
+                series.update(series.options);
             }
         }
     });
 }
 
 pg.hideRange = function(){
-    // var checked = $('[name=chk-column-range]:checked').length==1;
     var checked = $('#option1:checked').length==1;
     $.each(yAxis, function(i, res){
         if(chart.series[i].name != "_err"){
@@ -111,9 +122,6 @@ pg.hideRange = function(){
 pg.hideErr = function(){
     var checked = $('#option2:checked').length==1;
     $.each(chart.series, function(i, res){
-        // if(res.name.indexOf("_err") > 0){
-        //     res.setVisible(!checked);
-        // }
         if(res.name == "_err"){
             res.setVisible(!checked);
         }
@@ -121,8 +129,8 @@ pg.hideErr = function(){
 }
 
 pg.getLocalSeries = function(startInt, endInt){
-    var seriesOriTmp = JSON.parse(sessionStorage.seriesOri);
-    $.each(seriesOriTmp, function(id, val){
+    // var seriesOriTmp = JSON.parse(seriesOriX);
+    $.each(JSON.parse(seriesOriX), function(id, val){
         if (val != null){
             var len = val.length;
             var i = 0;
@@ -171,6 +179,7 @@ pg.createStockChart = function(y){
 
             if ((hours <= defaultHour && hourBefore>defaultHour) || ((date1<date1Before && hours <= defaultHour) || (date2>date2Before && hours <= defaultHour)) ) {
                 chart.showLoading('Loading data from server...');
+                $('.highcharts-range-selector-buttons').hide();
                 var param = {
                     period: fa.period,
                     Turbine: [fa.turbine],
@@ -205,9 +214,9 @@ pg.createStockChart = function(y){
                     })
 
                     chart.hideLoading();
+                    $('.highcharts-range-selector-buttons').show();
                 });
             }else if (hours > defaultHour) {
-                // console.log(e.min+" - "+e.max);
                 pg.getLocalSeries(e.min, e.max);
             }
 
@@ -230,16 +239,22 @@ pg.createStockChart = function(y){
         rangeSelected = 5;
     }
 
-    Highcharts.setOptions({
+    var chartOptions = {
         chart: {
             style: {
                 fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             zoomType: 'x',
-        }
-    });
-
-    chart = Highcharts.stockChart('chartTimeSeries', {
+            events: {
+                selection: function(event) {
+                    if(event.xAxis != null){
+                        isSelected = true;
+                        minXAxis = event.xAxis[0].min;
+                        maxXAxis = event.xAxis[0].max;
+                    }
+                },
+            },
+        },
         legend: {
             symbolHeight: 12,
             symbolWidth: 12,
@@ -248,7 +263,7 @@ pg.createStockChart = function(y){
             floating: false,
             align: 'center',
             verticalAlign: 'top',
-            labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
             borderWidth: 0,
             marginTop: -70,
         },
@@ -288,7 +303,15 @@ pg.createStockChart = function(y){
             }, {
                 type: 'all',
                 text: 'All'
-            }],
+            }, 
+            {
+                type: '+',
+                text: '+',
+            }, {
+                type: '-',
+                text: '-'
+            }
+            ],
             inputEnabled: true,
             selected: rangeSelected,
             y: 50
@@ -301,12 +324,7 @@ pg.createStockChart = function(y){
             },
             // margin: 2,
             xAxis: {
-                dateTimeLabelFormats: {
-                    // day: '%Y',
-                    // week: '%Y',
-                    // month: '%Y',
-                    // year: '%Y'
-                },
+                dateTimeLabelFormats: dateTimeLabelFormats,
                 labels: {
                     style: {
                         color: '#585555',
@@ -350,6 +368,7 @@ pg.createStockChart = function(y){
             // breaks: breaks,
             minRange: minRange,
             // ordinal: false,
+            dateTimeLabelFormats : dateTimeLabelFormats,
         },
         yAxis: (y == undefined ? yAxis : y),
         plotOptions: {
@@ -371,12 +390,75 @@ pg.createStockChart = function(y){
         },
         series: seriesOptions,
         tooltip:{
-             formatter : function() {
-                $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
-                return false ;
-             }
+             shared: true, 
+             // formatter : function() {
+             //   $.each(chart.legend.allItems,function(i, val){
+             //        $.each(chart.series[i].points, function(i, val){
+             //            if(val.category == this.x){
+             //                console.log(val.y);
+             //            }
+             //        });
+             //    });
+             //    return false ;
+             // }
         },
-    });
+    };
+
+    var chartCallback = function(e){
+        setTimeout(function() {
+            $.each($('.highcharts-button'), function(i, res){
+                if (i==6){
+                    $(this).attr("id", "");
+                    $(this).attr("id", "zoomin");
+                } else if (i==7){
+                    $(this).attr("id", "");
+                    $(this).attr("id", "zoomout");
+                }
+            });
+
+            // set default value
+            minXAxis = e.xAxis[0].getExtremes().min;
+            maxXAxis = e.xAxis[0].getExtremes().max;
+
+            $('#zoomin').click(function(){
+                var newMin = (minXAxis + 12 * 3600 * 1000), //<= dataMin ? dataMin : (min + (12 * 3600 * 1000)),
+                    newMax = (maxXAxis - 12 * 3600 * 1000); //>= dataMax ? dataMax : (max - (12 * 3600 * 1000));
+                
+                // console.log("> min "+min+" | "+newMin);
+                // console.log("> max "+max+" | "+newMax);
+
+                e.xAxis[0].setExtremes(newMin,newMax);
+
+                if (isSelected){
+                    isSelected=false;
+                }else{
+                    minXAxis = minXAxis + 12 * 3600 * 1000;
+                    maxXAxis = maxXAxis - 12 * 3600 * 1000;
+                }
+            });
+
+            $('#zoomout').click(function(){
+                var newMin = (minXAxis - 12 * 3600 * 1000), //<= dataMin ? dataMin : (min - (12 * 3600 * 1000)),
+                    newMax = (maxXAxis + 12 * 3600 * 1000); //>= dataMax ? dataMax : (max + (12 * 3600 * 1000));
+
+                // console.log("> min "+min+" | "+newMin);
+                // console.log("> max "+max+" | "+newMax);
+
+                e.xAxis[0].setExtremes(newMin,newMax);
+
+                if (isSelected){
+                    isSelected=false;
+                }else{
+                    minXAxis = minXAxis - 12 * 3600 * 1000;
+                    maxXAxis = maxXAxis + 12 * 3600 * 1000;
+                }
+            });
+
+            isSelected = false;
+        }, 200);
+    };
+
+    chart = new Highcharts.StockChart('chartTimeSeries', chartOptions, chartCallback);
 
     // seriesOri = chart.series;
 }
@@ -474,16 +556,6 @@ pg.getDataStockChart = function(param){
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
 
-    // if(pg.dataType() == 'SEC'){
-    //   dateStart = minDate;
-    //   dateEnd = maxDate;
-    //   if(param == 'detailPeriod'){
-    //       dateStart = new Date(pg.startTime());
-    //       dateEnd = new Date(pg.endTime());
-    //   }
-    // }
-
-    // var IsHour = (param == 'detailPeriod' ? true : false);
     var paramX = {
         period: fa.period,
         Turbine: [turbine],
@@ -497,16 +569,6 @@ pg.getDataStockChart = function(param){
     };
 
     var url = "timeseries/getdatahfd";
-    // if($('input[name="chk-column-live"]:checked').length > 0){
-    //     pg.live(true);
-    //     // pg.rangeData(true);
-    //     // pg.errorValue(true);
-    // }else{
-    //     pg.live(false);
-    //     // pg.rangeData(true);
-    //     // pg.errorValue(true);
-    // }
-
 
     var request;
     if(pg.live() == false){
@@ -523,9 +585,9 @@ pg.getDataStockChart = function(param){
             pg.generateSeriesOption(data, periods);
             pg.generateOutliers(outliers);
 
-            if (param=="first" || param=="refresh"){
-                // if (sessionStorage.seriesOri){
-                    sessionStorage.seriesOri = [];
+            if (param=="first" || param=="refresh" || param=="selectTags"){
+                // if (seriesOriX){
+                    seriesOriX = [];
                 // }
                 
                 $.each(seriesOptions,function(idx, val){
@@ -536,7 +598,7 @@ pg.getDataStockChart = function(param){
                 });
 
                 // if (seriesOri != null) {
-                    sessionStorage.seriesOri = JSON.stringify(seriesOri);
+                    seriesOriX = JSON.stringify(seriesOri);
                     seriesOri = [];    
                 // }
             }
@@ -551,15 +613,8 @@ pg.getDataStockChart = function(param){
     $.when(request).done(function(){
         pg.isFirst(false);
         setTimeout(function(){
-           app.loading(false);
-         },200);
-
-        // if(pg.dataType() == "SEC"){
-        //   setTimeout(function(){
-        //     pg.prepareScroll();
-        //   },500);
-
-        // }
+            app.loading(false);
+        },200);
     });
 }
 
@@ -589,16 +644,14 @@ pg.createLiveChart = function(IsHour){
         dateStart = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
         dateEnd = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
 
-        // console.log(dateEnd);
-
         breaks = res.data.Data.Breaks;
 
         pg.generateSeriesOption(data, periods);
         pg.generateOutliers(outliers);
         
         if (param=="first" || param=="refresh"){
-            if (sessionStorage.seriesOri){
-                sessionStorage.seriesOri = null;
+            if (seriesOriX){
+                seriesOriX = null;
             }
             
             $.each(seriesOptions,function(idx, val){
@@ -608,7 +661,7 @@ pg.createLiveChart = function(IsHour){
                 }
             });
 
-            sessionStorage.seriesOri = JSON.stringify(seriesOri);
+            seriesOriX = JSON.stringify(seriesOri);
             seriesOri = [];
         }
 
@@ -652,19 +705,15 @@ pg.createLiveChart = function(IsHour){
                                 var seriesData = chart.series; 
                                 var results = res.data.Data.Chart;
                                 if(results.length > 0){
-                                    dateStart = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
-                                    dateEnd = new Date(new Date(Math.round(results[0].data[0][0])).toUTCString());
-                                    $.each(seriesOptions, function(i, res){
-                                       $.each(results, function(id, val){
-                                            if(res.name == val.name){
+                                    $.each(results, function(id, tag){
+                                        $.each(seriesOptions, function(i, series){
+                                            if(series.name == tag.name){
                                                 var x = (new Date()).getTime();
-                                                chart.series[i].addPoint(val.data, true, true);
+                                                chart.series[i].addPoint(tag.data, true, true);
                                             }
-                                       })
+                                        });    
                                     });
-                                    // console.log(dateEnd);
                                 }else{
-                                    // console.log(dateEnd);
                                     return false;
                                 }
 
@@ -681,7 +730,7 @@ pg.createLiveChart = function(IsHour){
                 floating: false,
                 align: 'center',
                 verticalAlign: 'top',
-                labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
                 borderWidth: 0,
                 marginTop: -70,
             },
@@ -743,8 +792,6 @@ pg.createLiveChart = function(IsHour){
                             symbol:'menu',
                             onclick: function () {
                                 pg.options();
-                                // alert('You pressed the button!');
-                                // $('.popover-markup>.trigger').popover('toggle');
                             }
                         },
                         liveButton: {
@@ -763,16 +810,7 @@ pg.createLiveChart = function(IsHour){
             xAxis: {
                 type: 'datetime',
                 breaks: breaks,
-                dateTimeLabelFormats : {
-                    millisecond: '%H:%M:%S.%L',
-                    second: '%H:%M:%S',
-                    minute: '%H:%M',
-                    hour: '%H:%M',
-                    day: '%e. %b',
-                    week: '%e. %b',
-                    month: '%b \'%y',
-                    year: '%Y'
-                },
+                dateTimeLabelFormats : dateTimeLabelFormats,
                 // minRange: 5*1000,
             },
             yAxis: yAxis,
@@ -795,10 +833,17 @@ pg.createLiveChart = function(IsHour){
             },
             series: seriesOptions,
             tooltip:{
-                 formatter : function() {
-                    $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
-                    return false ;
-                 }
+                 shared: true, 
+                 // formatter : function() {
+                 //   $.each(chart.legend.allItems,function(i, val){
+                 //        $.each(chart.series[i].points, function(i, val){
+                 //            if(val.category == this.x){
+                 //                console.log(val.y);
+                 //            }
+                 //        });
+                 //    });
+                 //    return false ;
+                 // }
             },
         });
     });
@@ -856,8 +901,7 @@ pg.generateSeriesOption = function(data, periods){
             },
             dataGrouping:{
                 enabled: IsGroup,
-                // units: [["day",[1]],["weel",[1]],["month",[1]]],
-            }
+            },
         }      
 
         seriesSelectedColor[idx] = val.name;
@@ -868,45 +912,6 @@ pg.generateSeriesOption = function(data, periods){
         }      
 
         xCounter+=1;
-
-        /*yAxis[xCounter] = {
-            min: 0,
-            max: 100, 
-            gridLineWidth: 0,
-            tickInterval: 100/5,
-            alignTicks: false,
-            endOnTick: false,
-            startOnTick: false,
-            labels: {
-                format: '{value}',
-            },
-            title: {
-                text: val.unit,
-            },
-            opposite: isOpposite,
-            visible: false,
-        }
-
-        seriesOptions[xCounter] = {
-            type: 'column',
-            name: val.name+"_err",
-            data: val.dataerr,
-            color: colors[idx],
-            pointWidth: 1,
-            yAxis: xCounter,
-            id : "series_col"+idx,
-            showInLegend : false,
-            // dataGrouping: {
-            //     approximation: function () {
-            //         return 100;
-            //     },
-            //     forced: true
-            // },
-            showInNavigator: false,
-            onSeries: "series"+idx,                
-        }
-
-        xCounter+=1;*/
 
         seriesCounter += 1;
     });
@@ -926,9 +931,6 @@ pg.generateOutliers = function(data){
             labels: {
                 format: '{value}',
             },
-            // title: {
-            //     text: val.unit,
-            // },
             visible: false,
         }
 
@@ -942,80 +944,10 @@ pg.generateOutliers = function(data){
             id : "series_col"+counter,
             showInLegend : false,
             showInNavigator: false,
-            // onSeries: "series"+idx,                
         }
     }
 }
 
-/*pg.prepareScroll = function(){
-        var $frame  = $('#basic');
-        var $slidee = $frame.children('ul').eq(0);
-        var $wrap   = $frame.parent();
-
-        // Call Sly on frame
-        $frame.sly({
-          horizontal: 1,
-          itemNav: 'basic',
-          smart: 1,
-          activateOn: 'click',
-          mouseDragging: 1,
-          touchDragging: 1,
-          releaseSwing: 1,
-          // startAt: 3,
-          scrollBar: $wrap.find('.scrollbar'),
-          scrollBy: 1,
-          pagesBar: $wrap.find('.pages'),
-          activatePageOn: 'click',
-          speed: 300,
-          elasticBounds: 1,
-          easing: 'easeOutExpo',
-          dragHandle: 1,
-          dynamicHandle: 1,
-          clickBar: 1,
-
-          // Buttons
-          forward: $wrap.find('.forward'),
-          backward: $wrap.find('.backward'),
-          prev: $wrap.find('.prev'),
-          next: $wrap.find('.next'),
-          prevPage: $wrap.find('.prevPage'),
-          nextPage: $wrap.find('.nextPage')
-        });
-
-        // To Start button
-        $wrap.find('.toStart').on('click', function () {
-          var item = $(this).data('item');
-          // Animate a particular item to the start of the frame.
-          // If no item is provided, the whole content will be animated.
-          $frame.sly('toStart', item);
-        });
-
-        // To Center button
-        $wrap.find('.toCenter').on('click', function () {
-          var item = $(this).data('item');
-          // Animate a particular item to the center of the frame.
-          // If no item is provided, the whole content will be animated.
-          $frame.sly('toCenter', item);
-        });
-
-        // To End button
-        $wrap.find('.toEnd').on('click', function () {
-          var item = $(this).data('item');
-          // Animate a particular item to the end of the frame.
-          // If no item is provided, the whole content will be animated.
-          $frame.sly('toEnd', item);
-        });
-
-        // Add item
-        $wrap.find('.add').on('click', function () {
-          $frame.sly('add', '<li>' + $slidee.children().length + '</li>');
-        });
-
-        // Remove item
-        $wrap.find('.remove').on('click', function () {
-          $frame.sly('remove', -1);
-        });
-}*/
 
 $(document).ready(function () {
     newyAxis = yAxis;
@@ -1026,35 +958,6 @@ $(document).ready(function () {
         $(".label-filters:contains('Period')").hide();
         $(".label-filters:contains('to')").hide();
     }
-
-    /*$('.popover-markup>.trigger').popover({
-        animation: true,
-        html: true,
-        placement: 'right',
-        title: function () {
-            return $(this).parent().find('.head').html();
-        },
-        content: function () {
-            return $(this).parent().find('.content').html();
-        }
-    }).on('click',function () {
-        $("#selectTagsDiv").html("");
-        $("#selectTagsDiv").html('<select id="TagList"></select>');
-        $('#TagList').kendoMultiSelect({
-            dataSource: pg.tags(), 
-            value: pg.TagList() , 
-            dataValueField : 'value', 
-            dataTextField: 'text',
-            suggest: true, 
-            maxSelectedItems: maxSelectedItems, 
-            minSelectedItems: 1,
-            change: function(e) {
-                if (this.value().length == 0) {
-                    this.value("windspeed")
-                }
-        }
-      });
-    });*/
 
     $('#btnRefresh').on('click', function () {
         pg.getDataStockChart("refresh");

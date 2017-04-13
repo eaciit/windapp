@@ -13,9 +13,17 @@
                 hoverPoints = [chart.hoverPoint];
             }
             if (hoverPoints) {
-                H.each(hoverPoints, function (point) {
-                    point.series.point = point;
+
+                H.each(chart.legend.allItems,function(i, res){
+                    H.each(chart.series[res].points, function(val){
+                        if(val != undefined){
+                            if(val.category == hoverPoints[0].category){
+                               val.series.point = val;
+                            }
+                        }
+                    });
                 });
+
                 H.each(chart.legend.allItems, function (item) {
                     item.legendItem.attr({
                         text: legendOptions.labelFormat ? 
@@ -23,6 +31,8 @@
                             legendOptions.labelFormatter.call(item)
                     });
                 });
+
+
                 chart.legend.render();
             }
         });
