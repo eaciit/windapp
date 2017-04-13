@@ -95,14 +95,36 @@ pg.hideLegendByName = function(name){
     $.each(chart.series, function(i, series) {
         if (series.name === name || series.name === (name+"_err")){
             if (series.color == "rgba(0, 0, 255, 0)") {
-                series.options.color =  colors[i];
-                series.update(series.options);
+
+                series.color = colors[i];
+                series.graph.attr({ 
+                    stroke: colors[i]
+                });
+
+                // chart.legend.colorizeItem(series, series.visible);
+                $.each(series.data, function(i, point) {
+                    point.graphic.attr({
+                        fill: colors[i]
+                    });
+                });
+                
             } else {
-                series.options.color = 'rgba(0, 0, 255, 0)';
-                series.update(series.options);
+                series.color = "rgba(0, 0, 255, 0)";
+                series.graph.attr({ 
+                    stroke: "rgba(0, 0, 255, 0)"
+                });
+
+                // chart.legend.colorizeItem(series, series.visible);
+                $.each(series.data, function(i, point) {
+                    point.graphic.attr({
+                        fill: "rgba(0, 0, 255, 0)"
+                    });
+                });
+               
             }
         }
     });
+    chart.redraw();
 }
 
 pg.hideRange = function(){
@@ -110,10 +132,10 @@ pg.hideRange = function(){
     $.each(yAxis, function(i, res){
         if(chart.series[i].name != "_err"){
             chart.yAxis[i].update({
-                min: (!checked ? res.min : null),
-                max: (!checked ? res.max : null),
-                tickInterval: (!checked ? res.max/5 : null),
-                alignTicks: (!checked ? false : true),
+                min: (checked ? res.min : null),
+                max: (checked ? res.max : null),
+                tickInterval: (checked ? res.max/5 : null),
+                alignTicks: (checked ? false : true),
             });
         }
     });
@@ -123,7 +145,7 @@ pg.hideErr = function(){
     var checked = $('#option2:checked').length==1;
     $.each(chart.series, function(i, res){
         if(res.name == "_err"){
-            res.setVisible(!checked);
+            res.setVisible(checked);
         }
     });
 }
@@ -390,17 +412,11 @@ pg.createStockChart = function(y){
         },
         series: seriesOptions,
         tooltip:{
+             formatter : function() {
+                $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                 return false ;
+              },
              shared: true, 
-             // formatter : function() {
-             //   $.each(chart.legend.allItems,function(i, val){
-             //        $.each(chart.series[i].points, function(i, val){
-             //            if(val.category == this.x){
-             //                console.log(val.y);
-             //            }
-             //        });
-             //    });
-             //    return false ;
-             // }
         },
     };
 
@@ -833,17 +849,11 @@ pg.createLiveChart = function(IsHour){
             },
             series: seriesOptions,
             tooltip:{
+                formatter : function() {
+                    $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                    return false ;
+                 },
                  shared: true, 
-                 // formatter : function() {
-                 //   $.each(chart.legend.allItems,function(i, val){
-                 //        $.each(chart.series[i].points, function(i, val){
-                 //            if(val.category == this.x){
-                 //                console.log(val.y);
-                 //            }
-                 //        });
-                 //    });
-                 //    return false ;
-                 // }
             },
         });
     });
@@ -960,9 +970,9 @@ $(document).ready(function () {
     }
 
     $('#btnRefresh').on('click', function () {
+        $("#option1").prop("checked", true);
+        $("#option2").prop("checked", true);
         pg.getDataStockChart("refresh");
-        // pg.rangeData(true);
-        // pg.errorValue(true);
     });
 
     setTimeout(function () {
