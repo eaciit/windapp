@@ -95,11 +95,32 @@ pg.hideLegendByName = function(name){
     $.each(chart.series, function(i, series) {
         if (series.name === name || series.name === (name+"_err")){
             if (series.color == "rgba(0, 0, 255, 0)") {
-                series.options.color =  colors[i];
-                series.update(series.options);
+                series.color = colors[i];
+                series.graph.attr({ 
+                    stroke: colors[i]
+                });
+
+                chart.legend.colorizeItem(series, series.visible);
+                $.each(series.data, function(i, point) {
+                    point.graphic.attr({
+                        fill: colors[i]
+                    });
+                });
+
+                series.redraw();
             } else {
-                series.options.color = 'rgba(0, 0, 255, 0)';
-                series.update(series.options);
+                series.color = "rgba(0, 0, 255, 0)";
+                series.graph.attr({ 
+                    stroke: "rgba(0, 0, 255, 0)"
+                });
+
+                chart.legend.colorizeItem(series, series.visible);
+                $.each(series.data, function(i, point) {
+                    point.graphic.attr({
+                        fill: "rgba(0, 0, 255, 0)"
+                    });
+                });
+                series.redraw();
             }
         }
     });
