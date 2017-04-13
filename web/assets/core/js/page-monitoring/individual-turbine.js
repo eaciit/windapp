@@ -672,7 +672,7 @@ it.showWindspeedLiveChart = function(){
             series: {
                 lineWidth: 1,
                 marker: {
-                    enabled: true,
+                    enabled: false,
                     radius: 3
                 },
             },
