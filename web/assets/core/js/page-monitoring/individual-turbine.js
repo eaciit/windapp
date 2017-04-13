@@ -548,26 +548,28 @@ it.showWindspeedColumnChart = function(){
             shape: "arrow"
         },
         scale: {
-            minorUnit: 5,
-            // max: 180,
-            majorUnit: 10,
+            minorUnit: (2100/4)/2,
+            max: 2100,
+            // min : -200,
+            reverse: false,
+            majorUnit: 2100/4,
             ranges: [
                 {
-                    from: 30,
-                    to: 50,
+                    from: 1525,
+                    to: 2100,
                     color : "#8dcb2a"
                 },
                 {
-                    from: 20,
-                    to: 30,
+                    from: 950,
+                    to: 1525,
                     color: "#ffc700"
                 }, {
-                    from: 10,
-                    to: 20,
+                    from: 375,
+                    to: 950,
                     color: "#ff7a00"
                 }, {
-                    from: 0,
-                    to: 10,
+                    from: -200,
+                    to: 375,
                     color: "#c20000"
                 }
             ]
@@ -755,7 +757,7 @@ it.showWindRoseChart = function(){
             $("#windRoseChart").kendoChart({
                 theme: "flat",
                 chartArea: {
-                    height: 225,
+                    height: 200,
                     width: 300,
                     margin: 0,
                     padding: 0,
