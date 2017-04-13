@@ -98,7 +98,7 @@ it.getTimestamp = function(param){
       dateParts = dateTimeParts[0].split('-'),
       date;
 
-      date = new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, dateParts[0], timeParts[0], timeParts[1]);
+      date = new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
 
       return date.getTime();
 }
@@ -113,8 +113,8 @@ it.GetData = function(project, turbine) {
         var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
 
         if(it.isFirst() == false){
-            chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, (++count >= maxSamples));
-            chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, (++count >= maxSamples));
+            chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, chart.series[0].data.length>maxSamples ? true:false);
+            chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, chart.series[0].data.length>maxSamples ? true:false);
         }else{
             it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
             it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
@@ -609,13 +609,17 @@ it.showWindspeedLiveChart = function(){
         },
         rangeSelector: {
             buttons: [{
+                type: 'minute',
                 count: 1,
+                text: '1"'
+            },{
                 type: 'minute',
-                text: '1M'
-            }, {
                 count: 5,
-                type: 'minute',
-                text: '5M'
+                text: '5"'
+            }, {
+                type: 'hour',
+                count: 1,
+                text: '1h'
             }, {
                 type: 'all',
                 text: 'All'
