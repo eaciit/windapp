@@ -93,7 +93,7 @@ pg.hideLegend = function(idx){
 
 pg.hideLegendByName = function(name){
     $.each(chart.series, function(i, series) {
-        if (series.name === name || series.name === (name+"_err")){
+        if (series.name === name || series.name === "_err"){
             if (series.color == "rgba(0, 0, 255, 0)") {
 
                 series.color = colors[i];
@@ -414,9 +414,9 @@ pg.createStockChart = function(y){
         tooltip:{
              formatter : function() {
                 $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
-                 return false ;
-              },
-             shared: true, 
+                return false ;
+             },
+             shared: true,
         },
     };
 
@@ -571,7 +571,7 @@ pg.getDataStockChart = function(param){
     }
     var dateStart = fa.dateStart; 
     var dateEnd = fa.dateEnd;
-
+    
     var paramX = {
         period: fa.period,
         Turbine: [turbine],
@@ -585,7 +585,7 @@ pg.getDataStockChart = function(param){
     };
 
     var url = "timeseries/getdatahfd";
-
+    
     var request;
     if(pg.live() == false){
         request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
@@ -635,228 +635,224 @@ pg.getDataStockChart = function(param){
 }
 
 pg.createLiveChart = function(IsHour){
-    var param = {
-        period: fa.period,
-        Turbine: [fa.turbine],
-        Project: fa.project,
-        PageType: "LIVE",
-        DataType: pg.dataType() ,
-        TagList : pg.TagList(),
-        IsHour : IsHour,
-    };
 
-    var dateStart, dateEnd; 
-    $("#chartTimeSeries").html("");
-        toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
+        var dateStart, dateEnd; 
+        // initiate first data
 
+        seriesOriX = JSON.stringify(seriesOri);
+        seriesOri = [];
 
-        var data = res.data.Data.Chart;
-        var periods = res.data.Data.PeriodList;
-        var outliers = res.data.Data.Outliers;
+        $.each(seriesOptions, function(i, s){
+            s.data = [];
+        });
 
-        dateStart = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
-        dateEnd = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
+        var seriesData = seriesOptions;
+        var paramX = {
+            period: fa.period,
+            Turbine: [fa.turbine],
+            DateStart: dateStart,
+            DateEnd: dateEnd,
+            Project: fa.project,
+            PageType: "LIVE",
+            DataType: pg.dataType() ,
+            TagList : pg.TagList(),
+            IsHour : IsHour,
+        };
 
-        breaks = res.data.Data.Breaks;
-
-        pg.generateSeriesOption(data, periods);
-        pg.generateOutliers(outliers);
-        
-        if (param=="first" || param=="refresh"){
-            if (seriesOriX){
-                seriesOriX = null;
+        toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", paramX, function (res) {
+            if (!app.isFine(res)) {
+                return;
             }
-            
-            $.each(seriesOptions,function(idx, val){
-                if (val.data != null){
-                    var valx = val.data.slice(idx);
-                    seriesOri[idx] = valx;
-                }
-            });
+
+            var data = res.data.Data.Chart;
+            var periods = res.data.Data.PeriodList;
+            var outliers = res.data.Data.Outliers;
+
+            dateStart = new Date(new Date(Math.round(data[0].data[0][0])).toUTCString());
+
+            pg.generateSeriesOption(data, periods);
+            pg.generateOutliers(outliers);
 
             seriesOriX = JSON.stringify(seriesOri);
             seriesOri = [];
-        }
 
-       
-        $("#chartTimeSeries").html("");
+            $("#chartTimeSeries").html("");
 
-        var minRange = 600 * 1000;
-        if(pg.dataType() == 'SEC'){
-            minRange = 5 * 1000;
-        }
-
-
-        chart = Highcharts.stockChart('chartTimeSeries', {
-             chart: {
-                tyle: {
-                    fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                zoomType: 'x',
-                type: 'spline',
-                marginRight: 10,
-                events: {
-                    load: function () {
-                        interval = setInterval(function () {
-                            var paramX = {
-                                period: fa.period,
-                                Turbine: [fa.turbine],
-                                DateStart: dateStart,
-                                DateEnd: dateEnd,
-                                Project: fa.project,
-                                PageType: "LIVE",
-                                DataType: pg.dataType() ,
-                                TagList : pg.TagList(),
-                                IsHour : IsHour,
-                            };
-
-                            toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", paramX, function (res) {
-                                if (!app.isFine(res)) {
-                                    return;
-                                }
-
-                                var seriesData = chart.series; 
-                                var results = res.data.Data.Chart;
-                                if(results.length > 0){
-                                    $.each(results, function(id, tag){
-                                        $.each(seriesOptions, function(i, series){
-                                            if(series.name == tag.name){
-                                                var x = (new Date()).getTime();
-                                                chart.series[i].addPoint(tag.data, true, true);
-                                            }
-                                        });    
-                                    });
-                                }else{
-                                    return false;
-                                }
-
-                            });
-                        }, 5000);
-                    }
-                }
-            },
-             legend: {
-                symbolHeight: 12,
-                symbolWidth: 12,
-                symbolRadius: 6,
-                enabled: true,
-                floating: false,
-                align: 'center',
-                verticalAlign: 'top',
-                labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
-                borderWidth: 0,
-                marginTop: -70,
-            },
-             rangeSelector: {
-                buttons: [{
-                    type: 'hour',
-                    count: 1,
-                    text: '1h'
-                }, {
-                    type: 'day',
-                    count: 1,
-                    text: '1d'
-                }, {
-                    type: 'month',
-                    count: 1,
-                    text: '1m'
-                }, {
-                    type: 'year',
-                    count: 1,
-                    text: '1y'
-                }, {
-                    type: 'all',
-                    text: 'All'
-                }],
-                inputEnabled: true,
-                selected: 2 ,// all,
-                y: 50
-            },
-            navigator: {
-                adaptToUpdatedData: true,
-                series: {
-                    color: '#999',
-                    lineWidth: 0.7
-                },
-               xAxis: {
-                    dateTimeLabelFormats: {
-                        day: '%Y',
-                        week: '%Y',
-                        month: '%b %Y',
-                        year: '%Y'
+            chart = Highcharts.stockChart('chartTimeSeries', {
+                chart: {
+                    tyle: {
+                        fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                     },
-                    labels: {
-                        style: {
-                            color: '#585555',
-                            fontWeight: 'bold',
-                        },
-                    }
-                }
-            },
-            exporting: {
-                enabled: true,
-                buttons: {
-                        contextButton:{
-                            enabled: false,
-                        },
-                        optionsButton: {
-                            id: '_idoption',
-                            text: 'Options',
-                            symbol:'menu',
-                            onclick: function () {
-                                pg.options();
-                            }
-                        },
-                        liveButton: {
-                            id: '_idlive',
-                            text: 'Live',
-                            symbol: 'circle',
-                            symbolFill: '#31B445',
-                            symbolStroke: '#31B445',
-                            onclick: function () {
-                                pg.live(!pg.live());
-                                pg.getDataStockChart();
-                            }
-                        }
-                    }
-            },
-            xAxis: {
-                type: 'datetime',
-                breaks: breaks,
-                dateTimeLabelFormats : dateTimeLabelFormats,
-                // minRange: 5*1000,
-            },
-            yAxis: yAxis,
-            plotOptions: {
-            series: {
-                    lineWidth: 1,
-                    states: {
-                        hover: {
-                            enabled: true,
-                            lineWidth: 2
-                        }
-                    },
+                    zoomType: 'x',
+                    type: 'spline',
+                    marginRight: 10,
                     events: {
-                        legendItemClick: function () {
-                            pg.hideLegendByName(this.name);
-                            return false;
+                        load: function () {
+                            var seriesData = this.series;
+                            interval = setInterval(function () {
+                                var paramX = {
+                                    period: fa.period,
+                                    Turbine: [fa.turbine],
+                                    DateStart: dateStart,
+                                    DateEnd: dateEnd,
+                                    Project: fa.project,
+                                    PageType: "LIVE",
+                                    DataType: pg.dataType() ,
+                                    TagList : pg.TagList(),
+                                    IsHour : IsHour,
+                                };
+
+                                toolkit.ajaxPost(viewModel.appName + "timeseries/getdatahfd", paramX, function (res) {
+                                    if (!app.isFine(res)) {
+                                        return;
+                                    }
+
+                                    var results = res.data.Data.Chart;
+                                    var outliers = res.data.Data.Outliers;
+
+                                    if(results.length > 0){
+                                        $.each(results, function(id, tag){
+                                            $.each(seriesData, function(i, series){
+                                                if(series.name == tag.name){
+                                                    // console.log(tag.name+" >> "+tag.data);
+                                                    $.each(tag.data, function(ix, dt){
+                                                        dateStart = new Date(new Date(Math.round(dt[0])).toUTCString());
+                                                        seriesData[i].addPoint(dt, true);
+                                                    });
+                                                }
+                                            }); 
+                                        });
+                                    }else{
+                                        return false;
+                                    }
+
+                                });
+                            }, 5000);
                         }
                     }
-                }
-            },
-            series: seriesOptions,
-            tooltip:{
-                formatter : function() {
-                    $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
-                    return false ;
-                 },
-                 shared: true, 
-            },
+                },
+                legend: {
+                    symbolHeight: 12,
+                    symbolWidth: 12,
+                    symbolRadius: 6,
+                    enabled: true,
+                    floating: false,
+                    align: 'center',
+                    verticalAlign: 'top',
+                    labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                    borderWidth: 0,
+                    marginTop: -70,
+                },
+                rangeSelector: {
+                    buttons: [{
+                        type: 'minute',
+                        count: 1,
+                        text: '1"'
+                    },{
+                        type: 'minute',
+                        count: 5,
+                        text: '5"'
+                    }, {
+                        type: 'hour',
+                        count: 1,
+                        text: '1h'
+                    }, {
+                        type: 'all',
+                        text: 'All'
+                    }],
+                    inputEnabled: false,
+                    selected: 1 ,
+                    // y: 50
+                },
+                navigator: {
+                    adaptToUpdatedData: true,
+                    series: {
+                        color: '#999',
+                        lineWidth: 0.7
+                    },
+                    xAxis: {
+                        dateTimeLabelFormats: {
+                            day: '%Y',
+                            week: '%Y',
+                            month: '%b %Y',
+                            year: '%Y'
+                        },
+                        labels: {
+                            style: {
+                                color: '#585555',
+                                fontWeight: 'bold',
+                            },
+                        }
+                    }
+                },
+                exporting: {
+                    enabled: true,
+                    buttons: {
+                            contextButton:{
+                                enabled: false,
+                            },
+                            optionsButton: {
+                                id: '_idoption',
+                                text: 'Options',
+                                symbol:'menu',
+                                onclick: function () {
+                                    pg.options();
+                                    // alert('You pressed the button!');
+                                    // $('.popover-markup>.trigger').popover('toggle');
+                                }
+                            },
+                            liveButton: {
+                                id: '_idlive',
+                                text: 'Live',
+                                symbol: 'circle',
+                                symbolFill: '#31B445',
+                                symbolStroke: '#31B445',
+                                onclick: function () {
+                                    pg.live(!pg.live());
+                                    pg.getDataStockChart();
+                                }
+                            }
+                        }
+                },
+                xAxis: {
+                    type: 'datetime',
+                    dateTimeLabelFormats : dateTimeLabelFormats,
+                },
+                yAxis: yAxis,
+                plotOptions: {
+                    series: {
+                        lineWidth: 1,
+                        states: {
+                            hover: {
+                                enabled: true,
+                                lineWidth: 2
+                            }
+                        },
+                        events: {
+                            legendItemClick: function () {
+                                pg.hideLegendByName(this.name);
+                                return false;
+                            }
+                        }
+                    }
+                },
+                series: seriesOptions,
+                tooltip:{
+                    formatter : function() {
+                        $("#dateInfo").html( Highcharts.dateFormat('%e %b %Y %H:%M:%S', this.x));
+                        return false ;
+                    },
+                    shared: true,
+                },
+            });
         });
-    });
+
+        
+
+        // -----
+
+        
+    // });
     
 }
 pg.generateSeriesOption = function(data, periods){
@@ -912,6 +908,15 @@ pg.generateSeriesOption = function(data, periods){
             dataGrouping:{
                 enabled: IsGroup,
             },
+            // zones: [{
+            //     value: val.minval,
+            //     color: '#CD4B5B'
+            // }, {
+            //     color: colors[idx]
+            // }, {
+            //     value: val.maxval,
+            //     color: '#CD4B5B'
+            // }]
         }      
 
         seriesSelectedColor[idx] = val.name;
