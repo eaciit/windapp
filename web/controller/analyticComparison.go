@@ -63,6 +63,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		}
 		match := tk.M{}
 		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("power", tk.M{"$gte": -200})
 
 		if len(p.Turbine) > 0 {
 			match.Set("turbine", tk.M{"$in": p.Turbine})
@@ -89,6 +90,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		} else {
 			group.Set("_id", "all")
 		}
+
+		match.Set("available", 1)
 
 		pipes = append(pipes, tk.M{"$match": match})
 		pipes = append(pipes, tk.M{"$group": group})

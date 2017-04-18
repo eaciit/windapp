@@ -48,8 +48,12 @@ avail.loadData = function () {
                 return;
             }
             if (project == "Fleet") {
-                avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
-                avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+                if (res.data.lostenergybytype != null) {
+                   avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
+                }
+                if (res.data.lostenergy != null) {
+                    avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+                }
                 avail.DTTurbines();
             } else {
                 avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/

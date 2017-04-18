@@ -331,7 +331,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	turbinedown := 0
 	t0 := time.Now().UTC()
 
-	arrturbinestatus := getTurbineStatus(project, "")
+	arrturbinestatus := GetTurbineStatus(project, "")
 	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
@@ -585,7 +585,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
-	arrturbinestatus := getTurbineStatus(project, p.Turbine)
+	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
@@ -644,7 +644,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	return helper.CreateResult(true, alldata, "success")
 }
 
-func getTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
+func GetTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
 	res = map[string]TurbineStatus{}
 
 	filtercond := []*dbox.Filter{dbox.Eq("projectname", project)}
@@ -835,7 +835,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	turbinedown := 0
 	t0 := time.Now().UTC()
 
-	arrturbinestatus := getTurbineStatus(project)
+	arrturbinestatus := GetTurbineStatus(project)
 
 	for _, _tkm := range _result {
 		aturbine := tk.M{}

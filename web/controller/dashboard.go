@@ -378,7 +378,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	}
 
 	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
-	matches := tk.M{"dateinfo.monthdesc": p.GetString("date")}
+	matches := tk.M{"dateinfo.monthdesc": p.GetString("date"), "available": 1}
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
 	}
@@ -1884,6 +1884,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 		fromDate = p.Date.AddDate(0, -12, 0)
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+		match.Set("available", 1)
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
@@ -2030,20 +2031,20 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		fromDate = p.Date.AddDate(0, -12, 0)
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+		match.Set("available", 1)
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
 		}
 
 		group := tk.M{
-			"_id":     tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-			"minutes": tk.M{"$sum": "$minutes"},
-			"maxdate": tk.M{"$max": "$dateinfo.dateid"},
-			"mindate": tk.M{"$min": "$dateinfo.dateid"},
+			"_id":           tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
+			"minutes":       tk.M{"$sum": "$minutes"},
+			"mindate":       tk.M{"$min": "$dateinfo.dateid"},
+			"maxdate":       tk.M{"$max": "$dateinfo.dateid"},
+			"machineResult": tk.M{"$sum": "$machinedowntime"},
+			"gridResult":    tk.M{"$sum": "$griddowntime"},
 		}
-
-		group.Set("machineResult", tk.M{"$sum": "$machinedowntime"})
-		group.Set("gridResult", tk.M{"$sum": "$griddowntime"})
 
 		pipe := []tk.M{
 			{"$match": match},
@@ -2072,8 +2073,7 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		// get project list, for now just using Tejuva
 		// project list should come from ref_project collection
 
-		projects := []string{}
-		projects = append(projects, "Tejuva")
+		projects := []string{"Tejuva"}
 
 		// --------------
 

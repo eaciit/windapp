@@ -5,7 +5,7 @@ viewModel.WeatherForecast = new Object();
 var wf = viewModel.WeatherForecast;
 
 
-vm.currentMenu('Weather Forecast');
+vm.currentMenu('Weather');
 vm.currentTitle('Weather Forecast');
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 

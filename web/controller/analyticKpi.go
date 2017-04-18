@@ -151,6 +151,8 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 
 	group.Set("_id", groupId)
 
+	match.Set("available", 1)
+
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": group})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})

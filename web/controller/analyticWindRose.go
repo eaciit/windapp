@@ -269,6 +269,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	query := []toolkit.M{}
 	pipes := []toolkit.M{}
 	query = append(query, toolkit.M{"_id": toolkit.M{"$ne": nil}})
+	query = append(query, toolkit.M{"available": 1})
 	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
 	if p.IsMonitoring {
 		query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$lt": tEnd}})
@@ -675,6 +676,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 	query = append(query, toolkit.M{"_id": toolkit.M{"$ne": nil}})
 	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
 	query = append(query, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
+	query = append(query, toolkit.M{"available": 1})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
