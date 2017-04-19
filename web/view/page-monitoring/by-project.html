@@ -77,8 +77,8 @@
                                 <tbody data-bind="foreach: bp.Turbines1()">
                                     <tr>
                                         <!-- <td><a onclick="Project.GenDetail(this.text)" ><span data-bind="text: $data"></span></a></td> -->
-                                        <td class="link-detail" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}"></td>
-                                        <td align="center"><i data-bind="attr: { id: 'status_'+ $data }" class="fa fa-circle fa-project-info fa-green"></i></td>
+                                        <td class="link-detail"><span data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}"></span></td>
+                                        <td align="center" class="link-detail"><i data-toggle="tooltip" title="Click to Alarm" data-bind="attr: { id: 'status_'+ $data },click: function(){ bp.ToAlarm($data)}" class="fa fa-circle fa-project-info fa-green"></i></td>
                                         <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'dir_'+ $data }">-</span></td>
