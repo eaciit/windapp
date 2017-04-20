@@ -325,13 +325,6 @@ pg.createStockChart = function(y){
             }, {
                 type: 'all',
                 text: 'All'
-            }, 
-            {
-                type: '+',
-                text: '+',
-            }, {
-                type: '-',
-                text: '-'
             }
             ],
             inputEnabled: true,
@@ -431,46 +424,6 @@ pg.createStockChart = function(y){
                     $(this).attr("id", "zoomout");
                 }
             });
-
-            // set default value
-            minXAxis = e.xAxis[0].getExtremes().min;
-            maxXAxis = e.xAxis[0].getExtremes().max;
-
-            $('#zoomin').click(function(){
-                var newMin = (minXAxis + 12 * 3600 * 1000), //<= dataMin ? dataMin : (min + (12 * 3600 * 1000)),
-                    newMax = (maxXAxis - 12 * 3600 * 1000); //>= dataMax ? dataMax : (max - (12 * 3600 * 1000));
-                
-                // console.log("> min "+min+" | "+newMin);
-                // console.log("> max "+max+" | "+newMax);
-
-                e.xAxis[0].setExtremes(newMin,newMax);
-
-                if (isSelected){
-                    isSelected=false;
-                }else{
-                    minXAxis = minXAxis + 12 * 3600 * 1000;
-                    maxXAxis = maxXAxis - 12 * 3600 * 1000;
-                }
-            });
-
-            $('#zoomout').click(function(){
-                var newMin = (minXAxis - 12 * 3600 * 1000), //<= dataMin ? dataMin : (min - (12 * 3600 * 1000)),
-                    newMax = (maxXAxis + 12 * 3600 * 1000); //>= dataMax ? dataMax : (max + (12 * 3600 * 1000));
-
-                // console.log("> min "+min+" | "+newMin);
-                // console.log("> max "+max+" | "+newMax);
-
-                e.xAxis[0].setExtremes(newMin,newMax);
-
-                if (isSelected){
-                    isSelected=false;
-                }else{
-                    minXAxis = minXAxis - 12 * 3600 * 1000;
-                    maxXAxis = maxXAxis + 12 * 3600 * 1000;
-                }
-            });
-
-            isSelected = false;
         }, 200);
     };
 
@@ -963,6 +916,22 @@ pg.generateOutliers = function(data){
     }
 }
 
+pg.ZoomIn = function(){
+    var minXAxis = chart.xAxis[0].getExtremes().min;
+    var maxXAxis = chart.xAxis[0].getExtremes().max;
+    var newMin = (minXAxis + 12 * 3600 * 1000),  newMax = (maxXAxis - 12 * 3600 * 1000); 
+
+    chart.xAxis[0].setExtremes(newMin,newMax);
+}
+
+pg.ZoomOut = function(){
+    var minXAxis = chart.xAxis[0].getExtremes().min;
+    var maxXAxis = chart.xAxis[0].getExtremes().max;
+    var newMin = (minXAxis - 12 * 3600 * 1000), newMax = (maxXAxis + 12 * 3600 * 1000); 
+
+    chart.xAxis[0].setExtremes(newMin,newMax);
+}
+
 
 $(document).ready(function () {
     newyAxis = yAxis;
@@ -986,5 +955,13 @@ $(document).ready(function () {
         // pg.prepareScroll();
         // pg.hideRange();
         // pg.hideErr();
+        $('#zoomin').click(function(){
+            pg.ZoomIn();
+        });
+
+        $('#zoomout').click(function(){
+            pg.ZoomOut();
+        });
+
     }, 1000);
 });

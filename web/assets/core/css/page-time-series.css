@@ -6,6 +6,23 @@
 		margin-top: 0px;
 	}
 
+
+	.btn-zoom{
+		width: 30px !important;
+	    height: 22px !important;
+	    padding: 0 0 0 0!important;
+	    border-radius: 0px;
+	    border: 1px solid #f4f4f4;
+	    background-color: #f7f7f7;
+	}
+
+	.zoom-div{
+		margin-top: -351px;
+	    z-index: 10;
+	    margin-left: 313px;
+	}
+
+
 	#group-chk{
 		display: inline-block;
 	    padding: 5px;
