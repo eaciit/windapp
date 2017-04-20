@@ -103,7 +103,7 @@ page.createView = function(){
 		$(this).parent().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-right");
 	});
 
-	app.loading(false);
+	
 }
 
 $(function () {
@@ -112,6 +112,7 @@ $(function () {
 
         $.when(page.getData()).done(function(){
         	setTimeout(function(){
+        		app.loading(false);
         		app.prepareTooltipster();
         	},1000);	
         });
@@ -126,5 +127,5 @@ $(function () {
     setTimeout(function() {
 		app.prepareTooltipster();
         app.loading(false);    
-    }, 500);
+    }, 1000);
 });
