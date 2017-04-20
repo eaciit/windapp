@@ -5,7 +5,7 @@ viewModel.TLPlots = new Object();
 var tlp = viewModel.TLPlots;
 
 
-vm.currentMenu('TrendLinePlots');
+vm.currentMenu('Trend Line Plots');
 vm.currentTitle('TrendLinePlots');
 vm.breadcrumb([ {
     title: 'Analysis Tool Box',
