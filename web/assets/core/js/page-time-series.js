@@ -325,6 +325,12 @@ pg.createStockChart = function(y){
             }, {
                 type: 'all',
                 text: 'All'
+            },{
+                type: '+',
+                text: '+'
+            }, {
+                type: '-',
+                text: '-'
             }
             ],
             inputEnabled: true,
@@ -419,11 +425,14 @@ pg.createStockChart = function(y){
                 if (i==6){
                     $(this).attr("id", "");
                     $(this).attr("id", "zoomin");
+                    $(this).attr("onclick", "pg.ZoomIn()");
                 } else if (i==7){
                     $(this).attr("id", "");
                     $(this).attr("id", "zoomout");
+                    $(this).attr("onclick", "pg.ZoomOut()");
                 }
             });
+
         }, 200);
     };
 
@@ -955,13 +964,6 @@ $(document).ready(function () {
         // pg.prepareScroll();
         // pg.hideRange();
         // pg.hideErr();
-        $('#zoomin').click(function(){
-            pg.ZoomIn();
-        });
-
-        $('#zoomout').click(function(){
-            pg.ZoomOut();
-        });
 
     }, 1000);
 });

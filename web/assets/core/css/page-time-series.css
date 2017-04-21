@@ -13,8 +13,14 @@
 	    padding: 0 0 0 0!important;
 	    border-radius: 0px;
 	    border: 1px solid #f4f4f4;
-	    background-color: #f7f7f7;
+	    background-color: #f4f4f4;
 	}
+
+	.btn-zoom:hover {
+	    background-color: #e6e6e6;
+	    border-color: #f4f4f4;
+	}
+
 
 	.zoom-div{
 		margin-top: -352px;
