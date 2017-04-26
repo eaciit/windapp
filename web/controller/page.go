@@ -41,7 +41,19 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 	r.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	r.Writer.Header().Set("Pragma", "no-cache")
 	r.Writer.Header().Set("Expires", "0")
-	r.Config.IncludeFiles = append(r.Config.IncludeFiles, DefaultIncludes...)
+
+	// check includeFiles
+	var defIncludes []string
+	if len(DefaultIncludes) > 0 {
+		for _, d := range DefaultIncludes {
+			if !toolkit.HasMember(r.Config.IncludeFiles, d) {
+				defIncludes = append(defIncludes, d)
+			}
+		}
+	}
+
+	r.Config.IncludeFiles = append(r.Config.IncludeFiles, defIncludes...)
+	// r.Config.IncludeFiles = append(r.Config.IncludeFiles, DefaultIncludes...)
 	// WriteLog(r.Session("sessionid", ""), "access", r.Request.URL.String())
 	return w.Params
 }

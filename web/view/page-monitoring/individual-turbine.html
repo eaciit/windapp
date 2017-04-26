@@ -134,6 +134,7 @@
                                  <span>Freq. Grid</span><strong><span class="pull-right" data-bind="text: it.freq_grid()"></span></strong>
                              </div>
                         </div>
+                        <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12">
                             <h5><strong>Critical Temperature & Pressure</strong></h5>
                             <div class="col-md-7">
@@ -152,6 +153,7 @@
                              </div>
                         </div>
                         <div class="clearfix">&nbsp;</div>
+                        <div class="clearfix">&nbsp;</div>
                         <div class="col-md-12">
                             <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong>&nbsp;<span class="badge bg-light-blue" data-bind="text: it.drive_train_vibra()"></span></h5>
                         </div>
@@ -161,7 +163,7 @@
                             <div class="col-md-12 text-center">
                                 <span><strong>Rotor (RPM)</strong></span>
                                 <div id="rotorChart"></div>
-                                <div id="valRotor" class="gaugeVal" data-bind="text:it.rotor_rpm()"></div>
+                                <span id="valRotor" class="gaugeVal" data-bind="text:it.rotor_rpm()"></span>
                                 <!-- <hr style="border: 1px solid #eee;"> -->
                             </div>
                           <!--   <div class="col-md-4 text-center border-left-grey">
