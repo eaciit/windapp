@@ -33,6 +33,7 @@ ma.CreateGrid = function() {
     $('#alarmGrid').kendoGrid({
         dataSource: {
             serverPaging: true,
+            serverSorting: true,
             transport: {
                 read: {
                     url: viewModel.appName + "monitoringrealtime/getdataalarm",

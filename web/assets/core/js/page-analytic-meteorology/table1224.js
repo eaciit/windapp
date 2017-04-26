@@ -56,56 +56,61 @@ tb.generateGridTable = function (datatype) {
         },
     };
 
-    $.each(dataSource[0].details, function (i, val) {
-        var column = {
-            title: val.time,
-            headerAttributes: {
-                style: 'font-weight: bold; text-align: center;'
-            },
-            columns: []
-        }
-        var keyIndex = [];
-        if(datatype == "turbine") {
-            keyIndex = ["WS", "Temp", "Power"];
-        } else {
-            keyIndex = ["WS", "Temp"];
-        }
 
-        $.each(keyIndex, function(j, key){
-            var title = "";
-            var totalSum;
-            if(key == "WS") {
-                title = key + " (m/s)";
-                totalSum = total[i].windspeed
-            } else if(key == "Temp") {
-                title = key + " (" + String.fromCharCode(176) + "C)";
-                totalSum = total[i].temp;
+    if(dataSource != null){
+        $.each(dataSource[0].details, function (i, val) {
+            var column = {
+                title: val.time,
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;'
+                },
+                columns: []
+            }
+            var keyIndex = [];
+            if(datatype == "turbine") {
+                keyIndex = ["WS", "Temp", "Power"];
             } else {
-                totalSum = total[i].power
-                title = key + " (MWH)";
+                keyIndex = ["WS", "Temp"];
             }
 
-            var colChild = {
-                title: title,                
-                field: "details["+i+"].col."+ key,
-                attributes: { class: "align-center row-custom" },
-                width: 100,
-                headerAttributes: {
-                    style: 'font-weight: bold; text-align: center;',
-                },
-                format: "{0:n2}",
-                filterable: false, 
-                footerTemplate: "<div style='text-align:center'>#= kendo.toString("+totalSum+",'n2') # </div>"
-            };
-            column.columns.push(colChild);
+            $.each(keyIndex, function(j, key){
+                var title = "";
+                var totalSum;
+                if(key == "WS") {
+                    title = key + " (m/s)";
+                    totalSum = total[i].windspeed
+                } else if(key == "Temp") {
+                    title = key + " (" + String.fromCharCode(176) + "C)";
+                    totalSum = total[i].temp;
+                } else {
+                    totalSum = total[i].power
+                    title = key + " (MWH)";
+                }
 
+                var colChild = {
+                    title: title,                
+                    field: "details["+i+"].col."+ key,
+                    attributes: { class: "align-center row-custom" },
+                    width: 100,
+                    headerAttributes: {
+                        style: 'font-weight: bold; text-align: center;',
+                    },
+                    format: "{0:n2}",
+                    filterable: false, 
+                    footerTemplate: "<div style='text-align:center'>#= kendo.toString("+totalSum+",'n2') # </div>"
+                };
+                column.columns.push(colChild);
+
+            });
+
+            config.columns.push(column);
         });
 
-        config.columns.push(column);
-    });
-    
-    
-    $('#gridTable1224').kendoGrid(config);
+        $('#gridTable1224').kendoGrid(config);
+    }else{
+        $('#gridTable1224').html("");
+        app.loading(false);
+    }
 }
 
 tb.hideShowColumn = function(i, type){

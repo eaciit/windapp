@@ -50,6 +50,7 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 		match.Set("projectname", project)
 	}
 	match.Set("avgwindspeed", tk.M{}.Set("$gte", 3))
+	match.Set("available", 1)
 
 	if len(turbine) > 0 {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))

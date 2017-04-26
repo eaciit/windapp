@@ -95,36 +95,14 @@ pg.hideLegendByName = function(name){
     $.each(chart.series, function(i, series) {
         if (series.name === name || series.name === "_err"){
             if (series.color == "rgba(0, 0, 255, 0)") {
-
-                series.color = colors[i];
-                series.graph.attr({ 
-                    stroke: colors[i]
-                });
-
-                // chart.legend.colorizeItem(series, series.visible);
-                $.each(series.data, function(i, point) {
-                    point.graphic.attr({
-                        fill: colors[i]
-                    });
-                });
-                
+                series.options.color =  colors[i];
+                series.update(series.options);
             } else {
-                series.color = "rgba(0, 0, 255, 0)";
-                series.graph.attr({ 
-                    stroke: "rgba(0, 0, 255, 0)"
-                });
-
-                // chart.legend.colorizeItem(series, series.visible);
-                $.each(series.data, function(i, point) {
-                    point.graphic.attr({
-                        fill: "rgba(0, 0, 255, 0)"
-                    });
-                });
-               
+                series.options.color = 'rgba(0, 0, 255, 0)';
+                series.update(series.options);
             }
         }
     });
-    chart.redraw();
 }
 
 pg.hideRange = function(){
@@ -325,10 +303,9 @@ pg.createStockChart = function(y){
             }, {
                 type: 'all',
                 text: 'All'
-            }, 
-            {
+            },{
                 type: '+',
-                text: '+',
+                text: '+'
             }, {
                 type: '-',
                 text: '-'
@@ -426,51 +403,14 @@ pg.createStockChart = function(y){
                 if (i==6){
                     $(this).attr("id", "");
                     $(this).attr("id", "zoomin");
+                    $(this).attr("onclick", "pg.ZoomIn()");
                 } else if (i==7){
                     $(this).attr("id", "");
                     $(this).attr("id", "zoomout");
+                    $(this).attr("onclick", "pg.ZoomOut()");
                 }
             });
 
-            // set default value
-            minXAxis = e.xAxis[0].getExtremes().min;
-            maxXAxis = e.xAxis[0].getExtremes().max;
-
-            $('#zoomin').click(function(){
-                var newMin = (minXAxis + 12 * 3600 * 1000), //<= dataMin ? dataMin : (min + (12 * 3600 * 1000)),
-                    newMax = (maxXAxis - 12 * 3600 * 1000); //>= dataMax ? dataMax : (max - (12 * 3600 * 1000));
-                
-                // console.log("> min "+min+" | "+newMin);
-                // console.log("> max "+max+" | "+newMax);
-
-                e.xAxis[0].setExtremes(newMin,newMax);
-
-                if (isSelected){
-                    isSelected=false;
-                }else{
-                    minXAxis = minXAxis + 12 * 3600 * 1000;
-                    maxXAxis = maxXAxis - 12 * 3600 * 1000;
-                }
-            });
-
-            $('#zoomout').click(function(){
-                var newMin = (minXAxis - 12 * 3600 * 1000), //<= dataMin ? dataMin : (min - (12 * 3600 * 1000)),
-                    newMax = (maxXAxis + 12 * 3600 * 1000); //>= dataMax ? dataMax : (max + (12 * 3600 * 1000));
-
-                // console.log("> min "+min+" | "+newMin);
-                // console.log("> max "+max+" | "+newMax);
-
-                e.xAxis[0].setExtremes(newMin,newMax);
-
-                if (isSelected){
-                    isSelected=false;
-                }else{
-                    minXAxis = minXAxis - 12 * 3600 * 1000;
-                    maxXAxis = maxXAxis + 12 * 3600 * 1000;
-                }
-            });
-
-            isSelected = false;
         }, 200);
     };
 
@@ -478,6 +418,7 @@ pg.createStockChart = function(y){
 
     // seriesOri = chart.series;
 }
+
 
 pg.getTimestamp = function(param){
   var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
@@ -680,7 +621,7 @@ pg.createLiveChart = function(IsHour){
 
             chart = Highcharts.stockChart('chartTimeSeries', {
                 chart: {
-                    tyle: {
+                    style: {
                         fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                     },
                     zoomType: 'x',
@@ -726,6 +667,7 @@ pg.createLiveChart = function(IsHour){
                                         return false;
                                     }
 
+                                    chart.redraw(); 
                                 });
                             }, 5000);
                         }
@@ -963,6 +905,22 @@ pg.generateOutliers = function(data){
     }
 }
 
+pg.ZoomIn = function(){
+    var minXAxis = chart.xAxis[0].getExtremes().min;
+    var maxXAxis = chart.xAxis[0].getExtremes().max;
+    var newMin = (minXAxis + 12 * 3600 * 1000),  newMax = (maxXAxis - 12 * 3600 * 1000); 
+
+    chart.xAxis[0].setExtremes(newMin,newMax);
+}
+
+pg.ZoomOut = function(){
+    var minXAxis = chart.xAxis[0].getExtremes().min;
+    var maxXAxis = chart.xAxis[0].getExtremes().max;
+    var newMin = (minXAxis - 12 * 3600 * 1000), newMax = (maxXAxis + 12 * 3600 * 1000); 
+
+    chart.xAxis[0].setExtremes(newMin,newMax);
+}
+
 
 $(document).ready(function () {
     newyAxis = yAxis;
@@ -986,5 +944,6 @@ $(document).ready(function () {
         // pg.prepareScroll();
         // pg.hideRange();
         // pg.hideErr();
+
     }, 1000);
 });

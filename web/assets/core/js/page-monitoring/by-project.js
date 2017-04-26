@@ -453,6 +453,14 @@ bp.ToIndividualTurbine = function(turbine) {
     document.cookie = "turbine="+turbine+";expires="+ newDateObj;
     window.location = viewModel.appName + "page/monitoringbyturbine";
 }
+
+bp.ToAlarm = function(turbine) {
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    window.location = viewModel.appName + "page/monitoringalarm";
+}
 bp.GenDetail = function(turbine){
     var param = {
         turbine: [turbine],

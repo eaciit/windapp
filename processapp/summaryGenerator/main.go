@@ -52,7 +52,20 @@ func main() {
 		// new(GenScadaSummary).GenWFAnalysisByTurbine2(base)  // step 12
 
 		// not dependent Generate
-		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
+		// new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
+
+		/* data that need to copy:
+
+		Alarm
+		EventDown
+		ScadaData
+		ScadaDataOEM
+		EventRaw
+		GWFAnalysisBy***
+		LatestDataPeriod -> just copy the data that changed
+		rpt_***
+		DataAvailability
+		*/
 	}
 
 	tk.Printf("DONE in %v Hrs \n", time.Now().UTC().Sub(start).Hours())

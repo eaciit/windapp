@@ -322,6 +322,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
 	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Eq("available", 1))
+
 	if !IsDeviation {
 		filter = append(filter, dbox.Gte(colDeviation, dVal))
 	}
@@ -444,6 +446,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
 	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
 	match = append(match, tk.M{"oktime": 600})
+	match = append(match, tk.M{"available": 1})
+
 	if project != "" {
 		match = append(match, tk.M{"projectname": project})
 	}
@@ -653,6 +657,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC1tEnd))
 	filter = append(filter, dbox.Eq("turbine", PC1turbine))
 	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Eq("available", 1))
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -694,6 +699,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC2tEnd))
 	filter = append(filter, dbox.Eq("turbine", PC2turbine))
 	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Eq("available", 1))
 
 	csr, e = DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -809,6 +815,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	// filter = append(filter, dbox.Eq("oktime", 600))
 	filter = append(filter, dbox.Gt("avgwindspeed", 0))
 	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Eq("available", 1))
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -1007,6 +1014,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		// filter = append(filter, dbox.Eq("oktime", 600))
 		filter = append(filter, dbox.Gt("power", 0))
 		filter = append(filter, dbox.Gt("avgwindspeed", 0))
+		filter = append(filter, dbox.Eq("available", 1))
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(ScadaData).TableName()).
@@ -1228,6 +1236,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.Gt("power", 0))
 	filter = append(filter, dbox.Gt("avgwindspeed", 0))
+	filter = append(filter, dbox.Eq("available", 1))
 
 	// filter = append(filter, dbox.Eq("oktime", 600))
 
@@ -1449,6 +1458,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 		filter = append(filter, dbox.Eq("turbine", turbineX))
 		filter = append(filter, dbox.Eq("projectname", project))
+		filter = append(filter, dbox.Eq("available", 1))
 
 		if !IsDeviation {
 			filter = append(filter, dbox.Gte(colDeviation, dVal))
@@ -1668,6 +1678,7 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 		filter = append(filter, dbox.Eq("turbine", turbine[0]))
 
 		filter = append(filter, dbox.Eq("projectname", project))
+		filter = append(filter, dbox.Eq("available", 1))
 
 		csr, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...)).Cursor(nil)
 		if e != nil {

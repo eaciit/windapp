@@ -1056,6 +1056,8 @@ func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebConte
 		"_id": 1,
 	}
 
+	match.Set("available", 1)
+
 	var pipes []tk.M
 	pipes = append(pipes, tk.M{}.Set("$match", match))
 	pipes = append(pipes, tk.M{}.Set("$group", group))
@@ -1176,6 +1178,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		// categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
 		categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory))
 		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
+		match.Set("available", 1)
 
 		var pipes []tk.M
 		pipes = append(pipes, tk.M{}.Set("$match", match))
@@ -1265,6 +1268,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 		categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory))
 		match.Set("power", tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
+		match.Set("available", 1)
 
 		var pipes []tk.M
 		pipes = append(pipes, tk.M{}.Set("$match", match))

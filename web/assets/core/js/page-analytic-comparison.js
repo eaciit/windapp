@@ -293,7 +293,7 @@ page.showHidePeriod = function (idx) {
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),1,0,0,0,0));
-    var endMonthDate = new Date(app.toUTC(maxDateData));
+    var endMonthDate = new Date(app.getDateMax(maxDateData));
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0,1,0,0,0,0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0,1,0,0,0,0));
     var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),maxDateData.getDate()-1,0,0,0,0));
@@ -420,7 +420,7 @@ page.InitDefaultValue = function (id) {
 
 	var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),maxDateData.getDate()-7,0,0,0,0));
-    var lastEndDate = new Date(app.toUTC(maxDateData));
+    var lastEndDate = new Date(app.getDateMax(maxDateData));
 
 	$('#dateStart-' + id).data('kendoDatePicker').value(lastStartDate);
 	$('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);

@@ -151,6 +151,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	// get scadadata
 
 	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"available": 1}})
 	pipes = append(pipes,
 		tk.M{"$group": tk.M{"_id": "$projectname",
 			"power":           tk.M{"$sum": "$power"},
