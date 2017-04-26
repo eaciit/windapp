@@ -95,36 +95,14 @@ pg.hideLegendByName = function(name){
     $.each(chart.series, function(i, series) {
         if (series.name === name || series.name === "_err"){
             if (series.color == "rgba(0, 0, 255, 0)") {
-
-                series.color = colors[i];
-                series.graph.attr({ 
-                    stroke: colors[i]
-                });
-
-                // chart.legend.colorizeItem(series, series.visible);
-                $.each(series.data, function(i, point) {
-                    point.graphic.attr({
-                        fill: colors[i]
-                    });
-                });
-                
+                series.options.color =  colors[i];
+                series.update(series.options);
             } else {
-                series.color = "rgba(0, 0, 255, 0)";
-                series.graph.attr({ 
-                    stroke: "rgba(0, 0, 255, 0)"
-                });
-
-                // chart.legend.colorizeItem(series, series.visible);
-                $.each(series.data, function(i, point) {
-                    point.graphic.attr({
-                        fill: "rgba(0, 0, 255, 0)"
-                    });
-                });
-               
+                series.options.color = 'rgba(0, 0, 255, 0)';
+                series.update(series.options);
             }
         }
     });
-    chart.redraw();
 }
 
 pg.hideRange = function(){
@@ -441,6 +419,7 @@ pg.createStockChart = function(y){
     // seriesOri = chart.series;
 }
 
+
 pg.getTimestamp = function(param){
   var dateString = moment(param).format("DD-MM-YYYY HH:mm:ss"),
       dateTimeParts = dateString.split(' '),
@@ -642,7 +621,7 @@ pg.createLiveChart = function(IsHour){
 
             chart = Highcharts.stockChart('chartTimeSeries', {
                 chart: {
-                    tyle: {
+                    style: {
                         fontFamily: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                     },
                     zoomType: 'x',
@@ -688,6 +667,7 @@ pg.createLiveChart = function(IsHour){
                                         return false;
                                     }
 
+                                    chart.redraw(); 
                                 });
                             }, 5000);
                         }

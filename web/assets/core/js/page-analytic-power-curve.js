@@ -617,7 +617,6 @@ var Data = {
     },
     InitRightTurbineList: function() {
         page.turbineList([]);
-
         var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
 
         if (page.turbine().length > 1) {

@@ -21,44 +21,19 @@ ma.CreateGrid = function() {
     app.loading(true);
 
     fa.LoadData();
-
-    var COOKIES = {};
-    var cookieStr = document.cookie;
-    var turbine = "";
-    var project = "";
-    
-    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        turbine = COOKIES["turbine"];
-        project = COOKIES["project"];
-        $('#turbineList').data('kendoMultiSelect').value([turbine]);
-        $('#projectList').data('kendoDropDownList').value(project);
-        console.log("tet");
-    } else {
-        turbine = $('#turbineList').data('kendoMultiSelect').value();
-        project = $('#projectList').data('kendoDropDownList').value();
-        console.log("yoy");
-    }
-
-
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: turbine,
-        project: project
+        turbine: fa.turbine,
+        project: fa.project
     };
 
     $('#alarmGrid').html('');
     $('#alarmGrid').kendoGrid({
         dataSource: {
             serverPaging: true,
+            serverSorting: true,
             transport: {
                 read: {
                     url: viewModel.appName + "monitoringrealtime/getdataalarm",

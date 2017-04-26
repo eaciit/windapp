@@ -135,19 +135,19 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		// tags = secTags
 
 		for {
-			if tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
+			if tStart.Sub(tEnd).Seconds() >= 0 {
 				break
 			}
 
-			before := tStart.UTC()
+			before := tStart
 			// tStart = tStart.UTC().Add(time.Duration(24) * time.Hour)
 			// log.Printf(">>>>>> %v | %v | %v \n", tEnd.UTC().Sub(tStart.UTC()).Seconds(), tStart.UTC(), tEnd.UTC())
-			tStart = tStart.UTC().Add(time.Duration(tEnd.Sub(tStart).Seconds()) * time.Second)
+			tStart = tStart.Add(time.Duration(tEnd.Sub(tStart).Seconds()) * time.Second)
 
-			beforeInt := tk.ToInt(tk.ToString(before.UTC().Unix())+"000", tk.RoundingAuto)
-			afterInt := tk.ToInt(tk.ToString(tStart.UTC().Unix())+"000", tk.RoundingAuto)
+			beforeInt := tk.ToInt(tk.ToString(before.Unix())+"000", tk.RoundingAuto)
+			afterInt := tk.ToInt(tk.ToString(tStart.Unix())+"000", tk.RoundingAuto)
 
-			periodList = append(periodList, tk.M{"starttime": before.UTC(), "endtime": tStart.UTC(), "starttimeint": beforeInt, "endtimeint": afterInt})
+			periodList = append(periodList, tk.M{"starttime": before, "endtime": tStart, "starttimeint": beforeInt, "endtimeint": afterInt})
 		}
 
 		if len(periodList) > 0 || p.IsHour {
@@ -169,16 +169,30 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 						var dts [][]interface{}
 						var dterr [][]interface{}
 						columnTag := mapField[tag]
+
+						// log.Printf(">> %v \n", len(hfds))
+
+						/*if len(hfds) > 0 {
+							log.Printf(">> tag: %v \n", tag)
+							dts, dterr, outliers = constructData(hfds, tStart, tEnd, 5, pageType, tag, columnTag)
+						}*/
+
 						for _, val := range hfds {
 							timestamp := tk.ToInt(tk.ToString(val.Get("timestamp").(time.Time).Unix())+"000", tk.RoundingAuto)
-							tagVal := val.GetFloat64(columnTag.SecField)
-							dt := []interface{}{timestamp, tagVal}
+							var dt []interface{}
 
-							if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+							if val.Get(columnTag.SecField) != nil {
+								tagVal := val.GetFloat64(columnTag.SecField)
+								dt = []interface{}{timestamp, tagVal}
+
+								if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+									dt = []interface{}{timestamp, nil}
+								} else if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
+									dterr = append(dterr, []interface{}{timestamp, 100.0})
+									outliers[timestamp] = true
+								}
+							} else {
 								dt = []interface{}{timestamp, nil}
-							} else if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
-								dterr = append(dterr, []interface{}{timestamp, 100.0})
-								outliers[timestamp] = true
 							}
 
 							dts = append(dts, dt)
@@ -274,68 +288,12 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			var dts [][]interface{}
 			var dterr [][]interface{}
 			columnTag := mapField[tag]
+			// log.Printf("> %v | %v | %v \n", tag, tmpStart)
+
 			if len(list) > 0 {
-				if pageType != "LIVE" {
-					// get the time is not exist in collection
-					_first := list[0]
-					_firstTimestamp := _first.Get("_id").(time.Time).UTC()
-					first := getTime10MinutesNotExist(tStart, _firstTimestamp)
-
-					if len(first) > 0 {
-						dts = append(dts, first...)
-					}
-				}
-
-				for _, val := range list {
-					timestamp := tk.ToInt(tk.ToString(val.Get("_id").(time.Time).Unix())+"000", tk.RoundingAuto)
-					var tagVal float64
-
-					// if tag == "production" {
-					// 	tagVal = val.GetFloat64(tag)
-					// } else if tag == "windspeed" {
-					// 	tagVal = val.GetFloat64(tag)
-					// if tagVal < 0 {
-					// 	tagVal = 0.0
-					// }
-					// } else {
-					tagVal = val.GetFloat64(tag)
-					// }
-
-					dt := []interface{}{timestamp, tagVal}
-					if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
-						// res := tk.M{}
-						// res.Set("from", val.Get("_id").(time.Time).UTC())
-						// res.Set("to", val.Get("_id").(time.Time).UTC().Add(10*time.Minute))
-						// breaks = append(breaks, res)
-
-						dt = []interface{}{timestamp, nil}
-					} else if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
-						dterr = append(dterr, []interface{}{timestamp, 100.0})
-						outliers[timestamp] = true
-					}
-
-					dts = append(dts, dt)
-
-					// if (tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue) && (tagVal != float64(-99999.00) || tagVal != float64(-999999.00) || tagVal != float64(-9999999.00)) {
-					// 	dterr = append(dterr, []interface{}{timestamp, 100.0})
-					// }
-
-				}
-
-				if pageType != "LIVE" {
-					// get the time is not exist in collection
-					_last := list[len(list)-1]
-					_lastTimestamp := _last.Get("_id").(time.Time).UTC()
-
-					last := getTime10MinutesNotExist(_lastTimestamp, tEnd)
-
-					if len(last) > 0 {
-						dts = append(dts, last...)
-					}
-				}
-
-				resultChart = append(resultChart, tk.M{"name": columnTag.Name, "data": dts, "dataerr": dterr, "unit": columnTag.Unit, "minval": columnTag.MinValue, "maxval": columnTag.MaxValue})
+				dts, dterr, outliers = constructData(list, tStart, tEnd, 600, pageType, tag, columnTag)
 			}
+			resultChart = append(resultChart, tk.M{"name": columnTag.Name, "data": dts, "dataerr": dterr, "unit": columnTag.Unit, "minval": columnTag.MinValue, "maxval": columnTag.MaxValue})
 		}
 
 	}
@@ -377,18 +335,95 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
-func getTime10MinutesNotExist(start time.Time, end time.Time) (result [][]interface{}) {
+func constructData(list []tk.M, tStart time.Time, tEnd time.Time, seconds float64, pageType string, tag string, columnTag MappingColumn) (dts [][]interface{}, dterr [][]interface{}, outliers map[int]bool) {
+	outliers = map[int]bool{}
+
+	tmpStart := tStart.UTC()
+
+	for _, val := range list {
+		timestamp := val.Get("_id").(time.Time).UTC()
+		timestampInt := tk.ToInt(tk.ToString(timestamp.Unix())+"000", tk.RoundingAuto)
+		var tagVal float64
+
+		if tmpStart.Before(timestamp) && timestamp.Sub(tmpStart).Seconds() > seconds && pageType != "LIVE" {
+			// get the time is not exist in collection
+			notExist := constructDataNotExist(tmpStart, timestamp, seconds)
+			if len(notExist) > 0 {
+				dts = append(dts, notExist...)
+			}
+			// log.Printf("> %v > %v | %v - %v > %v | %v > %v > %v \n", tag, tmpStart, timestamp, tmpStart.Before(timestamp), len(notExist), len(dts), dts[0], notExist[0])
+		}
+
+		// if tag == "production" {
+		// 	tagVal = val.GetFloat64(tag)
+		// } else if tag == "windspeed" {
+		// 	tagVal = val.GetFloat64(tag)
+		// if tagVal < 0 {
+		// 	tagVal = 0.0
+		// }
+		// } else {
+
+		var dt []interface{}
+		isNill := true
+
+		if seconds >= 600 {
+			if val.Get(tag) != nil {
+				isNill = false
+				tagVal = val.GetFloat64(tag)
+			}
+		} else {
+			if val.Get(columnTag.SecField) != nil {
+				isNill = false
+				tagVal = val.GetFloat64(columnTag.SecField)
+			}
+		}
+
+		// }
+
+		// log.Printf(">> %v | %v | %v | %v \n", isNill, tagVal, timestamp, timestampInt)
+
+		if !isNill {
+			dt = []interface{}{timestampInt, tagVal}
+			if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+				dt = []interface{}{timestampInt, nil}
+			} else if tagVal < columnTag.MinValue || tagVal > columnTag.MaxValue {
+				dterr = append(dterr, []interface{}{timestampInt, 100.0})
+				outliers[timestampInt] = true
+			}
+		} else {
+			dt = []interface{}{timestampInt, nil}
+		}
+
+		dts = append(dts, dt)
+		tmpStart = timestamp
+	}
+
+	// log.Printf("> %v > %v | %v - %v \n", tag, tmpStart, tmpEnd, tmpStart.Before(tEnd))
+
+	if tmpStart.Before(tEnd) && tEnd.Sub(tmpStart).Seconds() > seconds && pageType != "LIVE" {
+		// get the time is not exist in collection
+		notExist := constructDataNotExist(tmpStart, tEnd, seconds)
+		if len(notExist) > 0 {
+			dts = append(dts, notExist...)
+		}
+		// log.Printf("> %v > %v | %v - %v > %v | %v \n", tag, tmpStart, tEnd, tmpStart.Before(tEnd), len(notExist), len(dts))
+	}
+
+	return
+}
+
+func constructDataNotExist(start time.Time, end time.Time, seconds float64) (result [][]interface{}) {
 	for {
-		if end.UTC().Sub(start.UTC()).Minutes() <= 10 {
+		if end.UTC().Sub(start.UTC()).Seconds() <= seconds {
 			// log.Println(">>>> BREAK")
 			break
 		}
 
-		before := end.UTC()
-		timestamp := tk.ToInt(tk.ToString(before.UTC().Unix())+"000", tk.RoundingAuto)
+		// before := end.UTC()
+		timestamp := tk.ToInt(tk.ToString(start.UTC().Unix())+"000", tk.RoundingAuto)
 		result = append(result, []interface{}{timestamp, nil})
 
-		start = start.UTC().Add(time.Duration(10) * time.Minute)
+		start = start.UTC().Add(time.Duration(seconds) * time.Second)
 	}
 
 	return
@@ -404,7 +439,6 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 	if tStart.Year() != 1 {
 		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
 	}
-
 	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
@@ -412,6 +446,8 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 		Where(dbox.And(filter...)).
 		Order("-timestamp").
 		Cursor(nil)
+
+	defer csr.Close()
 
 	if err != nil {
 		tk.Println(err.Error())
@@ -488,11 +524,13 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 		startStr := tStart.UTC().Format("20060102150405")
 		// endStr := tEnd.Format("20060102150405")
 
+		// log.Printf("%v | %v \n", tStart.String(), tStart.UTC().String())
+
 		if emptyStartStr != "" {
-			// fill in empty seconds HFD data from with minutes HFD data
+			// fill in empty seconds HFD data with minutes HFD data
 			emptyStart, _ = time.Parse("20060102150405", emptyStartStr)
-			emptyStart = emptyStart.UTC()
-			emptySeconds = tStart.UTC().Sub(emptyStart).Seconds()
+			emptyStart = emptyStart
+			emptySeconds = tStart.Sub(emptyStart).Seconds()
 
 			// log.Printf(">>>> %v | %v ===> %v \n", emptyStart.String(), tStart.UTC().String(), emptySeconds)
 
@@ -504,6 +542,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 				match.Set("dateinfo.dateid", tk.M{"$gte": emptyStart, "$lt": tStart.UTC()})
 				// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
 				match.Set("turbine", turbine)
+				// match.Set("available", 1)
 
 				group = tk.M{
 					"_id": "$timestamp",
@@ -543,7 +582,12 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 							for _, tag := range tags {
 								tagVal := val.GetFloat64(tag)
 								mc := mapField[tag]
-								dts.Set(mc.SecField, tagVal)
+
+								if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+									dts.Set(mc.SecField, nil)
+								} else {
+									dts.Set(mc.SecField, tagVal)
+								}
 							}
 
 							result = append(result, dts)
@@ -556,13 +600,13 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 			}
 		}
 
-		minute := tk.ToFloat64(tk.ToInt(tStart.UTC().Format("4"), tk.RoundingAuto)*60, 0, tk.RoundingAuto)
-		second := tk.ToFloat64(tStart.UTC().Format("5"), 0, tk.RoundingAuto)
+		minute := tk.ToFloat64(tk.ToInt(tStart.Format("4"), tk.RoundingAuto)*60, 0, tk.RoundingAuto)
+		second := tk.ToFloat64(tStart.Format("5"), 0, tk.RoundingAuto)
 
 		totalSeconds := minute + second
 		minuteDiv := math.Mod(totalSeconds, float64(600))
 
-		newTime := tStart.UTC().Add(time.Duration(600-minuteDiv) * time.Second).UTC()
+		newTime := tStart.Add(time.Duration(600-minuteDiv) * time.Second)
 
 		f1 := newTime.Format("20060102")
 		f2 := newTime.Format("15")
@@ -574,6 +618,9 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 		file := prefix + startStr + ".csv"
 
 		path := helper.GetHFDFolder() + folder + separator + file
+
+		// log.Printf("%v | %v | %v \n", tStart.UTC().String(), newTime.String(), path)
+
 		tmpResult, err := ReadHFDFile(path, secTags)
 
 		if err != nil {
@@ -587,7 +634,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 
 			for _, r := range tmpResult {
 				for _, tag := range secTags {
-					if tag == r.Tag {
+					if tag == r.Tag && turbine == r.Turbine {
 						mapTag[tag] = append(mapTag[tag], r.Value)
 					}
 				}
@@ -607,6 +654,11 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 						value = value / float64(len(mp))
 						res.Set(n, value)
 					}
+
+					// if startStr == "20170418225105" {
+					// 	log.Printf(">>> %v > %#v | %v | %v \n", n, mp, value, res.Get(n))
+					// }
+
 				} else {
 					res.Set(n, nil)
 				}
@@ -636,7 +688,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 			}
 		}
 
-		if tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
+		if tStart.Sub(tEnd).Seconds() >= 0 {
 			break
 		}
 
@@ -646,7 +698,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 		if modSecond == 0 {
 			tStart = tStart.Add(5 * time.Second)
 		} else {
-			tStart = tStart.UTC().Add(time.Duration(5-modSecond) * time.Second).UTC()
+			tStart = tStart.Add(time.Duration(5-modSecond) * time.Second)
 		}
 
 		// tStart = tStart.Add(1 * time.Second)

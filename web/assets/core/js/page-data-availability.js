@@ -11,7 +11,10 @@ page.categoryHeader = ko.observableArray(["Jan", "Feb", "Mar", "Apr","May","Jun"
 var colspan = page.categoryHeader().length;
 
 page.widthColumn = ko.observable((90 / colspan) + "%");
-page.data = ko.observableArray([]);
+
+page.dataAvail = ko.observableArray(); 
+
+
 page.hideFilter = function(){
     $("#periodList").closest(".k-widget").hide();
     $("#dateStart").closest(".k-widget").hide();
@@ -35,7 +38,8 @@ page.getData = function(){
                 return;
             }
 
-        page.data(res.data.Data);
+        page.dataAvail(res.data.Data);
+
         page.categoryHeader(res.data.Month);
 		colspan = page.categoryHeader().length;
 		page.widthColumn((90 / colspan) + "%");
@@ -53,48 +57,46 @@ page.createView = function(){
 		$("#tableHeader").append(tdHeader);
 	});
 
-	$.each(page.data(), function(key, value){
-		if (value != null){
-			var progressData = "";
-			$.each(value.Data, function(i, val){
-				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
+	$.each(page.dataAvail(), function(key, value){
+		var progressData = "";
+		$.each(value.Data, function(i, val){
+			progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
+			
+		});
+
+		var icon = "";
+		if(value.Turbine.length > 0){
+			icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
+		} 
+		var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
+						'<td>'+icon+'</td>'+
+					    '<td class="border-right"><strong>'+value.Category+'</strong></span></td>'+
+						'<td colspan='+colspan+'>'+
+					            '<div class="progress">'+progressData+'</div>'+
+					    '</td>'+
+					 '</tr>';
+
+
+		$.each(value.Turbine, function(index, res){
+			var progressDataDetails = "";
+
+			$.each(res.details, function(idx, result){
+				progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
 				
 			});
 
-			var icon = "";
-			if(value.Turbine.length > 0){
-				icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
-			} 
-			var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
-							'<td>'+icon+'</td>'+
-							'<td class="border-right"><strong>'+value.Category+'</strong></span></td>'+
-							'<td colspan='+colspan+'>'+
-									'<div class="progress">'+progressData+'</div>'+
-							'</td>'+
-						'</tr>';
+			 var details = '<tr class="collapse details row'+key+'">'+
+			 	'<td></td>'+
+			    '<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
+				'<td colspan='+colspan+'>'+
+			            '<div class="progress">'+progressDataDetails+'</div>'+
+			    '</td>'+
+			 '</tr>';
 
+			 master += details;
 
-			$.each(value.Turbine, function(index, res){
-				var progressDataDetails = "";
-
-				$.each(res.details, function(idx, result){
-					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
-					
-				});
-
-				var details = '<tr class="collapse details row'+key+'">'+
-					'<td></td>'+
-					'<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
-					'<td colspan='+colspan+'>'+
-							'<div class="progress">'+progressDataDetails+'</div>'+
-					'</td>'+
-				'</tr>';
-
-				master += details;
-
-			});
-			$("#tableContent").append(master);
-		}
+		});
+	 	$("#tableContent").append(master);
 	});
 
 	$('.collapse').on('shown.bs.collapse', function(){
@@ -103,7 +105,6 @@ page.createView = function(){
 		$(this).parent().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-right");
 	});
 
-	
 }
 
 $(function () {
@@ -112,8 +113,8 @@ $(function () {
 
         $.when(page.getData()).done(function(){
         	setTimeout(function(){
-        		app.loading(false);
         		app.prepareTooltipster();
+        		app.loading(false);
         	},1000);	
         });
     });
@@ -127,5 +128,5 @@ $(function () {
     setTimeout(function() {
 		app.prepareTooltipster();
         app.loading(false);    
-    }, 1000);
+    }, 500);
 });

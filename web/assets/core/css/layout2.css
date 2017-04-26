@@ -955,7 +955,7 @@ label {
     }
 }
 
-@media (max-width: 1235px) {
+@media (max-width: 991px) {
     .content-header>.breadcrumb {
         position: relative;
         top: 10px;
@@ -1000,6 +1000,17 @@ label {
         margin-top: 0px;
         margin-left: 5px!important;
         margin-right: 5px;
+    }
+}
+
+@media (max-width: 991px) {
+    .content-header>.breadcrumb {
+        position: relative;
+        top: 10px;
+        float: none;
+        background: none;
+        padding-left: 0px;
+        margin-bottom: 10px;
     }
 }
 

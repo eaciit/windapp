@@ -458,6 +458,11 @@ app.auth = function(status){
 
 app.getUTCDate = function(strdate){
     var d = moment.utc(strdate);
+    return d;
+}
+
+app.getDateMax = function(strdate){
+    var d = moment.utc(strdate);
     return new Date(d.year(), d.month(), d.date(), 0, 0, 0)
 }
 app.toUTC = function(d){
