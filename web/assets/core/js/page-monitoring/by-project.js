@@ -447,19 +447,30 @@ function secondsToHms(d) {
 }
 
 bp.ToIndividualTurbine = function(turbine) {
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
-    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-    window.location = viewModel.appName + "page/monitoringbyturbine";
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
+        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyturbine";
+    },300);
 }
 
 bp.ToAlarm = function(turbine) {
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
-    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-    window.location = viewModel.appName + "page/monitoringalarm";
+
+
+    var set = setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
+        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    },300);
+
+    console.log(document.cookie);
+
+    $.when(set).done(function(){
+         window.location = viewModel.appName + "page/monitoringalarm";
+     });
 }
 bp.GenDetail = function(turbine){
     var param = {

@@ -829,11 +829,17 @@ it.showWindRoseChart = function(){
 }
 
 it.ToTimeSeriesHfd = function() {
-    var turbine = $("#turbine").val();
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
-    window.location = viewModel.appName + "page/timeserieshfd";
+    setTimeout(function(){
+        var turbine = $("#turbine").val();
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
+        window.location = viewModel.appName + "page/timeserieshfd";
+    },300);
+}
+
+it.ToByProject = function(){
+    window.location = viewModel.appName + "page/monitoringbyproject";
 }
 
 it.changeRotation = function(){

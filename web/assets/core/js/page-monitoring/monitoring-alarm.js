@@ -21,12 +21,35 @@ ma.CreateGrid = function() {
     app.loading(true);
 
     fa.LoadData();
+
+    var COOKIES = {};
+    var cookieStr = document.cookie;
+    var turbine = [];
+    var project = "";
+    
+    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
+        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        cookieStr.split(/; /).forEach(function(keyValuePair) {
+            var cookieName = keyValuePair.replace(/=.*$/, "");
+            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+            COOKIES[cookieName] = cookieValue;
+        });
+        turbine = [COOKIES["turbine"]];
+        project = COOKIES["project"];
+        $('#turbineList').data('kendoMultiSelect').value([turbine]);
+        $('#projectList').data('kendoDropDownList').value(project);
+    } else {
+        turbine = $('#turbineList').data('kendoMultiSelect').value();
+        project = $('#projectList').data('kendoDropDownList').value();
+    }
+
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
-        project: fa.project
+        turbine: turbine,
+        project: project
     };
 
     $('#alarmGrid').html('');
@@ -88,19 +111,22 @@ ma.CreateGrid = function() {
         }, {
             field: "TimeStart",
             title: "Time Start",
+            width: 170,
             template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY HH:mm:ss') #"
         }, {
             field: "TimeEnd",
             title: "Time End",
+            width: 170,
             template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY')=='01-01-0001'?'Not yet finished':moment.utc(data.TimeEnd).format('DD-MMM-YYYY HH:mm:ss')) #"
         }, {
             field: "Duration",
             title: "Duration (hh:mm:ss)",
+             width: 180,
             template: "#= time(data.Duration) #"
         }, {
             field: "AlarmCode",
             title: "Alarm Code",
-            width: 60
+            width: 130,
         }, {
             field: "AlarmDesc",
             title: "Description",

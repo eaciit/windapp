@@ -38,7 +38,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			//Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
 			Aggr(dbox.AggrSum, "$energy", "totalenergy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
@@ -349,7 +349,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Tejuva"))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			// Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
 			Aggr(dbox.AggrSum, "$energy", "energy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
@@ -543,7 +543,7 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Fleet"))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			// Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
 			Aggr(dbox.AggrSum, "$energy", "energy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
@@ -736,6 +736,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				filter := tk.M{}
 				filter = filter.Set("projectname", tk.M{}.Set("$eq", "Tejuva"))
 				filter = filter.Set("turbine", tk.M{}.Set("$eq", turbine))
+				filter = filter.Set("power", tk.M{}.Set("$gte", -200))
 
 				dt := d.BaseController.GetLatest("ScadaSummaryDaily", "Tejuva", turbine)
 
