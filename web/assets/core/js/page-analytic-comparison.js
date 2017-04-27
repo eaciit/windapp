@@ -329,12 +329,12 @@ page.showHidePeriod = function (idx) {
 		$('#dateStart-' + id).data('kendoDatePicker').setOptions({
 			start: "year",
 			depth: "year",
-			format: "MMMM yyyy"
+			format: "MMM yyyy"
 		});
 		$('#dateEnd-' + id).data('kendoDatePicker').setOptions({
 			start: "year",
 			depth: "year",
-			format: "MMMM yyyy"
+			format: "MMM yyyy"
 		});
 
 		$('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
