@@ -160,19 +160,12 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			}
 			//log.Printf("#%v\n", (power / 6000000))
 
-			pipe := []tk.M{
-				tk.M{}.Set("$unwind", "$detail"),
-				tk.M{}.Set("$match", tk.M{}.Set("detail.detaildateinfo.monthid", imonthid)),
-				tk.M{}.Set("$group", tk.M{}.
-					Set("_id", "$projectname").
-					Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
-					Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")),
-				From(new(Alarm).TableName()).
-				),
-			}
+			pipe := []tk.M{tk.M{}.Set("$unwind", "$detail"),
+				tk.M{}.Set("$match", tk.M{}.Set("detail.detaildateinfo.monthid", imonthid)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$projectname").Set("duration", tk.M{}.Set("$sum", "$detail.duration")).Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
 			// log.Printf("#%v\n", pipe)
 			csr1, _ := ctx.NewQuery().
 				Command("pipe", pipe).
+				From(new(Alarm).TableName()).
 				Cursor(nil)
 			defer csr1.Close()
 
@@ -452,12 +445,11 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			pipe := []tk.M{
 				tk.M{}.Set("$unwind", "$detail"),
 				tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).
-					Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))), 
-				tk.M{}.Set("$group",tk.M{}.Set("_id", "$turbine").
+					Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))),
+				tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").
 					Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
-					Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))), 
-				tk.M{}.Set("$sort", tk.M{}.Set("_id", 1),
-				),
+					Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))),
+				tk.M{}.Set("$sort", tk.M{}.Set("_id", 1)),
 			}
 			// log.Printf("#%v\n", pipe)
 			csr1, _ := ctx.NewQuery().
