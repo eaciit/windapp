@@ -34,19 +34,19 @@
                             <div class="col-md-8 div-info">
                                 <h3><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location">Jaisalmer</span></b></h3>
                                 <div class="col-md-12" style="display: inline;">
-                                    <div class="col-md-6 text-right">
+                                    <div class="col-md-5 text-right">
                                          <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
                                     </div>
-                                   <div class="col-md-6 text-left">
-                                       <span style="font-size: 30px"><span id="turbine_temperature"></span> &deg; C</span>
+                                   <div class="col-md-7 text-left">
+                                       <span style="font-size: 22px"><span id="turbine_temperature"></span> &deg; C</span>
+                                       &nbsp;<strong>&nbsp;<span id="turbine_weather" class="vcenter"></span></strong>
+                                        <hr class="borderOrange">
                                         <div class="row turbine-weather">
-                                             <span id="turbine_weather"></span>
+                                             Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b>
                                         </div>
                                    </div>
                                 </div>
-                                <div class="col-md-12 lat-info">
-                                    Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b>
-                                </div>
+                                <div class="col-md-12 direct-page text-center" ><a href="#"  onclick="it.ToTimeSeriesHfd()" ><i class="fa fa-arrow-right"></i> Go to Analysis</a> &nbsp; &nbsp; <a href="#"  onclick="it.ToByProject()"><i class="fa fa-mail-reply"></i> Back to project</a></div>
                             </div>
                             <div class="col-md-4 windpower-part">
                                 <div class="col-md-6 text-center">
@@ -66,7 +66,6 @@
                         <div class="col-md-12" style="margin-top: 30px;">
                             <div class="col-md-12 live-chart-div">
                                 <div id="container"></div>
-                                <div class="col-md-12 gotoAnalysis" ><a href="#"  onclick="it.ToTimeSeriesHfd()" class="pull-left">Go to Analysis</a></div>
                                 <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
                             </div>
                         </div>
