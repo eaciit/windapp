@@ -598,7 +598,7 @@ it.showWindspeedLiveChart = function(){
         chart: {
             marginTop: 50,
             height: 180,
-            width: 475,
+            width: 390,
         },
         credits: {
               enabled: false
