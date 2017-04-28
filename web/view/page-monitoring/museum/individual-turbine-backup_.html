@@ -1,0 +1,192 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/individual-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<script src="{{BaseUrl}}res/highstock/highstock.js"></script>
+<script src="{{BaseUrl}}res/highstock/exporting.js"></script>
+<script src="{{BaseUrl}}res/highstock/value-in-legend.js"></script>
+
+<div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: it.ChangeProject() }"
+                    style="width:145px"></select>&nbsp;
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="turbine" name="table" data-bind="kendoDropDownList: { data: it.turbineList, dataValueField: 'Id', dataTextField: 'Id', suggest: true, change: it.ChangeSelection() }"
+                    style="width:145px"></select>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore mb-5">
+                <div class="panel-body">                        
+                    <div class="col-md-5">
+                        <div class="col-md-12">
+                            <div class="col-md-8 div-info">
+                                <h3><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location">Jaisalmer</span></b></h3>
+                                <div class="col-md-12" style="display: inline;">
+                                    <div class="col-md-5 text-right">
+                                         <img id="turbine_img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                                    </div>
+                                   <div class="col-md-7 text-left">
+                                       <span style="font-size: 22px"><span id="turbine_temperature"></span> &deg; C</span>
+                                       &nbsp;<strong>&nbsp;<span id="turbine_weather" class="vcenter"></span></strong>
+                                        <hr class="borderOrange">
+                                        <div class="row turbine-weather">
+                                             Lat : <b><span id="turbine_lat"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Lon : <b><span id="turbine_lon"></span></b>
+                                        </div>
+                                   </div>
+                                </div>
+                                <div class="col-md-12 direct-page text-center" ><a href="#"  onclick="it.ToTimeSeriesHfd()" ><i class="fa fa-arrow-right"></i> Go to Analysis</a> &nbsp; &nbsp; <a href="#"  onclick="it.ToByProject()"><i class="fa fa-mail-reply"></i> Back to project</a></div>
+                            </div>
+                            <div class="col-md-4 windpower-part">
+                                <div class="col-md-6 text-center">
+                                    <span class="txt-windspeed"><strong>WS</strong></span>
+                                    <div id="compareWindChart"></div>
+                                    <span class="txt-windspeed"><strong><span data-bind="text:it.windspeed_avg()"></span> m/s</strong></span>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <span><strong>PWR</strong></span>
+                                    <div id="comparePowerChart"></div>
+                                    <span><strong><span data-bind="text:it.power()"></span> kW</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12" style="margin-top: 30px;">
+                            <div class="col-md-12 live-chart-div">
+                                <div id="container"></div>
+                                <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
+                            </div>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12 direct-part">
+                            <div class="col-md-8 text-center">
+                               <div class="col-md-12">
+                                <!-- <span class="directTitle"><strong>Nacelle Pos. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></span> -->
+                                    <span><strong>Last 24 Hours</strong></span>
+                                   <div id="windRoseChart"></div>
+                               </div>
+                            </div>
+                            <div class="col-md-4 text-center border-left-grey" style="margin-top: 20px">
+                               <!-- <div class="col-md-12">
+                                <span class="directTitle"><strong>Wind Dir. | &nbsp;<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></span>
+                                   <div id="windDirectionChart"></div>
+                               </div> -->
+                                 <!-- <div class="col-md-12"><span><strong>&nbsp;Pitch Angle</strong></span></div> -->
+                                  <div class="clearfix">&nbsp;</div>
+                                 <span class="text-center">Nacelle Pos.</span> <br><h3> <strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></h3>
+                                 <hr class="borderGrey">
+                                 <span class="text-center">Wind Dir.</span> <br><h3><strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></h3>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="col-md-3 border-left-grey border-right-grey">
+                        <div class="col-md-12">
+                            <h5><strong>Electrical System</strong></h5>
+                            <div class="col-md-7">
+                                <table class="table table-condensed text-center">
+                                    <thead> 
+                                        <tr>
+                                            <th style="width: 10px">#</th>
+                                            <th>Phase Voltage</th>
+                                            <th>Phase Current</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td><span class="text-center" data-bind="text: it.phase_volt1()"></span></td>
+                                            <td><span class="text-center" data-bind="text: it.phase_cur1()"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td><span class="text-center" data-bind="text: it.phase_volt2()"></span></td>
+                                            <td><span class="text-center" data-bind="text: it.phase_cur2()"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td><span class="text-center" data-bind="text: it.phase_volt3()"></span></td>
+                                            <td><span class="text-center" data-bind="text: it.phase_cur3()"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-5 border-left-grey">
+                                 <div class="clearfix">&nbsp;</div>
+                                 <span>Production</span><strong><span class="pull-right" data-bind="text: it.production()"></span></strong>
+                                 <hr class="borderYellow">
+                                 <span >Cos Phi</span><strong><span class="pull-right" data-bind="text: it.cos_phi()"></span></strong>
+                                 <hr class="borderOrange">
+                                 <span>Pwr Reactive</span><strong><span class="pull-right" data-bind="text: it.power_react()"></span></strong>
+                                 <hr class="borderRed">
+                                 <span>Freq. Grid</span><strong><span class="pull-right" data-bind="text: it.freq_grid()"></span></strong>
+                             </div>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12">
+                            <h5><strong>Critical Temperature & Pressure</strong></h5>
+                            <div class="col-md-7">
+                                 <span>Gen. 1 phase 1 coil</span><strong><span class="pull-right"  data-bind="text: it.temp_gen_coil1()"></span></strong>
+                                 <hr class="borderGrey">
+                                 <span >Gen. 1 phase 2 coil</span><strong><span class="pull-right" data-bind="text: it.temp_gen_coil2()"></span></strong>
+                                 <hr class="borderGrey">
+                                 <span>Gen. 1 phase 3 coil</span><strong><span class="pull-right" data-bind="text: it.temp_gen_coil3()"></span></strong>
+                             </div>
+                              <div class="col-md-5 border-left-grey">
+                                 <span><strong>Gen. bearing  : </strong></span>
+                                  <hr class="borderGrey">
+                                 <span>Drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_driven()"></span></strong>
+                                 <hr class="borderGrey">
+                                 <span >Non-drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_non_driven()"></span></strong>
+                             </div>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12">
+                            <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong>&nbsp;<span class="badge bg-light-blue" data-bind="text: it.drive_train_vibra()"></span></h5>
+                        </div>
+                        <!-- <hr class="borderGrey"> -->
+                         <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12">
+                            <div class="col-md-12 text-center">
+                                <span><strong>Rotor (RPM)</strong></span>
+                                <div id="rotorChart"></div>
+                                <span id="valRotor" class="gaugeVal" data-bind="text:it.rotor_rpm()"></span>
+                                <!-- <hr style="border: 1px solid #eee;"> -->
+                            </div>
+                          <!--   <div class="col-md-4 text-center border-left-grey">
+                                 <div class="col-md-12"><span><strong>&nbsp;Pitch Angle</strong></span></div>
+                                  <div class="clearfix">&nbsp;</div>
+                                 <span class="text-center">#1</span> : <strong><span class="text-center txt-pitch-angel" data-bind="text:it.blade_angle1()"></span></strong>
+                                 <hr class="borderYellow">
+                                 <span class="text-center">#2</span> : <strong><span class="text-center txt-pitch-angel" data-bind="text:it.blade_angle2()"></span></strong>
+                                 <hr class="borderOrange">
+                                 <span class="text-center">#3</span> : <strong><span class="text-center txt-pitch-angel" data-bind="text:it.blade_angle3()"></span></strong>
+                             </div> -->
+                        </div>
+                    </div>
+                    <div class="col-md-4 turbine-pic-part">
+                        {{template "turbine-pic.html"}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    it.populateProject({{.ProjectList}});
+    it.populateTurbine({{.ProjectList}}, {{.AllTurbineList}}, false);
+</script>
