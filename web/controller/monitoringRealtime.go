@@ -375,6 +375,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 				Set("AlarmCode", 0).
 				Set("AlarmDesc", "").
 				Set("Status", 1).
+				Set("IsWarning", false).
 				Set("AlarmUpdate", time.Time{})
 
 			if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
@@ -385,6 +386,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 				_itkm.Set("AlarmCode", _idt.AlarmCode).
 					Set("AlarmDesc", _idt.AlarmDesc).
 					Set("Status", _idt.Status).
+					Set("IsWarning", _idt.IsWarning).
 					Set("AlarmUpdate", _idt.TimeUpdate.UTC())
 				if _idt.Status == 0 {
 					turbinedown += 1
@@ -443,6 +445,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		Sort      []Sorting
 		Project   string
 		Period    string
+		Tipe      string
 	}
 
 	type Sorting struct {
@@ -466,6 +469,10 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		anProject := strings.Split(p.Project, "(")
 		project = strings.TrimRight(anProject[0], " ")
 	}
+	tablename := "Alarm"
+	if p.Tipe == "warning" {
+		tablename = "AlarmWarning"
+	}
 
 	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
@@ -477,7 +484,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
-	csr, err := rconn.NewQuery().From("Alarm").
+	csr, err := rconn.NewQuery().From(tablename).
 		Aggr(dbox.AggrSum, "$duration", "duration").
 		Aggr(dbox.AggrSum, 1, "countdata").
 		Group("projectname").
@@ -493,8 +500,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 
 	totalData := tkmgroup.GetInt("countdata")
 	totalDuration := tkmgroup.GetInt("duration")
-
-	query := rconn.NewQuery().From("Alarm").
+	query := rconn.NewQuery().From(tablename).
 		Where(dbox.And(dfilter...)).
 		// Order("-timestart").
 		Skip(p.Skip).Take(p.Take)

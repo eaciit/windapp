@@ -14,6 +14,7 @@ import (
 
 	tk "github.com/eaciit/toolkit"
 	"github.com/tealeg/xlsx"
+	"path/filepath"
 	// _ "github.com/tealeg/xlsx"
 
 	"github.com/eaciit/dbox"
@@ -23,7 +24,7 @@ import (
 var (
 	wd = func() string {
 		d, _ := os.Getwd()
-		return d + "/"
+		return d
 	}()
 
 	DateFormat1 = "02-01-2006 15:04:05"
@@ -229,7 +230,7 @@ func WriteErrors(errorList tk.M, fileName string) (e error) {
 
 func ReadConfig() map[string]string {
 	ret := make(map[string]string)
-	file, err := os.Open(wd + "config/app.conf")
+	file, err := os.Open(filepath.Join(wd, "config", "app.conf"))
 	if err == nil {
 		defer file.Close()
 

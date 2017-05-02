@@ -248,9 +248,11 @@ label.summary-number {
 }
 
 .turbine-pic-part {
-  text-align: center;
-  padding-left: 20px;
-  margin-top: 50px;
+    text-align: center;
+    padding-left: 20px;
+    margin-top: 0px;
+    margin-left: -10px;
+    margin-right: 10px;
 }
 
 .title-outside {
@@ -443,9 +445,9 @@ h4.content-heading {
 }
 
 .direct-page{
-    margin-top: -5px;
-    margin-bottom: 10px;
+    margin: 10px;
 }
+
 #turbine_weather{
   font-size: 12px;
   vertical-align: top;
@@ -558,8 +560,9 @@ h4.content-heading {
 }
 
 .live-chart-div{
-  margin-top: -55px;
-  margin-bottom: 10px
+  margin-top: -25px;
+  margin-bottom: 10px;
+  margin-left: -20px;
 }
 
 .nav-replace-title{
@@ -567,9 +570,9 @@ h4.content-heading {
 }
 
 #dateInfo{
-    margin-left: 15px;
     font-weight: bold;
     margin-top: -145px;
+    margin-left: 10px;
 }
 
 #container{
