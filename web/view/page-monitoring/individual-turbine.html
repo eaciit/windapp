@@ -29,18 +29,15 @@
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore mb-5">
                 <div class="panel-body">
-                    <div class="col-md-4 turbine-pic-part border-right-grey">
-                        <div class="col-md-12" style="margin-bottom: 24px">
-                              <div class="col-md-12 text-center" ><a href="#"  class="btn btn-xs btn-primary" onclick="it.ToByProject()"><i class="fa fa-mail-reply"></i> Back to project</a> &nbsp; &nbsp; <a href="#"  class="btn btn-xs btn-primary" onclick="it.ToTimeSeriesHfd()" ><i class="fa fa-arrow-right"></i> Go to Analysis</a></div>
-                         </div>
-                        {{template "turbine-pic.html"}}
-                    </div>
-                    <div class="col-md-5 border-right-grey border-right-grey">
+                    <div class="col-md-5 border-right-grey">
+                        <div class="col-md-12">
+                              <div class="col-md-12 pull-left"><a href="#" onclick="it.ToTimeSeriesHfd()" ><i class="fa fa-arrow-right"></i> Go to Analysis</a></div>
+                        </div>
                         <div class="col-md-9 live-chart-div">
                             <div id="container"></div>
                             <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
                         </div>
-                        <div class="col-md-3 border-left-grey text-center" style="margin-top: 29.5px;margin-left: 20px;">
+                        <div class="col-md-3 border-left-grey text-center" style="margin-top: 50.5px;margin-left: 20px;">
                             <strong><span>Wind Speed (m/s)</span></strong> <br><h4> <strong><span data-bind="text:it.windspeed_avg()"></span></strong></h4>
                             <hr class="borderGrey">
                             <strong><span>Power (kW)</span></strong><br><h4><strong><span data-bind="text:it.power()"></span></strong></h4>
@@ -107,7 +104,7 @@
                              </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3" style="margin-top: 30px;">
                         <div class="col-md-12 text-center">
                             <span><strong>Last 24 Hours</strong></span>
                            <div id="windRoseChart"></div>
@@ -126,6 +123,12 @@
                             </div>
                         </div>
                         <div class="clearfix">&nbsp;</div>
+                    </div>
+                    <div class="col-md-4 turbine-pic-part border-left-grey">
+                        <div class="col-md-12" style="margin-bottom: 20px;">
+                            <a href="#"  onclick="it.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a>
+                        </div>
+                        {{template "turbine-pic.html"}}
                     </div>
                 </div>
             </div>
