@@ -200,6 +200,10 @@ ma.checkCompleteDate = function () {
     }
 }
 
+ma.ToByProject = function(){
+    window.location = viewModel.appName + "page/monitoringbyproject";
+}
+
 $(document).ready(function(){
     $('#btnRefresh').on('click', function () {
         if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Down") {
