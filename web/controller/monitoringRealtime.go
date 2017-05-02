@@ -329,9 +329,9 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown := 0
-	t0 := time.Now().UTC()
+	t0 := getTimeNow()
 
-	arrturbinestatus := getTurbineStatus(project, "")
+	arrturbinestatus := GetTurbineStatus(project, "")
 	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
@@ -418,7 +418,9 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 
 	rtkm.Set("ListOfTurbine", allturbine)
 	rtkm.Set("Detail", alldata)
+	rtkm.Set("TimeNow", t0)
 	rtkm.Set("TimeStamp", lastUpdate)
+	rtkm.Set("TimeMax", timemax)
 	rtkm.Set("PowerGeneration", PowerGen)
 	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
@@ -438,8 +440,14 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		DateEnd   time.Time
 		Skip      int
 		Take      int
+		Sort      []Sorting
 		Project   string
 		Period    string
+	}
+
+	type Sorting struct {
+		Field string
+		Dir   string
 	}
 
 	p := new(MyPayloads)
@@ -478,28 +486,41 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
+	defer csr.Close()
 
 	tkmgroup := tk.M{}
 	_ = csr.Fetch(&tkmgroup, 1, false)
-	csr.Close()
 
 	totalData := tkmgroup.GetInt("countdata")
 	totalDuration := tkmgroup.GetInt("duration")
 
-	csr, err = rconn.NewQuery().From("Alarm").
+	query := rconn.NewQuery().From("Alarm").
 		Where(dbox.And(dfilter...)).
-		Order("-timestart").
-		Skip(p.Skip).Take(p.Take).Cursor(nil)
+		// Order("-timestart").
+		Skip(p.Skip).Take(p.Take)
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
+	csr, err = query.Cursor(nil)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
+	defer csr.Close()
 
 	results := make([]AlarmHFD, 0)
 	err = csr.Fetch(&results, 0, false)
 	if err != nil {
 		return helper.CreateResult(false, nil, err.Error())
 	}
-	csr.Close()
 
 	// tStart, tEnd = tStart.UTC(), tEnd.UTC()
 
@@ -585,7 +606,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
-	arrturbinestatus := getTurbineStatus(project, p.Turbine)
+	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
@@ -636,7 +657,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		alldata.Set("Turbine Status", -999)
 	}
 
-	t0 := time.Now().UTC()
+	t0 := getTimeNow()
 	if t0.Sub(timemax.UTC()).Minutes() > 3 {
 		alldata.Set("Turbine Status", -999)
 	}
@@ -644,10 +665,14 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	return helper.CreateResult(true, alldata, "success")
 }
 
-func getTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
+func GetTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
 	res = map[string]TurbineStatus{}
 
-	filtercond := []*dbox.Filter{dbox.Eq("projectname", project)}
+	filtercond := []*dbox.Filter{}
+	if project != "Fleet" || project != "" {
+		filtercond = append(filtercond, dbox.Eq("projectname", project))
+	}
+
 	if turbine != "" {
 		filtercond = append(filtercond, dbox.Eq("_id", turbine))
 	}
@@ -807,6 +832,22 @@ func loadFileByTurbine(turbine, _fpath string, tkm tk.M) {
 	return
 }
 
+func getTimeNow() (tNow time.Time) {
+	config := lh.ReadConfig()
+
+	loc, err := time.LoadLocation(config["ReadTimeLoc"])
+	_Now := time.Now().UTC().Add(-time.Minute * 330)
+	if err != nil {
+		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
+	} else {
+		_Now = time.Now().In(loc)
+	}
+
+	tNow = time.Date(_Now.Year(), _Now.Month(), _Now.Day(), _Now.Hour(), _Now.Minute(), _Now.Second(), _Now.Nanosecond(), time.UTC)
+	tNow = tNow.Add(-10 * time.Minute)
+	return
+}
+
 /*
 func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (rtkm tk.M) {
 
@@ -835,7 +876,7 @@ func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (r
 	turbinedown := 0
 	t0 := time.Now().UTC()
 
-	arrturbinestatus := getTurbineStatus(project)
+	arrturbinestatus := GetTurbineStatus(project)
 
 	for _, _tkm := range _result {
 		aturbine := tk.M{}

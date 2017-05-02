@@ -110,6 +110,9 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				return helper.CreateResult(false, nil, e.Error())
 			}
 			fb := DB().Connection.Fb()
+
+			filter = append(filter, dbox.Eq("available", 1))
+
 			fb.AddFilter(dbox.And(filter...))
 			matches, e := fb.Build()
 

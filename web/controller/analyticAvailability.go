@@ -53,6 +53,8 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+	match.Set("available", 1)
+	match.Set("power", tk.M{"$ne": -999999})
 
 	if len(turbine) > 0 {
 		match.Set("turbine", tk.M{"$in": turbine})

@@ -38,9 +38,9 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			//Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
-			Aggr(dbox.AggrSum, "$energy", "totalenergy").
+			Aggr(dbox.AggrSum, "$energy", "energy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
 			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
 			Aggr(dbox.AggrSum, "$minutes", "totalminutes").
@@ -349,7 +349,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Tejuva"))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			// Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
 			Aggr(dbox.AggrSum, "$energy", "energy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
@@ -442,8 +442,15 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			// 	}
 			// }
 
-			pipe := []tk.M{tk.M{}.Set("$unwind", "$detail"),
-				tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").Set("duration", tk.M{}.Set("$sum", "$detail.duration")).Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			pipe := []tk.M{
+				tk.M{}.Set("$unwind", "$detail"),
+				tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).
+					Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))),
+				tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").
+					Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
+					Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))),
+				tk.M{}.Set("$sort", tk.M{}.Set("_id", 1)),
+			}
 			// log.Printf("#%v\n", pipe)
 			csr1, _ := ctx.NewQuery().
 				Command("pipe", pipe).
@@ -543,7 +550,7 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Fleet"))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			// Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
 			Aggr(dbox.AggrSum, "$energy", "energy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
@@ -736,6 +743,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				filter := tk.M{}
 				filter = filter.Set("projectname", tk.M{}.Set("$eq", "Tejuva"))
 				filter = filter.Set("turbine", tk.M{}.Set("$eq", turbine))
+				filter = filter.Set("power", tk.M{}.Set("$gte", -200))
 
 				dt := d.BaseController.GetLatest("ScadaSummaryDaily", "Tejuva", turbine)
 

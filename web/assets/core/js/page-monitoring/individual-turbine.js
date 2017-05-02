@@ -126,18 +126,29 @@ it.GetData = function(project, turbine) {
     });
 };
 
+// it.rotor_r_cur = ko.observable('');
+// it.rotor_y_cur = ko.observable('');
+// it.rotor_b_cur = ko.observable('');
+// it.windspeed1 = ko.observable('');
+// it.windspeed2 = ko.observable('');
+// it.wind_dir1 = ko.observable('');
+// it.wind_dir2 = ko.observable('');
+// it.speed_gen = ko.observable('');
+// it.dfig_act_power = ko.observable('');
+// it.dfig_react_power = ko.observable('');
+// it.dfig_main_freq = ko.observable('');
+// it.dfig_main_volt = ko.observable('');
+// it.dfig_main_cur = ko.observable('');
+// it.dfig_link_volt = ko.observable('');
+// it.damper_osci_mag = ko.observable('');
+// it.press_gear_oil = ko.observable('');
+// it.tower_vibra = ko.observable('');
+
 it.rotor_rpm = ko.observable('');
-it.rotor_r_cur = ko.observable('');
-it.rotor_y_cur = ko.observable('');
 it.windspeed_avg = ko.observable('');
-it.windspeed1 = ko.observable('');
-it.windspeed2 = ko.observable('');
 it.wind_dir = ko.observable('');
-it.wind_dir1 = ko.observable('');
-it.wind_dir2 = ko.observable('');
 it.nacel_dir = ko.observable('');
 it.gen_rpm = ko.observable('');
-it.speed_gen = ko.observable('');
 it.blade_angle1 = ko.observable('');
 it.blade_angle2 = ko.observable('');
 it.blade_angle3 = ko.observable('');
@@ -159,13 +170,6 @@ it.phase_cur3 = ko.observable('');
 it.power = ko.observable('');
 it.power_react = ko.observable('');
 it.freq_grid = ko.observable('');
-it.dfig_act_power = ko.observable('');
-it.dfig_react_power = ko.observable('');
-it.dfig_main_freq = ko.observable('');
-it.dfig_main_volt = ko.observable('');
-it.dfig_main_cur = ko.observable('');
-it.dfig_link_volt = ko.observable('');
-it.rotor_b_cur = ko.observable('');
 it.production = ko.observable('');
 it.cos_phi = ko.observable('');
 it.temp_gen_coil1 = ko.observable('');
@@ -177,14 +181,12 @@ it.temp_gear_driven = ko.observable('');
 it.temp_gear_non_driven = ko.observable('');
 it.temp_gear_inter_driven = ko.observable('');
 it.temp_gear_inter_non_driven = ko.observable('');
-it.press_gear_oil = ko.observable('');
-it.temp_gear_oil = ko.observable('');
 it.temp_nacelle = ko.observable('');
 it.temp_ambient = ko.observable('');
 it.temp_main_bear = ko.observable('');
-it.damper_osci_mag = ko.observable('');
+it.temp_gear_oil = ko.observable('');
 it.drive_train_vibra = ko.observable('');
-it.tower_vibra = ko.observable('');
+
 it.isFirst = ko.observable(true);
 
 it.dataWindspeed = ko.observableArray([]);
@@ -206,12 +208,12 @@ it.PlotData = function(data) {
     if(data["Wind speed Avg"] != -999999)
         it.windspeed_avg(data["Wind speed Avg"].toFixed(2));
     else it.windspeed_avg('N/A');
-    if(data["Wind speed 1"] != -999999)
+    /*if(data["Wind speed 1"] != -999999)
         it.windspeed1(data["Wind speed 1"].toFixed(2));
     else it.windspeed1('N/A');
     if(data["Wind speed 2"] != -999999)
         it.windspeed2(data["Wind speed 2"].toFixed(2));
-    else it.windspeed2('N/A');
+    else it.windspeed2('N/A');*/
 
     it.showWindspeedColumnChart();
 
@@ -219,12 +221,12 @@ it.PlotData = function(data) {
     if(data["Wind Direction"] != -999999)
         it.wind_dir(data["Wind Direction"].toFixed(2));
     else it.wind_dir('N/A');
-    if(data["Vane 1 wind direction"] != -999999)
+    /*if(data["Vane 1 wind direction"] != -999999)
         it.wind_dir1(data["Vane 1 wind direction"].toFixed(2));
     else it.wind_dir1('N/A');
     if(data["Vane 2 wind direction"] != -999999)
         it.wind_dir2(data["Vane 2 wind direction"].toFixed(2));
-    else it.wind_dir2('N/A');
+    else it.wind_dir2('N/A');*/
 
     /*NACELLE POSITION PART*/
     if(data["Nacelle Direction"] != -999999)
@@ -236,9 +238,9 @@ it.PlotData = function(data) {
     if(data["Generator RPM"] != -999999)
         it.gen_rpm(data["Generator RPM"].toFixed(2));
     else it.gen_rpm('N/A');
-    if(data["DFIG speed generator encoder"] != -999999)
-        it.speed_gen(data["DFIG speed generator encoder"].toFixed(2));
-    else it.speed_gen('N/A');
+    // if(data["DFIG speed generator encoder"] != -999999)
+    //     it.speed_gen(data["DFIG speed generator encoder"].toFixed(2));
+    // else it.speed_gen('N/A');
 
     it.showRotor();
 
@@ -320,42 +322,42 @@ it.PlotData = function(data) {
     else it.freq_grid('N/A');
 
     /*DFIG PART*/
-    if(data["DFIG active power"] != -999999)
-        it.dfig_act_power(data["DFIG active power"].toFixed(2));
-    else it.dfig_act_power('N/A');
-    if(data["DFIG reactive power"] != -999999)
-        it.dfig_react_power(data["DFIG reactive power"].toFixed(2));
-    else it.dfig_react_power('N/A');
-    if(data["DFIG mains Frequency"] != -999999)
-        it.dfig_main_freq(data["DFIG mains Frequency"].toFixed(2));
-    else it.dfig_main_freq('N/A');
+    // if(data["DFIG active power"] != -999999)
+    //     it.dfig_act_power(data["DFIG active power"].toFixed(2));
+    // else it.dfig_act_power('N/A');
+    // if(data["DFIG reactive power"] != -999999)
+    //     it.dfig_react_power(data["DFIG reactive power"].toFixed(2));
+    // else it.dfig_react_power('N/A');
+    // if(data["DFIG mains Frequency"] != -999999)
+    //     it.dfig_main_freq(data["DFIG mains Frequency"].toFixed(2));
+    // else it.dfig_main_freq('N/A');
 
-    if(data["DFIG main voltage"] != -999999)
-        it.dfig_main_volt(data["DFIG main voltage"].toFixed(2));
-    else it.dfig_main_volt('N/A');
-    if(data["DFIG main current"] != -999999)
-        it.dfig_main_cur(data["DFIG main current"].toFixed(2));
-    else it.dfig_main_cur('N/A');
-    if(data["DFIG DC link voltage"] != -999999)
-        it.dfig_link_volt(data["DFIG DC link voltage"].toFixed(2));
-    else it.dfig_link_volt('N/A');
+    // if(data["DFIG main voltage"] != -999999)
+    //     it.dfig_main_volt(data["DFIG main voltage"].toFixed(2));
+    // else it.dfig_main_volt('N/A');
+    // if(data["DFIG main current"] != -999999)
+    //     it.dfig_main_cur(data["DFIG main current"].toFixed(2));
+    // else it.dfig_main_cur('N/A');
+    // if(data["DFIG DC link voltage"] != -999999)
+    //     it.dfig_link_volt(data["DFIG DC link voltage"].toFixed(2));
+    // else it.dfig_link_volt('N/A');
 
     /*ROTOR CURRENT PART*/
-    if(data["Rotor R current"] != -999999) {
-        it.rotor_r_cur(data["Rotor R current"].toFixed(2));
-    }
-    else { 
-        it.rotor_r_cur('N/A');
-    }
-    if(data["Roter Y current"] != -999999) {
-        it.rotor_y_cur(data["Roter Y current"].toFixed(2));
-    }
-    else { 
-        it.rotor_y_cur('N/A');
-    }
-    if(data["Roter B current"] != -999999)
-        it.rotor_b_cur(data["Roter B current"].toFixed(2));
-    else it.rotor_b_cur('N/A');
+    // if(data["Rotor R current"] != -999999) {
+    //     it.rotor_r_cur(data["Rotor R current"].toFixed(2));
+    // }
+    // else { 
+    //     it.rotor_r_cur('N/A');
+    // }
+    // if(data["Roter Y current"] != -999999) {
+    //     it.rotor_y_cur(data["Roter Y current"].toFixed(2));
+    // }
+    // else { 
+    //     it.rotor_y_cur('N/A');
+    // }
+    // if(data["Roter B current"] != -999999)
+    //     it.rotor_b_cur(data["Roter B current"].toFixed(2));
+    // else it.rotor_b_cur('N/A');
 
 
     /*PRODUCTION PART*/
@@ -396,9 +398,9 @@ it.PlotData = function(data) {
     if(data["Temp. Gearbox inter. non-driven end"] != -999999)
         it.temp_gear_inter_non_driven(data["Temp. Gearbox inter. non-driven end"].toFixed(2));
     else it.temp_gear_inter_non_driven('N/A');
-    if(data["Pressure Gear box oil"] != -999999)
-        it.press_gear_oil(data["Pressure Gear box oil"].toFixed(2));
-    else it.press_gear_oil('N/A');
+    // if(data["Pressure Gear box oil"] != -999999)
+    //     it.press_gear_oil(data["Pressure Gear box oil"].toFixed(2));
+    // else it.press_gear_oil('N/A');
     if(data["Temp. Gear box oil"] != -999999)
         it.temp_gear_oil(data["Temp. Gear box oil"].toFixed(2));
     else it.temp_gear_oil('N/A');
@@ -415,15 +417,15 @@ it.PlotData = function(data) {
     else it.temp_main_bear('N/A');
 
     /*VIBRATION PART*/
-    if(data["Damper Oscillation mag."] != -999999)
-        it.damper_osci_mag(data["Damper Oscillation mag."].toFixed(2));
-    else it.damper_osci_mag('N/A');
+    // if(data["Damper Oscillation mag."] != -999999)
+    //     it.damper_osci_mag(data["Damper Oscillation mag."].toFixed(2));
+    // else it.damper_osci_mag('N/A');
     if(data["Drive train vibration"] != -999999)
         it.drive_train_vibra(data["Drive train vibration"].toFixed(2));
     else it.drive_train_vibra('N/A');
-    if(data["Tower vibration"] != -999999)
-        it.tower_vibra(data["Tower vibration"].toFixed(2));
-    else it.tower_vibra('N/A');
+    // if(data["Tower vibration"] != -999999)
+    //     it.tower_vibra(data["Tower vibration"].toFixed(2));
+    // else it.tower_vibra('N/A');
 
 
     it.changeRotation();
@@ -827,11 +829,17 @@ it.showWindRoseChart = function(){
 }
 
 it.ToTimeSeriesHfd = function() {
-    var turbine = $("#turbine").val();
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
-    window.location = viewModel.appName + "page/timeserieshfd";
+    setTimeout(function(){
+        var turbine = $("#turbine").val();
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
+        window.location = viewModel.appName + "page/timeserieshfd";
+    },300);
+}
+
+it.ToByProject = function(){
+    window.location = viewModel.appName + "page/monitoringbyproject";
 }
 
 it.changeRotation = function(){

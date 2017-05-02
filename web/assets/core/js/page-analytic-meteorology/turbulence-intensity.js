@@ -44,6 +44,10 @@ var ti = {
 		toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getturbulenceintensity", param, function (data) {
             pm.isFirstTurbulence(false);
 
+            if(data.ChartSeries == null){
+            	app.loading(false);
+            }
+
 			var width = $(".main-header").width()
 	        // var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
 	        pm.ChartSeriesturbulence(data.ChartSeries)

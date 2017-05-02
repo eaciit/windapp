@@ -144,6 +144,10 @@ pg.resetStatus = function(){
     pg.isFirstVarienceOver(true);
 }
 
+vm.currentMenu('Data Consistency');
+vm.currentTitle('Data Consistency');
+vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Consistency', href: viewModel.appName + 'page/analyticdataconsistency' }]);
+
 $(function(){
     setTimeout(function(){
         pg.loadData();

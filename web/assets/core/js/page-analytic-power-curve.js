@@ -336,7 +336,7 @@ var Data = {
         var turbineList = [];
         var kolor = [];
         var kolorDeg = [];
-        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
+        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
 
         var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
@@ -492,7 +492,7 @@ var Data = {
 
         var colorDetail = [];
 
-        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
+        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
         var colD = _.find(dtTurbines, function(num) {
             return num.name == selected;
         }).color;
@@ -617,7 +617,7 @@ var Data = {
     },
     InitRightTurbineList: function() {
         page.turbineList([]);
-        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
+        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
 
         if (page.turbine().length > 1) {
             $("#showHideChk").html('<label>' +
@@ -676,7 +676,7 @@ var Data = {
 };
 
 page.showHideAllLegend = function(e) {
-    var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")).sort(name), 'name');
+    var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
         $.each(dtTurbines, function(i, val) {

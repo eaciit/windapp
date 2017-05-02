@@ -43,16 +43,29 @@ func main() {
 		// new(GenAlarmSummary).Generate(base)                 // step 3
 		// new(GenDataPeriod).Generate(base)                   // step 4
 		// new(GenScadaLast24).Generate(base)                  // step 5
-		// new(GenScadaSummary).Generate(base)                 // step 6
-		// new(GenScadaSummary).GenerateSummaryByFleet(base)   // step 7
-		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
-		// new(GenScadaSummary).GenerateSummaryDaily(base)     // step 9
-		// new(GenScadaSummary).GenWFAnalysisByProject(base)   // step 10
-		// new(GenScadaSummary).GenWFAnalysisByTurbine1(base)  // step 11
-		// new(GenScadaSummary).GenWFAnalysisByTurbine2(base)  // step 12
+		new(GenScadaSummary).Generate(base)                 // step 6
+		new(GenScadaSummary).GenerateSummaryByFleet(base)   // step 7
+		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
+		new(GenScadaSummary).GenerateSummaryDaily(base)     // step 9
+		new(GenScadaSummary).GenWFAnalysisByProject(base)   // step 10
+		new(GenScadaSummary).GenWFAnalysisByTurbine1(base)  // step 11
+		new(GenScadaSummary).GenWFAnalysisByTurbine2(base)  // step 12
 
 		// not dependent Generate
 		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
+
+		/* data that need to copy:
+
+		Alarm
+		EventDown
+		ScadaData
+		ScadaDataOEM
+		EventRaw
+		GWFAnalysisBy***
+		LatestDataPeriod -> just copy the data that changed
+		rpt_***
+		DataAvailability
+		*/
 	}
 
 	tk.Printf("DONE in %v Hrs \n", time.Now().UTC().Sub(start).Hours())

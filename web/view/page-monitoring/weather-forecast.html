@@ -23,18 +23,14 @@
             <div class="panel ez no-padding hardcore">
                 <div class="panel-body">
                     <div class="col-md-3">
-                        <h4 class="content-heading">Current</h4>
+                        <h4 class="content-heading"><strong>Current</strong></h4>
                         <div class="list-group">
                             <div class="list-group-item main-item">
-                                <div class="row">
-                                    <div class="col-md-5 align-center left-weather">
-                                        <img id="img_weather" src="http://openweathermap.org/img/w/02d.png" />
-                                        <h4><span id="temperature"></span> &deg; C</h4>
-                                    </div>
-                                    <div class="col-md-7 align-center right-location">
-                                        <h4>Jaisalmer (IN)</h4>
-                                    </div>              
-                                </div>
+                                <h4 class="text-center"><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location">Jaisalmer (IN)</span></b></h4>
+                                <p class="text-center">
+                                   <img id="img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                                   <span style="font-size: 20px" class="vcenter"><span id="temperature"></span> &deg; C</span> 
+                                </p> 
                             </div>
                             <div class="list-group-item list-weather-item">
                                 <div class="form-group row">
@@ -98,7 +94,7 @@
                         <div class="source-info pull-right">
                             Source&nbsp;&nbsp;&nbsp;<a href="https://openweathermap.org/" target="_blank"><img src="{{BaseUrl}}/res/img/logo_OpenWeatherMap_orange.svg" width="120" /></a>
                         </div>
-                        <h4 class="content-heading">Forecast</h4>
+                        <h4 class="content-heading"><strong>Forecast</strong></h4>
                         <div id="weatherChart"></div>
                     </div>
                 </div>

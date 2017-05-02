@@ -38,7 +38,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			//Where(dbox.Gte("power", 0)).
+			Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrMax, "$timestamp", "timestamp").
 			Aggr(dbox.AggrMax, "$dateinfo.dateid", "dateid").
 			Group("").
@@ -110,7 +110,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 				defer csr.Close()*/
 
 				csr, e = ctx.NewQuery().From(new(ScadaData).TableName()).
-					Where(dbox.And(dbox.Gt("timestamp", timeHrStart), dbox.Lte("timestamp", timeHr), dbox.Gte("power", 0))).
+					Where(dbox.And(dbox.Gt("timestamp", timeHrStart), dbox.Lte("timestamp", timeHr), dbox.Gte("power", -200))).
 					Aggr(dbox.AggrSum, "$power", "totalpower").
 					Aggr(dbox.AggrSum, "$powerlost", "totalpowerlost").
 					Aggr(dbox.AggrSum, "$energylost", "energylost").
@@ -235,7 +235,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			// 	Order("id.dateinfo_dateid").
 			// 	Cursor(nil)
 
-			pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("power", tk.M{}.Set("$gte", 0))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$dateinfo.dateid").Set("totalpower", tk.M{}.Set("$sum", "$power"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+			pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("power", tk.M{}.Set("$gte", -200))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$dateinfo.dateid").Set("totalpower", tk.M{}.Set("$sum", "$power"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
 			/*csr, _ := ctx.NewQuery().
 			Command("pipe", pipe).
 			From(new(ScadaData).TableName()).

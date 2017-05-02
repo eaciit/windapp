@@ -865,6 +865,7 @@ type Scada10Min struct {
 	WindSpeed_ms_max    float64
 	WindSpeed_ms_stddev float64
 	WindSpeed_ms_count  float64
+	WindSpeed_ms_bin    float64
 
 	YawAngle        float64
 	YawAngle_sum    float64

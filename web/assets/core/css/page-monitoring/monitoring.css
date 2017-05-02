@@ -8,6 +8,10 @@
     to   { background: default; }
 }
 
+.color-base.active>span {
+    color: #fff !important;
+}
+
 .btn{
   font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
 }
@@ -36,6 +40,9 @@
 .feeder-title {
   margin-bottom: 15px;
 }
+.prod-sum-head{
+  margin-bottom: -10px;
+}
 /*==================================== WEATHER FORECAST.css ========================*/
 #weatherChart.k-chart{
     margin-top: -13px;
@@ -46,7 +53,7 @@
 .control-summary {
   padding: 0px 0px 0px 0px;
   width: 150px;
-  height: 55px;
+  height: 50px;
   margin: 0px 10px 15px 0px;
   overflow: hidden;
   text-align: center;
@@ -261,6 +268,13 @@ label.summary-number {
   font-weight: 700;
 }
 
+.vcenter {
+    display: inline-block;
+    vertical-align: top;
+    float: none;
+    padding-top: 10px;
+}
+
 /*.list-group-item {
     padding: 6px 10px 4px 10px;
 }*/
@@ -271,6 +285,8 @@ label.summary-number {
 
 .list-group-item.main-item {
   padding: 0;
+  background: #ecf0f5;
+  margin-bottom: -30px;
 }
 .list-group-part {
   padding-right: 15px;
@@ -337,7 +353,7 @@ h4.content-heading {
 .table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
 .table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
   padding: 3px 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .table-monitoring>tbody>tr:nth-child(even)>td, .table-monitoring>tbody>tr:nth-child(even)>th {
   background: #F9F9F9;
@@ -415,7 +431,7 @@ h4.content-heading {
 }
 
 .span-legend {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
 }
 
@@ -425,17 +441,24 @@ h4.content-heading {
     border-radius: 10px;
     font-weight: 400;
 }
-#turbine_weather{
-  font-size: 14px;
-  font-weight: 400;
+
+.direct-page{
+    margin-top: -5px;
+    margin-bottom: 10px;
 }
-#turbine_img_weather{
+#turbine_weather{
+  font-size: 12px;
+  vertical-align: top;
+  padding-top: 5px;
+  /*font-weight: 400;*/
+}
+#turbine_img_weather,#img_weather{
     width: 100px;
     height: 100px;
     margin-top: -20px;
 }
 #turbine_temperature{
-    font-size: 30px;
+    font-size: 22px;
     margin-bottom: -20px;
 }
 
