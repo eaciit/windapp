@@ -10,9 +10,10 @@ av.dataSource = ko.observableArray();
 var height = $(".content").width() * 0.125;
 
 av.Availability = function(){
-    app.loading(true);
+    
     fa.LoadData();
     if(pg.isFirstAvailability() === true){
+        app.loading(true);
         av.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
         var param = {
             period: fa.period,
@@ -43,7 +44,7 @@ av.Availability = function(){
             $('#availabledateend').html(pg.availabledateendscada3());
             $("#availabilityChart").data("kendoChart").refresh();
             $("#productionChart").data("kendoChart").refresh();
-            app.loading(false);
+            // app.loading(false);
         },200);
     }
 }
