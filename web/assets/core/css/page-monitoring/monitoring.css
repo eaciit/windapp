@@ -8,10 +8,26 @@
     to   { background: default; }
 }
 
+.onTop{
+    z-index: 10;
+}
+.value-div{
+  margin-top: 50.5px;
+  margin-left: 20px;
+}
+.value-group{
+  margin-top: 22px;
+  padding-left: 20px;
+}
 .color-base.active>span {
     color: #fff !important;
 }
-
+.margintop30{
+  margin-top: 30px;
+}
+.marginbottom20{
+  margin-bottom: 20px;
+}
 .btn{
   font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
 }
