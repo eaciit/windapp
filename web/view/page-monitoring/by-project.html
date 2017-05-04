@@ -77,8 +77,8 @@
                                 <tbody data-bind="foreach: bp.Turbines1()">
                                     <tr>
                                         <!-- <td><a onclick="Project.GenDetail(this.text)" ><span data-bind="text: $data"></span></a></td> -->
-                                        <td class="link-detail"><a data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}" style="color: #585555"></a></td>
-                                        <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr: { id: 'status_'+ $data },click: function(){ bp.ToAlarm($data)}" class="fa fa-circle fa-project-info fa-green"></a></td>
+                                        <td class="link-detail"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}" style="color: #585555"></a></td>
+                                        <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr: { id: 'status_'+ $data },click: function(){ bp.ToAlarm($data)}" class="linked fa fa-circle fa-project-info fa-green"></a></td>
                                         <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'dir_'+ $data }">-</span></td>
@@ -117,8 +117,8 @@
                                 </thead>
                                 <tbody data-bind="foreach: bp.Turbines2()">
                                     <tr>
-                                         <td class="link-detail"><a data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}" style="color: #585555"></a></td>
-                                        <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr: { id: 'status_'+ $data },click: function(){ bp.ToAlarm($data)}" class="fa fa-circle fa-project-info fa-green"></a></td>
+                                         <td class="link-detail"><a data-toggle="tooltip" class="linked" title="Click to Individual Turbine" data-bind="text:$data, click: function(){ bp.ToIndividualTurbine($data)}" style="color: #585555"></a></td>
+                                        <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr: { id: 'status_'+ $data },click: function(){ bp.ToAlarm($data)}" class="linked fa fa-circle fa-project-info fa-green"></a></td>
                                         <td align="right"><span data-bind="attr: { id: 'power_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ $data }">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'dir_'+ $data }">-</span></td>

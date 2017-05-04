@@ -11,10 +11,11 @@ var ti = {
 	// 	}, 100);
 	// },
 	RefreshData: function() {
-	    app.loading(true);
+	    
 	    fa.LoadData();
 	    pm.showFilter();
 	    if(pm.isFirstTurbulence() === true){
+	    	app.loading(true);
 	        ti.RefreshchartTI();
 	        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
 	        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
