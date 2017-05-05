@@ -44,10 +44,10 @@ tc.getCss = function(index, da){
 
 // Turbine Correlation
 tc.TurbineCorrelation = function(){
-    app.loading(true);
     fa.LoadData();
     pm.showFilter();
     if(pm.isFirstTurbine() === true){
+        app.loading(true);
         var param = {
             period: fa.period,
             dateStart: fa.dateStart,
