@@ -15,6 +15,8 @@ type TurbineMaster struct {
 	Longitude     float64
 	Elevation     float64
 	CapacityMW    float64
+	TotalTurbine  int
+	Active        bool
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
