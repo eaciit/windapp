@@ -29,8 +29,10 @@
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-body">
+						<div class="date-info" style="margin-left: 5px;">
+	                        <div class="pull-right" data-bind="visible:pg.pageType() == 'HFD'"><a href="#"  onclick="pg.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a></div>
+	                    </div>
 						<div class="col-md-12">
-							<div class="clearfix">&nbsp;</div>
 							<div id="chartTimeSeries"></div>
 							<div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
 							<!-- <div class="col-md-12 zoom-div">

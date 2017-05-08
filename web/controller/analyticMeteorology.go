@@ -44,23 +44,28 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	query := []tk.M{}
+	query, queryMet := []tk.M{}, []tk.M{}
 	pipes := []tk.M{}
 	pipesmet := []tk.M{}
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
-	// query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
 
 	// tk.Println("Date select : ", tStart, " ~ ", tEnd)
+	queryMet = append(queryMet, query...)
+	queryMet = append(queryMet, tk.M{"vhubws90mavg": tk.M{"$gte": 0}})
+	queryMet = append(queryMet, tk.M{"vhubws90mavg": tk.M{"$lte": 30}})
 
-	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": query}})
+	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": queryMet}})
 	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"vhubws90mavg": 1, "timestamp": 1}})
 
 	if p.Project != "" {
 		anProject := strings.Split(p.Project, "(")
 		query = append(query, tk.M{"projectname": strings.TrimRight(anProject[0], " ")})
 	}
+
+	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0}})
+	query = append(query, tk.M{"avgwindspeed": tk.M{"$lte": 30}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "avgwindspeed": 1, "timestamp": 1}})

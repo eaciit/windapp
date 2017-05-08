@@ -232,6 +232,8 @@ bp.PlotData = function(data) {
         var iconStatus = "fa fa-circle fa-project-info fa-green";
         if(val.Status==0) {
             iconStatus = "fa fa-circle fa-project-info fa-red"; // faa-flash animated
+        } else if(val.Status === 1 && val.IsWarning === true) {
+            iconStatus = "fa fa-circle fa-project-info fa-orange";
         }
         if(val.DataComing==0) {
             iconStatus = "fa fa-circle fa-project-info fa-grey";

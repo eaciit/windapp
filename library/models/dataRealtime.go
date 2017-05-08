@@ -1466,6 +1466,7 @@ type TurbineStatus struct {
 	Status        int // 0 : down, 1 : up
 	AlarmCode     int
 	AlarmDesc     string
+	IsWarning     bool
 }
 
 func (m *TurbineStatus) New() *TurbineStatus {

@@ -15,6 +15,7 @@
                 <div class="panel-body">
                     <div class="date-info" style="margin-left: 5px;">
                         Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
+                        <div class="pull-right"><a href="#"  onclick="ma.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a></div>
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <div class="col-md-12">
@@ -28,7 +29,22 @@
                         </div>
                     </div>
                     <div class="col-md-12">
-                        <div id="alarmGrid"></div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li id="alarmTab" role="presentation" class="active"><a href="#alarm" aria-controls="alarm" role="tab" onclick="ma.CreateGrid('alarm')" data-toggle="tab" class="tab-custom">Alarm Down</a></li>
+                            <li id="warningTab" role="presentation"><a href="#warning" aria-controls="warning" role="tab" data-toggle="tab" onclick="ma.CreateGrid('warning')" class="tab-custom">Alarm Warning</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="alarm">
+                                <div>
+                                    <div id="alarmGrid"></div>
+                                </div>
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="warning">
+                                <div>
+                                    <div id="warningGrid"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

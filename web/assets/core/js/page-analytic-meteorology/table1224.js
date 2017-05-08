@@ -174,11 +174,12 @@ tb.refreshTable = function(datatype){
 }
 
 tb.Table = function(){
-    app.loading(true);
+    
     pm.hideFilter();
     fa.LoadData();
     var datatype = '';
     if(pm.isFirstTwelve() === true){
+        app.loading(true);
         if(datatype == undefined || datatype == ''){
             if($("#met").is(':checked')) {
                 datatype = 'met';

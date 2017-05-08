@@ -17,7 +17,7 @@ vm.breadcrumb([
     { title: 'Alarm Data', href: viewModel.appName + 'page/monitoringalarm' }]);
 var intervalTurbine = null;
 
-ma.CreateGrid = function() {
+ma.CreateGrid = function(gridType) {
     app.loading(true);
 
     fa.LoadData();
@@ -40,8 +40,8 @@ ma.CreateGrid = function() {
         $('#turbineList').data('kendoMultiSelect').value([turbine]);
         $('#projectList').data('kendoDropDownList').value(project);
     } else {
-        turbine = $('#turbineList').data('kendoMultiSelect').value();
-        project = $('#projectList').data('kendoDropDownList').value();
+        turbine = fa.turbine;
+        project = fa.project;
     }
 
     var param = {
@@ -49,11 +49,16 @@ ma.CreateGrid = function() {
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
         turbine: turbine,
-        project: project
+        project: project,
+        tipe: gridType,
     };
 
-    $('#alarmGrid').html('');
-    $('#alarmGrid').kendoGrid({
+    var gridName = "#alarmGrid"
+    if(gridType == "warning") {
+        gridName = "#warningGrid"
+    }
+    $(gridName).html('');
+    $(gridName).kendoGrid({
         dataSource: {
             serverPaging: true,
             serverSorting: true,
@@ -195,15 +200,23 @@ ma.checkCompleteDate = function () {
     }
 }
 
+ma.ToByProject = function(){
+    window.location = viewModel.appName + "page/monitoringbyproject";
+}
+
 $(document).ready(function(){
     $('#btnRefresh').on('click', function () {
-        ma.CreateGrid();
+        if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Down") {
+            ma.CreateGrid("alarm");
+        } else {
+            ma.CreateGrid("warning");
+        }
     });
 
     setTimeout(function() {
         $.when(ma.InitDateValue()).done(function () {
             setTimeout(function() {
-                ma.CreateGrid();
+                ma.CreateGrid("alarm");
             }, 100);
         });
     }, 300);

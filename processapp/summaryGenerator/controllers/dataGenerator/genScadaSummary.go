@@ -135,7 +135,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 				power = ipower.(float64)
 			}
 
-			ienergy := data["totalenergy"]
+			ienergy := data["energy"]
 			energy := 0.0
 			if ienergy != nil {
 				energy = ienergy.(float64)

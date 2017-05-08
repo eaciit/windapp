@@ -34,7 +34,7 @@ var SeriesDowntime = [
 
 dt.GenChartDownAlarmComponent = function (tab, dataSource,id,Series,legend,name,axisLabel, vislabel,rotate,heightParam,wParam,format) {
     // var colours = ["#ff880e", "#21c4af", "#f44336","#feb64e","#a2df53", "#69d2e7","#4589b0","#ed5784"];
-    var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c"];
+    var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c","#053872","#b1b2ac","#ffcf49","#605c5c","#b1b2ac","#ffcf49","#605c5c"];
     
     $("#" + id).kendoChart({
         dataSource: {
@@ -133,9 +133,10 @@ dt.GenChartDownAlarmComponent = function (tab, dataSource,id,Series,legend,name,
 }
 
 dt.Downtime = function(){
-    app.loading(true);
+    
     fa.LoadData();
     if(pg.isFirstDowntime() === true){
+        app.loading(true);
         var param = {
             period: fa.period,
             dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
