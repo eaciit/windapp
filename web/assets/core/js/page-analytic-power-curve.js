@@ -825,6 +825,17 @@ $(document).ready(function() {
         Data.InitLinePowerCurve();
     });
 
+    $('#projectList').kendoDropDownList({
+        data: fa.projectList,
+        dataValueField: 'value',
+        dataTextField: 'text',
+        suggest: true,
+        change: function () { 
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+         }
+    });
+
     $('#showDownTime').attr("disabled", "disabled");
     Data.InitDownList();
 });

@@ -49,6 +49,9 @@ page.period = ko.observable();
 page.defaultId = ko.observable();
 page.selectedKeys = ko.observableArray([]);
 
+page.rawproject = ko.observableArray([]);
+page.rawturbine = ko.observableArray([]);
+
 page.views = ko.observableArray([]);
 page.viewList = ko.observableArray([]);
 page.selectedView = ko.observable();

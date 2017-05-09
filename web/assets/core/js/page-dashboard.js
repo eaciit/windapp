@@ -79,8 +79,8 @@ lgd.populateProject = function (data) {
         if (data.length > 0) {
             $.each(data, function (key, val) {
                 var data = {};
-                data.value = val.split("(")[0].trim();
-                data.text = val;
+                data.value = val.Value;
+                data.text = val.Name;
                 datavalue.push(data);
             });
         }

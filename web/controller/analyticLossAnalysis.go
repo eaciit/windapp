@@ -1374,16 +1374,19 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
 	}
 
-	turbines := []string{}
+	turbines := []TurbineOut{}
 	if len(turbine) == 0 {
-		turbines, _ = helper.GetTurbineList(project)
+		turbines, _ = helper.GetTurbineList([]interface{}{project})
 	} else {
 		for _, v := range turbine {
-			turbines = append(turbines, v.(string))
+			turbines = append(turbines, TurbineOut{
+				Project: "",
+				Turbine: v.(string),
+			})
 		}
 	}
 
-	sort.Strings(turbines)
+	// sort.Strings(turbines)
 
 	descs := []string{}
 	mapRes := map[string][]tk.M{}

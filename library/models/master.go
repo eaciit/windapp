@@ -40,6 +40,7 @@ type ProjectMaster struct {
 	TotalPower    float64
 	Latitude      float64
 	Longitude     float64
+	TotalTurbine  int
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -53,4 +54,14 @@ func (m *ProjectMaster) RecordID() interface{} {
 
 func (m *ProjectMaster) TableName() string {
 	return "ref_project"
+}
+
+type TurbineOut struct {
+	Project string
+	Turbine string
+}
+
+type ProjectOut struct {
+	Name  string
+	Value string
 }

@@ -266,5 +266,16 @@ $(document).ready(function() {
     $(".label-filter")[3].remove();
     $(".label-filter")[2].remove();
 
+    $('#projectList').kendoDropDownList({
+        data: fa.projectList,
+        dataValueField: 'value',
+        dataTextField: 'text',
+        suggest: true,
+        change: function () { 
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+         }
+    });
+
     page.LoadData();
 });

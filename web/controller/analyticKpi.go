@@ -127,11 +127,12 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
 	}
 
+	if p.Project != "" {
+		// anProject := strings.Split(p.Project, "(")
+		match.Set("projectname", p.Project) //strings.TrimRight(anProject[0], " "))
+	}
+
 	if rowsBreakdown == "Project" {
-		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
-		}
 		groupId.Set("id1", "$projectname")
 	} else if rowsBreakdown == "Turbine" {
 		if len(p.Turbine) > 0 {
@@ -179,7 +180,13 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		if rowsBreakdown == "Turbine" {
 			totalTurbine = 1.0
 		} else if len(p.Turbine) == 0 {
-			totalTurbine = 24.0
+			if p.Project != "" {
+				pturbines, _ := helper.GetTurbineList([]interface{}{p.Project})
+				totalTurbine = float64(len(pturbines))
+			} else {
+				pturbines, _ := helper.GetTurbineList(nil)
+				totalTurbine = float64(len(pturbines))
+			}
 		} else {
 			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
 		}
@@ -703,7 +710,15 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 				kpiAnalysisResult = append(kpiAnalysisResult, tmpRes)
 			}
 		} else {
-			queryAggr := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).
+			turbineFilter := []*dbox.Filter{}
+
+			if p.Project != "" {
+				turbineFilter = append(turbineFilter, dbox.Eq("project", p.Project))
+			}
+
+			queryAggr := DB().Connection.NewQuery().
+				From(new(TurbineMaster).TableName()).
+				Where(turbineFilter...).
 				Group("turbineid")
 
 			caggr, e := queryAggr.Cursor(nil)

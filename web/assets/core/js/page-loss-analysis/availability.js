@@ -54,6 +54,9 @@ av.SetBreakDown = function () {
     av.breakDown = [];
 
     setTimeout(function () {
+        var project = $('#projectList').data("kendoDropDownList").value();
+        fa.populateTurbine(project);
+        
         $.each(fa.GetBreakDown(), function (i, val) {
             if (val.value == "Turbine" || val.value == "Project") {
                 return false;

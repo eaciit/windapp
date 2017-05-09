@@ -201,6 +201,9 @@ pg.SetBreakDown = function () {
     pg.rowsBreakdownList = [];
 
     setTimeout(function () {
+        var project = $('#projectList').data("kendoDropDownList").value();
+        fa.populateTurbine(project);
+
         if (true) {
             pg.rowsBreakdownList.push({ "value": "Project", "text": "Project" });
         }

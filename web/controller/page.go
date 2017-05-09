@@ -32,7 +32,7 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 
 	if isAnalyst {
 		projectList, _ := helper.GetProjectList()
-		turbineList, _ := helper.GetTurbineList("")
+		turbineList, _ := helper.GetTurbineList(nil)
 
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
