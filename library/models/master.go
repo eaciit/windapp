@@ -6,17 +6,18 @@ import (
 )
 
 type TurbineMaster struct {
-	orm.ModelBase `bson:"-",json:"-"`
-	ID            bson.ObjectId ` bson:"_id" , json:"_id" `
-	TurbineId     string
-	TurbineName   string
-	Project       string
-	Latitude      float64
-	Longitude     float64
-	Elevation     float64
-	CapacityMW    float64
-	TotalTurbine  int
-	Active        bool
+	orm.ModelBase  `bson:"-",json:"-"`
+	ID             bson.ObjectId ` bson:"_id" , json:"_id" `
+	TurbineId      string
+	TurbineName    string
+	Project        string
+	Latitude       float64
+	Longitude      float64
+	Elevation      float64
+	CapacityMW     float64
+	TotalTurbine   int
+	Active         bool
+	TopCorrelation []string
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
