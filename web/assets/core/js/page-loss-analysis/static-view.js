@@ -8,17 +8,17 @@ sv.isGrid = ko.observable(true);
 
 
 sv.refreshView = function(view){
-    app.loading(true);
+    // app.loading(true);
     setTimeout(function(){
         if(view == "gridStatic"){
             $('#lossGrid').data("kendoGrid").refresh();
         }else{
-             $("#staticProductionChart").data("kendoChart").refresh();
-             $("#staticDowntimeChart").data("kendoChart").refresh();
-             $("#staticLossChart").data("kendoChart").refresh();
+             // $("#staticProductionChart").data("kendoChart").refresh();
+             // $("#staticDowntimeChart").data("kendoChart").refresh();
+             // $("#staticLossChart").data("kendoChart").refresh();
         }
-        app.loading(false);
-    },200);
+        // app.loading(false);
+    },500);
 }
 
 sv.getChartView = function(gData){
@@ -27,7 +27,8 @@ sv.getChartView = function(gData){
     }else{
         sv.type = "Turbines";
     }
-    $("#staticProductionChart").replaceWith('<div id="staticProductionChart"></div>');
+
+
     $("#staticProductionChart").kendoChart({
         theme:"flat",
         dataSource: {
@@ -48,8 +49,10 @@ sv.getChartView = function(gData){
             height: 200, 
             margin : 0,
             padding: 0,
+            width: (screen.width * 0.89),
             background: "transparent",
         },
+        plotArea: { margin: 0, padding: 0, height: 200, width: (screen.width * 0.89) },
         series: [{
             field: "Production",
             name: "Production",
@@ -97,7 +100,6 @@ sv.getChartView = function(gData){
         },
     });
 
-    $("#staticDowntimeChart").replaceWith('<div id="staticDowntimeChart"></div>');
     $("#staticDowntimeChart").kendoChart({
         theme:"flat",
         dataSource: {
@@ -119,7 +121,9 @@ sv.getChartView = function(gData){
             margin : 0,
             padding: 0,
             background: "transparent",
+            width: (screen.width * 0.89)
         },
+        plotArea: { margin: 0, padding: 0, height: 200, width: (screen.width * 0.89) },
         seriesDefaults:{
             stack: true,
         },
@@ -175,7 +179,6 @@ sv.getChartView = function(gData){
         },
     });
 
-    $("#staticLossChart").replaceWith('<div id="staticLossChart"></div>');
     $("#staticLossChart").kendoChart({
         theme:"flat",
         dataSource: {
@@ -197,7 +200,9 @@ sv.getChartView = function(gData){
             margin : 0,
             padding: 0,
             background: "transparent",
+            width: (screen.width * 0.89),
         },
+        plotArea: { margin: 0, padding: 0, height: 200, width: (screen.width * 0.89) },
         seriesDefaults:{
             stack: true,
         },
@@ -374,8 +379,9 @@ sv.getGridView = function(gData){
 
 sv.StaticView = function(){
     fa.LoadData();
-    app.loading(true);
+    
     if(pg.isFirstStaticView() === true){
+        app.loading(true);
         var param = {
             period: fa.period,
             dateStart: fa.dateStart,
@@ -394,7 +400,6 @@ sv.StaticView = function(){
             sv.getGridView(gData);
 
         });
-
         $('#availabledatestart').html(pg.availabledatestartscada());
         $('#availabledateend').html(pg.availabledateendscada());
     }else{

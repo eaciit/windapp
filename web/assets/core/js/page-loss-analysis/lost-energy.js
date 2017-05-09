@@ -4,9 +4,10 @@ viewModel.LostEnergy = new Object();
 var le = viewModel.LostEnergy;
 
 le.LossEnergy = function(){
-    app.loading(true);
+    
     fa.LoadData();
     if(pg.isFirstLostEnergy() === true){
+        app.loading(true);
         var paramdown = {
             Period: fa.period,
             DateStart: fa.dateStart,
@@ -54,7 +55,6 @@ le.LossEnergy = function(){
             $("#chartDTLEbyType").data("kendoChart").refresh();
             $("#chartLCByDuration").data("kendoChart").refresh();
             $("#chartLCByFreq").data("kendoChart").refresh();
-            app.loading(false);
         },200)
     }
 }

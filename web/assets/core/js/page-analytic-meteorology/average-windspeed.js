@@ -61,10 +61,10 @@ aw.generateGridAverage = function () {
 }
 
 aw.AverageWindSpeed = function() {
-    app.loading(true);
     pm.showFilter();
     fa.LoadData();
     if(pm.isFirstAverage() === true){
+        app.loading(true);
         var param = {
             period: fa.period,
             Turbine: fa.turbine,

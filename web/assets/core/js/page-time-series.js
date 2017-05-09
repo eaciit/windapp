@@ -921,6 +921,10 @@ pg.ZoomOut = function(){
     chart.xAxis[0].setExtremes(newMin,newMax);
 }
 
+pg.ToByProject = function(){
+    window.location = viewModel.appName + "page/monitoringbyproject";
+}
+
 
 $(document).ready(function () {
     newyAxis = yAxis;

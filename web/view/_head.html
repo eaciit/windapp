@@ -12,7 +12,7 @@
 	var viewModel = { appName: '/web/' };
 </script>
 
-<link rel="shortcut icon" href="{{BaseUrl}}res/img/favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="{{BaseUrl}}res/img/favicon.gif" type="image/gif" />
 <!-- <link rel="icon" href="{{BaseUrl}}res/img/logo.png" type="image/x-icon" /> -->
 
 <!-- ############################ CSS #############################-->
@@ -39,7 +39,7 @@
 <link rel="stylesheet" href="{{BaseUrl}}res/adminLTE/css/AdminLTE.css">
 <link rel="stylesheet" href="{{BaseUrl}}res/adminLTE/css/skins/_all-skins.min.css">
 <!-- <link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout.css" /> -->
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout2.css" />
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout2.css?ANTI_CACHE={{.AntiCache}}" />
 <link rel="stylesheet" href="{{BaseUrl}}res/core/css/font-awesome-animation.min.css" />
 <link rel="stylesheet" href="{{BaseUrl}}res/core/css/ec-cegete.css" />
 
@@ -120,7 +120,7 @@
 
 {{.}}
 <!-- core -->
-<script src="{{BaseUrl}}res/core/js/app.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/app.js?ANTI_CACHE={{.AntiCachegit}}"></script>
 <script src="{{BaseUrl}}res/core/js/layout.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/kendochart2grid.js"></script>
 <!-- Ionicons -->

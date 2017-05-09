@@ -8,10 +8,26 @@
     to   { background: default; }
 }
 
+.onTop{
+    z-index: 10;
+}
+.value-div{
+  margin-top: 50.5px;
+  margin-left: 20px;
+}
+.value-group{
+  margin-top: 22px;
+  padding-left: 20px;
+}
 .color-base.active>span {
     color: #fff !important;
 }
-
+.margintop30{
+  margin-top: 30px;
+}
+.marginbottom20{
+  margin-bottom: 20px;
+}
 .btn{
   font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
 }
@@ -250,7 +266,7 @@ label.summary-number {
 .turbine-pic-part {
     text-align: center;
     padding-left: 20px;
-    margin-top: 0px;
+    /*margin-top: 30px;*/
     margin-left: -10px;
     margin-right: 10px;
 }
@@ -430,6 +446,10 @@ h4.content-heading {
 }
 .link-detail:hover{
     cursor: pointer;
+    /*background: #ddd !important;*/
+}
+.fa-project-info:hover, .linked:hover {
+    color: #3c8dbc !important;
 }
 
 .span-legend {
@@ -560,7 +580,7 @@ h4.content-heading {
 }
 
 .live-chart-div{
-  margin-top: -25px;
+  margin-top: -5px;
   margin-bottom: 10px;
   margin-left: -20px;
 }

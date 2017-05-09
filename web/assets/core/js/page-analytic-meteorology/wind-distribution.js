@@ -224,10 +224,11 @@ wd.showHideLegend = function (idx) {
 }
 
 wd.WindDis = function(){
-    app.loading(true);
+    
     fa.LoadData();
     pm.showFilter();
     if(pm.isFirstWindDis() === true){
+        app.loading(true);
         wd.populateTurbine();
         wd.ChartWindDistributon();
         $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');

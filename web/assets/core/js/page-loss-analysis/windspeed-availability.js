@@ -4,9 +4,9 @@ viewModel.WindspeedAvailability = new Object();
 var wa = viewModel.WindspeedAvailability;
 
 wa.WindSpeed = function(){
-    app.loading(true);
     fa.LoadData()
     if(pg.isFirstWindSpeed() === true){
+        app.loading(true);
         var param = {
             period: fa.period,
             dateStart: fa.dateStart,
@@ -141,7 +141,7 @@ wa.WindSpeed = function(){
             $('#availabledatestart').html(pg.availabledatestartscada2());
             $('#availabledateend').html(pg.availabledateendscada2());
             $("#windAvailabilityChart").data("kendoChart").refresh();
-            app.loading(false);
+            // app.loading(false);
         },200);
     } 
 }
