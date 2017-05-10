@@ -119,14 +119,12 @@ pc.populateTurbine = function (selected) {
         // allturbine.text = "All Turbines";
         // datavalue.push(allturbine);
 
+        if (selected==""){
+            selected = "Tejuva";
+        }
+        
         $.each(pc.rawturbine(), function (key, val) {
-            if (selected == "") {
-                var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
-                datavalue.push(data);
-                dataturbine.push(val);
-            }else if (selected == val.Project){
+            if (selected == val.Project){
                 var data = {};
                 data.value = val.Turbine;
                 data.text = val.Turbine;
@@ -138,10 +136,10 @@ pc.populateTurbine = function (selected) {
         pc.turbine(dataturbine);
     }
 
-    // setTimeout(function () {
-    //     // $('#turbineList1').data('kendoDropDownList').value(["All Turbine"])
-    //     // $('#turbineList2').data('kendoDropDownList').value(["All Turbine"])
-    // }, 50);
+    setTimeout(function () {
+        $('#turbineList1').data('kendoDropDownList').select(0);
+        $('#turbineList2').data('kendoDropDownList').select(0);
+    }, 50);
 };
 
 pc.populateProject = function (selected) {
@@ -536,7 +534,16 @@ $(document).ready(function () {
         }, 300);
     });
 
+    $('#projectList1').kendoDropDownList({
+        change: function () { 
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            pc.populateTurbine(project);
+         }
+    });
+
     app.loading(true);
     pc.InitDefaultValue();
-    pc.initChart();
+    setTimeout(function() {
+        pc.initChart();
+    }, 200);
 });
