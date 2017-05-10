@@ -120,7 +120,7 @@ pc.populateTurbine = function (selected) {
         // datavalue.push(allturbine);
 
         if (selected==""){
-            selected = "Tejuva";
+            selected = pc.rawproject()[0].Value;
         }
         
         $.each(pc.rawturbine(), function (key, val) {

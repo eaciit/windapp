@@ -1889,7 +1889,15 @@ func getLossCategoriesTop(topType string, p *PayloadDashboard) (result []tk.M) {
 func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 	var fromDate time.Time
 	match := tk.M{}
-	totalTurbine := 24.0
+	var turbineList []TurbineOut
+	if p.ProjectName != "Fleet" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{p.ProjectName})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+	totalTurbine := float64(len(turbineList))
+
+	log.Printf(">>> %v \n", totalTurbine)
 
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
@@ -2034,7 +2042,13 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 	var fromDate time.Time
 	match := tk.M{}
 	// total turbine should follow projects, for now it's hardcoded
-	totalTurbine := 24.0
+	var turbineList []TurbineOut
+	if p.ProjectName != "Fleet" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{p.ProjectName})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+	totalTurbine := float64(len(turbineList))
 
 	p.Date, _ = time.Parse("2006-01-02 15:04:05", p.Date.UTC().Format("2006-01")+"-01"+" 00:00:00")
 

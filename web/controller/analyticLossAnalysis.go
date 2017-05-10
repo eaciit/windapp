@@ -956,7 +956,13 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 		if breakDown == "Turbine" {
 			totalTurbine = 1.0
 		} else if len(turbine) == 0 {
-			totalTurbine = 24.0
+			var turbineList []TurbineOut
+			if project != "" {
+				turbineList, _ = helper.GetTurbineList([]interface{}{project})
+			} else {
+				turbineList, _ = helper.GetTurbineList(nil)
+			}
+			totalTurbine = float64(len(turbineList))
 		} else {
 			totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
 		}

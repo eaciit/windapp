@@ -145,7 +145,7 @@ page.checkTurbine = function (id) {
 
 page.populateProject = function (id) {
 	setTimeout(function () {
-		$("#projectList-" + id).data("kendoDropDownList").value("Tejuva");
+		$("#projectList-" + id).data("kendoDropDownList").value(page.rawproject()[0].Value);
 		page.project = $("#projectList-" + id).data("kendoDropDownList").value();
 	}, 500);
 };
@@ -559,7 +559,7 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 
 		$(".filter-form").append(formFilter);
 
-		page.populateProjectX("Tejuva", id);
+		page.populateProjectX(page.rawproject()[0].Value, id);
 
 		$("#projectList-" + id).kendoDropDownList({
 			dataValueField: 'value',

@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"strings"
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -43,11 +42,7 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 	breakDown := p.BreakDown
 	duration := tEnd.Sub(tStart).Hours() / 24
 
@@ -142,9 +137,15 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, totalTurbine, hourValue float64
 
 			if len(turbine) == 0 {
-				totalTurbine = 24.0
+				var turbineList []TurbineOut
+				if project != "" {
+					turbineList, _ = helper.GetTurbineList([]interface{}{project})
+				} else {
+					turbineList, _ = helper.GetTurbineList(nil)
+				}
+				totalTurbine = float64(len(turbineList))
 			} else {
-				totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
+				totalTurbine = float64(len(turbine))
 			}
 
 			minDate := val.Get("mindate").(time.Time)
