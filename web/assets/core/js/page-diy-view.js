@@ -18,4 +18,11 @@ $(document).ready(function () {
         fa.LoadData();
     }, 1000);
     app.loading(false);
+
+    $('#projectList').kendoDropDownList({
+		change: function () {  
+			var project = $('#projectList').data("kendoDropDownList").value();
+			fa.populateTurbine(project);
+		}
+	});
 });

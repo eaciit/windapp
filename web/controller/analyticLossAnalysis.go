@@ -48,11 +48,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
@@ -227,11 +223,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 	breakDown := p.BreakDown
 
 	filter = append(filter, dbox.Ne("_id", ""))
@@ -526,8 +518,7 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 		}
 
 		if len(p.Turbine) != 0 {
@@ -639,8 +630,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 		}
 
 		if len(p.Turbine) != 0 {
@@ -845,8 +835,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 		}
 
 		if len(p.Turbine) != 0 {
@@ -1032,11 +1021,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebConte
 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
@@ -1148,11 +1133,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Filter.Turbine
-	project := ""
-	if p.Filter.Project != "" {
-		anProject := strings.Split(p.Filter.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Filter.Project
 
 	categorywindspeed := []string{}
 	valuewindspeed := []float64{}
@@ -1162,7 +1143,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-	if len(project) > 0 {
+	if project != "" {
 		match.Set("projectname", project)
 	}
 	if len(turbine) > 0 {
@@ -1209,7 +1190,12 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 	}
 
 	for i := 0; i < len(valuewindspeed); i++ {
-		valuewindspeed[i] = float64(int((valuewindspeed[i]/totalData*100)*100)) / 100
+		value := float64(int((valuewindspeed[i]/totalData*100)*100)) / 100
+		if value < 0 {
+			valuewindspeed[i] = 0
+		} else {
+			valuewindspeed[i] = value
+		}
 	}
 
 	data := tk.M{
@@ -1238,11 +1224,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Filter.Turbine
-	project := ""
-	if p.Filter.Project != "" {
-		anProject := strings.Split(p.Filter.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Filter.Project
 
 	categoryproduction := []string{}
 	valueproduction := []float64{}
@@ -1252,7 +1234,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-	if len(project) > 0 {
+	if project != "" {
 		match.Set("projectname", project)
 	}
 	if len(turbine) > 0 {
@@ -1299,7 +1281,12 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	}
 
 	for i := 0; i < len(valueproduction); i++ {
-		valueproduction[i] = float64(int((valueproduction[i]/totalData*100)*100)) / 100
+		value := float64(int((valueproduction[i]/totalData*100)*100)) / 100
+		if value < 0 {
+			valueproduction[i] = 0
+		} else {
+			valueproduction[i] = value
+		}
 	}
 
 	data := tk.M{
@@ -1325,11 +1312,7 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 	/*tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	match := tk.M{}
 	match.Set("dateinfostart.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))

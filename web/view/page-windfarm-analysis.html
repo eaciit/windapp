@@ -1,7 +1,7 @@
 <script>
     var availableDate = {{.AvailableDate}};
 
-    var projects = ['Tejuva'];//{{.ProjectList}};
+    var projects = {{.ProjectList}};
     var turbines = {{.TurbineList}};
     turbines.unshift("All Turbines");
 
@@ -45,6 +45,9 @@
                             style="width:320px">
                         </select>
                     </div>
+                    &nbsp;&nbsp;
+                    <div class="search-btn-line">&nbsp;</div>
+                    <button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
                 </div>
             </div>
         </div>

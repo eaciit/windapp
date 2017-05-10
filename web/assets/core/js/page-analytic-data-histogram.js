@@ -331,6 +331,16 @@ $(document).ready(function () {
         e.preventDefault();
     });
 
+    $('#projectList').kendoDropDownList({
+		change: function () {  
+			var project = $('#projectList').data("kendoDropDownList").value();
+			fa.populateTurbine(project);
+            setTimeout(function() {
+                $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+            }, 100);
+		}
+	});
+
     setTimeout(function () {
         if(fa.turbineList().length > 1){
             $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);

@@ -140,4 +140,9 @@ $(function () {
 			fa.populateTurbine(project);
 		}
 	});
+
+	setTimeout(function() {
+		$('#projectList').data("kendoDropDownList").dataSource.remove($('#projectList').data("kendoDropDownList").dataSource.data()[0]);
+		$('#projectList').data("kendoDropDownList").select(0);
+	}, 100);
 });
