@@ -180,6 +180,8 @@ km.setBreakDown = function () {
 	km.breakdownList = [];
 
 	setTimeout(function () {
+		var project = $('#projectList').data("kendoDropDownList").value();
+        fa.populateTurbine(project);
 		/*$.each(fa.GetBreakDown(), function (i, val) {
 			km.breakdownList.push(val);
 		});*/

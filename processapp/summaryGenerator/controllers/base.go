@@ -81,7 +81,8 @@ func (b *BaseController) PrepareDataReff() {
 	for _, t := range turbines {
 		b.RefTurbines.Set(t.TurbineId, tk.M{}.
 			Set("turbinename", t.TurbineName).
-			Set("turbineelevation", t.Elevation))
+			Set("turbineelevation", t.Elevation).
+			Set("topcorrelation", t.TopCorrelation))
 	}
 
 	tk.Printf("Turbines: %v \n", len(turbines))
@@ -432,7 +433,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 	if e != nil {
 		return nil, e
 	}
-	tk.Println("DB Connect...\n")
+	tk.Println("DB Connect ", config["host"], " : ", config["database"], " \n")
 	return c, nil
 }
 

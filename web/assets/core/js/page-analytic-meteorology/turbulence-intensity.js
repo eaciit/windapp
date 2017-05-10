@@ -196,7 +196,7 @@ var ti = {
 	showHideLegend: function(idx){
 	    $('#chk-' + idx).trigger('click');
 	    var chart = $("#chartTI").data("kendoChart");
-	    var leTur = $('input[id*=chk-][type=checkbox]').length
+	    var leTur = $('input[id*=chk-][type=checkbox]').length;
 
 	    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
 	        $('#showHideAllturbulence').prop('checked', true);
@@ -218,25 +218,29 @@ var ti = {
 	    $("#chartTI").data("kendoChart").redraw();
 	},
 	InitRightList: function(){
+		$("#right-turbine-turbulence").html("");
 
-	    if (pm.ChartSeriesturbulence().length > 1) {
-	        $("#showHideChkturbulence").html('<label style="padding-left: 1%;">' +
-	            '<input type="checkbox" id="showHideAllturbulence" checked onclick="ti.showHideAllLegend(this)" >' +
-	            '<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>' +
-	            '<span id="labelShowHide"><b>Select All</b></span>' +
-	            '</label>');
-	    } else {
-	        $("#showHideChk").html("");
-	    }
+		if (pm.ChartSeriesturbulence()!=null){
+			if (pm.ChartSeriesturbulence().length > 1) {
+				$("#showHideChkturbulence").html('<label style="padding-left: 1%;">' +
+					'<input type="checkbox" id="showHideAllturbulence" checked onclick="ti.showHideAllLegend(this)" >' +
+					'<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>' +
+					'<span id="labelShowHide"><b>Select All</b></span>' +
+					'</label>');
+			} else {
+				$("#showHideChk").html("");
+			}
 
-	    $("#right-turbine-turbulence").html("");
-	    $.each(pm.ChartSeriesturbulence(), function (idx, val) {
+			$.each(pm.ChartSeriesturbulence(), function (idx, val) {
 	        $("#right-turbine-turbulence").append('<div class="btn-group">' +
-	            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="ti.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
-	            '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + (idx) + '" hidden>' +
-	            '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="ti.showHideLegend(' + (idx) + ')" type="button">' + val.name + '</button>' +
-	            '</div>');
-	    });
+				'<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="ti.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
+				'<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + (idx) + '" hidden>' +
+				'<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="ti.showHideLegend(' + (idx) + ')" type="button">' + val.name + '</button>' +
+				'</div>');
+			});
+		} else {
+			$("#showHideChk").html("");
+		}
 	},
 	ChartConfig: function(data, chartSeries) {
 		var colors = [];

@@ -6,15 +6,18 @@ import (
 )
 
 type TurbineMaster struct {
-	orm.ModelBase `bson:"-",json:"-"`
-	ID            bson.ObjectId ` bson:"_id" , json:"_id" `
-	TurbineId     string
-	TurbineName   string
-	Project       string
-	Latitude      float64
-	Longitude     float64
-	Elevation     float64
-	CapacityMW    float64
+	orm.ModelBase  `bson:"-",json:"-"`
+	ID             bson.ObjectId ` bson:"_id" , json:"_id" `
+	TurbineId      string
+	TurbineName    string
+	Project        string
+	Latitude       float64
+	Longitude      float64
+	Elevation      float64
+	CapacityMW     float64
+	TotalTurbine   int
+	Active         bool
+	TopCorrelation []string
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
@@ -38,6 +41,7 @@ type ProjectMaster struct {
 	TotalPower    float64
 	Latitude      float64
 	Longitude     float64
+	TotalTurbine  int
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -51,4 +55,14 @@ func (m *ProjectMaster) RecordID() interface{} {
 
 func (m *ProjectMaster) TableName() string {
 	return "ref_project"
+}
+
+type TurbineOut struct {
+	Project string
+	Turbine string
+}
+
+type ProjectOut struct {
+	Name  string
+	Value string
 }

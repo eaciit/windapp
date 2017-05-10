@@ -358,10 +358,18 @@ wfa.showFilter = function(project, turbine1, turbine2, id){
 
 // initiate value for projects & turbines
 $.each(projects, function(idx, val) {
-	wfa.ProjectList.push(addOption(val));
+    var data = {};
+    data.value = val.Value;
+    data.text = val.Name;
+    wfa.ProjectList.push(data);
+	// wfa.ProjectList.push(addOption(val));
 });
 $.each(turbines, function(idx, val) {
-	wfa.TurbineList.push(addOption(val));
+    var data = {};
+    data.value = val.Turbine;
+    data.text = val.Turbine;
+    wfa.TurbineList.push(data);
+	// wfa.TurbineList.push(addOption(val));
 });
 
 vm.currentMenu('Wind Farm Analysis');
@@ -381,6 +389,10 @@ $(document).ready(function(){
 	// });
 
 	wfa.LoadData();
+
+    /*$('#btnRefresh').click(function(){
+        wfa.LoadData();
+    });*/
 });
 
 

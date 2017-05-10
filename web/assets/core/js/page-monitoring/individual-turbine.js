@@ -29,8 +29,8 @@ it.populateProject = function (data) {
         if (data.length > 0) {
             $.each(data, function (key, val) {
                 var data = {};
-                data.value = val.split("(")[0].trim();
-                data.text = val;
+                data.value = val.Value;
+                data.text = val.Name;
                 datavalue.push(data);
             });
         }
@@ -53,11 +53,11 @@ it.populateTurbine = function (project, turbine, isChange) {
         if (turbine.length > 0) {
             it.allTurbineList = turbine;
             $.each(turbine, function (key, val) {
-                if(val.project == project[0].split("(")[0].trim()) {
+                if(val.Project == project) {
                     var data = {};
-                    data.Id = val.turbineid;
-                    data.Lat = val.latitude;
-                    data.Lon = val.longitude;
+                    data.Id = val.Turbine;
+                    // data.Lat = val.latitude;
+                    // data.Lon = val.longitude;
                     turbinevalue.push(data);
                 }
             });
@@ -493,7 +493,7 @@ it.ShowData = function() {
         project = $('#projectList').data('kendoDropDownList').value();
     }
 
-    it.LoadData(turbine);
+    // it.LoadData(turbine);
     it.GetData(project, turbine);
     
     $.when(it.showWindRoseChart()).done(function () {
@@ -860,6 +860,8 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
-    it.ShowData();
-    intervalTurbine = window.setInterval(it.ShowData, 6000);
+    setTimeout(function() {
+        it.ShowData();
+        intervalTurbine = window.setInterval(it.ShowData, 6000);
+    }, 600);
 });

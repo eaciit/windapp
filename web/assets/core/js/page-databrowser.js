@@ -816,4 +816,11 @@ $(document).ready(function() {
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
     }, 1000);
+
+    $('#projectList').kendoDropDownList({
+		change: function () {  
+			var project = $('#projectList').data("kendoDropDownList").value();
+			fa.populateTurbine(project);
+		}
+	});
 });

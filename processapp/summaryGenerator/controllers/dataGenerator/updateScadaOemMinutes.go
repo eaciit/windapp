@@ -6,6 +6,7 @@ import (
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"math"
 	"os"
+	// "sort"
 	"strings"
 	"sync"
 	"time"
@@ -41,7 +42,7 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 		// #faisal
 		// get latest scadadata from scadadata and put condition to get the scadadataoem based on latest scadadata
 		// put some match condition here
-
+		// tk.Println(d.BaseController.RefTurbines)
 		for turbine, _ := range d.BaseController.RefTurbines {
 			filter := []*dbox.Filter{}
 			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
@@ -108,6 +109,9 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 
 	turbines := u.BaseController.RefTurbines.Get(turbine)
 
+	turbineinfo := u.BaseController.RefTurbines.Get(turbine, tk.M{}).(tk.M)
+	topcorrel := turbineinfo.Get("topcorrelation", []string{}).([]string)
+
 	power := data.AI_intern_ActivPower
 	energy := tk.Div(power, 6)
 
@@ -130,8 +134,10 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 
 	density := pH / (287.05 * (273.15 + temperature))
 
-	avgWs := data.AI_intern_WindSpeed
+	// avgWs := data.AI_intern_WindSpeed
+	avgWs := getAvgWsForLostEnergy("Tejuva", turbine, topcorrel, data.AI_intern_WindSpeed, data.TimeStamp, ctx.Connection)
 	adjWs := tk.RoundingDown64(avgWs, 1)
+	// tk.Println(data.AI_intern_WindSpeed, " - ", avgWs, " - ", adjWs)
 	pcValue, _ := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", avgWs)
 	pcValueAdj, _ := GetPowerCurveCubicInterpolation(ctx.Connection, "Tejuva", adjWs)
 	pcDeviation := pcValue - power
@@ -265,8 +271,11 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 		perfIndex = tk.Div(data.AI_intern_ActivPower, denPower)
 	}
 
-	retadjws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
-	retavgws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
+	// retadjws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
+	// retavgws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
+	//for PC
+	retadjws := tk.RoundingAuto64(avgWs, 0)
+	retavgws := avgWs
 
 	e := ctx.Connection.NewQuery().Update().From(new(ScadaDataOEM).TableName()).
 		Where(dbox.Eq("_id", data.ID)).
@@ -305,3 +314,162 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 		tk.Printf("Update fail: %s", e.Error())
 	}
 }
+
+//================================================
+//=== GET AvgWindSpeed for Lost Energy Calculation
+
+func getAvgWsForLostEnergy(project, turbine string, topcorrel []string, oemavgws float64, itime time.Time, ctx dbox.IConnection) (iavgws float64) {
+	iavgws = 0
+
+	if oemavgws >= 0 && oemavgws <= 50 {
+		iavgws = oemavgws
+		return
+	}
+
+	itopcorrel := []interface{}{}
+	for _, str := range topcorrel {
+		itopcorrel = append(itopcorrel, str)
+	}
+
+	csroem, err := ctx.NewQuery().
+		Select("timestamp", "turbine", "ai_intern_windspeed").
+		From(new(ScadaDataOEM).TableName()).
+		Where(dbox.And(dbox.Eq("projectname", project),
+			dbox.Eq("timestamp", itime),
+			dbox.In("turbine", itopcorrel...),
+			dbox.Lte("ai_intern_windspeed", 50),
+			dbox.Gte("ai_intern_windspeed", 0))).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csroem.Close()
+
+	allres := tk.M{}
+	for {
+		trx := new(ScadaDataOEM)
+		e := csroem.Fetch(trx, 1, false)
+		if e != nil {
+			break
+		}
+
+		if trx.AI_intern_WindSpeed > 0 && trx.AI_intern_WindSpeed < 50 {
+			allres.Set(trx.Turbine, trx.AI_intern_WindSpeed)
+		}
+	}
+
+	for _, key := range topcorrel {
+		if allres.Has(key) {
+			iavgws = allres.GetFloat64(key)
+			break
+		}
+	}
+
+	if iavgws > 0 && iavgws <= 50 {
+		return
+	}
+
+	csr, err := ctx.NewQuery().
+		Select("vhubws90mavg").
+		From("MetTower").
+		Where(dbox.Eq("timestamp", itime)).
+		Cursor(nil)
+	if err == nil && csr.Count() > 0 {
+		_tkm := tk.M{}
+		err = csr.Fetch(&_tkm, 1, false)
+		if err == nil {
+			iavgws = _tkm.GetFloat64("vhubws90mavg")
+		}
+	}
+
+	if err == nil {
+		csr.Close()
+	}
+
+	return
+}
+
+/* First Logic
+func (u *UpdateScadaOemMinutes) getAvgWsForLostEnergy(project, turbine string, oemavgws float64, itime time.Time) (iavgws float64) {
+	iavgws = 0
+
+	if oemavgws >= 0 && oemavgws <= 50 {
+		iavgws = oemavgws
+		return
+	}
+
+	csr, err := u.Ctx.Connection.NewQuery().
+		Select("vhubws90mavg").
+		From("MetTower").
+		Where(dbox.Eq("timestamp", itime)).
+		Cursor(nil)
+	if err == nil && csr.Count() > 0 {
+		_tkm := tk.M{}
+		err = csr.Fetch(&_tkm, 1, false)
+		if err == nil {
+			iavgws = _tkm.GetFloat64("vhubws90mavg")
+		}
+	}
+
+	if err == nil {
+		csr.Close()
+	}
+
+	if iavgws > 0 && iavgws <= 50 {
+		return
+	}
+
+	//GetCorrelWs
+	csroem, err := u.Ctx.Connection.NewQuery().
+		Select("timestamp", "turbine", "ai_intern_windspeed").
+		From(new(ScadaDataOEM).TableName()).
+		Where(dbox.And(dbox.Eq("projectname", project), dbox.Lte("timestamp", itime), dbox.Gte("timestamp", itime.AddDate(0, 0, -1)))).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csroem.Close()
+
+	allres, _tturbine, bcorrelval := tk.M{}, tk.M{}, float64(-2)
+	ikey := itime.Format("20060102150405")
+
+	for {
+		trx := new(ScadaDataOEM)
+		e := csroem.Fetch(trx, 1, false)
+		if e != nil {
+			break
+		}
+
+		dkey := trx.TimeStamp.Format("20060102150405")
+
+		_tkm := allres.Get(trx.Turbine, tk.M{}).(tk.M)
+		if trx.AI_intern_WindSpeed != -99999.0 {
+			_tkm.Set(dkey, trx.AI_intern_WindSpeed)
+		}
+
+		allres.Set(trx.Turbine, _tkm)
+		_tturbine.Set(trx.Turbine, 1)
+	}
+
+	for _turbine, _ := range _tturbine {
+		if turbine == _turbine {
+			continue
+		}
+
+		_dt01 := allres.Get(turbine, tk.M{}).(tk.M)
+		_dt02 := allres.Get(_turbine, tk.M{}).(tk.M)
+
+		if len(_dt01) > 0 && len(_dt02) > 0 && _dt02.Has(ikey) {
+			_icorrel := GetCorrelation(_dt01, _dt02)
+			if _icorrel > bcorrelval {
+				iavgws = _dt02.GetFloat64(ikey)
+			}
+		}
+	}
+
+	return
+}
+*/
+
+//================================================
+//================================================

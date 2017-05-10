@@ -54,9 +54,22 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	breakDown := p.Misc.GetString("breakdown")
 	// duration := p.Misc.GetInt("duration")
 	turbineCount := p.Misc.GetInt("totalturbine")
-	if turbineCount == 0 {
-		turbineCount = 24
+	projectName := ""
+
+	if len(p.Filter.Filters) > 3 {
+		projectName = p.Filter.Filters[3].Value.(string)
 	}
+
+	if turbineCount == 0 {
+		var turbineList []TurbineOut
+		if projectName != "" {
+			turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
+		} else {
+			turbineList, _ = helper.GetTurbineList(nil)
+		}
+		turbineCount = len(turbineList)
+	}
+
 	categories := []string{}
 
 	var maxKey1, maxKey2, minKey2 float64
@@ -331,7 +344,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						catTitle = "Year"
 					}
 				} else if strings.Contains(breakDown, "project") {
-					categories = append(categories, "Tejuva")
+					categories = append(categories, projectName)
 					catTitle = "Project"
 				} else if strings.Contains(breakDown, "turbine") {
 					temp := p.Filter.Filters[2].Value.([]interface{})

@@ -45,8 +45,8 @@ bp.populateProject = function (data) {
         if (data.length > 0) {
             $.each(data, function (key, val) {
                 var data = {};
-                data.value = val;
-                data.text = val;
+                data.value = val.Value;
+                data.text = val.Name;
                 datavalue.push(data);
             });
         }

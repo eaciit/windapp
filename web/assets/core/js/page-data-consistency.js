@@ -158,4 +158,11 @@ $(function(){
         pg.resetStatus();
         $('.nav').find('li.active').find('a').trigger( "click" );
     });
+
+    $('#projectList').kendoDropDownList({
+        change: function () {  
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
+    });
 })

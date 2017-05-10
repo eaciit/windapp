@@ -59,44 +59,48 @@ page.createView = function(){
 
 	$.each(page.dataAvail(), function(key, value){
 		var progressData = "";
-		$.each(value.Data, function(i, val){
-			progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
-			
-		});
-
-		var icon = "";
-		if(value.Turbine.length > 0){
-			icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
-		} 
-		var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
-						'<td>'+icon+'</td>'+
-					    '<td class="border-right"><strong>'+value.Category+'</strong></span></td>'+
-						'<td colspan='+colspan+'>'+
-					            '<div class="progress">'+progressData+'</div>'+
-					    '</td>'+
-					 '</tr>';
-
-
-		$.each(value.Turbine, function(index, res){
-			var progressDataDetails = "";
-
-			$.each(res.details, function(idx, result){
-				progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
+		if (value!=null){
+			$.each(value.Data, function(i, val){
+				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
 				
 			});
 
-			 var details = '<tr class="collapse details row'+key+'">'+
-			 	'<td></td>'+
-			    '<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
-				'<td colspan='+colspan+'>'+
-			            '<div class="progress">'+progressDataDetails+'</div>'+
-			    '</td>'+
-			 '</tr>';
+			var icon = "";
+			if(value.Turbine.length > 0){
+				icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
+			} 
+			var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
+							'<td>'+icon+'</td>'+
+							'<td class="border-right"><strong>'+value.Category+'</strong></span></td>'+
+							'<td colspan='+colspan+'>'+
+									'<div class="progress">'+progressData+'</div>'+
+							'</td>'+
+						'</tr>';
 
-			 master += details;
 
-		});
-	 	$("#tableContent").append(master);
+			$.each(value.Turbine, function(index, res){
+				var progressDataDetails = "";
+
+				$.each(res.details, function(idx, result){
+					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
+					
+				});
+
+				var details = '<tr class="collapse details row'+key+'">'+
+					'<td></td>'+
+					'<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
+					'<td colspan='+colspan+'>'+
+							'<div class="progress">'+progressDataDetails+'</div>'+
+					'</td>'+
+				'</tr>';
+
+				master += details;
+
+			});
+			$("#tableContent").append(master);
+		}
+
+		
 	});
 
 	$('.collapse').on('shown.bs.collapse', function(){
@@ -129,4 +133,16 @@ $(function () {
 		app.prepareTooltipster();
         app.loading(false);    
     }, 500);
+
+	$('#projectList').kendoDropDownList({
+		change: function () {  
+			var project = $('#projectList').data("kendoDropDownList").value();
+			fa.populateTurbine(project);
+		}
+	});
+
+	setTimeout(function() {
+		$('#projectList').data("kendoDropDownList").dataSource.remove($('#projectList').data("kendoDropDownList").dataSource.data()[0]);
+		$('#projectList').data("kendoDropDownList").select(0);
+	}, 100);
 });
