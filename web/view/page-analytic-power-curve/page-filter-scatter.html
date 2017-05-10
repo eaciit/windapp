@@ -7,9 +7,9 @@
 	}
 </style>
 <div class="row" id="filter-analytic">
-	<div class="col-md-12 col-sm-12 ez panel-content">
-		<div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
-			<div class="col-md-12 col-sm-12 filter-content">
+	<div class="col-md-12 filter-section">
+	    <div class="nav nav-pills nav-replace-title" role="tablist">
+	       <div class="col-md-12 col-sm-12 filter-content">
 				<label class="label-filters">Project</label>
 				<select class="project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: fa.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }">
                 </select>&nbsp;
@@ -27,6 +27,6 @@
 				<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
 				<span class="incomplete-icon" data-bind="visible: fa.infoPeriodIcon() == true"><i class="fa fa-bell tooltipster tooltipstered faa-tada animated" title="Incomplete period data range" aria-hidden="true"></i></span>
 			</div>
-		</div>
+	    </div>
 	</div>
 </div>

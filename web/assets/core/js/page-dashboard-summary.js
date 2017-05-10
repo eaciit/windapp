@@ -186,7 +186,7 @@ sum.PLF = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
         },
         categoryAxis: {
@@ -263,7 +263,7 @@ sum.LostEnergy = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             }
         },
         categoryAxis: {
@@ -353,7 +353,7 @@ sum.Windiness = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             }
         },
         categoryAxis: {
@@ -440,7 +440,7 @@ sum.ProdMonth = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
             labels: {
                 step: 2,
@@ -534,7 +534,7 @@ sum.AvailabilityChart = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
         },
         categoryAxis: {
@@ -636,7 +636,7 @@ sum.ProdCurLast = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
             name: "production",
         }, {
@@ -646,7 +646,7 @@ sum.ProdCurLast = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
             labels: {
                 format: "{0}%",
@@ -810,7 +810,7 @@ sum.ProductionChart = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             }
             //  majorUnit: 3,
             //     line: {
@@ -902,7 +902,7 @@ sum.CumProduction = function (dataSource) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
             labels: {
                 step: 2,
@@ -1011,7 +1011,7 @@ sum.DetailProd = function (e) {
                 majorGridLines: {
                     visible: true,
                     color: "#eee",
-                    width: 0.8,
+                    width: 0,
                 },
             },
             categoryAxis: {
@@ -1123,7 +1123,7 @@ sum.DetailProdByProject = function (e, month, data) {
             majorGridLines: {
                 visible: true,
                 color: "#eee",
-                width: 0.8,
+                width: 0,
             },
         },
         categoryAxis: {

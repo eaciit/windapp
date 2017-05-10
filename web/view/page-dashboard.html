@@ -8,24 +8,24 @@
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-dashboard.css">
 
 <div class="row">
-	<div class="col-md-12" style="padding-left: 10px;" data-bind="visible:vm.isDashboard">
+	<div class="col-md-12 filter-section" data-bind="visible:vm.isDashboard">
 		<ul class="nav nav-pills nav-replace-title" role="tablist">
+			<div class="inline-tab">&nbsp;</div>
+			<li role="presentation" class="active tab-summary dashboard-tab">
+				<a role="tab" data-toggle="tab" id="tabSummary">Summary</a>
+			</li>
+			<li role="presentation" class="tab-production dashboard-tab">
+				<a role="tab" data-toggle="tab" id="tabProduction">Production</a>
+			</li>
+			<li role="presentation" class="tab-downtime">
+				<a role="tab" data-toggle="tab" id="tabAvailability">Availability</a>
+			</li>
 			<li>
 				<div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
 					<div class="width-full">
 						<select type="text" id="projectId" class="dropdownFilter" data-bind="kendoDropDownList: { value: lgd.projectName, data: lgd.projectList, dataTextField: 'text', dataValueField: 'value', change:lgd.LoadData, suggest: true}"></select>
 					</div>
 				</div>
-			</li>
-			<div class="inline-tab">&nbsp;</div>
-			<li role="presentation" class="active tab-summary">
-				<a role="tab" data-toggle="tab" id="tabSummary">Summary</a>
-			</li>
-			<li role="presentation" class="tab-production">
-				<a role="tab" data-toggle="tab" id="tabProduction">Production</a>
-			</li>
-			<li role="presentation" class="tab-downtime">
-				<a role="tab" data-toggle="tab" id="tabAvailability">Availability</a>
 			</li>
 		</ul>
 	</div>

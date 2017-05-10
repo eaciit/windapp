@@ -38,6 +38,9 @@
 
     animation-name: flash-animation;
     animation-duration: 1.5s;
+}
+.mt-15{
+  margin-top: -15px;
 }   
 .redvalue {
     color: red;
@@ -539,6 +542,7 @@ h4.content-heading {
 .border-left-grey{
     border-left: 2px solid #eee;
 }
+
  .border-right-grey{
     border-right:2px solid #eee;
 }
@@ -585,9 +589,9 @@ h4.content-heading {
   margin-left: -20px;
 }
 
-.nav-replace-title{
+/*.nav-replace-title{
   padding-left: 5px;
-}
+}*/
 
 #dateInfo{
     font-weight: bold;
@@ -597,6 +601,15 @@ h4.content-heading {
 
 #container{
   padding-top: 15px;
+}
+
+.part:after {
+  content: '';
+  width: 0;
+  height: 100%;
+  position: absolute;
+  border: 2px solid #eee;
+  top: 0;
 }
 
 /*#turbine_weather{

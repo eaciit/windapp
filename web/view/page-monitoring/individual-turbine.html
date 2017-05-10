@@ -10,17 +10,15 @@
 <script src="{{BaseUrl}}res/highstock/value-in-legend.js"></script>
 
 <div class="row">
-    <div class="row">
-        <div class="col-md-12 col-sm-12 ez panel-content">
-            <div class="nav nav-pills nav-replace-title">
-                <div class="col-md-12 col-sm-12 filter-content">
-                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: it.ChangeProject() }"
-                    style="width:145px"></select>&nbsp;
-                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
-                    <select class="col-md-1 col-sm-1 project-list" id="turbine" name="table" data-bind="kendoDropDownList: { data: it.turbineList, dataValueField: 'Id', dataTextField: 'Id', suggest: true, change: it.ChangeSelection() }"
-                    style="width:145px"></select>&nbsp;
-                </div>
+    <div class="col-md-12 filter-section">
+        <div class="nav nav-pills nav-replace-title" role="tablist">
+            <div class="col-md-12 filter-content">
+                <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: it.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: it.ChangeProject() }"
+                style="width:145px"></select>&nbsp;
+                <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                <select class="col-md-1 col-sm-1 project-list" id="turbine" name="table" data-bind="kendoDropDownList: { data: it.turbineList, dataValueField: 'Id', dataTextField: 'Id', suggest: true, change: it.ChangeSelection() }"
+                style="width:145px"></select>&nbsp;
             </div>
         </div>
     </div>
@@ -29,7 +27,7 @@
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore mb-5">
                 <div class="panel-body">
-                    <div class="col-md-5 border-right-grey">
+                    <div class="col-md-5 border-right-grey mt-15">
                         <div class="col-md-12 onTop">
                               <div class="col-md-12 pull-left"><a href="#" onclick="it.ToTimeSeriesHfd()" ><i class="fa fa-arrow-right"></i> Go to Analysis</a></div>
                         </div>
@@ -95,7 +93,7 @@
                                  <hr class="borderGrey">
                                 <strong><span>Gen. 1 phase 3 coil</span></strong><strong><span class="pull-right" data-bind="text: it.temp_gen_coil3()"></span></strong>
                             </div>
-                            <div class="col-md-6 border-left-grey">
+                            <div class="col-md-6 border-left-grey" style="margin-bottom: 22px;">
                                  <span><strong>Gen. bearing  : </strong></span>
                                   <hr class="borderGrey">
                                  <span>Drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_driven()"></span></strong>
@@ -124,11 +122,12 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
                     </div>
-                    <div class="col-md-4 turbine-pic-part border-left-grey">
+                    <div class="col-md-4 turbine-pic-part border-left-grey mt-15">
                         <div class="col-md-12 marginbottom20">
                             <a href="#"  onclick="it.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a>
                         </div>
                         {{template "turbine-pic.html"}}
+                         <div class="clearfix" style="margin-bottom: 12px;">&nbsp;</div>
                     </div>
                 </div>
             </div>
