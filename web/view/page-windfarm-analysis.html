@@ -15,40 +15,38 @@
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-windfarm-analysis.css">
 
 <div class="row">
-    <div class="row">
-        <div class="col-md-12 col-sm-12 ez panel-content">
-            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
-                <div class="col-md-12 col-sm-12 filter-content">
-                    <div data-bind="visible: wfa.isProjectTab()">
-                        <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
-                        style="width:150px">
-                        </select>
-                    </div>
-                    <div data-bind="visible:wfa.isTurbine1Tab()">
-                        <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
-                            style="width:150px">
-                        </select>
-                        <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
-                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine1List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine1List')}, suggest: true }"
-                            style="width:320px" onblur="wfa.Turbine1Analysis.LoadData()">
-                        </select>
-                    </div>
-                    <div data-bind="visible:wfa.isTurbine2Tab()">
-                        <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
-                            style="width:150px">
-                        </select>
-                        <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
-                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine2List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine2List')}, suggest: true }"
-                            style="width:320px">
-                        </select>
-                    </div>
-                    &nbsp;&nbsp;
-                    <div class="search-btn-line">&nbsp;</div>
-                    <button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+    <div class="col-md-12 filter-section">
+        <div class="nav nav-pills nav-replace-title" role="tablist">
+           <div class="col-md-12 col-sm-12 filter-content">
+                <div data-bind="visible: wfa.isProjectTab()">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wfa.ProjectAnalysis.LoadData}"
+                    style="width:150px">
+                    </select>
                 </div>
+                <div data-bind="visible:wfa.isTurbine1Tab()">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true , change: wfa.Turbine1Analysis.LoadData}"
+                        style="width:150px">
+                    </select>
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                    <select class="col-md-11 col-sm-6 turbine-list" id="turbine1List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine1List')}, suggest: true }"
+                        style="width:320px" onblur="wfa.Turbine1Analysis.LoadData()">
+                    </select>
+                </div>
+                <div data-bind="visible:wfa.isTurbine2Tab()">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true , change: wfa.Turbine2Analysis.LoadData}"
+                        style="width:150px">
+                    </select>
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
+                    <select class="col-md-11 col-sm-6 turbine-list" id="turbine2List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine2List')}, suggest: true }"
+                        style="width:320px">
+                    </select>
+                </div>
+                &nbsp;&nbsp;
+                <div class="search-btn-line">&nbsp;</div>
+                <button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
             </div>
         </div>
     </div>
