@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"strings"
 	// "sort"
 	// "strings"
 	// "time"
@@ -35,11 +34,7 @@ func (c *WindFarmAnalysisController) GetDataByProject(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	csr, e := DB().Connection.NewQuery().From(new(GWFAnalysisByProject).TableName()).
 		Where(dbox.And(dbox.Eq("projectname", project))).Order("OrderNo").Cursor(nil)
@@ -53,11 +48,13 @@ func (c *WindFarmAnalysisController) GetDataByProject(k *knot.WebContext) interf
 	csr.Close()
 
 	title := make([]string, 4)
-	d := datas[0]
-	title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
-	title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
-	title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
-	title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+	if len(datas) > 0 {
+		d := datas[0]
+		title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
+		title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
+		title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
+		title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+	}
 
 	datareturn := tk.M{}.Set("data", datas).Set("header", title)
 
@@ -77,11 +74,7 @@ func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) inter
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	tQry := make([]*dbox.Filter, 0)
 	tQry = append(tQry, dbox.Eq("projectname", project))
@@ -101,11 +94,13 @@ func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) inter
 	csr.Close()
 
 	title := make([]string, 4)
-	d := datas[0]
-	title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
-	title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
-	title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
-	title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+	if len(datas) > 0 {
+		d := datas[0]
+		title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
+		title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
+		title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
+		title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+	}
 
 	datareturn := tk.M{}.Set("data", datas).Set("header", title)
 
@@ -131,11 +126,7 @@ func (c *WindFarmAnalysisController) GetDataByTurbine2(k *knot.WebContext) inter
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	tQry := make([]*dbox.Filter, 0)
 	tQry = append(tQry, dbox.Eq("projectname", project))

@@ -1,40 +1,38 @@
-[
-  {
-    "_id": "db_acl",
-    "data": {
-      "db": "wfdemo-oem",
-      "driver": "mongo",
-      "host": "52.77.236.193:27123",
-      "pass": "",
-      "setting": {
-        "timeout": 3000
-      },
-      "user": ""
-    }
-  },
-  {
-    "_id": "db_ostro",
-    "data": {
-      "db": "wfdemo-oem",
-      "driver": "mongo",
-      "host": "52.77.236.193:27123",
-      "pass": "",
-      "setting": {
-        "timeout": 3000
-      },
-      "user": ""
-    }
-  },
-  {
-    "_id": "port",
-    "data": 9002
-  },
-  {
-    "_id": "default_username",
-    "data": "eaciit"
-  },
-  {
-    "_id": "default_password",
-    "data": "Password.1"
-  }
-]
+[{
+		"_id": "db_acl",
+		"data": {
+			"db": "wfdemo-oem",
+			"driver": "mongo",
+			"host": "52.77.236.193:27123",
+			"pass": "",
+			"setting": {
+				"timeout": 3000
+			},
+			"user": ""
+		}
+	},
+	{
+		"_id": "db_ostro",
+		"data": {
+			"db": "wfdemo-oem",
+			"driver": "mongo",
+			"host": "52.77.236.193:27123",
+			"pass": "",
+			"setting": {
+				"timeout": 3000
+			},
+			"user": ""
+		}
+	},
+	{
+		"_id": "port",
+		"data": 8003
+	},
+	{
+		"_id": "default_username",
+		"data": "eaciit"
+	},
+	{
+		"_id": "default_password",
+		"data": "Password.1"
+	}]

@@ -21,10 +21,12 @@ fa.project = ko.observable();
 fa.period = ko.observable();
 fa.infoPeriodRange = ko.observable();
 fa.infoPeriodIcon = ko.observable(false);
+fa.rawproject = ko.observableArray([]);
+fa.rawturbine = ko.observableArray([]);
 
 var lastPeriod = "";
 
-fa.InitFirst = function () {
+/*fa.InitFirst = function () {
     $.when(
         app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
             if (!app.isFine(res)) {
@@ -72,48 +74,67 @@ fa.InitFirst = function () {
         $("#projectList").data("kendoDropDownList").value("Tejuva");
         fa.project = $("#projectList").data("kendoDropDownList").value();
     });
-}
+}*/
 
-fa.populateTurbine = function (data) {
-    if (data.length == 0) {
-        data = [];;
+fa.populateTurbine = function (selected) {
+    if (fa.rawturbine().length == 0) {
         fa.turbineList([{ value: "", text: "" }]);
     } else {
-        var datavalue = [];
-        if (data.length > 0) {
-            $.each(data, function (key, val) {
+        var datavalue = [];        
+        // $.each(fa.rawturbine(), function (key, val) {
+        //     turbineval.push(val);
+        // });
+        // var allturbine = {}
+        // allturbine.value = "All Turbine";
+        // allturbine.text = "All Turbines";
+        // datavalue.push(allturbine);
+
+        $.each(fa.rawturbine(), function (key, val) {
+            if (selected == "") {
                 var data = {};
-                data.value = val;
-                data.text = val;
+                data.value = val.Turbine;
+                data.text = val.Turbine;
                 datavalue.push(data);
-            });
-        }
+            }else if (selected == val.Project){
+                var data = {};
+                data.value = val.Turbine;
+                data.text = val.Turbine;
+                datavalue.push(data);
+            }
+        });
+
         fa.turbineList(datavalue);
     }
+
+    setTimeout(function () {
+        $('#turbineList').data('kendoDropDownList').select(0);
+    }, 100);
 };
 
-fa.populateProject = function (data) {
-    if (data.length == 0) {
-        data = [];;
+fa.populateProject = function (selected) {
+    if (fa.rawproject().length == 0) {
         fa.projectList([{ value: "", text: "" }]);
     } else {
-        var datavalue = [];
-        if (data.length > 0) {
-            $.each(data, function (key, val) {
-                var data = {};
-                data.value = val;
-                data.text = val;
-                datavalue.push(data);
-            });
-        }
+        var datavalue = [];        
+        $.each(fa.rawproject(), function (key, val) {
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Name;
+            datavalue.push(data);
+        });
         fa.projectList(datavalue);
 
         // override to set the value
+        
         setTimeout(function () {
-            // $("#projectList").data("kendoDropDownList").value("Tejuva");
-            $("#projectList").data("kendoDropDownList").select(1);
+            if (selected != "") {
+                $("#projectList").data("kendoDropDownList").value(selected);
+            } else {
+                $("#projectList").data("kendoDropDownList").select(1);
+            }               
             fa.project = $("#projectList").data("kendoDropDownList").value();
-        }, 300);
+            fa.populateTurbine(fa.project);
+        }, 100);
     }
 };
 
@@ -299,11 +320,22 @@ fa.checkCompleteDate = function () {
         fa.infoPeriodIcon(false);
     }
 
-
 }
+
+fa.setProjectTurbine = function(projects, turbines, selected){
+	fa.rawproject(projects);
+    fa.rawturbine(turbines);
+	fa.populateProject(selected);
+};
 
 $(document).ready(function () {
     app.loading(true);
+    $('#projectList').kendoDropDownList({
+        change: function () { 
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+         }
+    });
     fa.showHidePeriod();
     fa.InitDefaultValue();
 });

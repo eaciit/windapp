@@ -21,10 +21,44 @@ aw.generateGridAverage = function () {
         ],
     };
 
-    $.each(aw.dataSourceAverage()[0].details, function (i, val) {
-        var wra = val.col.WRA;        
+    if (aw.dataSourceAverage()!=null){
+        $.each(aw.dataSourceAverage()[0].details, function (i, val) {
+            var wra = val.col.WRA;        
+            var column = {
+                title: val.time + " <br/> WRA "+wra+ " (m/s)",
+                headerAttributes: {
+                    style: 'font-weight: bold; text-align: center;'
+                },
+                columns: [],
+                width: 120
+            }
+
+            // var keyIndex = ["WRA", "Onsite"];
+            var keyIndex = ["Onsite"];
+            var j = 0;        
+
+            $.each(keyIndex, function(j, key){
+                // wra = 
+                var colChild = {
+                    title: key + " (m/s)",                
+                    field: "details["+i+"].col."+ key ,
+                    width: 120,
+                    attributes: { class: "align-center row-custom" },
+                    headerAttributes: {
+                        style: 'font-weight: bold; text-align: center;',
+                    },
+                    format: "{0:n2}",
+                    filterable: false
+                };
+                column.columns.push(colChild);
+            });
+
+            config.columns.push(column);
+        });
+    }else{
+        var wra = "N/A";        
         var column = {
-            title: val.time + " <br/> WRA "+wra+ " (m/s)",
+            title: "",
             headerAttributes: {
                 style: 'font-weight: bold; text-align: center;'
             },
@@ -40,7 +74,7 @@ aw.generateGridAverage = function () {
             // wra = 
             var colChild = {
                 title: key + " (m/s)",                
-                field: "details["+i+"].col."+ key ,
+                field: "",
                 width: 120,
                 attributes: { class: "align-center row-custom" },
                 headerAttributes: {
@@ -53,7 +87,7 @@ aw.generateGridAverage = function () {
         });
 
         config.columns.push(column);
-    });
+    }
 
     $('#gridAvgWs').html("");
     $('#gridAvgWs').kendoGrid(config);

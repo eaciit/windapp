@@ -137,5 +137,7 @@
 
 <script>
     it.populateProject({{.ProjectList}});
-    it.populateTurbine({{.ProjectList}}, {{.AllTurbineList}}, false);
+    setTimeout(function() {
+        it.populateTurbine(it.project, {{.TurbineList}}, true);
+    }, 500);
 </script>

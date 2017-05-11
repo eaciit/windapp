@@ -31,19 +31,38 @@ sum.loadData = function () {
                 return;
             }
 
-            sum.dataSource(res.data[0]);
+            if (res.data.length > 0){
+                sum.dataSource(res.data[0]);
+                sum.noOfProjects(res.data[0].NoOfProjects);
+                sum.noOfTurbines(res.data[0].NoOfTurbines);
+                sum.totalMaxCapacity((res.data[0].TotalMaxCapacity / 1000) + " MW");
+                sum.currentDown(res.data[0].CurrentDown);
+                sum.twoDaysDown(res.data[0].TwoDaysDown);
 
-            sum.noOfProjects(res.data[0].NoOfProjects);
-            sum.noOfTurbines(res.data[0].NoOfTurbines);
-            sum.totalMaxCapacity(res.data[0].TotalMaxCapacity / 1000);
-            sum.currentDown(res.data[0].CurrentDown);
-            sum.twoDaysDown(res.data[0].TwoDaysDown);
+                var lastUpdate = new Date(res.data[0].LastUpdate);
 
-            var lastUpdate = new Date(res.data[0].LastUpdate);
+                // vm.dateAsOf(lastUpdate.addHours(-7));
+                sum.ProductionChart(res.data[0].Productions);
+                sum.CumProduction(res.data[0].CummulativeProductions);
+            } else {
+                var projectStr = $("#projectId").data("kendoDropDownList").text();
+                if (projectStr != "Fleet"){
+                    sum.noOfProjects(1);
+                    var split = (projectStr.split(" ("))[1].split("|");
+                    sum.noOfTurbines(split[0]);
+                    sum.totalMaxCapacity(split[1].slice(0, -1));
+                }else{
+                    sum.noOfProjects($("#projectId").data("kendoDropDownList").dataSource.total()-1);
+                    sum.noOfTurbines("N/A");
+                    sum.totalMaxCapacity("N/A");
+                }   
 
-            // vm.dateAsOf(lastUpdate.addHours(-7));
-            sum.ProductionChart(res.data[0].Productions);
-            sum.CumProduction(res.data[0].CummulativeProductions);
+                sum.dataSource(null);
+                sum.currentDown("N/A");
+                sum.twoDaysDown("N/A");       
+                sum.ProductionChart(null);
+                sum.CumProduction(null);
+            }
             sum.SummaryData(project);
         });
 
@@ -52,15 +71,16 @@ sum.loadData = function () {
                 return;
             }
 
-            if (res.data.length > 0 ){
-                sum.dataSourceScada(res.data);
-                sum.PLF(res.data);
-                sum.LostEnergy(res.data);
-                sum.Windiness(res.data);
-                sum.ProdMonth(res.data);
-                sum.AvailabilityChart(res.data);
-                sum.ProdCurLast(res.data);
-                sum.indiaMap(project);
+            sum.dataSourceScada(res.data);
+            sum.PLF(res.data);
+            sum.LostEnergy(res.data);
+            sum.Windiness(res.data);
+            sum.ProdMonth(res.data);
+            sum.AvailabilityChart(res.data);
+            sum.ProdCurLast(res.data);
+            sum.indiaMap(project);
+
+            if (res.data != null ){
                 sum.isDetailProd(false);
                 sum.isDetailProdByProject(false);
             }
@@ -745,13 +765,15 @@ sum.indiaMap = function (project) {
 
 sum.ProductionChart = function (dataSource) {
     var dataFormat = "n2";
-    if (dataSource.length > 0) {
-        var totalPotential = 0;
-        for (var i = 0; i < dataSource.length; i++) {
-            totalPotential += dataSource[i].PotentialKwh;
-        }
-        if (totalPotential > 10) {
-            dataFormat = "n0";
+    if (dataSource != null){
+        if (dataSource.length > 0) {
+            var totalPotential = 0;
+            for (var i = 0; i < dataSource.length; i++) {
+                totalPotential += dataSource[i].PotentialKwh;
+            }
+            if (totalPotential > 10) {
+                dataFormat = "n0";
+            }
         }
     }
 

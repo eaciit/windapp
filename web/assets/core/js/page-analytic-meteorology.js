@@ -136,6 +136,13 @@ $(function(){
     });
 
     setTimeout(function () {
+        $('#projectList').kendoDropDownList({
+            change: function () {  
+                var project = $('#projectList').data("kendoDropDownList").value();
+                fa.populateTurbine(project);
+            }
+        });
+
         $("#legend-list").html("");
         $.each(listOfCategory, function (idx, val) {
             var idName = "btn" + idx;

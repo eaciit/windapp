@@ -257,6 +257,13 @@ $(function(){
         Data.LoadData();
     });
 
+    $('#projectList').kendoDropDownList({
+        change: function () {  
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
+    });
+
     $( window ).resize(function() {
       vm.adjustLayout()
       $("#performance-grid").data("kendoGrid").resize();

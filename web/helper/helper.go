@@ -587,9 +587,18 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 }
 
 func GetAllTurbineList() (result []toolkit.M, e error) {
+	var projects []interface{}
+	resProj, e := GetProjectList()
+
+	for _, v := range resProj {
+		projects = append(projects, v.Value)
+	}
+
 	csr, e := DB().Connection.
 		NewQuery().
-		From("ref_turbine").
+		From(new(md.TurbineMaster).TableName()).
+		Where(dbox.In("Project", projects...)).
+		Order("project, turbineid").
 		Cursor(nil)
 
 	if e != nil {
@@ -601,40 +610,10 @@ func GetAllTurbineList() (result []toolkit.M, e error) {
 	return
 }
 
-func GetProjectList() (result []string, e error) {
-	csr, e := DB().Connection.NewQuery().From("ref_project").Cursor(nil)
-
-	if e != nil {
-		return
-	}
-	defer csr.Close()
-
-	data := []toolkit.M{}
-	e = csr.Fetch(&data, 0, false)
-
-	for _, val := range data {
-		if val.GetString("projectid") == "Tejuva" {
-			str := fmt.Sprintf("%v (%v | %v MW)", val.GetString("projectid"), val.GetString("totalturbine"), val.Get("totalpower"))
-			// str := fmt.Sprintf("%v", val.GetString("projectid"))
-			result = append(result, str)
-		}
-	}
-
-	sort.Strings(result)
-	return
-}
-
-func GetTurbineList(project string) (result []string, e error) {
-	var filter []*dbox.Filter
-
-	if project != "" {
-		filter = append(filter, dbox.In("project", project))
-	}
-
-	csr, e := DB().Connection.
-		NewQuery().
-		From("ref_turbine").
-		Where(filter...).
+func GetProjectList() (result []md.ProjectOut, e error) {
+	csr, e := DB().Connection.NewQuery().
+		From(new(md.ProjectMaster).TableName()).
+		Where(dbox.Eq("active", true)).
 		Cursor(nil)
 
 	if e != nil {
@@ -642,13 +621,48 @@ func GetTurbineList(project string) (result []string, e error) {
 	}
 	defer csr.Close()
 
-	data := []toolkit.M{}
+	data := []md.ProjectMaster{}
 	e = csr.Fetch(&data, 0, false)
 
 	for _, val := range data {
-		result = append(result, val.GetString("turbineid"))
+		result = append(result, md.ProjectOut{
+			Name:  fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
+			Value: val.ProjectId,
+		})
 	}
-	sort.Strings(result)
+
+	// sort.Strings(result)
+	return
+}
+
+func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
+	var filter []*dbox.Filter
+
+	if len(projects) > 0 {
+		filter = append(filter, dbox.In("project", projects...))
+	}
+
+	csr, e := DB().Connection.
+		NewQuery().
+		From(new(md.TurbineMaster).TableName()).
+		Where(filter...).
+		Order("project, turbineid").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []md.TurbineMaster{}
+	e = csr.Fetch(&data, 0, false)
+
+	for _, val := range data {
+		result = append(result, md.TurbineOut{
+			Project: val.Project,
+			Turbine: val.TurbineId,
+		})
+	}
 
 	return
 }
