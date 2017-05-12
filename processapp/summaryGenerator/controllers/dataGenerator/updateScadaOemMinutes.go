@@ -22,9 +22,13 @@ type UpdateScadaOemMinutes struct {
 }
 
 type minEventDown struct {
-	TimeStart time.Time
-	TimeEnd   time.Time
-	Turbine   string
+	TimeStart          time.Time
+	TimeEnd            time.Time
+	Turbine            string
+	ReduceAvailability bool
+	DownGrid           bool
+	DownEnvironment    bool
+	DownMachine        bool
 }
 
 var (
@@ -105,16 +109,16 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 						dbox.And(dbox.Gte("timeend", datas[0].TimeStamp), dbox.Lte("timeend", datas[lenDatas-1].TimeStamp))))
 
 					_csr, _err := conn.NewQuery().
-						Select("timestart", "timeend", "turbine").
+						Select("timestart", "timeend", "turbine", "reduceavailability", "downgrid", "downenvironment", "downmachine").
 						From(new(EventDown).TableName()).
 						Where(_filter...).
 						Order("timestamp").
 						Cursor(nil)
 
+					_arrMED := []minEventDown{}
 					if _err == nil {
+						_ = _csr.Fetch(&_arrMED, 0, false)
 						_csr.Close()
-						_arrED := []EventDown{}
-						_err = _csr.Fetch(&_arrED, 0, false)
 					}
 					// == Get Data Downtime ==
 
@@ -122,7 +126,7 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 					logStart := time.Now()
 
 					for _, data := range datas {
-						d.updateScadaOEM(data)
+						d.updateScadaOEM(data, _arrMED)
 					}
 
 					logDuration := time.Now().Sub(logStart)
@@ -140,7 +144,7 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 	}
 }
 
-func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
+func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM, arrMED []minEventDown) {
 	ctx := u.Ctx
 	turbine := GetExactTurbineId(strings.TrimSpace(data.Turbine))
 
@@ -217,18 +221,16 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	machineDowntimeAll := 0.0
 	unknownDowntimeAll := 0.0
 
-	// getting alarms
-	refEvents := u.BaseController.RefAlarms.Get(turbine)
-	alarms := []EventDown{}
-	if refEvents != nil {
-		dataAlarms := refEvents.([]EventDown)
-		for _, a := range dataAlarms {
+	// getting alarms from min EventDown
+	selArrMed := []minEventDown{}
+	if len(arrMED) > 0 {
+		for _, a := range arrMED {
 			if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
-				alarms = append(alarms, a)
+				selArrMed = append(selArrMed, a)
 			} else if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeStart.Sub(timestamp) <= 0 {
-				alarms = append(alarms, a)
+				selArrMed = append(selArrMed, a)
 			} else if a.TimeEnd.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
-				alarms = append(alarms, a)
+				selArrMed = append(selArrMed, a)
 			}
 			/*else if a.TimeStart.Sub(timestamp0) <= 0 && a.TimeStart.Sub(timestamp) >= 0 {
 				alarms = append(alarms, a)
@@ -237,8 +239,8 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	}
 
 	// log.Printf("%v -> scada: %v - %v \n", turbine, timestamp0.UTC().String(), timestamp.UTC().String())
-	if len(alarms) > 0 {
-		for _, a := range alarms {
+	if len(selArrMed) > 0 {
+		for _, a := range selArrMed {
 			// log.Printf("alarm: %v - %v \n", a.TimeStart.UTC().String(), a.TimeEnd.UTC().String())
 
 			startTime := a.TimeStart
@@ -251,15 +253,17 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 				endTime = timestamp
 			}
 
-			/*startTime := timestamp0
-			endTime := timestamp
-			if startTime.Sub(a.TimeStart) > 0 {
-				startTime = a.TimeStart
-			}
-			if endTime.Sub(a.TimeEnd) > 0 {
-				endTime = a.TimeEnd
-			}
-			aDuration += endTime.Sub(startTime).Seconds()*/
+			/*
+				startTime := timestamp0
+				endTime := timestamp
+				if startTime.Sub(a.TimeStart) > 0 {
+					startTime = a.TimeStart
+				}
+				if endTime.Sub(a.TimeEnd) > 0 {
+					endTime = a.TimeEnd
+				}
+				aDuration += endTime.Sub(startTime).Seconds()
+			*/
 
 			if a.ReduceAvailability {
 				aDuration += endTime.Sub(startTime).Seconds()
