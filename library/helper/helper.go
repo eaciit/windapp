@@ -571,7 +571,6 @@ func UpperFirstLetter(str string) string {
 
 func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability map[string]bool, e error) {
 	csr, e := ctx.Connection.NewQuery().
-		Select("alarmname, reducesavailability").
 		From("AlarmBrake").
 		Order("alarmname").
 		Cursor(nil)
@@ -584,6 +583,8 @@ func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability
 
 	data := []tk.M{}
 	e = csr.Fetch(&data, 0, false)
+
+	brakeReducesAvailability = map[string]bool{}
 
 	for _, val := range data {
 		brakeReducesAvailability[val.GetString("alarmname")] = val.Get("reducesavailability").(bool)
