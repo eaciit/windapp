@@ -115,9 +115,11 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.AlarmWeatherStop = minValueFloat
 	scada.ExternalStopTime = minValueFloat
 	scada.GridDownTime = data.GridDowntime
+	scada.GridDownTimeAll = data.GridDowntimeAll
 	scada.GridOkSecs = 600.0 - data.GridDowntime
 	scada.InternalLineDown = minValueFloat
 	scada.MachineDownTime = data.MachineDowntime
+	scada.MachineDownTimeAll = data.MachineDowntimeAll
 	// scada.OkSecs = data.MTTR
 	// scada.OkTime = data.MTTR
 
@@ -125,6 +127,7 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.OkSecs = scada.OkTime
 
 	scada.UnknownTime = data.UnknownDowntime
+	scada.UnknownTimeAll = data.UnknownDowntimeAll
 	scada.WeatherStopTime = minValueFloat
 	scada.GeneratorRPM = data.C_intern_SpeedGenerator
 	scada.NacelleYawPositionUntwist = data.AI_intern_NacelleDrill_at_NorthPosSensor
@@ -161,6 +164,8 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.TotalAvail = tk.Div(scada.OkTime, 600.0) //data.MTTR / 600.0
 	scada.MachineAvail = (600.0 - data.MachineDowntime) / 600
 	scada.GridAvail = (600.0 - data.GridDowntime) / 600.0
+	scada.MachineAvailAll = (600.0 - data.MachineDowntimeAll) / 600
+	scada.GridAvailAll = (600.0 - data.GridDowntimeAll) / 600.0
 	scada.DenPcDeviation = data.DenPcDeviation
 	scada.DenDeviationPct = data.DenDeviationPct
 	scada.DenPcValue = data.DenPcValue

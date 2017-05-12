@@ -199,8 +199,8 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	}
 
 	oktime := 600.0
-	machinedown := 0.0
-	griddown := 0.0
+	// machinedown := 0.0
+	// griddown := 0.0
 
 	timestamp := data.TimeStamp
 	timestamp0 := timestamp.Add(-10 * time.Minute)
@@ -212,6 +212,10 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	gridDowntime := 0.0
 	machineDowntime := 0.0
 	unknownDowntime := 0.0
+
+	gridDowntimeAll := 0.0
+	machineDowntimeAll := 0.0
+	unknownDowntimeAll := 0.0
 
 	// getting alarms
 	refEvents := u.BaseController.RefAlarms.Get(turbine)
@@ -246,7 +250,6 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			if timestamp.Sub(endTime) < 0 {
 				endTime = timestamp
 			}
-			aDuration += endTime.Sub(startTime).Seconds()
 
 			/*startTime := timestamp0
 			endTime := timestamp
@@ -258,15 +261,27 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			}
 			aDuration += endTime.Sub(startTime).Seconds()*/
 
-			if a.DownGrid {
-				gridDowntime += endTime.Sub(startTime).Seconds()
-			} else if a.DownMachine {
-				machineDowntime += endTime.Sub(startTime).Seconds()
-			} else if a.DownEnvironment {
-				unknownDowntime += endTime.Sub(startTime).Seconds()
+			if a.ReduceAvailability {
+				aDuration += endTime.Sub(startTime).Seconds()
+
+				if a.DownGrid {
+					gridDowntime += endTime.Sub(startTime).Seconds()
+				} else if a.DownMachine {
+					machineDowntime += endTime.Sub(startTime).Seconds()
+				} else if a.DownEnvironment {
+					unknownDowntime += endTime.Sub(startTime).Seconds()
+				}
+
+				totalDowntime++
 			}
 
-			totalDowntime++
+			if a.DownGrid {
+				gridDowntimeAll += endTime.Sub(startTime).Seconds()
+			} else if a.DownMachine {
+				machineDowntimeAll += endTime.Sub(startTime).Seconds()
+			} else if a.DownEnvironment {
+				unknownDowntimeAll += endTime.Sub(startTime).Seconds()
+			}
 			/*log.Printf("endTime: %v | startTime: %v \n", endTime.UTC().String(), startTime.UTC().String())
 			log.Printf("aDuration: %v | machineDowntime: %v | gridDowntime: %v | unknownDowntime: %v \n", aDuration, machineDowntime, gridDowntime, unknownDowntime)*/
 		}
@@ -286,7 +301,19 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			unknownDowntime = 600
 		}
 
-		totalDurationMttf = tk.Div(aDuration, float64(len(alarms)))
+		if machineDowntimeAll > 600 {
+			machineDowntimeAll = 600
+		}
+
+		if gridDowntimeAll > 600 {
+			gridDowntimeAll = 600
+		}
+
+		if unknownDowntimeAll > 600 {
+			unknownDowntimeAll = 600
+		}
+
+		totalDurationMttf = tk.Div(aDuration, float64(totalDowntime))
 	}
 
 	// set mttr & mttf
@@ -299,8 +326,13 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	}
 
 	totalavail := tk.Div(oktime, 600.0)
-	machineavail := tk.Div((600.0 - machinedown), 600.0)
-	gridavail := tk.Div((600.0 - griddown), 600.0)
+	machineavail := tk.Div((600.0 - machineDowntime), 600.0)
+	gridavail := tk.Div((600.0 - gridDowntime), 600.0)
+
+	totalavailall := tk.Div(oktime, 600.0)
+	machineavailall := tk.Div((600.0 - machineDowntimeAll), 600.0)
+	gridavailall := tk.Div((600.0 - gridDowntimeAll), 600.0)
+
 	powerLost := denPower - data.AI_intern_ActivPower
 
 	perfIndex := 0.0
@@ -321,6 +353,9 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			Set("totalavail", totalavail).
 			Set("machineavail", machineavail).
 			Set("gridavail", gridavail).
+			Set("totalavailall", totalavailall).
+			Set("machineavailall", machineavailall).
+			Set("gridavailall", gridavailall).
 			Set("turbineelevation", elevation).
 			Set("wsadjforpc", retadjws).
 			Set("wsavgforpc", retavgws).
@@ -345,7 +380,10 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			Set("performanceindex", perfIndex).
 			Set("griddowntime", gridDowntime).
 			Set("machinedowntime", machineDowntime).
-			Set("unknowndowntime", unknownDowntime)))
+			Set("unknowndowntime", unknownDowntime).
+			Set("griddowntimeall", gridDowntimeAll).
+			Set("machinedowntimeall", machineDowntimeAll).
+			Set("unknowndowntimeall", unknownDowntimeAll)))
 
 	if e != nil {
 		tk.Printf("Update fail: %s", e.Error())

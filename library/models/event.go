@@ -64,13 +64,14 @@ type EventDown struct {
 	TimeEndInt  int64
 	DateInfoEnd DateInfo
 	// DateInfoEndUTC   DateInfo
-	AlarmDescription string
-	BrakeType        string // add by ams, regarding to add new req | 20170130
-	Duration         float64
-	Detail           []EventDownDetail
-	DownGrid         bool
-	DownEnvironment  bool
-	DownMachine      bool
+	AlarmDescription   string
+	BrakeType          string // add by ams, regarding to add new req | 20170130
+	Duration           float64
+	Detail             []EventDownDetail
+	DownGrid           bool
+	DownEnvironment    bool
+	DownMachine        bool
+	ReduceAvailability bool
 }
 
 type EventDownDetail struct {
