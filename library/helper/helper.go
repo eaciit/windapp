@@ -12,9 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"path/filepath"
+
+	"github.com/eaciit/orm"
 	tk "github.com/eaciit/toolkit"
 	"github.com/tealeg/xlsx"
-	"path/filepath"
 	// _ "github.com/tealeg/xlsx"
 
 	"github.com/eaciit/dbox"
@@ -565,4 +567,26 @@ func UpperFirstLetter(str string) string {
 	}
 
 	return str
+}
+
+func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability map[string]bool, e error) {
+	csr, e := ctx.Connection.NewQuery().
+		Select("alarmname, reducesavailability").
+		From("AlarmBrake").
+		Order("alarmname").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return
+	}
+
+	data := []tk.M{}
+	e = csr.Fetch(&data, 0, false)
+
+	for _, val := range data {
+		brakeReducesAvailability[val.GetString("alarmname")] = val.Get("reducesavailability").(bool)
+	}
+	return
 }
