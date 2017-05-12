@@ -21,11 +21,18 @@ type UpdateScadaOemMinutes struct {
 	*BaseController
 }
 
+type minEventDown struct {
+	TimeStart time.Time
+	TimeEnd   time.Time
+	Turbine   string
+}
+
 var (
 	mtxOem = &sync.Mutex{}
 )
 
 func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
+	sProjectName := "Tejuva"
 	funcName := "UpdateScadaOemDensity Data"
 	if base != nil {
 		d.BaseController = base
@@ -35,6 +42,7 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 			ErrorHandler(e, funcName)
 			os.Exit(0)
 		}
+		defer conn.Close()
 
 		tk.Println("UpdateScadaOemDensity Data")
 		var wg sync.WaitGroup
@@ -45,10 +53,10 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 		// tk.Println(d.BaseController.RefTurbines)
 		for turbine, _ := range d.BaseController.RefTurbines {
 			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+			filter = append(filter, dbox.Eq("projectname", sProjectName))
 			filter = append(filter, dbox.Eq("turbine", turbine))
 
-			latestDate := d.BaseController.GetLatest("ScadaData", "Tejuva", turbine)
+			latestDate := d.BaseController.GetLatest("ScadaData", sProjectName, turbine)
 			if latestDate.Format("2006") != "0001" {
 				filter = append(filter, dbox.Gt("timestamp", latestDate))
 			}
@@ -56,7 +64,9 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 			// filter = append(filter, dbox.Gt("timestamp", d.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
 			csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
-				Where(filter...).Cursor(nil)
+				Where(filter...).
+				Order("timestamp").
+				Cursor(nil)
 			ErrorHandler(e, funcName)
 
 			defer csr.Close()
@@ -79,6 +89,34 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 				wg.Add(1)
 				go func(datas []*ScadaDataOEM, endIndex int) {
 					tk.Printf("Starting process %v data\n", endIndex)
+					defer wg.Done()
+
+					lenDatas := len(datas)
+					if lenDatas == 0 {
+						tk.Println("Data is 0 return process")
+						return
+					}
+
+					// == Get Data Downtime ==
+					_filter := []*dbox.Filter{}
+					_filter = append(_filter, dbox.Eq("projectname", sProjectName))
+					_filter = append(_filter, dbox.Eq("turbine", turbine))
+					_filter = append(_filter, dbox.Or(dbox.And(dbox.Gte("timestart", datas[0].TimeStamp), dbox.Lte("timestart", datas[lenDatas-1].TimeStamp)),
+						dbox.And(dbox.Gte("timeend", datas[0].TimeStamp), dbox.Lte("timeend", datas[lenDatas-1].TimeStamp))))
+
+					_csr, _err := conn.NewQuery().
+						Select("timestart", "timeend", "turbine").
+						From(new(EventDown).TableName()).
+						Where(_filter...).
+						Order("timestamp").
+						Cursor(nil)
+
+					if _err == nil {
+						_csr.Close()
+						_arrED := []EventDown{}
+						_err = _csr.Fetch(&_arrED, 0, false)
+					}
+					// == Get Data Downtime ==
 
 					mtxOem.Lock()
 					logStart := time.Now()
@@ -91,7 +129,6 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 					mtxOem.Unlock()
 
 					tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
-					wg.Done()
 				}(scadas, ((counter + 1) * countPerProcess))
 
 				counter++
