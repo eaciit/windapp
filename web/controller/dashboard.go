@@ -2345,9 +2345,9 @@ func getMapCol(project string) tk.Ms {
 	if project != "Fleet" {
 		colname = new(TurbineMaster).TableName()
 		filter = append(filter, dbox.Eq("project", project))
+	} else {
+		filter = append(filter, dbox.Eq("active", true))
 	}
-
-	filter = append(filter, dbox.Eq("active", true))
 
 	csr, e := DB().Connection.NewQuery().
 		From(colname).
