@@ -60,8 +60,7 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"vhubws90mavg": 1, "timestamp": 1}})
 
 	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		query = append(query, tk.M{"projectname": strings.TrimRight(anProject[0], " ")})
+		query = append(query, tk.M{"projectname": p.Project})
 	}
 
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0}})
@@ -261,8 +260,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lt": tEnd})
 
 	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		match.Set("projectname", strings.TrimRight(anProject[0], " "))
+		match.Set("projectname", p.Project)
 	}
 
 	if len(p.Turbine) > 0 {
@@ -470,8 +468,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	matchMet := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lt": tEnd}}
 
 	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		matchTurbine.Set("projectname", strings.TrimRight(anProject[0], " "))
+		matchTurbine.Set("projectname", p.Project)
 	}
 
 	if len(p.Turbine) > 0 {

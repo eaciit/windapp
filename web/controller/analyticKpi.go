@@ -128,8 +128,7 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 	}
 
 	if p.Project != "" {
-		// anProject := strings.Split(p.Project, "(")
-		match.Set("projectname", p.Project) //strings.TrimRight(anProject[0], " "))
+		match.Set("projectname", p.Project)
 	}
 
 	if rowsBreakdown == "Project" {
