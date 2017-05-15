@@ -2445,7 +2445,8 @@ func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	result := getDownTurbine(p.ProjectName, p.Date, 1)
+	// result := getDownTurbine(p.ProjectName, p.Date, 1)
+	result := getDownTurbineStatus(p.ProjectName, p.Date, 1)
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -2495,6 +2496,71 @@ func getDownTurbine(project string, currentDate time.Time, dayDuration int) (res
 	return
 }
 
+func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int) (result []tk.M) {
+	var fromDate time.Time
+	var pipes []tk.M
+	match := tk.M{}
+
+	currentDate = time.Now().UTC()
+	fromDate = currentDate.UTC().AddDate(0, 0, dayDuration*-1)
+
+	if dayDuration > 1 {
+		match.Set("datestart", tk.M{"$gte": fromDate.UTC(), "$lte": currentDate.UTC()})
+	}
+	match.Set("status", tk.M{"$eq": 0})
+
+	if project != "Fleet" {
+		match.Set("projectname", project)
+	}
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	rconn := GetConnRealtime()
+	defer rconn.Close()
+
+	csr, e := rconn.NewQuery().
+		From(new(TurbineStatus).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return
+	}
+
+	tmpResult := []tk.M{}
+
+	e = csr.Fetch(&tmpResult, 0, false)
+	defer csr.Close()
+	csr.Close()
+
+	if e != nil {
+		return
+	}
+
+	for _, val := range tmpResult {
+		if val.Get("starttime") != nil {
+			start := val.Get("datestart").(time.Time)
+			downHours := currentDate.UTC().Sub(start.UTC()).Hours()
+			if dayDuration > 1 {
+				if downHours >= float64(24*dayDuration) {
+					val.Set("result", downHours)
+					val.Set("isdown", true)
+					result = append(result, val)
+				}
+			} else {
+				val.Set("result", downHours)
+				val.Set("isdown", true)
+				result = append(result, val)
+			}
+		}
+	}
+
+	return
+}
+
 func getMapCol(project string) tk.Ms {
 	filter := []*dbox.Filter{}
 	colname := new(ProjectMaster).TableName()
@@ -2534,6 +2600,17 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	}
 	projectName := payload["projectname"]
 
+	result := []tk.M{}
+	mapTurbines := map[string]string{}
+
+	if projectName != "Fleet" {
+		getDownTurbineStatus(projectName, time.Now(), 0)
+		for _, v := range result {
+			turbine := v.GetString("_id")
+			mapTurbines[turbine] = turbine
+		}
+	}
+
 	data := getMapCol(projectName)
 
 	results := tk.Ms{}
@@ -2543,13 +2620,18 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		result := tk.M{}
 		coords = []float64{}
 		coords = []float64{val.GetFloat64("latitude"), val.GetFloat64("longitude")}
+		status := true
 		if projectName == "Fleet" {
 			result.Set("name", val.GetString("projectname"))
+			result.Set("status", status)
 		} else {
 			result.Set("name", val.GetString("turbinename"))
+			if mapTurbines[val.GetString("turbinename")] != "" {
+				status = false
+			}
+			result.Set("status", status)
 		}
 		result.Set("coords", coords)
-		result.Set("status", "closed")
 		result.Set("offset", offset)
 		results = append(results, result)
 	}
