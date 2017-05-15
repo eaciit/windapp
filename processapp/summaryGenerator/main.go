@@ -53,6 +53,7 @@ func main() {
 
 		// not dependent Generate
 		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
+		// new(EventReduceAvailability).ConvertEventReduceAvailability(base)
 
 		/* data that need to copy:
 

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	// . "eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	separator       = string(os.PathSeparator)
-	mutex           = &sync.Mutex{}
-	countPerProcess = 1
+	separator                = string(os.PathSeparator)
+	mutex                    = &sync.Mutex{}
+	countPerProcess          = 1
+	brakeReducesAvailability = map[string]bool{}
 )
 
 type GroupResult struct {
@@ -45,19 +46,29 @@ func NewDownConversion(ctx *orm.DataContext, filePath string) *DownConversion {
 func (ev *DownConversion) Run() {
 	log.Println("===================== Starting EVENT DOWN")
 	// _ = ev.getLatest()
-	var wg sync.WaitGroup
-	loops := ev.getLatest()
-	counter := 0
-	for _, loop := range loops {
-		counter++
-		// if loop.Turbine == "SSE017" {
-		// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
-		wg.Add(1)
-		go ev.processTurbine(loop, &wg)
-		// }
 
-		if counter%5 == 0 || len(loops) == counter {
-			wg.Wait()
+	// get brakeReducesAvailability
+	var e error
+	brakeReducesAvailability, e = PopulateReducesAvailability(ev.Ctx)
+
+	if e != nil {
+		log.Printf("Error Generating Event Down: %v \n", e.Error())
+	} else {
+
+		var wg sync.WaitGroup
+		loops := ev.getLatest()
+		counter := 0
+		for _, loop := range loops {
+			counter++
+			// if loop.Turbine == "SSE017" {
+			// log.Printf("loop: %v | %v \n", loop.Turbine, loop.LatestProcessTime)
+			wg.Add(1)
+			go ev.processTurbine(loop, &wg)
+			// }
+
+			if counter%5 == 0 || len(loops) == counter {
+				wg.Wait()
+			}
 		}
 	}
 
@@ -501,6 +512,9 @@ func (ev *DownConversion) insertEventDown(loop GroupResult, start EventRaw, end 
 
 	if down.DateInfoStart.MonthId != 0 && down.TimeStart.UTC().Year() != 1 {
 		mutex.Lock()
+
+		down.ReduceAvailability = brakeReducesAvailability[down.AlarmDescription]
+
 		brakeType := start.BrakeType
 		if strings.Contains(strings.ToLower(brakeType), "grid") {
 			down.DownGrid = true

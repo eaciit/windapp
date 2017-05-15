@@ -580,13 +580,7 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 			return helper.CreateResult(false, nil, e.Error())
 		}
 	} else {
-		project := ""
-		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			project = strings.TrimRight(anProject[0], " ")
-		}
-
-		projectList = []string{project}
+		projectList = []string{p.Project}
 	}
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
@@ -2352,6 +2346,8 @@ func getMapCol(project string) tk.Ms {
 		colname = new(TurbineMaster).TableName()
 		filter = append(filter, dbox.Eq("project", project))
 	}
+
+	filter = append(filter, dbox.Eq("active", true))
 
 	csr, e := DB().Connection.NewQuery().
 		From(colname).

@@ -10,11 +10,12 @@ import (
 	"io"
 	"math"
 	"os"
-	"strings"
 
 	"time"
 
 	"sort"
+
+	"strings"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
@@ -100,13 +101,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	projectName := ""
-	_ = projectName
-
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		projectName = strings.TrimRight(anProject[0], " ")
-	}
+	projectName := p.Project
 
 	turbine := ""
 
@@ -156,7 +151,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				currStar := current.Get("starttime").(time.Time)
 				currEnd := current.Get("endtime").(time.Time)
 
-				hfds, empty, e := GetHFDData(turbine, currStar, currEnd, tags, secTags)
+				hfds, empty, e := GetHFDData(projectName, turbine, currStar, currEnd, tags, secTags)
 
 				breaks = append(breaks, empty...)
 
@@ -511,7 +506,7 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 	return
 }
 
-func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
+func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
 	// log.Printf(">>> %v - %v | %v - %v \n", tStart.String(), tStart.UTC().String(), tEnd.String(), tEnd.UTC().String())
 	prefix := "data_"
 	emptyLen := 0
@@ -541,6 +536,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 
 				match.Set("dateinfo.dateid", tk.M{"$gte": emptyStart, "$lt": tStart.UTC()})
 				// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
+				match.Set("projectName", project)
 				match.Set("turbine", turbine)
 				// match.Set("available", 1)
 
@@ -614,7 +610,7 @@ func GetHFDData(turbine string, tStart time.Time, tEnd time.Time, tags []string,
 
 		separator := string(os.PathSeparator)
 
-		folder := f1 + separator + f2 + separator + f3
+		folder := strings.ToLower(project) + separator + f1 + separator + f2 + separator + f3
 		file := prefix + startStr + ".csv"
 
 		path := helper.GetHFDFolder() + folder + separator + file
