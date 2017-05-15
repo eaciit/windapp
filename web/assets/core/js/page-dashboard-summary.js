@@ -19,6 +19,7 @@ sum.currentDown = ko.observable();
 sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
+sum.dataSourceWindDistribution = ko.observable();
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
@@ -86,9 +87,20 @@ sum.loadData = function () {
             }
         });
 
+        var ajax3
 
+        if (project=="Fleet") {
+            ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistribution", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
 
-        $.when(ajax1, ajax2).done(function(){
+                sum.dataSourceWindDistribution(res.data.Data);
+                sum.WindDistribution(res.data.Data);
+            });
+        }
+
+        $.when(ajax1, ajax2, ajax3).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },200);        
@@ -387,6 +399,95 @@ sum.Windiness = function (dataSource) {
             },
             majorTickType: "none"
         },
+        tooltip: {
+            visible: true,
+            format: "{0:n1}",
+            shared: true,
+            sharedTemplate: kendo.template($("#templateWindiness").html()),
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+
+        },
+    });
+}
+
+sum.WindDistribution = function (dataSource) {
+    $("#chartWindDistribution").replaceWith('<div id="chartWindDistribution"></div>');
+    $("#chartWindDistribution").kendoChart({
+        dataSource: {
+            data: dataSource,
+            group: { field: "Project" },
+            sort: { field: "Category", dir: 'asc' }
+        },
+        theme: "flat",
+        title: {
+            text: ""
+        },
+        legend: {
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
+        },
+        chartArea: {
+            height: 160
+        },
+        series: [{
+            type: "line",
+            style: "smooth",
+            field: "Contribute",
+            // opacity : 0.7,
+            markers: {
+                visible: true,
+                size: 3,
+            }
+        }],
+        seriesColors: colorField,
+        valueAxis: {
+            labels: {
+                format: "{0:p0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            line: {
+                visible: true
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            }
+        },
+        categoryAxis: {
+            field: "Category",
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                // rotation: 25
+            },
+            majorTickType: "none"
+        },
+        /*tooltip: {
+            visible: true,
+            // template: "Contribution of #= series.name # : #= kendo.toString(value, 'n4')# % at #= category #",
+            template: "#= kendo.toString(value, 'p2')#",
+            // shared: true,
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+
+        },*/
         tooltip: {
             visible: true,
             format: "{0:n1}",

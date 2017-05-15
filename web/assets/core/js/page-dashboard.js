@@ -98,10 +98,12 @@ lgd.LoadData = function () {
         lgd.isFleet(true);
         lgd.isNonFleet(false);
         $("#div-windiness").hide();
+        $("#div-winddistribution").show();
     } else {
         lgd.isFleet(false);
         lgd.isNonFleet(true);
         $("#div-windiness").show();
+        $("#div-winddistribution").hide();
     }
 
     setTimeout(function () {

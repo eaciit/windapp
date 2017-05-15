@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/eaciit/crowd"
 	"github.com/eaciit/orm"
 
 	"gopkg.in/mgo.v2/bson"
@@ -147,30 +148,19 @@ func (m *DashboardController) GetMDTypeList(k *knot.WebContext) interface{} {
 }
 
 func getProject() ([]string, error) {
-	csr, e := DB().Connection.NewQuery().From("ref_project").Cursor(nil)
-
-	if e != nil {
-		return nil, e
-	}
-	defer csr.Close()
-
-	data := []tk.M{}
-	e = csr.Fetch(&data, 0, false)
-
-	if e != nil {
-		return nil, e
-	}
-
+	projects, e := helper.GetProjectList()
 	result := []string{}
 
-	for _, val := range data {
-		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid"))
-		}
+	if e != nil {
+		return result, e
+	}
+
+	for _, val := range projects {
+		result = append(result, val.Value)
 	}
 	sort.Strings(result)
 
-	return result, nil
+	return result, e
 }
 
 func (m *DashboardController) GetProjectList(k *knot.WebContext) interface{} {
@@ -1891,7 +1881,7 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 	}
 	totalTurbine := float64(len(turbineList))
 
-	log.Printf(">>> %v \n", totalTurbine)
+	// log.Printf(">>> %v \n", totalTurbine)
 
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
@@ -2277,6 +2267,173 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 	}
 
 	return helper.CreateResult(true, result, "success")
+}
+
+type ScadaAnalyticsWDDataX struct {
+	Project  string
+	Category float64
+	Minutes  float64
+}
+
+func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var dataSeries []tk.M
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	project, e := getProject()
+
+	// log.Printf(">> %#v \n", project)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	dateStart := p.Date.AddDate(0, -11, 0).UTC()
+
+	tEnd := p.Date.UTC()
+	tStart, _ := time.Parse("20060102_150405", dateStart.Format("20060102")+"_000000")
+	tStart = tStart.UTC()
+
+	query := []tk.M{}
+	pipes := []tk.M{}
+	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
+	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
+	query = append(query, tk.M{"available": 1})
+
+	type ScadaAnalyticsWDDataGroup struct {
+		Project  string
+		Category float64
+	}
+
+	type MiniScada struct {
+		AvgWindSpeed float64
+		Project      string
+		Count        int
+	}
+	tmpResult := []MiniScada{}
+	for _, proj := range project {
+		_data := []tk.M{}
+		pipes = []tk.M{}
+		tmpResult = []MiniScada{}
+		queryT := query
+		queryT = append(queryT, tk.M{"projectname": proj})
+		pipes = append(pipes, tk.M{"$match": tk.M{"$and": queryT}})
+		pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
+		pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
+		csr, _ := DB().Connection.NewQuery().
+			From(new(ScadaData).TableName()).
+			Command("pipe", pipes).Cursor(nil)
+
+		e = csr.Fetch(&_data, 0, false)
+		if e != nil {
+			break
+		}
+		csr.Close()
+
+		for _, v := range _data {
+			id := v.Get("_id").(tk.M)
+			tmpResult = append(tmpResult, MiniScada{
+				AvgWindSpeed: id.GetFloat64("avgwindspeed"),
+				Project:      id.GetString("projectname"),
+				Count:        v.GetInt("count"),
+			})
+		}
+
+		if len(tmpResult) > 0 {
+			totalCount := 0
+			datas := crowd.From(&tmpResult).Apply(func(x interface{}) interface{} {
+				dt := x.(MiniScada)
+
+				var di ScadaAnalyticsWDDataX
+				di.Project = dt.Project
+				di.Category = getWindDistrCategory(dt.AvgWindSpeed)
+				di.Minutes = float64(10 * dt.Count)
+				totalCount += dt.Count
+
+				return di
+			}).Exec().Group(func(x interface{}) interface{} {
+				dt := x.(ScadaAnalyticsWDDataX)
+
+				var dig ScadaAnalyticsWDDataGroup
+				dig.Project = dt.Project
+				dig.Category = dt.Category
+
+				return dig
+			}, nil).Exec()
+
+			dts := datas.Apply(func(x interface{}) interface{} {
+				kv := x.(crowd.KV)
+				keys := kv.Key.(ScadaAnalyticsWDDataGroup)
+				vs := kv.Value.([]ScadaAnalyticsWDDataX)
+				total := 0.0
+
+				for _, v := range vs {
+					total += v.Minutes
+				}
+
+				var di ScadaAnalyticsWDDataX
+				di.Project = keys.Project
+				di.Category = keys.Category
+				di.Minutes = total
+
+				return di
+			}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
+
+			totalMinutes := float64(totalCount * 10)
+
+			// if len(dts) > 0 {
+			// 	totalMinutes = crowd.From(&dts).Sum(func(x interface{}) interface{} {
+			// 		dt := x.(ScadaAnalyticsWDDataX)
+			// 		return dt.Minutes
+			// 	}).Exec().Result.Sum
+			// }
+
+			for _, wc := range windCats {
+				exist := crowd.From(&dts).Where(func(x interface{}) interface{} {
+					y := x.(ScadaAnalyticsWDDataX)
+					Project := y.Project == proj
+					Category := y.Category == wc
+					return Project && Category
+				}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
+
+				distHelper := tk.M{}
+
+				if len(exist) > 0 {
+					distHelper.Set("Project", proj)
+					distHelper.Set("Category", wc)
+
+					Minute := crowd.From(&exist).Sum(func(x interface{}) interface{} {
+						dt := x.(ScadaAnalyticsWDDataX)
+						return dt.Minutes
+					}).Exec().Result.Sum
+
+					distHelper.Set("Contribute", Minute/totalMinutes)
+				} else {
+					distHelper.Set("Project", proj)
+					distHelper.Set("Category", wc)
+					distHelper.Set("Contribute", -0.0)
+				}
+
+				dataSeries = append(dataSeries, distHelper)
+			}
+		}
+	}
+
+	data := struct {
+		Data []tk.M
+	}{
+		Data: dataSeries,
+	}
+
+	return helper.CreateResult(true, data, "success")
 }
 
 func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{} {
