@@ -435,7 +435,12 @@ sum.WindDistribution = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 160,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         series: [{
             type: "line",
@@ -443,18 +448,18 @@ sum.WindDistribution = function (dataSource) {
             field: "Contribute",
             // opacity : 0.7,
             markers: {
-                visible: true,
-                size: 3,
+                visible: false,
             }
         }],
         seriesColors: colorField,
         valueAxis: {
             labels: {
+                step: 2,
                 format: "{0:p0}",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
-                visible: true
+                visible: false
             },
             axisCrossingValue: -10,
             majorGridLines: {
@@ -470,29 +475,16 @@ sum.WindDistribution = function (dataSource) {
             },
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                step: 2,
                 // rotation: 25
             },
             majorTickType: "none"
         },
-        /*tooltip: {
-            visible: true,
-            // template: "Contribution of #= series.name # : #= kendo.toString(value, 'n4')# % at #= category #",
-            template: "#= kendo.toString(value, 'p2')#",
-            // shared: true,
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-
-        },*/
         tooltip: {
             visible: true,
             format: "{0:n1}",
             shared: true,
-            sharedTemplate: kendo.template($("#templateWindiness").html()),
+            sharedTemplate: kendo.template($("#templateDistribution").html()),
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -815,6 +807,8 @@ sum.indiaMap = function (project) {
         var turbineInfos = res.data;
         var center = turbineInfos[0].coords[0] + "," + turbineInfos[0].coords[1];
         var mapProp = {
+            types: ['(region)'],
+            componentRestrictions: {country: "in"},
             center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : new google.maps.LatLng(27.131461, 70.618559)),
             zoom: (param.projectname == 'Fleet' ? 4 : 10),
             mapTypeId: google.maps.MapTypeId.HYBRID,
@@ -841,13 +835,15 @@ sum.indiaMap = function (project) {
         var markers = new Array();
 
         turbineInfos.forEach(function (obj, idx) {
+            var imgUrl = (obj.status == true ? "../res/img/turbine-green.png" : "../res/img/turbine-red.png")
+
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
                 map: map,
                 title: obj.name,
                 icon: {
-                    url: "../res/img/wind-turbine.png", // url
-                    scaledSize: new google.maps.Size(30, 30), // scaled size
+                    url: imgUrl, // url
+                    scaledSize: new google.maps.Size(35, 45), // scaled size
                 }
             });
 
@@ -856,12 +852,35 @@ sum.indiaMap = function (project) {
             });
 
             google.maps.event.addListener(marker, 'click', function () {
-                map.panTo(this.getPosition());
-                map.setZoom(20);
+                var project = $("#projectId").data("kendoDropDownList").value();
+                if(project == "Fleet"){
+                    sum.ToMonitoringProject(obj.name);
+                }else{
+                    sum.ToMonitoringIndividual(project, obj.name);
+                }
             });
         });
     });
 
+}
+
+sum.ToMonitoringProject = function(project) {
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },300);
+}
+
+sum.ToMonitoringIndividual = function(project, turbine) {
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyturbine";
+    },300);
 }
 
 sum.ProductionChart = function (dataSource) {
