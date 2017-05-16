@@ -103,8 +103,25 @@ bp.CheckWeather = function() {
 };
 
 bp.GetData = function(data) {
+    var COOKIES = {};
+    var cookieStr = document.cookie;
+    var project = "";
+
+    if(cookieStr.indexOf("project=") >= 0) {
+        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        cookieStr.split(/; /).forEach(function(keyValuePair) {
+            var cookieName = keyValuePair.replace(/=.*$/, "");
+            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+            COOKIES[cookieName] = cookieValue;
+        });
+        project = COOKIES["project"];
+        $('#projectList').data('kendoDropDownList').value(project);
+    } else {
+        project = $('#projectList').data('kendoDropDownList').value();
+    }
+
     var param = {
-        Project: $("#projectList").data("kendoDropDownList").value()
+        Project: project
     };
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
         bp.Turbines1(res.data.ListOfTurbine["Feeder 5"]);
@@ -112,6 +129,8 @@ bp.GetData = function(data) {
         bp.PlotData(res.data);
     });
     bp.CheckWeather();
+
+    app.loading(false);
 };
 
 bp.PlotData = function(data) {
@@ -940,10 +959,9 @@ bp.dataChartLine = function (data) {
 
 $(document).ready(function() {
     app.loading(true);
-    $.when(bp.GetData()).done(function () {
-        setTimeout(function() {
-            app.loading(false);
-        }, 2000);
-    });
-    window.setInterval(bp.GetData, 4000);
+
+    setTimeout(function() {
+        bp.GetData()
+        window.setInterval(bp.GetData, 4000);
+    }, 600);
 });
