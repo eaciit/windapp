@@ -835,7 +835,7 @@ sum.indiaMap = function (project) {
         var markers = new Array();
 
         turbineInfos.forEach(function (obj, idx) {
-            var imgUrl = (obj.status == true ? "../res/img/turbine-green.png" : "../res/img/turbine-red.png")
+            var imgUrl = (obj.status == true ? "../res/img/turbine-green-new.png" : "../res/img/turbine-red.png")
 
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
@@ -843,7 +843,7 @@ sum.indiaMap = function (project) {
                 title: obj.name,
                 icon: {
                     url: imgUrl, // url
-                    scaledSize: new google.maps.Size(35, 45), // scaled size
+                    scaledSize: new google.maps.Size(70, 50), // scaled size
                 }
             });
 
@@ -854,7 +854,11 @@ sum.indiaMap = function (project) {
             google.maps.event.addListener(marker, 'click', function () {
                 var project = $("#projectId").data("kendoDropDownList").value();
                 if(project == "Fleet"){
-                    sum.ToMonitoringProject(obj.name);
+                    // sum.ToMonitoringProject(obj.name);
+                    setTimeout(function(){
+                        $("#projectId").data('kendoDropDownList').value(obj.name);
+                        lgd.LoadData();
+                    }, 200);
                 }else{
                     sum.ToMonitoringIndividual(project, obj.name);
                 }
