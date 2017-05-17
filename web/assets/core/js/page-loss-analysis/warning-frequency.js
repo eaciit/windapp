@@ -72,7 +72,7 @@ wf.generateGrid = function (dataSource) {
     if (dataSource.length > 0){
         $.each(dataSource[0].turbines, function (i, val) {
             var column = {
-                title: val.turbine,
+                title: val.turbine.Turbine,
                 field: "turbines["+i+"].count",
                 attributes: { class: "align-center" },
                 headerAttributes: {

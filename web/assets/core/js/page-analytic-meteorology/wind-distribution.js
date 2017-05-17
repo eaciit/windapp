@@ -112,7 +112,7 @@ wd.ChartWindDistributon =  function () {
                 field: "Contribute",
                 // opacity : 0.7,
                 markers: {
-                    visible: true,
+                    visible: false,
                     size: 3,
                 }
             }],

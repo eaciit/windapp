@@ -67,15 +67,10 @@
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# m/s</span></div>
   # } #
 </script>
-<script id="templateDistribution" type="text/x-kendo-template">
-  <div style="text-align:center"><b>#: category #</b></div>
-  # for (var i = 0; i < points.length; i++) { #
-    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'p1') #</span></div>
-  # } #
-</script>
+
 <div data-bind="visible:lgd.isSummary">
 	<div class="col-md-8 col-sm-8">
-		<div class="col-md-6 col-sm-6 hardcore landing border-right-grey border-bottom-grey">
+		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
 					Production (kWh) - Last 24 Hours
@@ -90,13 +85,13 @@
                       </div>
                   </span>
 				</div>
-				<div class="panel-body">
+				<div class="panel-body" style="height: 185px;">
 					<div id="chartProductionCustomTooltip"></div>
 					<div id="chartProduction"></div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing border-right-grey border-bottom-grey">
+		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
 					Availability (%) - Last 12 Months
@@ -112,12 +107,12 @@
                       </div>
                   </span>
 				</div>
-				<div class="panel-body">
+				<div class="panel-body" style="height: 185px;">
 					<div id="chartAbility"></div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing border-right-grey border-bottom-grey">
+		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
 					Cumulative Production (GWh) - Month to Date
@@ -138,7 +133,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing border-right-grey border-bottom-grey">
+		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
 				Lost Energy (GWh) - Last 12 Months
@@ -195,13 +190,13 @@
 		</div>
 		<div class="col-md-9 col-sm-8 no-padding">
 			<div class="pad">
-				<div id="india-map" style="height: 425px;"></div>
+				<div id="india-map" style="height: 446.5px;"></div>
 			</div>
 		</div>
 	</div>
 	<div class="col-md-12 col-sm-12 no-padding">
 		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-4 col-sm-4 hardcore landing border-right-grey border-bottom-grey custom-div">
+			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
 					Production (GWh) - Last 12 Months
@@ -222,7 +217,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing border-right-grey custom-div">
+			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore plf-div">
 					<div class="panel-heading">
 					PLF (%) Comparison for all Projects - Last 12 Months
@@ -243,7 +238,7 @@
 				</div>
 			</div>
 			<div class="col-md-4 col-sm-4 hardcore landing" id="div-windiness">
-				<div class="panel  no-padding hardcore windiness-div border-top-grey custom-div">
+				<div class="panel ez no-padding hardcore windiness-div">
 					<div class="panel-heading">
 					Windiness (m/s) - Last 12 Months
 					<span class="tools pull-right">
@@ -263,30 +258,9 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing" id="div-winddistribution">
-				<div class="panel ez no-padding hardcore winddistribution-div">
-					<div class="panel-heading">
-					Wind Distribution - Last 12 Months
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
-					</div>
-					<div class="panel-body" style="height: 185px;">
-						<div id="chartWindDistributionCustomTooltip"></div>
-						<div id="chartWindDistribution"></div>
-					</div>
-				</div>
-			</div>
 		</div>
 		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-4 col-sm-4 hardcore landing border-right-grey custom-div">
+			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
 					Production (GWh) - Current Year & Last Year
@@ -307,7 +281,7 @@
 				</div>
 			</div>
 			<div class="col-md-8 col-sm-8 hardcore landing">
-				<div class="panel no-padding hardcore summary-div custom-div border-top-grey">
+				<div class="panel ez no-padding hardcore summary-div">
 					<div class="panel-heading">
 					Summary Data for Last 12 Months
 					</div>
@@ -319,6 +293,7 @@
 		</div>
 	</div>
 </div>
+
 <div data-bind="visible:sum.isDetailProd">
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12">

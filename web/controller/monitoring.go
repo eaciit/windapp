@@ -3,7 +3,6 @@ package controller
 import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
-	"strings"
 	"time"
 
 	"eaciit/wfdemo-git/web/helper"
@@ -34,11 +33,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	// get the last data for monitoring
 
 	turbine := p.Get("turbine").([]interface{})
-	project := ""
-	if p.GetString("project") != "" {
-		anProject := strings.Split(p.GetString("project"), "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.GetString("Project")
 
 	match := tk.M{}
 	turbines := map[string]tk.M{}
@@ -260,11 +255,7 @@ func (m *MonitoringController) GetEvent(k *knot.WebContext) interface{} {
 	}
 
 	turbine := p.Get("turbine").([]interface{})
-	project := ""
-	if p.GetString("project") != "" {
-		anProject := strings.Split(p.GetString("project"), "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.GetString("project")
 
 	// log.Printf("%#v \n", project)
 
@@ -440,11 +431,7 @@ func (m *MonitoringController) GetDetailChart(k *knot.WebContext) interface{} {
 	}
 
 	turbine := p.Get("turbine").([]interface{})
-	project := ""
-	if p.GetString("project") != "" {
-		anProject := strings.Split(p.GetString("project"), "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.GetString("project")
 
 	// log.Printf("%#v \n", project)
 

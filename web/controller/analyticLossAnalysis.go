@@ -951,34 +951,53 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 	e = csr.Fetch(&list, 0, false)
 
 	for _, val := range list {
-		var totalTurbine, hourValue float64
+		var totalTurbine, hourValue, plfDivider float64
+		var turbineList []TurbineOut
+
+		if project != "" {
+			turbineList, _ = helper.GetTurbineList([]interface{}{project})
+		} else {
+			turbineList, _ = helper.GetTurbineList(nil)
+		}
+
+		id := val.Get("_id").(tk.M)
+		key := id.GetString("id1")
 
 		if breakDown == "Turbine" {
 			totalTurbine = 1.0
-		} else if len(turbine) == 0 {
-			var turbineList []TurbineOut
-			if project != "" {
-				turbineList, _ = helper.GetTurbineList([]interface{}{project})
-			} else {
-				turbineList, _ = helper.GetTurbineList(nil)
+
+			for _, v := range turbineList {
+				if key == v.Turbine {
+					plfDivider += v.Capacity
+				}
 			}
+		} else if len(turbine) == 0 {
 			totalTurbine = float64(len(turbineList))
+			for _, v := range turbineList {
+				if key == v.Project {
+					plfDivider += v.Capacity
+				}
+			}
 		} else {
 			totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
+			for _, vt := range turbine {
+				for _, v := range turbineList {
+					if vt.(string) == v.Turbine && key == v.Project {
+						plfDivider += v.Capacity
+					}
+				}
+			}
 		}
 
 		minDate := val.Get("mindate").(time.Time)
 		maxDate := val.Get("maxdate").(time.Time)
-
-		id := val.Get("_id").(tk.M)
-		key := ""
 
 		// if breakDown == "Date" {
 		// 	id1 := id.Get("id1").(time.Time)
 		// 	key = id1.Format("20060102_1504050000")
 		// 	hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
 		// } else {
-		key = id.GetString("id1")
+
 		hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 		// }
 
@@ -990,7 +1009,7 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 		minutes := val.GetFloat64("minutes") / 60
 
-		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 		res := tk.M{
 			key: tk.M{

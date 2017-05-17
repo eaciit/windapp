@@ -81,8 +81,7 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 	query = append(query, tk.M{"slow_nacellepos": tk.M{"$gt": -999999.0}})
 
 	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		query = append(query, tk.M{"projectname": strings.TrimRight(anProject[0], " ")})
+		query = append(query, tk.M{"projectname": p.Project})
 	}
 
 	data := []MiniScadaHFD{}
@@ -279,15 +278,7 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	} else {
-		project = "Tejuva"
-	}
-
-	results := c.GetMonitoringByProjectV2(project)
+	results := c.GetMonitoringByProjectV2(p.Project)
 
 	return helper.CreateResult(true, results, "success")
 }
@@ -464,11 +455,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 	tablename := "Alarm"
 	if p.Tipe == "warning" {
 		tablename = "AlarmWarning"
@@ -554,11 +541,7 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
@@ -602,13 +585,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	} else {
-		project = "Tejuva"
-	}
+	project := p.Project
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)

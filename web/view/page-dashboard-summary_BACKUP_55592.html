@@ -67,12 +67,22 @@
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# m/s</span></div>
   # } #
 </script>
+<<<<<<< HEAD
+=======
+<script id="templateWindiness" type="text/x-kendo-template">
+  <div style="text-align:center"><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# %</span></div>
+  # } #
+</script>
 <script id="templateDistribution" type="text/x-kendo-template">
   <div style="text-align:center"><b>#: category #</b></div>
   # for (var i = 0; i < points.length; i++) { #
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'p1') #</span></div>
   # } #
 </script>
+
+>>>>>>> master
 <div data-bind="visible:lgd.isSummary">
 	<div class="col-md-8 col-sm-8">
 		<div class="col-md-6 col-sm-6 hardcore landing border-right-grey border-bottom-grey">

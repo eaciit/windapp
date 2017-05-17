@@ -21,11 +21,22 @@ type UpdateScadaOemMinutes struct {
 	*BaseController
 }
 
+type minEventDown struct {
+	TimeStart          time.Time
+	TimeEnd            time.Time
+	Turbine            string
+	ReduceAvailability bool
+	DownGrid           bool
+	DownEnvironment    bool
+	DownMachine        bool
+}
+
 var (
 	mtxOem = &sync.Mutex{}
 )
 
 func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
+	sProjectName := "Tejuva"
 	funcName := "UpdateScadaOemDensity Data"
 	if base != nil {
 		d.BaseController = base
@@ -35,6 +46,7 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 			ErrorHandler(e, funcName)
 			os.Exit(0)
 		}
+		defer conn.Close()
 
 		tk.Println("UpdateScadaOemDensity Data")
 		var wg sync.WaitGroup
@@ -45,10 +57,10 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 		// tk.Println(d.BaseController.RefTurbines)
 		for turbine, _ := range d.BaseController.RefTurbines {
 			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Eq("projectname", "Tejuva"))
+			filter = append(filter, dbox.Eq("projectname", sProjectName))
 			filter = append(filter, dbox.Eq("turbine", turbine))
 
-			latestDate := d.BaseController.GetLatest("ScadaData", "Tejuva", turbine)
+			latestDate := d.BaseController.GetLatest("ScadaData", sProjectName, turbine)
 			if latestDate.Format("2006") != "0001" {
 				filter = append(filter, dbox.Gt("timestamp", latestDate))
 			}
@@ -56,7 +68,9 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 			// filter = append(filter, dbox.Gt("timestamp", d.BaseController.LatestData.MapScadaData["Tejuva#"+turbine]))
 
 			csr, e := conn.NewQuery().From(new(ScadaDataOEM).TableName()).
-				Where(filter...).Cursor(nil)
+				Where(filter...).
+				Order("timestamp").
+				Cursor(nil)
 			ErrorHandler(e, funcName)
 
 			defer csr.Close()
@@ -79,19 +93,46 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 				wg.Add(1)
 				go func(datas []*ScadaDataOEM, endIndex int) {
 					tk.Printf("Starting process %v data\n", endIndex)
+					defer wg.Done()
+
+					lenDatas := len(datas)
+					if lenDatas == 0 {
+						tk.Println("Data is 0 return process")
+						return
+					}
+
+					// == Get Data Downtime ==
+					_filter := []*dbox.Filter{}
+					_filter = append(_filter, dbox.Eq("projectname", sProjectName))
+					_filter = append(_filter, dbox.Eq("turbine", turbine))
+					_filter = append(_filter, dbox.Or(dbox.And(dbox.Gte("timestart", datas[0].TimeStamp), dbox.Lte("timestart", datas[lenDatas-1].TimeStamp)),
+						dbox.And(dbox.Gte("timeend", datas[0].TimeStamp), dbox.Lte("timeend", datas[lenDatas-1].TimeStamp))))
+
+					_csr, _err := conn.NewQuery().
+						Select("timestart", "timeend", "turbine", "reduceavailability", "downgrid", "downenvironment", "downmachine").
+						From(new(EventDown).TableName()).
+						Where(_filter...).
+						Order("timestamp").
+						Cursor(nil)
+
+					_arrMED := []minEventDown{}
+					if _err == nil {
+						_ = _csr.Fetch(&_arrMED, 0, false)
+						_csr.Close()
+					}
+					// == Get Data Downtime ==
 
 					mtxOem.Lock()
 					logStart := time.Now()
 
 					for _, data := range datas {
-						d.updateScadaOEM(data)
+						d.updateScadaOEM(data, _arrMED)
 					}
 
 					logDuration := time.Now().Sub(logStart)
 					mtxOem.Unlock()
 
 					tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
-					wg.Done()
 				}(scadas, ((counter + 1) * countPerProcess))
 
 				counter++
@@ -103,7 +144,7 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 	}
 }
 
-func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
+func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM, arrMED []minEventDown) {
 	ctx := u.Ctx
 	turbine := GetExactTurbineId(strings.TrimSpace(data.Turbine))
 
@@ -162,8 +203,8 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	}
 
 	oktime := 600.0
-	machinedown := 0.0
-	griddown := 0.0
+	// machinedown := 0.0
+	// griddown := 0.0
 
 	timestamp := data.TimeStamp
 	timestamp0 := timestamp.Add(-10 * time.Minute)
@@ -176,18 +217,20 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	machineDowntime := 0.0
 	unknownDowntime := 0.0
 
-	// getting alarms
-	refEvents := u.BaseController.RefAlarms.Get(turbine)
-	alarms := []EventDown{}
-	if refEvents != nil {
-		dataAlarms := refEvents.([]EventDown)
-		for _, a := range dataAlarms {
+	gridDowntimeAll := 0.0
+	machineDowntimeAll := 0.0
+	unknownDowntimeAll := 0.0
+
+	// getting alarms from min EventDown
+	selArrMed := []minEventDown{}
+	if len(arrMED) > 0 {
+		for _, a := range arrMED {
 			if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
-				alarms = append(alarms, a)
+				selArrMed = append(selArrMed, a)
 			} else if a.TimeStart.Sub(timestamp0) >= 0 && a.TimeStart.Sub(timestamp) <= 0 {
-				alarms = append(alarms, a)
+				selArrMed = append(selArrMed, a)
 			} else if a.TimeEnd.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
-				alarms = append(alarms, a)
+				selArrMed = append(selArrMed, a)
 			}
 			/*else if a.TimeStart.Sub(timestamp0) <= 0 && a.TimeStart.Sub(timestamp) >= 0 {
 				alarms = append(alarms, a)
@@ -196,8 +239,8 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	}
 
 	// log.Printf("%v -> scada: %v - %v \n", turbine, timestamp0.UTC().String(), timestamp.UTC().String())
-	if len(alarms) > 0 {
-		for _, a := range alarms {
+	if len(selArrMed) > 0 {
+		for _, a := range selArrMed {
 			// log.Printf("alarm: %v - %v \n", a.TimeStart.UTC().String(), a.TimeEnd.UTC().String())
 
 			startTime := a.TimeStart
@@ -209,27 +252,40 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			if timestamp.Sub(endTime) < 0 {
 				endTime = timestamp
 			}
-			aDuration += endTime.Sub(startTime).Seconds()
 
-			/*startTime := timestamp0
-			endTime := timestamp
-			if startTime.Sub(a.TimeStart) > 0 {
-				startTime = a.TimeStart
+			/*
+				startTime := timestamp0
+				endTime := timestamp
+				if startTime.Sub(a.TimeStart) > 0 {
+					startTime = a.TimeStart
+				}
+				if endTime.Sub(a.TimeEnd) > 0 {
+					endTime = a.TimeEnd
+				}
+				aDuration += endTime.Sub(startTime).Seconds()
+			*/
+
+			if a.ReduceAvailability {
+				aDuration += endTime.Sub(startTime).Seconds()
+
+				if a.DownGrid {
+					gridDowntime += endTime.Sub(startTime).Seconds()
+				} else if a.DownMachine {
+					machineDowntime += endTime.Sub(startTime).Seconds()
+				} else if a.DownEnvironment {
+					unknownDowntime += endTime.Sub(startTime).Seconds()
+				}
+
+				totalDowntime++
 			}
-			if endTime.Sub(a.TimeEnd) > 0 {
-				endTime = a.TimeEnd
-			}
-			aDuration += endTime.Sub(startTime).Seconds()*/
 
 			if a.DownGrid {
-				gridDowntime += endTime.Sub(startTime).Seconds()
+				gridDowntimeAll += endTime.Sub(startTime).Seconds()
 			} else if a.DownMachine {
-				machineDowntime += endTime.Sub(startTime).Seconds()
+				machineDowntimeAll += endTime.Sub(startTime).Seconds()
 			} else if a.DownEnvironment {
-				unknownDowntime += endTime.Sub(startTime).Seconds()
+				unknownDowntimeAll += endTime.Sub(startTime).Seconds()
 			}
-
-			totalDowntime++
 			/*log.Printf("endTime: %v | startTime: %v \n", endTime.UTC().String(), startTime.UTC().String())
 			log.Printf("aDuration: %v | machineDowntime: %v | gridDowntime: %v | unknownDowntime: %v \n", aDuration, machineDowntime, gridDowntime, unknownDowntime)*/
 		}
@@ -249,7 +305,19 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			unknownDowntime = 600
 		}
 
-		totalDurationMttf = tk.Div(aDuration, float64(len(alarms)))
+		if machineDowntimeAll > 600 {
+			machineDowntimeAll = 600
+		}
+
+		if gridDowntimeAll > 600 {
+			gridDowntimeAll = 600
+		}
+
+		if unknownDowntimeAll > 600 {
+			unknownDowntimeAll = 600
+		}
+
+		totalDurationMttf = tk.Div(aDuration, float64(totalDowntime))
 	}
 
 	// set mttr & mttf
@@ -262,8 +330,13 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 	}
 
 	totalavail := tk.Div(oktime, 600.0)
-	machineavail := tk.Div((600.0 - machinedown), 600.0)
-	gridavail := tk.Div((600.0 - griddown), 600.0)
+	machineavail := tk.Div((600.0 - machineDowntime), 600.0)
+	gridavail := tk.Div((600.0 - gridDowntime), 600.0)
+
+	totalavailall := tk.Div(oktime, 600.0)
+	machineavailall := tk.Div((600.0 - machineDowntimeAll), 600.0)
+	gridavailall := tk.Div((600.0 - gridDowntimeAll), 600.0)
+
 	powerLost := denPower - data.AI_intern_ActivPower
 
 	perfIndex := 0.0
@@ -284,6 +357,9 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			Set("totalavail", totalavail).
 			Set("machineavail", machineavail).
 			Set("gridavail", gridavail).
+			Set("totalavailall", totalavailall).
+			Set("machineavailall", machineavailall).
+			Set("gridavailall", gridavailall).
 			Set("turbineelevation", elevation).
 			Set("wsadjforpc", retadjws).
 			Set("wsavgforpc", retavgws).
@@ -308,7 +384,10 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM) {
 			Set("performanceindex", perfIndex).
 			Set("griddowntime", gridDowntime).
 			Set("machinedowntime", machineDowntime).
-			Set("unknowndowntime", unknownDowntime)))
+			Set("unknowndowntime", unknownDowntime).
+			Set("griddowntimeall", gridDowntimeAll).
+			Set("machinedowntimeall", machineDowntimeAll).
+			Set("unknowndowntimeall", unknownDowntimeAll)))
 
 	if e != nil {
 		tk.Printf("Update fail: %s", e.Error())

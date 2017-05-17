@@ -586,7 +586,7 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	return
 }
 
-func GetAllTurbineList() (result []toolkit.M, e error) {
+/*func GetAllTurbineList() (result []toolkit.M, e error) {
 	var projects []interface{}
 	resProj, e := GetProjectList()
 
@@ -608,7 +608,7 @@ func GetAllTurbineList() (result []toolkit.M, e error) {
 	e = csr.Fetch(&result, 0, false)
 
 	return
-}
+}*/
 
 func GetProjectList() (result []md.ProjectOut, e error) {
 	csr, e := DB().Connection.NewQuery().
@@ -659,8 +659,9 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 
 	for _, val := range data {
 		result = append(result, md.TurbineOut{
-			Project: val.Project,
-			Turbine: val.TurbineId,
+			Project:  val.Project,
+			Turbine:  val.TurbineId,
+			Capacity: val.CapacityMW,
 		})
 	}
 
@@ -742,10 +743,10 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 // energy should be div by 1000
 // machineDownTime, gridDownTime already in hour value
 // minutes should be div by 60
-func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machineDownTime float64, gridDownTime float64, countTimeStamp float64, hourValue float64, totalMinutes float64) (machineAvail float64, gridAvail float64, dataAvail float64, totalAvail float64, plf float64) {
+func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machineDownTime float64, gridDownTime float64, countTimeStamp float64, hourValue float64, totalMinutes float64, plfDivider float64) (machineAvail float64, gridAvail float64, dataAvail float64, totalAvail float64, plf float64) {
 	divider := (totalTurbine * hourValue)
-
-	plf = energy / (divider * 2.1) * 100
+	plf = energy / (plfDivider * hourValue) * 100
+	// log.Printf(">>> %v >>> %v | %v | %v \n", plf, energy, plfDivider, hourValue)
 	totalAvail = (okTime / 3600) / divider * 100
 	machineAvail = (totalMinutes - machineDownTime) / divider * 100
 	gridAvail = (totalMinutes - gridDownTime) / divider * 100

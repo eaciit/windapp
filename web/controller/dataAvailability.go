@@ -5,7 +5,6 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"strings"
 
 	"time"
 
@@ -53,11 +52,7 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 	}
 
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_OEM"))
 	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_HFD"))

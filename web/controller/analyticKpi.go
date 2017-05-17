@@ -128,8 +128,7 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 	}
 
 	if p.Project != "" {
-		// anProject := strings.Split(p.Project, "(")
-		match.Set("projectname", p.Project) //strings.TrimRight(anProject[0], " "))
+		match.Set("projectname", p.Project)
 	}
 
 	if rowsBreakdown == "Project" {
@@ -174,28 +173,50 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 
 	result := make(map[string]interface{})
 
+	var turbineList []TurbineOut
+	if p.Project != "" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{p.Project})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+
 	for _, val := range list {
-		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine, hourValue float64
+		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine, hourValue, plfDivider float64
+
+		id := val.Get("_id").(tk.M)
+		id1 := id.GetString("id1")
 
 		if rowsBreakdown == "Turbine" {
 			totalTurbine = 1.0
+
+			for _, v := range turbineList {
+				if id1 == v.Turbine {
+					plfDivider += v.Capacity
+				}
+			}
 		} else if len(p.Turbine) == 0 {
-			if p.Project != "" {
-				pturbines, _ := helper.GetTurbineList([]interface{}{p.Project})
-				totalTurbine = float64(len(pturbines))
-			} else {
-				pturbines, _ := helper.GetTurbineList(nil)
-				totalTurbine = float64(len(pturbines))
+			totalTurbine = float64(len(turbineList))
+			for _, v := range turbineList {
+				if id1 == v.Project {
+					plfDivider += v.Capacity
+				}
 			}
 		} else {
 			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
+
+			for _, vt := range p.Turbine {
+				for _, v := range turbineList {
+					if vt.(string) == v.Turbine && id1 == v.Project {
+						plfDivider += v.Capacity
+					}
+				}
+			}
 		}
 
 		minDate := val.Get("mindate").(time.Time)
 		maxDate := val.Get("maxdate").(time.Time)
 
 		if colBreakdown == "Date" {
-			id := val.Get("_id").(tk.M)
 			id1 := id.Get("id2").(time.Time)
 			hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
 		} else {
@@ -210,7 +231,7 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 		minutes := val.GetFloat64("minutes") / 60
 
-		machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+		machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 		prod = energy
 		revenue = power * 5.740 * 1000
@@ -256,8 +277,6 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			}
 		}
 
-		id := val.Get("_id").(tk.M)
-
 		if colBreakdown == "Date" {
 			dt := id.Get("id2").(time.Time).UTC()
 			tmpRes.Set("Name", dt.Format("02 Jan 2006"))
@@ -269,8 +288,6 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 			tmpRes.Set("Name", id.GetString("id2")+" <br/> "+periodDivider.GetString(id.GetString("id2")))
 			tmpRes.Set("YearMonth", id.GetString("id2")+"00")
 		}
-
-		id1 := id.GetString("id1")
 
 		if result[id1] != nil {
 			tmp := result[id1].([]tk.M)

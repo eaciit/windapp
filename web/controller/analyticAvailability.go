@@ -134,7 +134,7 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 		var datas []float64
 		for _, val := range list {
-			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, totalTurbine, hourValue float64
+			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, totalTurbine, hourValue, plfDivider float64
 
 			if len(turbine) == 0 {
 				var turbineList []TurbineOut
@@ -144,6 +144,11 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 					turbineList, _ = helper.GetTurbineList(nil)
 				}
 				totalTurbine = float64(len(turbineList))
+
+				for _, v := range turbineList {
+					plfDivider += v.Capacity
+				}
+
 			} else {
 				totalTurbine = float64(len(turbine))
 			}
@@ -167,7 +172,7 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
 			minutes := val.GetFloat64("minutes") / 60
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 			prod = energy
 

@@ -58,8 +58,9 @@ func (m *ProjectMaster) TableName() string {
 }
 
 type TurbineOut struct {
-	Project string
-	Turbine string
+	Project  string
+	Turbine  string
+	Capacity float64
 }
 
 type ProjectOut struct {
