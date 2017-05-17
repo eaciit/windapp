@@ -58,7 +58,9 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	turbines := []string{}
 
 	if len(p.Filter.Filters) > 2 {
-		turbines = p.Filter.Filters[2].Value.([]string)
+		for _, v := range p.Filter.Filters[2].Value.([]interface{}) {
+			turbines = append(turbines, v.(string))
+		}
 	}
 
 	if len(p.Filter.Filters) > 3 {
@@ -90,6 +92,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			}
 		}
 	}
+
+	plfDivider = tk.ToFloat64(plfDivider, 2, tk.RoundingAuto)
 
 	categories := []string{}
 
@@ -223,7 +227,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		var values float64
 		categories = []string{}
 		for listCount, val := range list {
-			var hourValue, minutes, plfDivider float64
+			var hourValue, minutes float64
 			id := val.Get("_id").(tk.M)
 			if strings.Contains(breakDown, "dateid") {
 
