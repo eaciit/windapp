@@ -53,21 +53,42 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	keys := []string{p.Misc.GetString("key1"), p.Misc.GetString("key2")}
 	breakDown := p.Misc.GetString("breakdown")
 	// duration := p.Misc.GetInt("duration")
-	turbineCount := p.Misc.GetInt("totalturbine")
+	// turbineCount := p.Misc.GetInt("totalturbine")
 	projectName := ""
+	turbines := []string{}
+
+	if len(p.Filter.Filters) > 2 {
+		turbines = p.Filter.Filters[2].Value.([]string)
+	}
 
 	if len(p.Filter.Filters) > 3 {
 		projectName = p.Filter.Filters[3].Value.(string)
 	}
 
-	if turbineCount == 0 {
-		var turbineList []TurbineOut
-		if projectName != "" {
-			turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
-		} else {
-			turbineList, _ = helper.GetTurbineList(nil)
-		}
+	var turbineList []TurbineOut
+	if projectName != "" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+
+	turbineCount := len(turbines)
+
+	var plfDivider float64
+
+	if len(turbines) == 0 {
 		turbineCount = len(turbineList)
+		for _, v := range turbineList {
+			plfDivider += v.Capacity
+		}
+	} else {
+		for _, vt := range turbines {
+			for _, v := range turbineList {
+				if vt == v.Turbine {
+					plfDivider += v.Capacity
+				}
+			}
+		}
 	}
 
 	categories := []string{}
@@ -202,10 +223,10 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		var values float64
 		categories = []string{}
 		for listCount, val := range list {
-			var hourValue, minutes float64
-
+			var hourValue, minutes, plfDivider float64
+			id := val.Get("_id").(tk.M)
 			if strings.Contains(breakDown, "dateid") {
-				id := val.Get("_id").(tk.M)
+
 				id1 := id.Get("id1").(time.Time)
 				// hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 
@@ -224,7 +245,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			sumTimeStamp := val.GetFloat64("countdata")
 			minutes = val.GetFloat64("minutes") / 60
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+			machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 

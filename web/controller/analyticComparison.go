@@ -109,7 +109,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		if len(list) > 0 {
 			val := list[0]
 
-			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
+			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, plfDivider float64
 			var totalTurbine float64
 
 			// totalTurbine = 1.0
@@ -123,6 +123,11 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 					turbineList, _ = helper.GetTurbineList(nil)
 				}
 				totalTurbine = float64(len(turbineList))
+
+				for _, v := range turbineList {
+					plfDivider += v.Capacity
+				}
+
 			} else {
 				totalTurbine = float64(len(p.Turbine))
 			}
@@ -142,7 +147,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
 			minutes := val.GetFloat64("minutes") / 60
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 

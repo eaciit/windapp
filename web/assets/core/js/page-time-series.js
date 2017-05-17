@@ -656,10 +656,12 @@ pg.createLiveChart = function(IsHour){
                                             $.each(seriesData, function(i, series){
                                                 if(series.name == tag.name){
                                                     // console.log(tag.name+" >> "+tag.data);
-                                                    $.each(tag.data, function(ix, dt){
-                                                        dateStart = new Date(new Date(Math.round(dt[0])).toUTCString());
-                                                        seriesData[i].addPoint(dt, true);
-                                                    });
+                                                    if (tag.data!=null){
+                                                        $.each(tag.data, function(ix, dt){
+                                                            dateStart = new Date(new Date(Math.round(dt[0])).toUTCString());
+                                                            seriesData[i].addPoint(dt, true);
+                                                        });
+                                                    }
                                                 }
                                             }); 
                                         });
