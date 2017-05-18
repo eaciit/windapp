@@ -105,8 +105,8 @@ func (d *UpdateScadaOemMinutes) GenerateDensity(base *BaseController) {
 					_filter := []*dbox.Filter{}
 					_filter = append(_filter, dbox.Eq("projectname", sProjectName))
 					_filter = append(_filter, dbox.Eq("turbine", turbine))
-					_filter = append(_filter, dbox.Or(dbox.And(dbox.Gte("timestart", datas[0].TimeStamp), dbox.Lte("timestart", datas[lenDatas-1].TimeStamp)),
-						dbox.And(dbox.Gte("timeend", datas[0].TimeStamp), dbox.Lte("timeend", datas[lenDatas-1].TimeStamp))))
+					_filter = append(_filter, dbox.Or(dbox.And(dbox.Gte("timestart", datas[0].TimeStamp.Add(time.Minute*-10)), dbox.Lte("timestart", datas[lenDatas-1].TimeStamp)),
+						dbox.And(dbox.Gte("timeend", datas[0].TimeStamp.Add(time.Minute*-10)), dbox.Lte("timeend", datas[lenDatas-1].TimeStamp))))
 
 					_csr, _err := conn.NewQuery().
 						Select("timestart", "timeend", "turbine", "reduceavailability", "downgrid", "downenvironment", "downmachine").
@@ -231,10 +231,9 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM, arrMED []minE
 				selArrMed = append(selArrMed, a)
 			} else if a.TimeEnd.Sub(timestamp0) >= 0 && a.TimeEnd.Sub(timestamp) <= 0 {
 				selArrMed = append(selArrMed, a)
+			} else if a.TimeStart.Sub(timestamp0) <= 0 && a.TimeEnd.Sub(timestamp) >= 0 {
+				selArrMed = append(selArrMed, a)
 			}
-			/*else if a.TimeStart.Sub(timestamp0) <= 0 && a.TimeStart.Sub(timestamp) >= 0 {
-				alarms = append(alarms, a)
-			}*/
 		}
 	}
 
