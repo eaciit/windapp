@@ -661,7 +661,8 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 	for _, val := range data {
 		result = append(result, md.TurbineOut{
 			Project:  val.Project,
-			Turbine:  val.TurbineId,
+			Turbine:  val.TurbineName,
+			Value:    val.TurbineId,
 			Capacity: val.CapacityMW,
 		})
 	}

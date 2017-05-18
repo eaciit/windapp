@@ -366,7 +366,7 @@ $.each(projects, function(idx, val) {
 });
 $.each(turbines, function(idx, val) {
     var data = {};
-    data.value = val.Turbine;
+    data.value = val.Value;
     data.text = val.Turbine;
     wfa.TurbineList.push(data);
 	// wfa.TurbineList.push(addOption(val));
