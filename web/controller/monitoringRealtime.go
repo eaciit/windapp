@@ -278,7 +278,7 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 		return helper.CreateResult(false, nil, err.Error())
 	}
 
-	results := c.GetMonitoringByProjectV2(p.Project)
+	results := GetMonitoringByProjectV2(p.Project, "monitoring")
 
 	return helper.CreateResult(true, results, "success")
 }
@@ -289,12 +289,12 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 	return retVal
 }
 
-func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) (rtkm tk.M) {
-
+func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	rtkm = tk.M{}
 	alldata, allturbine := []tk.M{}, tk.M{}
+	turbineMap := map[string]tk.M{}
 
-	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder").
+	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder", "turbinename", "latitude", "longitude").
 		From("ref_turbine").
 		Where(dbox.Eq("project", project)).Cursor(nil)
 
@@ -309,10 +309,12 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 	}
 	csrt.Close()
 	for _, _tkm := range _result {
+		turbine := _tkm.GetString("turbineid")
 		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
-		lturbine = append(lturbine, _tkm.GetString("turbineid"))
+		lturbine = append(lturbine, turbine)
 		sort.Strings(lturbine)
 		allturbine.Set(_tkm.GetString("feeder"), lturbine)
+		turbineMap[turbine] = tk.M{"coords": []float64{_tkm.GetFloat64("latitude"), _tkm.GetFloat64("longitude")}, "name": _tkm.GetString("turbinename")}
 	}
 
 	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
@@ -360,29 +362,57 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 			}
 			_iContinue = false
 			_iTurbine = _tTurbine
-			_itkm = tk.M{}.
-				Set("Turbine", _tTurbine).
-				Set("DataComing", 0).
-				Set("AlarmCode", 0).
-				Set("AlarmDesc", "").
-				Set("Status", 1).
-				Set("IsWarning", false).
-				Set("AlarmUpdate", time.Time{})
 
-			if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
-				_itkm.Set("DataComing", 1)
-			}
+			if pageType == "monitoring" {
+				_itkm = tk.M{}.
+					Set("Turbine", _tTurbine).
+					Set("DataComing", 0).
+					Set("AlarmCode", 0).
+					Set("AlarmDesc", "").
+					Set("Status", 1).
+					Set("IsWarning", false).
+					Set("AlarmUpdate", time.Time{})
 
-			if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
-				_itkm.Set("AlarmCode", _idt.AlarmCode).
-					Set("AlarmDesc", _idt.AlarmDesc).
-					Set("Status", _idt.Status).
-					Set("IsWarning", _idt.IsWarning).
-					Set("AlarmUpdate", _idt.TimeUpdate.UTC())
-				if _idt.Status == 0 {
-					turbinedown += 1
+				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+					_itkm.Set("DataComing", 1)
 				}
+
+				if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
+					_itkm.Set("AlarmCode", _idt.AlarmCode).
+						Set("AlarmDesc", _idt.AlarmDesc).
+						Set("Status", _idt.Status).
+						Set("IsWarning", _idt.IsWarning).
+						Set("AlarmUpdate", _idt.TimeUpdate.UTC())
+					if _idt.Status == 0 {
+						turbinedown += 1
+					}
+				}
+			} else if pageType == "dashboard" {
+				_itkm = tk.M{}.
+					Set("DataComing", 0).
+					Set("Status", 1).
+					Set("IsWarning", false)
+
+				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+					_itkm.Set("DataComing", 1)
+				}
+
+				if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
+					_itkm.
+						Set("Status", _idt.Status).
+						Set("IsWarning", _idt.IsWarning)
+					if _idt.Status == 0 {
+						turbinedown += 1
+					}
+				}
+
+				turbineMp := turbineMap[_tTurbine]
+				_itkm.
+					Set("coords", turbineMp.Get("coords")).
+					Set("name", turbineMp.GetString("name")).
+					Set("value", _tTurbine)
 			}
+
 		}
 
 		_iContinue = true
@@ -409,16 +439,22 @@ func (c *MonitoringRealtimeController) GetMonitoringByProjectV2(project string) 
 		alldata = append(alldata, _itkm)
 	}
 
-	rtkm.Set("ListOfTurbine", allturbine)
-	rtkm.Set("Detail", alldata)
-	rtkm.Set("TimeNow", t0)
-	rtkm.Set("TimeStamp", lastUpdate)
-	rtkm.Set("TimeMax", timemax)
-	rtkm.Set("PowerGeneration", PowerGen)
-	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
-	rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
-	rtkm.Set("TurbineActive", len(_result)-turbinedown)
-	rtkm.Set("TurbineDown", turbinedown)
+	if pageType == "monitoring" {
+		rtkm.Set("ListOfTurbine", allturbine)
+		rtkm.Set("Detail", alldata)
+		rtkm.Set("TimeNow", t0)
+		rtkm.Set("TimeStamp", lastUpdate)
+		rtkm.Set("TimeMax", timemax)
+		rtkm.Set("PowerGeneration", PowerGen)
+		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
+		rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
+		rtkm.Set("TurbineActive", len(_result)-turbinedown)
+		rtkm.Set("TurbineDown", turbinedown)
+	} else if pageType == "dashboard" {
+		rtkm.Set("Detail", alldata)
+		rtkm.Set("TurbineDown", turbinedown)
+		rtkm.Set("TurbineActive", len(_result)-turbinedown)
+	}
 
 	return
 }

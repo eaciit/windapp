@@ -64,6 +64,7 @@ type TurbineOut struct {
 }
 
 type ProjectOut struct {
-	Name  string
-	Value string
+	Name   string
+	Value  string
+	Coords []float64
 }
