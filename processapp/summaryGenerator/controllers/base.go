@@ -82,7 +82,8 @@ func (b *BaseController) PrepareDataReff() {
 		b.RefTurbines.Set(t.TurbineId, tk.M{}.
 			Set("turbinename", t.TurbineName).
 			Set("turbineelevation", t.Elevation).
-			Set("topcorrelation", t.TopCorrelation))
+			Set("topcorrelation", t.TopCorrelation).
+			Set("project", t.Project))
 	}
 
 	tk.Printf("Turbines: %v \n", len(turbines))

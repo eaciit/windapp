@@ -2150,7 +2150,7 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 				toDateSub := tmpDt.AddDate(0, 0, -1)
 
 				hourValue := helper.GetHourValue(fromDateSub.UTC(), toDateSub.UTC(), minDate.UTC(), maxDate.UTC())
-				mAvail, gAvail, _, _, _ := helper.GetAvailAndPLF(totalTurbine, float64(0), float64(0), m, g, float64(0), hourValue, minutes)
+				mAvail, gAvail, _, _, _ := helper.GetAvailAndPLF(totalTurbine, float64(0), float64(0), m, g, float64(0), hourValue, minutes, float64(0))
 
 				// log.Printf("%v | %v \n", mAvail, gAvail)
 
@@ -2600,11 +2600,10 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	}
 	projectName := payload["projectname"]
 
-	result := []tk.M{}
 	mapTurbines := map[string]string{}
 
 	if projectName != "Fleet" {
-		getDownTurbineStatus(projectName, time.Now(), 0)
+		result := getDownTurbineStatus(projectName, time.Now(), 0)
 		for _, v := range result {
 			turbine := v.GetString("_id")
 			mapTurbines[turbine] = turbine
@@ -2625,8 +2624,8 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 			result.Set("name", val.GetString("projectname"))
 			result.Set("status", status)
 		} else {
-			result.Set("name", val.GetString("turbinename"))
-			if mapTurbines[val.GetString("turbinename")] != "" {
+			result.Set("name", val.GetString("turbineid"))
+			if mapTurbines[val.GetString("turbineid")] != "" {
 				status = false
 			}
 			result.Set("status", status)
