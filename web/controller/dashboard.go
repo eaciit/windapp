@@ -268,6 +268,8 @@ func (m *DashboardController) GetScadaSummaryByMonth(k *knot.WebContext) interfa
 
 	var result []interface{}
 
+	// log.Printf(">> %v", len(datalastmonth))
+
 	if len(datalastmonth) > 0 {
 
 		startmonth := 0
@@ -550,7 +552,7 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 		Total: tk.SliceLen(dataItem),
 	}
 
-	log.Printf("> %#v \n", data)
+	// log.Printf("> %#v \n", data)
 
 	return helper.CreateResult(true, data, "success")
 }
