@@ -19,8 +19,8 @@ wfa.isTurbine1Loaded = ko.observable(false);
 wfa.isTurbine2Loaded = ko.observable(false);
 wfa.GridHeader = ko.observableArray([]);
 
-wfa.ProjectList = [];
-wfa.TurbineList = [];
+wfa.ProjectList = ko.observableArray([]);
+wfa.TurbineList = ko.observableArray([]);
 wfa.Keys = [
 	{ value: "Power", text: "Power (GW)", type: "column", color: "#EB8F1F", divider: 1000000 },
 	{ value: "WindSpeed", text: "WindSpeed (m/s)", type: "area", color: "#37CAB7", divider: 1 },
@@ -329,6 +329,32 @@ wfa.checkTurbine = function (elmId) {
     } else if (arr.length == 0) {
         $('#'+elmId).data("kendoMultiSelect").value(["All Turbines"]);
     }
+}
+
+wfa.setTurbines = function (id) {
+    var datavalue = [];
+
+    var allturbine = {}
+    allturbine.value = "All Turbine";
+    allturbine.text = "All Turbines";
+    datavalue.push(allturbine);
+
+    var project = $("#"+id).data("kendoDropDownList").value();
+    $.each(turbines, function(idx, val) {
+        if (project == "") {
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Turbine;
+            datavalue.push(data);
+        }else if (project == val.Project){
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Turbine;
+            datavalue.push(data);
+        }
+    });
+
+    wfa.TurbineList(datavalue);
 }
 
 wfa.showFilter = function(project, turbine1, turbine2, id){

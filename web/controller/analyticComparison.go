@@ -115,27 +115,38 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			// totalTurbine = 1.0
 			// hourValue := val.GetFloat64("minutes") / 60.0
 
-			if len(p.Turbine) == 0 {
-				var turbineList []TurbineOut
-				if p.Project != "" {
-					turbineList, _ = helper.GetTurbineList([]interface{}{p.Project})
-				} else {
-					turbineList, _ = helper.GetTurbineList(nil)
-				}
-				totalTurbine = float64(len(turbineList))
+			var turbineList []TurbineOut
+			if p.Project != "" {
+				turbineList, _ = helper.GetTurbineList([]interface{}{p.Project})
+			} else {
+				turbineList, _ = helper.GetTurbineList(nil)
+			}
 
+			if len(p.Turbine) == 0 {
 				for _, v := range turbineList {
 					plfDivider += v.Capacity
+					totalTurbine += 1
 				}
 
 			} else {
-				totalTurbine = float64(len(p.Turbine))
+				for _, vt := range p.Turbine {
+					for _, v := range turbineList {
+						if vt == v.Value {
+							plfDivider += v.Capacity
+							totalTurbine += 1
+						}
+					}
+				}
 			}
+
+			// log.Printf(">> %v | %v \n", plfDivider, totalTurbine)
 
 			minDate := val.Get("mindate").(time.Time)
 			maxDate := val.Get("maxdate").(time.Time)
 
 			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+
+			// log.Printf(">> %v | %v - %v | %v >> %v \n", tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC(), hourValue)
 
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0

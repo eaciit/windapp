@@ -41,7 +41,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		variance DataItem
 	}
 
-	var totalTurbine float64
+	var totalTurbine, plfDivider float64
 	var data DataReturn
 
 	p := new(PayloadAnalytic)
@@ -71,17 +71,31 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	if project != "" {
 		filter = append(filter, dbox.Eq("projectname", project))
 	}
+
+	var turbineList []TurbineOut
+	if project != "" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{project})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+
 	if len(turbine) != 0 {
+		for _, vt := range turbine {
+			for _, v := range turbineList {
+				if vt == v.Value {
+					plfDivider += v.Capacity
+					totalTurbine += 1
+				}
+			}
+		}
+
 		totalTurbine = float64(len(turbine))
 		filter = append(filter, dbox.In("turbine", turbine...))
 	} else {
-		var turbineList []TurbineOut
-		if project != "" {
-			turbineList, _ = helper.GetTurbineList([]interface{}{project})
-		} else {
-			turbineList, _ = helper.GetTurbineList(nil)
+		for _, v := range turbineList {
+			plfDivider += v.Capacity
+			totalTurbine += 1
 		}
-		totalTurbine = float64(len(turbineList))
 	}
 
 	// get ScadaSummaryDaily
@@ -195,7 +209,9 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		maxDate := scada.Get("maxdate").(time.Time)
 		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
-		sPlf = sEnergy / (totalTurbine * hourValue * 2100) * 100 * 1000
+		// log.Printf(">> %v | %v - %v | %v >> %v \n", tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC(), hourValue)
+
+		sPlf = sEnergy / (plfDivider * hourValue) * 100 * 1000 //sEnergy / (totalTurbine * hourValue * 2100) * 100 * 1000
 		sTrueavail = (sOktime / 3600) / (totalTurbine * hourValue) * 100
 
 		minutes := scada.GetFloat64("minutes") / 60
@@ -406,7 +422,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		// tk.Println(" >>> ltkm >>> ", ltkm)
 		hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 		// tk.Println(" >>> hour >>> ", hourValue)
-		scadaHfdItem.plf = tk.Div(scadaHfdItem.energy, (totalTurbine*hourValue*2100)) * 100 * 1000
+		scadaHfdItem.plf = tk.Div(scadaHfdItem.energy, (plfDivider*hourValue)) * 100 * 1000
 	}
 
 	var diffDgrHfd DataItem

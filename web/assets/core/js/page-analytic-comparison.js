@@ -473,12 +473,12 @@ page.populateTurbineX = function (selected, id) {
         $.each(page.rawturbine(), function (key, val) {
             if (selected == "") {
                 var data = {};
-                data.value = val.Turbine;
+                data.value = val.Value;
                 data.text = val.Turbine;
                 datavalue.push(data);
             }else if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
+                data.value = val.Value;
                 data.text = val.Turbine;
                 datavalue.push(data);
             }
@@ -653,8 +653,8 @@ page.refreshFilter = function (id) {
 
 			var param = {
 				period: period,
-				DateStart: $('#dateStart-' + id).data('kendoDatePicker').value(),
-				DateEnd: $('#dateEnd-' + id).data('kendoDatePicker').value(),
+				DateStart: startdate,
+				DateEnd: enddata,
 				Turbine: turbine,
 				Project: $("#projectList-" + id).data("kendoDropDownList").value(),
 				Keys: page.selectedKeys(),
