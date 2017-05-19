@@ -2306,7 +2306,7 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
-	query = append(query, tk.M{"available": 1})
+	query = append(query, tk.M{"available": tk.M{"$eq": 1}})
 
 	type ScadaAnalyticsWDDataGroup struct {
 		Project  string
@@ -2337,6 +2337,12 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 			break
 		}
 		csr.Close()
+
+		// log.Printf("> %v | %v \n", tStart.UTC().String(), tEnd.UTC().String())
+
+		// for _, vx := range queryT {
+		// 	log.Printf("> %#v \n", vx)
+		// }
 
 		for _, v := range _data {
 			id := v.Get("_id").(tk.M)

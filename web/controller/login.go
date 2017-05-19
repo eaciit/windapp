@@ -289,13 +289,20 @@ func getLastAvailDate() *Availdatedata {
 
 	// toolkit.Println(latestDataPeriods)
 
+	// mapCheck := map[string]time.Time{}
+
 	datePeriod := new(Availdatedata)
 	xdp := reflect.ValueOf(datePeriod).Elem()
 	for _, d := range latestDataPeriods {
 		f := xdp.FieldByName(d.Type)
 		if f.IsValid() {
 			if f.CanSet() {
-				f.Set(reflect.ValueOf(d.Data))
+				// tmpTime := mapCheck[d.Type]
+				// log.Printf("> %v | %v \n", d.Data[0].String(), d.Data[1].String())
+				if d.Data[0].String() != d.Data[1].String() {
+					f.Set(reflect.ValueOf(d.Data))
+					// log.Printf(">> %v | %v \n", d.Data[0].String(), d.Data[1].String())
+				}
 			}
 		}
 	}
