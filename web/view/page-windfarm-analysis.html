@@ -31,8 +31,7 @@
                             style="width:150px">
                         </select>
                         <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
-                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine1List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine1List')}, suggest: true }"
-                            style="width:320px" onblur="wfa.Turbine1Analysis.LoadData()">
+                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine1List" name="table" style="width:320px" onblur="wfa.Turbine1Analysis.LoadData()">
                         </select>
                     </div>
                     <div data-bind="visible:wfa.isTurbine2Tab()">
@@ -41,8 +40,7 @@
                             style="width:150px">
                         </select>
                         <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
-                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine2List" name="table" data-bind="kendoMultiSelect: { data: wfa.TurbineList, dataValueField: 'value', dataTextField: 'text', change: function() {wfa.checkTurbine('turbine2List')}, suggest: true }"
-                            style="width:320px">
+                        <select class="col-md-11 col-sm-6 turbine-list" id="turbine2List" name="table" style="width:320px">
                         </select>
                     </div>
                     &nbsp;&nbsp;
