@@ -550,6 +550,8 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 		Total: tk.SliceLen(dataItem),
 	}
 
+	log.Printf("> %#v \n", data)
+
 	return helper.CreateResult(true, data, "success")
 }
 
