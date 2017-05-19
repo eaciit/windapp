@@ -24,7 +24,7 @@ dbd.InitDEgrid = function() {
     }, {
         field: "turbine",
         operator: "in",
-        value: fa.turbine
+        value: fa.turbine()
     }, ];
 
     if(fa.project != "") {

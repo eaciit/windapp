@@ -59,7 +59,7 @@ dbj.InitGridJMR = function() {
     }, {
         field: "sections.turbine",
         operator: "in",
-        value: fa.turbine
+        value: fa.turbine()
     }, ];
 
     dbr.filterJMR(filters);
