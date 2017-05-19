@@ -224,6 +224,7 @@ km.getData = function () {
 
 $(document).ready(function () {
 	$('#btnRefresh').on('click', function () {
+		fa.checkTurbine();
 		setTimeout(function () {
 			km.getData();
 		}, 200);
@@ -240,6 +241,7 @@ $(document).ready(function () {
 	});
 
 	setTimeout(function () {
+		fa.checkTurbine();
 		$('#projectList').kendoDropDownList({
 			data: fa.projectList,
 			dataValueField: 'value',

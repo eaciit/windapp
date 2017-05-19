@@ -206,6 +206,7 @@ ma.ToByProject = function(){
 
 $(document).ready(function(){
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Down") {
             ma.CreateGrid("alarm");
         } else {

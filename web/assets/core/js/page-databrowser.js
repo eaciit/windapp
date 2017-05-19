@@ -739,17 +739,17 @@ function DataBrowserExporttoExcel(functionName) {
     dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
     dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 
-    var turbine = [];
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        turbine = turbineval;
-    } else {
-        turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // var turbine = [];
+    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    //     turbine = turbineval;
+    // } else {
+    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
+    // }
 
     var Filter = {
         DateStart: dateStart,
         DateEnd: dateEnd,
-        Turbine: turbine,
+        Turbine: fa.turbine,
     };
 
     app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function(res) {
@@ -807,11 +807,13 @@ $(document).ready(function() {
         return false;
     });
     $('#btnRefresh').on('click', function() {
+        fa.checkTurbine();
         dbr.ResetFlagLoaded();
         Data.LoadData();
     });
 
     setTimeout(function() {
+        fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();

@@ -240,6 +240,7 @@ var Data = {
                         visible: true,
                     },
                     labels: {
+                        format: "N0",
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     crosshair: {
@@ -335,7 +336,7 @@ var Data = {
         page.deviationVal($("#deviationValue").val());
         var turbineList = [];
         var kolor = [];
-        var kolorDeg = [];
+        // var kolorDeg = [];
         var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
 
         var len = $('input[id*=chk-][type=checkbox]:checked').length;
@@ -347,8 +348,14 @@ var Data = {
                 return nm.name == chk
             });
             kolor.push(even.color);
-            var indOf = colorField.indexOf(even.color);
-            kolorDeg.push(colorDegField[indOf]);
+            var indOf = 0;
+            for (var i = 0; i < colorField.length; i++) {
+                if(colorField[i] === even.color) {
+                    indOf = i
+                }
+            }
+            // var indOf = colorField.indexOf(even.color);
+            // kolorDeg.push(colorDegField[indOf]);
         }
 
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
@@ -361,7 +368,7 @@ var Data = {
             turbine: turbineList,
             project: fa.project,
             Color: kolor,
-            ColorDeg: kolorDeg,
+            // ColorDeg: kolorDeg,
             isDeviation: page.isDeviation,
             deviationVal: page.deviationVal,
             IsDownTime: page.showDownTime(),
@@ -385,7 +392,7 @@ var Data = {
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
                 theme: "flat",
-                renderAs: "canvas",
+                // renderAs: "canvas",
                 pdf: {
                   fileName: "DetailPowerCurve.pdf",
                 },
@@ -410,7 +417,8 @@ var Data = {
                 },
                 valueAxis: [{
                     labels: {
-                        format: "N2",
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     }
                 }],
                 xAxis: {
@@ -418,7 +426,12 @@ var Data = {
                     title: {
                         text: "Wind Speed (m/s)",
                         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        color: "#585555"
+                        color: "#585555",
+                        visible: true,
+                    },
+                    labels: {
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     majorGridLines: {
                         visible: true,
@@ -448,7 +461,8 @@ var Data = {
                         color: "#585555"
                     },
                     labels: {
-                        format: "N2",
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     axisCrossingValue: -5,
                     majorGridLines: {
@@ -460,7 +474,7 @@ var Data = {
                         visible: true,
                         tooltip: {
                             visible: true,
-                            format: "N2",
+                            format: "N1",
                             background: "rgb(255,255,255, 0.9)",
                             color: "#58666e",
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -759,7 +773,8 @@ page.HideforScatter = function() {
 
     var sScater = page.sScater();
     if (sScater) {
-        $('#showHideChk').hide();
+        // $('#showHideChk').hide();
+        $('#showHideAll').attr("disabled", true);
         $('#showHideAll').prop('checked', false);
         if (len > 3) {
             page.hideAll();
@@ -767,14 +782,16 @@ page.HideforScatter = function() {
             $('#chk-1').prop('checked', true);
         }
     } else {
-        $('#showHideChk').show();
-        $('#showHideAll').prop('checked', false); /*can be harcoded because max turbine is 3*/
+        // $('#showHideChk').show();
+        $('#showHideAll').removeAttr("disabled");
+        $('#showHideAll').prop('checked', false); /*can be hardcoded because max turbine is 3*/
     }
 }
 
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
         app.loading(true);
+        fa.checkTurbine();
         setTimeout(function() {
             fa.LoadData();
             if (page.sScater() && $("#turbineList").data("kendoMultiSelect").value().length > 3) {

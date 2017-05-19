@@ -610,6 +610,10 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	return
 }*/
 
+func HelperSetDb(conn dbox.IConnection) {
+	_ = SetDb(conn)
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	csr, e := DB().Connection.NewQuery().
 		From(new(md.ProjectMaster).TableName()).
