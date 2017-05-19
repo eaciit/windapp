@@ -835,7 +835,7 @@ sum.indiaMap = function (project) {
         var markers = new Array();
 
         turbineInfos.forEach(function (obj, idx) {
-            var imgUrl = (obj.status == true ? "../res/img/turbine-green-new.png" : "../res/img/turbine-red.png")
+            var imgUrl = (obj.status == true ? "../res/img/turbine-green.png" : "../res/img/turbine-red.png")
 
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
