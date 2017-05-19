@@ -41,14 +41,14 @@ page.toDetail = function(selected) {
 }
 page.populateTurbine = function() {
     page.turbine([]);
-    if (fa.turbine == "") {
+    if (page.turbine().length == 0) {
         $.each(fa.turbineList(), function(i, val) {
             if (i > 0) {
                 page.turbine.push(val.text);
             }
         });
     } else {
-        page.turbine(fa.turbine);
+        page.turbine(fa.turbine());
     }
 }
 page.ExportPowerCurvePdf = function() {
@@ -753,6 +753,7 @@ page.ShowHideAfterInitChart = function() {
     var chart = $("#powerCurve").data("kendoChart");
     for (var i = 1; i <= len; i++) {
         if (!$('#chk-' + i).is(':checked')) {
+            // console.log(chart.options);
             chart.options.series[i].visible = false;
         }
     }
@@ -794,7 +795,7 @@ $(document).ready(function() {
         fa.checkTurbine();
         setTimeout(function() {
             fa.LoadData();
-            if (page.sScater() && $("#turbineList").data("kendoMultiSelect").value().length > 3) {
+            if (page.sScater() && $("#turbineList").val().length > 3) {
                 swal('Warning', 'You can only select 3 turbines !', 'warning');
                 return
             }

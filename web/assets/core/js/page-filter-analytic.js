@@ -354,13 +354,15 @@ fa.checkTurbine = function () {
     //     // $("#turbineList").data("kendoMultiSelect").value(["All Turbine"]);
     //     $('#turbineList').val("multiselect-all")
     // }
-    fa.turbine = arr;
+    
     if(arr == null){
         var $el = $("#turbineList");
         $('option', $el).each(function(element) {
           $el.multiselect('select', $(this).val());
         });
+        arr = $('#turbineList').val();
     }
+    fa.turbine(arr);
 }
 
 fa.InitFilter = function () {
@@ -373,7 +375,7 @@ fa.InitFilter = function () {
     // if ($("#turbineList").val().indexOf("All Turbine") >= 0) {
     //     fa.turbine = [];
     // } else {
-    fa.turbine = $("#turbineList").val();
+    fa.turbine($("#turbineList").val());
     // }
 
     fa.periodType = $("#periodList").data("kendoDropDownList").value();
@@ -402,6 +404,7 @@ fa.InitDefaultValue = function () {
         $("#turbineList").multiselect("dataprovider",fa.turbineList());
         fa.checkTurbine();
     },200);
+    // console.log(">>>>: "+$("#turbineList").val());
 }
 
 fa.GetBreakDown = function () {
