@@ -127,7 +127,7 @@ pc.populateTurbine = function (selected) {
             if (selected == val.Project){
                 var data = {};
                 data.value = val.Value;
-                data.text = val.Turbine;
+                data.label = val.Turbine;
                 datavalue.push(data);
                 dataturbine.push(val);
             }

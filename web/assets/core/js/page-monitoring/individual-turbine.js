@@ -56,7 +56,7 @@ it.populateTurbine = function (project, turbine, isChange) {
                 if(val.Project == project) {
                     var data = {};
                     data.value = val.Value;
-                    data.text = val.Turbine;
+                    data.label = val.Turbine;
                     // data.Id = val.Turbine;
                     // data.Lat = val.latitude;
                     // data.Lon = val.longitude;

@@ -14,7 +14,7 @@
 				<select class="project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: fa.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }">
                 </select>&nbsp;
 				<label class="label-filters">Turbine</label>
-				<select class="turbine-list input-filter" id="turbineList" name="table" data-bind="kendoDropDownList: { data: fa.turbineList, dataValueField: 'value', dataTextField: 'text', suggest: true }">
+				<select class="turbine-list input-filter" id="turbineList" name="table" data-bind="kendoDropDownList: { data: fa.turbineList, dataValueField: 'value', dataTextField: 'label', suggest: true }">
                 </select>&nbsp;
 				<label class="label-filters">Period</label>
 				<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: fa.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {fa.showHidePeriod()} }">
