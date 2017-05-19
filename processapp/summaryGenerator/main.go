@@ -45,8 +45,8 @@ func main() {
 		// new(EventToAlarm).ConvertEventToAlarm(base)         // step 2
 		// new(GenAlarmSummary).Generate(base) // step 3
 		// new(GenDataPeriod).Generate(base)   // step 4
-		new(GenScadaLast24).Generate(base) // step 5
-		/*new(GenScadaSummary).Generate(base)                 // step 6
+		new(GenScadaLast24).Generate(base)                  // step 5
+		new(GenScadaSummary).Generate(base)                 // step 6
 		new(GenScadaSummary).GenerateSummaryByFleet(base)   // step 7
 		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
 		new(GenScadaSummary).GenerateSummaryDaily(base)     // step 9
@@ -55,7 +55,7 @@ func main() {
 		new(GenScadaSummary).GenWFAnalysisByTurbine2(base)  // step 12
 
 		// not dependent Generate
-		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)*/
+		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
 		// new(EventReduceAvailability).ConvertEventReduceAvailability(base)
 
 		/* data that need to copy:
