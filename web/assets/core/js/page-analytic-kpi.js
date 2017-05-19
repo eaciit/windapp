@@ -482,7 +482,12 @@ $(function () {
             dataValueField: 'value',
             dataTextField: 'text',
             suggest: true,
-            change: function () { page.setBreakDown() }
+            change: function () { 
+                page.setBreakDown(); 
+                setTimeout(function(){
+                   fa.setTurbine();
+                },400);
+            }
         });
 
         $("#dateStart").change(function () { fa.DateChange(page.setBreakDown()) });

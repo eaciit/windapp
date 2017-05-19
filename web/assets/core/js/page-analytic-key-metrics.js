@@ -217,7 +217,7 @@ km.getData = function () {
 	fa.LoadData();
 
 	setTimeout(function () {
-		km.setBreakDown();
+		// km.setBreakDown();
 		km.createChart();
 	}, 1000);
 }

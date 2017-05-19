@@ -164,12 +164,12 @@ fa.populateTurbine = function (selected) {
         $.each(fa.rawturbine(), function (key, val) {
             if (selected == "") {
                 var data = {};
-                data.value = val.Turbine;
+                data.value = val.Value;
                 data.label = val.Turbine;
                 datavalue.push(data);
             }else if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
+                data.value = val.Value;
                 data.label = val.Turbine;
                 datavalue.push(data);
             }
@@ -179,7 +179,7 @@ fa.populateTurbine = function (selected) {
     }
 
     setTimeout(function () {
-        $('#turbineList').val("multiselect-all");
+         fa.setTurbine();
     }, 100);
 };
 
@@ -354,13 +354,15 @@ fa.checkTurbine = function () {
     //     // $("#turbineList").data("kendoMultiSelect").value(["All Turbine"]);
     //     $('#turbineList').val("multiselect-all")
     // }
-    fa.turbine = arr;
+    
     if(arr == null){
         var $el = $("#turbineList");
         $('option', $el).each(function(element) {
           $el.multiselect('select', $(this).val());
         });
+        arr = $('#turbineList').val();
     }
+    fa.turbine(arr);
 }
 
 fa.InitFilter = function () {
@@ -373,7 +375,7 @@ fa.InitFilter = function () {
     // if ($("#turbineList").val().indexOf("All Turbine") >= 0) {
     //     fa.turbine = [];
     // } else {
-    fa.turbine = $("#turbineList").val();
+    fa.turbine($("#turbineList").val());
     // }
 
     fa.periodType = $("#periodList").data("kendoDropDownList").value();
@@ -397,11 +399,15 @@ fa.InitDefaultValue = function () {
             enableCaseInsensitiveFiltering: true,
             enableFiltering: true,
             maxHeight: 200,
-            dropRight: false
+            dropRight: false,
+            onDropdownHide: function(event) {
+                fa.checkTurbine();
+            }
         });
         $("#turbineList").multiselect("dataprovider",fa.turbineList());
         fa.checkTurbine();
     },200);
+    // console.log(">>>>: "+$("#turbineList").val());
 }
 
 fa.GetBreakDown = function () {
@@ -525,6 +531,12 @@ fa.disableRefreshButton = function(param){
     }
 }
 
+fa.setTurbine = function(){
+    setTimeout(function(){
+        $("#turbineList").multiselect("dataprovider",fa.turbineList());
+        fa.checkTurbine();
+    },200);
+}
 fa.setProjectTurbine = function(projects, turbines, selected){
 	fa.rawproject(projects);
     fa.rawturbine(turbines);
@@ -535,8 +547,4 @@ $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();
     fa.InitDefaultValue();
-
-    // $("#turbineList").on("change", function(){
-    //     fa.checkTurbine();
-    // });
 });

@@ -550,6 +550,8 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 		Total: tk.SliceLen(dataItem),
 	}
 
+	log.Printf("> %#v \n", data)
+
 	return helper.CreateResult(true, data, "success")
 }
 
@@ -2306,7 +2308,7 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
-	query = append(query, tk.M{"available": 1})
+	query = append(query, tk.M{"available": tk.M{"$eq": 1}})
 
 	type ScadaAnalyticsWDDataGroup struct {
 		Project  string
@@ -2337,6 +2339,12 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 			break
 		}
 		csr.Close()
+
+		// log.Printf("> %v | %v \n", tStart.UTC().String(), tEnd.UTC().String())
+
+		// for _, vx := range queryT {
+		// 	log.Printf("> %#v \n", vx)
+		// }
 
 		for _, v := range _data {
 			id := v.Get("_id").(tk.M)
@@ -2591,6 +2599,83 @@ func getMapCol(project string) tk.Ms {
 }
 
 func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	payload := map[string]string{}
+	e := k.GetPayload(&payload)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	projectName := payload["projectname"]
+	projectList, _ := helper.GetProjectList()
+	projects := []ProjectOut{}
+
+	if projectName != "Fleet" {
+		for _, v := range projectList {
+			if v.Value == projectName {
+				projects = append(projects, v)
+				break
+			}
+		}
+	} else {
+		projects = projectList
+	}
+
+	results := []tk.M{}
+
+	for _, project := range projects {
+		tmpRes := GetMonitoringByProjectV2(project.Value, "dashboard")
+		detail := tmpRes.Get("Detail").([]tk.M)
+		res := []tk.M{}
+		stsProj := "green"
+
+		for _, vd := range detail {
+			name := vd.GetString("name")
+			value := vd.GetString("value")
+			coords := vd.Get("coords").([]float64)
+			sts := "green"
+
+			status := vd.GetInt("Status")
+			dataComing := vd.GetInt("DataComing")
+			isWarning := vd.Get("IsWarning").(bool)
+
+			if status == 0 {
+				sts = "red"
+				stsProj = "red"
+			} else if status == 1 && isWarning {
+				sts = "orange"
+				stsProj = "orange"
+			}
+
+			if dataComing == 0 {
+				sts = "grey"
+				stsProj = "grey"
+			}
+
+			res = append(res, tk.M{
+				"name":   name,
+				"value":  value,
+				"coords": coords,
+				"status": sts,
+			})
+		}
+
+		if projectName != "Fleet" {
+			results = res
+		} else {
+			results = append(results, tk.M{
+				"name":   project.Value,
+				"value":  project.Value,
+				"coords": project.Coords,
+				"status": stsProj,
+			})
+		}
+	}
+
+	return helper.CreateResult(true, results, "success")
+}
+
+func (m *DashboardController) GetMapData_old(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	payload := map[string]string{}

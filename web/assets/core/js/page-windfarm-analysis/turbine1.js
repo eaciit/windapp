@@ -1,5 +1,6 @@
 wfa.Turbine1Analysis = {
 	LoadData: function() {
+		app.loading(true);
 		var turbines = $('#turbine1List').data('kendoMultiSelect').value();
 		if(turbines[0]=="All Turbines") {
 			turbines = [];

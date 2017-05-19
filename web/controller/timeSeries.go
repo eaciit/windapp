@@ -536,7 +536,7 @@ func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time
 
 				match.Set("dateinfo.dateid", tk.M{"$gte": emptyStart, "$lt": tStart.UTC()})
 				// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
-				match.Set("projectName", project)
+				match.Set("projectname", project)
 				match.Set("turbine", turbine)
 				// match.Set("available", 1)
 

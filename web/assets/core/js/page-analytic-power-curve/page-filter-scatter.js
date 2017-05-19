@@ -92,13 +92,13 @@ fa.populateTurbine = function (selected) {
         $.each(fa.rawturbine(), function (key, val) {
             if (selected == "") {
                 var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.value = val.Value;
+                data.label = val.Turbine;
                 datavalue.push(data);
             }else if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.value = val.Value;
+                data.label = val.Turbine;
                 datavalue.push(data);
             }
         });

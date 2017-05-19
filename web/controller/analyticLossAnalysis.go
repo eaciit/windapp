@@ -967,7 +967,7 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 			totalTurbine = 1.0
 
 			for _, v := range turbineList {
-				if key == v.Turbine {
+				if key == v.Value {
 					plfDivider += v.Capacity
 				}
 			}
@@ -982,7 +982,7 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 			totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
 			for _, vt := range turbine {
 				for _, v := range turbineList {
-					if vt.(string) == v.Turbine && key == v.Project {
+					if vt.(string) == v.Value && key == v.Project {
 						plfDivider += v.Capacity
 					}
 				}

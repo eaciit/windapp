@@ -4,6 +4,8 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
+	"eaciit/wfdemo-git/web/helper"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -42,93 +44,96 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 
 		tk.Println("Generate Alarm Summary By Month")
 
-		for field, title := range downCause {
+		projects, _ := helper.GetProjectList()
 
-			var pipes []tk.M
+		for _, proj := range projects {
+			projectName := proj.Value
+			log.Printf("> %v \n", projectName)
+			// turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
+			// totalTurbine := len(turbineList)
 
-			pipes = append(pipes,
-				tk.M{"$unwind": "$detail"},
-			)
-			pipes = append(pipes, tk.M{"$match": tk.M{field: true}})
-			pipes = append(pipes,
-				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": title.(string)},
-						"result": tk.M{"$sum": "$powerlost"},
+			for field, title := range downCause {
+
+				var pipes []tk.M
+				match := tk.M{}
+
+				match.Set(field, true)
+				match.Set("farm", projectName)
+
+				pipes = append(pipes,
+					tk.M{"$unwind": "$detail"},
+				)
+				pipes = append(pipes, tk.M{"$match": match})
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id1": "$detail.detaildateinfo.monthid", "id2": "$detail.detaildateinfo.monthdesc", "id3": title.(string)},
+							"result": tk.M{"$sum": "$powerlost"},
+						},
 					},
-				},
-			)
+				)
 
-			tk.Println("====================pipes===========================")
-			tk.Println(pipes)
+				// tk.Println("====================pipes===========================")
+				// tk.Println(pipes)
 
-			/*csr, e := ctx.NewQuery().
-			From(new(Alarm).TableName()).
-			Command("pipe", pipes).
-			Cursor(nil)*/
-
-			// #faisal
-			// add condition to check the latest data, and start the generator from that latest data
-
-			csr, e := ctx.NewQuery().
+				/*csr, e := ctx.NewQuery().
 				From(new(Alarm).TableName()).
 				Command("pipe", pipes).
-				Cursor(nil)
+				Cursor(nil)*/
 
-			ErrorHandler(e, "Generate Alarm Summary")
+				// #faisal
+				// add condition to check the latest data, and start the generator from that latest data
 
-			result := []tk.M{}
-			e = csr.Fetch(&result, 0, false)
+				csr, e := ctx.NewQuery().
+					From(new(Alarm).TableName()).
+					Command("pipe", pipes).
+					Cursor(nil)
 
-			ErrorHandler(e, "Generate Alarm Summary")
+				ErrorHandler(e, "Generate Alarm Summary")
 
-			tk.Println("====================result===========================")
-			tk.Println(result)
+				result := []tk.M{}
+				e = csr.Fetch(&result, 0, false)
 
-			for _, val := range result {
+				ErrorHandler(e, "Generate Alarm Summary")
 
-				id := val.Get("_id").(tk.M)
+				// tk.Println("====================result===========================")
+				// tk.Println(result)
 
-				// tk.Printf("%v \n", id)
+				for _, val := range result {
 
-				monthid := tk.ToString(id.GetInt("id1"))
-				if monthid != "101" {
-					year := monthid[0:4]
-					month := monthid[4:6]
-					day := "01"
+					id := val.Get("_id").(tk.M)
 
-					iMonth, _ := strconv.Atoi(string(month))
-					iMonth = iMonth - 1
+					// tk.Printf("%v \n", id)
 
-					dtStr := year + "-" + month + "-" + day
-					dtId, _ := time.Parse("2006-01-02", dtStr)
-					dtinfo := GetDateInfo(dtId)
+					monthid := tk.ToString(id.GetInt("id1"))
+					if monthid != "101" {
+						year := monthid[0:4]
+						month := monthid[4:6]
+						day := "01"
 
-					mdl := new(AlarmSummaryByMonth)
-					mdl.ProjectName = "Tejuva"
-					mdl.DateInfo = dtinfo
-					tk.Println(val.GetFloat64("result"))
-					mdl.LostEnergy = val.GetFloat64("result")
-					mdl.Type = title.(string)
-					mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
+						iMonth, _ := strconv.Atoi(string(month))
+						iMonth = iMonth - 1
 
-					if mdl != nil {
-						d.BaseController.Ctx.Insert(mdl)
+						dtStr := year + "-" + month + "-" + day
+						dtId, _ := time.Parse("2006-01-02", dtStr)
+						dtinfo := GetDateInfo(dtId)
+
+						mdl := new(AlarmSummaryByMonth)
+						mdl.ProjectName = projectName
+						mdl.DateInfo = dtinfo
+						// tk.Println(val.GetFloat64("result"))
+						mdl.LostEnergy = val.GetFloat64("result")
+						mdl.Type = title.(string)
+						mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
+
+						if mdl != nil {
+							d.BaseController.Ctx.Insert(mdl)
+							// log.Printf(">>> %#v \n", mdl)
+						}
 					}
 
-					/*mdl = new(AlarmSummaryByMonth)
-					mdl.ProjectName = "Fleet"
-					mdl.DateInfo = dtinfo
-					mdl.LostEnergy = val.GetFloat64("result")
-					mdl.Type = title.(string)
-					mdl.ID = mdl.ProjectName + "-" + tk.ToString(dtinfo.MonthId) + "-" + field
-
-					if mdl != nil {
-						d.BaseController.Ctx.Insert(mdl)
-					}*/
 				}
-
 			}
-		}
 
+		}
 	}
 }

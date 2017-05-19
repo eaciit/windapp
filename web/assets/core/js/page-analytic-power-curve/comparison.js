@@ -126,8 +126,8 @@ pc.populateTurbine = function (selected) {
         $.each(pc.rawturbine(), function (key, val) {
             if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.value = val.Value;
+                data.label = val.Turbine;
                 datavalue.push(data);
                 dataturbine.push(val);
             }

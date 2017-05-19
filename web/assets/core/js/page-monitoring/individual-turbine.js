@@ -55,7 +55,9 @@ it.populateTurbine = function (project, turbine, isChange) {
             $.each(turbine, function (key, val) {
                 if(val.Project == project) {
                     var data = {};
-                    data.Id = val.Turbine;
+                    data.value = val.Value;
+                    data.label = val.Turbine;
+                    // data.Id = val.Turbine;
                     // data.Lat = val.latitude;
                     // data.Lon = val.longitude;
                     turbinevalue.push(data);

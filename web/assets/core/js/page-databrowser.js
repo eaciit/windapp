@@ -749,7 +749,7 @@ function DataBrowserExporttoExcel(functionName) {
     var Filter = {
         DateStart: dateStart,
         DateEnd: dateEnd,
-        Turbine: fa.turbine,
+        Turbine: fa.turbine(),
     };
 
     app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function(res) {

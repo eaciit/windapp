@@ -335,7 +335,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			os.Exit(0)
 		}
 
-		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Tejuva"))
+		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
 
 		projectList, _ := helper.GetProjectList()
 		for _, v := range projectList {
@@ -515,7 +515,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 				var plfDivider float64
 				for _, v := range turbineList {
 					if v.Turbine == turbine {
-						plfDivider = v.Capacity
+						plfDivider += v.Capacity
 					}
 				}
 

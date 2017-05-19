@@ -86,7 +86,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	} else {
 		for _, vt := range turbines {
 			for _, v := range turbineList {
-				if vt == v.Turbine {
+				if vt == v.Value {
 					plfDivider += v.Capacity
 				}
 			}

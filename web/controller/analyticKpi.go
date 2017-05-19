@@ -187,27 +187,25 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		id1 := id.GetString("id1")
 
 		if rowsBreakdown == "Turbine" {
-			totalTurbine = 1.0
-
 			for _, v := range turbineList {
-				if id1 == v.Turbine {
+				if id1 == v.Value {
 					plfDivider += v.Capacity
+					totalTurbine += 1.0
 				}
 			}
 		} else if len(p.Turbine) == 0 {
-			totalTurbine = float64(len(turbineList))
 			for _, v := range turbineList {
 				if id1 == v.Project {
 					plfDivider += v.Capacity
+					totalTurbine += 1.0
 				}
 			}
 		} else {
-			totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
-
 			for _, vt := range p.Turbine {
 				for _, v := range turbineList {
-					if vt.(string) == v.Turbine && id1 == v.Project {
+					if vt.(string) == v.Value && id1 == v.Project {
 						plfDivider += v.Capacity
+						totalTurbine += 1.0
 					}
 				}
 			}
@@ -764,6 +762,8 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 	}{
 		Data: kpiAnalysisResult,
 	}
+
+	// log.Printf(">> %#v \n", data)
 
 	return helper.CreateResult(true, data, "success")
 }
