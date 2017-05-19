@@ -175,4 +175,7 @@ $(function () {
     $('input[name="periodTypeAvail"]').on('change', function () {
         lgd.periodTypeAvailChange();
     });
+
+    // setInterval(sum.indiaMap(lgd.projectName()), 4000);
+    setInterval(function(){ sum.indiaMap(lgd.projectName()); }, 4000);
 });
