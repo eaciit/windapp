@@ -1400,7 +1400,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 	turbine := p.Turbine
 	project := p.Project
 	colors := p.Color
-	colordeg := p.ColorDeg
+	// colordeg := p.ColorDeg
+	colorIndex := map[string]int{}
+	for key, val := range colorField {
+		colorIndex[val] = key
+	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
 	viewSession := p.ViewSession
@@ -1475,7 +1479,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					datas.Set("Power", val.Power)
 
 					if val.DenDeviationPct <= dVal {
-						datas.Set("valueColor", colordeg[selArr])
+						// datas.Set("valueColor", colordeg[selArr])
+						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
 					} else {
 						datas.Set("valueColor", colors[selArr])
 					}
@@ -1488,7 +1493,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					datas.Set("WindSpeed", val.AvgWindSpeed)
 					datas.Set("Power", val.Power)
 					if val.DeviationPct <= dVal {
-						datas.Set("valueColor", colordeg[selArr])
+						// datas.Set("valueColor", colordeg[selArr])
+						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
 					} else {
 						datas.Set("valueColor", colors[selArr])
 					}

@@ -254,6 +254,7 @@ var Data = {
 
 $(function(){
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         Data.LoadData();
     });
 

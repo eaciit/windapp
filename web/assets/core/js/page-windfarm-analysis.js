@@ -387,12 +387,27 @@ $(document).ready(function(){
 	// $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 	//     wfa.RefreshGrid();
 	// });
+    $("#turbine1List").kendoMultiSelect({
+        dataSource: wfa.TurbineList, 
+        dataValueField: 'value', 
+        dataTextField: 'text', 
+        change: function() {wfa.checkTurbine('turbine1List')}, 
+        suggest: true 
+    }); 
 
+    $("#turbine2List").kendoMultiSelect({
+        dataSource: wfa.TurbineList, 
+        dataValueField: 'value', 
+        dataTextField: 'text', 
+        change: function() {wfa.checkTurbine('turbine2List')}, 
+        suggest: true
+    }); 
 	wfa.LoadData();
 
-    /*$('#btnRefresh').click(function(){
+    $('#btnRefresh').click(function(){
         wfa.LoadData();
-    });*/
+    });
+    
 });
 
 

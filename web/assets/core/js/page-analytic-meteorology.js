@@ -118,6 +118,7 @@ $(function(){
     aw.AverageWindSpeed();
 
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         pm.resetStatus();
         $('.nav').find('li.active').find('a').trigger( "click" );
     });
