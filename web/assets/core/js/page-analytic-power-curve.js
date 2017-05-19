@@ -791,6 +791,7 @@ page.HideforScatter = function() {
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
         app.loading(true);
+        fa.checkTurbine();
         setTimeout(function() {
             fa.LoadData();
             if (page.sScater() && $("#turbineList").data("kendoMultiSelect").value().length > 3) {

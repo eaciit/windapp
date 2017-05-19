@@ -6,12 +6,12 @@ var dbe = viewModel.DatabrowserEvent;
 dbe.InitEventGrid = function() {
     dbr.eventrawvis(true);
 
-    var turbine = [];
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        turbine = turbineval;
-    } else {
-        turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // var turbine = [];
+    // // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    // //     turbine = turbineval;
+    // // } else {
+    // //     turbine = $("#turbineList").data("kendoMultiSelect").value();
+    // // }
 
     var filters = [{
         field: "timestamp",
@@ -24,7 +24,7 @@ dbe.InitEventGrid = function() {
     }, {
         field: "turbine",
         operator: "in",
-        value: turbine
+        value: fa.turbine
     }, ];
 
     if(fa.project != "") {

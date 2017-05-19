@@ -114,7 +114,7 @@ page.createView = function(){
 $(function () {
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
-
+		fa.checkTurbine();
         $.when(page.getData()).done(function(){
         	setTimeout(function(){
         		app.prepareTooltipster();

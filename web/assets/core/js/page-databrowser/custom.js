@@ -6,12 +6,12 @@ var dbc = viewModel.DatabrowserCustom;
 dbc.InitCustomGrid = function() {
     dbr.customvis(true);
    
-    var turbine = [];
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        turbine = turbineval;
-    } else {
-        turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // var turbine = [];
+    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    //     turbine = turbineval;
+    // } else {
+    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
+    // }
 
     var param = {
         "Custom": {
@@ -30,7 +30,7 @@ dbc.InitCustomGrid = function() {
     }, {
         field: "turbine",
         operator: "in",
-        value: turbine
+        value: fa.turbine
     }, ];
 
     if(fa.project != "") {

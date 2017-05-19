@@ -258,6 +258,7 @@ page.InitLinePowerCurve = function() {
 
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
+        fa.checkTurbine();
         page.LoadData();
     });
     $(".period-list").hide();

@@ -457,6 +457,7 @@ $(function () {
 
     $('#btnRefresh').on('click', function () {
         // page.columnsBreakdownList = fa.GetBreakDown();
+        fa.checkTurbine();
         Data.LoadData();
     });
 

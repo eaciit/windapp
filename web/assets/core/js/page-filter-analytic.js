@@ -150,27 +150,27 @@ fa.populateProject = function () {
 
 fa.populateTurbine = function (selected) {
     if (fa.rawturbine().length == 0) {
-        fa.turbineList([{ value: "", text: "" }]);
+        fa.turbineList([{ value: "", label: "" }]);
     } else {
         var datavalue = [];        
         // $.each(fa.rawturbine(), function (key, val) {
         //     turbineval.push(val);
         // });
         var allturbine = {}
-        allturbine.value = "All Turbine";
-        allturbine.text = "All Turbines";
-        datavalue.push(allturbine);
+        // allturbine.value = "multiselect-all";
+        // allturbine.label = "multiselect-all";
+        // datavalue.push(allturbine);
 
         $.each(fa.rawturbine(), function (key, val) {
             if (selected == "") {
                 var data = {};
                 data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.label = val.Turbine;
                 datavalue.push(data);
             }else if (selected == val.Project){
                 var data = {};
                 data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.label = val.Turbine;
                 datavalue.push(data);
             }
         });
@@ -179,7 +179,7 @@ fa.populateTurbine = function (selected) {
     }
 
     setTimeout(function () {
-        $('#turbineList').data('kendoMultiSelect').value(["All Turbine"]);
+        $('#turbineList').val("multiselect-all");
     }, 100);
 };
 
@@ -212,9 +212,10 @@ fa.populateProject = function (selected) {
 
 fa.getProjectInfo = function () {
     var project = $("#projectList").data("kendoDropDownList").value();
-    var turbines = $('#turbineList').data('kendoMultiSelect').value();
+    // var turbines = $('#turbineList').data('kendoMultiSelect').value();
+     var turbines = $('#turbineList').val();
 
-    if (turbines[0] == "All Turbine") {
+    if (turbines[0] == "multiselect-all") {
         turbines = [];
     }
 
@@ -320,8 +321,8 @@ fa.showHidePeriod = function (callback) {
 }
 
 fa.LoadData = function () {
-    if ($("#turbineList").data("kendoMultiSelect").value() == "") {
-        $('#turbineList').data('kendoMultiSelect').value(["All Turbine"])
+    if ($("#turbineList").val() == "") {
+        $('#turbineList').val("multiselect-all")
     }
 
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -340,15 +341,25 @@ fa.LoadData = function () {
 }
 
 fa.checkTurbine = function () {
-    var arr = $('#turbineList').data('kendoMultiSelect').value();
-    var index = arr.indexOf("All Turbine");
-    if (index == 0 && arr.length > 1) {
-        arr.splice(index, 1);
-        $('#turbineList').data('kendoMultiSelect').value(arr)
-    } else if (index > 0 && arr.length > 1) {
-        $("#turbineList").data("kendoMultiSelect").value(["All Turbine"]);
-    } else if (arr.length == 0) {
-        $("#turbineList").data("kendoMultiSelect").value(["All Turbine"]);
+    var arr = $('#turbineList').val();
+    // var index = arr.indexOf("multiselect-all");
+    // if (index == 0 && arr.length > 1) {
+    //     arr.splice(index, 1);
+    //     // $('#turbineList').data('kendoMultiSelect').value(arr)
+    //     $('#turbineList').val(arr);
+    // } else if (index > 0 && arr.length > 1) {
+    //     // $("#turbineList").data("kendoMultiSelect").value(["All Turbine"]);
+    //     $('#turbineList').val("multiselect-all")
+    // } else if (arr.length == 0) {
+    //     // $("#turbineList").data("kendoMultiSelect").value(["All Turbine"]);
+    //     $('#turbineList').val("multiselect-all")
+    // }
+    fa.turbine = arr;
+    if(arr == null){
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+          $el.multiselect('select', $(this).val());
+        });
     }
 }
 
@@ -359,11 +370,11 @@ fa.InitFilter = function () {
     fa.period = $("#periodList").data("kendoDropDownList").value();
     fa.isDownTime = $("#isDownTime").is(":checked");
 
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        fa.turbine = [];
-    } else {
-        fa.turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // if ($("#turbineList").val().indexOf("All Turbine") >= 0) {
+    //     fa.turbine = [];
+    // } else {
+    fa.turbine = $("#turbineList").val();
+    // }
 
     fa.periodType = $("#periodList").data("kendoDropDownList").value();
 
@@ -380,6 +391,17 @@ fa.InitDefaultValue = function () {
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
+    setTimeout(function(){
+        $("#turbineList").multiselect({
+            includeSelectAllOption: true,
+            enableCaseInsensitiveFiltering: true,
+            enableFiltering: true,
+            maxHeight: 200,
+            dropRight: false
+        });
+        $("#turbineList").multiselect("dataprovider",fa.turbineList());
+        fa.checkTurbine();
+    },200);
 }
 
 fa.GetBreakDown = function () {
@@ -513,4 +535,8 @@ $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();
     fa.InitDefaultValue();
+
+    // $("#turbineList").on("change", function(){
+    //     fa.checkTurbine();
+    // });
 });
