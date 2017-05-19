@@ -5,12 +5,12 @@ var dbj = viewModel.DatabrowserJMR;
 
 dbj.InitGridJMR = function() {
     dbr.jmrvis(true);
-    var turbine = [];
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        turbine = turbineval;
-    } else {
-        turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // var turbine = [];
+    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    //     turbine = turbineval;
+    // } else {
+    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
+    // }
 
     var dateStart = kendo.toString($('#dateStart').data('kendoDatePicker').value(), "yyyyMM");
     var dateEnd = kendo.toString($('#dateEnd').data('kendoDatePicker').value(), "yyyyMM");
@@ -59,7 +59,7 @@ dbj.InitGridJMR = function() {
     }, {
         field: "sections.turbine",
         operator: "in",
-        value: turbine
+        value: fa.turbine
     }, ];
 
     dbr.filterJMR(filters);

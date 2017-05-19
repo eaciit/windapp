@@ -283,45 +283,16 @@ km.getData = function () {
             app.loading(false);
         },500);
     });
-    // }, 750);
-    // app.loading(false);
 }
 
 km.SubmitValues = function () {
     km.getData();
-    // app.loading(true);
-    // km.CategoryProduction([]);
-    // km.ValueProduction([]);
-
-    // var filter = {
-    //     Turbine: fa.turbine,
-    //     DateStart: fa.dateStart,
-    //     DateEnd: fa.dateEnd,
-    //     Project: fa.project
-    // };
-
-    // var param = {
-    //     MinValue: parseFloat(km.MinValue()),
-    //     MaxValue: parseFloat(km.MaxValue()),
-    //     BinValue: parseInt(km.BinValue()),
-    //     Filter: filter
-    // };
-
-    // toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", param, function (res) {
-    //     if (!app.isFine(res)) {
-    //         app.loading(false);
-    //         return;
-    //     }
-    //     if(res.data != null) {
-    //         km.createChartProduction(res.data.categoryproduction, res.data.valueproduction, res.data.totaldata);
-    //         app.loading(false);
-    //     }
-    // });
 }
 
 
 $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         setTimeout(function () {
             km.getData();
         }, 300);
@@ -336,14 +307,19 @@ $(document).ready(function () {
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
             setTimeout(function() {
-                $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+                $('#turbineList').multiselect('select', fa.turbineList()[0].value);
             }, 100);
 		}
 	});
 
     setTimeout(function () {
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+          $el.multiselect('deselect', $(this).val());
+        });
+
         if(fa.turbineList().length > 1){
-            $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
         }
         km.getData();
     }, 800);

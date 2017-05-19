@@ -959,7 +959,7 @@ bp.dataChartLine = function (data) {
 
 $(document).ready(function() {
     app.loading(true);
-
+    // $("#monitoring").gridalicious({width: 225});
     setTimeout(function() {
         bp.GetData()
         window.setInterval(bp.GetData, 4000);

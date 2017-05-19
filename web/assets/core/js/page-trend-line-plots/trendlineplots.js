@@ -64,12 +64,12 @@ tlp.initChart = function() {
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
     var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
-    var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
+    // var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
     var param = {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: turb, // $("#turbineList").data("kendoMultiSelect").value(),
+        turbine: fa.turbine, // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
         deviationstatus:tlp.isDeviation(), // Param from checkbox
@@ -285,16 +285,19 @@ tlp.showHideLegend = function(idx){
 $(document).ready(function() {
     setTimeout(function() {
         fa.LoadData();
+        fa.checkTurbine();
         tlp.initChart();
     }, 300);
 
     $('#btnRefresh').on('click', function() {
+        fa.checkTurbine();
         setTimeout(function() {
             tlp.initChart();
         }, 300);
     });
 
      $('#compTemp').on("change", function() {
+        fa.checkTurbine();
         setTimeout(function() {
             tlp.initChart();
         }, 300);

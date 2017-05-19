@@ -155,6 +155,7 @@ $(function(){
     },200);
 
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         pg.resetStatus();
         $('.nav').find('li.active').find('a').trigger( "click" );
     });
