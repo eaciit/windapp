@@ -220,4 +220,11 @@ $(document).ready(function(){
             }, 100);
         });
     }, 300);
+    
+    $('#projectList').kendoDropDownList({
+		change: function () {  
+			var project = $('#projectList').data("kendoDropDownList").value();
+			fa.populateTurbine(project);
+		}
+	});
 });

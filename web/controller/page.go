@@ -32,7 +32,7 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 
 	if isAnalyst {
 		projectList, _ := helper.GetProjectList()
-		turbineList, _ := helper.GetTurbineList("")
+		turbineList, _ := helper.GetTurbineList(nil)
 
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
@@ -381,8 +381,8 @@ func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-pic.html"}
 	r.Config.ViewName = "page-monitoring/individual-turbine.html"
-	allTurbineList, _ := helper.GetAllTurbineList()
-	w.Params.Set("AllTurbineList", allTurbineList)
+	// allTurbineList, _ := helper.GetAllTurbineList()
+	// w.Params.Set("AllTurbineList", allTurbineList)
 	return w.GetParams(r, true)
 }
 

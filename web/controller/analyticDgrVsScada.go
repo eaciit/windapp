@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"strings"
 	"time"
 	// "time"
 
@@ -58,11 +57,7 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 
 	duration := tk.ToFloat64(tEnd.Sub(tStart).Hours()/24, 0, tk.RoundingAuto) // duration in days
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	var (
 		pipes  []tk.M
@@ -77,10 +72,16 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		filter = append(filter, dbox.Eq("projectname", project))
 	}
 	if len(turbine) != 0 {
-		totalTurbine = tk.ToFloat64(len(turbine), 0, tk.RoundingUp)
+		totalTurbine = float64(len(turbine))
 		filter = append(filter, dbox.In("turbine", turbine...))
 	} else {
-		totalTurbine = 24.0
+		var turbineList []TurbineOut
+		if project != "" {
+			turbineList, _ = helper.GetTurbineList([]interface{}{project})
+		} else {
+			turbineList, _ = helper.GetTurbineList(nil)
+		}
+		totalTurbine = float64(len(turbineList))
 	}
 
 	// get ScadaSummaryDaily

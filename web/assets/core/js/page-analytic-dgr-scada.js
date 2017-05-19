@@ -13,7 +13,7 @@ ads.modelList = ko.observableArray([
 ]);
 
 ads.model = ko.observable("Regen");
-ads.project = ko.observable("Tejuva");
+ads.project = ko.observable(fa.rawproject()[0].Value);
 ads.turbine = ko.observable("All Turbine");
 
 /*var dataSource = [

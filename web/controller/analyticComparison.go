@@ -5,7 +5,6 @@ import (
 	hp "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"strings"
 	"time"
 
 	"github.com/eaciit/dbox"
@@ -84,8 +83,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		}
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 			group.Set("_id", "$projectname")
 		} else {
 			group.Set("_id", "all")
@@ -111,16 +109,27 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		if len(list) > 0 {
 			val := list[0]
 
-			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
+			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, plfDivider float64
 			var totalTurbine float64
 
 			// totalTurbine = 1.0
 			// hourValue := val.GetFloat64("minutes") / 60.0
 
 			if len(p.Turbine) == 0 {
-				totalTurbine = 24.0
+				var turbineList []TurbineOut
+				if p.Project != "" {
+					turbineList, _ = helper.GetTurbineList([]interface{}{p.Project})
+				} else {
+					turbineList, _ = helper.GetTurbineList(nil)
+				}
+				totalTurbine = float64(len(turbineList))
+
+				for _, v := range turbineList {
+					plfDivider += v.Capacity
+				}
+
 			} else {
-				totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
+				totalTurbine = float64(len(p.Turbine))
 			}
 
 			minDate := val.Get("mindate").(time.Time)
@@ -138,7 +147,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
 			minutes := val.GetFloat64("minutes") / 60
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 

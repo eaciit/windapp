@@ -18,6 +18,11 @@ type EventToAlarm struct {
 	*BaseController
 }
 
+type OemPCValue struct {
+	PCValue float64
+	IsCalc  bool
+}
+
 var (
 	mtx         = &sync.Mutex{}
 	counterRow  = 0
@@ -129,172 +134,42 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		alarm.AEbOK = false
 		alarm.WeatherStop = false
 		alarm.Line = counterRow
+		alarm.ReduceAvailability = event.ReduceAvailability
 
-		timeStartWhr := event.TimeStart.Add(-10 * time.Minute)
+		timeStartWhr := event.TimeStart
 		timeEndWhr := event.TimeEnd.Add(10 * time.Minute)
 
-		scadas := make([]ScadaDataOEM, 0)
-		csr2, e := ctx.Connection.NewQuery().From(new(ScadaDataOEM).TableName()).
+		allscadapcval := make(map[string]OemPCValue)
+
+		csr2, e := ctx.Connection.NewQuery().
+			Select("timestamp", "pcvalue", "denpower", "ai_intern_activpower").
+			From(new(ScadaDataOEM).TableName()).
 			Where(dbox.And(
 				dbox.Eq("projectname", projectName),
 				dbox.Eq("turbine", event.Turbine),
-				dbox.Gte("timestamputc", timeStartWhr),
-				dbox.Lte("timestamputc", timeEndWhr))).
-			Order("timestamputc").
+				dbox.Gte("timestamp", timeStartWhr),
+				dbox.Lte("timestamp", timeEndWhr))).
+			Order("timestamp").
 			Cursor(nil)
 
-		e = csr2.Fetch(&scadas, 0, false)
 		ErrorHandler(e, "Convert Event to Alarm")
+		for {
+			scadasoem := ScadaDataOEM{}
+			e = csr2.Fetch(&scadasoem, 1, false)
+			if e != nil {
+				break
+			}
+
+			_key := scadasoem.TimeStamp.Format("20060102150405")
+			_ipcval := OemPCValue{}
+			_ipcval.PCValue = scadasoem.PCValue
+			if scadasoem.DenPower > scadasoem.AI_intern_ActivPower {
+				_ipcval.IsCalc = true
+			}
+
+			allscadapcval[_key] = _ipcval
+		}
 		csr2.Close()
-
-		// details := make([]*AlarmDetail, 0)
-
-		// currMonthId := 0
-		// detail := new(AlarmDetail)
-
-		// if len(scadas) > 0 {
-		// 	totalPower := 0.0
-		// 	durationTS := 0.0
-		// 	for _, scada := range scadas {
-		// 		//if (event.TimeStart.Sub(scada.TimeStamp) <= 0 && event.TimeEnd.Sub(scada.TimeStamp) <= 0) || (event.TimeStart.Sub(scada.TimeStamp) <= 0 && event.TimeEnd.Sub(scada.TimeStamp) >= 0) {
-		// 		if scada.DenPower > scada.AI_intern_ActivPower {
-		// 			power, err := GetPowerCurveCubicInterpolation(ctx.Connection, projectName, scada.AI_intern_WindSpeed)
-		// 			if err != nil {
-		// 				power = 0.0
-		// 			}
-
-		// 			if currMonthId != scada.DateInfo.MonthId {
-		// 				if detail.AlertDescription != "" {
-		// 					details = append(details, detail)
-		// 				}
-
-		// 				detail = new(AlarmDetail)
-
-		// 				startTime := scada.TimeStamp
-		// 				strDate0 := tk.Sprintf("%v-%v-%v %v:%v:%v", scada.DateInfo.Year, int(scada.DateInfo.DateId.Month()), "01", "00", "00", "00")
-		// 				//tk.Println(strDate0)
-		// 				startDate, _ := time.Parse("2006-1-02 15:04:05", strDate0)
-		// 				//tk.Println(startDate)
-
-		// 				if currMonthId > 0 {
-		// 					startTime = startDate
-		// 				}
-
-		// 				detail.StartDate = startTime
-
-		// 				detail.AlertDescription = event.AlarmDescription
-		// 				detail.BrakeType = event.BrakeType // add by ams, regarding to add new req | 20170130
-		// 				detail.AEbOK = false
-		// 				detail.ExternalStop = false
-		// 				detail.InternalGrid = false
-		// 				detail.WeatherStop = false
-		// 				detail.GridDown = event.DownGrid
-		// 				detail.MachineDown = event.DownMachine
-		// 				detail.Unknown = event.DownEnvironment
-		// 				detail.Power = 0.0
-		// 				detail.Duration = 0.0
-		// 				detail.PowerLost = 0.0
-
-		// 				currMonthId = scada.DateInfo.MonthId
-		// 			}
-
-		// 			detail.EndDate = scada.TimeStamp
-		// 			// tk.Println(detail.EndDate)
-
-		// 			// lastDateNo := daysIn(detail.EndDate.UTC().Month(), detail.EndDate.UTC().Year())
-		// 			// strDate := tk.Sprintf("%v-%v-%v %v:%v:%v", detail.EndDate.UTC().Year(), int(detail.EndDate.UTC().Month()), lastDateNo, 23, 59, 59)
-		// 			// lastDate, _ := time.Parse("2006-1-2 15:04:05", strDate)
-
-		// 			durationTS = tk.Div(10.0, 60.0)
-
-		// 			if scada.TimeStamp.Sub(event.TimeStart) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeStart) <= 0 {
-		// 				durationTS = scada.TimeStamp.Sub(event.TimeStart).Hours()
-		// 				detail.StartDate = event.TimeStart
-		// 				// tk.Println("masuk kondisi 2")
-		// 			} else if scada.TimeStamp.Sub(event.TimeEnd) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
-		// 				durationTS = event.TimeEnd.Sub(scada.TimeStamp.Add(-10 * time.Minute)).Hours()
-		// 				detail.EndDate = event.TimeEnd
-		// 				// tk.Println("masuk kondisi 3")
-		// 			} else if scada.TimeStamp.Sub(event.TimeStart) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeStart) <= 0 && scada.TimeStamp.Sub(event.TimeEnd) > 0 && scada.TimeStamp.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
-		// 				durationTS = event.TimeEnd.Sub(event.TimeStart).Hours()
-		// 				// tk.Println("masuk kondisi 4")
-		// 			} else if detail.EndDate.Sub(event.TimeEnd) >= 0 && detail.EndDate.Add(-10*time.Minute).Sub(event.TimeEnd) <= 0 {
-		// 				detail.EndDate = event.TimeEnd
-		// 				durationTS = event.TimeEnd.Sub(scada.TimeStamp.Add(-10 * time.Minute)).Hours()
-		// 				// tk.Println("masuk kondisi 1")
-		// 			}
-
-		// 			/*if durationTS < 0 {
-		// 				tk.Println(durationTS)
-		// 				tk.Println(event.TimeStart)
-		// 				tk.Println(event.TimeEnd)
-		// 				tk.Println(event.Turbine)
-		// 			}
-		// 			*/
-		// 			detail.Duration += durationTS
-		// 			detail.PowerLost += (power * durationTS)
-		// 			detail.Power += power
-
-		// 			//tk.Println(idx, detail)
-
-		// 			totalPower += power
-		// 		}
-		// 		//}
-		// 	}
-		// 	details = append(details, detail)
-
-		// 	powerLost := 0.0
-		// 	newDuration := 0.0
-
-		// 	detailResults := make([]AlarmDetail, 0)
-		// 	for _, dt := range details {
-		// 		var dtl AlarmDetail
-		// 		dtl.AEbOK = dt.AEbOK
-		// 		dtl.AlertDescription = dt.AlertDescription
-		// 		dtl.BrakeType = dt.BrakeType // add by ams, regarding to add new req | 20170130
-		// 		dtl.DetailDateInfo = GetDateInfo(dt.StartDate)
-		// 		dtl.StartDate = dt.StartDate
-		// 		dtl.EndDate = dt.EndDate
-		// 		dtl.Duration = dt.Duration
-		// 		dtl.Power = dt.Power
-		// 		dtl.PowerLost = dt.PowerLost
-		// 		dtl.ExternalStop = dt.ExternalStop
-		// 		dtl.GridDown = dt.GridDown
-		// 		dtl.InternalGrid = dt.InternalGrid
-		// 		dtl.MachineDown = dt.MachineDown
-		// 		dtl.Unknown = dt.Unknown
-		// 		dtl.WeatherStop = dt.WeatherStop
-
-		// 		powerLost += dt.PowerLost
-		// 		newDuration += dt.Duration
-		// 		// tk.Println(dtl)
-
-		// 		detailResults = append(detailResults, dtl)
-		// 	}
-
-		// 	//alarm.Duration = newDuration
-		// 	alarm.PowerLost = powerLost
-		// 	alarm.Detail = detailResults
-		// } else {
-		// 	detail := AlarmDetail{}
-		// 	detail.StartDate = alarm.StartDate
-		// 	detail.DetailDateInfo = GetDateInfo(alarm.StartDate)
-		// 	detail.EndDate = alarm.EndDate
-		// 	detail.Duration = alarm.Duration
-		// 	detail.AlertDescription = alarm.AlertDescription
-		// 	detail.BrakeType = alarm.BrakeType // add by ams, regarding to add new req | 20170130
-		// 	detail.ExternalStop = alarm.ExternalStop
-		// 	// detail.Power = alarm.Power
-		// 	detail.PowerLost = alarm.PowerLost
-		// 	detail.GridDown = alarm.GridDown
-		// 	detail.InternalGrid = alarm.InternalGrid
-		// 	detail.MachineDown = alarm.MachineDown
-		// 	detail.AEbOK = alarm.AEbOK
-		// 	detail.Unknown = alarm.Unknown
-		// 	detail.WeatherStop = alarm.WeatherStop
-
-		// 	alarm.Detail = append(alarm.Detail, detail)
-		// }
 
 		detail := AlarmDetail{}
 		detail.StartDate = alarm.StartDate
@@ -313,29 +188,60 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		detail.Unknown = alarm.Unknown
 		detail.WeatherStop = alarm.WeatherStop
 
-		if len(scadas) > 0 {
-			for _, scada := range scadas {
-				if scada.DenPower > scada.AI_intern_ActivPower {
-					power, err := GetPowerCurveCubicInterpolation(ctx.Connection, projectName, scada.AI_intern_WindSpeed)
-					if err != nil {
-						power = 0.0
-					}
-					detail.Power = power
-					alarm.PowerLost = power * alarm.Duration
-					detail.PowerLost = alarm.PowerLost
-				}
+		next10min := GetNext10Min(alarm.StartDate)
+		for {
+			detail.StartDate = next10min.Add(-10 * time.Minute)
+			detail.EndDate = next10min
 
-				if alarm.PowerLost != 0.0 {
-					break
-				}
+			if detail.StartDate.Before(alarm.StartDate) {
+				detail.StartDate = alarm.StartDate
 			}
 
-		}
+			if detail.EndDate.After(alarm.EndDate) {
+				detail.EndDate = alarm.EndDate
+			}
 
-		alarm.Detail = append(alarm.Detail, detail)
+			detail.DetailDateInfo = GetDateInfo(detail.StartDate)
+			detail.Duration = detail.EndDate.Sub(detail.StartDate).Hours()
+
+			_key := next10min.Format("20060102150405")
+			scadapcval, _has := allscadapcval[_key]
+			if !_has {
+				scadapcval = ev.getPCValue(projectName, event.Turbine, next10min)
+			}
+
+			detail.Power = scadapcval.PCValue
+
+			if scadapcval.IsCalc {
+				detail.PowerLost = detail.Power * detail.Duration
+				alarm.PowerLost += detail.PowerLost
+			}
+
+			alarm.Detail = append(alarm.Detail, detail)
+
+			if next10min.After(alarm.EndDate) {
+				break
+			}
+
+			next10min = next10min.Add(10 * time.Minute)
+		}
 
 		ctx.Insert(alarm)
 	}
+}
+
+func (e *EventToAlarm) getPCValue(projectname, turbine string, timestamp time.Time) (pcvalue OemPCValue) {
+	pcvalue = OemPCValue{}
+
+	turbineinfo := e.BaseController.RefTurbines.Get(turbine, tk.M{}).(tk.M)
+	topcorrel := turbineinfo.Get("topcorrelation", []string{}).([]string)
+
+	avgws := getAvgWsForLostEnergy(projectname, turbine, topcorrel, 0, timestamp, e.Ctx.Connection)
+
+	pcvalue.PCValue, _ = GetPowerCurveCubicInterpolation(e.Ctx.Connection, projectname, avgws)
+	pcvalue.IsCalc = true
+
+	return
 }
 
 func GetExactTurbineId(tId string) string {
@@ -372,4 +278,23 @@ func GetExactTurbineId(tId string) string {
 	}
 
 	return turbine
+}
+
+func GetNext10Min(current time.Time) time.Time {
+	current = current.UTC()
+	date1, _ := time.Parse("2006-01-02", current.Format("2006-01-02"))
+
+	thour := current.Hour()
+	tminute := current.Minute()
+	tsecond := current.Second()
+	tminutevalue := float64(tminute) + tk.Div(float64(tsecond), 60.0)
+	tminutecategory := tk.ToInt(tk.RoundingUp64(tk.Div(tminutevalue, 10), 0)*10, "0")
+	if tminutecategory == 60 {
+		tminutecategory = 0
+		thour = thour + 1
+	}
+	newTimeStamp := date1.Add(time.Duration(thour) * time.Hour).Add(time.Duration(tminutecategory) * time.Minute)
+	timestampconverted := newTimeStamp.UTC()
+
+	return timestampconverted
 }

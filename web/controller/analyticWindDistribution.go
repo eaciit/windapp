@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-	"strings"
 	// "time"
 	// "fmt"
 	"sort"
@@ -66,8 +65,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
 	query = append(query, tk.M{"available": 1})
 	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		query = append(query, tk.M{"projectname": strings.TrimRight(anProject[0], " ")})
+		query = append(query, tk.M{"projectname": p.Project})
 	}
 
 	turbine := []string{}

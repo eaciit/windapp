@@ -17,7 +17,9 @@ fa.periodType = ko.observable();
 fa.dateStart = ko.observable();
 fa.dateEnd = ko.observable();
 fa.turbine = ko.observableArray([]);
+fa.rawturbine = ko.observableArray([]);
 fa.project = ko.observable();
+fa.rawproject = ko.observableArray([]);
 fa.period = ko.observable();
 fa.infoPeriodRange = ko.observable();
 fa.infoPeriodIcon = ko.observable(false);
@@ -25,7 +27,7 @@ fa.infoPeriodIcon = ko.observable(false);
 var lastPeriod = "";
 var turbineval = [];
 
-fa.InitFirst = function () {
+/*fa.InitFirst = function () {
     $.when(
         app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
             if (!app.isFine(res)) {
@@ -81,7 +83,7 @@ fa.InitFirst = function () {
         $("#projectList").data("kendoDropDownList").value("Tejuva");
         fa.project = $("#projectList").data("kendoDropDownList").value();
     });
-}
+}*/
 
 /*fa.populateTurbine = function () {
     app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
@@ -146,57 +148,65 @@ fa.populateProject = function () {
     });
 };*/
 
-fa.populateTurbine = function (data) {
-    if (data.length == 0) {
-        data = [];;
+fa.populateTurbine = function (selected) {
+    if (fa.rawturbine().length == 0) {
         fa.turbineList([{ value: "", text: "" }]);
     } else {
-        var datavalue = [];
-        if (data.length > 0) {
-            var allturbine = {}
-            $.each(data, function (key, val) {
-                turbineval.push(val);
-            });
-            allturbine.value = "All Turbine";
-            allturbine.text = "All Turbines";
-            datavalue.push(allturbine);
-            $.each(data, function (key, val) {
+        var datavalue = [];        
+        // $.each(fa.rawturbine(), function (key, val) {
+        //     turbineval.push(val);
+        // });
+        var allturbine = {}
+        allturbine.value = "All Turbine";
+        allturbine.text = "All Turbines";
+        datavalue.push(allturbine);
+
+        $.each(fa.rawturbine(), function (key, val) {
+            if (selected == "") {
                 var data = {};
-                data.value = val;
-                data.text = val;
+                data.value = val.Turbine;
+                data.text = val.Turbine;
                 datavalue.push(data);
-            });
-        }
+            }else if (selected == val.Project){
+                var data = {};
+                data.value = val.Turbine;
+                data.text = val.Turbine;
+                datavalue.push(data);
+            }
+        });
+
         fa.turbineList(datavalue);
     }
 
     setTimeout(function () {
         $('#turbineList').data('kendoMultiSelect').value(["All Turbine"]);
-    }, 300);
+    }, 100);
 };
 
-fa.populateProject = function (data) {
-    if (data.length == 0) {
-        data = [];;
+fa.populateProject = function (selected) {
+    if (fa.rawproject().length == 0) {
         fa.projectList([{ value: "", text: "" }]);
     } else {
-        var datavalue = [];
-        if (data.length > 0) {
-            $.each(data, function (key, val) {
-                var data = {};
-                data.value = val;
-                data.text = val;
-                datavalue.push(data);
-            });
-        }
+        var datavalue = [];        
+        $.each(fa.rawproject(), function (key, val) {
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Name;
+            datavalue.push(data);
+        });
         fa.projectList(datavalue);
 
         // override to set the value
+        
         setTimeout(function () {
-            // $("#projectList").data("kendoDropDownList").value("Tejuva");
-            $("#projectList").data("kendoDropDownList").select(1);
+            if (selected != "") {
+                $("#projectList").data("kendoDropDownList").value(selected);
+            } else {
+                $("#projectList").data("kendoDropDownList").select(1);
+            }               
             fa.project = $("#projectList").data("kendoDropDownList").value();
-        }, 300);
+            fa.populateTurbine(fa.project);
+        }, 100);
     }
 };
 
@@ -491,13 +501,16 @@ fa.disableRefreshButton = function(param){
     }else{
         $("#btnRefresh").removeAttr("disabled");
     }
-
 }
+
+fa.setProjectTurbine = function(projects, turbines, selected){
+	fa.rawproject(projects);
+    fa.rawturbine(turbines);
+	fa.populateProject(selected);
+};
 
 $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();
-    // fa.populateTurbine();
-    // fa.populateProject();
     fa.InitDefaultValue();
 });

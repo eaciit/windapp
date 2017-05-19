@@ -48,11 +48,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
@@ -227,11 +223,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 	breakDown := p.BreakDown
 
 	filter = append(filter, dbox.Ne("_id", ""))
@@ -526,8 +518,7 @@ func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContex
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 		}
 
 		if len(p.Turbine) != 0 {
@@ -639,8 +630,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 		}
 
 		if len(p.Turbine) != 0 {
@@ -845,8 +835,7 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
 
 		if p.Project != "" {
-			anProject := strings.Split(p.Project, "(")
-			match.Set("projectname", strings.TrimRight(anProject[0], " "))
+			match.Set("projectname", p.Project)
 		}
 
 		if len(p.Turbine) != 0 {
@@ -962,28 +951,53 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 	e = csr.Fetch(&list, 0, false)
 
 	for _, val := range list {
-		var totalTurbine, hourValue float64
+		var totalTurbine, hourValue, plfDivider float64
+		var turbineList []TurbineOut
+
+		if project != "" {
+			turbineList, _ = helper.GetTurbineList([]interface{}{project})
+		} else {
+			turbineList, _ = helper.GetTurbineList(nil)
+		}
+
+		id := val.Get("_id").(tk.M)
+		key := id.GetString("id1")
 
 		if breakDown == "Turbine" {
 			totalTurbine = 1.0
+
+			for _, v := range turbineList {
+				if key == v.Turbine {
+					plfDivider += v.Capacity
+				}
+			}
 		} else if len(turbine) == 0 {
-			totalTurbine = 24.0
+			totalTurbine = float64(len(turbineList))
+			for _, v := range turbineList {
+				if key == v.Project {
+					plfDivider += v.Capacity
+				}
+			}
 		} else {
 			totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
+			for _, vt := range turbine {
+				for _, v := range turbineList {
+					if vt.(string) == v.Turbine && key == v.Project {
+						plfDivider += v.Capacity
+					}
+				}
+			}
 		}
 
 		minDate := val.Get("mindate").(time.Time)
 		maxDate := val.Get("maxdate").(time.Time)
-
-		id := val.Get("_id").(tk.M)
-		key := ""
 
 		// if breakDown == "Date" {
 		// 	id1 := id.Get("id1").(time.Time)
 		// 	key = id1.Format("20060102_1504050000")
 		// 	hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
 		// } else {
-		key = id.GetString("id1")
+
 		hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 		// }
 
@@ -995,7 +1009,7 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 		minutes := val.GetFloat64("minutes") / 60
 
-		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 		res := tk.M{
 			key: tk.M{
@@ -1032,11 +1046,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramProduction(k *knot.WebConte
 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
@@ -1148,11 +1158,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Filter.Turbine
-	project := ""
-	if p.Filter.Project != "" {
-		anProject := strings.Split(p.Filter.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Filter.Project
 
 	categorywindspeed := []string{}
 	valuewindspeed := []float64{}
@@ -1162,7 +1168,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-	if len(project) > 0 {
+	if project != "" {
 		match.Set("projectname", project)
 	}
 	if len(turbine) > 0 {
@@ -1209,7 +1215,12 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 	}
 
 	for i := 0; i < len(valuewindspeed); i++ {
-		valuewindspeed[i] = float64(int((valuewindspeed[i]/totalData*100)*100)) / 100
+		value := float64(int((valuewindspeed[i]/totalData*100)*100)) / 100
+		if value < 0 {
+			valuewindspeed[i] = 0
+		} else {
+			valuewindspeed[i] = value
+		}
 	}
 
 	data := tk.M{
@@ -1238,11 +1249,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	turbine := p.Filter.Turbine
-	project := ""
-	if p.Filter.Project != "" {
-		anProject := strings.Split(p.Filter.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Filter.Project
 
 	categoryproduction := []string{}
 	valueproduction := []float64{}
@@ -1252,7 +1259,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-	if len(project) > 0 {
+	if project != "" {
 		match.Set("projectname", project)
 	}
 	if len(turbine) > 0 {
@@ -1299,7 +1306,12 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	}
 
 	for i := 0; i < len(valueproduction); i++ {
-		valueproduction[i] = float64(int((valueproduction[i]/totalData*100)*100)) / 100
+		value := float64(int((valueproduction[i]/totalData*100)*100)) / 100
+		if value < 0 {
+			valueproduction[i] = 0
+		} else {
+			valueproduction[i] = value
+		}
 	}
 
 	data := tk.M{
@@ -1325,11 +1337,7 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 	/*tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 	turbine := p.Turbine
-	project := ""
-	if p.Project != "" {
-		anProject := strings.Split(p.Project, "(")
-		project = strings.TrimRight(anProject[0], " ")
-	}
+	project := p.Project
 
 	match := tk.M{}
 	match.Set("dateinfostart.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
@@ -1374,16 +1382,19 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 		return helper.CreateResult(false, nil, "Error facing results : "+e.Error())
 	}
 
-	turbines := []string{}
+	turbines := []TurbineOut{}
 	if len(turbine) == 0 {
-		turbines, _ = helper.GetTurbineList(project)
+		turbines, _ = helper.GetTurbineList([]interface{}{project})
 	} else {
 		for _, v := range turbine {
-			turbines = append(turbines, v.(string))
+			turbines = append(turbines, TurbineOut{
+				Project: "",
+				Turbine: v.(string),
+			})
 		}
 	}
 
-	sort.Strings(turbines)
+	// sort.Strings(turbines)
 
 	descs := []string{}
 	mapRes := map[string][]tk.M{}

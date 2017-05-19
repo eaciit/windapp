@@ -4,18 +4,19 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+	"math"
+	"sort"
+	"time"
+
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
-	"math"
-	"sort"
-	"time"
 )
 
 var (
 	// colorFieldTLP = [...]string{"#87c5da","#cc2a35", "#d66b76", "#5d1b62", "#f1c175","#95204c","#8f4bc5","#7d287d","#00818e","#c8c8c8","#546698","#66c99a","#f3d752","#20adb8","#333d6b","#d077b1","#aab664","#01a278","#c1d41a","#807063","#ff5975","#01a3d4","#ca9d08","#026e51","#4c653f","#007ca7"}
-	colorFieldTLP 	 = [...]string{"#ff880e", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"}
+	colorFieldTLP = [...]string{"#ff880e", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"}
 )
 
 type TrendLinePlotsController struct {
@@ -55,6 +56,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	colName := p.ColName
 	deviationStatus := p.DeviationStatus
 	deviation := p.Deviation
+	project := p.Project
 
 	// dateRange := 0
 
@@ -67,7 +69,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	colId := "$dateinfoutc.dateid"
 	/*============================== AVG TLP PART ============================*/
-	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName)
+	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -235,6 +237,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	filter = nil
+	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("timestamputc", tStart))
 	filter = append(filter, dbox.Lte("timestamputc", tEnd))
@@ -424,7 +427,7 @@ func (m *TrendLinePlotsController) GetScadaOemAvailDate(k *knot.WebContext) inte
  * @return {pcData}
 */
 
-func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string) (datas []float64, pcData tk.M, e error) {
+func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, project string) (datas []float64, pcData tk.M, e error) {
 
 	var (
 		pipes  []tk.M
@@ -436,6 +439,11 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string) (data
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	filter = nil
+
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
+
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfoutc.dateid", DateStart))
 	filter = append(filter, dbox.Lte("dateinfoutc.dateid", DateEnd))

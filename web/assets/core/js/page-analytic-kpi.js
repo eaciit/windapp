@@ -396,8 +396,10 @@ page.setBreakDown = function () {
     fa.disableRefreshButton(true);
     page.columnsBreakdownList = [];
     page.rowsBreakdownList = [];
-
     setTimeout(function () {
+        var project = $('#projectList').data("kendoDropDownList").value();
+        fa.populateTurbine(project);
+
         $.each(fa.GetBreakDown(), function (i, val) {
             if (val.value == "Turbine" || val.value == "Project") {
                 // page.rowBreakdown = val.value
@@ -413,8 +415,7 @@ page.setBreakDown = function () {
 
         $("#rowsBreakdown").data("kendoDropDownList").dataSource.data(page.rowsBreakdownList);
         $("#rowsBreakdown").data("kendoDropDownList").dataSource.query();
-
-        var project = $('#projectList').data("kendoDropDownList").value();
+        
         if (project == "") {
             $("#rowsBreakdown").data("kendoDropDownList").value("Project");
         } else {

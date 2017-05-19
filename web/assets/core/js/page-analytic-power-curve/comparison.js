@@ -34,11 +34,14 @@ pc.dateEnd = ko.observable();
 pc.turbine = ko.observableArray([]);
 pc.project = ko.observable();
 
+pc.rawturbine = ko.observableArray([]);
+pc.rawproject = ko.observableArray([]);
+
 var lastPeriod = "";
 var turbineval = [];
 
 
-pc.InitFirst = function () {
+/*pc.InitFirst = function () {
     $.when(
         app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
             if (!app.isFine(res)) {
@@ -100,62 +103,61 @@ pc.InitFirst = function () {
 
         pc.project = $("#projectList").data("kendoDropDownList").value();
     });
-}
+}*/
 
-pc.populateTurbine = function (data) {
-    if (data.length == 0) {
-        data = [];;
+pc.populateTurbine = function (selected) {
+    if (pc.rawturbine().length == 0) {
         pc.turbineList([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
         var dataturbine = [];
-        if (data.length > 0) {
-            var allturbine = {}
-            $.each(data, function (key, val) {
-                turbineval.push(val);
-            });
-            // allturbine.value = "All Turbine";
-            // allturbine.text = "All Turbines";
-            // datavalue.push(allturbine);
-            $.each(data, function (key, val) {
+        // var allturbine = {}
+        // $.each(pc.rawturbine(), function (key, val) {
+        //     turbineval.push(val);
+        // });
+        // allturbine.value = "All Turbine";
+        // allturbine.text = "All Turbines";
+        // datavalue.push(allturbine);
+
+        if (selected==""){
+            selected = pc.rawproject()[0].Value;
+        }
+        
+        $.each(pc.rawturbine(), function (key, val) {
+            if (selected == val.Project){
                 var data = {};
-                data.value = val;
-                data.text = val;
+                data.value = val.Turbine;
+                data.text = val.Turbine;
                 datavalue.push(data);
                 dataturbine.push(val);
-            });
-        }
+            }
+        });
         pc.turbineList(datavalue);
         pc.turbine(dataturbine);
     }
 
     setTimeout(function () {
-        // $('#turbineList1').data('kendoDropDownList').value(["All Turbine"])
-        // $('#turbineList2').data('kendoDropDownList').value(["All Turbine"])
+        $('#turbineList1').data('kendoDropDownList').select(0);
+        $('#turbineList2').data('kendoDropDownList').select(0);
     }, 50);
 };
 
-pc.populateProject = function (data) {
-    if (data.length == 0) {
-        data = [];;
+pc.populateProject = function (selected) {
+    if (pc.rawproject().length == 0) {
         pc.projectList([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
-        if (data.length > 0) {
-            $.each(data, function (key, val) {
-                var data = {};
-                data.value = val;
-                data.text = val;
-                datavalue.push(data);
-            });
-        }
+        $.each(pc.rawproject(), function (key, val) {
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Name;
+            datavalue.push(data);
+        });
         pc.projectList(datavalue);
 
-        // override to set the value
         setTimeout(function () {
-            // $("#projectList").data("kendoDropDownList").select(1);
-            // pc.project = $("#projectList").data("kendoDropDownList").value();
-        }, 300);
+            pc.populateTurbine(selected);
+        }, 100);
     }
 };
 
@@ -518,7 +520,11 @@ pc.initChart = function() {
 
 }
 
-
+pc.setProjectTurbine = function(projects, turbines, selected){
+	pc.rawproject(projects);
+    pc.rawturbine(turbines);
+	pc.populateProject(selected);
+};
 
 $(document).ready(function () {
     $('#btnRefresh').on('click', function() {
@@ -528,7 +534,16 @@ $(document).ready(function () {
         }, 300);
     });
 
+    $('#projectList1').kendoDropDownList({
+        change: function () { 
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            pc.populateTurbine(project);
+         }
+    });
+
     app.loading(true);
     pc.InitDefaultValue();
-    pc.initChart();
+    setTimeout(function() {
+        pc.initChart();
+    }, 200);
 });

@@ -51,7 +51,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			Aggr(dbox.AggrSum, 1, "totaltimestamp").
 			Aggr(dbox.AggrMax, "$dateinfo.dateid", "maxdateid").
 			Aggr(dbox.AggrMin, "$dateinfo.dateid", "mindateid").
-			Group("dateinfo.monthid").
+			Group("projectname", "dateinfo.monthid").
 			Cursor(nil)
 		defer csr.Close()
 
@@ -72,11 +72,6 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			3569.4336,
 			5911.8744}
 
-		noOfTurbine := 24
-		// maxCap := 2100.0
-		// noOfTimeStamp := 144.0
-		//endDate, _ := time.Parse("2006-01-02", "2016-06-30")
-
 		divider := 1000.0
 
 		for _, data := range datas {
@@ -89,29 +84,23 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 			//log.Println(imonthid)
 
+			project := id["projectname"].(string)
+			var turbineList []TurbineOut
+			noOfTurbine := 0
+
+			if project != "" {
+				turbineList, _ = helper.GetTurbineList([]interface{}{project})
+			} else {
+				turbineList, _ = helper.GetTurbineList(nil)
+			}
+			noOfTurbine = len(turbineList)
+
 			iMonth, _ := strconv.Atoi(string(month))
 			iMonth = iMonth - 1
 
 			dtStr := year + "-" + month + "-" + day
 			dtId, _ := time.Parse("2006-01-02", dtStr)
 			dtinfo := GetDateInfo(dtId)
-
-			// noOfDay := float64(daysIn(dtId.Month(), dtId.Year()))
-			// durationInMonth := noOfDay * 24 // duration in hours
-
-			// noOfHour := 24.0
-			// noOfMin := 60.0
-			// noOfSec := 60.0
-			// secsInMonth := noOfDay * noOfHour * noOfMin * noOfSec
-
-			// csrAlarm, _ := ctc.NewQuery().From(new(AlarmRAW).TableName()).
-			// 	Aggr(dbox.AggrSum, "", "").
-			// 	Group("").
-			// 	Cursor(nil)
-			// defer csrAlarm.Close()
-
-			// dataAlarms := []tk.M{}
-			// e = csrAlarm.Fetch(&dataAlarms, 0, false)
 			ioktime := data["totaloktime"]
 			oktime := 0.0
 			if ioktime != nil {
@@ -122,12 +111,6 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 			duration := 0.0
 			lostEnergy := 0.0
-
-			// ilostEnergy := data["totalenergylost"]
-			// if ilostEnergy != nil {
-			// 	lostEnergy = ilostEnergy.(float64)
-			// }
-			// revenueLoss := 0.0
 
 			ipower := data["totalpower"]
 			power := 0.0
@@ -262,7 +245,13 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), mindate.UTC(), maxdate.UTC())
 
-			machineAvail, gridAvail, scadaAvail, trueAvail, plf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime*3600, energy/1000, machinedowntime, griddowntime, float64(totaldata), hourValue, minutes)
+			var plfDivider float64
+
+			for _, v := range turbineList {
+				plfDivider += v.Capacity
+			}
+
+			machineAvail, gridAvail, scadaAvail, trueAvail, plf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime*3600, energy/1000, machinedowntime, griddowntime, float64(totaldata), hourValue, minutes, plfDivider)
 
 			/*log.Printf("\nmonth %v \n", monthid)
 			log.Printf("%v | %v | %v | %v \n", tStart.UTC().String(), tEnd.UTC().String(), mindate.UTC().String(), maxdate.UTC().String())
@@ -308,7 +297,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			}
 
 			mdl = new(ScadaSummaryByMonth).New()
-			mdl.ProjectName = "Tejuva"
+			mdl.ProjectName = project
 			mdl.DateInfo = dtinfo
 			mdl.Production = (power / divider)
 			mdl.ProductionLastYear = (powerlastyear / divider)
@@ -348,192 +337,208 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 
 		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Tejuva"))
 
-		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			Where(dbox.Gte("power", -200)).
-			Aggr(dbox.AggrSum, "$power", "totalpower").
-			Aggr(dbox.AggrSum, "$energy", "energy").
-			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
-			Aggr(dbox.AggrSum, "$oktime", "totaloktime").
-			Aggr(dbox.AggrSum, "$minutes", "totalminutes").
-			Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
-			Aggr(dbox.AggrSum, "$unknowntime", "totalunknowntime").
-			Aggr(dbox.AggrSum, "$machinedowntime", "totalmachinedowntime").
-			Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
-			Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
-			Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
-			Group("turbine").
-			Cursor(nil)
-		defer csr.Close()
+		projectList, _ := helper.GetProjectList()
+		for _, v := range projectList {
+			projectName := v.Value
 
-		datas := []tk.M{}
-		e = csr.Fetch(&datas, 0, false)
+			var turbineList []TurbineOut
+			turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 
-		_, max, _ := GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
-
-		daysInMonth := GetDayInYear(max.Year())
-		days := tk.ToString(daysInMonth.GetInt(tk.ToString(int(max.Month()))))
-		tmpdt, _ := time.Parse("060102_150405", max.UTC().Format("0601")+days+"_000000")
-		endDate := tmpdt.UTC() //time.Parse("060102_150405", max.UTC().Format("0601")+"01_000000").UTC()
-
-		startDate := GetNormalAddDateMonth(tmpdt.UTC(), -11)
-
-		// log.Printf("%v | %v \n", startDate.String(), endDate.String())
-
-		// startDate, _ := time.Parse("2006-01-02", "2016-05-07")
-		// endDate, _ := time.Parse("2006-01-02", "2016-11-26")
-
-		// durationInMonth := Round(endDate.Sub(startDate).Hours() / 24)
-		// noOfTurbine := 24.0
-
-		mdl := new(ScadaSummaryByProject).New()
-		mdl.ID = "Tejuva"
-
-		items := make([]ScadaSummaryByProjectItem, 0)
-		for _, data := range datas {
-			id := data["_id"].(tk.M)
-			turbine := id["turbine"].(string)
-
-			ioktime := data["totaloktime"]
-			oktime := 0.0
-			if ioktime != nil {
-				oktime = (ioktime.(float64)) /// 3600 // divide by 3600 secs, result in hours
-			}
-
-			iminutes := data["totalminutes"]
-			minutes := 0.0
-			if iminutes != nil {
-				valminutes, ok := iminutes.(float64) // divide by 60 secs, result in hours
-				if !ok {
-					ivalminutes := iminutes.(int)
-					minutes = float64(ivalminutes) / 60.0
-				} else {
-					minutes = valminutes / 60.0
-				}
-			}
-			_ = minutes
-
-			downtimeHours := 0.0
-			lostEnergy := 0.0
-
-			ilostEnergy := data["totalenergylost"]
-			if ilostEnergy != nil {
-				lostEnergy = ilostEnergy.(float64)
-			}
-
-			// pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("startdateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
-			// csr1, _ := ctx.NewQuery().
-			// 	Command("pipe", pipe).
-			// 	From(new(Alarm).TableName()).
-			// 	Cursor(nil)
-			// defer csr1.Close()
-
-			// alarms := []tk.M{}
-			// e = csr1.Fetch(&alarms, 0, false)
-
-			// if len(alarms) > 0 {
-			// 	alarm := alarms[0]
-			// 	iduration := alarm["duration"]
-			// 	if iduration != nil {
-			// 		downtimeHours = iduration.(float64)
-			// 	}
-			// 	ipowerlost := alarm["powerlost"]
-			// 	if ipowerlost != nil {
-			// 		lostEnergy = ipowerlost.(float64)
-			// 	}
-			// }
-
-			pipe := []tk.M{
-				tk.M{}.Set("$unwind", "$detail"),
-				tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).
-					Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))),
-				tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").
-					Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
-					Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))),
-				tk.M{}.Set("$sort", tk.M{}.Set("_id", 1)),
-			}
-			// log.Printf("#%v\n", pipe)
-			csr1, _ := ctx.NewQuery().
-				Command("pipe", pipe).
-				From(new(Alarm).TableName()).
+			csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
+				Where(dbox.And(dbox.Gte("power", -200), dbox.Eq("projectname", projectName))).
+				Aggr(dbox.AggrSum, "$power", "totalpower").
+				Aggr(dbox.AggrSum, "$energy", "energy").
+				Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
+				Aggr(dbox.AggrSum, "$oktime", "totaloktime").
+				Aggr(dbox.AggrSum, "$minutes", "totalminutes").
+				Aggr(dbox.AggrSum, "$griddowntime", "totalgriddowntime").
+				Aggr(dbox.AggrSum, "$unknowntime", "totalunknowntime").
+				Aggr(dbox.AggrSum, "$machinedowntime", "totalmachinedowntime").
+				Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
+				Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
+				Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
+				Group("turbine").
 				Cursor(nil)
-			defer csr1.Close()
+			defer csr.Close()
 
-			alarms := []tk.M{}
-			e = csr1.Fetch(&alarms, 0, false)
+			_ = e
 
-			// log.Printf("#%v\n", alarms)
+			datas := []tk.M{}
+			e = csr.Fetch(&datas, 0, false)
 
-			if len(alarms) > 0 {
-				alarm := alarms[0]
-				ipowerlost := alarm["powerlost"]
-				if ipowerlost != nil {
-					lostEnergy = ipowerlost.(float64)
+			_, max, _ := GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+
+			daysInMonth := GetDayInYear(max.Year())
+			days := tk.ToString(daysInMonth.GetInt(tk.ToString(int(max.Month()))))
+			tmpdt, _ := time.Parse("060102_150405", max.UTC().Format("0601")+days+"_000000")
+			endDate := tmpdt.UTC() //time.Parse("060102_150405", max.UTC().Format("0601")+"01_000000").UTC()
+
+			startDate := GetNormalAddDateMonth(tmpdt.UTC(), -11)
+
+			// log.Printf("%v | %v \n", startDate.String(), endDate.String())
+
+			// startDate, _ := time.Parse("2006-01-02", "2016-05-07")
+			// endDate, _ := time.Parse("2006-01-02", "2016-11-26")
+
+			// durationInMonth := Round(endDate.Sub(startDate).Hours() / 24)
+			// noOfTurbine := 24.0
+
+			mdl := new(ScadaSummaryByProject).New()
+			mdl.ID = projectName
+
+			items := make([]ScadaSummaryByProjectItem, 0)
+			for _, data := range datas {
+				id := data["_id"].(tk.M)
+				turbine := id["turbine"].(string)
+
+				ioktime := data["totaloktime"]
+				oktime := 0.0
+				if ioktime != nil {
+					oktime = (ioktime.(float64)) /// 3600 // divide by 3600 secs, result in hours
 				}
-				iduration := alarm["duration"]
-				if iduration != nil {
-					downtimeHours = iduration.(float64)
+
+				iminutes := data["totalminutes"]
+				minutes := 0.0
+				if iminutes != nil {
+					valminutes, ok := iminutes.(float64) // divide by 60 secs, result in hours
+					if !ok {
+						ivalminutes := iminutes.(int)
+						minutes = float64(ivalminutes) / 60.0
+					} else {
+						minutes = valminutes / 60.0
+					}
 				}
+				_ = minutes
+
+				downtimeHours := 0.0
+				lostEnergy := 0.0
+
+				ilostEnergy := data["totalenergylost"]
+				if ilostEnergy != nil {
+					lostEnergy = ilostEnergy.(float64)
+				}
+
+				// pipe := []tk.M{tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("startdateinfo.dateid", tk.M{}.Set("$lte", endDate))), tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
+				// csr1, _ := ctx.NewQuery().
+				// 	Command("pipe", pipe).
+				// 	From(new(Alarm).TableName()).
+				// 	Cursor(nil)
+				// defer csr1.Close()
+
+				// alarms := []tk.M{}
+				// e = csr1.Fetch(&alarms, 0, false)
+
+				// if len(alarms) > 0 {
+				// 	alarm := alarms[0]
+				// 	iduration := alarm["duration"]
+				// 	if iduration != nil {
+				// 		downtimeHours = iduration.(float64)
+				// 	}
+				// 	ipowerlost := alarm["powerlost"]
+				// 	if ipowerlost != nil {
+				// 		lostEnergy = ipowerlost.(float64)
+				// 	}
+				// }
+
+				pipe := []tk.M{
+					tk.M{}.Set("$unwind", "$detail"),
+					tk.M{}.Set("$match", tk.M{}.Set("turbine", tk.M{}.Set("$eq", turbine)).
+						Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))),
+					tk.M{}.Set("$group", tk.M{}.Set("_id", "$turbine").
+						Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
+						Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost"))),
+					tk.M{}.Set("$sort", tk.M{}.Set("_id", 1)),
+				}
+				// log.Printf("#%v\n", pipe)
+				csr1, _ := ctx.NewQuery().
+					Command("pipe", pipe).
+					From(new(Alarm).TableName()).
+					Cursor(nil)
+				defer csr1.Close()
+
+				alarms := []tk.M{}
+				e = csr1.Fetch(&alarms, 0, false)
+
+				// log.Printf("#%v\n", alarms)
+
+				if len(alarms) > 0 {
+					alarm := alarms[0]
+					ipowerlost := alarm["powerlost"]
+					if ipowerlost != nil {
+						lostEnergy = ipowerlost.(float64)
+					}
+					iduration := alarm["duration"]
+					if iduration != nil {
+						downtimeHours = iduration.(float64)
+					}
+				}
+
+				ipower := data["totalpower"]
+				power := 0.0
+				if ipower != nil {
+					power = ipower.(float64)
+				}
+
+				imachinedowntime := data["totalmachinedowntime"]
+				machinedowntime := 0.0
+				if imachinedowntime != nil {
+					machinedowntime = imachinedowntime.(float64) / 3600
+				}
+
+				igriddowntime := data["totalgriddowntime"]
+				griddowntime := 0.0
+				if igriddowntime != nil {
+					griddowntime = igriddowntime.(float64) / 3600
+				}
+
+				iunknowntime := data["totalunknowntime"]
+				unknowntime := 0.0
+				if iunknowntime != nil {
+					unknowntime = iunknowntime.(float64) / 3600
+				}
+
+				_ = machinedowntime
+				_ = griddowntime
+				_ = unknowntime
+
+				//downtimeHours = machinedowntime + griddowntime + unknowntime
+
+				// machineAvail := (minutes - machinedowntime) / (durationInMonth * 24)
+
+				maxDate := data.Get("max").(time.Time)
+				minDate := data.Get("min").(time.Time)
+				energy := data.GetFloat64("energy") / 1000
+
+				hourValue := helper.GetHourValue(startDate.UTC(), endDate.UTC(), minDate.UTC(), maxDate.UTC())
+
+				// log.Printf("%v | %v | %v \n", hourValue, minDate.String(), maxDate.String())
+				var plfDivider float64
+				for _, v := range turbineList {
+					if v.Turbine == turbine {
+						plfDivider = v.Capacity
+					}
+				}
+
+				machineAvail, _, _, trueAvail, plf := helper.GetAvailAndPLF(1, oktime, energy, machinedowntime, griddowntime, float64(0), hourValue, minutes, plfDivider)
+
+				var item ScadaSummaryByProjectItem
+
+				item.Name = turbine
+				item.NoOfWtg = 1
+				item.Production = power / 6
+				item.PLF = plf / 100 //(power / 6) / (durationInMonth * 24 * 2100)
+				item.MachineAvail = machineAvail / 100
+				item.TrueAvail = trueAvail / 100 //oktime / (durationInMonth * 24)
+				item.LostEnergy = lostEnergy
+				item.DowntimeHours = downtimeHours
+
+				items = append(items, item)
 			}
 
-			ipower := data["totalpower"]
-			power := 0.0
-			if ipower != nil {
-				power = ipower.(float64)
-			}
+			mdl.DataItems = items
 
-			imachinedowntime := data["totalmachinedowntime"]
-			machinedowntime := 0.0
-			if imachinedowntime != nil {
-				machinedowntime = imachinedowntime.(float64) / 3600
-			}
-
-			igriddowntime := data["totalgriddowntime"]
-			griddowntime := 0.0
-			if igriddowntime != nil {
-				griddowntime = igriddowntime.(float64) / 3600
-			}
-
-			iunknowntime := data["totalunknowntime"]
-			unknowntime := 0.0
-			if iunknowntime != nil {
-				unknowntime = iunknowntime.(float64) / 3600
-			}
-
-			_ = machinedowntime
-			_ = griddowntime
-			_ = unknowntime
-
-			//downtimeHours = machinedowntime + griddowntime + unknowntime
-
-			// machineAvail := (minutes - machinedowntime) / (durationInMonth * 24)
-
-			maxDate := data.Get("max").(time.Time)
-			minDate := data.Get("min").(time.Time)
-			energy := data.GetFloat64("energy") / 1000
-
-			hourValue := helper.GetHourValue(startDate.UTC(), endDate.UTC(), minDate.UTC(), maxDate.UTC())
-
-			// log.Printf("%v | %v | %v \n", hourValue, minDate.String(), maxDate.String())
-
-			machineAvail, _, _, trueAvail, plf := helper.GetAvailAndPLF(1, oktime, energy, machinedowntime, griddowntime, float64(0), hourValue, minutes)
-
-			var item ScadaSummaryByProjectItem
-
-			item.Name = turbine
-			item.NoOfWtg = 1
-			item.Production = power / 6
-			item.PLF = plf / 100 //(power / 6) / (durationInMonth * 24 * 2100)
-			item.MachineAvail = machineAvail / 100
-			item.TrueAvail = trueAvail / 100 //oktime / (durationInMonth * 24)
-			item.LostEnergy = lostEnergy
-			item.DowntimeHours = downtimeHours
-
-			items = append(items, item)
+			d.BaseController.Ctx.Insert(mdl)
 		}
-
-		mdl.DataItems = items
-
-		d.BaseController.Ctx.Insert(mdl)
 	}
 }
 
@@ -580,7 +585,9 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 
 		//log.Println(durationInMonth)
 
-		noOfTurbine := 24.0
+		noOfTurbine := 0
+		turbineList, _ := helper.GetTurbineList(nil)
+		noOfTurbine = len(turbineList)
 
 		mdl := new(ScadaSummaryByProject).New()
 		mdl.ID = "Fleet"
@@ -699,7 +706,12 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 
 			// log.Printf("%v | %v | %v | %v : %v  \n", startDate.UTC().String(), endDate.UTC().String(), minDate.UTC().String(), maxDate.UTC().String(), hourValue)
 
-			machineAvail, _, _, trueAvail, plf := helper.GetAvailAndPLF(noOfTurbine, oktime*3600, energy, machinedowntime, griddowntime, float64(0), hourValue, minutes)
+			var plfDivider float64
+			for _, v := range turbineList {
+				plfDivider += v.Capacity
+			}
+
+			machineAvail, _, _, trueAvail, plf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime*3600, energy, machinedowntime, griddowntime, float64(0), hourValue, minutes, plfDivider)
 
 			// log.Printf("%v | %v | %v | %v \n", machineAvail, trueAvail, plf, energy)
 
@@ -735,17 +747,18 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 		var wg sync.WaitGroup
 		counter := 0
-		for turbine, _ := range d.BaseController.RefTurbines {
+		for turbine, v := range d.BaseController.RefTurbines {
 			counter++
 			wg.Add(1)
 
 			go func(turbine string) {
+				project := v.(tk.M).GetString("project")
 				filter := tk.M{}
-				filter = filter.Set("projectname", tk.M{}.Set("$eq", "Tejuva"))
+				filter = filter.Set("projectname", tk.M{}.Set("$eq", project))
 				filter = filter.Set("turbine", tk.M{}.Set("$eq", turbine))
 				filter = filter.Set("power", tk.M{}.Set("$gte", -200))
 
-				dt := d.BaseController.GetLatest("ScadaSummaryDaily", "Tejuva", turbine)
+				dt := d.BaseController.GetLatest("ScadaSummaryDaily", project, turbine)
 
 				if dt.Format("2006") != "0001" {
 					filter = filter.Set("dateinfo.dateid", tk.M{}.Set("$gt", dt))
@@ -1050,6 +1063,13 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 	machineavail := make([]float64, 0)
 	gridavail := make([]float64, 0)
 
+	turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
+
+	var plfDivider float64
+	for _, v := range turbineList {
+		plfDivider += v.Capacity
+	}
+
 	for _, d := range scadaSums {
 		_id := d.Get("_id").(tk.M)
 		//log.Println(_id)
@@ -1087,7 +1107,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 		// vgridavail := tk.Div(((totalHour*float64(noOfTurbine))-griddown), (totalHour*float64(noOfTurbine))) * 100
 		// vmchavail := tk.Div(((totalHour*float64(noOfTurbine))-machinedown), (totalHour*float64(noOfTurbine))) * 100
 
-		vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes)
+		vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
 
 		// if groupBy == "dateinfo.qtrid" {
 		// 	log.Println(vid, "PLF = ", vplf, oktime, (totalHour * float64(noOfTurbine) * 3600.0))
@@ -1146,356 +1166,51 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 			"GridAvail",
 		}
 
-		projectName := "Tejuva"
-		byproject := make([]*GWFAnalysisByProject, 0)
-		for idx, k := range keys {
-			m := new(GWFAnalysisByProject).New()
-			m.Key = k
-			m.ProjectName = projectName
-			m.OrderNo = idx
+		projectList, _ := helper.GetProjectList()
 
-			byproject = append(byproject, m)
-		}
+		for _, v := range projectList {
+			projectName := v.Value
 
-		_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
-
-		lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
-		strEnd := lastDate.Format("02-Jan-2006")
-
-		// getting daily data
-		last12Day := lastDate.AddDate(0, 0, -11)
-		strStart := last12Day.Format("02-Jan-2006")
-		dateText := strStart + " to " + strEnd
-		totalHourPerDay := 24.0
-
-		pipeMatch := tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Day).Set("$lte", lastDate)),
-		}
-		pipeGroupId := tk.M{
-			"value":  "$projectname",
-			"period": "$dateinfo.dateid",
-		}
-		dailyData := d.getWFAnalysisData(ctx, "Tejuva", last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 24, 1000000.0, pipeMatch, pipeGroupId)
-
-		for _, p := range byproject {
-			var val GWFAnalysisValue
-
-			val.DateText = dateText
-			items := make([]GWFAnalysisItem, 0)
-			for i := 11; i >= 0; i-- {
-				dDayId := lastDate.AddDate(0, 0, -1*i)
-				sId := dDayId.Format("20060102")
-				Ids := dailyData.Get("Id").([]string)
-
-				var item GWFAnalysisItem
-
-				item.OrderNo = 12 - i
-				item.Title = dDayId.Format("02-01-2006")
-				item.DataId = sId
-
-				isFound := false
-				for idx, id := range Ids {
-					if id == sId {
-						isFound = true
-						dataItems := dailyData.Get(p.Key).([]float64)
-						item.Value = dataItems[idx]
-						break
-					}
-				}
-				if !isFound {
-					item.Value = 0
-				}
-
-				items = append(items, item)
-			}
-
-			val.ValueAvg = items
-			val.ValueMin = make([]GWFAnalysisItem, 0)
-			val.ValueMax = make([]GWFAnalysisItem, 0)
-
-			p.Roll12Days = val
-		}
-
-		// getting weekly data
-		lastYear, lastWeek := lastDate.ISOWeek()
-		last12Week := GetPeriodBackByDate("WEEK", lastDate, 12) // lastDate.Add(-83 * 24 * time.Hour)
-		strStart = last12Week.Format("02-Jan-2006")
-		dateText = strStart + " to " + strEnd
-		totalHourPerWeek := 24.0 * 7.0
-		pipeMatch = tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Week).Set("$lte", lastDate)),
-		}
-		pipeGroupId = tk.M{
-			"value":  "$projectname",
-			"period": "$dateinfo.weekid",
-		}
-		weeklyData := d.getWFAnalysisData(ctx, "Tejuva", last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 24, 1000000.0, pipeMatch, pipeGroupId)
-
-		for _, p := range byproject {
-			var val GWFAnalysisValue
-
-			val.DateText = dateText
-
-			startYear := lastYear
-			startWeek := lastWeek
-			items := make([]GWFAnalysisItem, 0)
-			for i := 0; i < 12; i++ {
-
-				sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startWeek), "0", 2))
-				Ids := weeklyData.Get("Id").([]string)
-
-				var item GWFAnalysisItem
-
-				item.OrderNo = 12 - i
-				item.Title = "W " + LeftPad2Len(strconv.Itoa(startWeek), "0", 2) + " " + strconv.Itoa(startYear)
-				item.DataId = sId
-
-				isFound := false
-				for idx, id := range Ids {
-					if id == sId {
-						isFound = true
-						dataItems := weeklyData.Get(p.Key).([]float64)
-						item.Value = dataItems[idx]
-						break
-					}
-				}
-				if !isFound {
-					item.Value = 0
-				}
-
-				items = append(items, item)
-
-				startWeek--
-				if startWeek == 0 {
-					startWeek = 52
-					startYear--
-				}
-			}
-
-			val.ValueAvg = items
-			val.ValueMin = make([]GWFAnalysisItem, 0)
-			val.ValueMax = make([]GWFAnalysisItem, 0)
-
-			p.Roll12Weeks = val
-		}
-
-		// getting monthly data
-		lastMonth := int(lastDate.Month())
-		last12Month := GetPeriodBackByDate("MONTH", lastDate, 12) // lastDate.Add(-364 * 24 * time.Hour)
-		strStart = last12Month.Format("02-Jan-2006")
-		dateText = strStart + " to " + strEnd
-		totalHourPerMonth := 24.0 * 30.0
-		pipeMatch = tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Month).Set("$lte", lastDate)),
-		}
-		pipeGroupId = tk.M{
-			"value":  "$projectname",
-			"period": "$dateinfo.monthid",
-		}
-		monthlyData := d.getWFAnalysisData(ctx, "Tejuva", last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 24, 1000000.0, pipeMatch, pipeGroupId)
-
-		for _, p := range byproject {
-			var val GWFAnalysisValue
-
-			val.DateText = dateText
-
-			startYear := lastYear
-			startMonth := lastMonth
-			items := make([]GWFAnalysisItem, 0)
-			for i := 0; i < 12; i++ {
-
-				sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startMonth), "0", 2))
-				Ids := monthlyData.Get("Id").([]string)
-
-				var item GWFAnalysisItem
-
-				item.OrderNo = 12 - i
-				item.Title = LeftPad2Len(strconv.Itoa(startMonth), "0", 2) + "-" + strconv.Itoa(startYear)
-				item.DataId = sId
-
-				isFound := false
-				for idx, id := range Ids {
-					if id == sId {
-						isFound = true
-						dataItems := monthlyData.Get(p.Key).([]float64)
-						item.Value = dataItems[idx]
-						break
-					}
-				}
-				if !isFound {
-					item.Value = 0
-				}
-
-				items = append(items, item)
-
-				startMonth--
-				if startMonth == 0 {
-					startMonth = 12
-					startYear--
-				}
-			}
-
-			val.ValueAvg = items
-			val.ValueMin = make([]GWFAnalysisItem, 0)
-			val.ValueMax = make([]GWFAnalysisItem, 0)
-
-			p.Roll12Months = val
-		}
-
-		// getting monthly data
-		last12Qtr := GetPeriodBackByDate("QTR", lastDate, 12) // lastDate.Add(3 * -365 * 24 * time.Hour)
-		strStart = last12Qtr.Format("02-Jan-2006")
-		dateText = strStart + " to " + strEnd
-		totalHourPerQtr := 24.0 * 90.0
-		pipeMatch = tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Qtr).Set("$lte", lastDate)),
-		}
-		pipeGroupId = tk.M{
-			"value":  "$projectname",
-			"period": "$dateinfo.qtrid",
-		}
-		qtrData := d.getWFAnalysisData(ctx, "Tejuva", last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 24, 1000000.0, pipeMatch, pipeGroupId)
-
-		for _, p := range byproject {
-			var val GWFAnalysisValue
-
-			val.DateText = dateText
-
-			startYear := lastYear
-
-			qtr := 0
-			if lastMonth%3 > 0 {
-				qtr = int(math.Ceil(float64(lastMonth / 3)))
-				qtr = qtr + 1
+			var turbineList []TurbineOut
+			if projectName != "" {
+				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			} else {
-				qtr = lastMonth / 3
+				turbineList, _ = helper.GetTurbineList(nil)
 			}
+			noOfTurbine := len(turbineList)
 
-			startQtr := qtr
-			items := make([]GWFAnalysisItem, 0)
-			for i := 0; i < 12; i++ {
-
-				sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startQtr), "0", 2))
-				Ids := qtrData.Get("Id").([]string)
-
-				var item GWFAnalysisItem
-
-				item.OrderNo = 12 - i
-				item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
-				item.DataId = sId
-
-				isFound := false
-				for idx, id := range Ids {
-					if id == sId {
-						isFound = true
-						dataItems := qtrData.Get(p.Key).([]float64)
-						// log.Println(p.Key, id, sId, dataItems[idx], dataItems)
-						item.Value = dataItems[idx]
-						break
-					}
-				}
-				if !isFound {
-					item.Value = 0
-				}
-
-				items = append(items, item)
-
-				startQtr--
-				if startQtr == 0 {
-					startQtr = 4
-					startYear--
-				}
-			}
-
-			val.ValueAvg = items
-			val.ValueMin = make([]GWFAnalysisItem, 0)
-			val.ValueMax = make([]GWFAnalysisItem, 0)
-
-			p.Roll12Quarters = val
-		}
-
-		for _, p := range byproject {
-			d.BaseController.Ctx.Save(p)
-		}
-
-		// log.Println(dailyData)
-		// log.Println(weeklyData)
-		// log.Println(monthlyData)
-		// log.Println(qtrData)
-	}
-}
-
-func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
-	if base != nil {
-		d.BaseController = base
-
-		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByTurbine1), dbox.And(dbox.Ne("projectname", ""), dbox.Ne("turbine", "")))
-
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis")
-			os.Exit(0)
-		}
-
-		keys := []string{
-			"Power",
-			"WindSpeed",
-			"Production",
-			"PLF",
-			"TotalAvail",
-			"MachineAvail",
-			"GridAvail",
-		}
-
-		projectName := "Tejuva"
-		turbines := make([]TurbineMaster, 0)
-		csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
-			Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
-
-		if e != nil {
-			log.Println(e.Error())
-		}
-		e = csr.Fetch(&turbines, 0, false)
-		csr.Close()
-
-		_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
-
-		lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
-		strEnd := lastDate.Format("02-Jan-2006")
-
-		for _, t := range turbines {
-			datas := make([]*GWFAnalysisByTurbine1, 0)
+			byproject := make([]*GWFAnalysisByProject, 0)
 			for idx, k := range keys {
-				m := new(GWFAnalysisByTurbine1).New()
+				m := new(GWFAnalysisByProject).New()
 				m.Key = k
 				m.ProjectName = projectName
-				m.Turbine = t.TurbineId
 				m.OrderNo = idx
 
-				datas = append(datas, m)
+				byproject = append(byproject, m)
 			}
 
+			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+
+			lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
+			strEnd := lastDate.Format("02-Jan-2006")
+
 			// getting daily data
-			last12Day := lastDate.Add(-11 * 24 * time.Hour)
+			last12Day := lastDate.AddDate(0, 0, -11)
 			strStart := last12Day.Format("02-Jan-2006")
 			dateText := strStart + " to " + strEnd
 			totalHourPerDay := 24.0
+
 			pipeMatch := tk.M{
 				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-					Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
 					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Day).Set("$lte", lastDate)),
 			}
 			pipeGroupId := tk.M{
-				"value":  "$turbine",
+				"value":  "$projectname",
 				"period": "$dateinfo.dateid",
 			}
-			dailyData := d.getWFAnalysisData(ctx, "Tejuva", last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId)
+			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
 
-			for _, p := range datas {
+			for _, p := range byproject {
 				var val GWFAnalysisValue
 
 				val.DateText = dateText
@@ -1542,16 +1257,15 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 			totalHourPerWeek := 24.0 * 7.0
 			pipeMatch = tk.M{
 				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-					Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
 					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Week).Set("$lte", lastDate)),
 			}
 			pipeGroupId = tk.M{
-				"value":  "$turbine",
+				"value":  "$projectname",
 				"period": "$dateinfo.weekid",
 			}
-			weeklyData := d.getWFAnalysisData(ctx, "Tejuva", last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId)
+			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
 
-			for _, p := range datas {
+			for _, p := range byproject {
 				var val GWFAnalysisValue
 
 				val.DateText = dateText
@@ -1607,16 +1321,15 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 			totalHourPerMonth := 24.0 * 30.0
 			pipeMatch = tk.M{
 				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-					Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
 					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Month).Set("$lte", lastDate)),
 			}
 			pipeGroupId = tk.M{
-				"value":  "$turbine",
+				"value":  "$projectname",
 				"period": "$dateinfo.monthid",
 			}
-			monthlyData := d.getWFAnalysisData(ctx, "Tejuva", last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 1, 1000.0, pipeMatch, pipeGroupId)
+			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
 
-			for _, p := range datas {
+			for _, p := range byproject {
 				var val GWFAnalysisValue
 
 				val.DateText = dateText
@@ -1671,16 +1384,15 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 			totalHourPerQtr := 24.0 * 90.0
 			pipeMatch = tk.M{
 				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-					Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
 					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Qtr).Set("$lte", lastDate)),
 			}
 			pipeGroupId = tk.M{
-				"value":  "$turbine",
+				"value":  "$projectname",
 				"period": "$dateinfo.qtrid",
 			}
-			qtrData := d.getWFAnalysisData(ctx, "Tejuva", last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 1, 1000.0, pipeMatch, pipeGroupId)
+			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
 
-			for _, p := range datas {
+			for _, p := range byproject {
 				var val GWFAnalysisValue
 
 				val.DateText = dateText
@@ -1738,8 +1450,333 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 				p.Roll12Quarters = val
 			}
 
-			for _, p := range datas {
+			for _, p := range byproject {
 				d.BaseController.Ctx.Save(p)
+			}
+		}
+
+		// log.Println(dailyData)
+		// log.Println(weeklyData)
+		// log.Println(monthlyData)
+		// log.Println(qtrData)
+	}
+}
+
+func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
+	if base != nil {
+		d.BaseController = base
+
+		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByTurbine1), dbox.And(dbox.Ne("projectname", ""), dbox.Ne("turbine", "")))
+
+		ctx, e := PrepareConnection()
+		if e != nil {
+			ErrorHandler(e, "Scada Summary WF Analysis")
+			os.Exit(0)
+		}
+
+		keys := []string{
+			"Power",
+			"WindSpeed",
+			"Production",
+			"PLF",
+			"TotalAvail",
+			"MachineAvail",
+			"GridAvail",
+		}
+
+		projectList, _ := helper.GetProjectList()
+		for _, v := range projectList {
+			projectName := v.Value
+
+			turbines := make([]TurbineMaster, 0)
+			csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
+				Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
+
+			if e != nil {
+				log.Println(e.Error())
+			}
+			e = csr.Fetch(&turbines, 0, false)
+			csr.Close()
+
+			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+
+			lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
+			strEnd := lastDate.Format("02-Jan-2006")
+
+			for _, t := range turbines {
+				datas := make([]*GWFAnalysisByTurbine1, 0)
+				for idx, k := range keys {
+					m := new(GWFAnalysisByTurbine1).New()
+					m.Key = k
+					m.ProjectName = projectName
+					m.Turbine = t.TurbineId
+					m.OrderNo = idx
+
+					datas = append(datas, m)
+				}
+
+				// getting daily data
+				last12Day := lastDate.Add(-11 * 24 * time.Hour)
+				strStart := last12Day.Format("02-Jan-2006")
+				dateText := strStart + " to " + strEnd
+				totalHourPerDay := 24.0
+				pipeMatch := tk.M{
+					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Day).Set("$lte", lastDate)),
+				}
+				pipeGroupId := tk.M{
+					"value":  "$turbine",
+					"period": "$dateinfo.dateid",
+				}
+				dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId)
+
+				for _, p := range datas {
+					var val GWFAnalysisValue
+
+					val.DateText = dateText
+					items := make([]GWFAnalysisItem, 0)
+					for i := 11; i >= 0; i-- {
+						dDayId := lastDate.AddDate(0, 0, -1*i)
+						sId := dDayId.Format("20060102")
+						Ids := dailyData.Get("Id").([]string)
+
+						var item GWFAnalysisItem
+
+						item.OrderNo = 12 - i
+						item.Title = dDayId.Format("02-01-2006")
+						item.DataId = sId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := dailyData.Get(p.Key).([]float64)
+								item.Value = dataItems[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						items = append(items, item)
+					}
+
+					val.ValueAvg = items
+					val.ValueMin = make([]GWFAnalysisItem, 0)
+					val.ValueMax = make([]GWFAnalysisItem, 0)
+
+					p.Roll12Days = val
+				}
+
+				// getting weekly data
+				lastYear, lastWeek := lastDate.ISOWeek()
+				last12Week := GetPeriodBackByDate("WEEK", lastDate, 12) // lastDate.Add(-83 * 24 * time.Hour)
+				strStart = last12Week.Format("02-Jan-2006")
+				dateText = strStart + " to " + strEnd
+				totalHourPerWeek := 24.0 * 7.0
+				pipeMatch = tk.M{
+					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Week).Set("$lte", lastDate)),
+				}
+				pipeGroupId = tk.M{
+					"value":  "$turbine",
+					"period": "$dateinfo.weekid",
+				}
+				weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId)
+
+				for _, p := range datas {
+					var val GWFAnalysisValue
+
+					val.DateText = dateText
+
+					startYear := lastYear
+					startWeek := lastWeek
+					items := make([]GWFAnalysisItem, 0)
+					for i := 0; i < 12; i++ {
+
+						sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startWeek), "0", 2))
+						Ids := weeklyData.Get("Id").([]string)
+
+						var item GWFAnalysisItem
+
+						item.OrderNo = 12 - i
+						item.Title = "W " + LeftPad2Len(strconv.Itoa(startWeek), "0", 2) + " " + strconv.Itoa(startYear)
+						item.DataId = sId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := weeklyData.Get(p.Key).([]float64)
+								item.Value = dataItems[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						items = append(items, item)
+
+						startWeek--
+						if startWeek == 0 {
+							startWeek = 52
+							startYear--
+						}
+					}
+
+					val.ValueAvg = items
+					val.ValueMin = make([]GWFAnalysisItem, 0)
+					val.ValueMax = make([]GWFAnalysisItem, 0)
+
+					p.Roll12Weeks = val
+				}
+
+				// getting monthly data
+				lastMonth := int(lastDate.Month())
+				last12Month := GetPeriodBackByDate("MONTH", lastDate, 12) // lastDate.Add(-364 * 24 * time.Hour)
+				strStart = last12Month.Format("02-Jan-2006")
+				dateText = strStart + " to " + strEnd
+				totalHourPerMonth := 24.0 * 30.0
+				pipeMatch = tk.M{
+					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Month).Set("$lte", lastDate)),
+				}
+				pipeGroupId = tk.M{
+					"value":  "$turbine",
+					"period": "$dateinfo.monthid",
+				}
+				monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 1, 1000.0, pipeMatch, pipeGroupId)
+
+				for _, p := range datas {
+					var val GWFAnalysisValue
+
+					val.DateText = dateText
+
+					startYear := lastYear
+					startMonth := lastMonth
+					items := make([]GWFAnalysisItem, 0)
+					for i := 0; i < 12; i++ {
+
+						sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startMonth), "0", 2))
+						Ids := monthlyData.Get("Id").([]string)
+
+						var item GWFAnalysisItem
+
+						item.OrderNo = 12 - i
+						item.Title = LeftPad2Len(strconv.Itoa(startMonth), "0", 2) + "-" + strconv.Itoa(startYear)
+						item.DataId = sId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := monthlyData.Get(p.Key).([]float64)
+								item.Value = dataItems[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						items = append(items, item)
+
+						startMonth--
+						if startMonth == 0 {
+							startMonth = 12
+							startYear--
+						}
+					}
+
+					val.ValueAvg = items
+					val.ValueMin = make([]GWFAnalysisItem, 0)
+					val.ValueMax = make([]GWFAnalysisItem, 0)
+
+					p.Roll12Months = val
+				}
+
+				// getting monthly data
+				last12Qtr := GetPeriodBackByDate("QTR", lastDate, 12) // lastDate.Add(3 * -365 * 24 * time.Hour)
+				strStart = last12Qtr.Format("02-Jan-2006")
+				dateText = strStart + " to " + strEnd
+				totalHourPerQtr := 24.0 * 90.0
+				pipeMatch = tk.M{
+					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Qtr).Set("$lte", lastDate)),
+				}
+				pipeGroupId = tk.M{
+					"value":  "$turbine",
+					"period": "$dateinfo.qtrid",
+				}
+				qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 1, 1000.0, pipeMatch, pipeGroupId)
+
+				for _, p := range datas {
+					var val GWFAnalysisValue
+
+					val.DateText = dateText
+
+					startYear := lastYear
+
+					qtr := 0
+					if lastMonth%3 > 0 {
+						qtr = int(math.Ceil(float64(lastMonth / 3)))
+						qtr = qtr + 1
+					} else {
+						qtr = lastMonth / 3
+					}
+
+					startQtr := qtr
+					items := make([]GWFAnalysisItem, 0)
+					for i := 0; i < 12; i++ {
+
+						sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startQtr), "0", 2))
+						Ids := qtrData.Get("Id").([]string)
+
+						var item GWFAnalysisItem
+
+						item.OrderNo = 12 - i
+						item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
+						item.DataId = sId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := qtrData.Get(p.Key).([]float64)
+								// log.Println(p.Key, id, sId, dataItems[idx], dataItems)
+								item.Value = dataItems[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						items = append(items, item)
+
+						startQtr--
+						if startQtr == 0 {
+							startQtr = 4
+							startYear--
+						}
+					}
+
+					val.ValueAvg = items
+					val.ValueMin = make([]GWFAnalysisItem, 0)
+					val.ValueMax = make([]GWFAnalysisItem, 0)
+
+					p.Roll12Quarters = val
+				}
+
+				for _, p := range datas {
+					d.BaseController.Ctx.Save(p)
+				}
 			}
 		}
 	}
@@ -1767,230 +1804,256 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 			"GridAvail",
 		}
 
-		projectName := "Tejuva"
-		turbines := make([]TurbineMaster, 0)
-		csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
-			Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
+		projectList, _ := helper.GetProjectList()
+		for _, v := range projectList {
+			projectName := v.Value
+			turbines := make([]TurbineMaster, 0)
+			csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
+				Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
 
-		if e != nil {
-			log.Println(e.Error())
-		}
-		e = csr.Fetch(&turbines, 0, false)
-		csr.Close()
+			if e != nil {
+				log.Println(e.Error())
+			}
+			e = csr.Fetch(&turbines, 0, false)
+			csr.Close()
 
-		_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+			noOfTurbines := len(turbines)
 
-		lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
-		strEnd := lastDate.Format("02-Jan-2006")
+			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
 
-		datas := make([]*GWFAnalysisByTurbine2, 0)
-		for idx, k := range keys {
-			m := new(GWFAnalysisByTurbine2).New()
-			m.Key = k
-			m.ProjectName = projectName
-			m.OrderNo = idx
+			lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
+			strEnd := lastDate.Format("02-Jan-2006")
 
-			datas = append(datas, m)
-		}
+			datas := make([]*GWFAnalysisByTurbine2, 0)
+			for idx, k := range keys {
+				m := new(GWFAnalysisByTurbine2).New()
+				m.Key = k
+				m.ProjectName = projectName
+				m.OrderNo = idx
 
-		// getting daily data
-		last12Day := lastDate.Add(-11 * 24 * time.Hour)
-		strStart := last12Day.Format("02-Jan-2006")
-		dateText := strStart + " to " + strEnd
-		_ = dateText
-		totalHourPerDay := 24.0
-		pipeMatch := tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Day).Set("$lte", lastDate)),
-		}
-		pipeGroupId := tk.M{
-			"value":  "$turbine",
-			"period": "$dateinfo.dateid",
-		}
-		dailyData := d.getWFAnalysisData(ctx, "Tejuva", last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId)
+				datas = append(datas, m)
+			}
 
-		for _, p := range datas {
-			items := make([]GWFAnalysisItem2, 0)
-			totalTurbine := len(turbines)
-			totalValues := make([]float64, 12)
-			for _, tb := range turbines {
-				for i := 11; i >= 0; i-- {
-					dDayId := lastDate.AddDate(0, 0, -1*i)
+			// getting daily data
+			last12Day := lastDate.Add(-11 * 24 * time.Hour)
+			strStart := last12Day.Format("02-Jan-2006")
+			dateText := strStart + " to " + strEnd
+			_ = dateText
+			totalHourPerDay := 24.0
+			pipeMatch := tk.M{
+				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Day).Set("$lte", lastDate)),
+			}
+			pipeGroupId := tk.M{
+				"value":  "$turbine",
+				"period": "$dateinfo.dateid",
+			}
+			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId)
+
+			for _, p := range datas {
+				items := make([]GWFAnalysisItem2, 0)
+				totalTurbine := len(turbines)
+				totalValues := make([]float64, 12)
+				for _, tb := range turbines {
+					for i := 11; i >= 0; i-- {
+						dDayId := lastDate.AddDate(0, 0, -1*i)
+						sId := dDayId.Format("20060102")
+						Ids := dailyData.Get("Id").([]string)
+						sValue := dailyData.Get("Group").([]string)
+
+						var item GWFAnalysisItem2
+
+						item.OrderNo = 12 - i
+						item.Title = dDayId.Format("02-01-2006")
+						item.DataId = sId
+						item.Turbine = tb.TurbineId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId && tb.TurbineId == sValue[idx] {
+								isFound = true
+								dataItems := dailyData.Get(p.Key).([]float64)
+								item.Value = dataItems[idx]
+								// item.Turbine = dailyData.Get("Group").([]string)[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						totalValues[12-(i+1)] += item.Value
+
+						items = append(items, item)
+					}
+				}
+
+				for idx, v := range totalValues {
+					dDayId := lastDate.AddDate(0, 0, -1*(11-idx))
 					sId := dDayId.Format("20060102")
-					Ids := dailyData.Get("Id").([]string)
-					sValue := dailyData.Get("Group").([]string)
 
 					var item GWFAnalysisItem2
-
-					item.OrderNo = 12 - i
+					item.OrderNo = (idx + 1)
 					item.Title = dDayId.Format("02-01-2006")
 					item.DataId = sId
-					item.Turbine = tb.TurbineId
-
-					isFound := false
-					for idx, id := range Ids {
-						if id == sId && tb.TurbineId == sValue[idx] {
-							isFound = true
-							dataItems := dailyData.Get(p.Key).([]float64)
-							item.Value = dataItems[idx]
-							// item.Turbine = dailyData.Get("Group").([]string)[idx]
-							break
-						}
-					}
-					if !isFound {
-						item.Value = 0
-					}
-
-					totalValues[12-(i+1)] += item.Value
+					item.Turbine = "Average"
+					item.Value = tk.Div(v, float64(totalTurbine))
 
 					items = append(items, item)
 				}
+
+				p.Roll12Days = items
 			}
 
-			for idx, v := range totalValues {
-				dDayId := lastDate.AddDate(0, 0, -1*(11-idx))
-				sId := dDayId.Format("20060102")
-
-				var item GWFAnalysisItem2
-				item.OrderNo = (idx + 1)
-				item.Title = dDayId.Format("02-01-2006")
-				item.DataId = sId
-				item.Turbine = "Average"
-				item.Value = tk.Div(v, float64(totalTurbine))
-
-				items = append(items, item)
+			// getting weekly data
+			lastYear, lastWeek := lastDate.ISOWeek()
+			last12Week := GetPeriodBackByDate("WEEK", lastDate, 12) // lastDate.Add(-83 * 24 * time.Hour)
+			strStart = last12Week.Format("02-Jan-2006")
+			dateText = strStart + " to " + strEnd
+			totalHourPerWeek := 24.0 * 7.0
+			pipeMatch = tk.M{
+				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+					//Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Week).Set("$lte", lastDate)),
 			}
+			pipeGroupId = tk.M{
+				"value":  "$turbine",
+				"period": "$dateinfo.weekid",
+			}
+			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId)
 
-			p.Roll12Days = items
-		}
+			for _, p := range datas {
+				items := make([]GWFAnalysisItem2, 0)
+				totalTurbine := len(turbines)
+				totalValues := make([]float64, 12)
+				startYear := lastYear
+				startWeek := lastWeek
+				for _, tb := range turbines {
+					for i := 11; i >= 0; i-- {
+						sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startWeek), "0", 2))
+						Ids := weeklyData.Get("Id").([]string)
 
-		// getting weekly data
-		lastYear, lastWeek := lastDate.ISOWeek()
-		last12Week := GetPeriodBackByDate("WEEK", lastDate, 12) // lastDate.Add(-83 * 24 * time.Hour)
-		strStart = last12Week.Format("02-Jan-2006")
-		dateText = strStart + " to " + strEnd
-		totalHourPerWeek := 24.0 * 7.0
-		pipeMatch = tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				//Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Week).Set("$lte", lastDate)),
-		}
-		pipeGroupId = tk.M{
-			"value":  "$turbine",
-			"period": "$dateinfo.weekid",
-		}
-		weeklyData := d.getWFAnalysisData(ctx, "Tejuva", last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId)
+						var item GWFAnalysisItem2
 
-		for _, p := range datas {
-			items := make([]GWFAnalysisItem2, 0)
-			totalTurbine := len(turbines)
-			totalValues := make([]float64, 12)
-			startYear := lastYear
-			startWeek := lastWeek
-			for _, tb := range turbines {
-				for i := 11; i >= 0; i-- {
-					sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startWeek), "0", 2))
-					Ids := weeklyData.Get("Id").([]string)
+						item.OrderNo = 12 - i
+						item.Title = "W " + LeftPad2Len(strconv.Itoa(startWeek), "0", 2) + " " + strconv.Itoa(startYear)
+						item.DataId = sId
+						item.Turbine = tb.TurbineId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := weeklyData.Get(p.Key).([]float64)
+								item.Value = dataItems[idx]
+								// item.Turbine = dailyData.Get("Group").([]string)[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						totalValues[11-i] += item.Value
+
+						startWeek--
+						if startWeek == 0 {
+							startWeek = 52
+							startYear--
+						}
+
+						items = append(items, item)
+					}
+				}
+
+				for idx, v := range totalValues {
+					dDayId := lastDate.AddDate(0, 0, -1*(11-idx))
+					sId := dDayId.Format("20060102")
 
 					var item GWFAnalysisItem2
-
-					item.OrderNo = 12 - i
-					item.Title = "W " + LeftPad2Len(strconv.Itoa(startWeek), "0", 2) + " " + strconv.Itoa(startYear)
+					item.OrderNo = (idx + 1)
+					item.Title = dDayId.Format("02-01-2006")
 					item.DataId = sId
-					item.Turbine = tb.TurbineId
-
-					isFound := false
-					for idx, id := range Ids {
-						if id == sId {
-							isFound = true
-							dataItems := weeklyData.Get(p.Key).([]float64)
-							item.Value = dataItems[idx]
-							// item.Turbine = dailyData.Get("Group").([]string)[idx]
-							break
-						}
-					}
-					if !isFound {
-						item.Value = 0
-					}
-
-					totalValues[11-i] += item.Value
-
-					startWeek--
-					if startWeek == 0 {
-						startWeek = 52
-						startYear--
-					}
+					item.Turbine = "Average"
+					item.Value = tk.Div(v, float64(totalTurbine))
 
 					items = append(items, item)
 				}
+
+				p.Roll12Weeks = items
 			}
 
-			for idx, v := range totalValues {
-				dDayId := lastDate.AddDate(0, 0, -1*(11-idx))
-				sId := dDayId.Format("20060102")
-
-				var item GWFAnalysisItem2
-				item.OrderNo = (idx + 1)
-				item.Title = dDayId.Format("02-01-2006")
-				item.DataId = sId
-				item.Turbine = "Average"
-				item.Value = tk.Div(v, float64(totalTurbine))
-
-				items = append(items, item)
+			// getting monthly data
+			lastMonth := int(lastDate.Month())
+			last12Month := GetPeriodBackByDate("MONTH", lastDate, 12) // lastDate.Add(-364 * 24 * time.Hour)
+			strStart = last12Month.Format("02-Jan-2006")
+			dateText = strStart + " to " + strEnd
+			totalHourPerMonth := 24.0 * 30.0
+			pipeMatch = tk.M{
+				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Month).Set("$lte", lastDate)),
 			}
+			pipeGroupId = tk.M{
+				"value":  "$projectname",
+				"period": "$dateinfo.monthid",
+			}
+			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId)
 
-			p.Roll12Weeks = items
-		}
+			for _, p := range datas {
+				items := make([]GWFAnalysisItem2, 0)
+				totalTurbine := len(turbines)
+				totalValues := make([]float64, 12)
+				startYear := lastYear
+				startMonth := lastMonth
+				for _, tb := range turbines {
+					for i := 11; i >= 0; i-- {
+						sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startMonth), "0", 2))
+						Ids := monthlyData.Get("Id").([]string)
 
-		// getting monthly data
-		lastMonth := int(lastDate.Month())
-		last12Month := GetPeriodBackByDate("MONTH", lastDate, 12) // lastDate.Add(-364 * 24 * time.Hour)
-		strStart = last12Month.Format("02-Jan-2006")
-		dateText = strStart + " to " + strEnd
-		totalHourPerMonth := 24.0 * 30.0
-		pipeMatch = tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Month).Set("$lte", lastDate)),
-		}
-		pipeGroupId = tk.M{
-			"value":  "$projectname",
-			"period": "$dateinfo.monthid",
-		}
-		monthlyData := d.getWFAnalysisData(ctx, "Tejuva", last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 24, 1000000.0, pipeMatch, pipeGroupId)
+						var item GWFAnalysisItem2
 
-		for _, p := range datas {
-			items := make([]GWFAnalysisItem2, 0)
-			totalTurbine := len(turbines)
-			totalValues := make([]float64, 12)
-			startYear := lastYear
-			startMonth := lastMonth
-			for _, tb := range turbines {
-				for i := 11; i >= 0; i-- {
+						item.OrderNo = 12 - i
+						item.Title = LeftPad2Len(strconv.Itoa(startMonth), "0", 2) + "-" + strconv.Itoa(startYear)
+						item.DataId = sId
+						item.Turbine = tb.TurbineId
+
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := monthlyData.Get(p.Key).([]float64)
+								item.Value = dataItems[idx]
+								// item.Turbine = dailyData.Get("Group").([]string)[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
+
+						totalValues[11-i] += item.Value
+
+						startMonth--
+						if startMonth == 0 {
+							startMonth = 12
+							startYear--
+						}
+
+						items = append(items, item)
+					}
+				}
+
+				startYear = lastYear
+				startMonth = lastMonth
+				for idx, v := range totalValues {
 					sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startMonth), "0", 2))
-					Ids := monthlyData.Get("Id").([]string)
 
 					var item GWFAnalysisItem2
-
-					item.OrderNo = 12 - i
+					item.OrderNo = (idx + 1)
 					item.Title = LeftPad2Len(strconv.Itoa(startMonth), "0", 2) + "-" + strconv.Itoa(startYear)
 					item.DataId = sId
-					item.Turbine = tb.TurbineId
-
-					isFound := false
-					for idx, id := range Ids {
-						if id == sId {
-							isFound = true
-							dataItems := monthlyData.Get(p.Key).([]float64)
-							item.Value = dataItems[idx]
-							// item.Turbine = dailyData.Get("Group").([]string)[idx]
-							break
-						}
-					}
-					if !isFound {
-						item.Value = 0
-					}
-
-					totalValues[11-i] += item.Value
+					item.Turbine = "Average"
+					item.Value = tk.Div(v, float64(totalTurbine))
 
 					startMonth--
 					if startMonth == 0 {
@@ -2000,122 +2063,101 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 
 					items = append(items, item)
 				}
+
+				p.Roll12Months = items
 			}
 
-			startYear = lastYear
-			startMonth = lastMonth
-			for idx, v := range totalValues {
-				sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startMonth), "0", 2))
+			// getting monthly data
+			last12Qtr := GetPeriodBackByDate("QTR", lastDate, 12) // lastDate.Add(3 * -365 * 24 * time.Hour)
+			strStart = last12Qtr.Format("02-Jan-2006")
+			dateText = strStart + " to " + strEnd
+			totalHourPerQtr := 24.0 * 90.0
+			pipeMatch = tk.M{
+				"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
+					Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Qtr).Set("$lte", lastDate)),
+			}
+			pipeGroupId = tk.M{
+				"value":  "$projectname",
+				"period": "$dateinfo.qtrid",
+			}
+			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId)
 
-				var item GWFAnalysisItem2
-				item.OrderNo = (idx + 1)
-				item.Title = LeftPad2Len(strconv.Itoa(startMonth), "0", 2) + "-" + strconv.Itoa(startYear)
-				item.DataId = sId
-				item.Turbine = "Average"
-				item.Value = tk.Div(v, float64(totalTurbine))
-
-				startMonth--
-				if startMonth == 0 {
-					startMonth = 12
-					startYear--
+			for _, p := range datas {
+				items := make([]GWFAnalysisItem2, 0)
+				totalTurbine := len(turbines)
+				totalValues := make([]float64, 12)
+				startYear := lastYear
+				qtr := 0
+				if lastMonth%3 > 0 {
+					qtr = int(math.Ceil(float64(lastMonth / 3)))
+					qtr = qtr + 1
+				} else {
+					qtr = lastMonth / 3
 				}
+				startQtr := qtr
+				for _, tb := range turbines {
+					for i := 11; i >= 0; i-- {
+						sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startQtr), "0", 2))
+						Ids := qtrData.Get("Id").([]string)
 
-				items = append(items, item)
-			}
+						var item GWFAnalysisItem2
 
-			p.Roll12Months = items
-		}
+						item.OrderNo = 12 - i
+						item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
+						item.DataId = sId
+						item.Turbine = tb.TurbineId
 
-		// getting monthly data
-		last12Qtr := GetPeriodBackByDate("QTR", lastDate, 12) // lastDate.Add(3 * -365 * 24 * time.Hour)
-		strStart = last12Qtr.Format("02-Jan-2006")
-		dateText = strStart + " to " + strEnd
-		totalHourPerQtr := 24.0 * 90.0
-		pipeMatch = tk.M{
-			"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-				Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Qtr).Set("$lte", lastDate)),
-		}
-		pipeGroupId = tk.M{
-			"value":  "$projectname",
-			"period": "$dateinfo.qtrid",
-		}
-		qtrData := d.getWFAnalysisData(ctx, "Tejuva", last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 24, 1000000.0, pipeMatch, pipeGroupId)
+						isFound := false
+						for idx, id := range Ids {
+							if id == sId {
+								isFound = true
+								dataItems := qtrData.Get(p.Key).([]float64)
+								// log.Println(p.Key, id, sId, dataItems[idx], dataItems)
+								item.Value = dataItems[idx]
+								break
+							}
+						}
+						if !isFound {
+							item.Value = 0
+						}
 
-		for _, p := range datas {
-			items := make([]GWFAnalysisItem2, 0)
-			totalTurbine := len(turbines)
-			totalValues := make([]float64, 12)
-			startYear := lastYear
-			qtr := 0
-			if lastMonth%3 > 0 {
-				qtr = int(math.Ceil(float64(lastMonth / 3)))
-				qtr = qtr + 1
-			} else {
-				qtr = lastMonth / 3
-			}
-			startQtr := qtr
-			for _, tb := range turbines {
-				for i := 11; i >= 0; i-- {
-					sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startQtr), "0", 2))
-					Ids := qtrData.Get("Id").([]string)
+						items = append(items, item)
 
-					var item GWFAnalysisItem2
-
-					item.OrderNo = 12 - i
-					item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
-					item.DataId = sId
-					item.Turbine = tb.TurbineId
-
-					isFound := false
-					for idx, id := range Ids {
-						if id == sId {
-							isFound = true
-							dataItems := qtrData.Get(p.Key).([]float64)
-							// log.Println(p.Key, id, sId, dataItems[idx], dataItems)
-							item.Value = dataItems[idx]
-							break
+						startQtr--
+						if startQtr == 0 {
+							startQtr = 4
+							startYear--
 						}
 					}
-					if !isFound {
-						item.Value = 0
-					}
+				}
 
-					items = append(items, item)
+				startYear = lastYear
+				startQtr = qtr
+				for idx, v := range totalValues {
+					sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startQtr), "0", 2))
+
+					var item GWFAnalysisItem2
+					item.OrderNo = (idx + 1)
+					item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
+					item.DataId = sId
+					item.Turbine = "Average"
+					item.Value = tk.Div(v, float64(totalTurbine))
 
 					startQtr--
 					if startQtr == 0 {
 						startQtr = 4
 						startYear--
 					}
-				}
-			}
 
-			startYear = lastYear
-			startQtr = qtr
-			for idx, v := range totalValues {
-				sId := tk.Sprintf("%v%v", startYear, LeftPad2Len(strconv.Itoa(startQtr), "0", 2))
-
-				var item GWFAnalysisItem2
-				item.OrderNo = (idx + 1)
-				item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
-				item.DataId = sId
-				item.Turbine = "Average"
-				item.Value = tk.Div(v, float64(totalTurbine))
-
-				startQtr--
-				if startQtr == 0 {
-					startQtr = 4
-					startYear--
+					items = append(items, item)
 				}
 
-				items = append(items, item)
+				p.Roll12Quarters = items
 			}
 
-			p.Roll12Quarters = items
-		}
-
-		for _, p := range datas {
-			d.BaseController.Ctx.Save(p)
+			for _, p := range datas {
+				d.BaseController.Ctx.Save(p)
+			}
 		}
 	}
 }

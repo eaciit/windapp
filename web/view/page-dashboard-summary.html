@@ -67,6 +67,12 @@
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# m/s</span></div>
   # } #
 </script>
+<script id="templateDistribution" type="text/x-kendo-template">
+  <div style="text-align:center"><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'p1') #</span></div>
+  # } #
+</script>
 
 <div data-bind="visible:lgd.isSummary">
 	<div class="col-md-8 col-sm-8">
@@ -255,6 +261,27 @@
 					<div class="panel-body" style="height: 185px;">
 						<div id="chartWindinessCustomTooltip"></div>
 						<div id="chartWindiness"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing" id="div-winddistribution">
+				<div class="panel ez no-padding hardcore winddistribution-div">
+					<div class="panel-heading">
+					Wind Distribution - Last 12 Months
+					<span class="tools pull-right">
+                      <div class="btn-group" data-toggle="buttons">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
+                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                          </label>
+                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
+                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                          </label>
+                      </div>
+                  </span>
+					</div>
+					<div class="panel-body" style="height: 185px;">
+						<div id="chartWindDistributionCustomTooltip"></div>
+						<div id="chartWindDistribution"></div>
 					</div>
 				</div>
 			</div>

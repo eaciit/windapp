@@ -53,10 +53,48 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	keys := []string{p.Misc.GetString("key1"), p.Misc.GetString("key2")}
 	breakDown := p.Misc.GetString("breakdown")
 	// duration := p.Misc.GetInt("duration")
-	turbineCount := p.Misc.GetInt("totalturbine")
-	if turbineCount == 0 {
-		turbineCount = 24
+	// turbineCount := p.Misc.GetInt("totalturbine")
+	projectName := ""
+	turbines := []string{}
+
+	if len(p.Filter.Filters) > 2 {
+		for _, v := range p.Filter.Filters[2].Value.([]interface{}) {
+			turbines = append(turbines, v.(string))
+		}
 	}
+
+	if len(p.Filter.Filters) > 3 {
+		projectName = p.Filter.Filters[3].Value.(string)
+	}
+
+	var turbineList []TurbineOut
+	if projectName != "" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+
+	turbineCount := len(turbines)
+
+	var plfDivider float64
+
+	if len(turbines) == 0 {
+		turbineCount = len(turbineList)
+		for _, v := range turbineList {
+			plfDivider += v.Capacity
+		}
+	} else {
+		for _, vt := range turbines {
+			for _, v := range turbineList {
+				if vt == v.Turbine {
+					plfDivider += v.Capacity
+				}
+			}
+		}
+	}
+
+	plfDivider = tk.ToFloat64(plfDivider, 2, tk.RoundingAuto)
+
 	categories := []string{}
 
 	var maxKey1, maxKey2, minKey2 float64
@@ -190,9 +228,9 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		categories = []string{}
 		for listCount, val := range list {
 			var hourValue, minutes float64
-
+			id := val.Get("_id").(tk.M)
 			if strings.Contains(breakDown, "dateid") {
-				id := val.Get("_id").(tk.M)
+
 				id1 := id.Get("id1").(time.Time)
 				// hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 
@@ -211,7 +249,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			sumTimeStamp := val.GetFloat64("countdata")
 			minutes = val.GetFloat64("minutes") / 60
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+			machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 
@@ -331,7 +369,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						catTitle = "Year"
 					}
 				} else if strings.Contains(breakDown, "project") {
-					categories = append(categories, "Tejuva")
+					categories = append(categories, projectName)
 					catTitle = "Project"
 				} else if strings.Contains(breakDown, "turbine") {
 					temp := p.Filter.Filters[2].Value.([]interface{})

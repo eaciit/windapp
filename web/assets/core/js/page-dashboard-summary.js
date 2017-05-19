@@ -19,6 +19,7 @@ sum.currentDown = ko.observable();
 sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
+sum.dataSourceWindDistribution = ko.observable();
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
@@ -31,19 +32,38 @@ sum.loadData = function () {
                 return;
             }
 
-            sum.dataSource(res.data[0]);
+            if (res.data.length > 0){
+                sum.dataSource(res.data[0]);
+                sum.noOfProjects(res.data[0].NoOfProjects);
+                sum.noOfTurbines(res.data[0].NoOfTurbines);
+                sum.totalMaxCapacity((res.data[0].TotalMaxCapacity / 1000) + " MW");
+                sum.currentDown(res.data[0].CurrentDown);
+                sum.twoDaysDown(res.data[0].TwoDaysDown);
 
-            sum.noOfProjects(res.data[0].NoOfProjects);
-            sum.noOfTurbines(res.data[0].NoOfTurbines);
-            sum.totalMaxCapacity(res.data[0].TotalMaxCapacity / 1000);
-            sum.currentDown(res.data[0].CurrentDown);
-            sum.twoDaysDown(res.data[0].TwoDaysDown);
+                var lastUpdate = new Date(res.data[0].LastUpdate);
 
-            var lastUpdate = new Date(res.data[0].LastUpdate);
+                // vm.dateAsOf(lastUpdate.addHours(-7));
+                sum.ProductionChart(res.data[0].Productions);
+                sum.CumProduction(res.data[0].CummulativeProductions);
+            } else {
+                var projectStr = $("#projectId").data("kendoDropDownList").text();
+                if (projectStr != "Fleet"){
+                    sum.noOfProjects(1);
+                    var split = (projectStr.split(" ("))[1].split("|");
+                    sum.noOfTurbines(split[0]);
+                    sum.totalMaxCapacity(split[1].slice(0, -1));
+                }else{
+                    sum.noOfProjects($("#projectId").data("kendoDropDownList").dataSource.total()-1);
+                    sum.noOfTurbines("N/A");
+                    sum.totalMaxCapacity("N/A");
+                }   
 
-            // vm.dateAsOf(lastUpdate.addHours(-7));
-            sum.ProductionChart(res.data[0].Productions);
-            sum.CumProduction(res.data[0].CummulativeProductions);
+                sum.dataSource(null);
+                sum.currentDown("N/A");
+                sum.twoDaysDown("N/A");       
+                sum.ProductionChart(null);
+                sum.CumProduction(null);
+            }
             sum.SummaryData(project);
         });
 
@@ -52,23 +72,35 @@ sum.loadData = function () {
                 return;
             }
 
-            if (res.data.length > 0 ){
-                sum.dataSourceScada(res.data);
-                sum.PLF(res.data);
-                sum.LostEnergy(res.data);
-                sum.Windiness(res.data);
-                sum.ProdMonth(res.data);
-                sum.AvailabilityChart(res.data);
-                sum.ProdCurLast(res.data);
-                sum.indiaMap(project);
+            sum.dataSourceScada(res.data);
+            sum.PLF(res.data);
+            sum.LostEnergy(res.data);
+            sum.Windiness(res.data);
+            sum.ProdMonth(res.data);
+            sum.AvailabilityChart(res.data);
+            sum.ProdCurLast(res.data);
+            sum.indiaMap(project);
+
+            if (res.data != null ){
                 sum.isDetailProd(false);
                 sum.isDetailProdByProject(false);
             }
         });
 
+        var ajax3
 
+        if (project=="Fleet") {
+            ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistribution", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
 
-        $.when(ajax1, ajax2).done(function(){
+                sum.dataSourceWindDistribution(res.data.Data);
+                sum.WindDistribution(res.data.Data);
+            });
+        }
+
+        $.when(ajax1, ajax2, ajax3).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },200);        
@@ -372,6 +404,87 @@ sum.Windiness = function (dataSource) {
             format: "{0:n1}",
             shared: true,
             sharedTemplate: kendo.template($("#templateWindiness").html()),
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+
+        },
+    });
+}
+
+sum.WindDistribution = function (dataSource) {
+    $("#chartWindDistribution").replaceWith('<div id="chartWindDistribution"></div>');
+    $("#chartWindDistribution").kendoChart({
+        dataSource: {
+            data: dataSource,
+            group: { field: "Project" },
+            sort: { field: "Category", dir: 'asc' }
+        },
+        theme: "flat",
+        title: {
+            text: ""
+        },
+        legend: {
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
+        },
+        chartArea: {
+            height: 160,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
+        },
+        series: [{
+            type: "line",
+            style: "smooth",
+            field: "Contribute",
+            // opacity : 0.7,
+            markers: {
+                visible: false,
+            }
+        }],
+        seriesColors: colorField,
+        valueAxis: {
+            labels: {
+                step: 2,
+                format: "{0:p0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            line: {
+                visible: false
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            }
+        },
+        categoryAxis: {
+            field: "Category",
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                step: 2,
+                // rotation: 25
+            },
+            majorTickType: "none"
+        },
+        tooltip: {
+            visible: true,
+            format: "{0:n1}",
+            shared: true,
+            sharedTemplate: kendo.template($("#templateDistribution").html()),
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -694,6 +807,8 @@ sum.indiaMap = function (project) {
         var turbineInfos = res.data;
         var center = turbineInfos[0].coords[0] + "," + turbineInfos[0].coords[1];
         var mapProp = {
+            types: ['(region)'],
+            componentRestrictions: {country: "in"},
             center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : new google.maps.LatLng(27.131461, 70.618559)),
             zoom: (param.projectname == 'Fleet' ? 4 : 10),
             mapTypeId: google.maps.MapTypeId.HYBRID,
@@ -720,13 +835,15 @@ sum.indiaMap = function (project) {
         var markers = new Array();
 
         turbineInfos.forEach(function (obj, idx) {
+            var imgUrl = (obj.status == true ? "../res/img/turbine-green-new.png" : "../res/img/turbine-red.png")
+
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
                 map: map,
                 title: obj.name,
                 icon: {
-                    url: "../res/img/wind-turbine.png", // url
-                    scaledSize: new google.maps.Size(30, 30), // scaled size
+                    url: imgUrl, // url
+                    scaledSize: new google.maps.Size(70, 50), // scaled size
                 }
             });
 
@@ -735,23 +852,52 @@ sum.indiaMap = function (project) {
             });
 
             google.maps.event.addListener(marker, 'click', function () {
-                map.panTo(this.getPosition());
-                map.setZoom(20);
+                var project = $("#projectId").data("kendoDropDownList").value();
+                if(project == "Fleet"){
+                    // sum.ToMonitoringProject(obj.name);
+                    setTimeout(function(){
+                        $("#projectId").data('kendoDropDownList').value(obj.name);
+                        lgd.LoadData();
+                    }, 200);
+                }else{
+                    sum.ToMonitoringIndividual(project, obj.name);
+                }
             });
         });
     });
 
 }
 
+sum.ToMonitoringProject = function(project) {
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },300);
+}
+
+sum.ToMonitoringIndividual = function(project, turbine) {
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyturbine";
+    },300);
+}
+
 sum.ProductionChart = function (dataSource) {
     var dataFormat = "n2";
-    if (dataSource.length > 0) {
-        var totalPotential = 0;
-        for (var i = 0; i < dataSource.length; i++) {
-            totalPotential += dataSource[i].PotentialKwh;
-        }
-        if (totalPotential > 10) {
-            dataFormat = "n0";
+    if (dataSource != null){
+        if (dataSource.length > 0) {
+            var totalPotential = 0;
+            for (var i = 0; i < dataSource.length; i++) {
+                totalPotential += dataSource[i].PotentialKwh;
+            }
+            if (totalPotential > 10) {
+                dataFormat = "n0";
+            }
         }
     }
 
