@@ -3,7 +3,7 @@
 
     var projects = {{.ProjectList}};
     var turbines = {{.TurbineList}};
-    turbines.unshift("All Turbines");
+    // turbines.unshift("All Turbines");
 
     app.currentDateData = '{{.CurrentDateData}}';
     vm.menu({{.Menus}});
@@ -27,7 +27,7 @@
                     </div>
                     <div data-bind="visible:wfa.isTurbine1Tab()">
                         <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true , change: function(){wfa.setTurbines('projectTurbine1List')}}"
+                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true , change: function(){wfa.setTurbines('projectTurbine1List','turbine1List')}}"
                             style="width:150px">
                         </select>
                         <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
@@ -36,7 +36,7 @@
                     </div>
                     <div data-bind="visible:wfa.isTurbine2Tab()">
                         <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){wfa.setTurbines('projectTurbine2List')} }"
+                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){wfa.setTurbines('projectTurbine2List','turbine2List')} }"
                             style="width:150px">
                         </select>
                         <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
@@ -63,9 +63,9 @@
                     </div>
                     <div class="clearfix">&nbsp;</div>
 					<ul class="nav nav-tabs" role="tablist">
-                        <li id="tProjectAnalysis" role="presentation" class="active" onclick="wfa.showFilter(true, false, false, 'tProjectAnalysis')"><a href="#projectAnalysis" aria-controls="projectAnalysis" role="tab" data-toggle="tab" class="tab-custom">Project Analysis</a></li>
-                        <li id="tTurbine1Analysis" role="presentation" onclick="wfa.showFilter(false, true, false, 'tTurbine1Analysis')"><a href="#turbine1Analysis" aria-controls="turbine1Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 1 Analysis</a></li>
-                        <li id="tTurbine2Analysis" role="presentation" onclick="wfa.showFilter(false, false, true, 'tTurbine2Analysis')"><a href="#turbine2Analysis" aria-controls="turbine2Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 2 Analysis</a></li>
+                        <li id="tProjectAnalysis" role="presentation" class="active"><a onclick="wfa.showFilter(true, false, false, 'tProjectAnalysis')" href="#projectAnalysis" aria-controls="projectAnalysis" role="tab" data-toggle="tab" class="tab-custom">Project Analysis</a></li>
+                        <li id="tTurbine1Analysis" role="presentation"><a onclick="wfa.showFilter(false, true, false, 'tTurbine1Analysis')" href="#turbine1Analysis" aria-controls="turbine1Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 1 Analysis</a></li>
+                        <li id="tTurbine2Analysis" role="presentation"><a onclick="wfa.showFilter(false, false, true, 'tTurbine2Analysis')" href="#turbine2Analysis" aria-controls="turbine2Analysis" role="tab" data-toggle="tab" class="tab-custom">Turbine 2 Analysis</a></li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active" id="projectAnalysis">
