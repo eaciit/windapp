@@ -179,7 +179,7 @@ fa.populateTurbine = function (selected) {
     }
 
     setTimeout(function () {
-        $('#turbineList').val("multiselect-all");
+         fa.setTurbine();
     }, 100);
 };
 
@@ -399,7 +399,10 @@ fa.InitDefaultValue = function () {
             enableCaseInsensitiveFiltering: true,
             enableFiltering: true,
             maxHeight: 200,
-            dropRight: false
+            dropRight: false,
+            onDropdownHide: function(event) {
+                fa.checkTurbine();
+            }
         });
         $("#turbineList").multiselect("dataprovider",fa.turbineList());
         fa.checkTurbine();
@@ -528,6 +531,12 @@ fa.disableRefreshButton = function(param){
     }
 }
 
+fa.setTurbine = function(){
+    setTimeout(function(){
+        $("#turbineList").multiselect("dataprovider",fa.turbineList());
+        fa.checkTurbine();
+    },200);
+}
 fa.setProjectTurbine = function(projects, turbines, selected){
 	fa.rawproject(projects);
     fa.rawturbine(turbines);
@@ -538,8 +547,4 @@ $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();
     fa.InitDefaultValue();
-
-    // $("#turbineList").on("change", function(){
-    //     fa.checkTurbine();
-    // });
 });
