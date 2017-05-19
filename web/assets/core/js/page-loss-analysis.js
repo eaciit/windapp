@@ -115,8 +115,8 @@ pg.resetStatus = function(){
     pg.isFirstComponentAlarm(true);
     pg.isFirstMTBF(true);
 }
-vm.currentMenu('Losses and Efficiency');
-vm.currentTitle('Losses and Efficiency');
+vm.currentMenu('Losses and Efficiencies ');
+vm.currentTitle('Losses and Efficiencies ');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Losses and Efficiency', href: viewModel.appName + 'page/analyticloss' }]);
 
 function replaceString(value) {
