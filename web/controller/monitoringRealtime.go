@@ -447,7 +447,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		rtkm.Set("TimeMax", timemax)
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
-		rtkm.Set("PLF", tk.Div(PowerGen, (50400*100)))
+		rtkm.Set("PLF", tk.Div(PowerGen, 50400)*100)
 		rtkm.Set("TurbineActive", len(_result)-turbinedown)
 		rtkm.Set("TurbineDown", turbinedown)
 	} else if pageType == "dashboard" {
