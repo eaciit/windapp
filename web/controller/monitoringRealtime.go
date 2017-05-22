@@ -433,6 +433,33 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 				_iContinue = false
 			}
 		}
+		_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-green")
+		if _itkm.GetInt("Status") == 0 {
+			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-red")
+		} else if _itkm.GetInt("Status") == 1 && _itkm["IsWarning"].(bool) {
+			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-orange")
+		}
+		if _itkm.GetInt("DataComing") == 0 {
+			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-grey")
+		}
+		if _itkm.GetFloat64("ActivePower") < 0 {
+			_itkm.Set("ActivePowerColor", "redvalue")
+		} else {
+			_itkm.Set("ActivePowerColor", "defaultcolor")
+		}
+		if _itkm.GetFloat64("WindSpeed") < 3.5 {
+			_itkm.Set("WindSpeedColor", "orangevalue")
+		} else {
+			_itkm.Set("WindSpeedColor", "defaultcolor")
+		}
+		if _itkm.GetFloat64("Temperature") > 38 {
+			_itkm.Set("TemperatureColor", "orangevalue")
+		} else if _itkm.GetFloat64("Temperature") >= 30 {
+			_itkm.Set("TemperatureColor", "redvalue")
+		} else {
+			_itkm.Set("TemperatureColor", "defaultcolor")
+		}
+
 	}
 	csr.Close()
 	if _iTurbine != "" {
