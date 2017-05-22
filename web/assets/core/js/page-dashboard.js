@@ -49,7 +49,7 @@ var projectSelectedLevel2 = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
 // var maxdate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 23, 59, 59, 0));
 var maxdate = maxDateData;
-
+var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 36000);
 // lgd.getProjectList = function () {
 //     app.ajaxPost(viewModel.appName + "/dashboard/getprojectlist", {}, function (res) {
 //         if (!app.isFine(res)) {
@@ -149,6 +149,7 @@ $(function () {
     });
 
     $("#tabSummary").on("click", function () {
+        intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 4000);
         lgd.isSummary(true);
         lgd.isProduction(false);
         lgd.isAvailability(false);
@@ -157,6 +158,7 @@ $(function () {
     });
 
     $("#tabProduction").on("click", function () {
+        clearInterval(intervalMap);
         lgd.isSummary(false);
         lgd.isProduction(true);
         lgd.isAvailability(false);
@@ -165,6 +167,7 @@ $(function () {
     });
 
     $("#tabAvailability").on("click", function () {
+        clearInterval(intervalMap);
         lgd.isSummary(false);
         lgd.isProduction(false);
         lgd.isAvailability(true);
@@ -176,6 +179,5 @@ $(function () {
         lgd.periodTypeAvailChange();
     });
 
-    // setInterval(sum.indiaMap(lgd.projectName()), 4000);
-    setInterval(function(){ sum.indiaMap(lgd.projectName()); }, 4000);
+    
 });

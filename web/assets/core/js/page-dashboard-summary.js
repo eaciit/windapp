@@ -106,6 +106,7 @@ sum.loadData = function () {
             },200);        
         })
     }
+
 };
 
 sum.SummaryData = function (project) {
@@ -805,11 +806,12 @@ sum.indiaMap = function (project) {
         }
 
         var turbineInfos = res.data;
-        var center = turbineInfos[0].coords[0] + "," + turbineInfos[0].coords[1];
+        var center = new google.maps.LatLng(turbineInfos[0].coords[0], turbineInfos[0].coords[1]);
         var mapProp = {
             types: ['(region)'],
             componentRestrictions: {country: "in"},
-            center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : new google.maps.LatLng(27.131461, 70.618559)),
+            // center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
+            center: center,
             zoom: (param.projectname == 'Fleet' ? 4 : 10),
             mapTypeId: google.maps.MapTypeId.HYBRID,
             mapTypeControl: true,
