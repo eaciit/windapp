@@ -47,31 +47,9 @@ var monthDetailDT = '';
 var projectSelected = '';
 var projectSelectedLevel2 = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-// var maxdate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 23, 59, 59, 0));
 var maxdate = maxDateData;
 var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 36000);
-// lgd.getProjectList = function () {
-//     app.ajaxPost(viewModel.appName + "/dashboard/getprojectlist", {}, function (res) {
-//         if (!app.isFine(res)) {
-//             return;
-//         }
 
-//         if (res.data.length == 0) {
-//             res.data = [];
-
-//         } else {
-//             if (res.data.length > 0) {
-//                 $.each(res.data, function (key, val) {
-//                     var data = {};
-//                     data.value = val;
-//                     data.text = val;
-//                     lgd.projectList.push(data);
-//                     lgd.projectItem.push(data);
-//                 });
-//             }
-//         }
-//     });
-// };
 
 lgd.populateProject = function (data) {
     if(data.length > 0) {
@@ -137,7 +115,6 @@ $(function () {
     lgd.isSummary(true);
     lgd.isProduction(false);
     lgd.isAvailability(false);
-    // lgd.getProjectList();
     lgd.projectName("Fleet");
 
     lgd.LoadData();
