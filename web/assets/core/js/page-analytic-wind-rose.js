@@ -29,7 +29,7 @@ wr.GetData = function() {
 	var filters = [
 		{ field: "dateinfo.dateid", operator: "gte", value: fa.dateStart },
 		{ field: "dateinfo.dateid", operator: "lte", value: fa.dateEnd },
-		{ field: "turbineid", operator: "in", value: fa.turbine },
+		{ field: "turbineid", operator: "in", value: fa.turbine() },
 		{ field: "projectid", operator: "eq", value: fa.project },
 	];
 	var filter = {filters : filters}
@@ -69,7 +69,7 @@ wr.createChart = function() {
 	var filters = [
 		{ field: "dateinfo.dateid", operator: "gte", value: fa.dateStart },
 		{ field: "dateinfo.dateid", operator: "lte", value: fa.dateEnd },
-		{ field: "turbineid", operator: "in", value: fa.turbine },
+		{ field: "turbineid", operator: "in", value: fa.turbine() },
 		{ field: "projectid", operator: "eq", value: fa.project },
 	];
 	var filter = {filters : filters}
@@ -149,7 +149,7 @@ wr.createChartFreq = function() {
 	var filters = [
 		{ field: "dateinfo.dateid", operator: "gte", value: fa.dateStart },
 		{ field: "dateinfo.dateid", operator: "lte", value: fa.dateEnd },
-		{ field: "turbineid", operator: "in", value: fa.turbine },
+		{ field: "turbineid", operator: "in", value: fa.turbine() },
 		{ field: "projectid", operator: "eq", value: fa.project },
 	];
 	var filter = {filters : filters}

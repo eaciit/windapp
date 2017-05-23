@@ -173,7 +173,7 @@ var Data = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
+            turbine: fa.turbine(),
             project: fa.project,
             isClean: page.isClean,
             isDeviation: page.isDeviation,

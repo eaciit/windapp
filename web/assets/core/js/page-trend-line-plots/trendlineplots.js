@@ -69,7 +69,7 @@ tlp.initChart = function() {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine, // $("#turbineList").data("kendoMultiSelect").value(),
+        turbine: fa.turbine(), // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
         deviationstatus:tlp.isDeviation(), // Param from checkbox
