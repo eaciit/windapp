@@ -57,7 +57,11 @@
 
 	.ddlWindDistPeriod {
 		width: 120px;
-		padding: 0px;
+		font-size: 13px;
+	}
+
+	.ddlAvailability {
+		width: 100px;
 		font-size: 13px;
 	}
 
