@@ -2029,19 +2029,25 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 	result := []tk.M{}
 	var fromDate time.Time
 	match := tk.M{}
-	// total turbine should follow projects, for now it's hardcoded
-	var turbineList []TurbineOut
-	if p.ProjectName != "Fleet" {
-		turbineList, _ = helper.GetTurbineList([]interface{}{p.ProjectName})
-	} else {
-		turbineList, _ = helper.GetTurbineList(nil)
-	}
-	totalTurbine := float64(len(turbineList))
+	// p.Date, _ = time.Parse("2006-01-02 15:04:05", p.Date.UTC().Format("2006-01")+"-01"+" 00:00:00")
 
-	p.Date, _ = time.Parse("2006-01-02 15:04:05", p.Date.UTC().Format("2006-01")+"-01"+" 00:00:00")
+	projects := []string{}
+
+	if p.ProjectName != "Fleet" {
+		projects = append(projects, p.ProjectName)
+	} else {
+		projectList, _ := helper.GetProjectList()
+		for _, v := range projectList {
+			projects = append(projects, v.Value)
+		}
+	}
 
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
+
+		if fromDate.Format("01") != "01" {
+			fromDate, _ = time.Parse("20060201_150405", fromDate.Format("200602")+"01"+"_000000")
+		}
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
 		match.Set("available", 1)
@@ -2083,20 +2089,13 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			return
 		}
 
-		// get project list, for now just using Tejuva
-		// project list should come from ref_project collection
-
-		projects := []string{"Tejuva"}
-
 		// --------------
 
 		// dayInYear := tk.M{}
 		tmpFromDate := fromDate.AddDate(0, 1, 0)
 		dateInfoTo := GetDateInfo(p.Date)
 		for _, project := range projects {
-
 		done:
-
 			for {
 				dateInfoFrom := GetDateInfo(tmpFromDate)
 				// log.Printf("%v \n", dateInfoFrom.MonthDesc)
@@ -2143,6 +2142,8 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 		for _, scada := range result {
 			if scada.Get("mindate") != nil {
+				id := scada.Get("_id").(tk.M)
+				project := id.GetString("id3")
 				m := scada.GetFloat64("machineResult") / 3600.0
 				g := scada.GetFloat64("gridResult") / 3600.0
 				minDate := scada.Get("mindate").(time.Time)
@@ -2152,6 +2153,9 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 				fromDateSub, _ := time.Parse("060102_150405", minDate.Format("0601")+"01_000000")
 				tmpDt, _ := time.Parse("060102_150405", minDate.AddDate(0, 1, 0).Format("0601")+"01_000000")
 				toDateSub := tmpDt.AddDate(0, 0, -1)
+
+				turbineList, _ := helper.GetTurbineList([]interface{}{project})
+				totalTurbine := float64(len(turbineList))
 
 				hourValue := helper.GetHourValue(fromDateSub.UTC(), toDateSub.UTC(), minDate.UTC(), maxDate.UTC())
 				mAvail, gAvail, _, _, _ := helper.GetAvailAndPLF(totalTurbine, float64(0), float64(0), m, g, float64(0), hourValue, minutes, float64(0))
@@ -2174,9 +2178,27 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 	for _, res := range result {
 		id := res.Get("_id")
-
 		machineResult = append(machineResult, tk.M{"_id": id, "result": res.GetFloat64("machineResult")})
 		gridResult = append(gridResult, tk.M{"_id": id, "result": res.GetFloat64("gridResult")})
+	}
+
+	if len(machineResult) > (len(projects) * 12) {
+		length := len(machineResult)
+		div := (length / len(projects))
+
+		mrTmp := []tk.M{}
+		grTmp := []tk.M{}
+
+		for i := 1; i < len(projects)+1; i++ {
+			offerX := (div * i) - 12
+			log.Printf("> %v | %v | %v | %v \n", div, div*i, offerX, offerX+12)
+
+			mrTmp = append(mrTmp, machineResult[offerX:offerX+12]...)
+			grTmp = append(grTmp, gridResult[offerX:offerX+12]...)
+		}
+
+		machineResult = mrTmp
+		gridResult = grTmp
 	}
 
 	// tk.Println()
@@ -2631,10 +2653,24 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		res := []tk.M{}
 		stsProj := "green"
 
+		// log.Printf(">> %v | %v \n", project.Value, len(detail))
+
+		if projectName != "Fleet" {
+			turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
+			for _, turbine := range turbineList {
+				res = append(res, tk.M{
+					"name":   turbine.Turbine,
+					"value":  turbine.Value,
+					"coords": turbine.Coords,
+					"status": "grey",
+				})
+			}
+		}
+
 		for _, vd := range detail {
-			name := vd.GetString("name")
+			// name := vd.GetString("name")
 			value := vd.GetString("value")
-			coords := vd.Get("coords").([]float64)
+			// coords := vd.Get("coords").([]float64)
 			sts := "green"
 
 			status := vd.GetInt("Status")
@@ -2654,12 +2690,19 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 				stsProj = "grey"
 			}
 
-			res = append(res, tk.M{
-				"name":   name,
-				"value":  value,
-				"coords": coords,
-				"status": sts,
-			})
+			for _, rs := range res {
+				if rs.GetString("value") == value {
+					rs.Set("status", sts)
+
+					// res = append(res, tk.M{
+					// 	"name":   name,
+					// 	"value":  value,
+					// 	"coords": coords,
+					// 	"status": sts,
+					// })
+				}
+			}
+
 		}
 
 		if projectName != "Fleet" {

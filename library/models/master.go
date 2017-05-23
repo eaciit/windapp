@@ -62,6 +62,7 @@ type TurbineOut struct {
 	Turbine  string
 	Value    string
 	Capacity float64
+	Coords   []float64
 }
 
 type ProjectOut struct {
