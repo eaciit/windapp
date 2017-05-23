@@ -854,7 +854,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					monthNo, _ = strconv.Atoi(sMonthNo)
 
 					csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
-						Where(dbox.And(dbox.Eq("monthno", monthNo))).
+						Where(dbox.And(dbox.Eq("monthno", monthNo), dbox.Eq("projectname", project))).
 						Cursor(nil)
 
 					budgets := make([]ExpPValueModel, 0)
