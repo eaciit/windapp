@@ -262,7 +262,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 		csr, e = DB().Connection.NewQuery().
 			From(new(ExpPValueModel).TableName()).
-			Where(dbox.In("monthno", months...)).
+			Where(dbox.And(dbox.In("monthno", months...), dbox.Eq("projectname", p.Project))).
 			Cursor(nil)
 
 		if e != nil {

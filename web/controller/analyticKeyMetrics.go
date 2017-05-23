@@ -130,7 +130,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		if tk.HasMember(keyList, key) {
 			csrPValue, e := DB().Connection.NewQuery().
 				From(new(ExpPValueModel).TableName()).
-				Where(dbox.In("monthno", months...)).
+				Where(dbox.And(dbox.In("monthno", months...), dbox.Eq("projectname", projectName))).
 				Cursor(nil)
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
