@@ -668,6 +668,7 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 			Turbine:  val.TurbineName,
 			Value:    val.TurbineId,
 			Capacity: val.CapacityMW,
+			Coords:   []float64{val.Latitude, val.Longitude},
 		})
 	}
 
