@@ -378,33 +378,34 @@ sv.getGridView = function(gData){
 }
 
 sv.StaticView = function(){
-    fa.LoadData();
-    
-    if(pg.isFirstStaticView() === true){
-        app.loading(true);
-        var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
-            project: fa.project,
-        };
+    var valid = fa.LoadData();    
+    if (valid) {
+        if(pg.isFirstStaticView() === true){
+            app.loading(true);
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine,
+                project: fa.project,
+            };
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
 
-            var gData = res.data.Data
-            sv.getChartView(gData);
-            sv.getGridView(gData);
+                var gData = res.data.Data
+                sv.getChartView(gData);
+                sv.getGridView(gData);
 
-        });
-        $('#availabledatestart').html(pg.availabledatestartscada());
-        $('#availabledateend').html(pg.availabledateendscada());
-    }else{
-        sv.refreshView($('input[name=convertStatic]:checked').val());
-        $('#availabledatestart').html(pg.availabledatestartscada());
-        $('#availabledateend').html(pg.availabledateendscada());
+            });
+            $('#availabledatestart').html(pg.availabledatestartscada());
+            $('#availabledateend').html(pg.availabledateendscada());
+        }else{
+            sv.refreshView($('input[name=convertStatic]:checked').val());
+            $('#availabledatestart').html(pg.availabledatestartscada());
+            $('#availabledateend').html(pg.availabledateendscada());
+        }
     }
 }

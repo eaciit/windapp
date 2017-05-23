@@ -10,42 +10,43 @@ av.dataSource = ko.observableArray();
 var height = $(".content").width() * 0.125;
 
 av.Availability = function(){
-    
-    fa.LoadData();
-    if(pg.isFirstAvailability() === true){
-        app.loading(true);
-        av.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
-        var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
-            project: fa.project,
-            breakDown: av.breakDownVal,
-        };
-        toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
+    var valid = fa.LoadData();
+    if (valid) {
+        if(pg.isFirstAvailability() === true){
+            app.loading(true);
+            av.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine,
+                project: fa.project,
+                breakDown: av.breakDownVal,
+            };
+            toolkit.ajaxPost(viewModel.appName + "analyticavailability/getdata", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
 
-            setTimeout(function(){
-                av.dataSource(res.data);
-                av.createChartAvailability(av.dataSource());
-                av.createChartProduction(av.dataSource());
-                pg.isFirstAvailability(false);
-                app.loading(false);
-            },200);
-        });
-        $('#availabledatestart').html(pg.availabledatestartscada3());
-        $('#availabledateend').html(pg.availabledateendscada3());
-    }else{
-        setTimeout(function(){
+                setTimeout(function(){
+                    av.dataSource(res.data);
+                    av.createChartAvailability(av.dataSource());
+                    av.createChartProduction(av.dataSource());
+                    pg.isFirstAvailability(false);
+                    app.loading(false);
+                },200);
+            });
             $('#availabledatestart').html(pg.availabledatestartscada3());
             $('#availabledateend').html(pg.availabledateendscada3());
-            $("#availabilityChart").data("kendoChart").refresh();
-            $("#productionChart").data("kendoChart").refresh();
-            // app.loading(false);
-        },200);
+        }else{
+            setTimeout(function(){
+                $('#availabledatestart').html(pg.availabledatestartscada3());
+                $('#availabledateend').html(pg.availabledateendscada3());
+                $("#availabilityChart").data("kendoChart").refresh();
+                $("#productionChart").data("kendoChart").refresh();
+                // app.loading(false);
+            },200);
+        }
     }
 }
 

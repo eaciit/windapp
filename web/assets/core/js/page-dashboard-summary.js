@@ -627,7 +627,7 @@ sum.AvailabilityChart = function (dataSource) {
             // opacity : 0.5,
             color: "#21c4af"
         }, {
-            name: "TB",
+            name: "TA",
             field: "TrueAvail",
             // opacity : 0.5,
             color: "#ff880e",

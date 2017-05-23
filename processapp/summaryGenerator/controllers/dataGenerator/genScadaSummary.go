@@ -366,11 +366,11 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 
 			_, max, _ := GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
 
-			daysInMonth := GetDayInYear(max.Year())
-			days := tk.ToString(daysInMonth.GetInt(tk.ToString(int(max.Month()))))
-			tmpdt, _ := time.Parse("060102_150405", max.UTC().Format("0601")+days+"_000000")
+			// daysInMonth := GetDayInYear(max.Year())
+			// days := tk.ToString(daysInMonth.GetInt(tk.ToString(int(max.Month()))))
+			// tmpdt, _ := time.Parse("060102_150405", max.UTC().Format("0601")+days+"_235959")
+			tmpdt := max.UTC()
 			endDate := tmpdt.UTC() //time.Parse("060102_150405", max.UTC().Format("0601")+"01_000000").UTC()
-
 			startDate := GetNormalAddDateMonth(tmpdt.UTC(), -11)
 
 			mdl := new(ScadaSummaryByProject).New()
@@ -388,10 +388,9 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 				if projectName == "Fleet" {
 					turbineList, _ = helper.GetTurbineList([]interface{}{turbine})
 					idfield = "farm"
-					match.Set("farm", tk.M{}.Set("$eq", turbine)).Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))
-				} else {
-					match.Set("turbine", tk.M{}.Set("$eq", turbine)).Set("detail.detaildateinfo.dateid", tk.M{}.Set("$lte", endDate))
 				}
+
+				match.Set(idfield, tk.M{}.Set("$eq", turbine)).Set("detail.detaildateinfo.dateid", tk.M{}.Set("$gte", startDate).Set("$lte", endDate))
 
 				ioktime := data["totaloktime"]
 				oktime := 0.0
@@ -415,10 +414,10 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 				downtimeHours := 0.0
 				lostEnergy := 0.0
 
-				ilostEnergy := data["totalenergylost"]
-				if ilostEnergy != nil {
-					lostEnergy = ilostEnergy.(float64)
-				}
+				// ilostEnergy := data["totalenergylost"]
+				// if ilostEnergy != nil {
+				// 	lostEnergy = ilostEnergy.(float64)
+				// }
 
 				pipe := []tk.M{
 					tk.M{}.Set("$unwind", "$detail"),
@@ -732,6 +731,14 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			os.Exit(0)
 		}
 
+		projectList, _ := helper.GetProjectList()
+
+		mapRevenue := map[string]float64{}
+
+		for _, v := range projectList {
+			mapRevenue[v.Value] = v.RevenueMultiplier
+		}
+
 		var wg sync.WaitGroup
 		counter := 0
 		for turbine, v := range d.BaseController.RefTurbines {
@@ -790,7 +797,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				// 	}
 				// }
 
-				revenueMultiplier := 5.74
+				revenueMultiplier := mapRevenue[project]
 				revenueDividerInLacs := 100000.0
 				count := 0
 				total := 0
@@ -827,6 +834,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.MachineAvail = tk.Div(((600.0 * 144.0) - machinedowntime), 144.0*600.0)
 					dt.GridAvail = tk.Div(((600.0 * 144.0) - griddowntime), 144.0*600.0)
 					dt.TotalAvail = dt.TrueAvail
+
+					// turbineList, _ := helper.GetTurbineList(interface{}{projectName})
+
 					dt.PLF = tk.Div(energy, (2100.0 * 24.0))
 					dt.TotalMinutes = data.GetInt("minutes")
 

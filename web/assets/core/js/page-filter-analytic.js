@@ -330,14 +330,12 @@ fa.LoadData = function () {
 
     if (fa.dateStart - fa.dateEnd > 25200000) {
         toolkit.showError("Invalid Date Range Selection");
-        return;
+        return false;
     } else {
         fa.InitFilter();
+        fa.checkCompleteDate();
+        return true;
     }
-
-    var period = $('#periodList').data('kendoDropDownList').value();
-
-    fa.checkCompleteDate();
 }
 
 fa.checkTurbine = function () {

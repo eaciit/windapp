@@ -4,58 +4,59 @@ viewModel.LostEnergy = new Object();
 var le = viewModel.LostEnergy;
 
 le.LossEnergy = function(){
-    
-    fa.LoadData();
-    if(pg.isFirstLostEnergy() === true){
-        app.loading(true);
-        var paramdown = {
-            Period: fa.period,
-            DateStart: fa.dateStart,
-            DateEnd: fa.dateEnd,
-            Turbine: fa.turbine,
-            Project: fa.project
-        };
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeloss", paramdown, function (res) {
-            if (!app.isFine(res)) {
-                return;
+    var valid = fa.LoadData();
+    if (valid) {
+        if(pg.isFirstLostEnergy() === true){
+            app.loading(true);
+            var paramdown = {
+                Period: fa.period,
+                DateStart: fa.dateStart,
+                DateEnd: fa.dateEnd,
+                Turbine: fa.turbine,
+                Project: fa.project
+            };
+            toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeloss", paramdown, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                setTimeout(function(){
+                    le.DTLEbyType(res.data);
+                },200)
+            });
+            
+            var param = {
+                period: fa.period,
+                dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
+                dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
+                turbine: fa.turbine,
+                project: fa.project,
             }
-            setTimeout(function(){
-                le.DTLEbyType(res.data);
-            },200)
-        });
-        
-        var param = {
-            period: fa.period,
-            dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
-            dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
-            turbine: fa.turbine,
-            project: fa.project,
-        }
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getlostenergytab", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            setTimeout(function(){
-                le.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
-                le.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
-                le.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getlostenergytab", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                setTimeout(function(){
+                    le.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
+                    le.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+                    le.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
 
-                app.loading(false);
-                pg.isFirstLostEnergy(false);
-            },300);
-        });
-        $('#availabledatestart').html(pg.availabledatestartalarm());
-        $('#availabledateend').html(pg.availabledateendalarm());
-    }else{
-        setTimeout(function(){
+                    app.loading(false);
+                    pg.isFirstLostEnergy(false);
+                },300);
+            });
             $('#availabledatestart').html(pg.availabledatestartalarm());
             $('#availabledateend').html(pg.availabledateendalarm());
-            $("#chartLCByTEL").data("kendoChart").refresh();
-            $("#chartDTLEbyType").data("kendoChart").refresh();
-            $("#chartLCByDuration").data("kendoChart").refresh();
-            $("#chartLCByFreq").data("kendoChart").refresh();
-        },200)
+        }else{
+            setTimeout(function(){
+                $('#availabledatestart').html(pg.availabledatestartalarm());
+                $('#availabledateend').html(pg.availabledateendalarm());
+                $("#chartLCByTEL").data("kendoChart").refresh();
+                $("#chartDTLEbyType").data("kendoChart").refresh();
+                $("#chartLCByDuration").data("kendoChart").refresh();
+                $("#chartLCByFreq").data("kendoChart").refresh();
+            },200)
+        }
     }
 }
 

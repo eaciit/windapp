@@ -34,14 +34,15 @@ func (m *TurbineMaster) TableName() string {
 }
 
 type ProjectMaster struct {
-	orm.ModelBase `bson:"-",json:"-"`
-	ID            bson.ObjectId ` bson:"_id" , json:"_id" `
-	ProjectId     string
-	ProjectName   string
-	TotalPower    float64
-	Latitude      float64
-	Longitude     float64
-	TotalTurbine  int
+	orm.ModelBase     `bson:"-",json:"-"`
+	ID                bson.ObjectId ` bson:"_id" , json:"_id" `
+	ProjectId         string
+	ProjectName       string
+	TotalPower        float64
+	Latitude          float64
+	Longitude         float64
+	TotalTurbine      int
+	RevenueMultiplier float64
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -66,7 +67,8 @@ type TurbineOut struct {
 }
 
 type ProjectOut struct {
-	Name   string
-	Value  string
-	Coords []float64
+	Name              string
+	Value             string
+	Coords            []float64
+	RevenueMultiplier float64
 }
