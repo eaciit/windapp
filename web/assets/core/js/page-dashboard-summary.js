@@ -20,12 +20,22 @@ sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
 sum.dataSourceWindDistribution = ko.observable();
+sum.windDistData = ko.observable();
+sum.periodSelected = ko.observable('last12months');
+sum.periodList = [
+    {"text": "Last 12 Months", "value": "last12months"},
+    {"text": "Current Month", "value": "currentmonth"}
+]
+sum.paramPeriod = [];
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
-        var param = { ProjectName: project, Date: maxdate };
+        for(var i=0;i<sum.periodList.length;i++) {
+            sum.paramPeriod.push(sum.periodList[i].value);
+        }
+        var param = { ProjectName: project, Date: maxdate, PeriodList: sum.paramPeriod};
 
         var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
             if (!app.isFine(res)) {
@@ -95,8 +105,9 @@ sum.loadData = function () {
                     return;
                 }
 
-                sum.dataSourceWindDistribution(res.data.Data);
-                sum.WindDistribution(res.data.Data);
+                sum.WindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.dataSourceWindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.windDistData(res.data.Data);
             });
         }
 
@@ -416,7 +427,11 @@ sum.Windiness = function (dataSource) {
         },
     });
 }
-
+sum.UpdateWindDist = function() {
+    setTimeout(function() {
+        sum.WindDistribution(sum.windDistData()[sum.periodSelected()]);
+    }, 300);
+}
 sum.WindDistribution = function (dataSource) {
     $("#chartWindDistribution").replaceWith('<div id="chartWindDistribution"></div>');
     $("#chartWindDistribution").kendoChart({

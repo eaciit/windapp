@@ -267,17 +267,18 @@
 			<div class="col-md-4 col-sm-4 hardcore landing" id="div-winddistribution">
 				<div class="panel ez no-padding hardcore winddistribution-div">
 					<div class="panel-heading">
-					Wind Distribution - Last 12 Months
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+					Wind Distribution - 
+						<select type="text" id="periodType" class="ddlWindDistPeriod" data-bind="kendoDropDownList: { value: sum.periodSelected, data: sum.periodList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateWindDist, suggest: true}"></select> 
+						<span class="tools pull-right">
+	                      <div class="btn-group" data-toggle="buttons">
+	                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
+	                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+	                          </label>
+	                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
+	                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+	                          </label>
+	                      </div>
+	                  	</span>
 					</div>
 					<div class="panel-body" style="height: 185px;">
 						<div id="chartWindDistributionCustomTooltip"></div>

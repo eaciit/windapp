@@ -55,6 +55,12 @@
 		width: 150px;
 	}
 
+	.ddlWindDistPeriod {
+		width: 120px;
+		padding: 0px;
+		font-size: 13px;
+	}
+
 	#india-map{
 		height: 200px;
 	}
