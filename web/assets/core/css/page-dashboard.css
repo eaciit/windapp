@@ -57,13 +57,45 @@
 
 	.ddlWindDistPeriod {
 		width: 120px;
-		font-size: 13px;
+		font-size: 12px;
+		height: 18px;
+	}
+
+	.ddlWindDistPeriod .k-dropdown-wrap{
+		height: 18px;
+	}
+
+	.ddlWindDistPeriod .k-input{
+		height: 18px;
+		padding-top: 0px;
+		margin-top: -3px;
+	}
+
+	.ddlWindDistPeriod .k-icon{
+		margin-top: -10px;
 	}
 
 	.ddlAvailability {
 		width: 100px;
-		font-size: 13px;
+		font-size: 12px;
+		height: 18px;
 	}
+
+	.ddlAvailability .k-dropdown-wrap{
+		height: 18px;
+	}
+
+	.ddlAvailability .k-input{
+		height: 18px;
+		padding-top: 0px;
+		margin-top: -3px;
+	}
+
+	.ddlAvailability .k-icon{
+		margin-top: -10px;
+	}
+
+
 
 	#india-map{
 		height: 200px;
