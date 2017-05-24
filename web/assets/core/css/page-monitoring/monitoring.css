@@ -344,7 +344,7 @@ h4.content-heading {
 .project-info {
     margin-top: -15px;
     margin-bottom: -5px;
-    position: relative;
+    z-index: 1;
 }
 .project-info-last-update {
   position: absolute;
@@ -642,10 +642,10 @@ h4.content-heading {
 
 .multicol-div {
     width: 100%;
-    height: auto;
+    /*height: auto;*/
     white-space:nowrap;
-    overflow-x:auto;
-    overflow-y:hidden;
+    /*overflow-x:auto;*/
+    /*overflow-y:hidden;*/
     margin-bottom: -10px;
 }
 .multicol {
