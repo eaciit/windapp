@@ -45,6 +45,9 @@
 .orangevalue {
     color: #EA6020;
 }
+.defaultcolor{
+  color: #585555;
+}
 
 .margin-left-10 {
     margin-left: 10px;
@@ -349,24 +352,25 @@ h4.content-heading {
   right: 15px;
 }
 
-.fa-project-info.fa-green {
+.fa-green {
   color: #31B445;
 }
-.fa-project-info.fa-red {
+.fa-red {
   color: #db1e1e;
 }
-.fa-project-info.fa-yellow {
+.fa-yellow {
   color: #f2d115;
 }
-.fa-project-info.fa-grey {
+.fa-grey {
   color: #7f7f7f;
 }
-.fa-project-info.fa-orange {
+.fa-orange {
   color: #EA6020;
 }
 
 .table.table-monitoring {
-
+  margin-top: -15px;
+  margin-bottom: 15px;
 }
 .table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
 .table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
@@ -599,6 +603,88 @@ h4.content-heading {
   padding-top: 15px;
 }
 
+.custom{
+  display: initial;
+}
+.summary-text{
+  font-size: 14px;
+  color: #6d96ac;
+}
+.text-small{
+  font-size: 10px
+}
+.txt-danger{
+  color:#dd4b39;
+}
+.txt-success{
+  color: #00a65a;
+}
+.txt-grey{
+  color: #7f7f7f;
+}
+
+.sum-custom{
+  margin-top: -5px;
+  padding-top: 0px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  border-right: 1px solid #d0c9c9;
+}
+.project-info-custom {
+    margin-top: -15px;
+    margin-bottom: -5px;
+    position: relative;
+    border-bottom: 2px solid #ecf0f5;
+}
+#project_img_weather{
+  margin:-15px;
+}
+
+.multicol-div {
+    width: 100%;
+    height: auto;
+    white-space:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    margin-bottom: -10px;
+}
+.multicol {
+   
+   padding: 5px;
+   display: inline;
+   margin-top: 10px;
+   /*height: 675px;*/
+  /* Safari and Chrome */
+  -webkit-column-count: 1 !important;
+  -webkit-column-rule: 2px solid #ecf0f5 !important;
+
+  /* Firefox */
+  -moz-column-count: 1; 
+  -moz-column-rule: 2px solid #ecf0f5;
+
+  /* CSS3 */
+  column-count: 1!important; 
+  column-rule: 0px solid #ecf0f5!important;
+  
+}
+.notes{
+  position: absolute;
+  bottom: 35px;
+}
+#monitoring-content{
+  margin-top: 10px;
+}
+.last-separator{
+  margin-right: 10px;
+}
+
+#project_weather{
+  margin-left: 15px;
+}
+/*.multicol hr{
+  break-after: column;
+  border: 1px solid #fff;
+}*/
 /*#turbine_weather{
     font-size: 20px;
 }
