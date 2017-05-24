@@ -634,6 +634,7 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			Value:             val.ProjectId,
 			Coords:            []float64{val.Latitude, val.Longitude},
 			RevenueMultiplier: val.RevenueMultiplier,
+			City:              val.City,
 		})
 	}
 

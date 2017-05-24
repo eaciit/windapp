@@ -43,6 +43,7 @@ type ProjectMaster struct {
 	Longitude         float64
 	TotalTurbine      int
 	RevenueMultiplier float64
+	City              string
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -71,4 +72,5 @@ type ProjectOut struct {
 	Value             string
 	Coords            []float64
 	RevenueMultiplier float64
+	City              string
 }
