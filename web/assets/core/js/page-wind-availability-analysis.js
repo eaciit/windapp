@@ -10,7 +10,7 @@ avb.ChartAvailability = function () {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: fa.turbine(),
         project: fa.project
     };
 

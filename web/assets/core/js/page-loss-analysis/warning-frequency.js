@@ -9,7 +9,7 @@ wf.Warning = function(){
     if(pg.isFirstWarning() === true){
         var param = {
             period: fa.period,
-            Turbine: fa.turbine,
+            Turbine: fa.turbine(),
             DateStart: fa.dateStart,
             DateEnd: fa.dateEnd,
             Project: fa.project

@@ -126,11 +126,11 @@ func (b *BaseController) PrepareDataReff() {
 }
 
 func (b *BaseController) SetCollectionLatestTime() {
-	b.LatestData.Alarm, b.LatestData.MapAlarm = getLatestTime("farm", "turbine", "enddate", new(Alarm).TableName(), b.Ctx)
-	b.LatestData.EventDown, b.LatestData.MapEventDown = getLatestTime("projectname", "turbine", "timeend", new(EventDown).TableName(), b.Ctx)
-	b.LatestData.ScadaData, b.LatestData.MapScadaData = getLatestTime("projectname", "turbine", "timestamp", new(ScadaData).TableName(), b.Ctx)
-	b.LatestData.ScadaDataOEM, b.LatestData.MapScadaDataOEM = getLatestTime("projectname", "turbine", "timestamp", new(ScadaDataOEM).TableName(), b.Ctx)
-	b.LatestData.ScadaSummaryDaily, b.LatestData.MapScadaSummaryDaily = getLatestTime("projectname", "turbine", "dateinfo.dateid", new(ScadaSummaryDaily).TableName(), b.Ctx)
+	b.LatestData.Alarm, b.LatestData.MapAlarm = getLatestTime("farm", "turbine", "enddate", new(Alarm).TableName(), b.Ctx, b.RefTurbines)
+	b.LatestData.EventDown, b.LatestData.MapEventDown = getLatestTime("projectname", "turbine", "timeend", new(EventDown).TableName(), b.Ctx, b.RefTurbines)
+	b.LatestData.ScadaData, b.LatestData.MapScadaData = getLatestTime("projectname", "turbine", "timestamp", new(ScadaData).TableName(), b.Ctx, b.RefTurbines)
+	b.LatestData.ScadaDataOEM, b.LatestData.MapScadaDataOEM = getLatestTime("projectname", "turbine", "timestamp", new(ScadaDataOEM).TableName(), b.Ctx, b.RefTurbines)
+	b.LatestData.ScadaSummaryDaily, b.LatestData.MapScadaSummaryDaily = getLatestTime("projectname", "turbine", "dateinfo.dateid", new(ScadaSummaryDaily).TableName(), b.Ctx, b.RefTurbines)
 }
 
 func (b *BaseController) GetLatest(collection string, project string, turbine string) (latest time.Time) {
@@ -149,7 +149,7 @@ func (b *BaseController) GetLatest(collection string, project string, turbine st
 	return
 }
 
-func getLatestTime(projectCol string, turbineCol string, timestampCol string, collection string, ctx *orm.DataContext) (res []TurbineLatest, resMap map[string]time.Time) {
+func getLatestTime(projectCol string, turbineCol string, timestampCol string, collection string, ctx *orm.DataContext, refTurbines tk.M) (res []TurbineLatest, resMap map[string]time.Time) {
 	var (
 		pipes []tk.M
 	)
@@ -199,18 +199,30 @@ func getLatestTime(projectCol string, turbineCol string, timestampCol string, co
 		})
 
 		resMap[project+"#"+turbine] = timestamp
-
-		// if collection == new(Alarm).TableName() {
-		// 	turbines = append(turbines, turbine)
-		// }
 	}
 
-	// if collection == new(Alarm).TableName() {
-	// 	sort.Strings(turbines)
-	// 	for _, t := range turbines {
-	// 		log.Printf(">> %v | %v \n", t, resMap["Tejuva#"+t].Format("060102_150405_0000"))
-	// 	}
-	// }
+	for turbine, v := range refTurbines {
+		project := v.(tk.M).GetString("project")
+		found := false
+
+		for _, vx := range res {
+			if vx.project == project && vx.turbine == turbine {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			timestamp, _ := time.Parse("20060102_150405", "00010101_000000")
+			resMap[project+"#"+turbine] = timestamp.UTC()
+			res = append(res, TurbineLatest{
+				project:    project,
+				turbine:    turbine,
+				latestTime: timestamp.UTC(),
+			})
+
+		}
+	}
 
 	return
 }

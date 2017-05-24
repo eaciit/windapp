@@ -14,7 +14,7 @@ ca.Component = function(){
                 period: fa.period,
                 dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
                 dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
-                turbine: fa.turbine,
+                turbine: fa.turbine(),
                 project: fa.project,
             }
 

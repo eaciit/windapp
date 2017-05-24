@@ -20,12 +20,27 @@ sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
 sum.dataSourceWindDistribution = ko.observable();
+sum.windDistData = ko.observable();
+sum.periodSelected = ko.observable('last12months');
+sum.periodList = [
+    {"text": "Last 12 Months", "value": "last12months"},
+    {"text": "Current Month", "value": "currentmonth"}
+]
+sum.paramPeriod = [];
+sum.availabilityData = ko.observable();
+sum.paramAvailPeriod = [];
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
-        var param = { ProjectName: project, Date: maxdate };
+        for(let i=0;i<sum.periodList.length;i++) {
+            sum.paramPeriod.push(sum.periodList[i].value);
+        }
+        for(let i=0;i<lgd.projectAvailList().length;i++) {
+            sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
+        }
+        var param = { ProjectName: project, Date: maxdate};
 
         var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
             if (!app.isFine(res)) {
@@ -67,18 +82,23 @@ sum.loadData = function () {
             sum.SummaryData(project);
         });
 
+        param = { ProjectName: project, Date: maxdate, ProjectList: sum.paramAvailPeriod};
         var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-
-            sum.dataSourceScada(res.data);
-            sum.PLF(res.data);
-            sum.LostEnergy(res.data);
-            sum.Windiness(res.data);
-            sum.ProdMonth(res.data);
-            sum.AvailabilityChart(res.data);
-            sum.ProdCurLast(res.data);
+            sum.dataSourceScada(res.data["Data"]);
+            sum.PLF(res.data["Data"]);
+            sum.LostEnergy(res.data["Data"]);
+            sum.Windiness(res.data["Data"]);
+            sum.ProdMonth(res.data["Data"]);
+            if(project === "Fleet") {
+                sum.availabilityData(res.data["Availability"])
+                sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
+            } else {
+                sum.AvailabilityChart(res.data["Data"]);
+            }
+            sum.ProdCurLast(res.data["Data"]);
             sum.indiaMap(project);
 
             if (res.data != null ){
@@ -90,13 +110,15 @@ sum.loadData = function () {
         var ajax3
 
         if (project=="Fleet") {
+            param = { ProjectName: project, Date: maxdate, PeriodList: sum.paramPeriod};
             ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistribution", param, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
 
-                sum.dataSourceWindDistribution(res.data.Data);
-                sum.WindDistribution(res.data.Data);
+                sum.WindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.dataSourceWindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.windDistData(res.data.Data);
             });
         }
 
@@ -416,7 +438,11 @@ sum.Windiness = function (dataSource) {
         },
     });
 }
-
+sum.UpdateWindDist = function() {
+    setTimeout(function() {
+        sum.WindDistribution(sum.windDistData()[sum.periodSelected()]);
+    }, 300);
+}
 sum.WindDistribution = function (dataSource) {
     $("#chartWindDistribution").replaceWith('<div id="chartWindDistribution"></div>');
     $("#chartWindDistribution").kendoChart({
@@ -589,7 +615,11 @@ sum.ProdMonth = function (dataSource) {
         }
     });
 }
-
+sum.UpdateAvailability = function() {
+    setTimeout(function() {
+        sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
+    }, 300);
+}
 sum.AvailabilityChart = function (dataSource) {
     $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({

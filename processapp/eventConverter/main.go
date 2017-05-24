@@ -64,7 +64,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 		return nil, e
 	}
 
-	log.Println("DB Connect...")
+	log.Println("DB Connect ", config["database"], "@", config["host"], " ...")
 
 	return c, nil
 }

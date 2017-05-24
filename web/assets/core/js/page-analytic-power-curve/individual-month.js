@@ -58,7 +58,7 @@ page.LoadData = function() {
     app.loading(true);
     setTimeout(function () {
         var param = {
-            turbine: fa.turbine,
+            turbine: fa.turbine(),
             project: fa.project,
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getlistpowercurvemonthly", param, function (res) {
@@ -120,7 +120,7 @@ page.InitLinePowerCurve = function() {
         var labelAxisFont = '9px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
         var tooltipAxisFont = '10px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif';
 
-        if (fa.turbine.length == 1) {
+        if (fa.turbine().length == 1) {
             rotation = 0;
             heightVal = 400;
             isPannable = false;

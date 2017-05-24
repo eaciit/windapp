@@ -46,7 +46,7 @@ wr.GetData = function() {
 	var param = {
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: fa.turbine(),
         project: fa.project,
         breakDown: breakDownVal,
     };
@@ -140,7 +140,7 @@ wr.GetDataOld = function() {
 	var param = {
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: fa.turbine(),
         project: fa.project,
         breakDown: breakDownVal,
     };

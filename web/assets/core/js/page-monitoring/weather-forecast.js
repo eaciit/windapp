@@ -23,7 +23,7 @@ wf.populateProject = function (data) {
         if (data.length > 0) {
             $.each(data, function (key, val) {
                 var data = {};
-                data.value = val.Value;
+                data.value = val.City;
                 data.text = val.Name;
                 datavalue.push(data);
             });
@@ -38,9 +38,9 @@ wf.populateProject = function (data) {
     }
 };
 
-wf.GetData = function() {
+wf.GetData = function() {    
     var surl = 'http://api.openweathermap.org/data/2.5/weather';
-    var param = { "q": "Jaisalmer,in", "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
+    var param = { "q": wf.project, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
     $.ajax({
         type: "GET",
         url: surl,
@@ -56,7 +56,7 @@ wf.GetData = function() {
 };
 wf.GetDataChart = function() {
     var surl = 'http://api.openweathermap.org/data/2.5/forecast';
-    var param = { "q": "Jaisalmer,in", "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
+    var param = { "q": wf.project, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
     $.ajax({
         type: "GET",
         url: surl,
@@ -195,12 +195,26 @@ wf.CreateChart = function(data) {
     });
 };
 
-$(document).ready(function(){
+wf.updateAll = function(){
     app.loading(true);
+    wf.project = $("#projectList").data("kendoDropDownList").value();
+    $('#turbine_location').html(wf.project);
     $.when(wf.GetData(), wf.RefreshChart()).done(function () {
         setTimeout(function() {
             app.loading(false);
         }, 2000);
     });
     window.setInterval(wf.GetData, 60000);
+}
+
+$(document).ready(function(){
+    $("#projectList").kendoDropDownList({
+        dataTextField: "text",
+        dataValueField: "value",
+        dataSource: wf.projectList(),
+        change: function(){
+            wf.updateAll();        
+        }
+    });
+    wf.updateAll();
 });

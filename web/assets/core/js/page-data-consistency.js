@@ -34,23 +34,18 @@ pg.loadData = function(){
         if (!app.isFine(res)) {
             return;
         }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-
-        var minDatetempHfd = new Date(res.data.ScadaDataHFD[0]);
-        var maxDatetempHfd = new Date(res.data.ScadaDataHFD[1]);
-
-        var dgrMinDatetemp = new Date(res.data.DGRData[0]);
-        var dgrMaxDatetemp = new Date(res.data.DGRData[1]);
-
-        $('#availabledatestartscadahfd').html(kendo.toString(moment.utc(minDatetempHfd).format('DD-MMMM-YYYY')));
-        $('#availabledateendscadahfd').html(kendo.toString(moment.utc(maxDatetempHfd).format('DD-MMMM-YYYY')));
-
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-        $('#availabledatestartdgr').html(kendo.toString(moment.utc(dgrMinDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendsdgr').html(kendo.toString(moment.utc(dgrMaxDatetemp).format('DD-MMMM-YYYY')));
+        if(res.data.ScadaData != null) {
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(new Date(res.data.ScadaData[0])).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(new Date(res.data.ScadaData[1])).format('DD-MMMM-YYYY')));
+        }
+        if(res.data.ScadaDataHFD != null) {
+            $('#availabledatestartscadahfd').html(kendo.toString(moment.utc(new Date(res.data.ScadaDataHFD[0])).format('DD-MMMM-YYYY')));
+            $('#availabledateendscadahfd').html(kendo.toString(moment.utc(new Date(res.data.ScadaDataHFD[1])).format('DD-MMMM-YYYY')));
+        }
+        if(res.data.DGRData != null) {
+            $('#availabledatestartdgr').html(kendo.toString(moment.utc(res.data.DGRData[0]).format('DD-MMMM-YYYY')));
+            $('#availabledateendsdgr').html(kendo.toString(moment.utc(res.data.DGRData[1]).format('DD-MMMM-YYYY')));
+        }
     });
 }
 
@@ -60,7 +55,7 @@ pg.DataCon = function(){
     if(pg.isFirstDataCon() === true){
             var param = {
                 period: fa.period,
-                Turbine: fa.turbine,
+                Turbine: fa.turbine(),
                 DateStart: fa.dateStart,
                 DateEnd: fa.dateEnd,
                 Project: fa.project
