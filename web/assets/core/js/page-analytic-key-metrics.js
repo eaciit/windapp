@@ -29,7 +29,7 @@ km.createChart = function (dataSource) {
 	var filters = [
 		{ field: "dateinfo.dateid", operator: "gte", value: fa.dateStart },
 		{ field: "dateinfo.dateid", operator: "lte", value: fa.dateEnd },
-		{ field: "turbine", operator: "in", value: fa.turbine },
+		{ field: "turbine", operator: "in", value: fa.turbine() },
 	];
 	/*var listOfMonths = [];
 	var monthCount = fa.dateStart.getMonth();
@@ -46,7 +46,7 @@ km.createChart = function (dataSource) {
 		key2: key2Val,
 		breakdown: breakdownVal,
 		duration: ((fa.dateEnd - fa.dateStart) / 86400000) + 1,
-		totalturbine: fa.turbine.length,
+		totalturbine: fa.turbine().length,
 		period: fa.period,
 		/*monthlist: listOfMonths,
 		startdate: fa.dateStart.getDate(),

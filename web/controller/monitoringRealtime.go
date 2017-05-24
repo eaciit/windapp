@@ -373,6 +373,10 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 					Set("IsWarning", false).
 					Set("AlarmUpdate", time.Time{})
 
+				for _, afield := range arrfield {
+					_itkm.Set(afield, defaultValue)
+				}
+
 				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
 					_itkm.Set("DataComing", 1)
 				}
@@ -418,7 +422,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		_iContinue = true
 		for _, afield := range arrfield {
 			_lafield := strings.ToLower(afield)
-			if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && _itkm.GetFloat64(afield) == 0 {
+			if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && (_itkm.GetFloat64(afield) == 0 || _itkm.GetFloat64(afield) == defaultValue) {
 				_itkm.Set(afield, _ifloat)
 
 				switch afield {

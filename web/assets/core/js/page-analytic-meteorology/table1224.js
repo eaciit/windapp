@@ -192,7 +192,7 @@ tb.Table = function(){
         
 
         var param = {
-            Turbine: fa.turbine,
+            Turbine: fa.turbine(),
             Project: fa.project,
         };
 

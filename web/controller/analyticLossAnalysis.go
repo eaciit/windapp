@@ -79,6 +79,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		"DownTimeDuration": tk.M{"$sum": "$downtimehours"},
 		"MachineDownHours": tk.M{"$sum": "$machinedownhours"},
 		"GridDownHours":    tk.M{"$sum": "$griddownhours"},
+		"OtherDownHours":   tk.M{"$sum": "$otherdowntimehours"},
 		"LossEnergy":       tk.M{"$sum": "$lostenergy"}}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -177,6 +178,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 			"LossEnergy":       val.GetFloat64("LossEnergy") / 1000,
 			"MachineDownHours": val.GetFloat64("MachineDownHours"),
 			"GridDownHours":    val.GetFloat64("GridDownHours"),
+			"OtherDownHours":   val.GetFloat64("OtherDownHours"),
 			"EnergyyMD":        val.GetFloat64("MachineDownLoss") / 1000,
 			"EnergyyGD":        val.GetFloat64("GridDownLoss") / 1000,
 			// "ElectricLoss":     val.GetFloat64("ElectricalLosses") / 1000,

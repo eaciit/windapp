@@ -180,17 +180,21 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		turbineList, _ = helper.GetTurbineList(nil)
 	}
 
+	projectlist, _ := helper.GetProjectList()
+
 	for _, val := range list {
 		var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, revenue, totalTurbine, hourValue, plfDivider float64
 
 		id := val.Get("_id").(tk.M)
 		id1 := id.GetString("id1")
+		_cProjectName := id1
 
 		if rowsBreakdown == "Turbine" {
 			for _, v := range turbineList {
 				if id1 == v.Value {
 					plfDivider += v.Capacity
 					totalTurbine += 1.0
+					_cProjectName = v.Project
 				}
 			}
 		} else if len(p.Turbine) == 0 {
@@ -208,6 +212,14 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 						totalTurbine += 1.0
 					}
 				}
+			}
+		}
+
+		revMultiply := float64(0)
+		for _, _proj := range projectlist {
+			if _proj.Value == _cProjectName {
+				revMultiply = _proj.RevenueMultiplier
+				break
 			}
 		}
 
@@ -232,7 +244,8 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 
 		prod = energy
-		revenue = power * 5.740 * 1000
+		// revenue = power * 5.740 * 1000
+		revenue = power * revMultiply * 1000
 
 		resVal := tk.M{}
 		resVal.Set("MachineAvailability", tk.ToFloat64((machineAvail), 2, tk.RoundingAuto))
@@ -390,7 +403,7 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 
 		csr, e = DB().Connection.NewQuery().
 			From(new(ExpPValueModel).TableName()).
-			Where(dbox.In("monthno", months...)).
+			Where(dbox.And(dbox.In("monthno", months...), dbox.Eq("projectname", p.Project))).
 			Cursor(nil)
 
 		if e != nil {

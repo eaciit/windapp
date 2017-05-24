@@ -630,9 +630,11 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 
 	for _, val := range data {
 		result = append(result, md.ProjectOut{
-			Name:   fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
-			Value:  val.ProjectId,
-			Coords: []float64{val.Latitude, val.Longitude},
+			Name:              fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
+			Value:             val.ProjectId,
+			Coords:            []float64{val.Latitude, val.Longitude},
+			RevenueMultiplier: val.RevenueMultiplier,
+			City:              val.City,
 		})
 	}
 

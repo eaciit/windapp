@@ -244,9 +244,113 @@ type ScadaSummaryVariance struct {
 	Variance           float64
 }
 
+func GetDataAvailability(datalastmonth []ScadaSummaryByMonth, projectname string) []interface{} {
+	var result []interface{}
+
+	startmonth := 0
+	endmonth := datalastmonth[0].DateInfo.MonthId
+	month := endmonth - (int(endmonth/100) * 100)
+
+	if month == 12 {
+		startmonth = (int(endmonth/100) * 100) + 1
+	} else {
+		startmonth = (endmonth + 1) - 100
+	}
+
+	dataVariance := new(ScadaSummaryVariance)
+
+	for i := startmonth; i <= endmonth; i++ {
+		//check if month more than 12
+		if i-(int(i/100)*100) > 12 {
+			i = (i - 12) + 100
+		}
+
+		yearloop := int(i / 100)
+		monthloop := i - (int(i/100) * 100)
+
+		csr, e := DB().Connection.NewQuery().
+			From("rpt_scadasummarybymonth").
+			Where(dbox.And(dbox.Eq("dateinfo.monthid", i), dbox.Eq("projectname", projectname))).
+			Cursor(nil)
+
+		if e != nil {
+			return nil
+		}
+		defer csr.Close()
+
+		data := make([]ScadaSummaryByMonth, 0)
+		e = csr.Fetch(&data, 0, false)
+
+		if len(data) > 0 {
+			dataVariance.ID = data[0].ID
+			dataVariance.DateInfo = data[0].DateInfo
+			dataVariance.ProjectName = data[0].ProjectName
+			dataVariance.Production = data[0].Production / 1000
+			dataVariance.ProductionLastYear = data[0].ProductionLastYear
+			dataVariance.Revenue = data[0].Revenue
+			dataVariance.RevenueInLacs = data[0].RevenueInLacs
+			dataVariance.TrueAvail = data[0].TrueAvail
+			dataVariance.ScadaAvail = data[0].ScadaAvail
+			dataVariance.MachineAvail = data[0].MachineAvail
+			dataVariance.GridAvail = data[0].GridAvail
+			dataVariance.PLF = data[0].PLF
+			dataVariance.Budget = data[0].Budget / 1000000
+			dataVariance.AvgWindSpeed = data[0].AvgWindSpeed
+			dataVariance.ExpWindSpeed = data[0].ExpWindSpeed
+			dataVariance.DowntimeHours = data[0].DowntimeHours
+			dataVariance.LostEnergy = data[0].LostEnergy
+			dataVariance.RevenueLoss = data[0].RevenueLoss
+			if data[0].ProductionLastYear == 0 {
+				dataVariance.Variance = 100
+			} else {
+				dataVariance.Variance = math.Abs((data[0].Production - data[0].ProductionLastYear) / data[0].ProductionLastYear * 100)
+			}
+
+			result = append(result, *dataVariance)
+		} else {
+			// Temporary data to fill result if month doesn't exist
+			datatemp := new(ScadaSummaryByMonth)
+
+			datatemp.ID = ""
+			datatemp.ProjectName = projectname
+			dateInfo := GetDateInfo(time.Date(yearloop, time.Month(monthloop), 1, 17, 0, 0, 0, time.UTC))
+			datatemp.DateInfo = dateInfo
+
+			dataVariance.ID = datatemp.ID
+			dataVariance.DateInfo = datatemp.DateInfo
+			dataVariance.ProjectName = datatemp.ProjectName
+			dataVariance.Production = datatemp.Production
+			dataVariance.ProductionLastYear = datatemp.ProductionLastYear
+			dataVariance.Revenue = datatemp.Revenue
+			dataVariance.RevenueInLacs = datatemp.RevenueInLacs
+			dataVariance.TrueAvail = datatemp.TrueAvail
+			dataVariance.ScadaAvail = datatemp.ScadaAvail
+			dataVariance.MachineAvail = datatemp.MachineAvail
+			dataVariance.GridAvail = datatemp.GridAvail
+			dataVariance.PLF = datatemp.PLF
+			dataVariance.Budget = datatemp.Budget
+			dataVariance.AvgWindSpeed = datatemp.AvgWindSpeed
+			dataVariance.ExpWindSpeed = datatemp.ExpWindSpeed
+			dataVariance.DowntimeHours = datatemp.DowntimeHours
+			dataVariance.LostEnergy = datatemp.LostEnergy
+			dataVariance.RevenueLoss = datatemp.RevenueLoss
+			dataVariance.Variance = 0
+
+			result = append(result, *dataVariance)
+		}
+	}
+
+	return result
+}
+
 func (m *DashboardController) GetScadaSummaryByMonth(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
-	p := new(PayloadDashboard)
+	type PayloadSummaryByMonth struct {
+		ProjectName string
+		Date        time.Time
+		ProjectList []string
+	}
+	p := new(PayloadSummaryByMonth)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -266,109 +370,23 @@ func (m *DashboardController) GetScadaSummaryByMonth(k *knot.WebContext) interfa
 	datalastmonth := make([]ScadaSummaryByMonth, 0)
 	e = csrlastmonth.Fetch(&datalastmonth, 0, false)
 
-	var result []interface{}
-
-	// log.Printf(">> %v", len(datalastmonth))
+	var finalResult tk.M
+	finalResult = tk.M{}
 
 	if len(datalastmonth) > 0 {
-
-		startmonth := 0
-		endmonth := datalastmonth[0].DateInfo.MonthId
-		month := endmonth - (int(endmonth/100) * 100)
-
-		if month == 12 {
-			startmonth = (int(endmonth/100) * 100) + 1
-		} else {
-			startmonth = (endmonth + 1) - 100
-		}
-
-		// result := make([]ScadaSummaryByMonth, 0)
-
-		dataVariance := new(ScadaSummaryVariance)
-
-		for i := startmonth; i <= endmonth; i++ {
-			//check if month more than 12
-			if i-(int(i/100)*100) > 12 {
-				i = (i - 12) + 100
+		result := GetDataAvailability(datalastmonth, p.ProjectName)
+		finalResult.Set("Data", result)
+		if p.ProjectName == "Fleet" {
+			availData := tk.M{}
+			for _, projectName := range p.ProjectList {
+				avail := GetDataAvailability(datalastmonth, projectName)
+				availData.Set(projectName, avail)
 			}
-
-			yearloop := int(i / 100)
-			monthloop := i - (int(i/100) * 100)
-
-			csr, e := DB().Connection.NewQuery().
-				From("rpt_scadasummarybymonth").
-				Where(dbox.And(dbox.Eq("dateinfo.monthid", i), dbox.Eq("projectname", p.ProjectName))).
-				Cursor(nil)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-			defer csr.Close()
-
-			data := make([]ScadaSummaryByMonth, 0)
-			e = csr.Fetch(&data, 0, false)
-
-			if len(data) > 0 {
-				dataVariance.ID = data[0].ID
-				dataVariance.DateInfo = data[0].DateInfo
-				dataVariance.ProjectName = data[0].ProjectName
-				dataVariance.Production = data[0].Production / 1000
-				dataVariance.ProductionLastYear = data[0].ProductionLastYear
-				dataVariance.Revenue = data[0].Revenue
-				dataVariance.RevenueInLacs = data[0].RevenueInLacs
-				dataVariance.TrueAvail = data[0].TrueAvail
-				dataVariance.ScadaAvail = data[0].ScadaAvail
-				dataVariance.MachineAvail = data[0].MachineAvail
-				dataVariance.GridAvail = data[0].GridAvail
-				dataVariance.PLF = data[0].PLF
-				dataVariance.Budget = data[0].Budget / 1000000
-				dataVariance.AvgWindSpeed = data[0].AvgWindSpeed
-				dataVariance.ExpWindSpeed = data[0].ExpWindSpeed
-				dataVariance.DowntimeHours = data[0].DowntimeHours
-				dataVariance.LostEnergy = data[0].LostEnergy
-				dataVariance.RevenueLoss = data[0].RevenueLoss
-				if data[0].ProductionLastYear == 0 {
-					dataVariance.Variance = 100
-				} else {
-					dataVariance.Variance = math.Abs((data[0].Production - data[0].ProductionLastYear) / data[0].ProductionLastYear * 100)
-				}
-
-				result = append(result, *dataVariance)
-			} else {
-				// Temporary data to fill result if month doesn't exist
-				datatemp := new(ScadaSummaryByMonth)
-
-				datatemp.ID = ""
-				datatemp.ProjectName = p.ProjectName
-				dateInfo := GetDateInfo(time.Date(yearloop, time.Month(monthloop), 1, 17, 0, 0, 0, time.UTC))
-				datatemp.DateInfo = dateInfo
-
-				dataVariance.ID = datatemp.ID
-				dataVariance.DateInfo = datatemp.DateInfo
-				dataVariance.ProjectName = datatemp.ProjectName
-				dataVariance.Production = datatemp.Production
-				dataVariance.ProductionLastYear = datatemp.ProductionLastYear
-				dataVariance.Revenue = datatemp.Revenue
-				dataVariance.RevenueInLacs = datatemp.RevenueInLacs
-				dataVariance.TrueAvail = datatemp.TrueAvail
-				dataVariance.ScadaAvail = datatemp.ScadaAvail
-				dataVariance.MachineAvail = datatemp.MachineAvail
-				dataVariance.GridAvail = datatemp.GridAvail
-				dataVariance.PLF = datatemp.PLF
-				dataVariance.Budget = datatemp.Budget
-				dataVariance.AvgWindSpeed = datatemp.AvgWindSpeed
-				dataVariance.ExpWindSpeed = datatemp.ExpWindSpeed
-				dataVariance.DowntimeHours = datatemp.DowntimeHours
-				dataVariance.LostEnergy = datatemp.LostEnergy
-				dataVariance.RevenueLoss = datatemp.RevenueLoss
-				dataVariance.Variance = 0
-
-				result = append(result, *dataVariance)
-			}
+			finalResult.Set("Availability", availData)
 		}
 	}
 
-	return helper.CreateResult(true, result, "success")
+	return helper.CreateResult(true, finalResult, "success")
 }
 
 func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
@@ -2306,7 +2324,13 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 
 	var dataSeries []tk.M
 
-	p := new(PayloadDashboard)
+	type PayloadWindDist struct {
+		ProjectName string
+		Date        time.Time
+		PeriodList  []string
+	}
+
+	p := new(PayloadWindDist)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -2321,9 +2345,11 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 	}
 
 	dateStart := p.Date.AddDate(0, -11, 0).UTC()
+	dateStartCurMonth := time.Date(p.Date.Year(), p.Date.Month(), 1, 0, 0, 0, 0, time.UTC)
 
 	tEnd := p.Date.UTC()
 	tStart, _ := time.Parse("20060102_150405", dateStart.Format("20060102")+"_000000")
+	tStartCurMonth, _ := time.Parse("20060102_150405", dateStartCurMonth.Format("20060102")+"_000000")
 	tStart = tStart.UTC()
 
 	query := []tk.M{}
@@ -2345,124 +2371,134 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 		Count        int
 	}
 	tmpResult := []MiniScada{}
-	for _, proj := range project {
-		_data := []tk.M{}
-		pipes = []tk.M{}
-		tmpResult = []MiniScada{}
-		queryT := query
-		queryT = append(queryT, tk.M{"projectname": proj})
-		pipes = append(pipes, tk.M{"$match": tk.M{"$and": queryT}})
-		pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
-		pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
-		csr, _ := DB().Connection.NewQuery().
-			From(new(ScadaData).TableName()).
-			Command("pipe", pipes).Cursor(nil)
+	result := tk.M{}
 
-		e = csr.Fetch(&_data, 0, false)
-		if e != nil {
-			break
+	for _, period := range p.PeriodList {
+		dataSeries = []tk.M{}
+		queryT := []tk.M{}
+
+		if period == "currentmonth" {
+			query[1] = tk.M{"dateinfo.dateid": tk.M{"$gte": tStartCurMonth}}
 		}
-		csr.Close()
+		for _, proj := range project {
+			_data := []tk.M{}
+			pipes = []tk.M{}
+			tmpResult = []MiniScada{}
+			queryT = query
+			queryT = append(queryT, tk.M{"projectname": proj})
+			pipes = append(pipes, tk.M{"$match": tk.M{"$and": queryT}})
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
+			pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
+			csr, _ := DB().Connection.NewQuery().
+				From(new(ScadaData).TableName()).
+				Command("pipe", pipes).Cursor(nil)
 
-		// log.Printf("> %v | %v \n", tStart.UTC().String(), tEnd.UTC().String())
+			e = csr.Fetch(&_data, 0, false)
+			if e != nil {
+				break
+			}
+			csr.Close()
 
-		// for _, vx := range queryT {
-		// 	log.Printf("> %#v \n", vx)
-		// }
+			// log.Printf("> %v | %v \n", tStart.UTC().String(), tEnd.UTC().String())
 
-		for _, v := range _data {
-			id := v.Get("_id").(tk.M)
-			tmpResult = append(tmpResult, MiniScada{
-				AvgWindSpeed: id.GetFloat64("avgwindspeed"),
-				Project:      id.GetString("projectname"),
-				Count:        v.GetInt("count"),
-			})
-		}
-
-		if len(tmpResult) > 0 {
-			totalCount := 0
-			datas := crowd.From(&tmpResult).Apply(func(x interface{}) interface{} {
-				dt := x.(MiniScada)
-
-				var di ScadaAnalyticsWDDataX
-				di.Project = dt.Project
-				di.Category = getWindDistrCategory(dt.AvgWindSpeed)
-				di.Minutes = float64(10 * dt.Count)
-				totalCount += dt.Count
-
-				return di
-			}).Exec().Group(func(x interface{}) interface{} {
-				dt := x.(ScadaAnalyticsWDDataX)
-
-				var dig ScadaAnalyticsWDDataGroup
-				dig.Project = dt.Project
-				dig.Category = dt.Category
-
-				return dig
-			}, nil).Exec()
-
-			dts := datas.Apply(func(x interface{}) interface{} {
-				kv := x.(crowd.KV)
-				keys := kv.Key.(ScadaAnalyticsWDDataGroup)
-				vs := kv.Value.([]ScadaAnalyticsWDDataX)
-				total := 0.0
-
-				for _, v := range vs {
-					total += v.Minutes
-				}
-
-				var di ScadaAnalyticsWDDataX
-				di.Project = keys.Project
-				di.Category = keys.Category
-				di.Minutes = total
-
-				return di
-			}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
-
-			totalMinutes := float64(totalCount * 10)
-
-			// if len(dts) > 0 {
-			// 	totalMinutes = crowd.From(&dts).Sum(func(x interface{}) interface{} {
-			// 		dt := x.(ScadaAnalyticsWDDataX)
-			// 		return dt.Minutes
-			// 	}).Exec().Result.Sum
+			// for _, vx := range queryT {
+			// 	log.Printf("> %#v \n", vx)
 			// }
 
-			for _, wc := range windCats {
-				exist := crowd.From(&dts).Where(func(x interface{}) interface{} {
-					y := x.(ScadaAnalyticsWDDataX)
-					Project := y.Project == proj
-					Category := y.Category == wc
-					return Project && Category
+			for _, v := range _data {
+				id := v.Get("_id").(tk.M)
+				tmpResult = append(tmpResult, MiniScada{
+					AvgWindSpeed: id.GetFloat64("avgwindspeed"),
+					Project:      id.GetString("projectname"),
+					Count:        v.GetInt("count"),
+				})
+			}
+
+			if len(tmpResult) > 0 {
+				totalCount := 0
+				datas := crowd.From(&tmpResult).Apply(func(x interface{}) interface{} {
+					dt := x.(MiniScada)
+
+					var di ScadaAnalyticsWDDataX
+					di.Project = dt.Project
+					di.Category = getWindDistrCategory(dt.AvgWindSpeed)
+					di.Minutes = float64(10 * dt.Count)
+					totalCount += dt.Count
+
+					return di
+				}).Exec().Group(func(x interface{}) interface{} {
+					dt := x.(ScadaAnalyticsWDDataX)
+
+					var dig ScadaAnalyticsWDDataGroup
+					dig.Project = dt.Project
+					dig.Category = dt.Category
+
+					return dig
+				}, nil).Exec()
+
+				dts := datas.Apply(func(x interface{}) interface{} {
+					kv := x.(crowd.KV)
+					keys := kv.Key.(ScadaAnalyticsWDDataGroup)
+					vs := kv.Value.([]ScadaAnalyticsWDDataX)
+					total := 0.0
+
+					for _, v := range vs {
+						total += v.Minutes
+					}
+
+					var di ScadaAnalyticsWDDataX
+					di.Project = keys.Project
+					di.Category = keys.Category
+					di.Minutes = total
+
+					return di
 				}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
 
-				distHelper := tk.M{}
+				totalMinutes := float64(totalCount * 10)
 
-				if len(exist) > 0 {
-					distHelper.Set("Project", proj)
-					distHelper.Set("Category", wc)
+				// if len(dts) > 0 {
+				// 	totalMinutes = crowd.From(&dts).Sum(func(x interface{}) interface{} {
+				// 		dt := x.(ScadaAnalyticsWDDataX)
+				// 		return dt.Minutes
+				// 	}).Exec().Result.Sum
+				// }
 
-					Minute := crowd.From(&exist).Sum(func(x interface{}) interface{} {
-						dt := x.(ScadaAnalyticsWDDataX)
-						return dt.Minutes
-					}).Exec().Result.Sum
+				for _, wc := range windCats {
+					exist := crowd.From(&dts).Where(func(x interface{}) interface{} {
+						y := x.(ScadaAnalyticsWDDataX)
+						Project := y.Project == proj
+						Category := y.Category == wc
+						return Project && Category
+					}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
 
-					distHelper.Set("Contribute", Minute/totalMinutes)
-				} else {
-					distHelper.Set("Project", proj)
-					distHelper.Set("Category", wc)
-					distHelper.Set("Contribute", -0.0)
+					distHelper := tk.M{}
+
+					if len(exist) > 0 {
+						distHelper.Set("Project", proj)
+						distHelper.Set("Category", wc)
+
+						Minute := crowd.From(&exist).Sum(func(x interface{}) interface{} {
+							dt := x.(ScadaAnalyticsWDDataX)
+							return dt.Minutes
+						}).Exec().Result.Sum
+
+						distHelper.Set("Contribute", Minute/totalMinutes)
+					} else {
+						distHelper.Set("Project", proj)
+						distHelper.Set("Category", wc)
+						distHelper.Set("Contribute", -0.0)
+					}
+
+					dataSeries = append(dataSeries, distHelper)
 				}
-
-				dataSeries = append(dataSeries, distHelper)
 			}
 		}
+		result[period] = dataSeries
 	}
-
 	data := struct {
-		Data []tk.M
+		Data tk.M
 	}{
-		Data: dataSeries,
+		Data: result,
 	}
 
 	return helper.CreateResult(true, data, "success")

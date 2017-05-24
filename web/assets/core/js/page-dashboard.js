@@ -38,6 +38,8 @@ lgd.FleetDTLEDownType = ko.observable();
 lgd.LEFleetByDown = ko.observable(false);
 
 lgd.prodDateRangeStr = ko.observable('');
+lgd.projectAvailList = ko.observableArray([]);
+lgd.projectAvailSelected = ko.observable('');
 
 var lastParam = {};
 var lastParamChart = {};
@@ -54,12 +56,18 @@ var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 3600
 lgd.populateProject = function (data) {
     if(data.length > 0) {
         var datavalue = [{ "value": "Fleet", "text": "Fleet" }];
+        var projectAvail = {};
         if (data.length > 0) {
             $.each(data, function (key, val) {
                 var data = {};
                 data.value = val.Value;
                 data.text = val.Name;
                 datavalue.push(data);
+                projectAvail = {text: val.Value, value: val.Value};
+                lgd.projectAvailList.push(projectAvail);
+                if(key===0) {
+                    lgd.projectAvailSelected(val.Value);
+                }
             });
         }
         lgd.projectList(datavalue);

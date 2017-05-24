@@ -30,10 +30,10 @@ km.ExportKeyMetrics = function () {
 km.createChart = function () {
     $("#totalCountData").html('(Total Count Data: ' + km.dsTotaldataWS() + ')');
     var turbineData = '';
-    if(fa.turbine.length == 0) {
+    if(fa.turbine().length == 0) {
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine.join(", ");
+        turbineData = fa.turbine().join(", ");
     }
     $("#turbineListTitle").html('for ' + turbineData);
     $("#dh-chart").replaceWith('<div id="dh-chart"></div>');
@@ -119,10 +119,10 @@ km.createChart = function () {
 km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
     $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
     var turbineData = '';
-    if(fa.turbine.length == 0) {
+    if(fa.turbine().length == 0) {
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine.join(", ");
+        turbineData = fa.turbine().join(", ");
     }
     var _rotationlabel = 0
     if (km.BinValue() > 20) {
@@ -231,7 +231,7 @@ km.getData = function () {
 
     var paramFilter = {
         period: fa.period,
-        Turbine: fa.turbine,
+        Turbine: fa.turbine(),
         DateStart: fa.dateStart,
         DateEnd: fa.dateEnd,
         Project: fa.project

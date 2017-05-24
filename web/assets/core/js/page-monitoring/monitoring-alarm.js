@@ -40,7 +40,7 @@ ma.CreateGrid = function(gridType) {
         $('#turbineList').data('kendoMultiSelect').value([turbine]);
         $('#projectList').data('kendoDropDownList').value(project);
     } else {
-        turbine = fa.turbine;
+        turbine = fa.turbine();
         project = fa.project;
     }
 
