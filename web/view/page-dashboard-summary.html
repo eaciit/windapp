@@ -100,7 +100,8 @@
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
-					Availability (%) - Last 12 Months
+					Availability (%) - Last 12 Months &nbsp;
+					<select type="text" id="projectAvail" class="ddlAvailability" data-bind="kendoDropDownList: { value: lgd.projectAvailSelected, data: lgd.projectAvailList(), dataTextField: 'text', dataValueField: 'value', change:sum.UpdateAvailability, suggest: true}"></select> 
         		<span class="tools pull-right">
         			  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
                       <div class="btn-group" data-toggle="buttons">
