@@ -84,7 +84,7 @@ bp.CheckWeather = function() {
 };
 
 bp.GetData = function(data) {
-    app.loading(true);
+    // app.loading(true);
     // bp.feeders([]);
     var COOKIES = {};
     var cookieStr = document.cookie;
@@ -107,6 +107,10 @@ bp.GetData = function(data) {
         Project: project
     };
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
+        if(!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
         var dataFeeder = [];
         var dataTurbine = {}; 
 
@@ -267,6 +271,6 @@ $(document).ready(function() {
     $(".multicol").height(($(".layout-top-nav").height()) * 72 / 100);
     setTimeout(function() {
         bp.GetData()
-        // setInterval(bp.GetData, 4000);
+        setInterval(bp.GetData, 4000);
     }, 600);
 });
