@@ -43,7 +43,7 @@ var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7
 bp.populateProject = function (data) {
     if (data.length == 0) {
         data = [];;
-        bp.projectList([{ value: "", text: "" }]);
+        bp.projectList([{ value: "", text: "" , city: ""}]);
     } else {
         var datavalue = [];
         if (data.length > 0) {
@@ -51,6 +51,7 @@ bp.populateProject = function (data) {
                 var data = {};
                 data.value = val.Value;
                 data.text = val.Name;
+                data.city = val.City;
                 datavalue.push(data);
             });
         }
@@ -65,8 +66,10 @@ bp.populateProject = function (data) {
 };
 
 bp.CheckWeather = function() {
+    var city = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].city;
     var surl = 'http://api.openweathermap.org/data/2.5/weather';
-    var param = { "q": "Jaisalmer,in", "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
+    $("#citytxt").html(city);
+    var param = { "q": city, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
     $.ajax({
         type: "GET",
         url: surl,
