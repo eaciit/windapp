@@ -37,8 +37,10 @@ bp.project = ko.observable();
 bp.turbine = ko.observableArray([]);
 bp.feeders = ko.observableArray();
 bp.dataFeeders = ko.observableArray();
+bp.newFeeders = ko.observableArray([]);
 
-var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
+// var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
+var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
 
 bp.populateProject = function (data) {
     if (data.length == 0) {
@@ -116,6 +118,12 @@ bp.GetData = function(data) {
 
         var a = 0;
         var listAllTurbine = [];
+
+        var feeders = [];
+
+
+        bp.newFeeders([]);
+
         $.each(res.data.ListOfTurbine, function(i, val){
             var details = []
             $.each(val, function(idx, turbine){
@@ -123,18 +131,37 @@ bp.GetData = function(data) {
                     if(turbine == detail.Turbine){
                         details.push(detail);
                         detail.colorFeeder = color[a];
-                        listAllTurbine.push(detail);
+                        detail.feederName = i;
+                        feeders.push(detail);
                     }
                 });
             });
-            dataFeeder.push({feederName : i, details : details,colorFeeder : color[a]});
+            dataFeeder.push({feederName : i, colorFeeder : color[a]});
             ++a;
         });
 
+        var someArray = feeders;
+        var groupSize = Math.floor(($(window).innerHeight() * (72 /100) - 24)/24);
+
+        var groups = _.map(someArray, function(item, index){
+          return index % groupSize === 0 ? someArray.slice(index, index + groupSize) : null; 
+          })
+          .filter(function(item){ return item; 
+        });
+
+        
+        var iniData = [];
+        
+        $.each(groups, function(idx,val){
+           var Detail = {details : val};
+           iniData.push(Detail);
+        });
+
+        bp.newFeeders(iniData);
+
         bp.feeders(dataFeeder);
         bp.dataFeeders(listAllTurbine);
-        // bp.Turbines1(res.data.ListOfTurbine["Feeder 5"]);
-        // bp.Turbines2(res.data.ListOfTurbine["Feeder 8"]);
+
         $.when(bp.PlotData(res.data)).done(function(){
             setTimeout(function(){
                  app.loading(false);
@@ -268,7 +295,6 @@ bp.ToAlarm = function(turbine) {
 
 $(document).ready(function() {
     app.loading(true);
-    $(".multicol").height(($(".layout-top-nav").height()) * 72 / 100);
     setTimeout(function() {
         bp.GetData()
         setInterval(bp.GetData, 4000);

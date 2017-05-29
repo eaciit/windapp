@@ -34,10 +34,10 @@ vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
-        for(let i=0;i<sum.periodList.length;i++) {
+        for(var i=0;i<sum.periodList.length;i++) {
             sum.paramPeriod.push(sum.periodList[i].value);
         }
-        for(let i=0;i<lgd.projectAvailList().length;i++) {
+        for(var i=0;i<lgd.projectAvailList().length;i++) {
             sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
         }
         var param = { ProjectName: project, Date: maxdate};

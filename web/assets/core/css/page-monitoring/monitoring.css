@@ -371,6 +371,7 @@ h4.content-heading {
 .table.table-monitoring {
   margin-top: -15px;
   margin-bottom: 15px;
+  width: 380px;
 }
 .table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
 .table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
@@ -667,6 +668,7 @@ h4.content-heading {
   column-rule: 0px solid #ecf0f5!important;
   
 }
+
 .notes{
   position: absolute;
   bottom: 35px;
@@ -681,6 +683,17 @@ h4.content-heading {
 #project_weather{
   margin-left: 15px;
 }
+
+.feeder-content{
+    overflow-x:auto;
+    overflow-y:hidden;
+    max-width:100%;
+    display: inline-flex;
+}
+.feeder-column{
+   padding-right: 10px;
+}
+
 /*.multicol hr{
   break-after: column;
   border: 1px solid #fff;
