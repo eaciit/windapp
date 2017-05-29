@@ -15,10 +15,11 @@ var hideYTD = false;
 var Data = {
     LoadData: function () {
         app.loading(false);
-        fa.LoadData();
+        var isValid = fa.LoadData();
+        if (isValid) {
+            this.InitGrid();
+        }
         // fa.getProjectInfo();
-        this.InitGrid();
-
     },
     InitGrid : function(){
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {

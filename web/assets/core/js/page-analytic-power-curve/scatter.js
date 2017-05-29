@@ -42,8 +42,10 @@ vm.breadcrumb([{
 }]);
 
 page.LoadData = function() {
-    fa.LoadData();
-    page.getPowerCurveScatter();
+    var isValid = fa.LoadData();
+    if (isValid) {
+        page.getPowerCurveScatter();
+    }
 }
 
 page.setAxis = function(name, title) {

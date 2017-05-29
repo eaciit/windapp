@@ -34,10 +34,10 @@ vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
-        for(let i=0;i<sum.periodList.length;i++) {
+        for(var i=0;i<sum.periodList.length;i++) {
             sum.paramPeriod.push(sum.periodList[i].value);
         }
-        for(let i=0;i<lgd.projectAvailList().length;i++) {
+        for(var i=0;i<lgd.projectAvailList().length;i++) {
             sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
         }
         var param = { ProjectName: project, Date: maxdate};
@@ -93,11 +93,9 @@ sum.loadData = function () {
             sum.Windiness(res.data["Data"]);
             sum.ProdMonth(res.data["Data"]);
             if(project === "Fleet") {
-                $(".ddlAvailability").css("visibility", "visible");
                 sum.availabilityData(res.data["Availability"])
                 sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
-                $(".ddlAvailability").css("visibility", "hidden");
                 sum.AvailabilityChart(res.data["Data"]);
             }
             sum.ProdCurLast(res.data["Data"]);

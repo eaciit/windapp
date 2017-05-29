@@ -2209,7 +2209,7 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 		for i := 1; i < len(projects)+1; i++ {
 			offerX := (div * i) - 12
-			log.Printf("> %v | %v | %v | %v \n", div, div*i, offerX, offerX+12)
+			// log.Printf("> %v | %v | %v | %v \n", div, div*i, offerX, offerX+12)
 
 			mrTmp = append(mrTmp, machineResult[offerX:offerX+12]...)
 			grTmp = append(grTmp, gridResult[offerX:offerX+12]...)
