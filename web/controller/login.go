@@ -167,6 +167,9 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	if err != nil {
 		return helper.CreateResult(false, "", err.Error())
 	}
+
+	// log.Printf("sessid: %v \n", sessid)
+
 	WriteLog(sessid, "login", r.Request.URL.String())
 	r.SetSession("sessionid", sessid)
 	r.SetSession("menus", menus)
