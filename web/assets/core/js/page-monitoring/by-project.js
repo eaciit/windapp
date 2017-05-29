@@ -144,7 +144,7 @@ bp.GetData = function(data) {
         });
 
         var someArray = feeders;
-        var groupSize = Math.floor(($(window).innerHeight() * (72 /100) - 24)/24);
+        var groupSize = Math.floor(($(window).innerHeight() - 215 - 24)/24);
 
         var groups = _.map(someArray, function(item, index){
           return index % groupSize === 0 ? someArray.slice(index, index + groupSize) : null; 
