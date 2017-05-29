@@ -9,12 +9,12 @@
 <div class="row">
     <div class="row">
         <div class="col-md-12 col-sm-12 ez panel-content">
-            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+            <div class="nav nav-pills nav-replace-title">
                 <div class="col-md-12 col-sm-12">
                     <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
                     <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: bp.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: bp.GetData}"
                     style="width:145px"></select>&nbsp;
-                    <label style="margin-top: 5px;margin-left: 10px"><i class="fa fa-map-marker"></i> <b> Jaisalmer</b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="project_temperature"></span> &deg; C</b> &nbsp;&nbsp;<span class="last-separator">|</span>&nbsp;&nbsp; <img id="project_img_weather" src="http://openweathermap.org/img/w/02d.png"/>
+                    <label id="location"><i class="fa fa-map-marker"></i> <b> Jaisalmer</b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="project_temperature"></span> &deg; C</b> &nbsp;&nbsp;<span class="last-separator">|</span>&nbsp;&nbsp; <img id="project_img_weather" src="http://openweathermap.org/img/w/02d.png"/>
                     <b><span id="project_weather"></span></b></label>
                 </div>
             </div>
@@ -22,11 +22,11 @@
     </div>
 
     <div class="col-md-12 col-sm-12 ez panel-content" id="monitoring-content">
-        <div class="col-md-12 col-sm-12 hardcore landing" style="margin-bottom: -25px;">
+        <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore">
                 <div class="panel-body">
                     <div class="project-info">
-                        <label style="margin-top: 15px;">
+                        <label>
                             Power Gen. (kW) : <strong><span  id="project_generation">0</span></strong> &nbsp;&nbsp;|&nbsp;&nbsp;
                             PLF (%) : <strong><span  id="project_plf">0</span></strong> &nbsp;&nbsp;|&nbsp;&nbsp;
                             Avg. Wind Speed (m/s) : <strong><span  id="project_wind_speed">0</span></strong> &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -36,44 +36,42 @@
                             Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="project_last_update"></span></b>
                         </div>
                     </div>
-                    <div id="tes">
-                        <div class="feeder-content" data-bind="foreach:bp.newFeeders()">
-                            <div class="feeder-column">
-                                <!-- <h5 class="feeder-title" data-bind="attr:{id : 'feeder_'+$index()}"><strong><span data-bind="text:feederName"></span></strong></h5> -->
-                                <div class="clearfix">&nbsp;</div>
-                                <table class="table table-monitoring">
-                                    <thead>
-                                        <tr>
-                                            <th width="50">Turbine</th>
-                                            <th width="10" class="text-center"><i data-toggle="tooltip" title="Turbine Status">St.</i></th>
-                                            <th width="45" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
-                                            <th width="45" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
-                                            <th width="35" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
-                                            <th width="35" class="text-center"><i data-toggle="tooltip" title="Rotor RPM">Rtr.</i></th>
-                                            <th width="35" class="text-center"><i data-toggle="tooltip" title="Pitch Angle">P.A.</i></th>
-                                            <th width="35" class="text-center"><i data-toggle="tooltip" title="Temperature">Temp</i></th>
-                                            <th width="35" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody data-bind="foreach:details">
-                                        <tr>
-                                            <td class="link-detail"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Turbine, click: function(){ bp.ToIndividualTurbine(Turbine)}, style: {color : colorFeeder}"></a></td>
-                                            <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr : {class:IconStatus}, click: function(){ bp.ToAlarm(Turbine)}"></a></td>
-                                            <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: kendo.toString(ActivePower, 'n2')">-</span></td>
-                                            <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: kendo.toString(WindSpeed, 'n2')">-</span></td>
-                                            <td align="right"><span data-bind="attr: { id: 'dir_'+ $data}, text: (NacellePosition > -999999) ? kendo.toString(NacellePosition, 'n2') : '-'">-</span></td>
-                                            <td align="right"><span data-bind="attr: { id: 'rotor_'+ $data }, text: (RotorRPM > -999999) ? kendo.toString(RotorRPM, 'n2') : '-'">-</span></td>
-                                            <td align="right"><span data-bind="attr: { id: 'pitch_'+ $data }, text: (PitchAngle > -999999) ? kendo.toString(PitchAngle, 'n2') : '-'">-</span></td>
-                                            <td align="right"><span data-bind="attr: { id: 'temperature_'+ $data ,class: TemperatureColor}, text: (Temperature > -999999) ? kendo.toString(Temperature, 'n2') : '-'">-</span></td>
-                                            <td align="center"><span data-bind="attr: { id: 'alarmdesc_'+ $data }" data-toggle="tooltip" title="">-</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div class="feeder-content" data-bind="foreach:bp.newFeeders()">
+                        <div class="feeder-column">
+                            <!-- <h5 class="feeder-title" data-bind="attr:{id : 'feeder_'+$index()}"><strong><span data-bind="text:feederName"></span></strong></h5> -->
+                            <div class="clearfix">&nbsp;</div>
+                            <table class="table table-monitoring">
+                                <thead>
+                                    <tr>
+                                        <th width="50">Turbine</th>
+                                        <th width="10" class="text-center"><i data-toggle="tooltip" title="Turbine Status">St.</i></th>
+                                        <th width="45" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
+                                        <th width="45" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
+                                        <th width="35" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
+                                        <th width="35" class="text-center"><i data-toggle="tooltip" title="Rotor RPM">Rtr.</i></th>
+                                        <th width="35" class="text-center"><i data-toggle="tooltip" title="Pitch Angle">P.A.</i></th>
+                                        <th width="35" class="text-center"><i data-toggle="tooltip" title="Temperature">Temp</i></th>
+                                        <th width="35" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach:details">
+                                    <tr>
+                                        <td class="link-detail"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Turbine, click: function(){ bp.ToIndividualTurbine(Turbine)}, style: {color : colorFeeder}"></a></td>
+                                        <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr : {class:IconStatus}, click: function(){ bp.ToAlarm(Turbine)}"></a></td>
+                                        <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: kendo.toString(ActivePower, 'n2')">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: kendo.toString(WindSpeed, 'n2')">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'dir_'+ $data}, text: (NacellePosition > -999999) ? kendo.toString(NacellePosition, 'n2') : '-'">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'rotor_'+ $data }, text: (RotorRPM > -999999) ? kendo.toString(RotorRPM, 'n2') : '-'">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'pitch_'+ $data }, text: (PitchAngle > -999999) ? kendo.toString(PitchAngle, 'n2') : '-'">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'temperature_'+ $data ,class: TemperatureColor}, text: (Temperature > -999999) ? kendo.toString(Temperature, 'n2') : '-'">-</span></td>
+                                        <td align="center"><span data-bind="attr: { id: 'alarmdesc_'+ $data }" data-toggle="tooltip" title="">-</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div class="col-md-12" style="top: 20px;">
+                    <div class="col-md-12" style="top: 35px;">
                         <b>Notes :</b> &nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-red"></i>&nbsp;&nbsp;Turbine Down&nbsp;&nbsp;&nbsp;

@@ -641,33 +641,6 @@ h4.content-heading {
   margin:-15px;
 }
 
-.multicol-div {
-    width: 100%;
-    /*height: auto;*/
-    white-space:nowrap;
-    /*overflow-x:auto;*/
-    /*overflow-y:hidden;*/
-    margin-bottom: -10px;
-}
-.multicol {
-   
-   padding: 5px;
-   display: inline;
-   margin-top: 10px;
-   /*height: 675px;*/
-  /* Safari and Chrome */
-  -webkit-column-count: 1 !important;
-  -webkit-column-rule: 2px solid #ecf0f5 !important;
-
-  /* Firefox */
-  -moz-column-count: 1; 
-  -moz-column-rule: 2px solid #ecf0f5;
-
-  /* CSS3 */
-  column-count: 1!important; 
-  column-rule: 0px solid #ecf0f5!important;
-  
-}
 
 .notes{
   position: absolute;
@@ -689,24 +662,24 @@ h4.content-heading {
     overflow-y:hidden;
     max-width:100%;
     display: inline-flex;
+    margin-bottom: -27.5px;
 }
 .feeder-column{
    padding-right: 10px;
 }
-
-/*.multicol hr{
-  break-after: column;
-  border: 1px solid #fff;
-}*/
-/*#turbine_weather{
-    font-size: 20px;
+.monitoring-content > .landing{
+  margin-bottom: -25px;
 }
-#turbine_temperature{
-    font-size: 20px;
+.hardcore > .panel-body{
+  margin-bottom: 65px;
 }
-#turbine_lat{
-    font-size: 20px;
+#location{
+  margin-top: 5px;
+  margin-left: 10px
 }
-#turbine_lon{
-    font-size: 20px;
-}*/
+.project-info > label{
+  margin-top: 15px;
+}
+.panel-content > .nav-replace-title{
+  padding-left: 5px;
+}
