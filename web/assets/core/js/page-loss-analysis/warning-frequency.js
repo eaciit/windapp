@@ -4,43 +4,45 @@ viewModel.WarningFrequency = new Object();
 var wf = viewModel.WarningFrequency;
 
 wf.Warning = function(){
-    fa.LoadData()
-    app.loading(true);
-    if(pg.isFirstWarning() === true){
-        var param = {
-            period: fa.period,
-            Turbine: fa.turbine(),
-            DateStart: fa.dateStart,
-            DateEnd: fa.dateEnd,
-            Project: fa.project
-        };
+    var isValid = fa.LoadData();
+    if(isValid) {
+        app.loading(true);
+        if(pg.isFirstWarning() === true){
+            var param = {
+                period: fa.period,
+                Turbine: fa.turbine(),
+                DateStart: fa.dateStart,
+                DateEnd: fa.dateEnd,
+                Project: fa.project
+            };
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getwarning", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.Data.length != 0) {
-                setTimeout(function(){
-                    wf.generateGrid(res.data.Data);
-                    app.loading(false);
-                },200);
-            }else{
-                setTimeout(function(){
-                    wf.generateGrid([]);
-                    app.loading(false);
-                },200);
-            }
-        });
-        $('#availabledatestart').html(pg.availabledatestartwarning());
-        $('#availabledateend').html(pg.availabledateendwarning());
-    }else{
-        setTimeout(function(){
-            $("#warningGrid").data("kendoGrid").refresh();
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getwarning", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                if (res.data.Data.length != 0) {
+                    setTimeout(function(){
+                        wf.generateGrid(res.data.Data);
+                        app.loading(false);
+                    },200);
+                }else{
+                    setTimeout(function(){
+                        wf.generateGrid([]);
+                        app.loading(false);
+                    },200);
+                }
+            });
             $('#availabledatestart').html(pg.availabledatestartwarning());
             $('#availabledateend').html(pg.availabledateendwarning());
-            app.loading(false);
-        },200);
-        
+        }else{
+            setTimeout(function(){
+                $("#warningGrid").data("kendoGrid").refresh();
+                $('#availabledatestart').html(pg.availabledatestartwarning());
+                $('#availabledateend').html(pg.availabledateendwarning());
+                app.loading(false);
+            },200);
+            
+        }
     }
 }
 
