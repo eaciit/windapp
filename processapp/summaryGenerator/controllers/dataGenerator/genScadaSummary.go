@@ -1050,7 +1050,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName string,
 	startDate time.Time, endDate time.Time, groupBy string, totalHour float64, noOfTurbine int, dividerPower float64,
-	pipeMatch tk.M, pipeGroup tk.M) tk.M {
+	pipeMatch tk.M, pipeGroup tk.M, plfDivider float64) tk.M {
 
 	switch groupBy {
 	case "dateinfo.dateid":
@@ -1105,12 +1105,12 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 	machineavail := make([]float64, 0)
 	gridavail := make([]float64, 0)
 
-	turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
+	// turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
 
-	var plfDivider float64
-	for _, v := range turbineList {
-		plfDivider += v.Capacity
-	}
+	// var plfDivider float64
+	// for _, v := range turbineList {
+	// 	plfDivider += v.Capacity
+	// }
 
 	for _, d := range scadaSums {
 		_id := d.Get("_id").(tk.M)
@@ -1214,12 +1214,17 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 			projectName := v.Value
 
 			var turbineList []TurbineOut
+			var plfDivider float64
 			if projectName != "" {
 				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			} else {
 				turbineList, _ = helper.GetTurbineList(nil)
 			}
 			noOfTurbine := len(turbineList)
+
+			for _, v := range turbineList {
+				plfDivider += v.Capacity
+			}
 
 			byproject := make([]*GWFAnalysisByProject, 0)
 			for idx, k := range keys {
@@ -1250,7 +1255,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.dateid",
 			}
-			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
+			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1305,7 +1310,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.weekid",
 			}
-			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
+			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1369,7 +1374,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.monthid",
 			}
-			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
+			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1432,7 +1437,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.qtrid",
 			}
-			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId)
+			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1530,15 +1535,17 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 		for _, v := range projectList {
 			projectName := v.Value
 
-			turbines := make([]TurbineMaster, 0)
-			csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
-				Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
+			// turbines := make([]TurbineMaster, 0)
+			turbines, _ := helper.GetTurbineList([]interface{}{projectName})
 
-			if e != nil {
-				log.Println(e.Error())
-			}
-			e = csr.Fetch(&turbines, 0, false)
-			csr.Close()
+			// csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
+			// 	Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
+
+			// if e != nil {
+			// 	log.Println(e.Error())
+			// }
+			// e = csr.Fetch(&turbines, 0, false)
+			// csr.Close()
 
 			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
 
@@ -1546,12 +1553,19 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 			strEnd := lastDate.Format("02-Jan-2006")
 
 			for _, t := range turbines {
+				var plfDivider float64
+				for _, v := range turbines {
+					if t.Value == v.Value {
+						plfDivider = v.Capacity
+					}
+				}
+
 				datas := make([]*GWFAnalysisByTurbine1, 0)
 				for idx, k := range keys {
 					m := new(GWFAnalysisByTurbine1).New()
 					m.Key = k
 					m.ProjectName = projectName
-					m.Turbine = t.TurbineId
+					m.Turbine = t.Value
 					m.OrderNo = idx
 
 					datas = append(datas, m)
@@ -1564,14 +1578,14 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 				totalHourPerDay := 24.0
 				pipeMatch := tk.M{
 					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("turbine", tk.M{}.Set("$eq", t.Value)).
 						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Day).Set("$lte", lastDate)),
 				}
 				pipeGroupId := tk.M{
 					"value":  "$turbine",
 					"period": "$dateinfo.dateid",
 				}
-				dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId)
+				dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -1620,14 +1634,14 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 				totalHourPerWeek := 24.0 * 7.0
 				pipeMatch = tk.M{
 					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("turbine", tk.M{}.Set("$eq", t.Value)).
 						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Week).Set("$lte", lastDate)),
 				}
 				pipeGroupId = tk.M{
 					"value":  "$turbine",
 					"period": "$dateinfo.weekid",
 				}
-				weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId)
+				weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -1685,14 +1699,14 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 				totalHourPerMonth := 24.0 * 30.0
 				pipeMatch = tk.M{
 					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("turbine", tk.M{}.Set("$eq", t.Value)).
 						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Month).Set("$lte", lastDate)),
 				}
 				pipeGroupId = tk.M{
 					"value":  "$turbine",
 					"period": "$dateinfo.monthid",
 				}
-				monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 1, 1000.0, pipeMatch, pipeGroupId)
+				monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -1749,14 +1763,14 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 				totalHourPerQtr := 24.0 * 90.0
 				pipeMatch = tk.M{
 					"$match": tk.M{}.Set("projectname", tk.M{}.Set("$eq", projectName)).
-						Set("turbine", tk.M{}.Set("$eq", t.TurbineId)).
+						Set("turbine", tk.M{}.Set("$eq", t.Value)).
 						Set("dateinfo.dateid", tk.M{}.Set("$gte", last12Qtr).Set("$lte", lastDate)),
 				}
 				pipeGroupId = tk.M{
 					"value":  "$turbine",
 					"period": "$dateinfo.qtrid",
 				}
-				qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 1, 1000.0, pipeMatch, pipeGroupId)
+				qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -1849,17 +1863,13 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 		projectList, _ := helper.GetProjectList()
 		for _, v := range projectList {
 			projectName := v.Value
-			turbines := make([]TurbineMaster, 0)
-			csr, e := ctx.NewQuery().From(new(TurbineMaster).TableName()).
-				Where(dbox.And(dbox.Eq("project", projectName))).Order("turbineid").Cursor(nil)
-
-			if e != nil {
-				log.Println(e.Error())
-			}
-			e = csr.Fetch(&turbines, 0, false)
-			csr.Close()
-
+			turbines, _ := helper.GetTurbineList([]interface{}{projectName})
 			noOfTurbines := len(turbines)
+
+			var plfDivider float64
+			for _, v := range turbines {
+				plfDivider += v.Capacity
+			}
 
 			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
 
@@ -1890,7 +1900,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$turbine",
 				"period": "$dateinfo.dateid",
 			}
-			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId)
+			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -1908,11 +1918,11 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 						item.OrderNo = 12 - i
 						item.Title = dDayId.Format("02-01-2006")
 						item.DataId = sId
-						item.Turbine = tb.TurbineId
+						item.Turbine = tb.Value
 
 						isFound := false
 						for idx, id := range Ids {
-							if id == sId && tb.TurbineId == sValue[idx] {
+							if id == sId && tb.Value == sValue[idx] {
 								isFound = true
 								dataItems := dailyData.Get(p.Key).([]float64)
 								item.Value = dataItems[idx]
@@ -1962,7 +1972,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$turbine",
 				"period": "$dateinfo.weekid",
 			}
-			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId)
+			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -1980,7 +1990,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 						item.OrderNo = 12 - i
 						item.Title = "W " + LeftPad2Len(strconv.Itoa(startWeek), "0", 2) + " " + strconv.Itoa(startYear)
 						item.DataId = sId
-						item.Turbine = tb.TurbineId
+						item.Turbine = tb.Value
 
 						isFound := false
 						for idx, id := range Ids {
@@ -2039,7 +2049,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.monthid",
 			}
-			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId)
+			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -2057,7 +2067,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 						item.OrderNo = 12 - i
 						item.Title = LeftPad2Len(strconv.Itoa(startMonth), "0", 2) + "-" + strconv.Itoa(startYear)
 						item.DataId = sId
-						item.Turbine = tb.TurbineId
+						item.Turbine = tb.Value
 
 						isFound := false
 						for idx, id := range Ids {
@@ -2122,7 +2132,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.qtrid",
 			}
-			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId)
+			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -2147,7 +2157,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 						item.OrderNo = 12 - i
 						item.Title = "Q" + LeftPad2Len(strconv.Itoa(startQtr), "0", 2) + "-" + strconv.Itoa(startYear)
 						item.DataId = sId
-						item.Turbine = tb.TurbineId
+						item.Turbine = tb.Value
 
 						isFound := false
 						for idx, id := range Ids {

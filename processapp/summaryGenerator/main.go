@@ -49,10 +49,10 @@ func main() {
 		// new(GenScadaSummary).Generate(base)                 // step 6
 		// new(GenScadaSummary).GenerateSummaryByFleet(base)   // step 7
 		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
-		new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
-		// new(GenScadaSummary).GenWFAnalysisByProject(base)  // step 10
-		// new(GenScadaSummary).GenWFAnalysisByTurbine1(base) // step 11
-		// new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
+		// new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
+		new(GenScadaSummary).GenWFAnalysisByProject(base)  // step 10
+		new(GenScadaSummary).GenWFAnalysisByTurbine1(base) // step 11
+		new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
 
 		// not dependent Generate
 		// new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
