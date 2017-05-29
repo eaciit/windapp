@@ -44,6 +44,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		alarmScadaAnomalyresults := make([]time.Time, 2)
 		scadaHFDResult := make([]time.Time, 2)
 		warningResult := make([]time.Time, 2)
+		scadaOEMResult := make([]time.Time, 2)
 
 		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 		dgrResults[0], dgrResults[1], e = getDataDateAvailable(conn, new(DGRModel).TableName(), "dateinfo.dateid", dbox.Eq("site", projectName))
@@ -55,7 +56,8 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
 		scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
 		scadaHFDResult[0], scadaHFDResult[1], e = getDataDateAvailable(conn, new(ScadaDataHFD).TableName(), "timestamp", dbox.Eq("projectname", projectName))
-		warningResult[0], warningResult[1], e = getDataDateAvailable(conn, new(ScadaDataHFD).TableName(), "timeend", dbox.Eq("projectname", projectName))
+		warningResult[0], warningResult[1], e = getDataDateAvailable(conn, new(EventAlarm).TableName(), "timeend", dbox.Eq("projectname", projectName))
+		scadaOEMResult[0], scadaOEMResult[1], e = getDataDateAvailable(conn, new(ScadaDataOEM).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 
 		availdatedata := struct {
 			ScadaData         []time.Time
@@ -69,6 +71,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 			AlarmScadaAnomaly []time.Time
 			ScadaDataHFD      []time.Time
 			Warning           []time.Time
+			ScadaDataOEM      []time.Time
 		}{
 			ScadaData:         scadaResults,
 			DGRData:           dgrResults,
@@ -81,6 +84,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 			AlarmScadaAnomaly: alarmScadaAnomalyresults,
 			ScadaDataHFD:      scadaHFDResult,
 			Warning:           warningResult,
+			ScadaDataOEM:      scadaOEMResult,
 		}
 
 		mdl := NewLatestDataPeriod()
@@ -144,15 +148,26 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.AlarmScadaAnomaly
 
+		d.BaseController.Ctx.Insert(mdl)
+
 		mdl = NewLatestDataPeriod()
 		mdl.Type = "ScadaDataHFD"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaDataHFD
 
+		d.BaseController.Ctx.Insert(mdl)
+
 		mdl = NewLatestDataPeriod()
 		mdl.Type = "Warning"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Warning
+
+		d.BaseController.Ctx.Insert(mdl)
+
+		mdl = NewLatestDataPeriod()
+		mdl.Type = "ScadaDataOEM"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.ScadaDataOEM
 
 		d.BaseController.Ctx.Insert(mdl)
 	}
