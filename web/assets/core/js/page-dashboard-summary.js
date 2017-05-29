@@ -93,11 +93,9 @@ sum.loadData = function () {
             sum.Windiness(res.data["Data"]);
             sum.ProdMonth(res.data["Data"]);
             if(project === "Fleet") {
-                $(".ddlAvailability").css("visibility", "visible");
                 sum.availabilityData(res.data["Availability"])
                 sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
-                $(".ddlAvailability").css("visibility", "hidden");
                 sum.AvailabilityChart(res.data["Data"]);
             }
             sum.ProdCurLast(res.data["Data"]);

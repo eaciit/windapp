@@ -42,6 +42,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		scadaAnomalyresults := make([]time.Time, 2)
 		alarmOverlappingresults := make([]time.Time, 2)
 		alarmScadaAnomalyresults := make([]time.Time, 2)
+		scadaHFDResult := make([]time.Time, 2)
 
 		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 		dgrResults[0], dgrResults[1], e = getDataDateAvailable(conn, new(DGRModel).TableName(), "dateinfo.dateid", dbox.Eq("site", projectName))
@@ -52,6 +53,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		metResults[0], metResults[1], e = getDataDateAvailable(conn, new(MetTower).TableName(), "timestamp", dbox.Eq("project", projectName))
 		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
 		scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
+		scadaHFDResult[0], scadaHFDResult[1], e = getDataDateAvailable(conn, new(ScadaDataHFD).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 
 		availdatedata := struct {
 			ScadaData         []time.Time
@@ -63,6 +65,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 			ScadaAnomaly      []time.Time
 			AlarmOverlapping  []time.Time
 			AlarmScadaAnomaly []time.Time
+			ScadaDataHFD      []time.Time
 		}{
 			ScadaData:         scadaResults,
 			DGRData:           dgrResults,
@@ -73,6 +76,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 			ScadaAnomaly:      scadaAnomalyresults,
 			AlarmOverlapping:  alarmOverlappingresults,
 			AlarmScadaAnomaly: alarmScadaAnomalyresults,
+			ScadaDataHFD:      scadaHFDResult,
 		}
 
 		mdl := NewLatestDataPeriod()
@@ -135,6 +139,11 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "AlarmScadaAnomaly"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.AlarmScadaAnomaly
+
+		mdl = NewLatestDataPeriod()
+		mdl.Type = "ScadaDataHFD"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.ScadaDataHFD
 
 		d.BaseController.Ctx.Insert(mdl)
 	}
