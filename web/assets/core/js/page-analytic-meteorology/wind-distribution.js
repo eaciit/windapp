@@ -224,22 +224,23 @@ wd.showHideLegend = function (idx) {
 }
 
 wd.WindDis = function(){
-    
-    fa.LoadData();
-    pm.showFilter();
-    if(pm.isFirstWindDis() === true){
-        app.loading(true);
-        wd.populateTurbine();
-        wd.ChartWindDistributon();
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-    }else{
-        app.loading(false);
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        setTimeout(function () {
-            $('#windDistribution').data('kendoChart').refresh();
+    var isValid = fa.LoadData();
+    if(isValid) {
+        pm.showFilter();
+        if(pm.isFirstWindDis() === true){
+            app.loading(true);
+            wd.populateTurbine();
+            wd.ChartWindDistributon();
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+        }else{
             app.loading(false);
-        }, 100);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+            setTimeout(function () {
+                $('#windDistribution').data('kendoChart').refresh();
+                app.loading(false);
+            }, 100);
+        }
     }
 }
