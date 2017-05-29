@@ -56,7 +56,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
 		scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
 		scadaHFDResult[0], scadaHFDResult[1], e = getDataDateAvailable(conn, new(ScadaDataHFD).TableName(), "timestamp", dbox.Eq("projectname", projectName))
-		warningResult[0], warningResult[1], e = getDataDateAvailable(conn, new(EventAlarm).TableName(), "timeend", dbox.Eq("projectname", projectName))
+		warningResult[0], warningResult[1], e = getDataDateAvailable(conn, new(EventAlarm).TableName(), "timestart", dbox.Eq("projectname", projectName))
 		scadaOEMResult[0], scadaOEMResult[1], e = getDataDateAvailable(conn, new(ScadaDataOEM).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 
 		availdatedata := struct {
