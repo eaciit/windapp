@@ -79,7 +79,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	// mutex.Lock()
 
 	now := time.Now()
-	log.Printf("Starting process %v | %v | %v \n", loop.Project, loop.Turbine, loop.LatestProcessTime.String())
+	log.Printf("Starting process %v | %v | %v | %v \n", loop.Project, loop.Turbine, loop.LatestFrom, loop.LatestProcessTime.String())
 
 	pipes := []tk.M{}
 
@@ -110,7 +110,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		err = csr.Fetch(&eventRaws, 0, false)
 		if err != nil {
 			log.Println("Error: " + err.Error())
-		} else {
+		} else if len(eventRaws) > 0 {
 
 			loopData := eventRaws
 
