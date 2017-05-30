@@ -50,9 +50,8 @@ func (l *LoginController) CheckCurrentSession(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 	sessionid := r.Session("sessionid", "")
 
-	// toolkit.Printf("CheckCurrentSession: %#v \v", sessionid)
-
 	if !acl.IsSessionIDActive(toolkit.ToString(sessionid)) {
+		toolkit.Printf(">> CheckCurrentSession - notactive: %#v \v", sessionid)
 		r.SetSession("sessionid", "")
 		return helper.CreateResult(false, false, "inactive")
 	}
@@ -176,37 +175,11 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	helper.WC = r
 	MenuList = menus
 
-	// temporary add last date hardcode, then will change to get it from database automatically
-	// add by ams, 2016-10-04
-
-	// query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
-
-	// csr, e := query.Cursor(nil)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
-
-	// Result := make([]ScadaData, 0)
-	// e = csr.Fetch(&Result, 0, false)
-
-	// csr.Close()
-
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
-
-	// for _, val := range Result {
-	// 	// toolkit.Printf("Result : %s \n", val.TimeStamp.UTC())
-	// 	lastDateData = val.TimeStamp.UTC()
-	// }
-
-	// // toolkit.Printf("Result : %s \n", lastDateData)
-	// lastDateData = lastDateData.UTC()
-	// r.SetSession("lastdate_data", lastDateData)
-
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+
+	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
 	lastDateData = datePeriod.ScadaData[1].UTC()
 	r.SetSession("lastdate_data", lastDateData)

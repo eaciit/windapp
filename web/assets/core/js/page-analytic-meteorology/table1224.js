@@ -174,55 +174,56 @@ tb.refreshTable = function(datatype){
 }
 
 tb.Table = function(){
-    
-    pm.hideFilter();
-    fa.LoadData();
-    var datatype = '';
-    if(pm.isFirstTwelve() === true){
-        app.loading(true);
-        if(datatype == undefined || datatype == ''){
-            if($("#met").is(':checked')) {
-                datatype = 'met';
-            } else {
-                datatype = 'turbine';
+    var isValid = fa.LoadData();
+    if(isValid) {
+        pm.hideFilter();
+        var datatype = '';
+        if(pm.isFirstTwelve() === true){
+            app.loading(true);
+            if(datatype == undefined || datatype == ''){
+                if($("#met").is(':checked')) {
+                    datatype = 'met';
+                } else {
+                    datatype = 'turbine';
+                }
+            }else{
+                datatype = datatype;
             }
+            
+
+            var param = {
+                Turbine: fa.turbine(),
+                Project: fa.project,
+            };
+
+            toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                tb.dataSourceTable(res.data);
+                tb.generateGridTable(datatype);
+                pm.isFirstTwelve(false); 
+                if($("#met").is(':checked')) {
+                    $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+                    $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
+                } else {
+                    $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                    $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+                }
+            });
         }else{
-            datatype = datatype;
+            setTimeout(function(){
+                tb.refreshTable(datatype);
+                if($("#met").is(':checked')) {
+                    pm.isMet(true);
+                    $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
+                    $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
+                } else {
+                     pm.isMet(false);
+                    $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                    $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+                }
+            },300);
         }
-        
-
-        var param = {
-            Turbine: fa.turbine(),
-            Project: fa.project,
-        };
-
-        toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            tb.dataSourceTable(res.data);
-            tb.generateGridTable(datatype);
-            pm.isFirstTwelve(false); 
-            if($("#met").is(':checked')) {
-                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
-                $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
-            } else {
-                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-            }
-        });
-    }else{
-        setTimeout(function(){
-            tb.refreshTable(datatype);
-            if($("#met").is(':checked')) {
-                pm.isMet(true);
-                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
-                $('#availabledateend').html('<strong>' + availDateList.availabledateendmet + '</strong>');
-            } else {
-                 pm.isMet(false);
-                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-            }
-        },300);
     }
 }

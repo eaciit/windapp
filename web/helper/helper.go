@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -340,7 +341,52 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 	}
 	sessionid := WC.Session("sessionid", "")
 
-	// log.Printf(">> %v \n", sessionid)
+	log.Printf(">> %v \n", sessionid)
+
+	if toolkit.ToString(sessionid) == "" {
+		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "Your session has expired, please login"
+		}
+	} else {
+		if !success && data == nil {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "data is empty"
+		}
+	}
+
+	return map[string]interface{}{
+		"data":    data,
+		"success": success,
+		"message": message,
+	}
+}
+
+func CreateResultX(success bool, data interface{}, message string, r *knot.WebContext) map[string]interface{} {
+	if !success {
+		toolkit.Println("ERROR! ", message)
+		if DebugMode {
+			panic(message)
+		}
+	}
+	sessionid := r.Session("sessionid", "")
+
+	log.Printf(">> %v \n", sessionid)
 
 	if toolkit.ToString(sessionid) == "" {
 		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {

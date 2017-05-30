@@ -44,139 +44,141 @@ tc.getCss = function(index, da){
 
 // Turbine Correlation
 tc.TurbineCorrelation = function(){
-    fa.LoadData();
-    pm.showFilter();
-    if(pm.isFirstTurbine() === true){
-        app.loading(true);
-        var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine(),
-            project: fa.project
-        };
-        var dataSource;
-        var columns;
-        var heat;
-         toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getwindcorrelation", param, function (res) {
-            if (!app.isFine(res)) {
-                app.loading(false);
-                return;
-            }
-            dataSource = res.data.Data;
-            columns = res.data.Column;
-            heat = res.data.Heat;
-
-            tc.datas(dataSource);
-            tc.newData(heat);
-            tc.Column(columns);
-
-
-
-            var schemaModel = {};
-            var columnArray = [];
-
-            $.each(columns, function (index, da) {
-                schemaModel[da] = {type: (da == "Turbine" ? "string" : "int")};
-
-                var column = {
-                    title: da,
-                    field: da,
-                    locked: (da == "Turbine" ? true : false),
-                    headerAttributes: {
-                        style: "text-align: center;",
-                    },
-                    attributes: {
-                        style: "text-align:center",
-                        turbine: da,
-                        index: index,
-                    },
-                    width: 70,
-                    template:( da != "Turbine" ? "#= kendo.toString("+da+", 'n2') #" : "#= kendo.toString("+da+") #")
+    var isValid = fa.LoadData();
+    if(isValid) {
+        pm.showFilter();
+        if(pm.isFirstTurbine() === true){
+            app.loading(true);
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine(),
+                project: fa.project
+            };
+            var dataSource;
+            var columns;
+            var heat;
+             toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getwindcorrelation", param, function (res) {
+                if (!app.isFine(res)) {
+                    app.loading(false);
+                    return;
                 }
+                dataSource = res.data.Data;
+                columns = res.data.Column;
+                heat = res.data.Heat;
 
-                columnArray.push(column);
-            });
-
-            var schemaModelNew = kendo.data.Model.define({
-                id: "Turbine",
-                fields: schemaModel,
-            });
-
-            var knownOutagesDataSource = new kendo.data.DataSource({
-                data: dataSource,
-                schema: {
-                    model: schemaModelNew
-                }
-            });
-            $("#gridTurbineCorrelation").html("");
-            $("#gridTurbineCorrelation").kendoGrid({
-                dataSource: knownOutagesDataSource,
-                columns: columnArray,
-                filterable: false,
-                sortable: false,
-                dataBound: function (e) {
-                    
-                    var ini = this.wrapper;
-                    $.each(tc.Column(), function(i, col){
-                        var columns = e.sender.columns;
-                        var columnIndex = ini.find(".k-grid-header [data-field=" + col + "]").index();
-
-                        // iterate the data items and apply row styles where necessary
-                        var dataItems = e.sender.dataSource.view();
-                        for (var j = 0; j < dataItems.length; j++) {
-
-                            var units = dataItems[j].get(col);
-      
-                            var row = e.sender.tbody.find("[data-uid='" + dataItems[j].uid + "']");
-                            var cell = row.children().eq(columnIndex);
-
-                            cell.css(tc.getCss(j,col));
-                        }
-                    });
+                tc.datas(dataSource);
+                tc.newData(heat);
+                tc.Column(columns);
 
 
-                    if (e.sender._data.length == 0) {
-                        var mgs, col;
-                        mgs = "No results found for";
-                        col = 9;
-                        var contentDiv = this.wrapper.children(".k-grid-content"),
-                        dataTable = contentDiv.children("table");
-                        if (!dataTable.find("tr").length) {
-                            dataTable.children("tbody").append("<tr><td colspan='" + col + "'><div style='color:red;width:500px'>" + mgs + "</div></td></tr>");
-                            if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
-                                dataTable.width(this.wrapper.children(".k-grid-header").find("table").width());
-                                contentDiv.scrollLeft(1);
+
+                var schemaModel = {};
+                var columnArray = [];
+
+                $.each(columns, function (index, da) {
+                    schemaModel[da] = {type: (da == "Turbine" ? "string" : "int")};
+
+                    var column = {
+                        title: da,
+                        field: da,
+                        locked: (da == "Turbine" ? true : false),
+                        headerAttributes: {
+                            style: "text-align: center;",
+                        },
+                        attributes: {
+                            style: "text-align:center",
+                            turbine: da,
+                            index: index,
+                        },
+                        width: 70,
+                        template:( da != "Turbine" ? "#= kendo.toString("+da+", 'n2') #" : "#= kendo.toString("+da+") #")
+                    }
+
+                    columnArray.push(column);
+                });
+
+                var schemaModelNew = kendo.data.Model.define({
+                    id: "Turbine",
+                    fields: schemaModel,
+                });
+
+                var knownOutagesDataSource = new kendo.data.DataSource({
+                    data: dataSource,
+                    schema: {
+                        model: schemaModelNew
+                    }
+                });
+                $("#gridTurbineCorrelation").html("");
+                $("#gridTurbineCorrelation").kendoGrid({
+                    dataSource: knownOutagesDataSource,
+                    columns: columnArray,
+                    filterable: false,
+                    sortable: false,
+                    dataBound: function (e) {
+                        
+                        var ini = this.wrapper;
+                        $.each(tc.Column(), function(i, col){
+                            var columns = e.sender.columns;
+                            var columnIndex = ini.find(".k-grid-header [data-field=" + col + "]").index();
+
+                            // iterate the data items and apply row styles where necessary
+                            var dataItems = e.sender.dataSource.view();
+                            for (var j = 0; j < dataItems.length; j++) {
+
+                                var units = dataItems[j].get(col);
+          
+                                var row = e.sender.tbody.find("[data-uid='" + dataItems[j].uid + "']");
+                                var cell = row.children().eq(columnIndex);
+
+                                cell.css(tc.getCss(j,col));
+                            }
+                        });
+
+
+                        if (e.sender._data.length == 0) {
+                            var mgs, col;
+                            mgs = "No results found for";
+                            col = 9;
+                            var contentDiv = this.wrapper.children(".k-grid-content"),
+                            dataTable = contentDiv.children("table");
+                            if (!dataTable.find("tr").length) {
+                                dataTable.children("tbody").append("<tr><td colspan='" + col + "'><div style='color:red;width:500px'>" + mgs + "</div></td></tr>");
+                                if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
+                                    dataTable.width(this.wrapper.children(".k-grid-header").find("table").width());
+                                    contentDiv.scrollLeft(1);
+                                }
                             }
                         }
-                    }
-                    
-                },
-                pageable: false,
-                scrollable: true,
-                resizable: false,
-                height:390,
-            });
+                        
+                    },
+                    pageable: false,
+                    scrollable: true,
+                    resizable: false,
+                    height:390,
+                });
 
-            setTimeout(function(){
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
-                $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
-                $("#gridTurbineCorrelation").data("kendoGrid").refresh(); 
-                app.loading(false);
-                pm.isFirstTurbine(false)    
-            },200);
+                setTimeout(function(){
+                    $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+                    $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
+                    $("#gridTurbineCorrelation").data("kendoGrid").refresh(); 
+                    app.loading(false);
+                    pm.isFirstTurbine(false)    
+                },200);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+
+            });
+        }else{
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-
-        });
-    }else{
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        setTimeout(function(){
-             app.loading(false);
-             $("#gridTurbineCorrelation").data("kendoGrid").refresh();
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
-             $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
-        }, 500);
+            setTimeout(function(){
+                 app.loading(false);
+                 $("#gridTurbineCorrelation").data("kendoGrid").refresh();
+                 $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-wrap > table > thead >tr").css("height","37px");
+                 $("#gridTurbineCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
+            }, 500);
+        }
     }
 }
