@@ -627,7 +627,6 @@ page.removeFilter = function (id) {
 }
 
 page.refreshFilter = function (id) {
-	$('#btn-refresh-'+id).button("loading");
 	setTimeout(function(){
 		var startdate = $('#dateStart-' + id).data('kendoDatePicker').value();
 		var enddata = $('#dateEnd-' + id).data('kendoDatePicker').value();
@@ -636,6 +635,7 @@ page.refreshFilter = function (id) {
 			toolkit.showError("Invalid Date Range Selection");
 			return;
 		} else {
+			$('#btn-refresh-'+id).button("loading");
 			var turbine = [];
 			var isAllTurbine = false;
 
