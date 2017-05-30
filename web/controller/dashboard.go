@@ -2501,7 +2501,7 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 		Data: result,
 	}
 
-	return helper.CreateResult(true, data, "success")
+	return helper.CreateResultX(true, data, "success", k)
 }
 
 func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{} {
