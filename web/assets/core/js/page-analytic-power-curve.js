@@ -827,7 +827,7 @@ $(document).ready(function() {
                 //     }
                 // }else{
                 //     page.resetFilter();
-                }
+                // }
                 page.resetFilter();
                 Data.InitLinePowerCurve();
             }
