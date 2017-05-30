@@ -797,6 +797,7 @@ page.HideforScatter = function() {
 }
 
 $(document).ready(function() {
+
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {
@@ -813,8 +814,14 @@ $(document).ready(function() {
     });
 
     setTimeout(function() {
+        $(".label-filter:contains('Turbine')" ).hide();
+        $('.multiselect-native-select').hide();
         Data.LoadData();
     }, 1000);
+
+    $('.keep-open').click(function (e) {
+      e.stopPropagation()
+    });
 
     $("input[name=isAvg]").on("change", function() {
         page.viewSession(this.id);

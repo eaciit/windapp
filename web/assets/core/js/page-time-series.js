@@ -182,7 +182,7 @@ pg.createStockChart = function(y){
                 $('.highcharts-range-selector-buttons').hide();
                 var param = {
                     period: fa.period,
-                    Turbine: fa.turbine(),
+                    Turbine: fa.turbine,
                     DateStart: date1,
                     DateEnd: date2,
                     Project: fa.project,
@@ -462,7 +462,6 @@ pg.getDataStockChart = function(param){
         // if (param == "refresh") {
         pg.dataType("MIN");
         // }
-
         app.loading(true);
         clearInterval(interval);
         if(param == "selectTags"){
@@ -515,7 +514,7 @@ pg.getDataStockChart = function(param){
         
         var paramX = {
             period: fa.period,
-            Turbine: [turbine],
+            Turbine: turbine,
             DateStart: dateStart,
             DateEnd: dateEnd,
             Project: fa.project,
@@ -591,7 +590,7 @@ pg.createLiveChart = function(IsHour){
         var seriesData = seriesOptions;
         var paramX = {
             period: fa.period,
-            Turbine: fa.turbine(),
+            Turbine: fa.turbine,
             DateStart: dateStart,
             DateEnd: dateEnd,
             Project: fa.project,
@@ -634,7 +633,7 @@ pg.createLiveChart = function(IsHour){
                             interval = setInterval(function () {
                                 var paramX = {
                                     period: fa.period,
-                                    Turbine: fa.turbine(),
+                                    Turbine: fa.turbine,
                                     DateStart: dateStart,
                                     DateEnd: dateEnd,
                                     Project: fa.project,
