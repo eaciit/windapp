@@ -116,7 +116,7 @@ type PayloadPCComparison struct {
 type PayloadTimeSeries struct {
 	Period    string
 	Project   string
-	Turbine   []interface{}
+	Turbine   string
 	DateStart time.Time
 	DateEnd   time.Time
 	TagList   []string
