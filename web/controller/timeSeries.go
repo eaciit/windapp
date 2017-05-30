@@ -103,12 +103,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 
 	projectName := p.Project
 
-	turbine := ""
-
-	if len(p.Turbine) == 1 {
-		turbine = p.Turbine[0].(string)
-	}
-
+	turbine := p.Turbine
 	dataType := p.DataType
 	pageType := p.PageType
 

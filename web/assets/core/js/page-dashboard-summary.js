@@ -21,9 +21,9 @@ sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
 sum.dataSourceWindDistribution = ko.observable();
 sum.windDistData = ko.observable();
-sum.periodSelected = ko.observable('last12months');
+sum.periodSelected = ko.observable('currentmonth');
 sum.periodList = [
-    {"text": "Last 12 Months", "value": "last12months"},
+    // {"text": "Last 12 Months", "value": "last12months"},
     {"text": "Current Month", "value": "currentmonth"}
 ]
 sum.paramPeriod = [];
