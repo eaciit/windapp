@@ -35,9 +35,9 @@
 }
 
 .Epdf{
-    margin-top: -30px;
-    margin-right: 20px;
-    cursor:pointer
+    cursor: pointer;
+    margin-left: 10px !important;
+    font-weight: bold;
 }
 .turList{
     max-height:300px;
@@ -141,4 +141,10 @@
     font-size: 10px;
     width: 55px;
     font-weight: 600;
+}
+#filter-power-curve{
+    width: 275px;
+}
+.form-inline.form-group{
+    margin-left: 20px;
 }
