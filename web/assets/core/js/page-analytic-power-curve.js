@@ -29,6 +29,8 @@ page.deviationVal = ko.observable("20");
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
+page.currProject = ko.observable();
+page.project = ko.observable();
 
 page.backToMain = function() {
     page.isMain(true);
@@ -776,6 +778,18 @@ page.hideAll = function() {
     }
 }
 
+page.resetFilter = function(){
+    page.isClean(true);
+    page.isDeviation(true);
+    page.sScater(false);
+    page.showDownTime(false);
+    page.deviationVal(20);
+    $('#isClean').prop('checked',true);
+    $('#isDeviation').prop('checked',true);
+    $('#sScater').prop('checked',false);
+    $('#showDownTime').prop('checked',false);
+}
+
 page.HideforScatter = function() {
     var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
@@ -801,21 +815,32 @@ $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {
+            var project = $('#projectList').data("kendoDropDownList").value();
             var isValid = fa.LoadData();
             if(isValid) {
                 app.loading(true);
-                if (page.sScater() && $("#turbineList").val().length > 3) {
-                    swal('Warning', 'You can only select 3 turbines !', 'warning');
-                    return
+
+                // if(page.project() == page.currProject()){
+                //     if (page.sScater() && $("#turbineList").val().length > 3) {
+                //         swal('Warning', 'You can only select 3 turbines !', 'warning');
+                //         return
+                //     }
+                // }else{
+                //     page.resetFilter();
                 }
+                page.resetFilter();
                 Data.InitLinePowerCurve();
             }
+            page.project(project);
         }, 1000);
     });
 
     setTimeout(function() {
         $(".label-filter:contains('Turbine')" ).hide();
         $('.multiselect-native-select').hide();
+        page.currProject(fa.project);
+        page.project(fa.project);
+
         Data.LoadData();
     }, 1000);
 
@@ -864,6 +889,15 @@ $(document).ready(function() {
         suggest: true,
         change: function () { 
             var project = $('#projectList').data("kendoDropDownList").value();
+            var lastProject = page.currProject();
+            if(project != lastProject){
+                page.project(lastProject)
+                page.currProject(project);
+            }else{
+                page.project(project)
+                page.currProject(project);
+            }
+
             fa.populateTurbine(project);
          }
     });

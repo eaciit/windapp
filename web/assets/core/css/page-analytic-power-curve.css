@@ -40,10 +40,10 @@
     font-weight: bold;
 }
 .turList{
-    max-height:300px;
-    height: 300px;
+    max-height:360px;
+    height: 360px;
     overflow-x: auto;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 .cFilter{
     min-height:200px;
@@ -167,4 +167,7 @@
 {
     background-color: #000000;
     border: 2px solid #555555;
+}
+#content-power-curve{
+    height: 475px;
 }

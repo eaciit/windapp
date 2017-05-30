@@ -474,6 +474,7 @@ pg.getDataStockChart = function(param){
         var COOKIES = {};
         var cookieStr = document.cookie;
         var turbine = "";
+        var project = "";
         
         // console.log(cookieStr);
         if(cookieStr.indexOf("turbine=") >= 0) {
@@ -484,9 +485,20 @@ pg.getDataStockChart = function(param){
                 COOKIES[cookieName] = cookieValue;
             });
             turbine = COOKIES["turbine"];
-            $('#turbineList').data('kendoDropDownList').value(turbine);
+            project = COOKIES["project"];
+            
+            console.log(project);
+            setTimeout(function(){
+                $('#projectList').data('kendoDropDownList').value(project);
+                var change = $("#projectList").data("kendoDropDownList").trigger("change");
+                setTimeout(function(){
+                    $('#turbineList').data('kendoDropDownList').value(turbine);
+                },200);
+            },500);
+
         } else {
             turbine = $('#turbineList').data('kendoDropDownList').value();
+            project = $('#projectList').data('kendoDropDownList').value();
         }
 
         var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));

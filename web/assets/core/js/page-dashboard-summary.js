@@ -892,7 +892,7 @@ sum.indiaMap = function (project) {
                         lgd.LoadData();
                     }, 200);
                 }else{
-                    sum.ToMonitoringIndividual(project, obj.name);
+                    sum.ToMonitoringIndividual(project, obj.value);
                 }
             });
         });

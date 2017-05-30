@@ -271,7 +271,8 @@ bp.ToIndividualTurbine = function(turbine) {
     setTimeout(function(){
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
-        document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
         window.location = viewModel.appName + "page/monitoringbyturbine";
     },300);
