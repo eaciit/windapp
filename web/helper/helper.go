@@ -386,7 +386,7 @@ func CreateResultX(success bool, data interface{}, message string, r *knot.WebCo
 	}
 	sessionid := r.Session("sessionid", "")
 
-	log.Printf(">> %v \n", sessionid)
+	// log.Printf(">> %v \n", sessionid)
 
 	if toolkit.ToString(sessionid) == "" {
 		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
