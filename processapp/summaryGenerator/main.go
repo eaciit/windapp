@@ -43,18 +43,18 @@ func main() {
 		// new(UpdateScadaOemMinutes).GenerateDensity(base)    // step 0
 		// new(UpdateOEMToScada).RunMapping(base)              // step 1
 		// new(EventToAlarm).ConvertEventToAlarm(base)         // step 2
-		tk.Println("step 3")
-		new(GenAlarmSummary).Generate(base) // step 3
-		tk.Println("step 4")
-		new(GenDataPeriod).Generate(base) // step 4
-		tk.Println("step 5")
-		new(GenScadaLast24).Generate(base) // step 5
-		tk.Println("step 6")
-		new(GenScadaSummary).Generate(base) // step 6
-		tk.Println("step 7")
-		new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
-		tk.Println("step 8")
-		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
+		// tk.Println("step 3")
+		// new(GenAlarmSummary).Generate(base) // step 3
+		// tk.Println("step 4")
+		// new(GenDataPeriod).Generate(base) // step 4
+		// tk.Println("step 5")
+		// new(GenScadaLast24).Generate(base) // step 5
+		// tk.Println("step 6")
+		// new(GenScadaSummary).Generate(base) // step 6
+		// tk.Println("step 7")
+		// new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
+		// tk.Println("step 8")
+		// new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
 		tk.Println("step 9")
 		new(GenScadaSummary).GenerateSummaryDaily(base) // step 9
 		tk.Println("step 10")
