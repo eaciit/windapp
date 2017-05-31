@@ -294,9 +294,11 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	alldata, allturbine := []tk.M{}, tk.M{}
 	turbineMap := map[string]tk.M{}
 
-	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder", "turbinename", "latitude", "longitude").
+	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder", "turbinename", "latitude", "longitude", "capacitymw").
 		From("ref_turbine").
-		Where(dbox.Eq("project", project)).Cursor(nil)
+		Where(dbox.Eq("project", project)).
+		Order("turbinename").
+		Cursor(nil)
 
 	if err != nil {
 		tk.Println(err.Error())
@@ -314,7 +316,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		lturbine = append(lturbine, turbine)
 		sort.Strings(lturbine)
 		allturbine.Set(_tkm.GetString("feeder"), lturbine)
-		turbineMap[turbine] = tk.M{"coords": []float64{_tkm.GetFloat64("latitude"), _tkm.GetFloat64("longitude")}, "name": _tkm.GetString("turbinename")}
+		turbineMap[turbine] = tk.M{"coords": []float64{_tkm.GetFloat64("latitude"), _tkm.GetFloat64("longitude")}, "name": _tkm.GetString("turbinename"), "capacity": _tkm.GetFloat64("capacitymw") * 1000.0}
 	}
 
 	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
@@ -373,7 +375,8 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 					Set("AlarmDesc", "").
 					Set("Status", 1).
 					Set("IsWarning", false).
-					Set("AlarmUpdate", time.Time{})
+					Set("AlarmUpdate", time.Time{}).
+					Set("Capacity", turbineMp.GetFloat64("capacity"))
 
 				for _, afield := range arrfield {
 					_itkm.Set(afield, defaultValue)
@@ -500,7 +503,8 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			Set("IconStatus", "fa fa-circle fa-project-info fa-grey").
 			Set("ActivePowerColor", "defaultcolor").
 			Set("TemperatureColor", "defaultcolor").
-			Set("WindSpeedColor", "defaultcolor")
+			Set("WindSpeedColor", "defaultcolor").
+			Set("Capacity", turbineMp.GetFloat64("capacity"))
 
 		for _, afield := range arrfield {
 			_itkm.Set(afield, defaultValue)
