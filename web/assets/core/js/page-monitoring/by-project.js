@@ -291,7 +291,17 @@ bp.PlotData = function(data) {
         if(val.DataComing==0) {
             colorStatus = "lbl bg-grey";
         }
-        $('#statusturbine_'+ turbine).attr('class', colorStatus);
+
+        var comparison = 0;
+        if((val.ActivePower / val.Capacity) >= 0){
+            comparison = (val.ActivePower / val.Capacity) * 70;
+            $('#statusturbine_'+ turbine).attr('class', colorStatus);
+            $('#statusturbine_'+ turbine).css('width', comparison + 'px');
+        }else{
+            comparison = 0;
+            $('#statusturbine_'+ turbine).attr('class', 'lbl');
+        }
+
 
 
     });
@@ -365,6 +375,6 @@ $(function() {
 
     setTimeout(function() {
         bp.GetData()
-        setInterval(bp.GetData, 4000);
+        // setInterval(bp.GetData, 4000);
     }, 600);
 });

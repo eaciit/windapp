@@ -696,6 +696,15 @@ h4.content-heading {
   padding-left: 5px;
 }
 
+.progress-custom{
+  width: 70px;
+  display: inline-block;
+  padding-top: 0px;
+  line-height: 1;
+  background-color: #B0BEC5;
+  text-align: left;
+}
+
 .lbl{
   display: inline;
   padding: 0.2em 0.5em 0.2em;
@@ -708,14 +717,13 @@ h4.content-heading {
   font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
   font-size: 90%;
   font-weight: 600;
-  width: 70px;
   display: inline-flex;
 }
 
-.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
-    background-color: #263238 !important;
+/*.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
+    background-color: #fff !important;
     color: white;
-}
+}*/
 
 .maximize-mode .main-header, .maximize-mode .bread-info{
     display: none;
@@ -725,7 +733,7 @@ h4.content-heading {
     display: block;
 }
 
-.maximize-mode .ez.panel {
+/*.maximize-mode .ez.panel {
     border-radius: 0px;
 }
 
@@ -760,11 +768,11 @@ h4.content-heading {
 }
 
 .maximize-mode .table-striped>tbody>tr:nth-of-type(odd) {
-  background-color: #2d3d46;
+  background-color: #fff;
 }
 
 .maximize-mode .detail-tbl .table-striped>tbody>tr:nth-of-type(odd) {
-  background-color: #f9f9f9;
+  background-color: #;
 }
 
 .maximize-mode .modal-lg {
@@ -773,5 +781,5 @@ h4.content-heading {
 
 .maximize-mode .panel-body{
     padding: 0px;
-}
+}*/
 

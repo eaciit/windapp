@@ -58,7 +58,7 @@
                                        <td colspan="9"><strong><span data-bind="text:feederName"></span></strong></td> 
                                     </tr>
                                     <tr data-bind="visible:isHeader == false">
-                                        <td class="link-detail"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></td>
+                                        <td class="link-detail"><span class="progress-custom"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></span></td>
                                         <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: kendo.toString(ActivePower, 'n2')">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: kendo.toString(WindSpeed, 'n2')">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'dir_'+ Turbine}, text: (NacellePosition > -999999) ? kendo.toString(NacellePosition, 'n2') : '-'">-</span></td>
