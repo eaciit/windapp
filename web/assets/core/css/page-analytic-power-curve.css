@@ -40,10 +40,10 @@
     font-weight: bold;
 }
 .turList{
-    max-height:300px;
-    height: 300px;
+    max-height:360px;
+    height: 360px;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: auto;
 }
 .cFilter{
     min-height:200px;
@@ -147,4 +147,27 @@
 }
 .form-inline.form-group{
     margin-left: 20px;
+}
+
+
+/*SCROLLBAR*/
+#right-turbine-list::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+}
+
+#right-turbine-list::-webkit-scrollbar
+{
+    width: 5px;
+    background-color: #F5F5F5;
+}
+
+#right-turbine-list::-webkit-scrollbar-thumb
+{
+    background-color: #000000;
+    border: 2px solid #555555;
+}
+#content-power-curve{
+    height: 475px;
 }

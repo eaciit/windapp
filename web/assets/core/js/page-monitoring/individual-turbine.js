@@ -488,8 +488,15 @@ it.ShowData = function() {
         });
         turbine = COOKIES["turbine"];
         project = COOKIES["project"];
-        $('#turbine').data('kendoDropDownList').value(turbine);
-        $('#projectList').data('kendoDropDownList').value(project);
+        console.log(turbine);
+        setTimeout(function(){
+            $('#projectList').data('kendoDropDownList').value(project);
+            var change = $("#projectList").data("kendoDropDownList").trigger("change");
+            setTimeout(function(){
+                $('#turbine').data('kendoDropDownList').value(turbine);
+            },200);
+        },500);
+
     } else {
         turbine = $('#turbine').data('kendoDropDownList').value();
         project = $('#projectList').data('kendoDropDownList').value();
@@ -835,6 +842,8 @@ it.ToTimeSeriesHfd = function() {
         var turbine = $("#turbine").val();
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
         window.location = viewModel.appName + "page/timeserieshfd";
     },300);

@@ -470,6 +470,42 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		alldata = append(alldata, _itkm)
 	}
 
+	isInDetail := func(_turbine string) bool {
+		for _, _tkm := range alldata {
+			if _turbine == _tkm.GetString("Turbine") {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, _tkm := range _result {
+		_turbine := _tkm.GetString("turbineid")
+		if isInDetail(_turbine) {
+			continue
+		}
+
+		_itkm = tk.M{}.
+			Set("Turbine", _turbine).
+			Set("DataComing", 0).
+			Set("AlarmCode", 0).
+			Set("AlarmDesc", "").
+			Set("Status", 0).
+			Set("IsWarning", false).
+			Set("AlarmUpdate", time.Time{}).
+			Set("DataComing", 0).
+			Set("IconStatus", "fa fa-circle fa-project-info fa-grey").
+			Set("ActivePowerColor", "defaultcolor").
+			Set("TemperatureColor", "defaultcolor").
+			Set("WindSpeedColor", "defaultcolor")
+
+		for _, afield := range arrfield {
+			_itkm.Set(afield, defaultValue)
+		}
+
+		alldata = append(alldata, _itkm)
+	}
+
 	if pageType == "monitoring" {
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
