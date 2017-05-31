@@ -362,10 +362,12 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			}
 			_iContinue = false
 			_iTurbine = _tTurbine
+			turbineMp := turbineMap[_tTurbine]
 
 			if pageType == "monitoring" {
 				_itkm = tk.M{}.
 					Set("Turbine", _tTurbine).
+					Set("Name", turbineMp.GetString("name")).
 					Set("DataComing", 0).
 					Set("AlarmCode", 0).
 					Set("AlarmDesc", "").
@@ -410,7 +412,6 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 					}
 				}
 
-				turbineMp := turbineMap[_tTurbine]
 				_itkm.
 					Set("coords", turbineMp.Get("coords")).
 					Set("name", turbineMp.GetString("name")).
@@ -463,7 +464,6 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		} else {
 			_itkm.Set("TemperatureColor", "defaultcolor")
 		}
-
 	}
 	csr.Close()
 	if _iTurbine != "" {
@@ -485,8 +485,11 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			continue
 		}
 
+		turbineMp := turbineMap[_turbine]
+
 		_itkm = tk.M{}.
 			Set("Turbine", _turbine).
+			Set("Name", turbineMp.GetString("name")).
 			Set("DataComing", 0).
 			Set("AlarmCode", 0).
 			Set("AlarmDesc", "").
