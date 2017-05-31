@@ -40,7 +40,7 @@
                         <div class="feeder-column">
                             <!-- <h5 class="feeder-title" data-bind="attr:{id : 'feeder_'+$index()}"><strong><span data-bind="text:feederName"></span></strong></h5> -->
                             <div class="clearfix">&nbsp;</div>
-                            <table class="table table-monitoring">
+                            <table class="table table-striped table-monitoring">
                                 <thead>
                                     <tr>
                                         <th width="50">Turbine</th>
@@ -55,8 +55,11 @@
                                     </tr>
                                 </thead>
                                 <tbody data-bind="foreach:details">
-                                    <tr>
-                                        <td class="link-detail"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Turbine, click: function(){ bp.ToIndividualTurbine(Turbine)}, style: {color : colorFeeder}"></a></td>
+                                    <tr data-bind="visible:index == 0 && isHeader == true">
+                                       <td colspan="9"><strong><span data-bind="text:feederName"></span></strong></td> 
+                                    </tr>
+                                    <tr data-bind="visible:isHeader == false">
+                                        <td class="link-detail"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Turbine, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></td>
                                         <td align="center" class="link-detail"><a data-toggle="tooltip" title="View Alarm" data-bind="attr : {class:IconStatus}, click: function(){ bp.ToAlarm(Turbine)}"></a></td>
                                         <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: kendo.toString(ActivePower, 'n2')">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: kendo.toString(WindSpeed, 'n2')">-</span></td>
@@ -71,19 +74,19 @@
                         </div>
                     </div>
 
-                    <div class="col-md-12" style="top: 35px;">
+                    <div class="col-md-12 notes">
                         <b>Notes :</b> &nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-red"></i>&nbsp;&nbsp;Turbine Down&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-grey"></i>&nbsp;&nbsp;Data N/A&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-orange"></i>&nbsp;&nbsp;Turbine with Alarm&nbsp;&nbsp;&nbsp;
                     </div>
-                    <div class="col-md-12 notes" >
+<!--                     <div class="col-md-12 notes" >
                         <b>Feeder Color:</b> &nbsp;&nbsp;&nbsp;
                         <label data-bind="foreach:bp.feeders()">
                             <i class="fa fa-window-minimize" data-bind="style: {color : colorFeeder}"></i>&nbsp;&nbsp;<strong><span data-bind="text:feederName"></span></strong>&nbsp;&nbsp;&nbsp;
                         </label>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>

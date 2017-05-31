@@ -130,11 +130,38 @@ bp.GetData = function(data) {
         $.each(res.data.ListOfTurbine, function(i, val){
             var details = []
             $.each(val, function(idx, turbine){
+                var feedHeader = {}
+                if(idx == 0){
+                    feedHeader.ActivePower = null
+                    feedHeader.ActivePowerColor = null
+                    feedHeader.AlarmCode = null
+                    feedHeader.AlarmDesc = null
+                    feedHeader.AlarmUpdate = null
+                    feedHeader.DataComing = null
+                    feedHeader.IconStatus = null
+                    feedHeader.IsWarning = null
+                    feedHeader.NacellePosition = null
+                    feedHeader.PitchAngle = null
+                    feedHeader.RotorRPM = null
+                    feedHeader.Status = null
+                    feedHeader.Temperature = null 
+                    feedHeader.TemperatureColor = null
+                    feedHeader.Turbine = null
+                    feedHeader.WindDirection = null
+                    feedHeader.WindSpeed = null
+                    feedHeader.WindSpeedColor = null
+                    feedHeader.isHeader = true;
+                    feedHeader.feederName = i;
+                    feedHeader.index = idx;
+                    feeders.push(feedHeader);
+                }
                 $.each(res.data.Detail, function(index, detail){
                     if(turbine == detail.Turbine){
                         details.push(detail);
                         detail.colorFeeder = color[a];
                         detail.feederName = i;
+                        detail.index = idx;
+                        detail.isHeader = false;
                         feeders.push(detail);
                     }
                 });
@@ -144,7 +171,9 @@ bp.GetData = function(data) {
         });
 
         var someArray = feeders;
-        var groupSize = Math.floor(($(window).innerHeight() - 215 - 24)/24);
+        var groupSize = Math.floor(($(window).innerHeight() - 180 - 24)/24);
+        console.log(groupSize);
+        // var groupSize = 20;
 
         var groups = _.map(someArray, function(item, index){
           return index % groupSize === 0 ? someArray.slice(index, index + groupSize) : null; 
@@ -301,6 +330,6 @@ $(document).ready(function() {
     app.loading(true);
     setTimeout(function() {
         bp.GetData()
-        setInterval(bp.GetData, 4000);
+        // setInterval(bp.GetData, 4000);
     }, 600);
 });
