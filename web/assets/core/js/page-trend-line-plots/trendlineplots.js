@@ -284,22 +284,27 @@ tlp.showHideLegend = function(idx){
 
 $(document).ready(function() {
     setTimeout(function() {
-        fa.LoadData();
-        fa.checkTurbine();
-        tlp.initChart();
+        if(fa.LoadData()) {
+            fa.checkTurbine();
+            tlp.initChart();
+        }
     }, 300);
 
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {
-            tlp.initChart();
+            if(fa.LoadData()) {
+                tlp.initChart();
+            }
         }, 300);
     });
 
      $('#compTemp').on("change", function() {
         fa.checkTurbine();
         setTimeout(function() {
-            tlp.initChart();
+            if(fa.LoadData()) {
+                tlp.initChart();
+            }
         }, 300);
     });
 

@@ -306,7 +306,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	dVal := (tk.ToFloat64(tk.ToInt(DeviationVal, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
-	selArr := 1
 
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
@@ -353,8 +352,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 	sort.Strings(sortTurbines)
 
-	for _, turbineX := range sortTurbines {
-
+	selArr := 1
+	for idx, turbineX := range sortTurbines {
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
 			id := y.Get("_id").(tk.M)
@@ -371,7 +370,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("markers", tk.M{"visible": false})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorField[selArr])
-		turbineData.Set("idxseries", selArr)
+		turbineData.Set("idxseries", idx)
 
 		for _, val := range exist {
 			idD := val.Get("_id").(tk.M)
@@ -384,7 +383,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		}
 
 		dataSeries = append(dataSeries, turbineData)
-		selArr++
+
+		if selArr == len(colorField)-1 {
+			selArr = 1
+		} else {
+			selArr++
+		}
+
 	}
 
 	data := struct {

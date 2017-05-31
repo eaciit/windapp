@@ -367,19 +367,27 @@ h4.content-heading {
 .fa-orange {
   color: #EA6020;
 }
-
+.bg-green {
+  background-color:#31B445;
+}
+.bg-red {
+  background-color:#db1e1e;
+}
+.bg-grey {
+  background-color:#7f7f7f;
+}
+.bg-orange {
+  background-color:#EA6020;
+}
 .table.table-monitoring {
   margin-top: -15px;
   margin-bottom: 15px;
-  width: 380px;
+  width: 400px;
 }
 .table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
 .table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
   padding: 3px 5px;
   font-size: 12px;
-}
-.table-monitoring>tbody>tr:nth-child(even)>td, .table-monitoring>tbody>tr:nth-child(even)>th {
-  background: #F9F9F9;
 }
 
 .project-icon { border: none; }
@@ -454,7 +462,10 @@ h4.content-heading {
     /*background: #ddd !important;*/
 }
 .fa-project-info:hover, .linked:hover {
-    color: #3c8dbc !important;
+    color: #fff !important;
+}
+.linked{
+    color: #fff;
 }
 
 .span-legend {
@@ -648,6 +659,7 @@ h4.content-heading {
 }
 #monitoring-content{
   margin-top: 10px;
+  margin-bottom: -15px;
 }
 .last-separator{
   margin-right: 10px;
@@ -662,7 +674,7 @@ h4.content-heading {
     overflow-y:hidden;
     max-width:100%;
     display: inline-flex;
-    margin-bottom: -27.5px;
+    margin-bottom: -50px;
 }
 .feeder-column{
    padding-right: 10px;
@@ -683,3 +695,91 @@ h4.content-heading {
 .panel-content > .nav-replace-title{
   padding-left: 5px;
 }
+
+.progress-custom{
+  width: 70px;
+  display: inline-block;
+  padding-top: 0px;
+  line-height: 1;
+  background-color: #B0BEC5;
+  text-align: left;
+}
+
+.lbl{
+  display: inline;
+  padding: 0.2em 0.5em 0.2em;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.1em;
+  font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+  font-size: 90%;
+  font-weight: 600;
+  display: inline-flex;
+}
+
+/*.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
+    background-color: #fff !important;
+    color: white;
+}*/
+
+.maximize-mode .main-header, .maximize-mode .bread-info{
+    display: none;
+}
+
+.maximize-mode .breadcrumb{
+    display: block;
+}
+
+/*.maximize-mode .ez.panel {
+    border-radius: 0px;
+}
+
+.maximize-mode .table-sum {
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
+.maximize-mode .table-detail {
+    margin-bottom: 2px;
+}
+
+.maximize-mode .table-detail>tbody>tr>td {
+    border-top: 0px !important;
+}
+
+.maximize-mode .table-detail>thead>tr>td {
+    border-bottom: 1px solid darkgray !important;
+}
+
+.maximize-mode .monitoring-date{
+    color: #ea5b19;
+    font-size: 20px;
+}
+
+.maximize-btn{
+    margin-top: 0px;
+}
+
+.maximize-mode .maximize-btn{
+    margin-top: -45px;
+}
+
+.maximize-mode .table-striped>tbody>tr:nth-of-type(odd) {
+  background-color: #fff;
+}
+
+.maximize-mode .detail-tbl .table-striped>tbody>tr:nth-of-type(odd) {
+  background-color: #;
+}
+
+.maximize-mode .modal-lg {
+   color: #585555;
+}
+
+.maximize-mode .panel-body{
+    padding: 0px;
+}*/
+

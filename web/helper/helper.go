@@ -386,7 +386,7 @@ func CreateResultX(success bool, data interface{}, message string, r *knot.WebCo
 	}
 	sessionid := r.Session("sessionid", "")
 
-	log.Printf(">> %v \n", sessionid)
+	// log.Printf(">> %v \n", sessionid)
 
 	if toolkit.ToString(sessionid) == "" {
 		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
@@ -703,7 +703,7 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 		From(new(md.TurbineMaster).TableName()).
 		Where(filter...).
 		// Order("project, turbineid").
-		Order("turbineid").
+		Order("turbinename").
 		Cursor(nil)
 
 	if e != nil {
