@@ -703,7 +703,7 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 		From(new(md.TurbineMaster).TableName()).
 		Where(filter...).
 		// Order("project, turbineid").
-		Order("turbineid").
+		Order("turbinename").
 		Cursor(nil)
 
 	if e != nil {

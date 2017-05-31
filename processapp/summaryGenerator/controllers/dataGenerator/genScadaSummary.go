@@ -873,10 +873,11 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.ExpWindSpeed = expws
 
 					pipeAlarm := []tk.M{
-						tk.M{}.Set("$unwind", "$detail"),
 						tk.M{}.Set("$match", tk.M{}.
 							Set("projectname", project).
-							Set("turbine", turbineX).
+							Set("turbine", turbineX)),
+						tk.M{}.Set("$unwind", "$detail"),
+						tk.M{}.Set("$match", tk.M{}.
 							Set("detail.detaildateinfo.dateid", dtId)),
 						tk.M{}.Set("$group", tk.M{}.
 							Set("_id", "").
@@ -909,11 +910,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.RevenueLoss = (dt.LostEnergy * 6 * revenueMultiplier)
 
 					pipeAlarm0 := []tk.M{
-						tk.M{}.Set("$unwind", "$detail"),
 						tk.M{}.Set("$match", tk.M{}.
 							Set("machinedown", true).
 							Set("projectname", project).
-							Set("turbine", turbineX).
+							Set("turbine", turbineX)),
+						tk.M{}.Set("$unwind", "$detail"),
+						tk.M{}.Set("$match", tk.M{}.
 							Set("detail.detaildateinfo.dateid", dtId)),
 						tk.M{}.
 							Set("$group", tk.M{}.
@@ -937,11 +939,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					}
 
 					pipeAlarm1 := []tk.M{
-						tk.M{}.Set("$unwind", "$detail"),
 						tk.M{}.Set("$match", tk.M{}.
 							Set("griddown", true).
 							Set("projectname", project).
-							Set("turbine", turbineX).
+							Set("turbine", turbineX)),
+						tk.M{}.Set("$unwind", "$detail"),
+						tk.M{}.Set("$match", tk.M{}.
 							Set("detail.detaildateinfo.dateid", dtId)),
 						tk.M{}.
 							Set("$group", tk.M{}.
@@ -967,12 +970,13 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					}
 
 					pipeAlarm2 := []tk.M{
-						tk.M{}.Set("$unwind", "$detail"),
 						tk.M{}.Set("$match", tk.M{}.
 							Set("machinedown", false).
 							Set("griddown", false).
 							Set("projectname", project).
-							Set("turbine", turbineX).
+							Set("turbine", turbineX)),
+						tk.M{}.Set("$unwind", "$detail"),
+						tk.M{}.Set("$match", tk.M{}.
 							Set("detail.detaildateinfo.dateid", dtId)),
 						tk.M{}.
 							Set("$group", tk.M{}.
