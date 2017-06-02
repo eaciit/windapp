@@ -6,12 +6,12 @@ var dbdhfd = viewModel.DatabrowserDowntimeHFD;
 dbdhfd.InitDEHFDgrid = function() {
     dbr.downeventhfdvis(true);
 
-    var turbine = [];
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        turbine = turbineval;
-    } else {
-        turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // var turbine = [];
+    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    //     turbine = turbineval;
+    // } else {
+    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
+    // }
     
     var filters = [{
         field: "timestart",
@@ -24,7 +24,7 @@ dbdhfd.InitDEHFDgrid = function() {
     }, {
         field: "turbine",
         operator: "in",
-        value: turbine
+        value: fa.turbine()
     }, ];
 
     if(fa.project != "") {

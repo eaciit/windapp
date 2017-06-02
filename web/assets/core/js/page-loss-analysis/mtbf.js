@@ -3,30 +3,30 @@ pg.dtMt = ko.observable();
 
 var mt = {
 	RefreshData: function() {
-	    app.loading(true);
-	    pg.showFilter();
-	    fa.LoadData();
-	    if(pg.isFirstMTBF() === true){
-	        mt.Refreshchartmt();
-	        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
-			$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
-
-	    }else{
-	        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
-			$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
-	        setTimeout(function(){
-	            $("#chartTI").data("kendoChart").refresh();
-	            app.loading(false);
-	        }, 300);
-	    }
-
+		var isValid = fa.LoadData();
+		if(isValid) {
+			app.loading(true);
+		    pg.showFilter();
+		    if(pg.isFirstMTBF() === true){
+		        mt.Refreshchartmt();
+		        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
+				$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
+		    }else{
+		        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
+				$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
+		        setTimeout(function(){
+		            $("#chartTI").data("kendoChart").refresh();
+		            app.loading(false);
+		        }, 300);
+		    }
+		}
 	},
 	
 	Refreshchartmt: function() {
 		app.loading(true);
 		var param = {
             period: fa.period,
-            Turbine: fa.turbine,
+            Turbine: fa.turbine(),
             DateStart: fa.dateStart,
             DateEnd: fa.dateEnd,
             Project: fa.project

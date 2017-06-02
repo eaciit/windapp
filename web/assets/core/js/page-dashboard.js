@@ -38,6 +38,8 @@ lgd.FleetDTLEDownType = ko.observable();
 lgd.LEFleetByDown = ko.observable(false);
 
 lgd.prodDateRangeStr = ko.observable('');
+lgd.projectAvailList = ko.observableArray([]);
+lgd.projectAvailSelected = ko.observable('');
 
 var lastParam = {};
 var lastParamChart = {};
@@ -47,41 +49,25 @@ var monthDetailDT = '';
 var projectSelected = '';
 var projectSelectedLevel2 = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-// var maxdate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 23, 59, 59, 0));
 var maxdate = maxDateData;
+var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 36000);
 
-// lgd.getProjectList = function () {
-//     app.ajaxPost(viewModel.appName + "/dashboard/getprojectlist", {}, function (res) {
-//         if (!app.isFine(res)) {
-//             return;
-//         }
-
-//         if (res.data.length == 0) {
-//             res.data = [];
-
-//         } else {
-//             if (res.data.length > 0) {
-//                 $.each(res.data, function (key, val) {
-//                     var data = {};
-//                     data.value = val;
-//                     data.text = val;
-//                     lgd.projectList.push(data);
-//                     lgd.projectItem.push(data);
-//                 });
-//             }
-//         }
-//     });
-// };
 
 lgd.populateProject = function (data) {
     if(data.length > 0) {
         var datavalue = [{ "value": "Fleet", "text": "Fleet" }];
+        var projectAvail = {};
         if (data.length > 0) {
             $.each(data, function (key, val) {
                 var data = {};
                 data.value = val.Value;
                 data.text = val.Name;
                 datavalue.push(data);
+                projectAvail = {text: val.Value, value: val.Value};
+                lgd.projectAvailList.push(projectAvail);
+                if(key===0) {
+                    lgd.projectAvailSelected(val.Value);
+                }
             });
         }
         lgd.projectList(datavalue);
@@ -137,7 +123,6 @@ $(function () {
     lgd.isSummary(true);
     lgd.isProduction(false);
     lgd.isAvailability(false);
-    // lgd.getProjectList();
     lgd.projectName("Fleet");
 
     lgd.LoadData();
@@ -149,6 +134,7 @@ $(function () {
     });
 
     $("#tabSummary").on("click", function () {
+        intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 4000);
         lgd.isSummary(true);
         lgd.isProduction(false);
         lgd.isAvailability(false);
@@ -157,6 +143,7 @@ $(function () {
     });
 
     $("#tabProduction").on("click", function () {
+        clearInterval(intervalMap);
         lgd.isSummary(false);
         lgd.isProduction(true);
         lgd.isAvailability(false);
@@ -165,6 +152,7 @@ $(function () {
     });
 
     $("#tabAvailability").on("click", function () {
+        clearInterval(intervalMap);
         lgd.isSummary(false);
         lgd.isProduction(false);
         lgd.isAvailability(true);
@@ -175,4 +163,6 @@ $(function () {
     $('input[name="periodTypeAvail"]').on('change', function () {
         lgd.periodTypeAvailChange();
     });
+
+    
 });

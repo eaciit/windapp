@@ -50,9 +50,8 @@ func (l *LoginController) CheckCurrentSession(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 	sessionid := r.Session("sessionid", "")
 
-	// toolkit.Printf("CheckCurrentSession: %#v \v", sessionid)
-
 	if !acl.IsSessionIDActive(toolkit.ToString(sessionid)) {
+		toolkit.Printf(">> CheckCurrentSession - notactive: %#v \v", sessionid)
 		r.SetSession("sessionid", "")
 		return helper.CreateResult(false, false, "inactive")
 	}
@@ -167,43 +166,20 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	if err != nil {
 		return helper.CreateResult(false, "", err.Error())
 	}
+
+	// log.Printf("sessid: %v \n", sessid)
+
 	WriteLog(sessid, "login", r.Request.URL.String())
 	r.SetSession("sessionid", sessid)
 	r.SetSession("menus", menus)
 	helper.WC = r
 	MenuList = menus
 
-	// temporary add last date hardcode, then will change to get it from database automatically
-	// add by ams, 2016-10-04
-
-	// query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
-
-	// csr, e := query.Cursor(nil)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
-
-	// Result := make([]ScadaData, 0)
-	// e = csr.Fetch(&Result, 0, false)
-
-	// csr.Close()
-
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
-
-	// for _, val := range Result {
-	// 	// toolkit.Printf("Result : %s \n", val.TimeStamp.UTC())
-	// 	lastDateData = val.TimeStamp.UTC()
-	// }
-
-	// // toolkit.Printf("Result : %s \n", lastDateData)
-	// lastDateData = lastDateData.UTC()
-	// r.SetSession("lastdate_data", lastDateData)
-
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+
+	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
 	lastDateData = datePeriod.ScadaData[1].UTC()
 	r.SetSession("lastdate_data", lastDateData)
@@ -289,13 +265,20 @@ func getLastAvailDate() *Availdatedata {
 
 	// toolkit.Println(latestDataPeriods)
 
+	// mapCheck := map[string]time.Time{}
+
 	datePeriod := new(Availdatedata)
 	xdp := reflect.ValueOf(datePeriod).Elem()
 	for _, d := range latestDataPeriods {
 		f := xdp.FieldByName(d.Type)
 		if f.IsValid() {
 			if f.CanSet() {
-				f.Set(reflect.ValueOf(d.Data))
+				// tmpTime := mapCheck[d.Type]
+				// log.Printf("> %v | %v \n", d.Data[0].String(), d.Data[1].String())
+				if d.Data[0].String() != d.Data[1].String() {
+					f.Set(reflect.ValueOf(d.Data))
+					// log.Printf(">> %v | %v \n", d.Data[0].String(), d.Data[1].String())
+				}
 			}
 		}
 	}

@@ -29,7 +29,7 @@ page.getData = function(){
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: fa.turbine(),
         project: fa.project,
     };
 
@@ -114,7 +114,7 @@ page.createView = function(){
 $(function () {
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
-
+		fa.checkTurbine();
         $.when(page.getData()).done(function(){
         	setTimeout(function(){
         		app.prepareTooltipster();

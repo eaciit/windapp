@@ -30,10 +30,10 @@ km.ExportKeyMetrics = function () {
 km.createChart = function () {
     $("#totalCountData").html('(Total Count Data: ' + km.dsTotaldataWS() + ')');
     var turbineData = '';
-    if(fa.turbine.length == 0) {
+    if(fa.turbine().length == 0) {
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine.join(", ");
+        turbineData = fa.turbine().join(", ");
     }
     $("#turbineListTitle").html('for ' + turbineData);
     $("#dh-chart").replaceWith('<div id="dh-chart"></div>');
@@ -119,10 +119,10 @@ km.createChart = function () {
 km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
     $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
     var turbineData = '';
-    if(fa.turbine.length == 0) {
+    if(fa.turbine().length == 0) {
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine.join(", ");
+        turbineData = fa.turbine().join(", ");
     }
     var _rotationlabel = 0
     if (km.BinValue() > 20) {
@@ -216,112 +216,84 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms',
 
 km.getData = function () {
     // fa.getProjectInfo();
-    fa.LoadData();
-    app.loading(true);
+    if(fa.LoadData()) {
+        app.loading(true);
 
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    })
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        })
 
-    var paramFilter = {
-        period: fa.period,
-        Turbine: fa.turbine,
-        DateStart: fa.dateStart,
-        DateEnd: fa.dateEnd,
-        Project: fa.project
-    };
+        var paramFilter = {
+            period: fa.period,
+            Turbine: fa.turbine(),
+            DateStart: fa.dateStart,
+            DateEnd: fa.dateEnd,
+            Project: fa.project
+        };
 
-    var parDataWS = {
-        MinValue: parseFloat(km.MinValueWindSpeed()),
-        MaxValue: parseFloat(km.MaxValueWindSpeed()),
-        BinValue: parseInt(km.BinValueWindSpeed()),
-        Filter: paramFilter
-    };
-    var requestHistogram = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        if (res.data != null) {
-            km.dsCategorywindspeed(res.data.categorywindspeed);
-            km.dsValuewindSpeed(res.data.valuewindspeed);
-            km.dsTotaldataWS(res.data.totaldata);
-            // km.dsValuewindSpeed.push(0);
-            // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
-            km.createChart();
-        }
-    });
+        var parDataWS = {
+            MinValue: parseFloat(km.MinValueWindSpeed()),
+            MaxValue: parseFloat(km.MaxValueWindSpeed()),
+            BinValue: parseInt(km.BinValueWindSpeed()),
+            Filter: paramFilter
+        };
+        var requestHistogram = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (res.data != null) {
+                km.dsCategorywindspeed(res.data.categorywindspeed);
+                km.dsValuewindSpeed(res.data.valuewindspeed);
+                km.dsTotaldataWS(res.data.totaldata);
+                // km.dsValuewindSpeed.push(0);
+                // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
+                km.createChart();
+            }
+        });
 
-    var parDataProd = {
-        MinValue: parseFloat(km.MinValue()),
-        MaxValue: parseFloat(km.MaxValue()),
-        BinValue: parseInt(km.BinValue()),
-        Filter: paramFilter
-    };
-    var requestProduction  = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        if (res.data != null) {
+        var parDataProd = {
+            MinValue: parseFloat(km.MinValue()),
+            MaxValue: parseFloat(km.MaxValue()),
+            BinValue: parseInt(km.BinValue()),
+            Filter: paramFilter
+        };
+        var requestProduction  = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (res.data != null) {
 
-            km.dsCategoryProduction(res.data.categoryproduction);
-            km.dsValueProduction(res.data.valueproduction);
-            km.dsTotaldataProduction(res.data.totaldata);
-            // km.dsValueProduction.push(0);
-            // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
-            km.createChartProduction();
-        }
-    });
+                km.dsCategoryProduction(res.data.categoryproduction);
+                km.dsValueProduction(res.data.valueproduction);
+                km.dsTotaldataProduction(res.data.totaldata);
+                // km.dsValueProduction.push(0);
+                // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
+                km.createChartProduction();
+            }
+        });
 
-    $.when(requestHistogram, requestProduction).done(function(){
-        setTimeout(function(){
-            app.loading(false);
-        },500);
-    });
-    // }, 750);
-    // app.loading(false);
+        $.when(requestHistogram, requestProduction).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },500);
+        });
+    }
 }
 
 km.SubmitValues = function () {
     km.getData();
-    // app.loading(true);
-    // km.CategoryProduction([]);
-    // km.ValueProduction([]);
-
-    // var filter = {
-    //     Turbine: fa.turbine,
-    //     DateStart: fa.dateStart,
-    //     DateEnd: fa.dateEnd,
-    //     Project: fa.project
-    // };
-
-    // var param = {
-    //     MinValue: parseFloat(km.MinValue()),
-    //     MaxValue: parseFloat(km.MaxValue()),
-    //     BinValue: parseInt(km.BinValue()),
-    //     Filter: filter
-    // };
-
-    // toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", param, function (res) {
-    //     if (!app.isFine(res)) {
-    //         app.loading(false);
-    //         return;
-    //     }
-    //     if(res.data != null) {
-    //         km.createChartProduction(res.data.categoryproduction, res.data.valueproduction, res.data.totaldata);
-    //         app.loading(false);
-    //     }
-    // });
 }
 
 
 $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         setTimeout(function () {
             km.getData();
         }, 300);
@@ -336,14 +308,19 @@ $(document).ready(function () {
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
             setTimeout(function() {
-                $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+                $('#turbineList').multiselect('select', fa.turbineList()[0].value);
             }, 100);
 		}
 	});
 
     setTimeout(function () {
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+          $el.multiselect('deselect', $(this).val());
+        });
+
         if(fa.turbineList().length > 1){
-            $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
         }
         km.getData();
     }, 800);

@@ -182,7 +182,7 @@ pg.createStockChart = function(y){
                 $('.highcharts-range-selector-buttons').hide();
                 var param = {
                     period: fa.period,
-                    Turbine: [fa.turbine],
+                    Turbine: fa.turbine,
                     DateStart: date1,
                     DateEnd: date2,
                     Project: fa.project,
@@ -458,121 +458,133 @@ pg.options = function(){
 // }
 
 pg.getDataStockChart = function(param){
-    // if (param == "refresh") {
-    pg.dataType("MIN");
-    // }
+    if(fa.LoadData()) {
+        // if (param == "refresh") {
+        pg.dataType("MIN");
+        // }
+        app.loading(true);
+        clearInterval(interval);
+        if(param == "selectTags"){
+           pg.TagList($("#TagList").val());
+        //    $('.popover-markup>.trigger').popover("hide");
+        }
 
-    fa.LoadData();
-    app.loading(true);
-    clearInterval(interval);
-    if(param == "selectTags"){
-       pg.TagList($("#TagList").val());
-    //    $('.popover-markup>.trigger').popover("hide");
-    }
+        var IsHour = (pg.isFirst() == true ? false : true);
 
-    var IsHour = (pg.isFirst() == true ? false : true);
-
-    var COOKIES = {};
-    var cookieStr = document.cookie;
-    var turbine = "";
-    
-    // console.log(cookieStr);
-    if(cookieStr.indexOf("turbine=") >= 0) {
-        document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        turbine = COOKIES["turbine"];
-        $('#turbineList').data('kendoDropDownList').value(turbine);
-    } else {
-        turbine = $('#turbineList').data('kendoDropDownList').value();
-    }
-
-    var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));
-    var max = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(1)').val()));
-
-    var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
-    var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
-
-    var now = new Date()
-
-    if(pg.isFirst() == true){
-      fa.period = "custom";
-    }
-
-    if(pg.pageType() == 'HFD'){
-        fa.dateEnd = new Date();
-        fa.dateStart  = new Date(now.setMonth(now.getMonth() - 24));
+        var COOKIES = {};
+        var cookieStr = document.cookie;
+        var turbine = "";
+        var project = "";
         
-        date1Before = fa.dateStart;
-        date2Before = fa.dateEnd;
-        hourBefore = Math.abs(date1Before - date2Before) / 36e5;
-    }
-    var dateStart = fa.dateStart; 
-    var dateEnd = fa.dateEnd;
-    
-    var paramX = {
-        period: fa.period,
-        Turbine: [turbine],
-        DateStart: dateStart,
-        DateEnd: dateEnd,
-        Project: fa.project,
-        PageType: pg.pageType(),
-        DataType: pg.dataType() ,
-        TagList : pg.TagList(),
-        IsHour : IsHour,
-    };
+        // console.log(cookieStr);
+        if(cookieStr.indexOf("turbine=") >= 0) {
+            document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            cookieStr.split(/; /).forEach(function(keyValuePair) {
+                var cookieName = keyValuePair.replace(/=.*$/, "");
+                var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+                COOKIES[cookieName] = cookieValue;
+            });
+            turbine = COOKIES["turbine"];
+            project = COOKIES["project"];
+            
+            console.log(project);
+            setTimeout(function(){
+                $('#projectList').data('kendoDropDownList').value(project);
+                var change = $("#projectList").data("kendoDropDownList").trigger("change");
+                setTimeout(function(){
+                    $('#turbineList').data('kendoDropDownList').value(turbine);
+                },200);
+            },500);
 
-    var url = "timeseries/getdatahfd";
-    
-    var request;
-    if(pg.live() == false){
-        request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
+        } else {
+            turbine = $('#turbineList').data('kendoDropDownList').value();
+            project = $('#projectList').data('kendoDropDownList').value();
+        }
 
-            var data = res.data.Data.Chart;
-            var periods = res.data.Data.PeriodList;
-            breaks = res.data.Data.Breaks;
-            var outliers = res.data.Data.Outliers;
+        var min = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(0)').val()));
+        var max = new Date(app.getUTCDate($('input.highcharts-range-selector:eq(1)').val()));
 
-            pg.generateSeriesOption(data, periods);
-            pg.generateOutliers(outliers);
+        var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
+        var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
-            if (param=="first" || param=="refresh" || param=="selectTags"){
-                // if (seriesOriX){
-                    seriesOriX = [];
-                // }
-                
-                $.each(seriesOptions,function(idx, val){
-                    if (val.data != null){
-                        var valx = val.data.slice(idx);
-                        seriesOri[idx] = valx;
-                    }
-                });
+        var now = new Date()
 
-                // if (seriesOri != null) {
-                    seriesOriX = JSON.stringify(seriesOri);
-                    seriesOri = [];    
-                // }
-            }
+        if(pg.isFirst() == true){
+          fa.period = "custom";
+        }
 
-            pg.createStockChart();
+        if(pg.pageType() == 'HFD'){
+            fa.dateEnd = new Date();
+            fa.dateStart  = new Date(now.setMonth(now.getMonth() - 24));
+            
+            date1Before = fa.dateStart;
+            date2Before = fa.dateEnd;
+            hourBefore = Math.abs(date1Before - date2Before) / 36e5;
+        }
+        var dateStart = fa.dateStart; 
+        var dateEnd = fa.dateEnd;
+        
+        var paramX = {
+            period: fa.period,
+            Turbine: turbine,
+            DateStart: dateStart,
+            DateEnd: dateEnd,
+            Project: fa.project,
+            PageType: pg.pageType(),
+            DataType: pg.dataType() ,
+            TagList : pg.TagList(),
+            IsHour : IsHour,
+        };
+
+        var url = "timeseries/getdatahfd";
+        
+        var request;
+        if(pg.live() == false){
+            request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+
+                var data = res.data.Data.Chart;
+                var periods = res.data.Data.PeriodList;
+                breaks = res.data.Data.Breaks;
+                var outliers = res.data.Data.Outliers;
+
+                pg.generateSeriesOption(data, periods);
+                pg.generateOutliers(outliers);
+
+                if (param=="first" || param=="refresh" || param=="selectTags"){
+                    // if (seriesOriX){
+                        seriesOriX = [];
+                    // }
+                    
+                    $.each(seriesOptions,function(idx, val){
+                        if (val.data != null){
+                            var valx = val.data.slice(idx);
+                            seriesOri[idx] = valx;
+                        }
+                    });
+
+                    // if (seriesOri != null) {
+                        seriesOriX = JSON.stringify(seriesOri);
+                        seriesOri = [];    
+                    // }
+                }
+
+                pg.createStockChart();
+            });
+        }else{
+            pg.createLiveChart(IsHour);
+        }
+
+
+        $.when(request).done(function(){
+            pg.isFirst(false);
+            setTimeout(function(){
+                app.loading(false);
+            },200);
         });
-    }else{
-        pg.createLiveChart(IsHour);
     }
-
-
-    $.when(request).done(function(){
-        pg.isFirst(false);
-        setTimeout(function(){
-            app.loading(false);
-        },200);
-    });
 }
 
 pg.createLiveChart = function(IsHour){
@@ -590,7 +602,7 @@ pg.createLiveChart = function(IsHour){
         var seriesData = seriesOptions;
         var paramX = {
             period: fa.period,
-            Turbine: [fa.turbine],
+            Turbine: fa.turbine,
             DateStart: dateStart,
             DateEnd: dateEnd,
             Project: fa.project,
@@ -633,7 +645,7 @@ pg.createLiveChart = function(IsHour){
                             interval = setInterval(function () {
                                 var paramX = {
                                     period: fa.period,
-                                    Turbine: [fa.turbine],
+                                    Turbine: fa.turbine,
                                     DateStart: dateStart,
                                     DateEnd: dateEnd,
                                     Project: fa.project,

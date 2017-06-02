@@ -29,26 +29,31 @@ page.deviationVal = ko.observable("20");
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
+page.currProject = ko.observable();
+page.project = ko.observable();
 
 page.backToMain = function() {
     page.isMain(true);
     page.isDetail(false);
 }
 page.toDetail = function(selected) {
-    page.isMain(false);
-    page.isDetail(true);
-    Data.InitCurveDetail(selected);
+    var isValid = fa.LoadData();
+    if (isValid) {
+        page.isMain(false);
+        page.isDetail(true);
+        Data.InitCurveDetail(selected);
+    }
 }
 page.populateTurbine = function() {
     page.turbine([]);
-    if (fa.turbine == "") {
+    if (page.turbine().length == 0) {
         $.each(fa.turbineList(), function(i, val) {
             if (i > 0) {
                 page.turbine.push(val.text);
             }
         });
     } else {
-        page.turbine(fa.turbine);
+        page.turbine(fa.turbine());
     }
 }
 page.ExportPowerCurvePdf = function() {
@@ -146,196 +151,201 @@ var dataTurbine
 
 var Data = {
     LoadData: function() {
-        fa.LoadData();
+        var isValid = fa.LoadData();
         // fa.getProjectInfo();
-        page.populateTurbine();
-        this.InitLinePowerCurve();
-        this.InitRightTurbineList();
+        if(isValid) {
+            page.populateTurbine();
+            this.InitLinePowerCurve();
+            this.InitRightTurbineList();
+        }
     },
     InitLinePowerCurve: function() {
-        fa.LoadData();
-        page.deviationVal($("#deviationValue").val());
+        var isValid = fa.LoadData();
+        if(isValid) {
+            page.deviationVal($("#deviationValue").val());
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var minDatetemp = new Date(res.data.ScadaData[0]);
-            var maxDatetemp = new Date(res.data.ScadaData[1]);
-            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-        })
-
-        var link = "analyticpowercurve/getlistpowercurvescada"
-
-        app.loading(true);
-        var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
-            project: fa.project,
-            isClean: page.isClean,
-            isDeviation: page.isDeviation,
-            DeviationVal: page.deviationVal,
-            ViewSession: page.viewSession
-        };
-
-        toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
-            if (!app.isFine(res)) {
-                app.loading(false);
-                return;
-            }
-
-            dataTurbine = res.data.Data;
-            localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
-            page.dtLineChart(res.data.Data);
-            
-            $('#powerCurve').html("");
-            $("#powerCurve").kendoChart({
-                pdf: {
-                  fileName: "DetailPowerCurve.pdf",
-                },
-                theme: "flat",
-                title: {
-                    text: "Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
-                    visible: false,
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                legend: {
-                    position: "bottom",
-                    visible: false,
-                },
-                chartArea: {
-                    height: 375,
-                },
-                seriesDefaults: {
-                    type: "scatterLine",
-                    style: "smooth",
-                    dashType: "longDash",
-                    markers: {
-                        visible: false,
-                        size: 4,
-                    },
-                },
-                seriesColors: colorField,
-                series: dataTurbine,
-                categoryAxis: {
-                    labels: {
-                        step: 1
-                    }
-                },
-                valueAxis: [{
-                    labels: {
-                        format: "N0",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    }
-                }],
-                xAxis: {
-                    majorUnit: 1,
-                    title: {
-                        text: "Wind Speed (m/s)",
-                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        color: "#585555",
-                        visible: true,
-                    },
-                    labels: {
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    },
-                    crosshair: {
-                        visible: true,
-                        tooltip: {
-                            visible: true,
-                            format: "N2",
-                            background: "rgb(255,255,255, 0.9)",
-                            color: "#58666e",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            border: {
-                                color: "#eee",
-                                width: "2px",
-                            },
-                        }
-                    },
-                    majorGridLines: {
-                        visible: true,
-                        color: "#eee",
-                        width: 0.8,
-                    },
-                    max: 25
-                },
-                yAxis: {
-                    title: {
-                        text: "Generation (KW)",
-                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        color: "#585555"
-                    },
-                    labels: {
-                        format: "N0",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    },
-                    axisCrossingValue: -5,
-                    majorGridLines: {
-                        visible: true,
-                        color: "#eee",
-                        width: 0.8,
-                    },
-                    crosshair: {
-                        visible: true,
-                        tooltip: {
-                            visible: true,
-                            format: "N1",
-                            background: "rgb(255,255,255, 0.9)",
-                            color: "#58666e",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            border: {
-                                color: "#eee",
-                                width: "2px",
-                            },
-                        }
-                    },
-                },
-                tooltip: {
-                    visible: true,
-                    format: "{1}in {0} minutes",
-                    template: "#= series.name #",
-                    shared: true,
-                    background: "rgb(255,255,255, 0.9)",
-                    color: "#58666e",
-                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    border: {
-                        color: "#eee",
-                        width: "2px",
-                    },
-                },
-                // zoomable: true,
-                zoomable: {
-                    selection: {
-                        lock: "y",
-                    }
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
+                if (!app.isFine(res)) {
+                    return;
                 }
+                var minDatetemp = new Date(res.data.ScadaData[0]);
+                var maxDatetemp = new Date(res.data.ScadaData[1]);
+                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+            })
+
+            var link = "analyticpowercurve/getlistpowercurvescada"
+
+            app.loading(true);
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine(),
+                project: fa.project,
+                isClean: page.isClean,
+                isDeviation: page.isDeviation,
+                DeviationVal: page.deviationVal,
+                ViewSession: page.viewSession
+            };
+
+            toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
+                if (!app.isFine(res)) {
+                    app.loading(false);
+                    return;
+                }
+
+                dataTurbine = res.data.Data;
+                localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
+                page.dtLineChart(res.data.Data);
+                
+                $('#powerCurve').html("");
+                $("#powerCurve").kendoChart({
+                    pdf: {
+                      fileName: "DetailPowerCurve.pdf",
+                    },
+                    theme: "flat",
+                    title: {
+                        text: "Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                        visible: false,
+                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    },
+                    legend: {
+                        position: "bottom",
+                        visible: false,
+                    },
+                    chartArea: {
+                        height: 375,
+                    },
+                    seriesDefaults: {
+                        type: "scatterLine",
+                        style: "smooth",
+                        dashType: "longDash",
+                        markers: {
+                            visible: false,
+                            size: 4,
+                        },
+                    },
+                    seriesColors: colorField,
+                    series: dataTurbine,
+                    categoryAxis: {
+                        labels: {
+                            step: 1
+                        }
+                    },
+                    valueAxis: [{
+                        labels: {
+                            format: "N0",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        }
+                    }],
+                    xAxis: {
+                        majorUnit: 1,
+                        title: {
+                            text: "Wind Speed (m/s)",
+                            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            color: "#585555",
+                            visible: true,
+                        },
+                        labels: {
+                            format: "N0",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                        crosshair: {
+                            visible: true,
+                            tooltip: {
+                                visible: true,
+                                format: "N2",
+                                background: "rgb(255,255,255, 0.9)",
+                                color: "#58666e",
+                                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                                border: {
+                                    color: "#eee",
+                                    width: "2px",
+                                },
+                            }
+                        },
+                        majorGridLines: {
+                            visible: true,
+                            color: "#eee",
+                            width: 0.8,
+                        },
+                        max: 25
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Generation (KW)",
+                            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            color: "#585555"
+                        },
+                        labels: {
+                            format: "N0",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                        axisCrossingValue: -5,
+                        majorGridLines: {
+                            visible: true,
+                            color: "#eee",
+                            width: 0.8,
+                        },
+                        crosshair: {
+                            visible: true,
+                            tooltip: {
+                                visible: true,
+                                format: "N1",
+                                background: "rgb(255,255,255, 0.9)",
+                                color: "#58666e",
+                                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                                border: {
+                                    color: "#eee",
+                                    width: "2px",
+                                },
+                            }
+                        },
+                    },
+                    tooltip: {
+                        visible: true,
+                        format: "{1}in {0} minutes",
+                        template: "#= series.name #",
+                        shared: true,
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    },
+                    // zoomable: true,
+                    zoomable: {
+                        selection: {
+                            lock: "y",
+                        }
+                    }
+                });
+                app.loading(false);
+                $("#powerCurve").data("kendoChart").refresh();
+                
+                if (page.sScater()) {
+                    $('#showDownTime').removeAttr("disabled");
+                } else {
+                    Data.InitRightTurbineList();
+                    $('#showDownTime').attr('checked', false);
+                    $('#showDownTime').attr("disabled", "disabled");
+                }
+                if (page.sScater()) {
+                    Data.getPowerCurve();
+                }
+                page.powerCurveOptions($("#powerCurve").getKendoChart().options);
+                page.ShowHideAfterInitChart();
             });
-            app.loading(false);
-            $("#powerCurve").data("kendoChart").refresh();
-            
-            if (page.sScater()) {
-                $('#showDownTime').removeAttr("disabled");
-            } else {
-                Data.InitRightTurbineList();
-                $('#showDownTime').attr('checked', false);
-                $('#showDownTime').attr("disabled", "disabled");
-            }
-            if (page.sScater()) {
-                Data.getPowerCurve();
-            }
-            page.powerCurveOptions($("#powerCurve").getKendoChart().options);
-            page.ShowHideAfterInitChart();
-        });
+        }
     },
     getPowerCurve: function() {
         page.deviationVal($("#deviationValue").val());
         var turbineList = [];
         var kolor = [];
-        var kolorDeg = [];
+        // var kolorDeg = [];
         var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
 
         var len = $('input[id*=chk-][type=checkbox]:checked').length;
@@ -347,8 +357,14 @@ var Data = {
                 return nm.name == chk
             });
             kolor.push(even.color);
-            var indOf = colorField.indexOf(even.color);
-            kolorDeg.push(colorDegField[indOf]);
+            var indOf = 0;
+            for (var i = 0; i < colorField.length; i++) {
+                if(colorField[i] === even.color) {
+                    indOf = i
+                }
+            }
+            // var indOf = colorField.indexOf(even.color);
+            // kolorDeg.push(colorDegField[indOf]);
         }
 
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
@@ -361,7 +377,7 @@ var Data = {
             turbine: turbineList,
             project: fa.project,
             Color: kolor,
-            ColorDeg: kolorDeg,
+            // ColorDeg: kolorDeg,
             isDeviation: page.isDeviation,
             deviationVal: page.deviationVal,
             IsDownTime: page.showDownTime(),
@@ -385,7 +401,7 @@ var Data = {
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
                 theme: "flat",
-                renderAs: "canvas",
+                // renderAs: "canvas",
                 pdf: {
                   fileName: "DetailPowerCurve.pdf",
                 },
@@ -410,7 +426,8 @@ var Data = {
                 },
                 valueAxis: [{
                     labels: {
-                        format: "N2",
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     }
                 }],
                 xAxis: {
@@ -418,7 +435,12 @@ var Data = {
                     title: {
                         text: "Wind Speed (m/s)",
                         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        color: "#585555"
+                        color: "#585555",
+                        visible: true,
+                    },
+                    labels: {
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     majorGridLines: {
                         visible: true,
@@ -448,7 +470,8 @@ var Data = {
                         color: "#585555"
                     },
                     labels: {
-                        format: "N2",
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     axisCrossingValue: -5,
                     majorGridLines: {
@@ -460,7 +483,7 @@ var Data = {
                         visible: true,
                         tooltip: {
                             visible: true,
-                            format: "N2",
+                            format: "N1",
                             background: "rgb(255,255,255, 0.9)",
                             color: "#58666e",
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -739,6 +762,7 @@ page.ShowHideAfterInitChart = function() {
     var chart = $("#powerCurve").data("kendoChart");
     for (var i = 1; i <= len; i++) {
         if (!$('#chk-' + i).is(':checked')) {
+            // console.log(chart.options);
             chart.options.series[i].visible = false;
         }
     }
@@ -754,12 +778,25 @@ page.hideAll = function() {
     }
 }
 
+page.resetFilter = function(){
+    page.isClean(true);
+    page.isDeviation(true);
+    page.sScater(false);
+    page.showDownTime(false);
+    page.deviationVal(20);
+    $('#isClean').prop('checked',true);
+    $('#isDeviation').prop('checked',true);
+    $('#sScater').prop('checked',false);
+    $('#showDownTime').prop('checked',false);
+}
+
 page.HideforScatter = function() {
     var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
     var sScater = page.sScater();
     if (sScater) {
-        $('#showHideChk').hide();
+        // $('#showHideChk').hide();
+        $('#showHideAll').attr("disabled", true);
         $('#showHideAll').prop('checked', false);
         if (len > 3) {
             page.hideAll();
@@ -767,29 +804,49 @@ page.HideforScatter = function() {
             $('#chk-1').prop('checked', true);
         }
     } else {
-        $('#showHideChk').show();
-        $('#showHideAll').prop('checked', false); /*can be harcoded because max turbine is 3*/
+        // $('#showHideChk').show();
+        $('#showHideAll').removeAttr("disabled");
+        $('#showHideAll').prop('checked', false); /*can be hardcoded because max turbine is 3*/
     }
 }
 
 $(document).ready(function() {
+
     $('#btnRefresh').on('click', function() {
-        app.loading(true);
+        fa.checkTurbine();
         setTimeout(function() {
-            fa.LoadData();
-            if (page.sScater() && $("#turbineList").data("kendoMultiSelect").value().length > 3) {
-                swal('Warning', 'You can only select 3 turbines !', 'warning');
-                return
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var isValid = fa.LoadData();
+            if(isValid) {
+                app.loading(true);
+
+                // if(page.project() == page.currProject()){
+                //     if (page.sScater() && $("#turbineList").val().length > 3) {
+                //         swal('Warning', 'You can only select 3 turbines !', 'warning');
+                //         return
+                //     }
+                // }else{
+                //     page.resetFilter();
+                // }
+                page.resetFilter();
+                Data.InitLinePowerCurve();
             }
-            Data.InitLinePowerCurve()
+            page.project(project);
         }, 1000);
     });
 
-    app.loading(true);
-
     setTimeout(function() {
+        $(".label-filter:contains('Turbine')" ).hide();
+        $('.multiselect-native-select').hide();
+        page.currProject(fa.project);
+        page.project(fa.project);
+
         Data.LoadData();
     }, 1000);
+
+    $('.keep-open').click(function (e) {
+      e.stopPropagation()
+    });
 
     $("input[name=isAvg]").on("change", function() {
         page.viewSession(this.id);
@@ -832,6 +889,15 @@ $(document).ready(function() {
         suggest: true,
         change: function () { 
             var project = $('#projectList').data("kendoDropDownList").value();
+            var lastProject = page.currProject();
+            if(project != lastProject){
+                page.project(lastProject)
+                page.currProject(project);
+            }else{
+                page.project(project)
+                page.currProject(project);
+            }
+
             fa.populateTurbine(project);
          }
     });

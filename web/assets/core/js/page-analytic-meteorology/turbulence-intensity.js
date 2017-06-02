@@ -10,34 +10,34 @@ var ti = {
 	// 		$("#chartTI").data("kendoChart").refresh();
 	// 	}, 100);
 	// },
-	RefreshData: function() {
-	    
-	    fa.LoadData();
-	    pm.showFilter();
-	    if(pm.isFirstTurbulence() === true){
-	    	app.loading(true);
-	        ti.RefreshchartTI();
-	        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
-	        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
-	        $('#availabledatestart').html(metDate);
-	        $('#availabledateend').html(scadaDate);
+	RefreshData: function() {	    
+	    var isValid = fa.LoadData();
+	    if(isValid) {
+	    	pm.showFilter();
+		    if(pm.isFirstTurbulence() === true){
+		    	app.loading(true);
+		        ti.RefreshchartTI();
+		        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+		        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
+		        $('#availabledatestart').html(metDate);
+		        $('#availabledateend').html(scadaDate);
 
-	    }else{
-	        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
-	        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
-	        $('#availabledatestart').html(metDate);
-	        $('#availabledateend').html(scadaDate);
-	        setTimeout(function(){
-	            $("#chartTI").data("kendoChart").refresh();
-	            app.loading(false);
-	        }, 300);
+		    }else{
+		        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+		        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
+		        $('#availabledatestart').html(metDate);
+		        $('#availabledateend').html(scadaDate);
+		        setTimeout(function(){
+		            $("#chartTI").data("kendoChart").refresh();
+		            app.loading(false);
+		        }, 300);
+		    }
 	    }
-
 	},
 	RefreshchartTI: function() {
 		var param = {
             period: fa.period,
-            Turbine: fa.turbine,
+            Turbine: fa.turbine(),
             DateStart: fa.dateStart,
             DateEnd: fa.dateEnd,
             Project: fa.project

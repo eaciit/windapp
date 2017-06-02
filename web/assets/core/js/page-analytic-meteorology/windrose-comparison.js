@@ -151,52 +151,54 @@ wrb.initChartWRC = function () {
 }
 
 wrb.WindRoseComparison = function(){
-    fa.LoadData();
-    pm.showFilter();
-    if(pm.isFirstWindRoseComparison() === true){
-        app.loading(true);
-        setTimeout(function () {
-            // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();
-            var breakDownVal = "36";
-            var secDer = 360 / breakDownVal;
-            // wrb.sectorDerajatComparison(secDer);
-            var param = {
-                period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
-                turbine: fa.turbine,
-                project: fa.project,
-                breakDown: breakDownVal,
-            };
-            toolkit.ajaxPost(viewModel.appName + "analyticwindrose/getwindrosedata", param, function (res) {
-                if (!app.isFine(res)) {
+    var isValid = fa.LoadData();
+    if(isValid) {
+        pm.showFilter();
+        if(pm.isFirstWindRoseComparison() === true){
+            app.loading(true);
+            setTimeout(function () {
+                // var breakDownVal = $("#nosectionComparison").data("kendoDropDownList").value();
+                var breakDownVal = "36";
+                var secDer = 360 / breakDownVal;
+                // wrb.sectorDerajatComparison(secDer);
+                var param = {
+                    period: fa.period,
+                    dateStart: fa.dateStart,
+                    dateEnd: fa.dateEnd,
+                    turbine: fa.turbine(),
+                    project: fa.project,
+                    breakDown: breakDownVal,
+                };
+                toolkit.ajaxPost(viewModel.appName + "analyticwindrose/getwindrosedata", param, function (res) {
+                    if (!app.isFine(res)) {
+                        app.loading(false);
+                        return;
+                    }
+                    if (res.data != null) {
+                        wrb.dataWindroseComparison(res.data);
+                        wrb.initChartWRC();
+                    }
+
                     app.loading(false);
-                    return;
-                }
-                if (res.data != null) {
-                    wrb.dataWindroseComparison(res.data);
-                    wrb.initChartWRC();
-                }
+                    pm.isFirstWindRoseComparison(false);
 
+                })
+            }, 300);
+            var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+            var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+            $('#availabledatestart').html(metDate);
+            $('#availabledateend').html(scadaDate);
+        }else{
+            var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
+            var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
+            $('#availabledatestart').html(metDate);
+            $('#availabledateend').html(scadaDate);
+            setTimeout(function(){
+                $.each(listOfChartComparison, function(idx, elem){
+                    $(elem).data("kendoChart").refresh();
+                });
                 app.loading(false);
-                pm.isFirstWindRoseComparison(false);
-
-            })
-        }, 300);
-        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
-        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
-        $('#availabledatestart').html(metDate);
-        $('#availabledateend').html(scadaDate);
-    }else{
-        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
-        var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
-        $('#availabledatestart').html(metDate);
-        $('#availabledateend').html(scadaDate);
-        setTimeout(function(){
-            $.each(listOfChartComparison, function(idx, elem){
-                $(elem).data("kendoChart").refresh();
-            });
-            app.loading(false);
-        }, 300);
+            }, 300);
+        }
     }
 }

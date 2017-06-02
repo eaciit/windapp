@@ -473,12 +473,12 @@ page.populateTurbineX = function (selected, id) {
         $.each(page.rawturbine(), function (key, val) {
             if (selected == "") {
                 var data = {};
-                data.value = val.Turbine;
+                data.value = val.Value;
                 data.text = val.Turbine;
                 datavalue.push(data);
             }else if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
+                data.value = val.Value;
                 data.text = val.Turbine;
                 datavalue.push(data);
             }
@@ -627,15 +627,15 @@ page.removeFilter = function (id) {
 }
 
 page.refreshFilter = function (id) {
-	$('#btn-refresh-'+id).button("loading");
 	setTimeout(function(){
 		var startdate = $('#dateStart-' + id).data('kendoDatePicker').value();
-		var enddata = $('#dateEnd-' + id).data('kendoDatePicker').value();
+		var enddata = app.toUTC($('#dateEnd-' + id).data('kendoDatePicker').value());
 		var period = $('#periodList-' + id).data('kendoDropDownList').value();
 		if (startdate - enddata > 25200000) {
 			toolkit.showError("Invalid Date Range Selection");
 			return;
 		} else {
+			$('#btn-refresh-'+id).button("loading");
 			var turbine = [];
 			var isAllTurbine = false;
 
@@ -653,8 +653,8 @@ page.refreshFilter = function (id) {
 
 			var param = {
 				period: period,
-				DateStart: $('#dateStart-' + id).data('kendoDatePicker').value(),
-				DateEnd: $('#dateEnd-' + id).data('kendoDatePicker').value(),
+				DateStart: startdate,
+				DateEnd: enddata,
 				Turbine: turbine,
 				Project: $("#projectList-" + id).data("kendoDropDownList").value(),
 				Keys: page.selectedKeys(),

@@ -3,6 +3,10 @@
 viewModel.WindFarmAnalysis = new Object();
 var wfa = viewModel.WindFarmAnalysis;
 
+vm.currentMenu('Wind Farm Analysis');
+vm.currentTitle('Wind Farm Analysis');
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Wind Farm Analysis', href: viewModel.appName + 'page/windfarmanalysis' }]);
+
 function addOption(project) {
 	return {
 		text: project,
@@ -19,8 +23,8 @@ wfa.isTurbine1Loaded = ko.observable(false);
 wfa.isTurbine2Loaded = ko.observable(false);
 wfa.GridHeader = ko.observableArray([]);
 
-wfa.ProjectList = [];
-wfa.TurbineList = [];
+wfa.ProjectList = ko.observableArray([]);
+wfa.TurbineList = ko.observableArray([]);
 wfa.Keys = [
 	{ value: "Power", text: "Power (GW)", type: "column", color: "#EB8F1F", divider: 1000000 },
 	{ value: "WindSpeed", text: "WindSpeed (m/s)", type: "area", color: "#37CAB7", divider: 1 },
@@ -331,11 +335,50 @@ wfa.checkTurbine = function (elmId) {
     }
 }
 
+wfa.setTurbines = function (id,elemid) {
+    var datavalue = [];
+
+    var allturbine = {}
+    allturbine.value = "All Turbines";
+    allturbine.text = "All Turbines";
+    datavalue.push(allturbine);
+
+    var project = $("#"+id).data("kendoDropDownList").value();
+    $.each(turbines, function(idx, val) {
+        if (project == "") {
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Turbine;
+            datavalue.push(data);
+        }else if (project == val.Project){
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Turbine;
+            datavalue.push(data);
+        }
+    });
+
+    wfa.TurbineList(datavalue);
+    $("#"+elemid).data('kendoMultiSelect').setDataSource(new kendo.data.DataSource({ data: wfa.TurbineList() }));
+    $("#"+elemid).data('kendoMultiSelect').value(["All Turbines"]);
+}
+wfa.resetStatus = function(){
+    wfa.isProjectLoaded(false);
+    wfa.isTurbine1Loaded(false);
+    wfa.isTurbine2Loaded(false);
+}
 wfa.showFilter = function(project, turbine1, turbine2, id){
     wfa.isProjectTab(project);
     wfa.isTurbine1Tab(turbine1);
     wfa.isTurbine2Tab(turbine2);
     switch (id) {
+        case "tProjectAnalysis":
+            if(!wfa.isProjectLoaded()) {
+                app.loading(true);
+                wfa.isProjectLoaded(true);
+                wfa.LoadData();
+            }
+            break;
         case "tTurbine1Analysis":
             if(!wfa.isTurbine1Loaded()) {
                 app.loading(true);
@@ -366,106 +409,123 @@ $.each(projects, function(idx, val) {
 });
 $.each(turbines, function(idx, val) {
     var data = {};
-    data.value = val.Turbine;
+    data.value = val.Value;
     data.text = val.Turbine;
     wfa.TurbineList.push(data);
 	// wfa.TurbineList.push(addOption(val));
 });
 
-vm.currentMenu('Wind Farm Analysis');
-vm.currentTitle('Wind Farm Analysis');
-vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Wind Farm Analysis', href: viewModel.appName + 'page/windfarmanalysis' }]);
-
-
-$(document).ready(function(){
-    wfa.isProjectTab(true);
-
-	$(window).on("resize orientationchange", function () {        
-	    wfa.RefreshGrid();
-	});
-
-	// $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-	//     wfa.RefreshGrid();
-	// });
-
-	wfa.LoadData();
-
-    /*$('#btnRefresh').click(function(){
-        wfa.LoadData();
-    });*/
-});
-
-
 wfa.Turbine2Chart = function(data, chartSeries) {
-	var colors = [];
-	$.each(chartSeries, function(idx,val){
-		colors.push(val.color);
-	});
-	return { 
-		dataSource: data,
+    var colors = [];
+    $.each(chartSeries, function(idx,val){
+        colors.push(val.color);
+    });
+    return { 
+        dataSource: data,
         chartArea: {
-		    background: "transparent"
-		},
-		title: {
-	        visible: false
-	    },
-	    legend: {
-	        visible: false,
-	        position: "bottom"
-	    },
-	    seriesColors: colors,
-	    seriesDefaults: {
+            background: "transparent"
+        },
+        title: {
+            visible: false
+        },
+        legend: {
+            visible: false,
+            position: "bottom"
+        },
+        seriesColors: colors,
+        seriesDefaults: {
             type: "line",
             style: "smooth",
             markers: {
                 visible: false
             }
         },
-	    // series: chartSeries,
-	    series: [{
+        // series: chartSeries,
+        series: [{
             field: "Value",
             name: "#= group.value #",
             dashType: "solid"
         }],
-	    categoryAxis: {
-	        field: "Title",
+        categoryAxis: {
+            field: "Title",
             labels: {
                 visible: false,
             },
             crosshair: {
                 visible: false,
             },
-	        majorGridLines: {
-	            visible: false,
-	        },
-	        majorTicks: {
-	            visible: false,
-	        },
-	        visible: false
-	    },
-	    valueAxis: {
-	        visible: false,
-	        crosshair: {
+            majorGridLines: {
+                visible: false,
+            },
+            majorTicks: {
+                visible: false,
+            },
+            visible: false
+        },
+        valueAxis: {
+            visible: false,
+            crosshair: {
                 visible: false
             },
-	        majorGridLines: {
-	            visible: false,
-	        },
-	        majorTicks: {
-	            visible: false,
-	        },
-	    },
+            majorGridLines: {
+                visible: false,
+            },
+            majorTicks: {
+                visible: false,
+            },
+        },
         tooltip: {
             visible: true,
             template: "#: category # = #= kendo.format('{0:N2}',value) #"
         },
         dataBound: function(e) {
-        	var series = e.sender.options.series;
-        	$.each(series, function(idx, s){
-        		if(s.name=='Average') {
-        			s.dashType = 'dash';
-        		}
-        	});
+            var series = e.sender.options.series;
+            $.each(series, function(idx, s){
+                if(s.name=='Average') {
+                    s.dashType = 'dash';
+                }
+            });
         },
-	};
+    };
 };
+
+$(function(){
+    wfa.isProjectTab(true);
+
+	$(window).on("resize orientationchange", function () {        
+	    wfa.RefreshGrid();
+	});
+
+
+
+    $('#btnRefresh').on('click', function () {
+        wfa.resetStatus();
+        $('.nav').find('li.active').find('a').trigger("click");
+    });
+
+    $("#turbine1List").kendoMultiSelect({
+        dataSource: wfa.TurbineList(), 
+        dataValueField: 'value', 
+        dataTextField: 'text', 
+        change: function() {wfa.checkTurbine('turbine1List')}, 
+        suggest: true 
+    }); 
+
+    $("#turbine2List").kendoMultiSelect({
+        dataSource: wfa.TurbineList(), 
+        dataValueField: 'value', 
+        dataTextField: 'text', 
+        change: function() {wfa.checkTurbine('turbine2List')}, 
+        suggest: true
+    }); 
+
+    wfa.setTurbines('projectTurbine1List','turbine1List');
+    wfa.setTurbines('projectTurbine2List','turbine2List');
+
+	wfa.LoadData();
+
+    
+});
+
+
+

@@ -37,10 +37,10 @@ ma.CreateGrid = function(gridType) {
         });
         turbine = [COOKIES["turbine"]];
         project = COOKIES["project"];
-        $('#turbineList').data('kendoMultiSelect').value([turbine]);
+        $('#turbineList').multiselect('select', turbine);
         $('#projectList').data('kendoDropDownList').value(project);
     } else {
-        turbine = fa.turbine;
+        turbine = fa.turbine();
         project = fa.project;
     }
 
@@ -206,6 +206,7 @@ ma.ToByProject = function(){
 
 $(document).ready(function(){
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Down") {
             ma.CreateGrid("alarm");
         } else {

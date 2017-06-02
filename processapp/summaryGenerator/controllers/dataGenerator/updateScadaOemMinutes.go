@@ -343,11 +343,11 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM, arrMED []minE
 		perfIndex = tk.Div(data.AI_intern_ActivPower, denPower)
 	}
 
-	// retadjws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
-	// retavgws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
+	retadjws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
+	retavgws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
 	//for PC
-	retadjws := tk.RoundingAuto64(avgWs, 0)
-	retavgws := avgWs
+	// retadjws := tk.RoundingAuto64(data.AI_intern_WindSpeed, 0)
+	// retavgws := data.AI_intern_WindSpeed
 
 	e := ctx.Connection.NewQuery().Update().From(new(ScadaDataOEM).TableName()).
 		Where(dbox.Eq("_id", data.ID)).

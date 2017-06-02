@@ -1,5 +1,6 @@
 wfa.Turbine2Analysis = {
 	LoadData: function() {
+		app.loading(true);
 		var turbines = $('#turbine1List').data('kendoMultiSelect').value();
 		if(turbines[0]=="All Turbines") {
 			turbines = [];
@@ -11,27 +12,6 @@ wfa.Turbine2Analysis = {
 		toolkit.ajaxPost(viewModel.appName + "windfarmanalysis/getdatabyturbine2", param, function (data) {
            wfa.Turbine2Analysis.GenerateGrid(data.data);
         });
-     //    var data = {
-     //    	ChartData: [
-	    //     	{
-	    //     		Key: "Power",
-	    //     		OrderNo: 0,
-	    //     		ProjectName: "Tejuva",
-	    //     		Roll12Days: [],
-	    //     		Roll12Weeks: [],
-	    //     		Roll12Months: [],
-	    //     		Roll12Quarters: [],
-	    //     	}
-     //    	],
-     //    	ChartSeries: [
-     //    		{ field: "Average", color: "#ED1C24", name: "Average" },
-     //    		{ field: "HBR004", color: "#A3238E", name: "HBR004" },
-     //    		{ field: "HBR005", color: "#00A65D", name: "HBR005" },
-     //    		{ field: "HBR006", color: "#F58220", name: "HBR006" },
-     //    		{ field: "HBR007", color: "#0066B3", name: "HBR007" },
-     //    	]
-    	// };
-     //    wfa.Turbine2Analysis.GenerateGrid(data);
 	},
 	GenerateGrid: function(data) {
 		var chartSeries = data.ChartSeries;

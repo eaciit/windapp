@@ -52,46 +52,42 @@ var isFirst = true;
 
 var Data = {
     LoadData: function () {
-        app.loading(true);
-        var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+        var isValid = fa.LoadData();
 
-        fa.LoadData();
+        if(isValid) {
+            app.loading(true);
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                var minDatetemp = new Date(res.data.ScadaData[0]);
+                var maxDatetemp = new Date(res.data.ScadaData[1]);
+                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+            })
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var minDatetemp = new Date(res.data.ScadaData[0]);
-            var maxDatetemp = new Date(res.data.ScadaData[1]);
-            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-        })
+            var columnBreakdown = $('#columnsBreakdown').val();
+            var rowBreakdown = $('#rowsBreakdown').val();
 
-        var columnBreakdown = $('#columnsBreakdown').val();
-        var rowBreakdown = $('#rowsBreakdown').val();
+            var keyA = $('#key1').val();
+            var keyB = $('#key2').val();
+            var keyC = $('#key3').val();
 
-        var keyA = $('#key1').val();
-        var keyB = $('#key2').val();
-        var keyC = $('#key3').val();
+            var param = {
+                period: fa.period,
+                dateStart: fa.dateStart,
+                dateEnd: fa.dateEnd,
+                turbine: fa.turbine(),
+                project: fa.project,
+                columnBreakDown: columnBreakdown,
+                rowBreakDown: rowBreakdown,
+                keyA: keyA,
+                keyB: keyB,
+                keyC: keyC,
+            };
 
-        var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
-            project: fa.project,
-            columnBreakDown: columnBreakdown,
-            rowBreakDown: rowBreakdown,
-            keyA: keyA,
-            keyB: keyB,
-            keyC: keyC,
-        };
-
-        if (fa.dateStart - fa.dateEnd > 25200000) {
-            toolkit.showError("Invalid Date Range Selection");
-            return;
-        } else {
             setTimeout(function () {
                 toolkit.ajaxPost(viewModel.appName + "analytickpi/getscadasummarylist", param, function (res) {
                     if (!app.isFine(res)) {
@@ -457,6 +453,7 @@ $(function () {
 
     $('#btnRefresh').on('click', function () {
         // page.columnsBreakdownList = fa.GetBreakDown();
+        fa.checkTurbine();
         Data.LoadData();
     });
 
@@ -481,7 +478,12 @@ $(function () {
             dataValueField: 'value',
             dataTextField: 'text',
             suggest: true,
-            change: function () { page.setBreakDown() }
+            change: function () { 
+                page.setBreakDown(); 
+                setTimeout(function(){
+                   fa.setTurbine();
+                },400);
+            }
         });
 
         $("#dateStart").change(function () { fa.DateChange(page.setBreakDown()) });

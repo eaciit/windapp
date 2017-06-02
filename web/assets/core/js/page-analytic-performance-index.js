@@ -15,10 +15,11 @@ var hideYTD = false;
 var Data = {
     LoadData: function () {
         app.loading(false);
-        fa.LoadData();
+        var isValid = fa.LoadData();
+        if (isValid) {
+            this.InitGrid();
+        }
         // fa.getProjectInfo();
-        this.InitGrid();
-
     },
     InitGrid : function(){
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
@@ -58,7 +59,7 @@ var Data = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
+            turbine: fa.turbine(),
             project: fa.project
         };
 
@@ -254,6 +255,7 @@ var Data = {
 
 $(function(){
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         Data.LoadData();
     });
 

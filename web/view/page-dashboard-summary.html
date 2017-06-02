@@ -100,18 +100,21 @@
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
-					Availability (%) - Last 12 Months
-        		<span class="tools pull-right">
-        			  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+					Availability (%) - Last 12 Months &nbsp;
+					<!-- <span data-bind='visible: lgd.isFleet'>
+						<select type="text" id="projectAvail" class="ddlAvailability" data-bind="kendoDropDownList: { value: lgd.projectAvailSelected, data: lgd.projectAvailList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateAvailability, suggest: true}"></select>
+					</span> -->
+        			<span class="tools pull-right">
+						<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
+						<div class="btn-group" data-toggle="buttons">
+						  <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
+						      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+						  </label>
+						  <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.dataSourceScada())">
+						      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+						  </label>
+						</div>
+                  	</span>
 				</div>
 				<div class="panel-body" style="height: 185px;">
 					<div id="chartAbility"></div>
@@ -267,17 +270,18 @@
 			<div class="col-md-4 col-sm-4 hardcore landing" id="div-winddistribution">
 				<div class="panel ez no-padding hardcore winddistribution-div">
 					<div class="panel-heading">
-					Wind Distribution - Last 12 Months
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+					Wind Distribution - Current Month
+						<!--<select type="text" id="periodType" class="ddlWindDistPeriod" data-bind="kendoDropDownList: { value: sum.periodSelected, data: sum.periodList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateWindDist, suggest: true}"></select> -->
+						<span class="tools pull-right">
+	                      <div class="btn-group" data-toggle="buttons">
+	                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
+	                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+	                          </label>
+	                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
+	                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+	                          </label>
+	                      </div>
+	                  	</span>
 					</div>
 					<div class="panel-body" style="height: 185px;">
 						<div id="chartWindDistributionCustomTooltip"></div>

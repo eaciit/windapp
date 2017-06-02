@@ -189,7 +189,7 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		detail.WeatherStop = alarm.WeatherStop
 
 		next10min := GetNext10Min(alarm.StartDate)
-		for {
+		for alarm.ReduceAvailability {
 			detail.StartDate = next10min.Add(-10 * time.Minute)
 			detail.EndDate = next10min
 

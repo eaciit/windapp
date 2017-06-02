@@ -134,12 +134,12 @@ dbsh.defaultSelectedColumn = ko.observableArray([
 
 dbsh.InitScadaHFDGrid= function() {
     dbr.hfdvis(true);
-    var turbine = [];
-    if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-        turbine = turbineval;
-    } else {
-        turbine = $("#turbineList").data("kendoMultiSelect").value();
-    }
+    // var turbine = [];
+    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
+    //     turbine = turbineval;
+    // } else {
+    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
+    // }
 
     var param = {
         "Custom": {
@@ -158,7 +158,7 @@ dbsh.InitScadaHFDGrid= function() {
     }, {
         field: "turbine",
         operator: "in",
-        value: turbine
+        value: fa.turbine()
     }, ];
 
     if(fa.project != "") {

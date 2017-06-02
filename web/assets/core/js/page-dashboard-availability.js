@@ -260,7 +260,7 @@ avail.fleetMachAvail = function (dataSource) {
             type: "column",
             field: "result",
             // opacity : 0.7,
-            stacked: true
+            stacked: false
         }],
         seriesColors: colorField,
         valueAxis: {
@@ -286,14 +286,12 @@ avail.fleetMachAvail = function (dataSource) {
             },
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
-            labels: {
                 template: '#=  value.substring(0,3) #'
             },
             majorTickType: "none"
+            /*labels:{
+                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
+            },*/
         },
         tooltip: {
             visible: true,
@@ -341,7 +339,7 @@ avail.fleetGridAvail = function (dataSource) {
             type: "column",
             field: "result",
             // opacity : 0.7,
-            stacked: true
+            stacked: false
         }],
         seriesColors: colorField,
         valueAxis: {
@@ -367,14 +365,12 @@ avail.fleetGridAvail = function (dataSource) {
             },
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
-            labels: {
                 template: '#=  value.substring(0,3) #'
             },
             majorTickType: "none"
+            /*labels:{
+                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
+            },*/
         },
         tooltip: {
             visible: true,
@@ -416,7 +412,7 @@ avail.DTLEbyType = function (dataSource) {
         },
         seriesDefaults: {
             type: "column",
-            stack: true
+            stacked: true
         },
         series: [{
             type: "column",
@@ -549,7 +545,7 @@ avail.DTLostEnergy = function (dataSource) {
             type: "column",
             field: "result",
             // opacity : 0.7,
-            stacked: true
+            stacked: false
         }],
         seriesColors: colorField,
         valueAxis: {

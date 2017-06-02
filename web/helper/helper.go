@@ -339,6 +339,54 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
+
+	// log.Printf(">> %v \n", sessionid)
+
+	if toolkit.ToString(sessionid) == "" {
+		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "Your session has expired, please login"
+		}
+	} else {
+		if !success && data == nil {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "data is empty"
+		}
+	}
+
+	return map[string]interface{}{
+		"data":    data,
+		"success": success,
+		"message": message,
+	}
+}
+
+func CreateResultX(success bool, data interface{}, message string, r *knot.WebContext) map[string]interface{} {
+	if !success {
+		toolkit.Println("ERROR! ", message)
+		if DebugMode {
+			panic(message)
+		}
+	}
+	sessionid := r.Session("sessionid", "")
+
+	// log.Printf(">> %v \n", sessionid)
+
 	if toolkit.ToString(sessionid) == "" {
 		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
 		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
@@ -610,6 +658,10 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	return
 }*/
 
+func HelperSetDb(conn dbox.IConnection) {
+	_ = SetDb(conn)
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	csr, e := DB().Connection.NewQuery().
 		From(new(md.ProjectMaster).TableName()).
@@ -626,8 +678,11 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 
 	for _, val := range data {
 		result = append(result, md.ProjectOut{
-			Name:  fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
-			Value: val.ProjectId,
+			Name:              fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
+			Value:             val.ProjectId,
+			Coords:            []float64{val.Latitude, val.Longitude},
+			RevenueMultiplier: val.RevenueMultiplier,
+			City:              val.City,
 		})
 	}
 
@@ -646,7 +701,8 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 		NewQuery().
 		From(new(md.TurbineMaster).TableName()).
 		Where(filter...).
-		Order("project, turbineid").
+		// Order("project, turbineid").
+		Order("turbinename").
 		Cursor(nil)
 
 	if e != nil {
@@ -660,8 +716,10 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 	for _, val := range data {
 		result = append(result, md.TurbineOut{
 			Project:  val.Project,
-			Turbine:  val.TurbineId,
+			Turbine:  val.TurbineName,
+			Value:    val.TurbineId,
 			Capacity: val.CapacityMW,
+			Coords:   []float64{val.Latitude, val.Longitude},
 		})
 	}
 

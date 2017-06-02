@@ -126,8 +126,8 @@ pc.populateTurbine = function (selected) {
         $.each(pc.rawturbine(), function (key, val) {
             if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.value = val.Value;
+                data.label = val.Turbine;
                 datavalue.push(data);
                 dataturbine.push(val);
             }
@@ -166,12 +166,13 @@ pc.showHidePeriod = function (callback) {
     var period = $('#periodList').data('kendoDropDownList').value();
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
     var endMonthDate = new Date(app.getDateMax(maxDateData));
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
     var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+    
     if (period == "custom") {
         $(".show_hide").show();
         $('#dateStart').data('kendoDatePicker').setOptions({
@@ -244,7 +245,7 @@ pc.showHidePeriod2 = function (callback) {
     var period = $('#periodList2').data('kendoDropDownList').value();
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
     var endMonthDate = new Date(app.getDateMax(maxDateData));
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
@@ -352,172 +353,176 @@ pc.initChart = function() {
         var p2DateEnd  = $('#dateEnd2').data('kendoDatePicker').value();
             p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var minDatetemp = new Date(res.data.ScadaData[0]);
-            var maxDatetemp = new Date(res.data.ScadaData[1]);
-            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-        })
-
-        var link = "analyticpowercurve/getlistpowercurvecomparison"
-
-        app.loading(true);
-        var param = {
-            PC1Period       : $('#periodList').data('kendoDropDownList').value(),
-            PC1Project      :  $("#projectList1").data("kendoDropDownList").value(),
-            PC1Turbine      :  $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
-            PC1DateStart    : p1DateStart,
-            PC1DateEnd      : p1DateEnd,
-
-            PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-            PC2Project      :  $("#projectList1").data("kendoDropDownList").value(),
-            PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
-            PC2DateStart    : p2DateStart,
-            PC2DateEnd      : p2DateEnd
-
-        };
-
-        toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
-            if (!app.isFine(res)) {
-                app.loading(false);
-                return;
-            }
-            
-            var dataTurbine = res.data.Data;
-
-            
-            $('#chartPCcomparison').html("");
-            $("#chartPCcomparison").kendoChart({
-                pdf: {
-                  fileName: "DetailPowerCurve.pdf",
-                },
-                theme: "flat",
-                title: {
-                    text: "Power Curves",
-                    visible: false,
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                legend: {
-                    position: "bottom",
-                    visible: true,
-                    labels: {
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    },
-                },
-                chartArea: {
-                    height: 375,
-                },
-                seriesDefaults: {
-                    type: "scatterLine",
-                    style: "smooth",
-                    dashType: "longDash",
-                    markers: {
-                        visible: false,
-                        size: 4,
-                    },
-                },
-                seriesColors: colorField,
-                series: dataTurbine,
-                categoryAxis: {
-                    labels: {
-                        step: 1,
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    }
-                },
-                valueAxis: [{
-                    labels: {
-                        format: "N0",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    }
-                }],
-                xAxis: {
-                    majorUnit: 1,
-                    title: {
-                        text: "Wind Speed (m/s)",
-                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        color: "#585555",
-                        visible: true,
-                    },
-                    labels: {
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    },
-                    crosshair: {
-                        visible: true,
-                        tooltip: {
-                            visible: true,
-                            format: "N1",
-                            background: "rgb(255,255,255, 0.9)",
-                            color: "#58666e",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            border: {
-                                color: "#eee",
-                                width: "2px",
-                            },
-                        }
-                    },
-                    majorGridLines: {
-                        visible: true,
-                        color: "#eee",
-                        width: 0.8,
-                    },
-                    max: 25
-                },
-                yAxis: {
-                    title: {
-                        text: "Generation (KW)",
-                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        color: "#585555"
-                    },
-                    labels: {
-                        format: "N0",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    },
-                    axisCrossingValue: -5,
-                    majorGridLines: {
-                        visible: true,
-                        color: "#eee",
-                        width: 0.8,
-                    },
-                    crosshair: {
-                        visible: true,
-                        tooltip: {
-                            visible: true,
-                            format: "N1",
-                            background: "rgb(255,255,255, 0.9)",
-                            color: "#58666e",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            border: {
-                                color: "#eee",
-                                width: "2px",
-                            },
-                        }
-                    },
-                },
-                tooltip: {
-                    visible: true,
-                    template: "#= series.name #",
-                    shared: true,
-                    background: "rgb(255,255,255, 0.9)",
-                    color: "#58666e",
-                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    border: {
-                        color: "#eee",
-                        width: "2px",
-                    },
-                },
-                pannable: false,
-                zoomable: false
+        if (p1DateStart - p1DateEnd > 25200000) {
+            toolkit.showError("Invalid Date Range Selection for Filter 1");
+        } else if(p2DateStart - p2DateEnd > 25200000) {
+            toolkit.showError("Invalid Date Range Selection for Filter 2");
+        } else {
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                var minDatetemp = new Date(res.data.ScadaData[0]);
+                var maxDatetemp = new Date(res.data.ScadaData[1]);
+                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
             });
-            app.loading(false);
-            $("#chartPCcomparison").data("kendoChart").refresh();
 
-            
-        });
+            var link = "analyticpowercurve/getlistpowercurvecomparison"
 
+            app.loading(true);
+            var param = {
+                PC1Period       : $('#periodList').data('kendoDropDownList').value(),
+                PC1Project      :  $("#projectList1").data("kendoDropDownList").value(),
+                PC1Turbine      :  $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
+                PC1DateStart    : p1DateStart,
+                PC1DateEnd      : p1DateEnd,
 
+                PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
+                PC2Project      :  $("#projectList1").data("kendoDropDownList").value(),
+                PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
+                PC2DateStart    : p2DateStart,
+                PC2DateEnd      : p2DateEnd
+
+            };
+
+            toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
+                if (!app.isFine(res)) {
+                    app.loading(false);
+                    return;
+                }
+                
+                var dataTurbine = res.data.Data;
+
+                
+                $('#chartPCcomparison').html("");
+                $("#chartPCcomparison").kendoChart({
+                    pdf: {
+                      fileName: "DetailPowerCurve.pdf",
+                    },
+                    theme: "flat",
+                    title: {
+                        text: "Power Curves",
+                        visible: false,
+                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    },
+                    legend: {
+                        position: "bottom",
+                        visible: true,
+                        labels: {
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                    },
+                    chartArea: {
+                        height: 375,
+                    },
+                    seriesDefaults: {
+                        type: "scatterLine",
+                        style: "smooth",
+                        dashType: "longDash",
+                        markers: {
+                            visible: false,
+                            size: 4,
+                        },
+                    },
+                    seriesColors: colorField,
+                    series: dataTurbine,
+                    categoryAxis: {
+                        labels: {
+                            step: 1,
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        }
+                    },
+                    valueAxis: [{
+                        labels: {
+                            format: "N0",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        }
+                    }],
+                    xAxis: {
+                        majorUnit: 1,
+                        title: {
+                            text: "Wind Speed (m/s)",
+                            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            color: "#585555",
+                            visible: true,
+                        },
+                        labels: {
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                        crosshair: {
+                            visible: true,
+                            tooltip: {
+                                visible: true,
+                                format: "N1",
+                                background: "rgb(255,255,255, 0.9)",
+                                color: "#58666e",
+                                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                                border: {
+                                    color: "#eee",
+                                    width: "2px",
+                                },
+                            }
+                        },
+                        majorGridLines: {
+                            visible: true,
+                            color: "#eee",
+                            width: 0.8,
+                        },
+                        max: 25
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Generation (KW)",
+                            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            color: "#585555"
+                        },
+                        labels: {
+                            format: "N0",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                        axisCrossingValue: -5,
+                        majorGridLines: {
+                            visible: true,
+                            color: "#eee",
+                            width: 0.8,
+                        },
+                        crosshair: {
+                            visible: true,
+                            tooltip: {
+                                visible: true,
+                                format: "N1",
+                                background: "rgb(255,255,255, 0.9)",
+                                color: "#58666e",
+                                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                                border: {
+                                    color: "#eee",
+                                    width: "2px",
+                                },
+                            }
+                        },
+                    },
+                    tooltip: {
+                        visible: true,
+                        template: "#= series.name #",
+                        shared: true,
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    },
+                    pannable: false,
+                    zoomable: false
+                });
+                app.loading(false);
+                $("#chartPCcomparison").data("kendoChart").refresh();
+
+                
+            });
+        }
 }
 
 pc.setProjectTurbine = function(projects, turbines, selected){
@@ -528,9 +533,8 @@ pc.setProjectTurbine = function(projects, turbines, selected){
 
 $(document).ready(function () {
     $('#btnRefresh').on('click', function() {
-        app.loading(true);
         setTimeout(function() {
-            pc.initChart()
+            pc.initChart();
         }, 300);
     });
 

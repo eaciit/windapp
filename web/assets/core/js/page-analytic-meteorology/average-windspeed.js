@@ -95,36 +95,37 @@ aw.generateGridAverage = function () {
 }
 
 aw.AverageWindSpeed = function() {
-    pm.showFilter();
-    fa.LoadData();
-    if(pm.isFirstAverage() === true){
-        app.loading(true);
-        var param = {
-            period: fa.period,
-            Turbine: fa.turbine,
-            DateStart: fa.dateStart,
-            DateEnd: fa.dateEnd,
-            Project: fa.project
-        };
+    var isValid = fa.LoadData();
+    if(isValid) {
+        pm.showFilter();
+        if(pm.isFirstAverage() === true){
+            app.loading(true);
+            var param = {
+                period: fa.period,
+                Turbine: fa.turbine(),
+                DateStart: fa.dateStart,
+                DateEnd: fa.dateEnd,
+                Project: fa.project
+            };
 
-        toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/averagewindspeed", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            aw.dataSourceAverage(res.data.Data.turbine);
-            aw.generateGridAverage();
-            app.loading(false);
-            pm.isFirstAverage(false);
+            toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/averagewindspeed", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                aw.dataSourceAverage(res.data.Data.turbine);
+                aw.generateGridAverage();
+                app.loading(false);
+                pm.isFirstAverage(false);
+                $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+                $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+            });        
+        }else{
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        });        
-    }else{
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        setTimeout(function(){
-            $("#gridAvgWs").data("kendoGrid").refresh();
-            app.loading(false);
-        }, 300);
+            setTimeout(function(){
+                $("#gridAvgWs").data("kendoGrid").refresh();
+                app.loading(false);
+            }, 300);
+        }
     }
-
 }

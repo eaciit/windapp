@@ -8,14 +8,14 @@ wd.turbine = ko.observableArray([]);
 
 wd.populateTurbine = function(){
     wd.turbine([]);
-    if(fa.turbine == ""){
+    if(fa.turbine().length == 0){
         $.each(fa.turbineList(), function(i, val){
             if (i > 0){
                 wd.turbine.push(val.text);
             }
         });
     }else{
-        wd.turbine(fa.turbine);
+        wd.turbine(fa.turbine());
     }
 
 }
@@ -58,7 +58,7 @@ wd.ChartWindDistributon =  function () {
         period: fa.period,
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
-        turbine: fa.turbine,
+        turbine: fa.turbine(),
         project: fa.project
     };
 
@@ -224,22 +224,23 @@ wd.showHideLegend = function (idx) {
 }
 
 wd.WindDis = function(){
-    
-    fa.LoadData();
-    pm.showFilter();
-    if(pm.isFirstWindDis() === true){
-        app.loading(true);
-        wd.populateTurbine();
-        wd.ChartWindDistributon();
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-    }else{
-        app.loading(false);
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-        setTimeout(function () {
-            $('#windDistribution').data('kendoChart').refresh();
+    var isValid = fa.LoadData();
+    if(isValid) {
+        pm.showFilter();
+        if(pm.isFirstWindDis() === true){
+            app.loading(true);
+            wd.populateTurbine();
+            wd.ChartWindDistributon();
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+        }else{
             app.loading(false);
-        }, 100);
+            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+            setTimeout(function () {
+                $('#windDistribution').data('kendoChart').refresh();
+                app.loading(false);
+            }, 100);
+        }
     }
 }

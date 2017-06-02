@@ -20,12 +20,27 @@ sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
 sum.dataSourceWindDistribution = ko.observable();
+sum.windDistData = ko.observable();
+sum.periodSelected = ko.observable('currentmonth');
+sum.periodList = [
+    // {"text": "Last 12 Months", "value": "last12months"},
+    {"text": "Current Month", "value": "currentmonth"}
+]
+sum.paramPeriod = [];
+
+sum.paramAvailPeriod = [];
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
-        var param = { ProjectName: project, Date: maxdate };
+        for(var i=0;i<sum.periodList.length;i++) {
+            sum.paramPeriod.push(sum.periodList[i].value);
+        }
+        for(var i=0;i<lgd.projectAvailList().length;i++) {
+            sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
+        }
+        var param = { ProjectName: project, Date: maxdate};
 
         var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
             if (!app.isFine(res)) {
@@ -67,18 +82,67 @@ sum.loadData = function () {
             sum.SummaryData(project);
         });
 
+        param = { ProjectName: project, Date: maxdate, ProjectList: sum.paramAvailPeriod};
         var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-
-            sum.dataSourceScada(res.data);
-            sum.PLF(res.data);
-            sum.LostEnergy(res.data);
-            sum.Windiness(res.data);
-            sum.ProdMonth(res.data);
-            sum.AvailabilityChart(res.data);
-            sum.ProdCurLast(res.data);
+            sum.dataSourceScada(res.data["Data"]);
+            sum.PLF(res.data["Data"]);
+            sum.LostEnergy(res.data["Data"]);
+            sum.Windiness(res.data["Data"]);
+            sum.ProdMonth(res.data["Data"]);
+            var availabilityData = [];
+            var availabilitySeries = [];
+            if(project === "Fleet") {
+                var availDatas = res.data["Availability"];
+                var projectCount = 0;
+                for(var key in availDatas){
+                    var availData = availDatas[key];
+                    var seriesObj = {};
+                    for(var i=0;i<availData.length;i++){
+                        if(projectCount < 1) {
+                            var availObject = {
+                                "DateInfo": availData[i].DateInfo
+                            }
+                            availObject[key] = availData[i].TrueAvail;
+                            availabilityData.push(availObject);
+                        } else {
+                            var availObject = availabilityData[i]
+                            availObject[key] = availData[i].TrueAvail;
+                            availabilityData[i] = availObject;
+                        }
+                    }
+                    seriesObj["name"] = key;
+                    seriesObj["field"] = key;
+                    seriesObj["color"] = colorField[projectCount];
+                    availabilitySeries.push(seriesObj);
+                    projectCount++;
+                }
+                sum.AvailabilityChart(availabilityData, availabilitySeries);
+                // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
+            } else {
+                var availData = res.data["Data"];
+                if(res.data["Data"] !== undefined) {
+                    var seriesObj = {};
+                    for(var i=0;i<availData.length;i++){
+                        var availObject = {
+                            "DateInfo": availData[i].DateInfo
+                        }
+                        availObject[project] = availData[i].TrueAvail;
+                        availabilityData.push(availObject);
+                    }
+                    seriesObj["name"] = project;
+                    seriesObj["field"] = project;
+                    seriesObj["color"] = colorField[1];
+                    availabilitySeries.push(seriesObj);
+                    sum.AvailabilityChart(availabilityData, availabilitySeries);
+                } else {
+                    sum.AvailabilityChart(availData, availabilitySeries);
+                }
+                // sum.AvailabilityChart(res.data["Data"]);
+            }
+            sum.ProdCurLast(res.data["Data"]);
             sum.indiaMap(project);
 
             if (res.data != null ){
@@ -90,13 +154,15 @@ sum.loadData = function () {
         var ajax3
 
         if (project=="Fleet") {
+            param = { ProjectName: project, Date: maxdate, PeriodList: sum.paramPeriod};
             ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistribution", param, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
 
-                sum.dataSourceWindDistribution(res.data.Data);
-                sum.WindDistribution(res.data.Data);
+                sum.WindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.dataSourceWindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.windDistData(res.data.Data);
             });
         }
 
@@ -106,6 +172,7 @@ sum.loadData = function () {
             },200);        
         })
     }
+
 };
 
 sum.SummaryData = function (project) {
@@ -415,7 +482,11 @@ sum.Windiness = function (dataSource) {
         },
     });
 }
-
+sum.UpdateWindDist = function() {
+    setTimeout(function() {
+        sum.WindDistribution(sum.windDistData()[sum.periodSelected()]);
+    }, 300);
+}
 sum.WindDistribution = function (dataSource) {
     $("#chartWindDistribution").replaceWith('<div id="chartWindDistribution"></div>');
     $("#chartWindDistribution").kendoChart({
@@ -588,8 +659,12 @@ sum.ProdMonth = function (dataSource) {
         }
     });
 }
-
-sum.AvailabilityChart = function (dataSource) {
+// sum.UpdateAvailability = function() {
+//     setTimeout(function() {
+//         sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
+//     }, 300);
+// }
+sum.AvailabilityChart = function (dataSource, dataSeries) {
     $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({
         dataSource: {
@@ -613,24 +688,29 @@ sum.AvailabilityChart = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "area",
-            area: {
-                line: {
-                    style: "smooth"
-                }
+            type: "line",
+            style: "smooth",
+            // area: {
+            //     line: {
+            //         style: "smooth"
+            //     }
+            // }
+            markers: {
+                visible: false,
             }
         },
-        series: [{
-            name: "DBA",
-            field: "ScadaAvail",
-            // opacity : 0.5,
-            color: "#21c4af"
-        }, {
-            name: "TB",
-            field: "TrueAvail",
-            // opacity : 0.5,
-            color: "#ff880e",
-        }],
+        // series: [{
+        //     name: "Tejuva",
+        //     field: "ScadaAvail",
+        //     // opacity : 0.5,
+        //     color: "#21c4af"
+        // }, {
+        //     name: "Lahori",
+        //     field: "TrueAvail",
+        //     // opacity : 0.5,
+        //     color: "#ff880e",
+        // }],
+        series: dataSeries,
         // seriesColors: colorField,
         valueAxis: {
             max: 100,
@@ -805,11 +885,12 @@ sum.indiaMap = function (project) {
         }
 
         var turbineInfos = res.data;
-        var center = turbineInfos[0].coords[0] + "," + turbineInfos[0].coords[1];
+        var center = new google.maps.LatLng(turbineInfos[0].coords[0], turbineInfos[0].coords[1]);
         var mapProp = {
             types: ['(region)'],
             componentRestrictions: {country: "in"},
-            center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : new google.maps.LatLng(27.131461, 70.618559)),
+            // center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
+            center: center,
             zoom: (param.projectname == 'Fleet' ? 4 : 10),
             mapTypeId: google.maps.MapTypeId.HYBRID,
             mapTypeControl: true,
@@ -835,7 +916,7 @@ sum.indiaMap = function (project) {
         var markers = new Array();
 
         turbineInfos.forEach(function (obj, idx) {
-            var imgUrl = (obj.status == true ? "../res/img/turbine-green-new.png" : "../res/img/turbine-red.png")
+            var imgUrl ="../res/img/turbine-"+obj.status+".png";
 
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
@@ -860,7 +941,7 @@ sum.indiaMap = function (project) {
                         lgd.LoadData();
                     }, 200);
                 }else{
-                    sum.ToMonitoringIndividual(project, obj.name);
+                    sum.ToMonitoringIndividual(project, obj.value);
                 }
             });
         });

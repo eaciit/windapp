@@ -26,79 +26,22 @@ fa.rawturbine = ko.observableArray([]);
 
 var lastPeriod = "";
 
-/*fa.InitFirst = function () {
-    $.when(
-        app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.length == 0) {
-                res.data = [];;
-                fa.turbineList([{ value: "", text: "" }]);
-            } else {
-                var datavalue = [];
-                if (res.data.length > 0) {
-                    $.each(res.data, function (key, val) {
-                        var data = {};
-                        data.value = val;
-                        data.text = val;
-                        datavalue.push(data);
-                    });
-                }
-                fa.turbineList(datavalue);
-            }
-        }),
-        app.ajaxPost(viewModel.appName + "/helper/getprojectlist", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.length == 0) {
-                res.data = [];;
-                fa.projectList([{ value: "", text: "" }]);
-            } else {
-                var datavalue = [];
-                if (res.data.length > 0) {
-                    $.each(res.data, function (key, val) {
-                        var data = {};
-                        data.value = val;
-                        data.text = val;
-                        datavalue.push(data);
-                    });
-                }
-                fa.projectList(datavalue);
-            }
-        })
-
-    ).then(function () {
-        // override to set the value
-        $("#projectList").data("kendoDropDownList").value("Tejuva");
-        fa.project = $("#projectList").data("kendoDropDownList").value();
-    });
-}*/
-
 fa.populateTurbine = function (selected) {
     if (fa.rawturbine().length == 0) {
         fa.turbineList([{ value: "", text: "" }]);
     } else {
-        var datavalue = [];        
-        // $.each(fa.rawturbine(), function (key, val) {
-        //     turbineval.push(val);
-        // });
-        // var allturbine = {}
-        // allturbine.value = "All Turbine";
-        // allturbine.text = "All Turbines";
-        // datavalue.push(allturbine);
+        var datavalue = [];
 
         $.each(fa.rawturbine(), function (key, val) {
             if (selected == "") {
                 var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.value = val.Value;
+                data.label = val.Turbine;
                 datavalue.push(data);
             }else if (selected == val.Project){
                 var data = {};
-                data.value = val.Turbine;
-                data.text = val.Turbine;
+                data.value = val.Value;
+                data.label = val.Turbine;
                 datavalue.push(data);
             }
         });
@@ -130,7 +73,7 @@ fa.populateProject = function (selected) {
             if (selected != "") {
                 $("#projectList").data("kendoDropDownList").value(selected);
             } else {
-                $("#projectList").data("kendoDropDownList").select(1);
+                $("#projectList").data("kendoDropDownList").select(0);
             }               
             fa.project = $("#projectList").data("kendoDropDownList").value();
             fa.populateTurbine(fa.project);
@@ -142,7 +85,7 @@ fa.showHidePeriod = function (callback) {
     var period = $('#periodList').data('kendoDropDownList').value();
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), 1, 0, 0, 0, 0));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
     var endMonthDate = new Date(app.getDateMax(maxDateData));
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
@@ -222,14 +165,13 @@ fa.LoadData = function () {
 
     if (fa.dateStart - fa.dateEnd > 25200000) {
         toolkit.showError("Invalid Date Range Selection");
-        return;
+        return false;
     } else {
         fa.InitFilter();
+        fa.checkCompleteDate();
+        var period = $('#periodList').data('kendoDropDownList').value();
+        return true;
     }
-
-    var period = $('#periodList').data('kendoDropDownList').value();
-
-    fa.checkCompleteDate();
 }
 
 fa.InitFilter = function () {

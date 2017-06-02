@@ -79,7 +79,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 	// mutex.Lock()
 
 	now := time.Now()
-	log.Printf("Starting process %v | %v | %v \n", loop.Project, loop.Turbine, loop.LatestProcessTime.String())
+	log.Printf("Starting process %v | %v | %v | %v \n", loop.Project, loop.Turbine, loop.LatestFrom, loop.LatestProcessTime.String())
 
 	pipes := []tk.M{}
 
@@ -110,7 +110,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 		err = csr.Fetch(&eventRaws, 0, false)
 		if err != nil {
 			log.Println("Error: " + err.Error())
-		} else {
+		} else if len(eventRaws) > 0 {
 
 			loopData := eventRaws
 
@@ -237,6 +237,9 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 
 				// log.Printf("loopData: %v \n", len(loopData))
 
+				//log.Printf("found : %v || endIdx : %v || end : %v \n", foundInProduction, endIdx, end)
+				//log.Printf("dataInserted : %v || start : %v || end : %v || loop : %v \n", dataInserted, start.TimeStamp.UTC(), end, loop)
+
 				if !foundInProduction {
 
 					tmpLoopData := []EventRaw{}
@@ -255,7 +258,7 @@ func (ev *DownConversion) processTurbine(loop GroupResult, wg *sync.WaitGroup) {
 						break mainLoop
 					} else if dataInserted == 0 {
 						end = ev.getTurbineProduction(loop, start.TimeStamp.UTC())
-						if end.TimeStamp.UTC().Year() != 1 {
+						if end.TimeStamp.UTC().Year() != 1 && start.TimeStamp.UTC().Year() != 1 {
 							ev.insertEventDown(loop, start, end)
 							loopData = ev.getLoopData(loop, end)
 

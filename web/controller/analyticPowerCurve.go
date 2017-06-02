@@ -306,7 +306,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	dVal := (tk.ToFloat64(tk.ToInt(DeviationVal, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
-	selArr := 1
 
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
@@ -353,8 +352,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 	sort.Strings(sortTurbines)
 
-	for _, turbineX := range sortTurbines {
-
+	selArr := 1
+	for idx, turbineX := range sortTurbines {
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
 			id := y.Get("_id").(tk.M)
@@ -371,7 +370,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("markers", tk.M{"visible": false})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorField[selArr])
-		turbineData.Set("idxseries", selArr)
+		turbineData.Set("idxseries", idx)
 
 		for _, val := range exist {
 			idD := val.Get("_id").(tk.M)
@@ -384,7 +383,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		}
 
 		dataSeries = append(dataSeries, turbineData)
-		selArr++
+
+		if selArr == len(colorField)-1 {
+			selArr = 1
+		} else {
+			selArr++
+		}
+
 	}
 
 	data := struct {
@@ -1400,7 +1405,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 	turbine := p.Turbine
 	project := p.Project
 	colors := p.Color
-	colordeg := p.ColorDeg
+	// colordeg := p.ColorDeg
+	colorIndex := map[string]int{}
+	for key, val := range colorField {
+		colorIndex[val] = key
+	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
 	viewSession := p.ViewSession
@@ -1475,7 +1484,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					datas.Set("Power", val.Power)
 
 					if val.DenDeviationPct <= dVal {
-						datas.Set("valueColor", colordeg[selArr])
+						// datas.Set("valueColor", colordeg[selArr])
+						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
 					} else {
 						datas.Set("valueColor", colors[selArr])
 					}
@@ -1488,7 +1498,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					datas.Set("WindSpeed", val.AvgWindSpeed)
 					datas.Set("Power", val.Power)
 					if val.DeviationPct <= dVal {
-						datas.Set("valueColor", colordeg[selArr])
+						// datas.Set("valueColor", colordeg[selArr])
+						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
 					} else {
 						datas.Set("valueColor", colors[selArr])
 					}

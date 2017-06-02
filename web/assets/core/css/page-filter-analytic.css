@@ -14,3 +14,27 @@
 .label-filter{
 	padding-top:0px !important; 
 }
+.multiselect.dropdown-toggle.btn.btn-default{
+    padding: 5px!important;
+    border: 1px solid #fff;
+    border-radius: 0px;
+    font-size: 12px!important;
+    background: #fff;
+    width: 160px;
+}
+.multiselect.dropdown-toggle.btn.btn-default:hover{
+    padding: 5px!important;
+    border: 1px solid #a9bbc0;
+}
+.multiselect.dropdown-toggle.btn.btn-default:focus,.multiselect.dropdown-toggle.btn.btn-default:visited{
+    padding: 5px!important;
+    border: 1px solid #ea5b19;
+    box-shadow: 0 0 7px 0 #ea5b19;
+}
+.multiselect-container>li>a>label {
+    margin: 0;
+    height: 100%;
+    cursor: pointer;
+    font-weight: 400;
+    padding: 3px 20px 3px 30px;
+}
