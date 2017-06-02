@@ -113,13 +113,34 @@ it.GetData = function(project, turbine) {
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataturbine", param, function (res) {
         // var time = (new Date).getTime();
         var time = it.getTimestamp(moment.utc(res.data["lastupdate"]));
+        var wsVal = parseFloat(res.data["Wind speed Avg"].toFixed(2));
+        var pwrVal = parseFloat(res.data["Power"].toFixed(2));
 
         if(it.isFirst() == false){
-            chart.series[0].addPoint([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))], true, chart.series[0].data.length>maxSamples ? true:false);
-            chart.series[1].addPoint([time, parseFloat(res.data["Power"].toFixed(2))], true, chart.series[0].data.length>maxSamples ? true:false);
+            if (wsVal == -999999 ) {
+                chart.series[0].addPoint([time, null], true, chart.series[0].data.length>maxSamples ? true:false);
+            }else{
+                chart.series[0].addPoint([time, wsVal], true, chart.series[0].data.length>maxSamples ? true:false);
+            }
+
+            if (pwrVal == -999999 ) {
+                chart.series[1].addPoint([time, null], true, chart.series[0].data.length>maxSamples ? true:false);
+            }else{
+                chart.series[1].addPoint([time, pwrVal], true, chart.series[0].data.length>maxSamples ? true:false);
+            }
         }else{
-            it.dataWindspeed([time, parseFloat(res.data["Wind speed Avg"].toFixed(2))]);
-            it.dataPower([time, parseFloat(res.data["Power"].toFixed(2))]);
+            if (wsVal == -999999 ) {
+                it.dataWindspeed([time, null]);
+            }else{
+                it.dataWindspeed([time, wsVal]);
+            }
+
+            if (pwrVal == -999999 ) {
+                it.dataPower([time, null]);
+            }else{
+                it.dataPower([time, pwrVal]);
+            }
+
             it.showWindspeedLiveChart();
         }
 
@@ -619,24 +640,6 @@ it.showWindspeedLiveChart = function(){
             labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
         },
         rangeSelector: {
-            buttons: [{
-                type: 'minute',
-                count: 1,
-                text: '1"'
-            },{
-                type: 'minute',
-                count: 5,
-                text: '5"'
-            }, {
-                type: 'hour',
-                count: 1,
-                text: '1h'
-            }, {
-                type: 'all',
-                text: 'All'
-            }],
-            inputEnabled: false,
-            selected: 0,
             enabled:false,
         },
         scrollbar: {
@@ -675,8 +678,7 @@ it.showWindspeedLiveChart = function(){
            minorTickLength: 0,
            tickLength: 0
         },
-
-            navigator: {
+        navigator: {
             enabled: false,
         },
         plotOptions: {

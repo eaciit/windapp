@@ -38,6 +38,7 @@ bp.turbine = ko.observableArray([]);
 bp.feeders = ko.observableArray();
 bp.dataFeeders = ko.observableArray();
 bp.newFeeders = ko.observableArray([]);
+bp.fullscreen = ko.observable(false);
 
 // var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
 var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
@@ -172,7 +173,7 @@ bp.GetData = function(data) {
         });
 
         var someArray = feeders;
-        var groupSize = Math.floor(($(window).innerHeight() - 190 - 24)/24);
+        var groupSize = (bp.fullscreen() == true ? Math.floor(($(window).innerHeight() - 105 - 24)/24) : Math.floor(($(window).innerHeight() - 175 - 24)/24));
 
         var groups = _.map(someArray, function(item, index){
           return index % groupSize === 0 ? someArray.slice(index, index + groupSize) : null; 
@@ -218,14 +219,14 @@ bp.PlotData = function(data) {
         var turbine = val.Turbine;
 
         if(val.ActivePower > -999999) { 
-            if(kendo.toString(val.ActivePower, 'n2')!=$('#power_'+ turbine).text()) {
+            if(kendo.toString(val.ActivePower, 'n2')!= $('#power_'+ turbine).text()) {
                 $('#power_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
-                console.log(kendo.toString(val.ActivePower, 'n2') + "," + $('#power_'+ turbine).text());
             }
-            
+            $('#powerdata_'+ turbine).text(val.ActivePower.toFixed(2));
             window.setTimeout(function(){ 
                 $('#power_'+ turbine).css('background-color', 'transparent');
             }, 750);
+            
         }
         if(val.WindSpeed > -999999) {
             if(kendo.toString(val.WindSpeed, 'n2')!=$('#wind_'+ turbine).text()) {
@@ -283,18 +284,25 @@ bp.PlotData = function(data) {
         }
 
         var colorStatus = "lbl bg-green";
+        var defaultColorStatus = "bg-default-green";
+
         if(val.Status==0) {
             colorStatus = "lbl bg-red"; // faa-flash animated
+            defaultColorStatus = "bg-default-red";
         } else if(val.Status === 1 && val.IsWarning === true) {
             colorStatus = "lbl bg-orange";
+            defaultColorStatus = "bg-default-orange";
         }
         if(val.DataComing==0) {
             colorStatus = "lbl bg-grey";
+            defaultColorStatus = "bg-default-grey";
         }
 
         var comparison = 0;
+        $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
         if((val.ActivePower / val.Capacity) >= 0){
             comparison = (val.ActivePower / val.Capacity) * 70;
+            
             $('#statusturbine_'+ turbine).attr('class', colorStatus);
             $('#statusturbine_'+ turbine).css('width', comparison + 'px');
         }else{
@@ -302,7 +310,19 @@ bp.PlotData = function(data) {
             $('#statusturbine_'+ turbine).attr('class', 'lbl');
         }
 
-
+        $('#statusturbinedefault_'+turbine).popover({
+            placement: 'bottom',
+            html: 'true',
+            content : '<a class="btn btn-xs btn-primary individual"><i class="fa fa-line-chart"></i>&nbsp;Individual Turbine</a> &nbsp; <a class="btn btn-xs btn-primary alarm"><i class="fa fa-chevron-right"></i>&nbsp;View Alarm</a>'
+        }).on('shown.bs.popover', function () {
+            var $popup = $(this);
+            $(this).next('.popover').find('a.individual').click(function (e) {
+                bp.ToIndividualTurbine(turbine);
+            });
+            $(this).next('.popover').find('a.alarm').click(function (e) {
+                bp.ToAlarm(turbine);
+            });
+        });
 
     });
 
@@ -341,8 +361,6 @@ bp.ToAlarm = function(turbine) {
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
     },300);
 
-    console.log(document.cookie);
-
     $.when(set).done(function(){
          window.location = viewModel.appName + "page/monitoringalarm";
      });
@@ -356,6 +374,7 @@ $(function() {
     $("#restore-screen").hide();
 
     $("#max-screen").click(function(){
+        bp.fullscreen(true);
         $("html").addClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 80);
         $(".multicol").height($(window).innerHeight() - 80 - 25);
@@ -365,6 +384,7 @@ $(function() {
     });
 
     $("#restore-screen").click(function(){
+        bp.fullscreen(false);
         $("html").removeClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);
@@ -373,8 +393,12 @@ $(function() {
         $("#restore-screen").hide();  
     });
 
+    $(document).on("click", ".popover .close" , function(){
+        $(this).parents(".popover").popover('hide');
+    });
+
     setTimeout(function() {
         bp.GetData()
-        // setInterval(bp.GetData, 4000);
+        setInterval(bp.GetData, 4000);
     }, 600);
 });

@@ -379,6 +379,20 @@ h4.content-heading {
 .bg-orange {
   background-color:#EA6020;
 }
+
+.bg-default-green{
+    background-color: #A5D6A7;
+}
+
+.bg-default-red{
+    background-color: #F8BBD0;
+}
+.bg-default-orange{
+    background-color: #FFCC80;
+}
+.bg-default-grey{
+    background-color: #B0BEC5;
+}
 .table.table-monitoring {
   margin-top: -15px;
   margin-bottom: 15px;
@@ -655,7 +669,7 @@ h4.content-heading {
 
 .notes{
   position: absolute;
-  bottom: 35px;
+  bottom: 30px;
 }
 #monitoring-content{
   margin-top: 10px;
@@ -677,10 +691,11 @@ h4.content-heading {
     margin-bottom: -50px;
 }
 .feeder-column{
+   margin-bottom: -5px;
    padding-right: 10px;
 }
-.monitoring-content > .landing{
-  margin-bottom: -25px;
+.landing{
+  margin-bottom: -10px;
 }
 .hardcore > .panel-body{
   margin-bottom: 65px;
@@ -701,7 +716,6 @@ h4.content-heading {
   display: inline-block;
   padding-top: 0px;
   line-height: 1;
-  background-color: #B0BEC5;
   text-align: left;
 }
 
@@ -715,16 +729,52 @@ h4.content-heading {
   vertical-align: baseline;
   border-radius: 0.1em;
   font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
-  font-size: 90%;
+  font-size: 85%;
   font-weight: 600;
   display: inline-flex;
 }
 
-/*.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
-    background-color: #fff !important;
+.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
+    background-color: #263238  !important;
     color: white;
-}*/
+}
 
+.maximize-mode .defaultcolor{
+  color : #ffffff !important;
+}
+
+.maximize-mode .feeder-column {
+    padding-right: 15px;
+}
+.maximize-mode .table-monitoring > thead > tr > th,
+.maximize-mode .table-monitoring > tbody > tr > th,
+.maximize-mode .table-monitoring > tfoot > tr > th,
+.maximize-mode .table-monitoring > thead > tr > td,
+.maximize-mode .table-monitoring > tbody > tr > td,
+.maximize-mode .table-monitoring > tfoot > tr > td {
+   border-top: 1px solid #263238;
+}
+
+.maximize-mode .table-monitoring>thead>tr>th {
+    border-bottom: 1px solid #CFD8DC;
+}
+
+.maximize-mode .table-striped>tbody>tr:nth-of-type(odd) {
+    background-color: #2d3b42 !important;
+}
+
+.maximize-mode .bg-default-grey{
+    background-color: #37474F;
+}
+.maximize-mode .bg-default-red{
+    background-color: #730f03;
+}
+.maximize-mode .bg-default-orange{
+    background-color: #6d3f17;
+}
+.maximize-mode .bg-default-green{
+    background-color: #144818;
+}
 .maximize-mode .main-header, .maximize-mode .bread-info{
     display: none;
 }
@@ -733,7 +783,7 @@ h4.content-heading {
     display: block;
 }
 
-/*.maximize-mode .ez.panel {
+.maximize-mode .ez.panel {
     border-radius: 0px;
 }
 
@@ -781,5 +831,30 @@ h4.content-heading {
 
 .maximize-mode .panel-body{
     padding: 0px;
-}*/
+}
+.panel-content{
+    margin-top: -5px;
+    margin-bottom: -10px;
+}
+.bread-info{
+    margin-top: 5px;
+}
 
+/*SCROLLBAR*/
+.feeder-content::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+}
+
+.feeder-content::-webkit-scrollbar
+{
+    height: 3px;
+    background-color: #F5F5F5;
+}
+
+.feeder-content::-webkit-scrollbar-thumb
+{
+    background-color: #455a64;
+    border: 2px solid #555555;
+}
