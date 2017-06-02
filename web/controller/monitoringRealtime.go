@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
+	"log"
 
 	"eaciit/wfdemo-git/web/helper"
 
@@ -708,7 +709,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	project := p.Project
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
-	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
+	alltkmdata := getLastValueFromRaw(timemax, p.Project, p.Turbine)
 	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
@@ -858,18 +859,20 @@ func getNext10Min(current time.Time) time.Time {
 	return timestampconverted
 }
 
-func getLastValueFromRaw(timemax time.Time, turbine string) (tkm tk.M) {
+func getLastValueFromRaw(timemax time.Time, project string, turbine string) (tkm tk.M) {
 	tkm = tk.M{}
 	timeFolder := getNext10Min(timemax).UTC()
 	aTimeFolder := []time.Time{timeFolder.Add(time.Minute * -10), timeFolder}
 
 	for _, _tFolder := range aTimeFolder {
 		fullpath := filepath.Join(helper.GetHFDFolder(),
-			// "data",
+			strings.ToLower(project),
 			_tFolder.Format("20060102"), // "20170210",
 			_tFolder.Format("15"),       // "11",
 			_tFolder.Format("1504"),     // "1120",
 		)
+
+		log.Printf(">> %v \n", fullpath)
 
 		afile := getListFile(fullpath)
 		for _, _file := range afile {
