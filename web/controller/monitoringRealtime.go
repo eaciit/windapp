@@ -352,10 +352,16 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		if _iContinue && _iTurbine == _tTurbine {
 			continue
 		}
-		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
+		/*tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 
 		if tstamp.After(lastUpdate) {
 			lastUpdate = tstamp.UTC()
+		}*/
+
+		tstamp := _tdata.Get("lastupdate", time.Time{}).(time.Time)
+
+		if tstamp.After(lastUpdate) {
+			lastUpdate = tstamp
 		}
 
 		if _iTurbine != _tTurbine {
@@ -513,11 +519,15 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		alldata = append(alldata, _itkm)
 	}
 
+	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
+	indiaTime := lastUpdate.In(indiaLoc)
+	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
+
 	if pageType == "monitoring" {
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
-		rtkm.Set("TimeStamp", lastUpdate)
+		rtkm.Set("TimeStamp", lastUpdateIndia)
 		rtkm.Set("TimeMax", timemax)
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
