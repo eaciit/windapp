@@ -113,11 +113,11 @@ sum.loadData = function () {
                             availabilityData[i] = availObject;
                         }
                     }
-                    projectCount++;
                     seriesObj["name"] = key;
                     seriesObj["field"] = key;
                     seriesObj["color"] = colorField[projectCount];
                     availabilitySeries.push(seriesObj);
+                    projectCount++;
                 }
                 sum.AvailabilityChart(availabilityData, availabilitySeries);
                 // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
@@ -689,10 +689,14 @@ sum.AvailabilityChart = function (dataSource, dataSeries) {
         },
         seriesDefaults: {
             type: "line",
-            area: {
-                line: {
-                    style: "smooth"
-                }
+            style: "smooth",
+            // area: {
+            //     line: {
+            //         style: "smooth"
+            //     }
+            // }
+            markers: {
+                visible: false,
             }
         },
         // series: [{
