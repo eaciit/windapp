@@ -27,7 +27,7 @@ sum.periodList = [
     {"text": "Current Month", "value": "currentmonth"}
 ]
 sum.paramPeriod = [];
-sum.availabilityData = ko.observable();
+
 sum.paramAvailPeriod = [];
 
 vm.dateAsOf(app.currentDateData);
@@ -92,11 +92,55 @@ sum.loadData = function () {
             sum.LostEnergy(res.data["Data"]);
             sum.Windiness(res.data["Data"]);
             sum.ProdMonth(res.data["Data"]);
+            var availabilityData = [];
+            var availabilitySeries = [];
             if(project === "Fleet") {
-                sum.availabilityData(res.data["Availability"])
-                sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
+                var availDatas = res.data["Availability"];
+                var projectCount = 0;
+                for(var key in availDatas){
+                    var availData = availDatas[key];
+                    var seriesObj = {};
+                    for(var i=0;i<availData.length;i++){
+                        if(projectCount < 1) {
+                            var availObject = {
+                                "DateInfo": availData[i].DateInfo
+                            }
+                            availObject[key] = availData[i].TrueAvail;
+                            availabilityData.push(availObject);
+                        } else {
+                            var availObject = availabilityData[i]
+                            availObject[key] = availData[i].TrueAvail;
+                            availabilityData[i] = availObject;
+                        }
+                    }
+                    seriesObj["name"] = key;
+                    seriesObj["field"] = key;
+                    seriesObj["color"] = colorField[projectCount];
+                    availabilitySeries.push(seriesObj);
+                    projectCount++;
+                }
+                sum.AvailabilityChart(availabilityData, availabilitySeries);
+                // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
-                sum.AvailabilityChart(res.data["Data"]);
+                var availData = res.data["Data"];
+                if(res.data["Data"] !== undefined) {
+                    var seriesObj = {};
+                    for(var i=0;i<availData.length;i++){
+                        var availObject = {
+                            "DateInfo": availData[i].DateInfo
+                        }
+                        availObject[project] = availData[i].TrueAvail;
+                        availabilityData.push(availObject);
+                    }
+                    seriesObj["name"] = project;
+                    seriesObj["field"] = project;
+                    seriesObj["color"] = colorField[1];
+                    availabilitySeries.push(seriesObj);
+                    sum.AvailabilityChart(availabilityData, availabilitySeries);
+                } else {
+                    sum.AvailabilityChart(availData, availabilitySeries);
+                }
+                // sum.AvailabilityChart(res.data["Data"]);
             }
             sum.ProdCurLast(res.data["Data"]);
             sum.indiaMap(project);
@@ -615,12 +659,12 @@ sum.ProdMonth = function (dataSource) {
         }
     });
 }
-sum.UpdateAvailability = function() {
-    setTimeout(function() {
-        sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
-    }, 300);
-}
-sum.AvailabilityChart = function (dataSource) {
+// sum.UpdateAvailability = function() {
+//     setTimeout(function() {
+//         sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
+//     }, 300);
+// }
+sum.AvailabilityChart = function (dataSource, dataSeries) {
     $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({
         dataSource: {
@@ -644,24 +688,29 @@ sum.AvailabilityChart = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "area",
-            area: {
-                line: {
-                    style: "smooth"
-                }
+            type: "line",
+            style: "smooth",
+            // area: {
+            //     line: {
+            //         style: "smooth"
+            //     }
+            // }
+            markers: {
+                visible: false,
             }
         },
-        series: [{
-            name: "DBA",
-            field: "ScadaAvail",
-            // opacity : 0.5,
-            color: "#21c4af"
-        }, {
-            name: "TA",
-            field: "TrueAvail",
-            // opacity : 0.5,
-            color: "#ff880e",
-        }],
+        // series: [{
+        //     name: "Tejuva",
+        //     field: "ScadaAvail",
+        //     // opacity : 0.5,
+        //     color: "#21c4af"
+        // }, {
+        //     name: "Lahori",
+        //     field: "TrueAvail",
+        //     // opacity : 0.5,
+        //     color: "#ff880e",
+        // }],
+        series: dataSeries,
         // seriesColors: colorField,
         valueAxis: {
             max: 100,
