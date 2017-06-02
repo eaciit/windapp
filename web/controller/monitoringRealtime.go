@@ -749,7 +749,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		}
 
 		if str == "WindSpeed_ms" || str == "ActivePower_kW" {
-			log.Printf(">> %v | %v | %v \n", key, str, alltkmdata.GetFloat64(str))
+			// log.Printf(">> %v | %v | %v \n", key, str, alltkmdata.GetFloat64(str))
 		}
 
 		if alltkmdata.Has(str) {
