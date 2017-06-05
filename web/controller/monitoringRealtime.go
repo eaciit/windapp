@@ -63,11 +63,23 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 
 	var tStart, tEnd time.Time
 	now := time.Now().UTC()
-	// now := time.Date(2017, 3, 8, 9, 20, 0, 0, time.UTC)
-	last := now.AddDate(0, 0, -24)
+	// // now := time.Date(2017, 3, 8, 9, 20, 0, 0, time.UTC)
+	// last := now.AddDate(0, 0, -24)
 
-	tStart, _ = time.Parse("20060102", last.Format("200601")+"01")
-	tEnd, _ = time.Parse("20060102", now.Format("200601")+"01")
+	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
+	indiaTime := now.In(indiaLoc)
+	indiaNow := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
+
+	last := indiaNow.Add(time.Duration(-24) * time.Hour)
+
+	// tStart, _ = time.Parse("20060102", last.Format("200601")+"01")
+	// tEnd, _ = time.Parse("20060102", indiaNow.Format("200601")+"01")
+
+	tStart = last
+	tEnd = indiaNow
+
+	// log.Printf(">> %v | %v \n", last.String(), indiaNow.String())
+	// log.Printf(">> %v | %v \n", tStart.String(), tEnd.String())
 
 	section = p.BreakDown
 	getFullWSCategory()
