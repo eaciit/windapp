@@ -32,6 +32,8 @@ km.createChart = function () {
     var turbineData = '';
     if(fa.turbine().length == 0) {
         turbineData = 'All Turbines';
+    }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
+        turbineData = 'All Turbines';
     } else {
         turbineData = fa.turbine().join(", ");
     }
@@ -120,6 +122,8 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
     $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
     var turbineData = '';
     if(fa.turbine().length == 0) {
+        turbineData = 'All Turbines';
+    }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
         turbineData = 'All Turbines';
     } else {
         turbineData = fa.turbine().join(", ");
