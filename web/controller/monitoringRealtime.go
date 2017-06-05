@@ -709,7 +709,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	project := p.Project
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
-	alltkmdata := getLastValueFromRaw(timemax, p.Project, p.Turbine)
+	alltkmdata := getLastValueFromRaw(timemax, project, p.Turbine)
 	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
@@ -748,9 +748,16 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 			continue
 		}
 
+		if str == "WindSpeed_ms" || str == "ActivePower_kW" {
+			// log.Printf(">> %v | %v | %v \n", key, str, alltkmdata.GetFloat64(str))
+		}
+
 		if alltkmdata.Has(str) {
 			if _ival := alltkmdata.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == defaultValue {
 				alldata.Set(key, _ival)
+				if str == "WindSpeed_ms" || str == "ActivePower_kW" {
+					log.Printf(">> ival: %v \n", _ival)
+				}
 			}
 		}
 	}
@@ -872,7 +879,7 @@ func getLastValueFromRaw(timemax time.Time, project string, turbine string) (tkm
 			_tFolder.Format("1504"),     // "1120",
 		)
 
-		log.Printf(">> %v \n", fullpath)
+		// log.Printf(">> %v \n", fullpath)
 
 		afile := getListFile(fullpath)
 		for _, _file := range afile {

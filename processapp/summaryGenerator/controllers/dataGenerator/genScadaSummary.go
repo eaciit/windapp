@@ -505,7 +505,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 					}
 				}
 
-				machineAvail, _, _, trueAvail, plf := helper.GetAvailAndPLF(1, oktime, energy, machinedowntime, griddowntime, float64(0), hourValue, minutes, plfDivider)
+				machineAvail, _, _, trueAvail, plf := helper.GetAvailAndPLF(float64(totalWtg), oktime, energy, machinedowntime, griddowntime, float64(0), hourValue, minutes, plfDivider)
 
 				var item ScadaSummaryByProjectItem
 
