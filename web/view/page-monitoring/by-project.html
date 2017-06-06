@@ -12,7 +12,7 @@
             <div class="nav nav-pills nav-replace-title">
                 <div class="col-md-12 col-sm-12">
                     <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: bp.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: bp.GetData}"
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: bp.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true}"
                     style="width:145px"></select>&nbsp;
                     <label style="margin-top: 5px;margin-left: 10px"><i class="fa fa-map-marker"></i> <b> <span id="citytxt"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp; Temperature : <b><span id="project_temperature"></span> &deg; C</b> &nbsp;&nbsp;<span class="last-separator">|</span>&nbsp;&nbsp; <img id="project_img_weather" src="http://openweathermap.org/img/w/02d.png"/>
                     <b><span id="project_weather"></span></b> &nbsp;&nbsp;|&nbsp;&nbsp;Last Update&nbsp;:&nbsp;&nbsp;&nbsp;<b><span id="project_last_update"></span></b></label>
@@ -58,9 +58,10 @@
                                        <td colspan="9"><strong><span data-bind="text:feederName"></span></strong></td> 
                                     </tr>
                                     <tr data-bind="visible:isHeader == false">
-                                        <td class="link-detail"><span class="progress-custom"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></span></td>
-                                        <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: kendo.toString(ActivePower, 'n2')">-</span></td>
-                                        <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: kendo.toString(WindSpeed, 'n2')">-</span></td>
+                                       <!--  <td class="link-detail"><span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></span></td> -->
+                                       <td class="link-detail"><span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-bind="text:Name"></a></span></span></td>
+                                        <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: (ActivePower > -999999) ? kendo.toString(ActivePower, 'n2') : '-'">-</span></td>
+                                        <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: (WindSpeed > -999999) ? kendo.toString(WindSpeed, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'dir_'+ Turbine}, text: (NacellePosition > -999999) ? kendo.toString(NacellePosition, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'rotor_'+ Turbine }, text: (RotorRPM > -999999) ? kendo.toString(RotorRPM, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'pitch_'+ Turbine }, text: (PitchAngle > -999999) ? kendo.toString(PitchAngle, 'n2') : '-'">-</span></td>

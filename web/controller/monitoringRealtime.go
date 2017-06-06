@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
+	"log"
 
 	"eaciit/wfdemo-git/web/helper"
 
@@ -62,11 +63,23 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 
 	var tStart, tEnd time.Time
 	now := time.Now().UTC()
-	// now := time.Date(2017, 3, 8, 9, 20, 0, 0, time.UTC)
-	last := now.AddDate(0, 0, -24)
+	// // now := time.Date(2017, 3, 8, 9, 20, 0, 0, time.UTC)
+	// last := now.AddDate(0, 0, -24)
 
-	tStart, _ = time.Parse("20060102", last.Format("200601")+"01")
-	tEnd, _ = time.Parse("20060102", now.Format("200601")+"01")
+	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
+	indiaTime := now.In(indiaLoc)
+	indiaNow := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
+
+	last := indiaNow.Add(time.Duration(-24) * time.Hour)
+
+	// tStart, _ = time.Parse("20060102", last.Format("200601")+"01")
+	// tEnd, _ = time.Parse("20060102", indiaNow.Format("200601")+"01")
+
+	tStart = last
+	tEnd = indiaNow
+
+	// log.Printf(">> %v | %v \n", last.String(), indiaNow.String())
+	// log.Printf(">> %v | %v \n", tStart.String(), tEnd.String())
 
 	section = p.BreakDown
 	getFullWSCategory()
@@ -352,10 +365,16 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		if _iContinue && _iTurbine == _tTurbine {
 			continue
 		}
-		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
+		/*tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 
 		if tstamp.After(lastUpdate) {
 			lastUpdate = tstamp.UTC()
+		}*/
+
+		tstamp := _tdata.Get("lastupdate", time.Time{}).(time.Time)
+
+		if tstamp.After(lastUpdate) {
+			lastUpdate = tstamp
 		}
 
 		if _iTurbine != _tTurbine {
@@ -516,12 +535,16 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		alldata = append(alldata, _itkm)
 	}
 
+	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
+	indiaTime := lastUpdate.In(indiaLoc)
+	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
+
 	if pageType == "monitoring" {
 		turbineactive := len(_result) - turbinedown - turbnotavail
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
-		rtkm.Set("TimeStamp", lastUpdate)
+		rtkm.Set("TimeStamp", lastUpdateIndia)
 		rtkm.Set("TimeMax", timemax)
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
@@ -703,7 +726,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	project := p.Project
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
-	alltkmdata := getLastValueFromRaw(timemax, p.Turbine)
+	alltkmdata := getLastValueFromRaw(timemax, project, p.Turbine)
 	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
@@ -742,9 +765,16 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 			continue
 		}
 
+		if str == "WindSpeed_ms" || str == "ActivePower_kW" {
+			// log.Printf(">> %v | %v | %v \n", key, str, alltkmdata.GetFloat64(str))
+		}
+
 		if alltkmdata.Has(str) {
 			if _ival := alltkmdata.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == defaultValue {
 				alldata.Set(key, _ival)
+				if str == "WindSpeed_ms" || str == "ActivePower_kW" {
+					log.Printf(">> ival: %v \n", _ival)
+				}
 			}
 		}
 	}
@@ -853,18 +883,20 @@ func getNext10Min(current time.Time) time.Time {
 	return timestampconverted
 }
 
-func getLastValueFromRaw(timemax time.Time, turbine string) (tkm tk.M) {
+func getLastValueFromRaw(timemax time.Time, project string, turbine string) (tkm tk.M) {
 	tkm = tk.M{}
 	timeFolder := getNext10Min(timemax).UTC()
 	aTimeFolder := []time.Time{timeFolder.Add(time.Minute * -10), timeFolder}
 
 	for _, _tFolder := range aTimeFolder {
 		fullpath := filepath.Join(helper.GetHFDFolder(),
-			// "data",
+			strings.ToLower(project),
 			_tFolder.Format("20060102"), // "20170210",
 			_tFolder.Format("15"),       // "11",
 			_tFolder.Format("1504"),     // "1120",
 		)
+
+		// log.Printf(">> %v \n", fullpath)
 
 		afile := getListFile(fullpath)
 		for _, _file := range afile {

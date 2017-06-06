@@ -38,6 +38,8 @@ bp.turbine = ko.observableArray([]);
 bp.feeders = ko.observableArray();
 bp.dataFeeders = ko.observableArray();
 bp.newFeeders = ko.observableArray([]);
+bp.oldFeeders = ko.observableArray([]);
+bp.fullscreen = ko.observable(false);
 
 // var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
 var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
@@ -172,7 +174,7 @@ bp.GetData = function(data) {
         });
 
         var someArray = feeders;
-        var groupSize = Math.floor(($(window).innerHeight() - 190 - 24)/24);
+        var groupSize = (bp.fullscreen() == true ? Math.floor(($(window).innerHeight() - 105 - 24)/24) : Math.floor(($(window).innerHeight() - 175 - 24)/24));
 
         var groups = _.map(someArray, function(item, index){
           return index % groupSize === 0 ? someArray.slice(index, index + groupSize) : null; 
@@ -204,8 +206,9 @@ bp.GetData = function(data) {
 
 bp.PlotData = function(data) {
     var allData = data.Detail
-
+    var oldData = (bp.oldFeeders().length == 0 ? allData : bp.oldFeeders());
     var lastUpdate = moment.utc(data.TimeStamp);
+
     $('#project_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
     $('#project_turbine_active').text(24);
     $('#project_turbine_down').text(0);
@@ -216,93 +219,115 @@ bp.PlotData = function(data) {
 
     $.each(allData, function(idx, val){
         var turbine = val.Turbine;
-
-        if(val.ActivePower > -999999) { 
-            if(kendo.toString(val.ActivePower, 'n2')!=$('#power_'+ turbine).text()) {
-                $('#power_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
-                console.log(kendo.toString(val.ActivePower, 'n2') + "," + $('#power_'+ turbine).text());
+        var oldTurbine = oldData[idx].Turbine;
+        var oldVal = oldData[idx];
+        if(oldTurbine == turbine){
+            if(val.ActivePower > -999999) { 
+                if(kendo.toString(val.ActivePower, 'n2')!= kendo.toString(oldVal.ActivePower, 'n2')) {
+                    $('#power_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+                }
+                $('#powerdata_'+ turbine).text(val.ActivePower.toFixed(2));
+                window.setTimeout(function(){ 
+                    $('#power_'+ turbine).css('background-color', 'transparent');
+                }, 750);
+                
             }
-            
-            window.setTimeout(function(){ 
-                $('#power_'+ turbine).css('background-color', 'transparent');
-            }, 750);
-        }
-        if(val.WindSpeed > -999999) {
-            if(kendo.toString(val.WindSpeed, 'n2')!=$('#wind_'+ turbine).text()) {
-                $('#wind_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)'); 
+            if(val.WindSpeed > -999999) {
+                if(kendo.toString(val.WindSpeed, 'n2')!= kendo.toString(oldVal.WindSpeed, 'n2')) {
+                    $('#wind_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)'); 
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#wind_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
             }
-            
-            window.setTimeout(function(){ 
-                $('#wind_'+ turbine).css('background-color', 'transparent'); 
-            }, 750);
-        }
-        if(val.NacellePosition > -999999) {
-            if(kendo.toString(val.NacellePosition, 'n2')!=$('#dir_'+ turbine).text()) {
-                $('#dir_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
+            if(val.NacellePosition > -999999) {
+                if(kendo.toString(val.NacellePosition, 'n2')!=kendo.toString(oldVal.NacellePosition, 'n2')) {
+                    $('#dir_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#dir_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
             }
-            
-            window.setTimeout(function(){ 
-                $('#dir_'+ turbine).css('background-color', 'transparent'); 
-            }, 750);
-        }
-        if(val.RotorRPM > -999999) {
-            if(kendo.toString(val.RotorRPM, 'n2')!=$('#rotor_'+ turbine).text()) {
-                $('#rotor_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+            if(val.RotorRPM > -999999) {
+                if(kendo.toString(val.RotorRPM, 'n2')!= kendo.toString(oldVal.RotorRPM, 'n2')) {
+                    $('#rotor_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#rotor_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
             }
-            
-            window.setTimeout(function(){ 
-                $('#rotor_'+ turbine).css('background-color', 'transparent'); 
-            }, 750);
-        }
-        if(val.PitchAngle > -999999) {
-            if(kendo.toString(val.PitchAngle, 'n2')!=$('#pitch_'+ turbine).text()) {
-                $('#pitch_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+            if(val.PitchAngle > -999999) {
+                if(kendo.toString(val.PitchAngle, 'n2')!=kendo.toString(oldVal.PitchAngle, 'n2')) {
+                    $('#pitch_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#pitch_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
             }
-            
-            window.setTimeout(function(){ 
-                $('#pitch_'+ turbine).css('background-color', 'transparent'); 
-            }, 750);
-        }
-        if(val.Temperature > -999999) {
-            if(kendo.toString(val.Temperature, 'n2')!=$('#temperature_'+ turbine).text()) {
-                $('#temperature_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
+            if(val.Temperature > -999999) {
+                if(kendo.toString(val.Temperature, 'n2')!=kendo.toString(oldVal.Temperature, 'n2')) {
+                    $('#temperature_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#temperature_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
             }
-            
-            window.setTimeout(function(){ 
-                $('#temperature_'+ turbine).css('background-color', 'transparent'); 
-            }, 750);
-        }
 
-        /* TURBINE STATUS PART */
-        if(val.AlarmDesc!="") {
-            $('#alarmdesc_'+ turbine).text(val.AlarmCode);
-            $('#alarmdesc_'+ turbine).attr('data-original-title', val.AlarmDesc);
-        } else {
-            $('#alarmdesc_'+ turbine).text("-");
-            $('#alarmdesc_'+ turbine).attr('data-original-title', "This turbine already UP");
-        }
+            /* TURBINE STATUS PART */
+            if(val.AlarmDesc!="") {
+                $('#alarmdesc_'+ turbine).text(val.AlarmCode);
+                $('#alarmdesc_'+ turbine).attr('data-original-title', val.AlarmDesc);
+            } else {
+                $('#alarmdesc_'+ turbine).text("-");
+                $('#alarmdesc_'+ turbine).attr('data-original-title', "This turbine already UP");
+            }
 
-        var colorStatus = "lbl bg-green";
-        if(val.Status==0) {
-            colorStatus = "lbl bg-red"; // faa-flash animated
-        } else if(val.Status === 1 && val.IsWarning === true) {
-            colorStatus = "lbl bg-orange";
-        }
-        if(val.DataComing==0) {
-            colorStatus = "lbl bg-grey";
-        }
+            var colorStatus = "lbl bg-green";
+            var defaultColorStatus = "bg-default-green";
 
-        var comparison = 0;
-        if((val.ActivePower / val.Capacity) >= 0){
-            comparison = (val.ActivePower / val.Capacity) * 70;
-            $('#statusturbine_'+ turbine).attr('class', colorStatus);
-            $('#statusturbine_'+ turbine).css('width', comparison + 'px');
-        }else{
-            comparison = 0;
-            $('#statusturbine_'+ turbine).attr('class', 'lbl');
+            if(val.Status==0) {
+                colorStatus = "lbl bg-red"; // faa-flash animated
+                defaultColorStatus = "bg-default-red";
+            } else if(val.Status === 1 && val.IsWarning === true) {
+                colorStatus = "lbl bg-orange";
+                defaultColorStatus = "bg-default-orange";
+            }
+            if(val.DataComing==0) {
+                colorStatus = "lbl bg-grey";
+                defaultColorStatus = "bg-default-grey";
+            }
+
+            var comparison = 0;
+            $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
+            if((val.ActivePower / val.Capacity) >= 0){
+                comparison = (val.ActivePower / val.Capacity) * 70;
+                
+                $('#statusturbine_'+ turbine).attr('class', colorStatus);
+                $('#statusturbine_'+ turbine).css('width', comparison + 'px');
+            }else{
+                comparison = 0;
+                $('#statusturbine_'+ turbine).attr('class', 'lbl');
+            }
+
+            $('#statusturbinedefault_'+turbine).popover({
+                placement: 'bottom',
+                html: 'true',
+                content : '<a class="btn btn-xs btn-primary individual"><i class="fa fa-line-chart"></i>&nbsp;Individual Turbine</a> &nbsp; <a class="btn btn-xs btn-primary alarm"><i class="fa fa-chevron-right"></i>&nbsp;View Alarm</a>'
+            }).on('shown.bs.popover', function () {
+                var $popup = $(this);
+                $(this).next('.popover').find('a.individual').click(function (e) {
+                    bp.ToIndividualTurbine(turbine);
+                });
+                $(this).next('.popover').find('a.alarm').click(function (e) {
+                    bp.ToAlarm(turbine);
+                });
+            });
         }
-
-
 
     });
 
@@ -316,6 +341,7 @@ bp.PlotData = function(data) {
         $('#project_generation').text(data.PowerGeneration.toFixed(2));
         $('#project_wind_speed').text(data.AvgWindSpeed.toFixed(2));
         $('#project_plf').text((data.PowerGeneration / 50400 * 100).toFixed(2));
+        bp.oldFeeders(allData);
     }, 1000);
     
 };
@@ -341,8 +367,6 @@ bp.ToAlarm = function(turbine) {
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
     },300);
 
-    console.log(document.cookie);
-
     $.when(set).done(function(){
          window.location = viewModel.appName + "page/monitoringalarm";
      });
@@ -355,7 +379,19 @@ $(function() {
 
     $("#restore-screen").hide();
 
+    $('#projectList').kendoDropDownList({
+        data: bp.projectList,
+        dataValueField: 'value',
+        dataTextField: 'text',
+        suggest: true,
+        change: function () { 
+            bp.oldFeeders([]); 
+            bp.GetData();
+         }
+    });
+
     $("#max-screen").click(function(){
+        bp.fullscreen(true);
         $("html").addClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 80);
         $(".multicol").height($(window).innerHeight() - 80 - 25);
@@ -365,6 +401,7 @@ $(function() {
     });
 
     $("#restore-screen").click(function(){
+        bp.fullscreen(false);
         $("html").removeClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);
@@ -373,8 +410,12 @@ $(function() {
         $("#restore-screen").hide();  
     });
 
+    $(document).on("click", ".popover .close" , function(){
+        $(this).parents(".popover").popover('hide');
+    });
+
     setTimeout(function() {
         bp.GetData()
-        // setInterval(bp.GetData, 4000);
+        setInterval(bp.GetData, 4000);
     }, 600);
 });

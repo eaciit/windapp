@@ -37,7 +37,7 @@ ma.CreateGrid = function(gridType) {
         });
         turbine = [COOKIES["turbine"]];
         project = COOKIES["project"];
-        $('#turbineList').data('kendoMultiSelect').value([turbine]);
+        $('#turbineList').multiselect('select', turbine);
         $('#projectList').data('kendoDropDownList').value(project);
     } else {
         turbine = fa.turbine();
