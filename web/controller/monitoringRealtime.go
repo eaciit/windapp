@@ -323,7 +323,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		"PitchAngle", "RotorRPM"}
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
-	turbinedown := 0
+	turbinedown, turbnotavail := 0, 0
 	t0 := getTimeNow()
 
 	arrturbinestatus := GetTurbineStatus(project, "")
@@ -382,8 +382,10 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 					_itkm.Set(afield, defaultValue)
 				}
 
+				turbnotavail++
 				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
 					_itkm.Set("DataComing", 1)
+					turbnotavail--
 				}
 
 				if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
@@ -392,7 +394,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 						Set("Status", _idt.Status).
 						Set("IsWarning", _idt.IsWarning).
 						Set("AlarmUpdate", _idt.TimeUpdate.UTC())
-					if _idt.Status == 0 {
+					if _idt.Status == 0 && _itkm.GetInt("DataComing") == 1 {
 						turbinedown += 1
 					}
 				}
@@ -489,6 +491,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		}
 
 		turbineMp := turbineMap[_turbine]
+		turbnotavail++
 
 		_itkm = tk.M{}.
 			Set("Turbine", _turbine).
@@ -514,6 +517,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	}
 
 	if pageType == "monitoring" {
+		turbineactive := len(_result) - turbinedown - turbnotavail
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
@@ -522,8 +526,9 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 		rtkm.Set("PLF", tk.Div(PowerGen, 50400)*100)
-		rtkm.Set("TurbineActive", len(_result)-turbinedown)
+		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
+		rtkm.Set("TurbineNotAvail", turbnotavail)
 	} else if pageType == "dashboard" {
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TurbineDown", turbinedown)
