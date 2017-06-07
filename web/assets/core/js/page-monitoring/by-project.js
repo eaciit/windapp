@@ -386,8 +386,11 @@ $(function() {
         dataTextField: 'text',
         suggest: true,
         change: function () { 
-            bp.oldFeeders([]); 
-            bp.GetData();
+            setTimeout(function(){
+                bp.oldFeeders([])
+                bp.GetData();
+            },1500);
+            
          }
     });
 
