@@ -130,7 +130,24 @@ lg.showLoader = function(visible) {
 }
 
 $(function () {
-	lg.showLoader(false);
+	if(document.referrer.indexOf("login/default") >= 0) {
+		toolkit.ajaxPost(viewModel.appName + "login/loginrealtime", {}, function (res) {
+			if (!app.isFine(res)) {
+				lg.showLoader(false);
+				return;
+			}
+
+			lg.ErrorMessage(res.message);
+
+			if (res.message == "Login Success") {
+				window.location = viewModel.appName + "page/monitoringbyproject";
+			}
+
+			lg.showLoader(false);
+		});
+	} else {
+		lg.showLoader(false);
+	}
 	// lg.checkSession();
 	// setTimeout(function() {
 	//        $('#loginForm').height($(window).height());

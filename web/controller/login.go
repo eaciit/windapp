@@ -152,6 +152,44 @@ func (l *LoginController) GetUserName(r *knot.WebContext) interface{} {
 	return helper.CreateResult(true, tUser.LoginID, "")
 }
 
+func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputJson
+
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
+
+	if r.Session("keyRealtime", "") == "58e4931965d1041094641f0f" {
+		MenuList = []string{}
+		credentials := toolkit.M{"username": "eaciit", "password": "eaciit@1234"}
+		menus, sessid, err := LoginProcess(credentials)
+		if err != nil {
+			return helper.CreateResult(false, "", err.Error())
+		}
+
+		WriteLog(sessid, "realtime login", r.Request.URL.String())
+		r.SetSession("sessionid", sessid)
+		r.SetSession("menus", menus)
+		helper.WC = r
+		MenuList = menus
+
+		// Get Available Date All Collection
+		datePeriod := getLastAvailDate()
+		r.SetSession("availdate", datePeriod)
+
+		// log.Printf("availdate: %v \n", r.Session("availdate", ""))
+
+		lastDateData = datePeriod.ScadaData[1].UTC()
+		r.SetSession("lastdate_data", lastDateData)
+
+		data := toolkit.M{
+			"status":    true,
+			"sessionid": sessid,
+		}
+		return helper.CreateResult(true, data, "Login Success")
+	}
+
+	return helper.CreateResult(false, "", "You have no right to access this page")
+}
+
 func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 
