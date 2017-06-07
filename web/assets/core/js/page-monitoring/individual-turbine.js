@@ -80,7 +80,10 @@ it.ChangeProject = function() {
         var projects = [];
         projects.push(it.project);
         it.populateTurbine(projects, it.allTurbineList, true);
-        it.ShowData();
+        setTimeout(function(){
+            it.isFirst(true);
+            it.ShowData();
+        },300);
     };
 };
 
@@ -129,19 +132,22 @@ it.GetData = function(project, turbine) {
                 chart.series[1].addPoint([time, pwrVal], true, chart.series[0].data.length>maxSamples ? true:false);
             }
         }else{
-            if (wsVal == -999999 ) {
-                it.dataWindspeed([time, null]);
-            }else{
-                it.dataWindspeed([time, wsVal]);
-            }
 
-            if (pwrVal == -999999 ) {
-                it.dataPower([time, null]);
-            }else{
-                it.dataPower([time, pwrVal]);
-            }
+            setTimeout(function(){
+                if (wsVal == -999999 ) {
+                    it.dataWindspeed([time, null]);
+                }else{
+                    it.dataWindspeed([time, wsVal]);
+                }
 
-            it.showWindspeedLiveChart();
+                if (pwrVal == -999999 ) {
+                    it.dataPower([time, null]);
+                }else{
+                    it.dataPower([time, pwrVal]);
+                }
+
+                it.showWindspeedLiveChart();
+            },500);
         }
 
         it.PlotData(res.data);
@@ -500,6 +506,7 @@ it.ShowData = function() {
     var project = "";
     
     if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
+        
         document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         cookieStr.split(/; /).forEach(function(keyValuePair) {
@@ -509,23 +516,25 @@ it.ShowData = function() {
         });
         turbine = COOKIES["turbine"];
         project = COOKIES["project"];
-        console.log(turbine);
+
         setTimeout(function(){
             $('#projectList').data('kendoDropDownList').value(project);
             var change = $("#projectList").data("kendoDropDownList").trigger("change");
             setTimeout(function(){
                 $('#turbine').data('kendoDropDownList').value(turbine);
             },200);
+
+            it.isFirst(true);
+            it.ShowData();
+
         },500);
 
     } else {
         turbine = $('#turbine').data('kendoDropDownList').value();
         project = $('#projectList').data('kendoDropDownList').value();
+        it.GetData(project, turbine);
     }
 
-    // it.LoadData(turbine);
-    it.GetData(project, turbine);
-    
     $.when(it.showWindRoseChart()).done(function () {
         setTimeout(function() {
             app.loading(false);
