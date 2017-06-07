@@ -306,6 +306,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	rtkm = tk.M{}
 	alldata, allturbine := []tk.M{}, tk.M{}
 	turbineMap := map[string]tk.M{}
+	totalCapacity := 0.0
 
 	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder", "turbinename", "latitude", "longitude", "capacitymw").
 		From("ref_turbine").
@@ -330,6 +331,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		sort.Strings(lturbine)
 		allturbine.Set(_tkm.GetString("feeder"), lturbine)
 		turbineMap[turbine] = tk.M{"coords": []float64{_tkm.GetFloat64("latitude"), _tkm.GetFloat64("longitude")}, "name": _tkm.GetString("turbinename"), "capacity": _tkm.GetFloat64("capacitymw") * 1000.0}
+		totalCapacity += _tkm.GetFloat64("capacitymw")
 	}
 
 	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
@@ -548,7 +550,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		rtkm.Set("TimeMax", timemax)
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
-		rtkm.Set("PLF", tk.Div(PowerGen, 50400)*100)
+		rtkm.Set("PLF", tk.Div(PowerGen, (totalCapacity*1000))*100)
 		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
 		rtkm.Set("TurbineNotAvail", turbnotavail)

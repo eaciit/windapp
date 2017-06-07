@@ -341,7 +341,7 @@ bp.PlotData = function(data) {
     window.setTimeout(function(){ 
         $('#project_generation').text(data.PowerGeneration.toFixed(2));
         $('#project_wind_speed').text(data.AvgWindSpeed.toFixed(2));
-        $('#project_plf').text((data.PowerGeneration / 50400 * 100).toFixed(2));
+        $('#project_plf').text((data.PLF).toFixed(2));
         bp.oldFeeders(allData);
     }, 1000);
     
