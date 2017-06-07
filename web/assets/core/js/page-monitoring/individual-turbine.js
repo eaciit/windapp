@@ -523,11 +523,12 @@ it.ShowData = function() {
             setTimeout(function(){
                 $('#turbine').data('kendoDropDownList').value(turbine);
             },200);
+        },500);
 
+        setTimeout(function(){
             it.isFirst(true);
             it.ShowData();
-
-        },500);
+        },300);
 
     } else {
         turbine = $('#turbine').data('kendoDropDownList').value();
