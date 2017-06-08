@@ -2219,6 +2219,136 @@ func (m *DataBrowserController) GetScadaDataHFDAvailDate(k *knot.WebContext) int
 
 // Generate excel
 
+func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.PayloadsDB)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	turbine := p.Turbine
+
+	istimestamp := false
+	arrscadaoem := []string{"_id", "timestamputc"}
+	arrmettower := []string{}
+	headerList := []string{}
+	fieldList := []string{}
+	if p.Custom.Has("ColumnList") {
+		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
+			_tkm, _ := tk.ToM(_val)
+			if _tkm.GetString("source") == "ScadaDataOEM" {
+				arrscadaoem = append(arrscadaoem, _tkm.GetString("_id"))
+				if _tkm.GetString("_id") == "timestamp" {
+					istimestamp = true
+				}
+			} else if _tkm.GetString("source") == "MetTower" {
+				arrmettower = append(arrmettower, _tkm.GetString("_id"))
+			}
+			headerList = append(headerList, _tkm.GetString("label"))
+			fieldList = append(fieldList, _tkm.GetString("_id"))
+		}
+	}
+	var filter []*dbox.Filter
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	if len(turbine) > 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+	if p.Project != "" {
+		filter = append(filter, dbox.Eq("projectname", p.Project))
+	}
+
+	csr, e := DB().Connection.NewQuery().Select(arrscadaoem...).
+		From(new(ScadaDataOEM).TableName()).Where(dbox.And(filter...)).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	results := make([]tk.M, 0)
+	e = csr.Fetch(&results, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	arrmettowercond := []interface{}{}
+
+	for i, val := range results {
+		if val.Has("timestamputc") {
+			itime := val.Get("timestamputc", time.Time{}).(time.Time).UTC()
+			arrmettowercond = append(arrmettowercond, itime)
+			val.Set("timestamputc", itime)
+			results[i] = val
+		}
+		if istimestamp {
+			itime := val.Get("timestamp", time.Time{}).(time.Time)
+			val.Set("timestamp", itime.UTC())
+			results[i] = val
+		}
+	}
+
+	tkmmet := tk.M{}
+	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
+		arrmettower = append(arrmettower, "timestamp")
+		csrMet, _e := DB().Connection.NewQuery().Select(arrmettower...).From("MetTower").
+			Where(dbox.In("timestamp", arrmettowercond...)).Cursor(nil)
+		if _e != nil {
+			return helper.CreateResult(false, nil, _e.Error())
+		}
+		defer csrMet.Close()
+
+		_resmet := make([]tk.M, 0)
+		_e = csrMet.Fetch(&_resmet, 0, false)
+
+		if _e != nil {
+			return helper.CreateResult(false, nil, _e.Error())
+		}
+
+		for _, val := range _resmet {
+			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC().String()
+			tkmmet.Set(itime, val)
+		}
+	}
+
+	if len(tkmmet) > 0 {
+		for i, val := range results {
+			itime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().String()
+			if tkmmet.Has(itime) {
+				for _key, _val := range tkmmet[itime].(tk.M) {
+					if _key != "timestamp" {
+						val.Set(_key, _val)
+					}
+				}
+			}
+			val.Unset("timestamputc")
+			results[i] = val
+		}
+	}
+
+	var pathDownload string
+	typeExcel := "Custom10Minutes"
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := typeExcel + TimeCreate
+
+	if err := os.RemoveAll("web/assets/Excel/" + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
+	}
+	tk.Println("results", results)
+
+	DeserializeCustom10Minutes(results, typeExcel, CreateDateTime, headerList, fieldList)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
 func (m *DataBrowserController) GenExcelScadaOem(k *knot.WebContext) interface{} {
 
 	k.Config.OutputType = knot.OutputJson
@@ -2578,6 +2708,50 @@ func (m *DataBrowserController) GenExcelScadaHFD(k *knot.WebContext) interface{}
 }
 
 // Deserialize
+
+func DeserializeCustom10Minutes(data []tk.M, typeExcel string, CreateDateTime string, header []string, fieldList []string) error {
+	filename := ""
+	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	file := x.NewFile()
+	sheet, _ := file.AddSheet("Sheet1")
+
+	for i, each := range data {
+		if i == 0 {
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
+
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
+			}
+		}
+
+		rowContent := sheet.AddRow()
+		cell := rowContent.AddCell()
+		for idx, field := range fieldList {
+			if idx > 0 {
+				cell = rowContent.AddCell()
+			}
+			switch field {
+			case "timestamp", "timestamputc":
+				cell.Value = each[field].(time.Time).Format("2006-01-02 15:04:05")
+			case "turbine":
+				cell.Value = each.GetString(field)
+			default:
+				cell.Value = tk.ToString(each.GetFloat64(field))
+			}
+		}
+	}
+
+	tk.Println(filename)
+
+	err := file.Save(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDateTime string) error {
 	//savecipo += 1
