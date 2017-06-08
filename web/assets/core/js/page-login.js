@@ -131,6 +131,7 @@ lg.showLoader = function(visible) {
 
 $(function () {
 	if(document.referrer.indexOf("login/default") >= 0) {
+		$(".login-form-bg").hide();
 		toolkit.ajaxPost(viewModel.appName + "login/loginrealtime", {}, function (res) {
 			if (!app.isFine(res)) {
 				lg.showLoader(false);
@@ -142,8 +143,6 @@ $(function () {
 			if (res.message == "Login Success") {
 				window.location = viewModel.appName + "page/monitoringbyproject";
 			}
-
-			lg.showLoader(false);
 		});
 	} else {
 		lg.showLoader(false);
