@@ -41,7 +41,6 @@ func main() {
 			return true
 		},
 		"prerequest": func(r *knot.WebContext) interface{} {
-			r.Writer.Header().Set("Access-Control-Allow-Origin", "http://ostrowfm-realtime.eaciitapp.com")
 			r.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			r.Writer.Header().Set("Pragma", "no-cache")
 			r.Writer.Header().Set("Expires", "0")
@@ -50,11 +49,14 @@ func main() {
 			sessionid := r.Session("sessionid", "")
 			helper.WC = r
 			if rURL == "/"+prefix+"/page/login" {
-				payload := toolkit.M{}
-				if err := r.GetForms(&payload); err != nil {
-					fmt.Println("payload error", err.Error())
+				if strings.Contains(r.Request.Referer(), "login/default") {
+					r.Writer.Header().Set("Access-Control-Allow-Origin", "http://ostrowfm-realtime.eaciitapp.com")
+					payload := toolkit.M{}
+					if err := r.GetForms(&payload); err != nil {
+						fmt.Println("payload error", err.Error())
+					}
+					r.SetSession("keyRealtime", payload.GetString("key"))
 				}
-				r.SetSession("keyRealtime", payload.GetString("key"))
 			}
 			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" &&
 				!strings.Contains(rURL, "/"+prefix+"/login/loginrealtime") {

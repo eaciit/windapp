@@ -159,7 +159,7 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 
 	if r.Session("keyRealtime", "") == "58e4931965d1041094641f0f" {
 		MenuList = []string{}
-		credentials := toolkit.M{"username": "eaciit", "password": "eaciit@1234"}
+		credentials := toolkit.M{"username": "realtime", "password": "realtime@1234"}
 		menus, sessid, err := LoginProcess(credentials)
 		if err != nil {
 			return helper.CreateResult(false, "", err.Error())
@@ -171,11 +171,8 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 		helper.WC = r
 		MenuList = menus
 
-		// Get Available Date All Collection
 		datePeriod := getLastAvailDate()
 		r.SetSession("availdate", datePeriod)
-
-		// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
 		lastDateData = datePeriod.ScadaData[1].UTC()
 		r.SetSession("lastdate_data", lastDateData)
@@ -184,6 +181,7 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 			"status":    true,
 			"sessionid": sessid,
 		}
+
 		return helper.CreateResult(true, data, "Login Success")
 	}
 
