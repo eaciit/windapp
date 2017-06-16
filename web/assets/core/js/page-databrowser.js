@@ -751,6 +751,10 @@ function DataBrowserExporttoExcel(functionName) {
         DateEnd: dateEnd,
         Turbine: fa.turbine(),
     };
+    if(functionName === "genexcelcustom10minutes") {
+        Filter["Project"] = fa.project;
+        Filter["Custom"] = {"ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())}
+    }
 
     app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function(res) {
         if (!app.isFine(res)) {

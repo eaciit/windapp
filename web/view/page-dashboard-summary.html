@@ -45,15 +45,17 @@
 </script> -->
 <script id="templateDTLEbyType" type="text/x-kendo-template">
   <div><b>#: category #</b></div>
-  # for (var i = 0; i < points.length; i++) { 
+  # for (var i = 0; i < points.length; i++) {
+  		# <table>#
         if(points[i].series.name == 'Frequency') { #
-            <tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n0')#</td></tr></table>
+            <tr><td><strong>#: points[i].series.stack# </strong></td><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n0')#</td></tr>
   #     } else if (points[i].series.name == 'Duration') { #
-            <tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# Hours</td></tr>
+            <tr><td><strong>#: points[i].series.stack# </strong></td><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# Hours</td></tr>
   #     } else { #
-            <table><tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# MWh</td></tr>
-  #     }
-    } #
+            <tr><td><strong>#: points[i].series.stack# </strong></td><td>#: kendo.toString(points[i].value, 'n1')# MWh</td></tr>
+  #     } 
+  		# </table>#
+  } #
 </script>
 <script id="templateDowntimeLostEnergy" type="text/x-kendo-template">
   <div><b>#: category #</b></div>

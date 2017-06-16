@@ -35,6 +35,7 @@ var (
 )
 
 type PayloadsDB struct {
+	Project   string
 	Turbine   []interface{}
 	DateStart time.Time
 	DateEnd   time.Time
@@ -43,6 +44,7 @@ type PayloadsDB struct {
 	Sort      []Sorting
 	Filter    *FilterJS `json:"filter"`
 	Misc      toolkit.M `json:"misc"`
+	Custom    toolkit.M `json:"custom"`
 }
 
 type Payloads struct {

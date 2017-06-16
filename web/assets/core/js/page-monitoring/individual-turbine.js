@@ -862,7 +862,14 @@ it.ToTimeSeriesHfd = function() {
 }
 
 it.ToByProject = function(){
-    window.location = viewModel.appName + "page/monitoringbyproject";
+     setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },300);
+    
 }
 
 it.changeRotation = function(){
