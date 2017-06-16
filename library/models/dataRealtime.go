@@ -1486,6 +1486,7 @@ type TurbineStatus struct {
 	orm.ModelBase `bson:"-" json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
 	ProjectName   string
+	Turbine       string
 	TimeUpdate    time.Time
 	Status        int // 0 : down, 1 : up
 	AlarmCode     int
