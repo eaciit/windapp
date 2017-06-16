@@ -61,6 +61,17 @@ func InitialSetDatabase() error {
 		toolkit.Printf("Error set ostro database: %s \n", err.Error())
 		return err
 	}
+
+	conn_reatime, err := PrepareConnection(CONF_DB_REALTIME)
+	if err != nil {
+		return err
+	}
+
+	if err := SetDbRealTime(conn_reatime); err != nil {
+		toolkit.Printf("Error set realtime database: %s \n", err.Error())
+		return err
+	}
+
 	return nil
 }
 

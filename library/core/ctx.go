@@ -14,6 +14,7 @@ var _ctx *orm.DataContext
 var _ctxErr error
 var _db *orm.DataContext
 var _conn dbox.IConnection
+var _connrealtime dbox.IConnection
 var _dbErr error
 
 func ctx() *orm.DataContext {
@@ -114,4 +115,19 @@ func CloseDb() {
 
 func DB() *orm.DataContext {
 	return _db
+}
+
+func SetDbRealTime(conn dbox.IConnection) error {
+	e := conn.Connect()
+	if e != nil {
+		_dbErr = errors.New("gdrj.SetDB: Test Connect: " + e.Error())
+		return _dbErr
+	}
+
+	_connrealtime = conn
+	return nil
+}
+
+func DBRealtime() dbox.IConnection {
+	return _connrealtime
 }

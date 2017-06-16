@@ -334,8 +334,12 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		totalCapacity += _tkm.GetFloat64("capacitymw")
 	}
 
-	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
-		"PitchAngle", "RotorRPM"}
+	// arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
+	// 	"PitchAngle", "RotorRPM"}
+	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
+		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
+		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
+
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown, turbnotavail := 0, 0
@@ -345,10 +349,11 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
-	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
+	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
@@ -363,6 +368,19 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			break
 		}
 
+		tags := _tdata.GetString("tags")
+
+		// isfound := false
+		// for k, _ := range arrfield {
+		// 	if arrfield.GetString(k) == tags {
+		// 		isfound = true
+		// 	}
+		// }
+
+		// if !isfound {
+		// 	continue
+		// }
+
 		_tTurbine := _tdata.GetString("turbine")
 		if _iContinue && _iTurbine == _tTurbine {
 			continue
@@ -373,7 +391,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			lastUpdate = tstamp.UTC()
 		}*/
 
-		tstamp := _tdata.Get("lastupdate", time.Time{}).(time.Time)
+		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 
 		if tstamp.After(lastUpdate) {
 			lastUpdate = tstamp
@@ -446,24 +464,39 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 
 		}
 
-		_iContinue = true
-		for _, afield := range arrfield {
-			_lafield := strings.ToLower(afield)
-			if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && (_itkm.GetFloat64(afield) == 0 || _itkm.GetFloat64(afield) == defaultValue) {
-				_itkm.Set(afield, _ifloat)
+		// _iContinue = true
 
-				switch afield {
-				case "ActivePower":
-					PowerGen += _ifloat
-				case "WindSpeed":
-					AvgWindSpeed += _ifloat
-					CountWS += 1
-				}
-
-			} else {
-				_iContinue = false
+		afield, isexist := arrfield[tags]
+		_ifloat := _tdata.GetFloat64("value")
+		if _ifloat != defaultValue && isexist {
+			switch afield {
+			case "ActivePower":
+				PowerGen += _ifloat
+			case "WindSpeed":
+				AvgWindSpeed += _ifloat
+				CountWS += 1
 			}
+
+			_itkm.Set(afield, _ifloat)
 		}
+
+		// for _, afield := range arrfield {
+		// 	_lafield := strings.ToLower(afield)
+		// 	if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && (_itkm.GetFloat64(afield) == 0 || _itkm.GetFloat64(afield) == defaultValue) {
+		// 		_itkm.Set(afield, _ifloat)
+
+		// 		switch afield {
+		// 		case "ActivePower":
+		// 			PowerGen += _ifloat
+		// 		case "WindSpeed":
+		// 			AvgWindSpeed += _ifloat
+		// 			CountWS += 1
+		// 		}
+
+		// 	} else {
+		// 		_iContinue = false
+		// 	}
+		// }
 		_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-green")
 		if _itkm.GetInt("Status") == 0 {
 			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-red")
@@ -608,8 +641,9 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(tablename).
 		Aggr(dbox.AggrSum, "$duration", "duration").
@@ -687,8 +721,9 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	dfilter = append(dfilter, dbox.Ne("timestart", time.Time{}))
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From("Alarm").
 		Aggr(dbox.AggrMin, "$timestart", "minstart").
@@ -807,8 +842,9 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 		filtercond = append(filtercond, dbox.Eq("_id", turbine))
 	}
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).
 		Where(dbox.And(filtercond...)).
@@ -835,10 +871,11 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	timemax = time.Time{}
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
-	_Query := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
+	_Query := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Aggr(dbox.AggrMax, "$timestamp", "timestamp")
 
 	if turbine != "" {
@@ -912,7 +949,7 @@ func getLastValueFromRaw(timemax time.Time, project string, turbine string) (tkm
 
 func getListFile(dir string) (_arrfile []string) {
 	_arrfile = []string{}
-	_pattern := "^(data_.*)(\\.[Cc][Ss][Vv])$"
+	_pattern := "^(.*)(\\.[Cc][Ss][Vv])$"
 
 	files, e := ioutil.ReadDir(dir)
 	if e != nil {
@@ -976,7 +1013,7 @@ func getTimeNow() (tNow time.Time) {
 	}
 
 	tNow = time.Date(_Now.Year(), _Now.Month(), _Now.Day(), _Now.Hour(), _Now.Minute(), _Now.Second(), _Now.Nanosecond(), time.UTC)
-	tNow = tNow.Add(-10 * time.Minute)
+	// tNow = tNow.Add(-10 * time.Minute)
 	return
 }
 
