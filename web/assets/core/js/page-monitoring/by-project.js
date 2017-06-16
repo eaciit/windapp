@@ -359,18 +359,14 @@ bp.ToIndividualTurbine = function(turbine) {
 }
 
 bp.ToAlarm = function(turbine) {
-
-
-    var set = setTimeout(function(){
+    setTimeout(function(){
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
-        document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringalarm";
     },300);
-
-    $.when(set).done(function(){
-         window.location = viewModel.appName + "page/monitoringalarm";
-     });
 }
 
 
