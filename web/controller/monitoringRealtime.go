@@ -944,7 +944,7 @@ func getLastValueFromRaw(timemax time.Time, project string, turbine string) (tkm
 
 func getListFile(dir string) (_arrfile []string) {
 	_arrfile = []string{}
-	_pattern := "^(*)(\\.[Cc][Ss][Vv])$"
+	_pattern := "^(.*)(\\.[Cc][Ss][Vv])$"
 
 	files, e := ioutil.ReadDir(dir)
 	if e != nil {
