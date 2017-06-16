@@ -870,7 +870,7 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
-	_Query := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
+	_Query := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Aggr(dbox.AggrMax, "$timestamp", "timestamp")
 
 	if turbine != "" {
