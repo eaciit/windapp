@@ -334,8 +334,12 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		totalCapacity += _tkm.GetFloat64("capacitymw")
 	}
 
-	arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
-		"PitchAngle", "RotorRPM"}
+	// arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
+	// 	"PitchAngle", "RotorRPM"}
+	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
+		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
+		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
+
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown, turbnotavail := 0, 0
@@ -348,7 +352,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	rconn := lh.GetConnRealtime()
 	defer rconn.Close()
 
-	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
+	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
@@ -363,6 +367,19 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			break
 		}
 
+		tags := _tdata.GetString("tags")
+
+		// isfound := false
+		// for k, _ := range arrfield {
+		// 	if arrfield.GetString(k) == tags {
+		// 		isfound = true
+		// 	}
+		// }
+
+		// if !isfound {
+		// 	continue
+		// }
+
 		_tTurbine := _tdata.GetString("turbine")
 		if _iContinue && _iTurbine == _tTurbine {
 			continue
@@ -373,7 +390,7 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			lastUpdate = tstamp.UTC()
 		}*/
 
-		tstamp := _tdata.Get("lastupdate", time.Time{}).(time.Time)
+		tstamp := _tdata.Get("timestamp", time.Time{}).(time.Time)
 
 		if tstamp.After(lastUpdate) {
 			lastUpdate = tstamp
@@ -446,24 +463,39 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 
 		}
 
-		_iContinue = true
-		for _, afield := range arrfield {
-			_lafield := strings.ToLower(afield)
-			if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && (_itkm.GetFloat64(afield) == 0 || _itkm.GetFloat64(afield) == defaultValue) {
-				_itkm.Set(afield, _ifloat)
+		// _iContinue = true
 
-				switch afield {
-				case "ActivePower":
-					PowerGen += _ifloat
-				case "WindSpeed":
-					AvgWindSpeed += _ifloat
-					CountWS += 1
-				}
-
-			} else {
-				_iContinue = false
+		afield, isexist := arrfield[tags]
+		_ifloat := _tdata.GetFloat64("value")
+		if _ifloat != defaultValue && isexist {
+			switch afield {
+			case "ActivePower":
+				PowerGen += _ifloat
+			case "WindSpeed":
+				AvgWindSpeed += _ifloat
+				CountWS += 1
 			}
+
+			_itkm.Set(afield, _ifloat)
 		}
+
+		// for _, afield := range arrfield {
+		// 	_lafield := strings.ToLower(afield)
+		// 	if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && (_itkm.GetFloat64(afield) == 0 || _itkm.GetFloat64(afield) == defaultValue) {
+		// 		_itkm.Set(afield, _ifloat)
+
+		// 		switch afield {
+		// 		case "ActivePower":
+		// 			PowerGen += _ifloat
+		// 		case "WindSpeed":
+		// 			AvgWindSpeed += _ifloat
+		// 			CountWS += 1
+		// 		}
+
+		// 	} else {
+		// 		_iContinue = false
+		// 	}
+		// }
 		_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-green")
 		if _itkm.GetInt("Status") == 0 {
 			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-red")
