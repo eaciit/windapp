@@ -37,8 +37,13 @@ ma.CreateGrid = function(gridType) {
         });
         turbine = [COOKIES["turbine"]];
         project = COOKIES["project"];
-        $('#turbineList').multiselect('select', turbine);
-        $('#projectList').data('kendoDropDownList').value(project);
+
+        setTimeout(function(){
+            $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
+            $('#turbineList').multiselect('select', turbine);
+            $('#projectList').data('kendoDropDownList').value(project);
+        },200);
+
     } else {
         turbine = fa.turbine();
         project = fa.project;
@@ -201,7 +206,13 @@ ma.checkCompleteDate = function () {
 }
 
 ma.ToByProject = function(){
-    window.location = viewModel.appName + "page/monitoringbyproject";
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },300);
 }
 
 $(document).ready(function(){
