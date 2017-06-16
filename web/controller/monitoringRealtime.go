@@ -1013,7 +1013,7 @@ func getTimeNow() (tNow time.Time) {
 	}
 
 	tNow = time.Date(_Now.Year(), _Now.Month(), _Now.Day(), _Now.Hour(), _Now.Minute(), _Now.Second(), _Now.Nanosecond(), time.UTC)
-	tNow = tNow.Add(-10 * time.Minute)
+	// tNow = tNow.Add(-10 * time.Minute)
 	return
 }
 
