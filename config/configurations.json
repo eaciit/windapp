@@ -26,6 +26,19 @@
     }
   },
   {
+    "_id": "db_realtime",
+    "data": {
+      "db": "ecostrorealtime",
+      "driver": "mongo",
+      "host": "52.77.236.193:27123",
+      "pass": "",
+      "setting": {
+        "timeout": 3000
+      },
+      "user": ""
+    }
+  },
+  {
     "_id": "port",
     "data": 9002
   },

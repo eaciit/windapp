@@ -349,8 +349,9 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 	timemax := getMaxRealTime(project, "")
 	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
@@ -640,8 +641,9 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(tablename).
 		Aggr(dbox.AggrSum, "$duration", "duration").
@@ -719,8 +721,9 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	dfilter = append(dfilter, dbox.Ne("timestart", time.Time{}))
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From("Alarm").
 		Aggr(dbox.AggrMin, "$timestart", "minstart").
@@ -839,8 +842,9 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 		filtercond = append(filtercond, dbox.Eq("_id", turbine))
 	}
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).
 		Where(dbox.And(filtercond...)).
@@ -867,8 +871,9 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	timemax = time.Time{}
 
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	_Query := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Aggr(dbox.AggrMax, "$timestamp", "timestamp")
