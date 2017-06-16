@@ -3,7 +3,6 @@ package controller
 import (
 	"bufio"
 	. "eaciit/wfdemo-git/library/core"
-	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
@@ -429,8 +428,9 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 	if tStart.Year() != 1 {
 		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
 	}
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
 		Where(dbox.And(filter...)).

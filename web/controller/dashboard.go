@@ -2584,8 +2584,9 @@ func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	rconn := GetConnRealtime()
-	defer rconn.Close()
+	// rconn := GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, e := rconn.NewQuery().
 		From(new(TurbineStatus).TableName()).
