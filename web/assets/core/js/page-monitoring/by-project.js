@@ -207,7 +207,7 @@ bp.GetData = function(data) {
 bp.PlotData = function(data) {
     var allData = data.Detail
     var oldData = (bp.oldFeeders().length == 0 ? allData : bp.oldFeeders());
-    var lastUpdate = moment.utc(data.TimeStamp);
+    var lastUpdate = moment.utc(data.TimeMax);
 
     $('#project_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
     $('#project_turbine_active').text(24);

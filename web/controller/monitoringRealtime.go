@@ -862,7 +862,7 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 	csr.Close()
 
 	for _, result := range results {
-		res[result.ID] = result
+		res[result.Turbine] = result
 	}
 
 	return
