@@ -37,6 +37,31 @@ func CreateMonitoringRealtimeController() *MonitoringRealtimeController {
 
 var (
 	defaultValue = -999999.0
+	arrlabel     = map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
+		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
+		"Vane 2 wind direction": "", "Nacelle Direction": "NacellePos",
+		"Rotor RPM": "RotorSpeed_RPM", "Generator RPM": "GenSpeed_RPM",
+		"DFIG speed generator encoder": "", "Blade Angle 1": "PitchAngle1",
+		"Blade Angle 2": "PitchAngle2", "Blade Angle 3": "PitchAngle3",
+		"Volt. Battery - blade 1": "PitchAccuV1", "Volt. Battery - blade 2": "PitchAccuV2",
+		"Volt. Battery - blade 3": "PitchAccuV3", "Current 1 Pitch Motor": "PitchConvCurrent1",
+		"Current 2 Pitch Motor": "PitchConvCurrent2", "Current 3 Pitch Motor": "PitchConvCurrent3",
+		"Pitch motor temperature - Blade 1": "TempConv1", "Pitch motor temperature - Blade 2": "TempConv2",
+		"Pitch motor temperature - Blade 3": "TempConv3", "Phase 1 voltage": "VoltageL1",
+		"Phase 2 voltage": "VoltageL2", "Phase 3 voltage": "VoltageL3", "Phase 1 current": "CurrentL1",
+		"Phase 2 current": "CurrentL2", "Phase 3 current": "CurrentL3", "Power": "ActivePower_kW",
+		"Power Reactive": "ReactivePower_kVAr", "Freq. Grid": "Frequency_Hz", "Production": "Total_Prod_Day_kWh",
+		"Cos Phi": "PowerFactor", "DFIG active power": "", "DFIG reactive power": "", "DFIG mains Frequency": "",
+		"DFIG main voltage": "", "DFIG main current": "", "DFIG DC link voltage": "",
+		"Rotor R current": "", "Roter Y current": "", "Roter B current": "",
+		"Temp. generator 1 phase 1 coil": "TempG1L1", "Temp. generator 1 phase 2 coil": "TempG1L2", "Temp. generator 1 phase 3 coil": "TempG1L3",
+		"Temp. generator bearing driven End": "TempGeneratorBearingDE", "Temp. generator bearing non-driven End": "TempGeneratorBearingNDE",
+		"Temp. Gearbox driven end": "TempGearBoxHSSDE", "Temp. Gearbox non-driven end": "TempGearBoxHSSNDE", "Temp. Gearbox inter. driven end": "TempGearBoxIMSDE",
+		"Temp. Gearbox inter. non-driven end": "TempGearBoxIMSNDE", "Pressure Gear box oil": "",
+		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
+		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
+		"Tower vibration": "",
+	}
 )
 
 type MiniScadaHFD struct {
@@ -517,11 +542,11 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			_itkm.Set("WindSpeedColor", "defaultcolor")
 		}
 		if _itkm.GetFloat64("Temperature") > 38 {
-			_itkm.Set("TemperatureColor", "orangevalue")
+			_itkm.Set("TemperatureColor", "txt-red")
 		} else if _itkm.GetFloat64("Temperature") >= 30 {
-			_itkm.Set("TemperatureColor", "redvalue")
+			_itkm.Set("TemperatureColor", "txt-orange")
 		} else {
-			_itkm.Set("TemperatureColor", "defaultcolor")
+			_itkm.Set("TemperatureColor", "txt-grey")
 		}
 	}
 	csr.Close()
@@ -629,12 +654,12 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	}
 
 	project := p.Project
-	tablename := "Alarm"
+	tablename := "AlarmHFD"
 	if p.Tipe == "warning" {
 		tablename = "AlarmWarning"
 	}
 
-	dfilter := []*dbox.Filter{}
+	dfilter := []*dbox.Filter{dbox.Eq("isdeleted", false)}
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	dfilter = append(dfilter, dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd))
 	if len(p.Turbine) > 0 {
@@ -763,34 +788,77 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	project := p.Project
 
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
-	alltkmdata := getLastValueFromRaw(timemax, project, p.Turbine)
+	// alltkmdata := getLastValueFromRaw(timemax, project, p.Turbine)
+	// ============== get realtime data =================
+	csr, err := DBRealtime().NewQuery().From(new(ScadaRealTimeNew).TableName()).
+		Where(dbox.And(dbox.Eq("turbine", p.Turbine), dbox.Eq("projectname", project))).Cursor(nil)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	scadaRealtimeData := []ScadaRealTimeNew{}
+	err = csr.Fetch(&scadaRealtimeData, 0, false)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	csr.Close()
+	alltkmdata := tk.M{}
+	for _, val := range scadaRealtimeData {
+		alltkmdata.Set(val.Tags, val.Value)
+	}
+	// ============== end of get realtime data =================
+
 	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
-	arrlabel := map[string]string{"Wind speed Avg": "WindSpeed_ms", "Wind speed 1": "", "Wind speed 2": "",
-		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
-		"Vane 2 wind direction": "", "Nacelle Direction": "NacellePos",
-		"Rotor RPM": "RotorSpeed_RPM", "Generator RPM": "GenSpeed_RPM",
-		"DFIG speed generator encoder": "", "Blade Angle 1": "PitchAngle1",
-		"Blade Angle 2": "PitchAngle2", "Blade Angle 3": "PitchAngle3",
-		"Volt. Battery - blade 1": "PitchAccuV1", "Volt. Battery - blade 2": "PitchAccuV2",
-		"Volt. Battery - blade 3": "PitchAccuV3", "Current 1 Pitch Motor": "PitchConvCurrent1",
-		"Current 2 Pitch Motor": "PitchConvCurrent2", "Current 3 Pitch Motor": "PitchConvCurrent3",
-		"Pitch motor temperature - Blade 1": "TempConv1", "Pitch motor temperature - Blade 2": "TempConv2",
-		"Pitch motor temperature - Blade 3": "TempConv3", "Phase 1 voltage": "VoltageL1",
-		"Phase 2 voltage": "VoltageL2", "Phase 3 voltage": "VoltageL3", "Phase 1 current": "CurrentL1",
-		"Phase 2 current": "CurrentL2", "Phase 3 current": "CurrentL3", "Power": "ActivePower_kW",
-		"Power Reactive": "ReactivePower_kVAr", "Freq. Grid": "Frequency_Hz", "Production": "Total_Prod_Day_kWh",
-		"Cos Phi": "PowerFactor", "DFIG active power": "", "DFIG reactive power": "", "DFIG mains Frequency": "",
-		"DFIG main voltage": "", "DFIG main current": "", "DFIG DC link voltage": "",
-		"Rotor R current": "", "Roter Y current": "", "Roter B current": "",
-		"Temp. generator 1 phase 1 coil": "TempG1L1", "Temp. generator 1 phase 2 coil": "TempG1L2", "Temp. generator 1 phase 3 coil": "TempG1L3",
-		"Temp. generator bearing driven End": "TempGeneratorBearingDE", "Temp. generator bearing non-driven End": "TempGeneratorBearingNDE",
-		"Temp. Gearbox driven end": "TempGearBoxHSSDE", "Temp. Gearbox non-driven end": "TempGearBoxHSSNDE", "Temp. Gearbox inter. driven end": "TempGearBoxIMSDE",
-		"Temp. Gearbox inter. non-driven end": "TempGearBoxIMSNDE", "Pressure Gear box oil": "",
-		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
-		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
-		"Tower vibration": "",
+	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", project)
+	for key, str := range arrlabel {
+		if !alldata.Has(key) {
+			alldata.Set(key, defaultValue)
+		}
+
+		if str == "" {
+			continue
+		}
+
+		if alltkmdata.Has(str) {
+			if _ival := alltkmdata.GetFloat64(str); _ival != defaultValue && alldata.GetFloat64(key) == defaultValue {
+				alldata.Set(key, _ival)
+			}
+		}
 	}
+	if _idt, _cond := arrturbinestatus[p.Turbine]; _cond {
+		alldata.Set("Turbine Status", _idt.Status)
+	} else {
+		alldata.Set("Turbine Status", -999)
+	}
+
+	t0 := getTimeNow()
+	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+		alldata.Set("Turbine Status", -999)
+	}
+
+	return helper.CreateResult(true, alldata, "success")
+}
+
+func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+
+	p := struct {
+		Project string
+		Turbine string
+	}{}
+
+	alldata := tk.M{}
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+
+	project := p.Project
+
+	timemax := getMaxRealTime(project, p.Turbine).UTC()
+	alltkmdata := getLastValueFromRaw(timemax, project, p.Turbine)
+	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", project)
 	for key, str := range arrlabel {
@@ -839,7 +907,10 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 	}
 
 	if turbine != "" {
-		filtercond = append(filtercond, dbox.Eq("_id", turbine))
+		// if project == "Lahori" {
+		// 	turbine = project+"_"+turbine
+		// }
+		filtercond = append(filtercond, dbox.Eq("_id", project+"_"+turbine))
 	}
 
 	// rconn := lh.GetConnRealtime()

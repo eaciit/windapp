@@ -278,6 +278,10 @@ bp.PlotData = function(data) {
                 }, 750);
             }
 
+
+            var colorTemperature = val.TemperatureColor;
+            $('#temperature_'+ turbine).attr('class', colorTemperature);
+            
             /* TURBINE STATUS PART */
             if(val.AlarmDesc!="") {
                 $('#alarmdesc_'+ turbine).text(val.AlarmCode);
@@ -360,12 +364,14 @@ bp.ToIndividualTurbine = function(turbine) {
 
 bp.ToAlarm = function(turbine) {
     setTimeout(function(){
+        
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
         var project =  $('#projectList').data('kendoDropDownList').value();
         document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
         window.location = viewModel.appName + "page/monitoringalarm";
+        // console.log(turbine);
     },300);
 }
 
