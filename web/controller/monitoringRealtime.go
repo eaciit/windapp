@@ -542,11 +542,11 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 			_itkm.Set("WindSpeedColor", "defaultcolor")
 		}
 		if _itkm.GetFloat64("Temperature") > 38 {
-			_itkm.Set("TemperatureColor", "orangevalue")
+			_itkm.Set("TemperatureColor", "txt-red")
 		} else if _itkm.GetFloat64("Temperature") >= 30 {
-			_itkm.Set("TemperatureColor", "redvalue")
+			_itkm.Set("TemperatureColor", "txt-orange")
 		} else {
-			_itkm.Set("TemperatureColor", "defaultcolor")
+			_itkm.Set("TemperatureColor", "txt-grey")
 		}
 	}
 	csr.Close()
