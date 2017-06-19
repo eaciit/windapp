@@ -367,6 +367,23 @@ h4.content-heading {
 .fa-orange {
   color: #EA6020;
 }
+
+.txt-green {
+  color: #31B445;
+}
+.txt-red {
+  color: #db1e1e;
+}
+.txt-yellow {
+  color: #f2d115;
+}
+.txt-grey {
+  color: #7f7f7f;
+}
+.txt-orange {
+  color: #EA6020;
+}
+
 .bg-green {
   background-color:#31B445;
 }

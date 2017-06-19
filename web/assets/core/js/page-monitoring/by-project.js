@@ -278,6 +278,10 @@ bp.PlotData = function(data) {
                 }, 750);
             }
 
+
+            var colorTemperature = val.TemperatureColor;
+            $('#temperature_'+ turbine).attr('class', colorTemperature);
+            
             /* TURBINE STATUS PART */
             if(val.AlarmDesc!="") {
                 $('#alarmdesc_'+ turbine).text(val.AlarmCode);
