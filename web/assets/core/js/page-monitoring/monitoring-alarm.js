@@ -25,6 +25,7 @@ ma.CreateGrid = function(gridType) {
     var COOKIES = {};
     var cookieStr = document.cookie;
     var turbine = [];
+    var turbineList = [];
     var project = "";
     
     if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
@@ -35,14 +36,18 @@ ma.CreateGrid = function(gridType) {
             var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
             COOKIES[cookieName] = cookieValue;
         });
+        turbineList = COOKIES["turbine"];
         turbine = [COOKIES["turbine"]];
         project = COOKIES["project"];
 
         setTimeout(function(){
-            $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
-            $('#turbineList').multiselect('select', turbine);
             $('#projectList').data('kendoDropDownList').value(project);
-        },200);
+            $("#projectList").data("kendoDropDownList").trigger("change");
+            setTimeout(function(){
+                $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
+                $('#turbineList').multiselect('select', turbineList);
+            },500);
+        },600);
 
     } else {
         turbine = fa.turbine();
