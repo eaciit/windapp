@@ -654,7 +654,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	}
 
 	project := p.Project
-	tablename := "Alarm"
+	tablename := "AlarmHFD"
 	if p.Tipe == "warning" {
 		tablename = "AlarmWarning"
 	}
@@ -825,7 +825,6 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 			}
 		}
 	}
-
 	if _idt, _cond := arrturbinestatus[p.Turbine]; _cond {
 		alldata.Set("Turbine Status", _idt.Status)
 	} else {
@@ -908,7 +907,10 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 	}
 
 	if turbine != "" {
-		filtercond = append(filtercond, dbox.Eq("_id", turbine))
+		// if project == "Lahori" {
+		// 	turbine = project+"_"+turbine
+		// }
+		filtercond = append(filtercond, dbox.Eq("_id", project+"_"+turbine))
 	}
 
 	// rconn := lh.GetConnRealtime()
