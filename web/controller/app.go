@@ -12,6 +12,7 @@ import (
 
 type App struct {
 	Server *knot.Server
+	Reff   toolkit.M
 }
 
 var (
