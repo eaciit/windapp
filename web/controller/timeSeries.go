@@ -270,7 +270,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			e = csr.Fetch(&list, 0, false)
 
 		} else {
-			list = getDataLive(projectName, turbine, tStart, p.TagList)
+			list = getDataLiveNew(projectName, turbine, tStart, p.TagList)
 		}
 
 		for _, tag := range tags {
@@ -491,6 +491,61 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 		}
 		csr.Close()
 
+		result = append(result, tk.M{"_id": tstamp})
+
+		for tag, mp := range tmpRes {
+			result[0].Set(tag, mp)
+		}
+
+	}
+	return
+}
+
+func getDataLiveNew(project string, turbine string, tStart time.Time, tags []string) (result []tk.M) {
+	filter := []*dbox.Filter{}
+	tmpRes := map[string]interface{}{}
+
+	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.Eq("turbine", turbine))
+	filter = append(filter, dbox.In("tags", []interface{}{"ActivePower_kW", "WindSpeed_ms"}))
+
+	if tStart.Year() != 1 {
+		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
+	}
+	rconn := DBRealtime()
+
+	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
+		Where(dbox.And(filter...)).
+		Order("-timestamp").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	listtag := tk.M{}.Set("power", "ActivePower_kW").Set("windspeed", "WindSpeed_ms")
+	tstamp := time.Time{}
+	if csr.Count() > 0 {
+		for {
+			data := tk.M{}
+			err = csr.Fetch(&data, 1, false)
+			if err != nil {
+				break
+			}
+			itime := data.Get("timestamp", time.Time{}).(time.Time)
+			if tstamp.IsZero() || tstamp.Before(itime) {
+				tstamp = itime
+			}
+
+			for _, xTag := range tags {
+				if listtag.GetString(xTag) == data.GetString("tags") {
+					tmpRes[xTag] = data.GetFloat64("value")
+				}
+			}
+		}
+		csr.Close()
 		result = append(result, tk.M{"_id": tstamp})
 
 		for tag, mp := range tmpRes {
