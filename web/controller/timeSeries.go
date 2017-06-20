@@ -507,7 +507,7 @@ func getDataLiveNew(project string, turbine string, tStart time.Time, tags []str
 
 	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.Eq("turbine", turbine))
-	filter = append(filter, dbox.In("tags", []interface{}{"ActivePower_kW", "WindSpeed_ms"}))
+	// filter = append(filter, dbox.In("tags", []interface{}{"ActivePower_kW", "WindSpeed_ms"}))
 
 	if tStart.Year() != 1 {
 		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
