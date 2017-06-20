@@ -99,7 +99,7 @@ func SetDb(conn dbox.IConnection) error {
 
 	e := conn.Connect()
 	if e != nil {
-		_dbErr = errors.New("gdrj.SetDB: Test Connect: " + e.Error())
+		_dbErr = errors.New("ostro.SetDB: Test Connect: " + e.Error())
 		return _dbErr
 	}
 
@@ -120,7 +120,7 @@ func DB() *orm.DataContext {
 func SetDbRealTime(conn dbox.IConnection) error {
 	e := conn.Connect()
 	if e != nil {
-		_dbErr = errors.New("gdrj.SetDB: Test Connect: " + e.Error())
+		_dbErr = errors.New("ostro.SetDB: Test Connect: " + e.Error())
 		return _dbErr
 	}
 

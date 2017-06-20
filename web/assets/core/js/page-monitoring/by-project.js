@@ -375,7 +375,9 @@ bp.ToAlarm = function(turbine) {
     },300);
 }
 
-
+bp.resetFeeders = function(){
+    bp.oldFeeders([])
+}
 
 $(function() {
     app.loading(true);
@@ -389,8 +391,9 @@ $(function() {
         suggest: true,
         change: function () { 
             setTimeout(function(){
-                bp.oldFeeders([])
-                bp.GetData();
+                $.when(bp.resetFeeders()).done(function(){
+                     bp.GetData();
+                });
             },1500);
             
          }

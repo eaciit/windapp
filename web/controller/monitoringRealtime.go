@@ -717,6 +717,26 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	// tStart, tEnd = tStart.UTC(), tEnd.UTC()
 
 	// rStart := time.Date(tStart.Y, month, day, hour, min, sec, nsec, loc)
+
+	csrTurbine, err := rconn.NewQuery().From("ref_turbine").
+		Where(dbox.Eq("project", project)).Cursor(nil)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	defer csrTurbine.Close()
+	turbineList := []tk.M{}
+	err = csrTurbine.Fetch(&turbineList, 0, false)
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	turbineName := map[string]string{}
+	for _, val := range turbineList {
+		turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
+	}
+	for idx, val := range results {
+		results[idx].Turbine = turbineName[val.Turbine]
+	}
+
 	retData := tk.M{}.Set("Data", results).
 		Set("Total", totalData).
 		Set("Duration", totalDuration).
