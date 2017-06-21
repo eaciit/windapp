@@ -132,30 +132,45 @@ ma.CreateGridAlarm = function(gridType) {
         columns: [{
             field: "Turbine",
             title: "Turbine",
-            width: 160
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90
         }, {
             field: "TimeStart",
             title: "Time Start",
             width: 170,
-            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY HH:mm:ss') #"
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStart).format('HH:mm:ss')#"
         }, {
             field: "TimeEnd",
             title: "Time End",
             width: 170,
-            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY')=='01-01-0001'?'Not yet finished':moment.utc(data.TimeEnd).format('DD-MMM-YYYY HH:mm:ss')) #"
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
         }, {
             field: "Duration",
             title: "Duration (hh:mm:ss)",
              width: 180,
+             attributes: {
+                style: "text-align:center;"
+            },
             template: "#= time(data.Duration) #"
         }, {
             field: "AlarmCode",
             title: "Alarm Code",
+            attributes: {
+                style: "text-align:center;"
+            },
             width: 130,
         }, {
             field: "AlarmDesc",
             title: "Description",
-            width: 240
+            width: 270
         }]
     });
 };
