@@ -141,7 +141,7 @@ ma.CreateGrid = function(gridType) {
             attributes: {
                 style: "text-align:center;"
             },
-            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY')=='01-01-0001'?'Not yet finished': moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss'))#"
+            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
         }, {
             field: "Duration",
             title: "Duration (hh:mm:ss)",
