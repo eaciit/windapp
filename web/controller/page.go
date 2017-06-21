@@ -295,6 +295,13 @@ func (w *PageController) DataEntryPowerCurve(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, false)
 }
+func (w *PageController) DataEntryTurbine(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-dataentry-turbine.html"
+
+	return w.GetParams(r, false)
+}
 func (w *PageController) Access(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
