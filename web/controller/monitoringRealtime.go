@@ -751,6 +751,7 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	k.Config.NoLog = true
 
 	type MyPayloads struct {
+		Tipe    string
 		Project string
 	}
 
@@ -769,8 +770,11 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	// rconn := lh.GetConnRealtime()
 	// defer rconn.Close()
 	rconn := DBRealtime()
-
-	csr, err := rconn.NewQuery().From("Alarm").
+	tablename := "AlarmHFD"
+	if p.Tipe == "warning" {
+		tablename = "AlarmWarning"
+	}
+	csr, err := rconn.NewQuery().From(tablename).
 		Aggr(dbox.AggrMin, "$timestart", "minstart").
 		Aggr(dbox.AggrMax, "$timestart", "maxstart").
 		Group("projectname").

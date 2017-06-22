@@ -18,6 +18,13 @@ vm.breadcrumb([
 var intervalTurbine = null;
 
 ma.CreateGrid = function(gridType) {
+    $.when(ma.LoadDataAvail(gridType)).done(function () {
+        setTimeout(function() {
+            ma.CreateGridAlarm(gridType);
+        }, 100);
+    });
+}
+ma.CreateGridAlarm = function(gridType) {
     app.loading(true);
 
     fa.LoadData();
@@ -86,6 +93,9 @@ ma.CreateGrid = function(gridType) {
             },
             schema: {
                 data: function data(res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
                     var totalFreq = res.data.Total;
                     var totalHour = res.data.Duration;
 
@@ -122,30 +132,45 @@ ma.CreateGrid = function(gridType) {
         columns: [{
             field: "Turbine",
             title: "Turbine",
-            width: 160
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90
         }, {
             field: "TimeStart",
             title: "Time Start",
             width: 170,
-            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY HH:mm:ss') #"
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStart).format('HH:mm:ss')#"
         }, {
             field: "TimeEnd",
             title: "Time End",
             width: 170,
-            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY')=='01-01-0001'?'Not yet finished':moment.utc(data.TimeEnd).format('DD-MMM-YYYY HH:mm:ss')) #"
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
         }, {
             field: "Duration",
             title: "Duration (hh:mm:ss)",
-             width: 180,
+             width: 120,
+             attributes: {
+                style: "text-align:center;"
+            },
             template: "#= time(data.Duration) #"
         }, {
             field: "AlarmCode",
             title: "Alarm Code",
-            width: 130,
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90,
         }, {
             field: "AlarmDesc",
             title: "Description",
-            width: 240
+            width: 330
         }]
     });
 };
@@ -166,10 +191,12 @@ ma.InitDateValue = function () {
     ma.LoadDataAvail()
 }
 
-ma.LoadDataAvail = function(){
+ma.LoadDataAvail = function(gridType){
     fa.LoadData();
+
     var payload = {
-        project: fa.project
+        project: fa.project,
+        tipe: gridType
     };
 
     toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataalarmavaildate", payload, function (res) {
