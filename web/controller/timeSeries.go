@@ -661,9 +661,13 @@ func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time
 		separator := string(os.PathSeparator)
 
 		folder := strings.ToLower(project) + separator + f1 + separator + f2 + separator + f3
-		file := prefix + startStr + ".csv"
+		file1 := prefix + startStr + ".csv"
+		file2 := turbine + "_" + startStr + ".csv"
 
-		path := helper.GetHFDFolder() + folder + separator + file
+		path := helper.GetHFDFolder() + folder + separator + file1
+		if _, _err := os.Stat(path); os.IsNotExist(_err) {
+			path = helper.GetHFDFolder() + folder + separator + file2
+		}
 
 		// log.Printf("%v | %v | %v \n", tStart.UTC().String(), newTime.String(), path)
 
