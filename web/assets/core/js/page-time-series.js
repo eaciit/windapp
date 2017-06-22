@@ -478,6 +478,7 @@ pg.getDataStockChart = function(param){
         
         // console.log(cookieStr);
         if(cookieStr.indexOf("turbine=") >= 0) {
+
             document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             cookieStr.split(/; /).forEach(function(keyValuePair) {
                 var cookieName = keyValuePair.replace(/=.*$/, "");
@@ -486,8 +487,8 @@ pg.getDataStockChart = function(param){
             });
             turbine = COOKIES["turbine"];
             project = COOKIES["project"];
-            
-            console.log(project);
+        
+
             setTimeout(function(){
                 $('#projectList').data('kendoDropDownList').value(project);
                 var change = $("#projectList").data("kendoDropDownList").trigger("change");
@@ -529,7 +530,7 @@ pg.getDataStockChart = function(param){
             Turbine: turbine,
             DateStart: dateStart,
             DateEnd: dateEnd,
-            Project: fa.project,
+            Project: project,
             PageType: pg.pageType(),
             DataType: pg.dataType() ,
             TagList : pg.TagList(),
