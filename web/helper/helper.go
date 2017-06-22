@@ -341,6 +341,9 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
+	if toolkit.ToString(sessionid) == "" {
+		sessionid = "baypass session"
+	}
 
 	// log.Printf(">> %v \n", sessionid)
 

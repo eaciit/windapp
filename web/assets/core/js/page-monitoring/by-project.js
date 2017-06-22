@@ -352,27 +352,32 @@ bp.PlotData = function(data) {
 };
 
 bp.ToIndividualTurbine = function(turbine) {
-    setTimeout(function(){
-        var oldDateObj = new Date();
-        var newDateObj = moment(oldDateObj).add(3, 'm');
-        var project =  $('#projectList').data('kendoDropDownList').value();
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    app.loading(true);
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    var project =  $('#projectList').data('kendoDropDownList').value();
+    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
         window.location = viewModel.appName + "page/monitoringbyturbine";
-    },300);
+    } else {
+        app.loading(false);
+    }
 }
 
 bp.ToAlarm = function(turbine) {
-    setTimeout(function(){
-        
-        var oldDateObj = new Date();
-        var newDateObj = moment(oldDateObj).add(3, 'm');
-        var project =  $('#projectList').data('kendoDropDownList').value();
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    app.loading(true);
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    var project =  $('#projectList').data('kendoDropDownList').value();
+    
+    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
         window.location = viewModel.appName + "page/monitoringalarm";
-        // console.log(turbine);
-    },300);
+    } else {
+        app.loading(false);
+    }
 }
 
 bp.resetFeeders = function(){

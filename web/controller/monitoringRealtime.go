@@ -83,7 +83,7 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 	p := new(PayloadWSMonitoring)
 	e := k.GetPayload(&p)
 	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+		return helper.CreateResultX(false, nil, e.Error(), k)
 	}
 
 	var tStart, tEnd time.Time
@@ -148,7 +148,7 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 	// dataWindDir := GenerateWindRose(data, "winddir", turbineVal)
 	datas := GenerateWindRose(data, "NacellePlusWind", turbineVal)
 
-	return helper.CreateResult(true, datas, "success")
+	return helper.CreateResultX(true, datas, "success", k)
 
 }
 
@@ -313,12 +313,12 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 
 	err := k.GetPayload(&p)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	results := GetMonitoringByProjectV2(p.Project, "monitoring")
 
-	return helper.CreateResult(true, results, "success")
+	return helper.CreateResultX(true, results, "success", k)
 }
 
 func (c *MonitoringRealtimeController) getValue() float64 {
@@ -645,12 +645,12 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	p := new(MyPayloads)
 	err := k.GetPayload(&p)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+		return helper.CreateResultX(false, nil, e.Error(), k)
 	}
 
 	project := p.Project
@@ -677,7 +677,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		Where(dbox.And(dfilter...)).Cursor(nil)
 
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	defer csr.Close()
 
@@ -704,14 +704,14 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	}
 	csr, err = query.Cursor(nil)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	defer csr.Close()
 
 	results := make([]AlarmHFD, 0)
 	err = csr.Fetch(&results, 0, false)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	// tStart, tEnd = tStart.UTC(), tEnd.UTC()
@@ -721,13 +721,13 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	csrTurbine, err := rconn.NewQuery().From("ref_turbine").
 		Where(dbox.Eq("project", project)).Cursor(nil)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	defer csrTurbine.Close()
 	turbineList := []tk.M{}
 	err = csrTurbine.Fetch(&turbineList, 0, false)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	turbineName := map[string]string{}
 	for _, val := range turbineList {
@@ -743,7 +743,7 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 		Set("mindate", tStart.UTC()).
 		Set("maxdate", tEnd.UTC())
 
-	return helper.CreateResult(true, retData, "success")
+	return helper.CreateResultX(true, retData, "success", k)
 }
 
 func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext) interface{} {
@@ -758,7 +758,7 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	p := new(MyPayloads)
 	err := k.GetPayload(&p)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	project := p.Project
@@ -781,7 +781,7 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 		Where(dbox.And(dfilter...)).Cursor(nil)
 
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	tkmgroup := tk.M{}
@@ -791,7 +791,7 @@ func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext)
 	minDate := tkmgroup.Get("minstart", time.Time{}).(time.Time).UTC()
 	maxDate := tkmgroup.Get("maxstart", time.Time{}).(time.Time).UTC()
 
-	return helper.CreateResult(true, tk.M{}.Set("Data", []time.Time{minDate, maxDate}), "success")
+	return helper.CreateResultX(true, tk.M{}.Set("Data", []time.Time{minDate, maxDate}), "success", k)
 }
 
 func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interface{} {
@@ -806,7 +806,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	alldata := tk.M{}
 	err := k.GetPayload(&p)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	project := p.Project
@@ -817,12 +817,12 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	csr, err := DBRealtime().NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Where(dbox.And(dbox.Eq("turbine", p.Turbine), dbox.Eq("projectname", project))).Cursor(nil)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	scadaRealtimeData := []ScadaRealTimeNew{}
 	err = csr.Fetch(&scadaRealtimeData, 0, false)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	csr.Close()
 	alltkmdata := tk.M{}
@@ -860,7 +860,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 		alldata.Set("Turbine Status", -999)
 	}
 
-	return helper.CreateResult(true, alldata, "success")
+	return helper.CreateResultX(true, alldata, "success", k)
 }
 
 func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) interface{} {
@@ -875,7 +875,7 @@ func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) int
 	alldata := tk.M{}
 	err := k.GetPayload(&p)
 	if err != nil {
-		return helper.CreateResult(false, nil, err.Error())
+		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
 	project := p.Project
@@ -919,7 +919,7 @@ func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) int
 		alldata.Set("Turbine Status", -999)
 	}
 
-	return helper.CreateResult(true, alldata, "success")
+	return helper.CreateResultX(true, alldata, "success", k)
 }
 
 func GetTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {

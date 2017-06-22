@@ -17,59 +17,57 @@ vm.breadcrumb([
     { title: 'Alarm Data', href: viewModel.appName + 'page/monitoringalarm' }]);
 var intervalTurbine = null;
 
+ma.UpdateProjectList = function(project) {
+    $('#projectList').data('kendoDropDownList').value(project);
+    $("#projectList").data("kendoDropDownList").trigger("change");
+}
+ma.UpdateTurbineList = function(turbineList) {
+    $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
+    $('#turbineList').multiselect('select', turbineList);
+}
 ma.CreateGrid = function(gridType) {
-    $.when(ma.LoadDataAvail(gridType)).done(function () {
-        setTimeout(function() {
-            ma.CreateGridAlarm(gridType);
-        }, 100);
+    app.loading(true);
+    $.when(fa.LoadData()).done(function () {
+        var COOKIES = {};
+        var cookieStr = document.cookie;
+        var param = {
+            period: fa.period,
+            dateStart: fa.dateStart,
+            dateEnd: fa.dateEnd,
+            turbine: [],
+            project: "",
+            tipe: gridType,
+        };
+        
+        if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
+            document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            cookieStr.split(/; /).forEach(function(keyValuePair) {
+                var cookieName = keyValuePair.replace(/=.*$/, "");
+                var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+                COOKIES[cookieName] = cookieValue;
+            });
+            param.turbine = [COOKIES["turbine"]];
+            param.project = COOKIES["projectname"];
+
+            $.when(ma.UpdateProjectList(param.project)).done(function () {
+                setTimeout(function(){
+                    $.when(ma.UpdateTurbineList(param.turbine)).done(function () {
+                        ma.LoadDataAvail(param.project, gridType);
+                        ma.CreateGridAlarm(gridType, param);
+                    });
+                }, 700);
+            });
+
+        } else {
+            param.turbine = fa.turbine();
+            param.project = fa.project;
+            ma.LoadDataAvail(param.project, gridType);
+            ma.CreateGridAlarm(gridType, param);
+        }
     });
 }
-ma.CreateGridAlarm = function(gridType) {
-    app.loading(true);
-
-    fa.LoadData();
-
-    var COOKIES = {};
-    var cookieStr = document.cookie;
-    var turbine = [];
-    var turbineList = [];
-    var project = "";
-    
-    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        turbineList = COOKIES["turbine"];
-        turbine = [COOKIES["turbine"]];
-        project = COOKIES["project"];
-
-        setTimeout(function(){
-            $('#projectList').data('kendoDropDownList').value(project);
-            $("#projectList").data("kendoDropDownList").trigger("change");
-            setTimeout(function(){
-                $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
-                $('#turbineList').multiselect('select', turbineList);
-            },500);
-        },600);
-
-    } else {
-        turbine = fa.turbine();
-        project = fa.project;
-    }
-
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: turbine,
-        project: project,
-        tipe: gridType,
-    };
-
+ma.CreateGridAlarm = function(gridType, param) {
     var gridName = "#alarmGrid"
     if(gridType == "warning") {
         gridName = "#warningGrid"
@@ -187,15 +185,13 @@ ma.InitDateValue = function () {
 
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-
-    ma.LoadDataAvail()
 }
 
-ma.LoadDataAvail = function(gridType){
-    fa.LoadData();
+ma.LoadDataAvail = function(projectname, gridType){
+    //fa.LoadData();
 
     var payload = {
-        project: fa.project,
+        project: projectname,
         tipe: gridType
     };
 
@@ -239,12 +235,13 @@ ma.checkCompleteDate = function () {
 
 ma.ToByProject = function(){
     setTimeout(function(){
+        app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
         var project =  $('#projectList').data('kendoDropDownList').value();
         document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         window.location = viewModel.appName + "page/monitoringbyproject";
-    },300);
+    },1500);
 }
 
 $(document).ready(function(){
@@ -266,9 +263,9 @@ $(document).ready(function(){
     }, 300);
     
     $('#projectList').kendoDropDownList({
-		change: function () {  
-			var project = $('#projectList').data("kendoDropDownList").value();
-			fa.populateTurbine(project);
-		}
-	});
+        change: function () {  
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
+    });
 });
