@@ -353,18 +353,19 @@ bp.PlotData = function(data) {
 
 bp.ToIndividualTurbine = function(turbine) {
     setTimeout(function(){
+        app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
         var project =  $('#projectList').data('kendoDropDownList').value();
         document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
         window.location = viewModel.appName + "page/monitoringbyturbine";
-    },300);
+    },1500);
 }
 
 bp.ToAlarm = function(turbine) {
     setTimeout(function(){
-        
+        app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
         var project =  $('#projectList').data('kendoDropDownList').value();
@@ -376,7 +377,7 @@ bp.ToAlarm = function(turbine) {
         if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
             window.location = viewModel.appName + "page/monitoringalarm";
         }
-    },300);
+    },1500);
 }
 
 bp.resetFeeders = function(){

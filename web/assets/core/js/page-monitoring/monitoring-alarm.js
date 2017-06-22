@@ -235,12 +235,13 @@ ma.checkCompleteDate = function () {
 
 ma.ToByProject = function(){
     setTimeout(function(){
+        app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
         var project =  $('#projectList').data('kendoDropDownList').value();
         document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         window.location = viewModel.appName + "page/monitoringbyproject";
-    },300);
+    },1500);
 }
 
 $(document).ready(function(){
