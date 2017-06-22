@@ -155,7 +155,7 @@ ma.CreateGridAlarm = function(gridType) {
         }, {
             field: "Duration",
             title: "Duration (hh:mm:ss)",
-             width: 180,
+             width: 170,
              attributes: {
                 style: "text-align:center;"
             },
@@ -166,11 +166,11 @@ ma.CreateGridAlarm = function(gridType) {
             attributes: {
                 style: "text-align:center;"
             },
-            width: 130,
+            width: 120,
         }, {
             field: "AlarmDesc",
             title: "Description",
-            width: 270
+            width: 300
         }]
     });
 };
