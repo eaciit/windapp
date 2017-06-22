@@ -505,9 +505,9 @@ it.ShowData = function() {
     var turbine = "";
     var project = "";
     
-    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
+    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
         
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         cookieStr.split(/; /).forEach(function(keyValuePair) {
             var cookieName = keyValuePair.replace(/=.*$/, "");
@@ -515,7 +515,7 @@ it.ShowData = function() {
             COOKIES[cookieName] = cookieValue;
         });
         turbine = COOKIES["turbine"];
-        project = COOKIES["project"];
+        project = COOKIES["projectname"];
 
         setTimeout(function(){
             $('#projectList').data('kendoDropDownList').value(project);
