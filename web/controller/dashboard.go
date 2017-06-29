@@ -2685,7 +2685,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	results := []tk.M{}
 
 	for _, project := range projects {
-		tmpRes := GetMonitoringByProjectV2(project.Value, "dashboard")
+		tmpRes := GetMonitoringByProjectV2(project.Value, 0.0, "dashboard")
 		detail := tmpRes.Get("Detail").([]tk.M)
 		res := []tk.M{}
 		stsProj := "green"
