@@ -750,9 +750,9 @@ function DataBrowserExporttoExcel(functionName) {
         DateStart: dateStart,
         DateEnd: dateEnd,
         Turbine: fa.turbine(),
+        Project: fa.project
     };
     if(functionName === "genexcelcustom10minutes") {
-        Filter["Project"] = fa.project;
         Filter["Custom"] = {"ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())}
     }
 

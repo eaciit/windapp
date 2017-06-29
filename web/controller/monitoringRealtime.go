@@ -718,6 +718,9 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	// rStart := time.Date(tStart.Y, month, day, hour, min, sec, nsec, loc)
 
 	turbineName, err := helper.GetTurbineNameList(project)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
 	for idx, val := range results {
 		results[idx].Turbine = turbineName[val.Turbine]
 	}

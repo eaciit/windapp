@@ -1343,6 +1343,20 @@ func (m *DataBrowserController) GetScadaHFDList(k *knot.WebContext) interface{} 
 
 	totalTurbine = tk.SliceLen(aggrData)
 
+	project := ""
+	for _, val := range filter {
+		if val.Field == "projectname" {
+			project = tk.ToString(val.Value)
+		}
+	}
+	turbineName, err := helper.GetTurbineNameList(project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	for idx, val := range tmpResult {
+		tmpResult[idx].Turbine = turbineName[val.Turbine]
+	}
+
 	data := struct {
 		Data         []ScadaDataHFD
 		Total        int
@@ -2341,7 +2355,6 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
-	tk.Println("results", results)
 
 	DeserializeCustom10Minutes(results, typeExcel, CreateDateTime, headerList, fieldList)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
@@ -2383,6 +2396,9 @@ func (m *DataBrowserController) GenExcelScadaOem(k *knot.WebContext) interface{}
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
+	if p.Project != "" {
+		filter = append(filter, dbox.Eq("projectname", p.Project))
+	}
 
 	query := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).Where(dbox.And(filter...))
 
@@ -2409,8 +2425,12 @@ func (m *DataBrowserController) GenExcelScadaOem(k *knot.WebContext) interface{}
 	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	DeserializeScadaOem(results, 0, typeExcel, CreateDateTime)
+	DeserializeScadaOem(results, 0, typeExcel, CreateDateTime, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 	// tk.Println(pathDownload)
 
@@ -2448,6 +2468,9 @@ func (m *DataBrowserController) GenExcelDowntimeEvent(k *knot.WebContext) interf
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
+	if p.Project != "" {
+		filter = append(filter, dbox.Eq("projectname", p.Project))
+	}
 
 	query := DB().Connection.NewQuery().From(new(EventDown).TableName()).Where(dbox.And(filter...))
 
@@ -2475,7 +2498,12 @@ func (m *DataBrowserController) GenExcelDowntimeEvent(k *knot.WebContext) interf
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
 
-	DeserializeEventDown(tmpResult, 0, typeExcel, CreateDateTime)
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	DeserializeEventDown(tmpResult, 0, typeExcel, CreateDateTime, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 	// tk.Println(pathDownload)
 
@@ -2513,6 +2541,9 @@ func (m *DataBrowserController) GenExcelEventRaw(k *knot.WebContext) interface{}
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
+	if p.Project != "" {
+		filter = append(filter, dbox.Eq("projectname", p.Project))
+	}
 
 	query := DB().Connection.NewQuery().From(new(EventRaw).TableName()).Where(dbox.And(filter...))
 
@@ -2533,7 +2564,12 @@ func (m *DataBrowserController) GenExcelEventRaw(k *knot.WebContext) interface{}
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
 
-	DeserializeEventRaw(tmpResult, 0, typeExcel, CreateDateTime)
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	DeserializeEventRaw(tmpResult, 0, typeExcel, CreateDateTime, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
 	return helper.CreateResult(true, pathDownload, "success")
@@ -2567,6 +2603,9 @@ func (m *DataBrowserController) GenExcelMet(k *knot.WebContext) interface{} {
 	filter = append(filter, dbox.Ne("_id", ""))
 	filter = append(filter, dbox.Gte("timestamp", tStart))
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	if p.Project != "" {
+		filter = append(filter, dbox.Eq("project", p.Project))
+	}
 
 	query := DB().Connection.NewQuery().From(new(MetTower).TableName()).Where(dbox.And(filter...))
 
@@ -2624,6 +2663,9 @@ func (m *DataBrowserController) GenExcelScada(k *knot.WebContext) interface{} {
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
 	}
+	if p.Project != "" {
+		filter = append(filter, dbox.Eq("projectname", p.Project))
+	}
 
 	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...))
 
@@ -2643,8 +2685,12 @@ func (m *DataBrowserController) GenExcelScada(k *knot.WebContext) interface{} {
 	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	DeserializeScadaData(tmpResult, 0, typeExcel, CreateDateTime)
+	DeserializeScadaData(tmpResult, 0, typeExcel, CreateDateTime, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
 	return helper.CreateResult(true, pathDownload, "success")
@@ -2665,6 +2711,7 @@ func (m *DataBrowserController) GenExcelScadaHFD(k *knot.WebContext) interface{}
 	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
 	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
 	turbine := p.Turbine
+	project := p.Project
 
 	var pathDownload string
 	typeExcel := "ScadaDataHFD"
@@ -2680,6 +2727,9 @@ func (m *DataBrowserController) GenExcelScadaHFD(k *knot.WebContext) interface{}
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	if len(turbine) != 0 {
 		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
 	}
 
 	query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Where(dbox.And(filter...))
@@ -2701,7 +2751,12 @@ func (m *DataBrowserController) GenExcelScadaHFD(k *knot.WebContext) interface{}
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
 
-	DeserializeScadaDataHFD(tmpResult, 0, typeExcel, CreateDateTime)
+	turbineName, err := helper.GetTurbineNameList(project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	DeserializeScadaDataHFD(tmpResult, 0, typeExcel, CreateDateTime, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
 	return helper.CreateResult(true, pathDownload, "success")
@@ -2753,7 +2808,7 @@ func DeserializeCustom10Minutes(data []tk.M, typeExcel string, CreateDateTime st
 	return nil
 }
 
-func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDateTime string) error {
+func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDateTime string, turbinename map[string]string) error {
 	//savecipo += 1
 	filename := ""
 	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
@@ -2778,7 +2833,7 @@ func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDat
 		cell.Value = each.TimeStamp.Format("2006-01-02 15:04:05")
 
 		cell = rowContent.AddCell()
-		cell.Value = each.Turbine
+		cell.Value = turbinename[each.Turbine]
 
 		cell = rowContent.AddCell()
 		cell.Value = strconv.FormatFloat(each.AI_intern_R_PidAngleOut, 'f', -1, 64)
@@ -3233,7 +3288,7 @@ func DeserializeScadaOem(data []ScadaDataOEM, j int, typeExcel string, CreateDat
 	return nil
 }
 
-func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateTime string) error {
+func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateTime string, turbinename map[string]string) error {
 	//savecipo += 1
 	filename := ""
 	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
@@ -3255,7 +3310,7 @@ func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateT
 		rowContent := sheet.AddRow()
 
 		cell := rowContent.AddCell()
-		cell.Value = each.Turbine
+		cell.Value = turbinename[each.Turbine]
 
 		cell = rowContent.AddCell()
 		cell.Value = each.TimeStart.Format("2006-01-02 15:04:05")
@@ -3288,7 +3343,7 @@ func DeserializeEventDown(data []EventDown, j int, typeExcel string, CreateDateT
 	return nil
 }
 
-func DeserializeEventRaw(data []EventRaw, j int, typeExcel string, CreateDateTime string) error {
+func DeserializeEventRaw(data []EventRaw, j int, typeExcel string, CreateDateTime string, turbinename map[string]string) error {
 	//savecipo += 1
 	filename := ""
 	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
@@ -3316,7 +3371,7 @@ func DeserializeEventRaw(data []EventRaw, j int, typeExcel string, CreateDateTim
 		cell.Value = each.ProjectName
 
 		cell = rowContent.AddCell()
-		cell.Value = each.Turbine
+		cell.Value = turbinename[each.Turbine]
 
 		cell = rowContent.AddCell()
 		cell.Value = each.EventType
@@ -4181,7 +4236,7 @@ func DeserializeMetTower(data []MetTower, j int, typeExcel string, CreateDateTim
 	return nil
 }
 
-func DeserializeScadaData(data []ScadaData, j int, typeExcel string, CreateDateTime string) error {
+func DeserializeScadaData(data []ScadaData, j int, typeExcel string, CreateDateTime string, turbinename map[string]string) error {
 	//savecipo += 1
 	filename := ""
 	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
@@ -4209,7 +4264,7 @@ func DeserializeScadaData(data []ScadaData, j int, typeExcel string, CreateDateT
 		cell.Value = each.ProjectName
 
 		cell = rowContent.AddCell()
-		cell.Value = each.Turbine
+		cell.Value = turbinename[each.Turbine]
 
 		cell = rowContent.AddCell()
 		cell.Value = strconv.Itoa(each.Minutes)
@@ -4395,7 +4450,7 @@ func DeserializeScadaData(data []ScadaData, j int, typeExcel string, CreateDateT
 	return nil
 }
 
-func DeserializeScadaDataHFD(data []ScadaDataHFD, j int, typeExcel string, CreateDateTime string) error {
+func DeserializeScadaDataHFD(data []ScadaDataHFD, j int, typeExcel, CreateDateTime string, turbinename map[string]string) error {
 	//savecipo += 1
 	filename := ""
 	filename = "web/assets/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
@@ -4423,7 +4478,8 @@ func DeserializeScadaDataHFD(data []ScadaDataHFD, j int, typeExcel string, Creat
 		cell.Value = each.ProjectName
 
 		cell = rowContent.AddCell()
-		cell.Value = each.Turbine
+
+		cell.Value = turbinename[each.Turbine]
 
 		cell = rowContent.AddCell()
 		cell.Value = strconv.FormatFloat(each.Fast_ActivePower_kW, 'f', -1, 64)
@@ -5991,8 +6047,12 @@ func (m *DataBrowserController) GenExcelDowntimeEventHFD(k *knot.WebContext) int
 	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
 		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
 	}
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	DeserializeEventDown(tmpResult, 0, typeExcel, CreateDateTime)
+	DeserializeEventDown(tmpResult, 0, typeExcel, CreateDateTime, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 	// tk.Println(pathDownload)
 
