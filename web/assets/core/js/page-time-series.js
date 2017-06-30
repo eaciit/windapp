@@ -495,6 +495,8 @@ pg.getDataStockChart = function(param){
                 setTimeout(function(){
                     $('#turbineList').data('kendoDropDownList').value(turbine);
                 },200);
+                fa.project = project;
+                fa.turbine = turbine;
             },500);
 
         } else {
