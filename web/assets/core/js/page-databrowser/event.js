@@ -13,6 +13,13 @@ dbe.InitEventGrid = function() {
     // //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // // }
 
+    var misc = {
+        "tipe": "eventraw",
+        "needtotalturbine": true
+    }
+
+    var param = {"misc": misc}
+
     var filters = [{
         field: "timestamp",
         operator: "gte",
@@ -45,9 +52,9 @@ dbe.InitEventGrid = function() {
             filter: filters,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/geteventlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
-                    data: {},
+                    data: param,
                     dataType: "json",
                     contentType: "application/json; charset=utf-8"
                 },

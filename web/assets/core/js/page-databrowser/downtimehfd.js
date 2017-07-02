@@ -12,6 +12,13 @@ dbdhfd.InitDEHFDgrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
+
+    var misc = {
+        "tipe": "eventdownhfd",
+        "needtotalturbine": true
+    }
+
+    var param = {"misc": misc}
     
     var filters = [{
         field: "timestart",
@@ -43,9 +50,9 @@ dbdhfd.InitDEHFDgrid = function() {
             filter: filters,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getdowntimeeventlisthfd",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
-                    data: {},
+                    data: param,
                     dataType: "json",
                     contentType: "application/json; charset=utf-8"
                 },

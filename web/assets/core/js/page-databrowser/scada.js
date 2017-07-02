@@ -12,8 +12,11 @@ dbs.InitScadaGrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
-
-    var param = {};
+    var misc = {
+        "tipe": "scadaoem",
+        "needtotalturbine": true
+    }
+    var param = {"misc": misc};
 
     var filters = [{
         field: "timestamp",
@@ -46,7 +49,7 @@ dbs.InitScadaGrid = function() {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getscadaoemlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
                     data: param,
                     dataType: "json",

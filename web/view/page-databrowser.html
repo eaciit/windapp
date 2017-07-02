@@ -13,10 +13,10 @@
 <script src="{{BaseUrl}}res/core/js/page-databrowser/met.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/jmr.js?ANTI_CACHE={{.AntiCache}}"></script>
 <!-- Exception -->
-<script src="{{BaseUrl}}res/core/js/page-databrowser/time-duration.js?ANTI_CACHE={{.AntiCache}}"></script>
-<script src="{{BaseUrl}}res/core/js/page-databrowser/scada-anomaly.js?ANTI_CACHE={{.AntiCache}}"></script>
-<script src="{{BaseUrl}}res/core/js/page-databrowser/alarm-overlapping.js?ANTI_CACHE={{.AntiCache}}"></script>
-<script src="{{BaseUrl}}res/core/js/page-databrowser/alarm-anomaly.js?ANTI_CACHE={{.AntiCache}}"></script>
+<!-- <script src="{{BaseUrl}}res/core/js/page-databrowser/time-duration.js?ANTI_CACHE={{.AntiCache}}"></script> -->
+<!-- <script src="{{BaseUrl}}res/core/js/page-databrowser/scada-anomaly.js?ANTI_CACHE={{.AntiCache}}"></script> -->
+<!-- <script src="{{BaseUrl}}res/core/js/page-databrowser/alarm-overlapping.js?ANTI_CACHE={{.AntiCache}}"></script> -->
+<!-- <script src="{{BaseUrl}}res/core/js/page-databrowser/alarm-anomaly.js?ANTI_CACHE={{.AntiCache}}"></script> -->
 
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-databrowser.css">
 <div class="row">
@@ -65,7 +65,7 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelscadaoem')"><i class="fa fa-file-excel-o"></i></button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('ScadaOem')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="scadaGrid" class="grid-custom-db-new"></div>
                                         </div>
@@ -85,7 +85,7 @@
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
                                                  <a href="#" data-toggle="collapse" class="k-grid-showHideColumnHFD btn btn-sm btn-primary tooltipster tooltipstered" title="Click to show column list"><i class="fa fa-eye-slash"></i></a>&nbsp;&nbsp;
-                                                 <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelscadahfd')"><i class="fa fa-file-excel-o"></i></button>   
+                                                 <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('ScadaDataHFD')"><i class="fa fa-file-excel-o"></i></button>   
                                             </div>
                                             <div id="scadahfdGrid"></div>
                                         </div>
@@ -104,7 +104,7 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexceldowntimeevent')"><i class="fa fa-file-excel-o"></i></button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('DowntimeEvent')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="DEgrid" class="grid-custom-db-new"></div>
                                         </div>
@@ -158,7 +158,7 @@
 
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexceleventraw')"><i class="fa fa-file-excel-o"></i></button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('EventRaw')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="EventGrid" class="grid-custom-db-new"></div>
                                         </div>
@@ -174,7 +174,7 @@
                                             </div>
                                             <div class="tab-pane-content">
                                                 <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexcelmet')"><i class="fa fa-file-excel-o"></i></button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('MetTower')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                                 <div id="dataGridMet" class="grid-custom-db-new"></div>
                                             </div>
@@ -206,7 +206,7 @@
                                         <div class="tab-pane-content">
                                             <div class="clearfix">&nbsp;</div>
                                             <div class="etoExcel">
-                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('genexceldowntimeeventhfd')"><i class="fa fa-file-excel-o"></i></button>
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('DowntimeEventHFD')"><i class="fa fa-file-excel-o"></i></button>
                                             </div>
                                             <div id="DEHFDgrid" class="grid-custom-db-new"></div>
                                         </div>

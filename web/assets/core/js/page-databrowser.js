@@ -750,13 +750,16 @@ function DataBrowserExporttoExcel(functionName) {
         DateStart: dateStart,
         DateEnd: dateEnd,
         Turbine: fa.turbine(),
-        Project: fa.project
+        Project: fa.project,
+        Misc: {tipe: functionName}
     };
+    var urlName = viewModel.appName + "databrowser/genexceldata";
     if(functionName === "genexcelcustom10minutes") {
+        urlName = viewModel.appName + "databrowser/" + functionName;
         Filter["Custom"] = {"ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())}
     }
 
-    app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function(res) {
+    app.ajaxPost(urlName, Filter, function(res) {
         if (!app.isFine(res)) {
             app.loading(false);
             return;
