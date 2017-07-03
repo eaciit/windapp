@@ -281,31 +281,21 @@ bp.PlotData = function(data) {
                 if(kendo.toString(val.Temperature, 'n2')!=kendo.toString(oldVal.Temperature, 'n2')) {
                     $('#temperature_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
                 }
-
-                var curTempBA = bp.currentTempLocation() + 4;
-                var curTempBB = bp.currentTempLocation() - 4;
-                var turbineTemp = val.Temperature ;
-
-                // console.log(curTempBA + " -- " + curTempBB + "--" + turbineTemp);
-                if(turbineTemp < curTempBA && turbineTemp > curTempBB){
-                    $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-green');
-                }else if(turbineTemp > curTempBA){
-                    $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-orange');
-                }else if(turbineTemp < curTempBB){
-                    $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-red');
-                }
-
-                
                 window.setTimeout(function(){ 
                     $('#temperature_'+ turbine).css('background-color', 'transparent'); 
                 }, 750);
-            }else{
-                $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-grey');
             }
 
 
             var colorTemperature = val.TemperatureColor;
             $('#temperature_'+ turbine).attr('class', colorTemperature);
+            
+            $('#temperaturecolor_'+ turbine).attr('class',val.BulletColor);
+            if (val.TemperatureInfo != "") {
+                $('#temperaturecolor_'+ turbine).attr('data-original-title', val.TemperatureInfo);
+            } else {
+                $('#temperaturecolor_'+ turbine).attr('data-original-title', "Temperature OK");
+            }
             
             /* TURBINE STATUS PART */
             if(val.AlarmDesc!="") {
