@@ -373,14 +373,14 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	arrturbinestatus := GetTurbineStatus(project, "")
 	timemax := getMaxRealTime(project, "")
-	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
-
+	// timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 	// rconn := lh.GetConnRealtime()
 	// defer rconn.Close()
 	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
+		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
+		Where(dbox.Eq("projectname", project)).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
