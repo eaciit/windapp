@@ -525,7 +525,7 @@ func getDataLiveNew(project string, turbine string, tStart time.Time, tags []str
 		tk.Println(err.Error())
 	}
 
-	listtag := tk.M{}.Set("power", "ActivePower_kW").Set("windspeed", "WindSpeed_ms")
+	listtag := tk.M{}.Set("power", "ActivePower_kW").Set("windspeed", "WindSpeed_ms").Set("rotorrpm", "RotorSpeed_RPM").Set("pitchangle", "PitchAngle")
 	tstamp := time.Time{}
 	if csr.Count() > 0 {
 		for {
