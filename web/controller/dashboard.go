@@ -2688,12 +2688,10 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		tmpRes := GetMonitoringByProjectV2(project.Value, 0.0, "dashboard")
 		detail := tmpRes.Get("Detail").([]tk.M)
 		res := []tk.M{}
-		stsProj := "green"
-
-		// log.Printf(">> %v | %v \n", project.Value, len(detail))
+		stsProj := ""
 
 		if projectName != "Fleet" {
-			turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
+			turbineList, _ := helper.GetTurbineList([]interface{}{project.Value})
 			for _, turbine := range turbineList {
 				res = append(res, tk.M{
 					"name":   turbine.Turbine,
@@ -2705,9 +2703,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		}
 
 		for _, vd := range detail {
-			// name := vd.GetString("name")
 			value := vd.GetString("value")
-			// coords := vd.Get("coords").([]float64)
 			sts := "green"
 
 			status := vd.GetInt("Status")
@@ -2716,27 +2712,30 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 
 			if status == 0 {
 				sts = "red"
-				stsProj = "red"
+				if dataComing == 1 {
+					stsProj = "red"
+				}
 			} else if status == 1 && isWarning {
 				sts = "orange"
-				stsProj = "orange"
+				if stsProj != "red" {
+					stsProj = "orange"
+				}
+			} else if status == 1 && dataComing == 1 {
+				if stsProj != "red" && stsProj != "orange" {
+					stsProj = "green"
+				}
 			}
 
 			if dataComing == 0 {
 				sts = "grey"
-				stsProj = "grey"
+				if stsProj != "red" && stsProj != "orange" && stsProj != "green" {
+					stsProj = "grey"
+				}
 			}
 
 			for _, rs := range res {
 				if rs.GetString("value") == value {
 					rs.Set("status", sts)
-
-					// res = append(res, tk.M{
-					// 	"name":   name,
-					// 	"value":  value,
-					// 	"coords": coords,
-					// 	"status": sts,
-					// })
 				}
 			}
 
