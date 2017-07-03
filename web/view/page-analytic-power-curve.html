@@ -12,103 +12,101 @@
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore" id="content-power-curve">
 					<div class="panel-heading">
-					<!-- Power Curve&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
-						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span> -->
 					</div>
 					<div class="panel-body">
-						<!-- <a class="tools pull-right tooltipster tooltipstered Epdf btn btn-xs btn-primary" title="Export to Pdf" data-bind="click: page.ExportPowerCurvePdf">
-							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-						</a> -->
-						<div class="tools btn-group pull-right">
-							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportPowerCurvePdf">
-						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
-						  	</button>
-						</div>
-						<div class="tools btn-group pull-right">
-						  <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						    <i class="fa fa-search"></i> &nbsp;Filter &nbsp;<span class="caret"></span>
-						  </button>
-						  <ul class="dropdown-menu" id="filter-power-curve">
-						    <li class="keep-open">
-						    	<div class="checkbox">
-									<label>
-	                                    <input type="checkbox" id="isClean" checked>
-	                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-	                                    <span ><b class="colBlack">Valid</b></span>
-	                                </label>
-								</div>
-						    </li>
-						    <li class="keep-open">
-								<div class="form-inline form-group">
-									<div>
-										<div class="checkbox">
-											<label>
-	                                            <input type="checkbox" id="isDeviation" checked="true">
-	                                            <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-	                                            <span ><b class="colBlack">Include Deviation <</b></span>
-	                                        </label>
-										</div>
-										<label>
-	                                        <input type="text" name="txtDeviation" id="deviationValue" class="form-control input-xs txt-deviation" onchange="Data.InitLinePowerCurve()" data-bind="value:page.deviationVal, text:page.deviationVal">
-	                                        &nbsp;<span><b class="colBlack">%</b></span>
-	                                    </label>
-									</div>
-								</div>
-						    </li>
-						    <li role="separator" class="divider"></li>
-						    <li class="keep-open">
-						    	<div class="checkbox">
-									<label>
-	                                    <input type="checkbox" id="sScater" >
-	                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-	                                    <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
-	                                </label>
-								</div>
-						    </li>
-						    <li class="keep-open">
-						    	<div class="checkbox">
-									<label>
-	                                    <input type="checkbox" id="showDownTime" >
-	                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-	                                    <span class="colRed"><b class="colBlack">Show Downtime</b></span>
-	                                </label>
-								</div>
-						    </li>
-						  </ul>
-						</div>
 						<div class="date-info">
                             Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                            <div class="nav-power-curve">
+								<div class="btn-group" data-toggle="buttons" style="z-index: 10;">
+									<label class="btn btn-sm btn-primary active radio-filter">
+                                        <input type="radio" name="isAvg" id="avg" autocomplete="off" value="true" checked> Not Corrected
+                                    </label>
+									<label class="btn btn-sm btn-primary radio-filter hidden">
+                                        <input type="radio" name="isAvg" id="adj" autocomplete="off" value="false"> Adj Wind Speed
+                                    </label>
+									<label class="btn btn-sm btn-primary radio-filter">
+                                        <input type="radio" name="isAvg" id="density" autocomplete="off" value="false" onclick="return false;"> Density Corrected
+                                    </label>
+								</div>
+							</div>
                         </div>
                         <div class="col-md-12">
-							<div class="col-md-9">
+							<div class="col-md-9" style="margin-top: -24px;">
+								<div class="filters">
+									<div class="tools btn-group pull-right btn-pdf">
+										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportPowerCurvePdf">
+									    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+									  	</button>
+									</div>
+									<div class="tools btn-group pull-right">
+									  <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									    <i class="fa fa-search"></i> &nbsp;Filter &nbsp;<span class="caret"></span>
+									  </button>
+									  <ul class="dropdown-menu" id="filter-power-curve">
+									    <li class="keep-open">
+									    	<div class="checkbox">
+												<label>
+				                                    <input type="checkbox" id="isClean" checked>
+				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+				                                    <span ><b class="colBlack">Valid</b></span>
+				                                </label>
+											</div>
+									    </li>
+									    <li class="keep-open">
+											<div class="form-inline form-group">
+												<div>
+													<div class="checkbox">
+														<label>
+				                                            <input type="checkbox" id="isDeviation" checked="true">
+				                                            <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+				                                            <span ><b class="colBlack">Include Deviation <</b></span>
+				                                        </label>
+													</div>
+													<label>
+				                                        <input type="text" name="txtDeviation" id="deviationValue" class="form-control input-xs txt-deviation" onchange="Data.InitLinePowerCurve()" data-bind="value:page.deviationVal, text:page.deviationVal">
+				                                        &nbsp;<span><b class="colBlack">%</b></span>
+				                                    </label>
+												</div>
+											</div>
+									    </li>
+									    <li role="separator" class="divider"></li>
+									    <li class="keep-open">
+									    	<div class="checkbox">
+												<label>
+				                                    <input type="checkbox" id="sScater" >
+				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+				                                    <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
+				                                </label>
+											</div>
+									    </li>
+									    <li class="keep-open">
+									    	<div class="checkbox">
+												<label>
+				                                    <input type="checkbox" id="showDownTime" >
+				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+				                                    <span class="colRed"><b class="colBlack">Show Downtime</b></span>
+				                                </label>
+											</div>
+									    </li>
+									  </ul>
+									</div>
+								</div>
 								<div class="power-curve-chart">
 									<div id="powerCurve"></div>
 								</div>
-								<div class="nav-power-curve">
-									<div class="btn-group" data-toggle="buttons">
-										<label class="btn btn-sm btn-primary active radio-filter">
-	                                        <input type="radio" name="isAvg" id="avg" autocomplete="off" value="true" checked> Not Corrected
-	                                    </label>
-										<label class="btn btn-sm btn-primary radio-filter hidden">
-	                                        <input type="radio" name="isAvg" id="adj" autocomplete="off" value="false"> Adj Wind Speed
-	                                    </label>
-										<label class="btn btn-sm btn-primary radio-filter">
-	                                        <input type="radio" name="isAvg" id="density" autocomplete="off" value="false" onclick="return false;"> Density Corrected
-	                                    </label>
-									</div>
+
+								<div class="clearfix">&nbsp;</div>
+								<div class="cFilter text-center">
+									<div class="checkbox" id="showHideDownChk"></div>
+									<div class="col-md-12 col-sm-12" id="downtime-list"></div>
+									<div class="clearfix">&nbsp;</div>
 								</div>
 								<div class="clearfix">&nbsp;</div>
-								<!-- <div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div> -->
 							</div>
-							<div class="col-md-3">
-								<div class="clearfix">&nbsp;</div>
+							<div class="col-md-3 cList">
 								<div class="checkbox" id="showHideChk"></div>
-								<div class="col-md-12 col-sm-12 turList" id="right-turbine-list"></div>
-							</div>
-							<div class="col-md-3 cFilter">
-								<div class="checkbox" id="showHideDownChk"></div>
-								<div class="col-md-12 col-sm-12" id="downtime-list"></div>
 								<div class="clearfix">&nbsp;</div>
+								<div class="col-md-12 col-sm-12 turList" id="right-turbine-list"></div>
 							</div>
 						</div>
 					</div>
