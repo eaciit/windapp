@@ -40,7 +40,7 @@ bp.dataFeeders = ko.observableArray();
 bp.newFeeders = ko.observableArray([]);
 bp.oldFeeders = ko.observableArray([]);
 bp.fullscreen = ko.observable(false);
-
+bp.currentTempLocation = ko.observable();
 // var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
 var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
 
@@ -83,6 +83,7 @@ bp.CheckWeather = function() {
             $('#project_img_weather').attr('src', 'http://openweathermap.org/img/w/'+ data.weather[0].icon +'.png');
             $('#project_weather').text(data.weather[0].description);
             $('#project_temperature').text(data.main.temp);
+            bp.currentTempLocation(data.main.temp);
         },
         error:function(){
             // do nothing
@@ -280,10 +281,26 @@ bp.PlotData = function(data) {
                 if(kendo.toString(val.Temperature, 'n2')!=kendo.toString(oldVal.Temperature, 'n2')) {
                     $('#temperature_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
                 }
+
+                var curTempBA = bp.currentTempLocation() + 4;
+                var curTempBB = bp.currentTempLocation() - 4;
+                var turbineTemp = val.Temperature ;
+
+                // console.log(curTempBA + " -- " + curTempBB + "--" + turbineTemp);
+                if(turbineTemp < curTempBA && turbineTemp > curTempBB){
+                    $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-green');
+                }else if(turbineTemp > curTempBA){
+                    $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-orange');
+                }else if(turbineTemp < curTempBB){
+                    $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-red');
+                }
+
                 
                 window.setTimeout(function(){ 
                     $('#temperature_'+ turbine).css('background-color', 'transparent'); 
                 }, 750);
+            }else{
+                $('#temperaturecolor_'+ turbine).attr('class','fa fa-circle txt-grey');
             }
 
 
@@ -325,6 +342,9 @@ bp.PlotData = function(data) {
                 comparison = 0;
                 $('#statusturbine_'+ turbine).attr('class', 'lbl');
             }
+
+
+
 
             $('#statusturbinedefault_'+turbine).popover({
                 placement: 'bottom',
