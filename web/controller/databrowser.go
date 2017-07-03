@@ -249,7 +249,7 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 	AvgWS := 0.0
 	totalDuration := 0.0
 	if needTotalTurbine {
-		aggrData, aggrDataHfdWs := []tk.M{}, []tk.M{}
+		aggrData := []tk.M{}
 		queryAggr := DB().Connection.NewQuery().From(tablename)
 		switch tipe {
 		case "scadaoem":
@@ -266,27 +266,9 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 			queryAggr = queryAggr.Aggr(dbox.AggrSum, "$duration", "duration").
 				Group("turbine").Where(dbox.And(filter...))
 		case "scadahfd":
-			xfilter := append(filter, dbox.Gte("fast_activepower_kw", 0))
-			xfilter = append(xfilter, dbox.Lte("fast_activepower_kw", 2500))
-			queryAggr = queryAggr.Aggr(dbox.AggrSum, "$fast_activepower_kw", "TotalActivePower").
-				Group("turbine").Where(dbox.And(xfilter...))
-
-			//for ws
-			wsfilter := append(filter, dbox.Gte("fast_windspeed_ms", 0))
-			wsfilter = append(wsfilter, dbox.Lte("fast_windspeed_ms", 25))
-			caggrWs, e := DB().Connection.NewQuery().From(tablename).
-				Aggr(dbox.AggrAvr, "$fast_windspeed_ms", "AvgWS").
-				Group("projectname").Where(dbox.And(wsfilter...)).
-				Cursor(nil)
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-			defer caggrWs.Close()
-			e = caggrWs.Fetch(&aggrDataHfdWs, 0, false)
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
+			queryAggr = queryAggr.Group("turbine").Where(dbox.And(filter...))
 		}
+
 		caggr, e := queryAggr.Cursor(nil)
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
@@ -314,13 +296,8 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 				totalDuration += val.GetFloat64("duration")
 			}
 		case "scadahfd":
-			for _, val := range aggrData {
-				totalActivePower += val.GetFloat64("TotalActivePower")
-			}
-
-			for _, val := range aggrDataHfdWs {
-				AvgWS = val.GetFloat64("AvgWS")
-			}
+			totalActivePower = m.getSummaryColumn(filter, "fast_activepower_kw", "sum", tablename)
+			AvgWS = m.getSummaryColumn(filter, "fast_windspeed_ms", "avg", tablename)
 		}
 	}
 
@@ -714,6 +691,51 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, aggr, tablename string) float64 {
+	xFilter := []*dbox.Filter{}
+	queryAggr := DB().Connection.NewQuery().From(tablename)
+	tkm := []tk.M{}
+
+	switch column {
+	case "fast_windspeed_ms":
+		xFilter = append(filter, dbox.Gte("fast_windspeed_ms", 0))
+		xFilter = append(xFilter, dbox.Lte("fast_windspeed_ms", 25))
+	case "fast_activepower_kw":
+		xFilter = append(filter, dbox.Gte("fast_activepower_kw", 0))
+		xFilter = append(xFilter, dbox.Lte("fast_activepower_kw", 2500))
+	default:
+		return 0
+	}
+
+	switch aggr {
+	case "sum":
+		queryAggr.Aggr(dbox.AggrSum, "$"+column, "xValue")
+	case "avg":
+		queryAggr.Aggr(dbox.AggrAvr, "$"+column, "xValue")
+	default:
+		return 0
+	}
+
+	caggr, e := queryAggr.
+		Group("projectname").Where(dbox.And(xFilter...)).
+		Cursor(nil)
+	if e != nil {
+		return 0
+	}
+	defer caggr.Close()
+	e = caggr.Fetch(&tkm, 0, false)
+	if e != nil {
+		return 0
+	}
+
+	xVal := 0.0
+	for _, val := range tkm {
+		xVal = val.GetFloat64("xValue")
+	}
+
+	return xVal
 }
 
 // Generate excel
