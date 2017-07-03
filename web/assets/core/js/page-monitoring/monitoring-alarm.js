@@ -69,8 +69,10 @@ ma.CreateGrid = function(gridType) {
 }
 ma.CreateGridAlarm = function(gridType, param) {
     var gridName = "#alarmGrid"
+    var nameExcel = "Monitoring Alarm Down";
     if(gridType == "warning") {
         gridName = "#warningGrid"
+        nameExcel = "Monitoring Alarm Warning";
     }
     $(gridName).html('');
     $(gridName).kendoGrid({
@@ -120,6 +122,12 @@ ma.CreateGridAlarm = function(gridType, param) {
                 { field: "TimeStart", dir: "desc" },
                 { field: "TimeEnd", dir: "asc" }
             ],
+        },
+        toolbar: ["excel"],
+        excel: {
+            fileName: nameExcel,
+            filterable: true,
+            allPages: true
         },
         sortable: true,
         pageable: {
