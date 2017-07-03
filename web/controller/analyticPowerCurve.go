@@ -370,7 +370,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("markers", tk.M{"visible": false})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorField[selArr])
-		turbineData.Set("idxseries", idx)
+		turbineData.Set("idxseries", idx+1)
 
 		for _, val := range exist {
 			idD := val.Get("_id").(tk.M)
