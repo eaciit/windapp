@@ -731,6 +731,25 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 	return
 }
 
+func GetTurbineNameList(project string) (turbineName map[string]string, err error) {
+	csrTurbine, err := DBRealtime().NewQuery().From("ref_turbine").
+		Where(dbox.Eq("project", project)).Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csrTurbine.Close()
+	turbineList := []toolkit.M{}
+	err = csrTurbine.Fetch(&turbineList, 0, false)
+	if err != nil {
+		return
+	}
+	turbineName = map[string]string{}
+	for _, val := range turbineList {
+		turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
+	}
+	return
+}
+
 func GetProjectTurbineList(projects []interface{}) (result map[string]toolkit.M, sortedKey []string, e error) {
 	var filter []*dbox.Filter
 	result = map[string]toolkit.M{}

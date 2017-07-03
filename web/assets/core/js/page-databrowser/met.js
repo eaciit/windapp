@@ -6,7 +6,12 @@ var dbm = viewModel.DatabrowserMet;
 dbm.InitMet = function() {
     dbr.mettowervis(true);
 
-    var param = {};
+    var misc = {
+        "tipe": "met",
+        "needtotalturbine": false
+    }
+
+    var param = {"misc": misc}
     var filters = [{
         field: "timestamp",
         operator: "gte",
@@ -26,7 +31,7 @@ dbm.InitMet = function() {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getmetlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
                     data: param,
                     dataType: "json",

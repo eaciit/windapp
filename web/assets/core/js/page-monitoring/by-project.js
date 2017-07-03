@@ -90,28 +90,10 @@ bp.CheckWeather = function() {
     });
 };
 
-bp.GetData = function(data) {
-    // app.loading(true);
-    // bp.feeders([]);
-    var COOKIES = {};
-    var cookieStr = document.cookie;
-    var project = "";
-
-    if(cookieStr.indexOf("project=") >= 0) {
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        project = COOKIES["project"];
-        $('#projectList').data('kendoDropDownList').value(project);
-    } else {
-        project = $('#projectList').data('kendoDropDownList').value();
-    }
-
+bp.GetDataProject = function(project) {
     var param = {
-        Project: project
+        Project: project,
+        LocationTemp: parseFloat($('#project_temperature').text())
     };
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
         if(!app.isFine(res)) {
@@ -198,10 +180,36 @@ bp.GetData = function(data) {
         $.when(bp.PlotData(res.data)).done(function(){
             setTimeout(function(){
                  app.loading(false);
-            },200)
-        })
+            },200);
+        });
     });
-    bp.CheckWeather();
+}
+
+bp.GetData = function(data) {
+    // app.loading(true);
+    // bp.feeders([]);
+    var COOKIES = {};
+    var cookieStr = document.cookie;
+    var project = "";
+
+    if(cookieStr.indexOf("project=") >= 0) {
+        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        cookieStr.split(/; /).forEach(function(keyValuePair) {
+            var cookieName = keyValuePair.replace(/=.*$/, "");
+            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+            COOKIES[cookieName] = cookieValue;
+        });
+        project = COOKIES["project"];
+        $('#projectList').data('kendoDropDownList').value(project);
+    } else {
+        project = $('#projectList').data('kendoDropDownList').value();
+    }
+    
+    $.when(bp.CheckWeather()).done(function(){
+        setTimeout(function(){
+             bp.GetDataProject(project);
+        }, 200);
+    });
 };
 
 bp.PlotData = function(data) {

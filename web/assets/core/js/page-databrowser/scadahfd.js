@@ -141,10 +141,15 @@ dbsh.InitScadaHFDGrid= function() {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
 
+    var misc = {
+        "tipe": "scadahfd",
+        "needtotalturbine": true
+    }
     var param = {
         "Custom": {
             "ColumnList": (dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn())
-        }
+        },
+        "misc": misc
     };
 
     var filters = [{
@@ -183,7 +188,7 @@ dbsh.InitScadaHFDGrid= function() {
         var col = {
             field: val._id,
             title: val.label,
-            type: "number",
+            // type: "number",
             width: 120,
             headerAttributes: {
                 style: "text-align:center"
@@ -207,7 +212,7 @@ dbsh.InitScadaHFDGrid= function() {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getscadahfdlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
                     data: param,
                     dataType: "json",

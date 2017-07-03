@@ -308,7 +308,8 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 	k.Config.NoLog = true
 
 	p := struct {
-		Project string
+		Project      string
+		LocationTemp float64
 	}{}
 
 	err := k.GetPayload(&p)
@@ -316,7 +317,7 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 
-	results := GetMonitoringByProjectV2(p.Project, "monitoring")
+	results := GetMonitoringByProjectV2(p.Project, p.LocationTemp, "monitoring")
 
 	return helper.CreateResultX(true, results, "success", k)
 }
@@ -327,7 +328,7 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 	return retVal
 }
 
-func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
+func GetMonitoringByProjectV2(project string, locationTemp float64, pageType string) (rtkm tk.M) {
 	rtkm = tk.M{}
 	alldata, allturbine := []tk.M{}, tk.M{}
 	turbineMap := map[string]tk.M{}
@@ -372,14 +373,14 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 
 	arrturbinestatus := GetTurbineStatus(project, "")
 	timemax := getMaxRealTime(project, "")
-	timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
-
+	// timecond := time.Date(timemax.Year(), timemax.Month(), timemax.Day(), 0, 0, 0, 0, timemax.Location())
 	// rconn := lh.GetConnRealtime()
 	// defer rconn.Close()
 	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
+		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
+		Where(dbox.Eq("projectname", project)).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
@@ -541,10 +542,8 @@ func GetMonitoringByProjectV2(project string, pageType string) (rtkm tk.M) {
 		} else {
 			_itkm.Set("WindSpeedColor", "defaultcolor")
 		}
-		if _itkm.GetFloat64("Temperature") > 38 {
+		if _itkm.GetFloat64("Temperature") < locationTemp-4 || _itkm.GetFloat64("Temperature") > locationTemp+4 {
 			_itkm.Set("TemperatureColor", "txt-red")
-		} else if _itkm.GetFloat64("Temperature") >= 30 {
-			_itkm.Set("TemperatureColor", "txt-orange")
 		} else {
 			_itkm.Set("TemperatureColor", "txt-grey")
 		}
@@ -718,20 +717,9 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 
 	// rStart := time.Date(tStart.Y, month, day, hour, min, sec, nsec, loc)
 
-	csrTurbine, err := rconn.NewQuery().From("ref_turbine").
-		Where(dbox.Eq("project", project)).Cursor(nil)
+	turbineName, err := helper.GetTurbineNameList(project)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-	defer csrTurbine.Close()
-	turbineList := []tk.M{}
-	err = csrTurbine.Fetch(&turbineList, 0, false)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-	turbineName := map[string]string{}
-	for _, val := range turbineList {
-		turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
 	}
 	for idx, val := range results {
 		results[idx].Turbine = turbineName[val.Turbine]
