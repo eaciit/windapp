@@ -332,6 +332,8 @@ var Data = {
                     Data.InitRightTurbineList();
                     $('#showDownTime').attr('checked', false);
                     $('#showDownTime').attr("disabled", "disabled");
+                    $('#downtime-list').hide();
+                    page.showDownTime(false);
                 }
                 if (page.sScater()) {
                     Data.getPowerCurve();
