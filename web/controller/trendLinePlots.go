@@ -153,11 +153,20 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	// if colName == "temp_yawbrake_1" {
 	if colName == "temp_outdoor" {
 		pipes = []tk.M{}
-		pipes = append(pipes, tk.M{"$group": tk.M{
-			"_id":       tk.M{"colId": "$dateinfo.dateid"},
-			"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
-			"totaldata": tk.M{"$sum": 1},
-		}})
+		if tStart.Before(time.Date(2017, 1, 1, 0, 0, 0, 0, time.UTC)) {
+			pipes = append(pipes, tk.M{"$group": tk.M{
+				"_id":       tk.M{"colId": "$dateinfo.dateid"},
+				"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
+				"totaldata": tk.M{"$sum": 1},
+			}})
+		} else {
+			pipes = append(pipes, tk.M{"$group": tk.M{
+				"_id":       tk.M{"colId": "$dateinfo.dateid"},
+				"colresult": tk.M{"$avg": "$trefhrefhumid855mavg"},
+				"totaldata": tk.M{"$sum": 1},
+			}})
+		}
+
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 		filter = nil
