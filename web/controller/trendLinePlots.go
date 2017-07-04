@@ -227,6 +227,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			}
 		}
 		selArr++
+	} else {
+		selArr++
 	}
 	dataSeries = append(dataSeries, metData)
 	/*================================= END OF MET TOWER PART =================================*/

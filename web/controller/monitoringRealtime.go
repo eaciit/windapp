@@ -60,8 +60,26 @@ var (
 		"Temp. Gearbox inter. non-driven end": "TempGearBoxIMSNDE", "Pressure Gear box oil": "",
 		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
 		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
-		"Tower vibration": "",
+		"Tower vibration": "", "Grid-side choke temperature": "TempGridChoke", "Generator-side choke temperature": "TempGeneratorChoke",
+		"Temperature inside converter cabinet 2": "TempConvCabinet2",
 	}
+)
+
+const (
+	GenWindError        = 145
+	GenWindWarning      = 120
+	GenBearingError     = 95
+	GenBearingWarning   = 90
+	GearboxOilError     = 85
+	GearboxOilWarning   = 80
+	MainBearingError    = 95
+	MainBearingWarning  = 90
+	GenChokeError       = 145
+	GenChokeWarning     = 120
+	LineChokeError      = 145
+	LineChokeWarning    = 120
+	ConvCabinet2Error   = 65
+	ConvCabinet2Warning = 60
 )
 
 type MiniScadaHFD struct {
@@ -365,6 +383,16 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
 		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
+	temperatureList := map[string]string{
+		"TempG1L1": "GenWinding1", "TempG1L2": "GenWinding2", "TempG1L3": "GenWinding3",
+		"TempGeneratorBearingDE": "GenBearing1", "TempGeneratorBearingNDE": "GenBearing2",
+		"TempGearBoxOilSump": "GearboxOil", "TempHubBearing": "MainBearing", "TempGridChoke": "LineChoke",
+		"TempGeneratorChoke": "GenChoke", "TempConvCabinet2": "ConvCabinet2",
+	}
+
+	for key, val := range temperatureList {
+		arrfield[key] = val
+	}
 
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
@@ -547,6 +575,154 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		} else {
 			_itkm.Set("TemperatureColor", "txt-grey")
 		}
+
+		AvgGenWind := 0.0
+		countGenWind := 0.0
+		redCount := 0
+		orangeCount := 0
+		greenCount := 0
+		tempInfo := map[string]string{}
+		if _itkm.GetFloat64("GenWinding1") > -999999 {
+			AvgGenWind += _itkm.GetFloat64("GenWinding1")
+			countGenWind++
+		}
+		if _itkm.GetFloat64("GenWinding2") > -999999 {
+			AvgGenWind += _itkm.GetFloat64("GenWinding2")
+			countGenWind++
+		}
+		if _itkm.GetFloat64("GenWinding3") > -999999 {
+			AvgGenWind += _itkm.GetFloat64("GenWinding3")
+			countGenWind++
+		}
+		if countGenWind > 0 {
+			AvgGenWind /= countGenWind
+			if AvgGenWind > GenWindError {
+				redCount++
+				tempInfo["Generator Winding"] = tk.Sprintf("%.2f", AvgGenWind)
+			} else if AvgGenWind > GenWindWarning {
+				tempInfo["Generator Winding"] = tk.Sprintf("%.2f", AvgGenWind)
+				orangeCount++
+			} else {
+				greenCount++
+			}
+		} else {
+			// tempInfo["Generator Winding"] = "N/A"
+		}
+
+		AvgGenBearing := 0.0
+		countGenBearing := 0.0
+		if _itkm.GetFloat64("GenBearing1") > -999999 {
+			AvgGenBearing += _itkm.GetFloat64("GenBearing1")
+			countGenBearing++
+		}
+		if _itkm.GetFloat64("GenBearing2") > -999999 {
+			AvgGenBearing += _itkm.GetFloat64("GenBearing2")
+			countGenBearing++
+		}
+		if countGenBearing > 0 {
+			AvgGenBearing /= countGenBearing
+			if AvgGenBearing > GenBearingError {
+				redCount++
+				tempInfo["Generator Bearing"] = tk.Sprintf("%.2f", AvgGenBearing)
+			} else if AvgGenBearing > GenBearingWarning {
+				orangeCount++
+				tempInfo["Generator Bearing"] = tk.Sprintf("%.2f", AvgGenBearing)
+			}
+		} else {
+			// tempInfo["Generator Bearing"] = "N/A"
+		}
+
+		if _itkm.GetFloat64("GearboxOil") > -999999 {
+			if _itkm.GetFloat64("GearboxOil") > GearboxOilError {
+				redCount++
+				tempInfo["Gearbox Oil"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GearboxOil"))
+			} else if _itkm.GetFloat64("GearboxOil") > GearboxOilWarning {
+				orangeCount++
+				tempInfo["Gearbox Oil"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GearboxOil"))
+			} else {
+				greenCount++
+			}
+		} else {
+			// tempInfo["Gearbox Oil"] = "N/A"
+		}
+
+		if _itkm.GetFloat64("MainBearing") > -999999 {
+			if _itkm.GetFloat64("MainBearing") > MainBearingError {
+				redCount++
+				tempInfo["Main Bearing"] = tk.Sprintf("%.2f", _itkm.GetFloat64("MainBearing"))
+			} else if _itkm.GetFloat64("MainBearing") > MainBearingWarning {
+				orangeCount++
+				tempInfo["Main Bearing"] = tk.Sprintf("%.2f", _itkm.GetFloat64("MainBearing"))
+			} else {
+				greenCount++
+			}
+		} else {
+			// tempInfo["Main Bearing"] = "N/A"
+		}
+
+		if _itkm.GetFloat64("LineChoke") > -999999 {
+			if _itkm.GetFloat64("LineChoke") > LineChokeError {
+				redCount++
+				tempInfo["Line Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("LineChoke"))
+			} else if _itkm.GetFloat64("LineChoke") > LineChokeWarning {
+				orangeCount++
+				tempInfo["Line Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("LineChoke"))
+			} else {
+				greenCount++
+			}
+		} else {
+			// tempInfo["Line Choke"] = "N/A"
+		}
+
+		if _itkm.GetFloat64("GenChoke") > -999999 {
+			if _itkm.GetFloat64("GenChoke") > GenChokeError {
+				redCount++
+				tempInfo["Generator Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GenChoke"))
+			} else if _itkm.GetFloat64("GenChoke") > GenChokeWarning {
+				orangeCount++
+				tempInfo["Generator Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GenChoke"))
+			} else {
+				greenCount++
+			}
+		} else {
+			// tempInfo["Generator Choke"] = "N/A"
+		}
+
+		if _itkm.GetFloat64("ConvCabinet2") > -999999 {
+			if _itkm.GetFloat64("ConvCabinet2") > ConvCabinet2Error {
+				redCount++
+				tempInfo["Converter Cabinet 2"] = tk.Sprintf("%.2f", _itkm.GetFloat64("ConvCabinet2"))
+			} else if _itkm.GetFloat64("ConvCabinet2") > ConvCabinet2Warning {
+				orangeCount++
+				tempInfo["Converter Cabinet 2"] = tk.Sprintf("%.2f", _itkm.GetFloat64("ConvCabinet2"))
+			} else {
+				greenCount++
+			}
+		} else {
+			// tempInfo["Converter Cabinet 2"] = "N/A"
+		}
+
+		if orangeCount > 0 {
+			_itkm.Set("BulletColor", "fa fa-circle txt-orange")
+		} else if redCount > 0 && greenCount == 0 {
+			_itkm.Set("BulletColor", "fa fa-circle txt-red")
+		} else if redCount > 0 && greenCount > 0 {
+			_itkm.Set("BulletColor", "fa fa-circle txt-orange")
+		} else if greenCount > 0 && redCount == 0 {
+			_itkm.Set("BulletColor", "fa fa-circle txt-green")
+		} else {
+			_itkm.Set("BulletColor", "fa fa-circle txt-grey")
+		}
+		temperatureInfo := ""
+		idxInfo := 0
+		for tempName, value := range tempInfo {
+			if idxInfo > 0 {
+				temperatureInfo += ", "
+			}
+			temperatureInfo += tk.Sprintf("%s : %s", tempName, value)
+		}
+		_itkm.Set("TemperatureInfo", temperatureInfo)
+
 	}
 	csr.Close()
 	if _iTurbine != "" {

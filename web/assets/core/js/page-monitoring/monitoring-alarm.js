@@ -69,8 +69,12 @@ ma.CreateGrid = function(gridType) {
 }
 ma.CreateGridAlarm = function(gridType, param) {
     var gridName = "#alarmGrid"
+    var dt = new Date();
+    var time = dt.getHours() + "" + dt.getMinutes() + "" + dt.getSeconds();
+    var nameFile = "Monitoring Alarm Down_"+ moment(new Date()).format("Y-M-D")+"_"+time;
     if(gridType == "warning") {
         gridName = "#warningGrid"
+        nameFile = "Monitoring Alarm Warning";
     }
     $(gridName).html('');
     $(gridName).kendoGrid({
@@ -121,6 +125,15 @@ ma.CreateGridAlarm = function(gridType, param) {
                 { field: "TimeEnd", dir: "asc" }
             ],
         },
+        toolbar: ["excel"],
+        excel: {
+            fileName: nameFile+".xlsx",
+            filterable: true,
+            allPages: true
+        },
+        // pdf: {
+        //     fileName: nameFile+".pdf",
+        // },
         sortable: true,
         pageable: {
             refresh: true,
