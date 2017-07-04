@@ -551,6 +551,10 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		// 		_iContinue = false
 		// 	}
 		// }
+		tempInfo := map[string]string{}
+		redCount := 0
+		orangeCount := 0
+		greenCount := 0
 		_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-green")
 		if _itkm.GetInt("Status") == 0 {
 			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-red")
@@ -570,18 +574,22 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		} else {
 			_itkm.Set("WindSpeedColor", "defaultcolor")
 		}
-		if _itkm.GetFloat64("Temperature") < locationTemp-4 || _itkm.GetFloat64("Temperature") > locationTemp+4 {
-			_itkm.Set("TemperatureColor", "txt-red")
+		if _itkm.GetFloat64("Temperature") > -999999 {
+			if _itkm.GetFloat64("Temperature") < locationTemp-4 || _itkm.GetFloat64("Temperature") > locationTemp+4 {
+				_itkm.Set("TemperatureColor", "txt-red")
+				tempInfo["External Temp"] = tk.Sprintf("%.2f", _itkm.GetFloat64("Temperature"))
+				redCount++
+			} else {
+				greenCount++
+				_itkm.Set("TemperatureColor", "txt-grey")
+				tempInfo["External Temp"] = tk.Sprintf("%.2f", _itkm.GetFloat64("Temperature"))
+			}
 		} else {
-			_itkm.Set("TemperatureColor", "txt-grey")
+			tempInfo["External Temp"] = tk.Sprintf("%.2f", "N/A")
 		}
 
 		AvgGenWind := 0.0
 		countGenWind := 0.0
-		redCount := 0
-		orangeCount := 0
-		greenCount := 0
-		tempInfo := map[string]string{}
 		if _itkm.GetFloat64("GenWinding1") > -999999 {
 			AvgGenWind += _itkm.GetFloat64("GenWinding1")
 			countGenWind++
@@ -627,6 +635,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			} else if AvgGenBearing > GenBearingWarning {
 				orangeCount++
 				tempInfo["Generator Bearing"] = tk.Sprintf("%.2f", AvgGenBearing)
+			} else {
+				greenCount++
 			}
 		} else {
 			// tempInfo["Generator Bearing"] = "N/A"
