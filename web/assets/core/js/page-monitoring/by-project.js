@@ -294,7 +294,7 @@ bp.PlotData = function(data) {
             if (val.TemperatureInfo != "") {
                 $('#temperaturecolor_'+ turbine).attr('data-original-title', val.TemperatureInfo);
             } else {
-                $('#temperaturecolor_'+ turbine).attr('data-original-title', "Temperature OK");
+                $('#temperaturecolor_'+ turbine).attr('data-original-title', "");
             }
             
             /* TURBINE STATUS PART */
