@@ -582,7 +582,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			} else {
 				greenCount++
 				_itkm.Set("TemperatureColor", "txt-grey")
-				tempInfo["External Temp"] = tk.Sprintf("%.2f", _itkm.GetFloat64("Temperature"))
 			}
 		} else {
 			tempInfo["External Temp"] = tk.Sprintf("%.2f", "N/A")
@@ -712,12 +711,10 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			// tempInfo["Converter Cabinet 2"] = "N/A"
 		}
 
-		if orangeCount > 0 {
+		if orangeCount > 0 || (redCount > 0 && greenCount > 0) {
 			_itkm.Set("BulletColor", "fa fa-circle txt-orange")
 		} else if redCount > 0 && greenCount == 0 {
 			_itkm.Set("BulletColor", "fa fa-circle txt-red")
-		} else if redCount > 0 && greenCount > 0 {
-			_itkm.Set("BulletColor", "fa fa-circle txt-orange")
 		} else if greenCount > 0 && redCount == 0 {
 			_itkm.Set("BulletColor", "fa fa-circle txt-green")
 		} else {
