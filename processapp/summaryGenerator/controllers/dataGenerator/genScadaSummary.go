@@ -811,7 +811,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					power := data["power"].(float64)
 					energy := data["energy"].(float64)
 					// pcvalue := data["pcvalue"].(float64)
-					pcdeviation := data["pcdeviation"].(float64)
+					pcdeviation := tk.ToFloat64(data["pcdeviation"], 6, tk.RoundingAuto)
 					oktime := data["oktime"].(float64)
 					totalts := data["totalts"].(int)
 					griddowntime := data["griddowntime"].(float64)
