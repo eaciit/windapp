@@ -414,6 +414,19 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		tk.Println(err.Error())
 	}
 
+	csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
+		Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
+		Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	tempCondition := []tk.M{}
+	err = csrTemp.Fetch(&tempCondition, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrTemp.Close()
+
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
 	for {
 		_tdata := tk.M{}
@@ -551,10 +564,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		// 		_iContinue = false
 		// 	}
 		// }
-		tempInfo := map[string]string{}
-		redCount := 0
-		orangeCount := 0
-		greenCount := 0
+
 		_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-green")
 		if _itkm.GetInt("Status") == 0 {
 			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-red")
@@ -574,6 +584,14 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		} else {
 			_itkm.Set("WindSpeedColor", "defaultcolor")
 		}
+
+		// TEMPERATURE PART
+
+		tempInfo := map[string]string{}
+		redCount := 0
+		orangeCount := 0
+		greenCount := 0
+
 		if _itkm.GetFloat64("Temperature") > -999999 {
 			if _itkm.GetFloat64("Temperature") < locationTemp-4 || _itkm.GetFloat64("Temperature") > locationTemp+4 {
 				_itkm.Set("TemperatureColor", "txt-red")
@@ -584,7 +602,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("TemperatureColor", "txt-grey")
 			}
 		} else {
-			tempInfo["External Temp"] = tk.Sprintf("%.2f", "N/A")
+			// tempInfo["External Temp"] = "N/A"
 		}
 
 		AvgGenWind := 0.0
@@ -601,20 +619,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			AvgGenWind += _itkm.GetFloat64("GenWinding3")
 			countGenWind++
 		}
-		if countGenWind > 0 {
-			AvgGenWind /= countGenWind
-			if AvgGenWind > GenWindError {
-				redCount++
-				tempInfo["Generator Winding"] = tk.Sprintf("%.2f", AvgGenWind)
-			} else if AvgGenWind > GenWindWarning {
-				tempInfo["Generator Winding"] = tk.Sprintf("%.2f", AvgGenWind)
-				orangeCount++
-			} else {
-				greenCount++
-			}
-		} else {
-			// tempInfo["Generator Winding"] = "N/A"
-		}
 
 		AvgGenBearing := 0.0
 		countGenBearing := 0.0
@@ -626,89 +630,58 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			AvgGenBearing += _itkm.GetFloat64("GenBearing2")
 			countGenBearing++
 		}
-		if countGenBearing > 0 {
-			AvgGenBearing /= countGenBearing
-			if AvgGenBearing > GenBearingError {
-				redCount++
-				tempInfo["Generator Bearing"] = tk.Sprintf("%.2f", AvgGenBearing)
-			} else if AvgGenBearing > GenBearingWarning {
-				orangeCount++
-				tempInfo["Generator Bearing"] = tk.Sprintf("%.2f", AvgGenBearing)
-			} else {
-				greenCount++
-			}
-		} else {
-			// tempInfo["Generator Bearing"] = "N/A"
-		}
 
-		if _itkm.GetFloat64("GearboxOil") > -999999 {
-			if _itkm.GetFloat64("GearboxOil") > GearboxOilError {
-				redCount++
-				tempInfo["Gearbox Oil"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GearboxOil"))
-			} else if _itkm.GetFloat64("GearboxOil") > GearboxOilWarning {
-				orangeCount++
-				tempInfo["Gearbox Oil"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GearboxOil"))
-			} else {
-				greenCount++
+		for _, tempData := range tempCondition {
+			paramName := tempData.GetString("temp_param")
+			switch paramName {
+			case "Generator Winding":
+				if countGenWind > 0 {
+					AvgGenWind /= countGenWind
+					if AvgGenWind > tempData.GetFloat64("error_limit") {
+						redCount++
+						tempInfo[paramName] = tk.Sprintf("%.2f", AvgGenWind)
+					} else if AvgGenWind > tempData.GetFloat64("warning_limit") {
+						tempInfo[paramName] = tk.Sprintf("%.2f", AvgGenWind)
+						orangeCount++
+					} else {
+						greenCount++
+					}
+				} else {
+					// tempInfo["Generator Winding"] = "N/A"
+				}
+			case "Generator Bearing":
+				if countGenBearing > 0 {
+					AvgGenBearing /= countGenBearing
+					if AvgGenBearing > tempData.GetFloat64("error_limit") {
+						redCount++
+						tempInfo[paramName] = tk.Sprintf("%.2f", AvgGenBearing)
+					} else if AvgGenBearing > tempData.GetFloat64("warning_limit") {
+						orangeCount++
+						tempInfo[paramName] = tk.Sprintf("%.2f", AvgGenBearing)
+					} else {
+						greenCount++
+					}
+				} else {
+					// tempInfo["Generator Bearing"] = "N/A"
+				}
+			case "Gearbox Oil", "Main Bearing", "Generator Choke",
+				"Line Choke", "Converter IGBT", "Converter Cabinet 2":
+				fieldName := tempData.GetString("field_name")
+				tempValue := _itkm.GetFloat64(fieldName)
+				if tempValue > -999999 {
+					if tempValue > tempData.GetFloat64("error_limit") {
+						redCount++
+						tempInfo[paramName] = tk.Sprintf("%.2f", tempValue)
+					} else if tempValue > tempData.GetFloat64("warning_limit") {
+						orangeCount++
+						tempInfo[paramName] = tk.Sprintf("%.2f", tempValue)
+					} else {
+						greenCount++
+					}
+				} else {
+					// tempInfo[paramName] = "N/A"
+				}
 			}
-		} else {
-			// tempInfo["Gearbox Oil"] = "N/A"
-		}
-
-		if _itkm.GetFloat64("MainBearing") > -999999 {
-			if _itkm.GetFloat64("MainBearing") > MainBearingError {
-				redCount++
-				tempInfo["Main Bearing"] = tk.Sprintf("%.2f", _itkm.GetFloat64("MainBearing"))
-			} else if _itkm.GetFloat64("MainBearing") > MainBearingWarning {
-				orangeCount++
-				tempInfo["Main Bearing"] = tk.Sprintf("%.2f", _itkm.GetFloat64("MainBearing"))
-			} else {
-				greenCount++
-			}
-		} else {
-			// tempInfo["Main Bearing"] = "N/A"
-		}
-
-		if _itkm.GetFloat64("LineChoke") > -999999 {
-			if _itkm.GetFloat64("LineChoke") > LineChokeError {
-				redCount++
-				tempInfo["Line Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("LineChoke"))
-			} else if _itkm.GetFloat64("LineChoke") > LineChokeWarning {
-				orangeCount++
-				tempInfo["Line Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("LineChoke"))
-			} else {
-				greenCount++
-			}
-		} else {
-			// tempInfo["Line Choke"] = "N/A"
-		}
-
-		if _itkm.GetFloat64("GenChoke") > -999999 {
-			if _itkm.GetFloat64("GenChoke") > GenChokeError {
-				redCount++
-				tempInfo["Generator Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GenChoke"))
-			} else if _itkm.GetFloat64("GenChoke") > GenChokeWarning {
-				orangeCount++
-				tempInfo["Generator Choke"] = tk.Sprintf("%.2f", _itkm.GetFloat64("GenChoke"))
-			} else {
-				greenCount++
-			}
-		} else {
-			// tempInfo["Generator Choke"] = "N/A"
-		}
-
-		if _itkm.GetFloat64("ConvCabinet2") > -999999 {
-			if _itkm.GetFloat64("ConvCabinet2") > ConvCabinet2Error {
-				redCount++
-				tempInfo["Converter Cabinet 2"] = tk.Sprintf("%.2f", _itkm.GetFloat64("ConvCabinet2"))
-			} else if _itkm.GetFloat64("ConvCabinet2") > ConvCabinet2Warning {
-				orangeCount++
-				tempInfo["Converter Cabinet 2"] = tk.Sprintf("%.2f", _itkm.GetFloat64("ConvCabinet2"))
-			} else {
-				greenCount++
-			}
-		} else {
-			// tempInfo["Converter Cabinet 2"] = "N/A"
 		}
 
 		if orangeCount > 0 || (redCount > 0 && greenCount > 0) {
@@ -721,12 +694,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			_itkm.Set("BulletColor", "fa fa-circle txt-grey")
 		}
 		temperatureInfo := ""
-		idxInfo := 0
 		for tempName, value := range tempInfo {
-			if idxInfo > 0 {
-				temperatureInfo += ", "
-			}
-			temperatureInfo += tk.Sprintf("%s : %s", tempName, value)
+			temperatureInfo += tk.Sprintf("%s : %s<br />", tempName, value)
 		}
 		_itkm.Set("TemperatureInfo", temperatureInfo)
 
