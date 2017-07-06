@@ -420,6 +420,8 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	e = csrScada.Fetch(&resultScada, 0, false)
 
 	matches.Unset("dateinfo.monthdesc")
+	matches.Unset("available")
+
 	matches.Set("startdateinfo.monthdesc", p.GetString("date"))
 	fields = tk.M{"$sum": "$powerlost"}
 

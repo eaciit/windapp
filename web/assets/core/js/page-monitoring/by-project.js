@@ -291,7 +291,7 @@ bp.PlotData = function(data) {
             $('#temperature_'+ turbine).attr('class', colorTemperature);
             
             $('#temperaturecolor_'+ turbine).attr('class',val.BulletColor);
-            if (val.TemperatureInfo != "") {
+            if (val.TemperatureInfo != "" && val.TemperatureInfo != undefined) {
                 $('#temperaturecolor_'+ turbine).attr('data-original-title', val.TemperatureInfo);
             } else {
                 $('#temperaturecolor_'+ turbine).attr('data-original-title', "");
