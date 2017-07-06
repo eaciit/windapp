@@ -101,7 +101,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					var budgetCurrMonthDaily float64
 
 					if len(budgetMonths)-1 >= int(dateId.Month()) {
-						budgetCurrMonths := budgetMonths[int(dateId.Month())] * 1000.0
+						budgetCurrMonths := budgetMonths[int(dateId.Month())-1] * 1000.0
 						noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
 						budgetCurrMonthDaily = tk.Div(budgetCurrMonths, noOfDay)
 					}
