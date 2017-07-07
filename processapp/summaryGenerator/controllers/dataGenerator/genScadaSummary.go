@@ -814,9 +814,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					pcdeviation := data.GetFloat64("pcdeviation")
 					oktime := data.GetFloat64("oktime")
 					totalts := data.GetInt("totalts")
-					griddowntime := data["griddowntime"].(float64)
-					machinedowntime := data["machinedowntime"].(float64)
-					avgwindspeed := data["avgwindspeed"].(float64)
+					griddowntime := data.GetFloat64("griddowntime")
+					machinedowntime := data.GetFloat64("machinedowntime")
+					avgwindspeed := data.GetFloat64("avgwindspeed")
 
 					dt := new(ScadaSummaryDaily).New()
 					dt.DateInfo = GetDateInfo(dtId)
