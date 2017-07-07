@@ -812,8 +812,20 @@ page.HideforScatter = function() {
     }
 }
 
-$(document).ready(function() {
+page.getSelectedFilter = function(){
+    $("#selectedFilter").html("");
+    var deviationVal = $("#deviationValue").val();
+    $('input[name="filter"]:checked').each(function() {
+        if(this.value == "Deviation"){
+            $("#selectedFilter").append(this.value + " < " + deviationVal + " % | ");
+        }else{
+            $("#selectedFilter").append(this.value + " | ");
+        }
+    });
+}
 
+$(document).ready(function() {
+    page.getSelectedFilter();
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {
@@ -858,7 +870,7 @@ $(document).ready(function() {
     $('#isClean').on('click', function() {
         var isClean = $('#isClean').prop('checked');
         page.isClean(isClean);
-
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -866,6 +878,7 @@ $(document).ready(function() {
         var isDeviation = $('#isDeviation').prop('checked');
         page.isDeviation(isDeviation);
 
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -873,6 +886,7 @@ $(document).ready(function() {
         var sScater = $('#sScater').prop('checked');
         page.sScater(sScater);
 
+        page.getSelectedFilter();
         page.HideforScatter();
         Data.InitLinePowerCurve();
     });
@@ -881,6 +895,7 @@ $(document).ready(function() {
         var isShow = $('#showDownTime').prop('checked');
         page.showDownTime(isShow);
 
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 

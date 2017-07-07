@@ -1,3 +1,9 @@
+.selected-filter{
+    margin-bottom: 10px;
+    margin-top: -15px;
+    padding-left: 50px;
+    z-index: 10;
+}
 .date-info{
     margin-top: -10px;
 }
@@ -75,7 +81,7 @@
     text-align: center;
     margin-bottom: 0px;
     margin-top: -15px;
-    margin-left: -115px;
+    margin-left: -260px;
 }
 .btn-pdf{
     margin-right: 10px;

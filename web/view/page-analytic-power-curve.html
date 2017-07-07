@@ -46,7 +46,7 @@
 									    <li class="keep-open">
 									    	<div class="checkbox">
 												<label>
-				                                    <input type="checkbox" id="isClean" checked>
+				                                    <input type="checkbox" id="isClean" value="Valid" name="filter" checked>
 				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 				                                    <span ><b class="colBlack">Valid</b></span>
 				                                </label>
@@ -57,7 +57,7 @@
 												<div>
 													<div class="checkbox">
 														<label>
-				                                            <input type="checkbox" id="isDeviation" checked="true">
+				                                            <input type="checkbox" id="isDeviation" name="filter" value="Deviation" checked="true">
 				                                            <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 				                                            <span ><b class="colBlack">Include Deviation <</b></span>
 				                                        </label>
@@ -73,7 +73,7 @@
 									    <li class="keep-open">
 									    	<div class="checkbox">
 												<label>
-				                                    <input type="checkbox" id="sScater" >
+				                                    <input type="checkbox" id="sScater" name="filter" value="Scatter" >
 				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 				                                    <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
 				                                </label>
@@ -82,7 +82,7 @@
 									    <li class="keep-open">
 									    	<div class="checkbox">
 												<label>
-				                                    <input type="checkbox" id="showDownTime" >
+				                                    <input type="checkbox" id="showDownTime" name="filter" value="Downtime">
 				                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
 				                                    <span class="colRed"><b class="colBlack">Show Downtime</b></span>
 				                                </label>
@@ -94,8 +94,12 @@
 								<div class="power-curve-chart">
 									<div id="powerCurve"></div>
 								</div>
-
 								<div class="clearfix">&nbsp;</div>
+								<div class="col-md-12 selected-filter">
+									<div class="text-center">
+										<span>Selected Filter : <strong><span id="selectedFilter"></span></strong></span>
+									</div>
+								</div>
 								<div class="cFilter text-center">
 									<div class="checkbox" id="showHideDownChk"></div>
 									<div class="col-md-12 col-sm-12" id="downtime-list"></div>
