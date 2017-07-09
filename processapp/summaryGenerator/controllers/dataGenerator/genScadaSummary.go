@@ -103,6 +103,49 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 			divider := 1000.0
 
+			ids := tk.M{"bulan": "$dateinfo.monthid", "turbine": "$turbine"}
+			pipe := []tk.M{
+				{"$group": tk.M{"_id": ids}},
+				{"$sort": tk.M{"dateinfo.monthid": 1}},
+			}
+			csrTurbine, e := ctx.NewQuery().
+				From(new(ScadaData).TableName()).
+				Where(dbox.And(filter...)).
+				Command("pipe", pipe).
+				Cursor(nil)
+
+			if e != nil {
+				ErrorHandler(e, "Scada Summary, error get turbine data on cursor")
+			}
+			defer csrTurbine.Close()
+
+			dataTurbine := []tk.M{}
+			e = csrTurbine.Fetch(&dataTurbine, 0, false)
+			if e != nil {
+				ErrorHandler(e, "Scada Summary, error get turbine data on fetch")
+			}
+
+			capacityPerMonth := map[string]float64{}
+			totalTurbinePerMonth := map[string]float64{}
+			var turbineMaster []TurbineOut
+			noOfTurbine := 0.0
+			var plfDivider float64
+			if project != "Fleet" {
+				turbineMaster, _ = helper.GetTurbineList([]interface{}{project})
+			} else {
+				turbineMaster, _ = helper.GetTurbineList(nil)
+			}
+
+			for _, turbineScada := range dataTurbine {
+				aidi, _ := tk.ToM(turbineScada.Get("_id", tk.M{}))
+				for _, turbine := range turbineMaster {
+					if aidi.GetString("turbine") == turbine.Turbine {
+						capacityPerMonth[tk.ToString(aidi.GetInt("bulan"))] += turbine.Capacity
+						totalTurbinePerMonth[tk.ToString(aidi.GetInt("bulan"))] += 1
+					}
+				}
+			}
+
 			for _, data := range datas {
 				id := data["_id"].(tk.M)
 				imonthid := id["dateinfo_monthid"].(int)
@@ -110,16 +153,6 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 				year := monthid[0:4]
 				month := monthid[4:6]
 				day := "01"
-
-				var turbineList []TurbineOut
-				noOfTurbine := 0
-
-				if project != "Fleet" {
-					turbineList, _ = helper.GetTurbineList([]interface{}{project})
-				} else {
-					turbineList, _ = helper.GetTurbineList(nil)
-				}
-				noOfTurbine = len(turbineList)
 
 				iMonth, _ := strconv.Atoi(string(month))
 				iMonth = iMonth - 1
@@ -132,6 +165,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 				if ioktime != nil {
 					oktime = (ioktime.(float64)) / 3600 // divide by 3600 secs, result in hours
 				}
+				noOfTurbine = totalTurbinePerMonth[monthid]
+				plfDivider = capacityPerMonth[monthid]
 
 				revenueTimes := 5.74
 
@@ -252,13 +287,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 				hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), mindate.UTC(), maxdate.UTC())
 
-				var plfDivider float64
-
-				for _, v := range turbineList {
-					plfDivider += v.Capacity
-				}
-
-				machineAvail, gridAvail, scadaAvail, trueAvail, plf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime*3600, energy/1000, machinedowntime, griddowntime, float64(totaldata), hourValue, minutes, plfDivider)
+				machineAvail, gridAvail, scadaAvail, trueAvail, plf := helper.GetAvailAndPLF(noOfTurbine, oktime*3600, energy/1000, machinedowntime, griddowntime, float64(totaldata), hourValue, minutes, plfDivider)
 
 				if plf > 100 {
 					plf = 100
@@ -483,8 +512,8 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 
 				// machineAvail := (minutes - machinedowntime) / (durationInMonth * 24)
 
-				maxDate := data.Get("max").(time.Time)
-				minDate := data.Get("min").(time.Time)
+				maxDate := data.Get("max", time.Time{}).(time.Time)
+				minDate := data.Get("min", time.Time{}).(time.Time)
 				energy := data.GetFloat64("energy") / 1000
 
 				hourValue := helper.GetHourValue(startDate.UTC(), endDate.UTC(), minDate.UTC(), maxDate.UTC())
