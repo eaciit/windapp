@@ -106,7 +106,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			ids := tk.M{"bulan": "$dateinfo.monthid", "turbine": "$turbine"}
 			pipe := []tk.M{
 				{"$group": tk.M{"_id": ids}},
-				{"$sort": tk.M{"dateinfo.monthid": 1}},
+				{"$sort": tk.M{"_id.bulan": 1}},
 			}
 			csrTurbine, e := ctx.NewQuery().
 				From(new(ScadaData).TableName()).
@@ -139,7 +139,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			for _, turbineScada := range dataTurbine {
 				aidi, _ := tk.ToM(turbineScada.Get("_id", tk.M{}))
 				for _, turbine := range turbineMaster {
-					if aidi.GetString("turbine") == turbine.Turbine {
+					if aidi.GetString("turbine") == turbine.Value {
 						capacityPerMonth[tk.ToString(aidi.GetInt("bulan"))] += turbine.Capacity
 						totalTurbinePerMonth[tk.ToString(aidi.GetInt("bulan"))] += 1
 					}
