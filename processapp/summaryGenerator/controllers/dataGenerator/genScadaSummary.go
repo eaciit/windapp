@@ -331,15 +331,12 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 
 			datas := []tk.M{}
 			e = csr.Fetch(&datas, 0, false)
-
-			_, max, _ := GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+			var max time.Time
+			iMaxCond := projectName
 
 			// daysInMonth := GetDayInYear(max.Year())
 			// days := tk.ToString(daysInMonth.GetInt(tk.ToString(int(max.Month()))))
 			// tmpdt, _ := time.Parse("060102_150405", max.UTC().Format("0601")+days+"_000000")
-			tmpdt := max.UTC()
-			endDate := tmpdt.UTC() //time.Parse("060102_150405", max.UTC().Format("0601")+"01_000000").UTC()
-			startDate := GetNormalAddDateMonth(tmpdt.UTC(), -11)
 
 			mdl := new(ScadaSummaryByProject).New()
 			mdl.ID = projectName
@@ -354,7 +351,12 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 				if projectName == "Fleet" {
 					turbineList, _ = helper.GetTurbineList([]interface{}{turbine})
 					idfield = "farm"
+					iMaxCond = turbine
 				}
+				_, max, _ = GetDataDateAvailable(new(ScadaData).TableName(), "dateinfo.dateid", dbox.Eq("farm", iMaxCond), d.Ctx.Connection)
+				tmpdt := max.UTC()
+				endDate := tmpdt.UTC() //time.Parse("060102_150405", max.UTC().Format("0601")+"01_000000").UTC()
+				startDate := GetNormalAddDateMonth(tmpdt.UTC(), -11)
 
 				match := tk.M{}.
 					Set(idfield, tk.M{}.Set("$eq", turbine)).
