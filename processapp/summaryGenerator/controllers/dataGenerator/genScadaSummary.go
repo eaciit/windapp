@@ -296,17 +296,7 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
 
-		projectList := []ProjectOut{}
-		projectList = append(projectList, ProjectOut{
-			Name:   "",
-			Value:  "Fleet",
-			Coords: []float64{},
-		})
-
-		projects, _ := helper.GetProjectList()
-		projectList = append(projectList, projects...)
-
-		for _, v := range projectList {
+		for _, v := range d.BaseController.ProjectList {
 			var turbineList []TurbineOut
 			projectName := v.Value
 			group := "projectname"
