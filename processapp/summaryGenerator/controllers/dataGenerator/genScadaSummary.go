@@ -102,49 +102,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			e = csr.Fetch(&datas, 0, false)
 
 			divider := 1000.0
-
-			ids := tk.M{"bulan": "$dateinfo.monthid", "turbine": "$turbine"}
-			pipe := []tk.M{
-				{"$group": tk.M{"_id": ids}},
-				{"$sort": tk.M{"_id.bulan": 1}},
-			}
-			csrTurbine, e := ctx.NewQuery().
-				From(new(ScadaData).TableName()).
-				Where(dbox.And(filter...)).
-				Command("pipe", pipe).
-				Cursor(nil)
-
-			if e != nil {
-				ErrorHandler(e, "Scada Summary, error get turbine data on cursor")
-			}
-			defer csrTurbine.Close()
-
-			dataTurbine := []tk.M{}
-			e = csrTurbine.Fetch(&dataTurbine, 0, false)
-			if e != nil {
-				ErrorHandler(e, "Scada Summary, error get turbine data on fetch")
-			}
-
-			capacityPerMonth := map[string]float64{}
-			totalTurbinePerMonth := map[string]float64{}
-			var turbineMaster []TurbineOut
 			noOfTurbine := 0.0
-			var plfDivider float64
-			if project != "Fleet" {
-				turbineMaster, _ = helper.GetTurbineList([]interface{}{project})
-			} else {
-				turbineMaster, _ = helper.GetTurbineList(nil)
-			}
-
-			for _, turbineScada := range dataTurbine {
-				aidi, _ := tk.ToM(turbineScada.Get("_id", tk.M{}))
-				for _, turbine := range turbineMaster {
-					if aidi.GetString("turbine") == turbine.Value {
-						capacityPerMonth[tk.ToString(aidi.GetInt("bulan"))] += turbine.Capacity
-						totalTurbinePerMonth[tk.ToString(aidi.GetInt("bulan"))] += 1
-					}
-				}
-			}
+			plfDivider := 0.0
 
 			for _, data := range datas {
 				id := data["_id"].(tk.M)
@@ -165,8 +124,8 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 				if ioktime != nil {
 					oktime = (ioktime.(float64)) / 3600 // divide by 3600 secs, result in hours
 				}
-				noOfTurbine = totalTurbinePerMonth[monthid]
-				plfDivider = capacityPerMonth[monthid]
+				noOfTurbine = d.BaseController.TotalTurbinePerMonth[project+"_"+monthid]
+				plfDivider = d.BaseController.CapacityPerMonth[project+"_"+monthid]
 
 				revenueTimes := 5.74
 

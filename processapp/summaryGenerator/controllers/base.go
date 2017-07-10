@@ -5,6 +5,7 @@ import (
 
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
+	"eaciit/wfdemo-git/web/helper"
 
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
@@ -56,11 +57,78 @@ type TurbineLatest struct {
 }
 
 type BaseController struct {
-	base        IBaseController
-	Ctx         *orm.DataContext
-	LatestData  LatestData
-	RefTurbines tk.M
-	RefAlarms   tk.M
+	base                 IBaseController
+	Ctx                  *orm.DataContext
+	LatestData           LatestData
+	RefTurbines          tk.M
+	RefAlarms            tk.M
+	CapacityPerMonth     map[string]float64
+	TotalTurbinePerMonth map[string]float64
+}
+
+func (b *BaseController) GetTurbineScada() {
+	tk.Println("Getting Turbine from Scada Data Collection")
+	logStart := time.Now()
+
+	projectList := []ProjectOut{}
+	projectList = append(projectList, ProjectOut{
+		Name:   "",
+		Value:  "Fleet",
+		Coords: []float64{},
+	})
+
+	projects, _ := helper.GetProjectList()
+	projectList = append(projectList, projects...)
+	for _, v := range projectList {
+		project := v.Value
+
+		filter := []*dbox.Filter{}
+		filter = append(filter, dbox.Gte("power", -200))
+
+		if project != "Fleet" {
+			filter = append(filter, dbox.Eq("projectname", project))
+		}
+		ids := tk.M{"bulan": "$dateinfo.monthid", "turbine": "$turbine"}
+		pipe := []tk.M{
+			{"$group": tk.M{"_id": ids}},
+			{"$sort": tk.M{"_id.bulan": 1}},
+		}
+		csrTurbine, e := b.Ctx.Connection.NewQuery().
+			From(new(ScadaData).TableName()).
+			Where(dbox.And(filter...)).
+			Command("pipe", pipe).
+			Cursor(nil)
+
+		if e != nil {
+			ErrorHandler(e, "Scada Summary, get turbine data on cursor")
+		}
+		defer csrTurbine.Close()
+
+		dataTurbine := []tk.M{}
+		e = csrTurbine.Fetch(&dataTurbine, 0, false)
+		if e != nil {
+			ErrorHandler(e, "Scada Summary, get turbine data on fetch")
+		}
+
+		var turbineMaster []TurbineOut
+		if project != "Fleet" {
+			turbineMaster, _ = helper.GetTurbineList([]interface{}{project})
+		} else {
+			turbineMaster, _ = helper.GetTurbineList(nil)
+		}
+
+		for _, turbineScada := range dataTurbine {
+			aidi, _ := tk.ToM(turbineScada.Get("_id", tk.M{}))
+			for _, turbine := range turbineMaster {
+				if aidi.GetString("turbine") == turbine.Value {
+					b.CapacityPerMonth[project+"_"+tk.ToString(aidi.GetInt("bulan"))] += turbine.Capacity
+					b.TotalTurbinePerMonth[project+"_"+tk.ToString(aidi.GetInt("bulan"))] += 1
+				}
+			}
+		}
+	}
+	logDuration := time.Now().Sub(logStart).Seconds()
+	tk.Printf("\nGetting Turbine from Scada Data Collection about %v secs\n", logDuration)
 }
 
 func (b *BaseController) PrepareDataReff() {

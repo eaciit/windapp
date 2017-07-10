@@ -52,8 +52,6 @@ func main() {
 		new(GenScadaLast24).Generate(base) // step 5
 		tk.Println("step 6")
 		new(GenScadaSummary).Generate(base) // step 6
-		tk.Println("step 7")
-		new(GenScadaSummary).GenerateSummaryByFleet(base) // step 7
 		tk.Println("step 8")
 		new(GenScadaSummary).GenerateSummaryByProject(base) // step 8
 		tk.Println("step 9")
