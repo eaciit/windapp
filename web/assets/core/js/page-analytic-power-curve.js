@@ -813,35 +813,32 @@ page.HideforScatter = function() {
 }
 
 page.getSelectedFilter = function(){
-    $("#selectedFilter").html("");
-    var deviationVal = $("#deviationValue").val();
-    $('input[name="filter"]:checked').each(function() {
-        if(this.value == "Deviation"){
-            $("#selectedFilter").append(this.value + " < " + deviationVal + " % | ");
-        }else{
-            $("#selectedFilter").append(this.value + " | ");
-        }
-    });
+
+    setTimeout(function(){
+       
+        var deviationVal = $("#deviationValue").val();
+        $('input[name="filter"]:checked').each(function() {
+            if(this.value == "Deviation"){
+                $("#selectedFilter").append(this.value + " < " + deviationVal + " % | ");
+            }else{
+                $("#selectedFilter").append(this.value + " | ");
+            }
+        });        
+    },200);
 }
 
 $(document).ready(function() {
+
     page.getSelectedFilter();
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
-        setTimeout(function() {
+        setTimeout(function() {   
+            $("#selectedFilter").empty();
+            page.getSelectedFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
             var isValid = fa.LoadData();
             if(isValid) {
                 app.loading(true);
-
-                // if(page.project() == page.currProject()){
-                //     if (page.sScater() && $("#turbineList").val().length > 3) {
-                //         swal('Warning', 'You can only select 3 turbines !', 'warning');
-                //         return
-                //     }
-                // }else{
-                //     page.resetFilter();
-                // }
                 page.resetFilter();
                 Data.InitLinePowerCurve();
             }
