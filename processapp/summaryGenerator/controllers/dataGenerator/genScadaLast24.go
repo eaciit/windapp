@@ -48,16 +48,11 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			3569.4336,
 			5911.8744}
 
-		projectList := []ProjectOut{}
-		projectList = append(projectList, ProjectOut{})
-		projects, _ := helper.GetProjectList()
-		projectList = append(projectList, projects...)
-
-		for _, proj := range projectList {
+		for _, proj := range d.BaseController.ProjectList {
 			projectName := proj.Value
 			turbineList := []TurbineOut{}
 
-			if projectName != "" {
+			if projectName != "Fleet" {
 				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			} else {
 				turbineList, _ = helper.GetTurbineList(nil)
@@ -68,7 +63,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			filter := []*dbox.Filter{}
 
 			filter = append(filter, dbox.Gte("power", -200))
-			if projectName != "" {
+			if projectName != "Fleet" {
 				filter = append(filter, dbox.Eq("projectname", projectName))
 			}
 
@@ -108,14 +103,14 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 					mdl := new(ScadaLastUpdate).New()
 
-					if projectName != "" {
+					if projectName != "Fleet" {
 						mdl.ID = "SCADALASTUPDATE_" + strings.ToUpper(projectName)
 						mdl.ProjectName = projectName
 						mdl.NoOfProjects = 1
 					} else {
 						mdl.ID = "SCADALASTUPDATE_FLEET"
 						mdl.ProjectName = "Fleet"
-						mdl.NoOfProjects = len(projectList)
+						mdl.NoOfProjects = len(d.BaseController.ProjectList) - 1
 					}
 
 					for _, t := range turbineList {
@@ -142,7 +137,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 						filterSub = append(filterSub, dbox.Lte("timestamp", timeHr))
 						filterSub = append(filterSub, dbox.Gte("power", -200))
 
-						if projectName != "" {
+						if projectName != "Fleet" {
 							filterSub = append(filterSub, dbox.Eq("projectname", projectName))
 						}
 
@@ -213,7 +208,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 					match.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("power", tk.M{}.Set("$gte", -200))
 
-					if projectName != "" {
+					if projectName != "Fleet" {
 						match.Set("projectname", projectName)
 					}
 
