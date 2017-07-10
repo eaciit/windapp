@@ -51,17 +51,7 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
 
-		projectList := []ProjectOut{}
-		projectList = append(projectList, ProjectOut{
-			Name:   "",
-			Value:  "Fleet",
-			Coords: []float64{},
-		})
-
-		projects, _ := helper.GetProjectList()
-		projectList = append(projectList, projects...)
-
-		for _, v := range projectList {
+		for _, v := range d.BaseController.ProjectList {
 			project := v.Value
 
 			filter := []*dbox.Filter{}

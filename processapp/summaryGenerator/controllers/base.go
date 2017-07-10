@@ -64,24 +64,25 @@ type BaseController struct {
 	RefAlarms            tk.M
 	CapacityPerMonth     map[string]float64
 	TotalTurbinePerMonth map[string]float64
+	ProjectList          []ProjectOut
 }
 
 func (b *BaseController) GetTurbineScada() {
 	tk.Println("Getting Turbine from Scada Data Collection")
 	logStart := time.Now()
 
-	projectList := []ProjectOut{}
-	projectList = append(projectList, ProjectOut{
+	b.ProjectList = []ProjectOut{}
+	b.ProjectList = append(b.ProjectList, ProjectOut{
 		Name:   "",
 		Value:  "Fleet",
 		Coords: []float64{},
 	})
 
 	projects, _ := helper.GetProjectList()
-	projectList = append(projectList, projects...)
+	b.ProjectList = append(b.ProjectList, projects...)
 	b.CapacityPerMonth = map[string]float64{}
 	b.TotalTurbinePerMonth = map[string]float64{}
-	for _, v := range projectList {
+	for _, v := range b.ProjectList {
 		project := v.Value
 
 		filter := []*dbox.Filter{}
