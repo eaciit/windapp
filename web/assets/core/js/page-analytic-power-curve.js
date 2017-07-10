@@ -815,7 +815,7 @@ page.HideforScatter = function() {
 page.getSelectedFilter = function(){
 
     setTimeout(function(){
-       
+       $("#selectedFilter").empty();
         var deviationVal = $("#deviationValue").val();
         $('input[name="filter"]:checked').each(function() {
             if(this.value == "Deviation"){
