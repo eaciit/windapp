@@ -619,6 +619,8 @@ it.showWindspeedColumnChart = function(){
     });
 
 }
+
+
 it.showWindspeedLiveChart = function(){
 
     Highcharts.setOptions({
@@ -647,7 +649,17 @@ it.showWindspeedLiveChart = function(){
             enabled: true,
             verticalAlign: 'top',
             layout: "horizontal",
-            labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            labelFormatter: function() {
+                
+                if(this.point.y == undefined){
+                     return '<span style="color:' + this.color + '"> ' + this.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+this.tooltipOptions.valueSuffix+'</n>';
+                }
+                else{
+                    return '<span style="color:'+ this.color +'"> ' + this.name + ' </span> : <span style="min-width:50px"><b> '+ kendo.toString(this.point.y,'n2')+' </b></span> <b>'+this.tooltipOptions.valueSuffix+'</b><br/>'
+                }
+               
+            },
+            // labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
         },
         rangeSelector: {
             enabled:false,
