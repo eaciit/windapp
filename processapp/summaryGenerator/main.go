@@ -36,6 +36,7 @@ func main() {
 
 		webhelper.HelperSetDb(db)
 
+		base.GetTurbineScada()
 		base.PrepareDataReff()
 		base.SetCollectionLatestTime()
 
