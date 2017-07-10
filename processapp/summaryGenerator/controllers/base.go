@@ -79,6 +79,8 @@ func (b *BaseController) GetTurbineScada() {
 
 	projects, _ := helper.GetProjectList()
 	projectList = append(projectList, projects...)
+	b.CapacityPerMonth = map[string]float64{}
+	b.TotalTurbinePerMonth = map[string]float64{}
 	for _, v := range projectList {
 		project := v.Value
 
