@@ -51,7 +51,7 @@ sum.loadData = function () {
             if (res.data.length > 0){
                 sum.dataSource(res.data[0]);
                 sum.noOfProjects(res.data[0].NoOfProjects);
-                sum.noOfProjectsExFleet(res.data[0].NoOfProjects-1);
+                sum.noOfProjectsExFleet(res.data[0].NoOfProjects);
                 sum.noOfTurbines(res.data[0].NoOfTurbines);
                 sum.totalMaxCapacity((res.data[0].TotalMaxCapacity / 1000) + " MW");
                 sum.currentDown(res.data[0].CurrentDown);

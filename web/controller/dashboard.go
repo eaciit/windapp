@@ -209,11 +209,11 @@ func (m *DashboardController) GetScadaLastUpdate(k *knot.WebContext) interface{}
 			val.CummulativeProductions[idxCumm] = cumm
 		}
 
-		turbineDownOneDays := getDownTurbine(val.ProjectName, val.LastUpdate, 1)
-		turbineDownTwoDays := getDownTurbine(val.ProjectName, val.LastUpdate, 2)
+		turbineDownOneDays := getTotalDownTurbine(val.ProjectName, val.LastUpdate, 1)
+		turbineDownTwoDays := getTotalDownTurbine(val.ProjectName, val.LastUpdate, 2)
 
-		val.CurrentDown = len(turbineDownOneDays)
-		val.TwoDaysDown = len(turbineDownTwoDays)
+		val.CurrentDown = turbineDownOneDays
+		val.TwoDaysDown = turbineDownTwoDays
 
 		result = append(result, val)
 	}
@@ -2562,6 +2562,39 @@ func getDownTurbine(project string, currentDate time.Time, dayDuration int) (res
 			result = append(result, val)
 		}
 	}
+
+	return
+}
+
+func getTotalDownTurbine(project string, currentDate time.Time, dayDuration int) (result int) {
+	var fromDate time.Time
+	var pipes []tk.M
+	match := tk.M{}
+
+	fromDate = currentDate.UTC().AddDate(0, 0, dayDuration*-1)
+
+	match.Set("datestart", tk.M{"$gte": fromDate.UTC(), "$lte": currentDate.UTC()})
+	match.Set("status", tk.M{"$eq": 0})
+
+	if project != "Fleet" {
+		match.Set("projectname", project)
+	}
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	rconn := DBRealtime()
+
+	csr, e := rconn.NewQuery().
+		From(new(TurbineStatus).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+	result = csr.Count()
 
 	return
 }
