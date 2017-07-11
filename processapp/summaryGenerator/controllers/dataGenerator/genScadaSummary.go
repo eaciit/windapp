@@ -841,6 +841,29 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					expws := 0.0
 					dt.ExpWindSpeed = expws
 
+					pipeAlarmParent := []tk.M{
+						tk.M{}.Set("$match", tk.M{}.
+							Set("projectname", project).
+							Set("turbine", turbineX).
+							Set("startdateinfo.dateid", dtId)),
+						tk.M{}.Set("$group", tk.M{}.
+							Set("_id", "").
+							Set("count", tk.M{}.Set("$sum", 1))),
+					}
+					csrAlarmParent, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarmParent).
+						From(new(Alarm).TableName()).
+						Cursor(nil)
+
+					alarmsParent := []tk.M{}
+					_ = csrAlarmParent.Fetch(&alarmsParent, 0, false)
+					csrAlarmParent.Close()
+					noOfFailures := 0
+
+					if len(alarmsParent) > 0 {
+						noOfFailures = alarmsParent[0].GetInt("count")
+					}
+
 					pipeAlarm := []tk.M{
 						tk.M{}.Set("$match", tk.M{}.
 							Set("projectname", project).
@@ -865,12 +888,10 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 					alarmDuration := 0.0
 					alarmPowerLost := 0.0
-					noOfFailures := 0
 
 					if len(alarms) > 0 {
 						alarmDuration = alarms[0].GetFloat64("duration")
 						alarmPowerLost = alarms[0].GetFloat64("powerlost")
-						noOfFailures = alarms[0].GetInt("count")
 					}
 
 					dt.DowntimeHours = alarmDuration
@@ -878,7 +899,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.NoOfFailures = noOfFailures
 					dt.RevenueLoss = (dt.LostEnergy * 6 * revenueMultiplier)
 
-					pipeAlarm0 := []tk.M{
+					pipeAlarmMachine := []tk.M{
 						tk.M{}.Set("$match", tk.M{}.
 							Set("machinedown", true).
 							Set("projectname", project).
@@ -891,23 +912,23 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 								Set("_id", "").
 								Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
 								Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
-					csrAlarm0, _ := ctx.NewQuery().
-						Command("pipe", pipeAlarm0).
+					csrAlarmMachine, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarmMachine).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
 
-					alarms0 := []tk.M{}
-					_ = csrAlarm0.Fetch(&alarms0, 0, false)
-					csrAlarm0.Close()
+					alarmsMachine := []tk.M{}
+					_ = csrAlarmMachine.Fetch(&alarmsMachine, 0, false)
+					csrAlarmMachine.Close()
 
-					alarmDuration0 := 0.0
-					alarmPowerLost0 := 0.0
-					if len(alarms0) > 0 {
-						alarmDuration0 = alarms0[0].GetFloat64("duration")
-						alarmPowerLost0 = alarms0[0].GetFloat64("powerlost")
+					alarmDurationMachine := 0.0
+					alarmPowerLostMachine := 0.0
+					if len(alarmsMachine) > 0 {
+						alarmDurationMachine = alarmsMachine[0].GetFloat64("duration")
+						alarmPowerLostMachine = alarmsMachine[0].GetFloat64("powerlost")
 					}
 
-					pipeAlarm1 := []tk.M{
+					pipeAlarmGrid := []tk.M{
 						tk.M{}.Set("$match", tk.M{}.
 							Set("griddown", true).
 							Set("projectname", project).
@@ -922,23 +943,23 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 								Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
 
 					// []tk.M{tk.M{}.Set("$match", tk.M{}.Set("griddown", true).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId).Set("reduceavailability", true)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-					csrAlarm1, _ := ctx.NewQuery().
-						Command("pipe", pipeAlarm1).
+					csrAlarmGrid, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarmGrid).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
 
-					alarms1 := []tk.M{}
-					_ = csrAlarm1.Fetch(&alarms1, 0, false)
-					csrAlarm1.Close()
+					alarmsGrid := []tk.M{}
+					_ = csrAlarmGrid.Fetch(&alarmsGrid, 0, false)
+					csrAlarmGrid.Close()
 
-					alarmDuration1 := 0.0
-					alarmPowerLost1 := 0.0
-					if len(alarms1) > 0 {
-						alarmDuration1 = alarms1[0].GetFloat64("duration")
-						alarmPowerLost1 = alarms1[0].GetFloat64("powerlost")
+					alarmDurationGrid := 0.0
+					alarmPowerLostGrid := 0.0
+					if len(alarmsGrid) > 0 {
+						alarmDurationGrid = alarmsGrid[0].GetFloat64("duration")
+						alarmPowerLostGrid = alarmsGrid[0].GetFloat64("powerlost")
 					}
 
-					pipeAlarm2 := []tk.M{
+					pipeAlarmOther := []tk.M{
 						tk.M{}.Set("$match", tk.M{}.
 							Set("machinedown", false).
 							Set("griddown", false).
@@ -953,28 +974,28 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 								Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
 								Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
 					// []tk.M{tk.M{}.Set("$match", tk.M{}.Set("machinedown", false).Set("griddown", false).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId).Set("reduceavailability", true)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-					csrAlarm2, _ := ctx.NewQuery().
-						Command("pipe", pipeAlarm2).
+					csrAlarmOther, _ := ctx.NewQuery().
+						Command("pipe", pipeAlarmOther).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
 
-					alarms2 := []tk.M{}
-					_ = csrAlarm2.Fetch(&alarms2, 0, false)
-					csrAlarm2.Close()
+					alarmsOther := []tk.M{}
+					_ = csrAlarmOther.Fetch(&alarmsOther, 0, false)
+					csrAlarmOther.Close()
 
-					alarmDuration2 := 0.0
-					alarmPowerLost2 := 0.0
-					if len(alarms2) > 0 {
-						alarmDuration2 = alarms2[0].GetFloat64("duration")
-						alarmPowerLost2 = alarms2[0].GetFloat64("powerlost")
+					alarmDurationOther := 0.0
+					alarmPowerLostOther := 0.0
+					if len(alarmsOther) > 0 {
+						alarmDurationOther = alarmsOther[0].GetFloat64("duration")
+						alarmPowerLostOther = alarmsOther[0].GetFloat64("powerlost")
 					}
 
-					dt.MachineDownHours = alarmDuration0
-					dt.GridDownHours = alarmDuration1
-					dt.OtherDowntimeHours = alarmDuration2
-					dt.MachineDownLoss = alarmPowerLost0
-					dt.GridDownLoss = alarmPowerLost1
-					dt.OtherDownLoss = alarmPowerLost2
+					dt.MachineDownHours = alarmDurationMachine
+					dt.GridDownHours = alarmDurationGrid
+					dt.OtherDowntimeHours = alarmDurationOther
+					dt.MachineDownLoss = alarmPowerLostMachine
+					dt.GridDownLoss = alarmPowerLostGrid
+					dt.OtherDownLoss = alarmPowerLostOther
 
 					pipeJmr := []tk.M{tk.M{}.Set("$unwind", "$sections"), tk.M{}.Set("$match", tk.M{}.Set("sections.turbine", turbineX).Set("dateinfo.monthid", monthId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$sections.turbine").Set("boetotalloss", tk.M{}.Set("$sum", "$sections.boetotalloss")))}
 					csrJmr, _ := ctx.NewQuery().

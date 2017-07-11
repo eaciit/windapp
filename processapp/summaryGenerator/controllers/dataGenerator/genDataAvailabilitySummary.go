@@ -90,10 +90,11 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
-	for turbine, _ := range ev.BaseController.RefTurbines {
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
 
-		go func(t string) {
+		go func(t string, projectName string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
 
@@ -230,7 +231,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 
 			csr.Close()
 			wg.Done()
-		}(turbine)
+		}(turbine, value.GetString("project"))
 
 		countx++
 
@@ -276,10 +277,11 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
-	for turbine, _ := range ev.BaseController.RefTurbines {
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
 
-		go func(t string) {
+		go func(t string, projectName string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
 
@@ -418,7 +420,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 			csr.Close()
 			wg.Done()
-		}(turbine)
+		}(turbine, value.GetString("project"))
 
 		countx++
 
@@ -464,10 +466,11 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
-	for turbine, _ := range ev.BaseController.RefTurbines {
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
 
-		go func(t string) {
+		go func(t string, projectName string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
 
@@ -604,7 +607,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 
 			csr.Close()
 			wg.Done()
-		}(turbine)
+		}(turbine, value.GetString("project"))
 
 		countx++
 

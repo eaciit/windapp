@@ -552,8 +552,13 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 
 	csr.Close()
 
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	for _, m := range scadaOem {
-		id := m.GetString("_id")
+		id := turbineName[m.GetString("_id")]
 
 		oktime := m.GetFloat64("oktime") / 3600
 		nooffailures := m.GetFloat64("nooffailures")
