@@ -812,24 +812,33 @@ page.HideforScatter = function() {
     }
 }
 
+page.getSelectedFilter = function(){
+
+    setTimeout(function(){
+       $("#selectedFilter").empty();
+        var deviationVal = $("#deviationValue").val();
+        $('input[name="filter"]:checked').each(function() {
+            if(this.value == "Deviation"){
+                $("#selectedFilter").append(this.value + " < " + deviationVal + " % | ");
+            }else{
+                $("#selectedFilter").append(this.value + " | ");
+            }
+        });        
+    },200);
+}
+
 $(document).ready(function() {
 
+    page.getSelectedFilter();
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
-        setTimeout(function() {
+        setTimeout(function() {   
+            $("#selectedFilter").empty();
+            page.getSelectedFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
             var isValid = fa.LoadData();
             if(isValid) {
                 app.loading(true);
-
-                // if(page.project() == page.currProject()){
-                //     if (page.sScater() && $("#turbineList").val().length > 3) {
-                //         swal('Warning', 'You can only select 3 turbines !', 'warning');
-                //         return
-                //     }
-                // }else{
-                //     page.resetFilter();
-                // }
                 page.resetFilter();
                 Data.InitLinePowerCurve();
             }
@@ -858,7 +867,7 @@ $(document).ready(function() {
     $('#isClean').on('click', function() {
         var isClean = $('#isClean').prop('checked');
         page.isClean(isClean);
-
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -866,6 +875,7 @@ $(document).ready(function() {
         var isDeviation = $('#isDeviation').prop('checked');
         page.isDeviation(isDeviation);
 
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -873,6 +883,7 @@ $(document).ready(function() {
         var sScater = $('#sScater').prop('checked');
         page.sScater(sScater);
 
+        page.getSelectedFilter();
         page.HideforScatter();
         Data.InitLinePowerCurve();
     });
@@ -881,6 +892,7 @@ $(document).ready(function() {
         var isShow = $('#showDownTime').prop('checked');
         page.showDownTime(isShow);
 
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 

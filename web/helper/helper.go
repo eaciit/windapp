@@ -732,8 +732,11 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 }
 
 func GetTurbineNameList(project string) (turbineName map[string]string, err error) {
-	csrTurbine, err := DBRealtime().NewQuery().From("ref_turbine").
-		Where(dbox.Eq("project", project)).Cursor(nil)
+	query := DBRealtime().NewQuery().From("ref_turbine")
+	if project != "" {
+		query = query.Where(dbox.Eq("project", project))
+	}
+	csrTurbine, err := query.Cursor(nil)
 	if err != nil {
 		return
 	}

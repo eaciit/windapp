@@ -263,7 +263,17 @@ pg.createStockChart = function(y){
             floating: false,
             align: 'center',
             verticalAlign: 'top',
-            labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            // labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            labelFormatter: function() {
+                
+                if(this.point.y == undefined){
+                     return '<span style="color:' + this.color + '"> ' + this.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+this.tooltipOptions.valueSuffix+'</n>';
+                }
+                else{
+                    return '<span style="color:'+ this.color +'"> ' + this.name + ' </span> : <span style="min-width:50px"><b> '+ kendo.toString(this.point.y,'n2')+' </b></span> <b>'+this.tooltipOptions.valueSuffix+'</b><br/>'
+                }
+               
+            },
             borderWidth: 0,
             marginTop: -70,
         },
@@ -698,7 +708,16 @@ pg.createLiveChart = function(IsHour){
                     floating: false,
                     align: 'center',
                     verticalAlign: 'top',
-                    labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                    // labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                    labelFormatter: function() {
+                        if(this.point.y == undefined){
+                             return '<span style="color:' + this.color + '"> ' + this.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+this.tooltipOptions.valueSuffix+'</n>';
+                        }
+                        else{
+                            return '<span style="color:'+ this.color +'"> ' + this.name + ' </span> : <span style="min-width:50px"><b> '+ kendo.toString(this.point.y,'n2')+' </b></span> <b>'+this.tooltipOptions.valueSuffix+'</b><br/>'
+                        }
+                       
+                    },
                     borderWidth: 0,
                     marginTop: -70,
                 },
