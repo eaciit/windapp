@@ -321,3 +321,65 @@ func getLastAvailDate() *Availdatedata {
 
 	return datePeriod
 }
+
+func getLastAvailDate_DRAFT() map[string]*Availdatedata {
+	//contoh akses data
+	// lastDateData = datePeriod["All"].ScadaData[1].UTC()
+	allProject := []string{"All"}
+	projectList, e := getProject()
+	if e != nil {
+		return nil
+	}
+	allProject = append(allProject, projectList...)
+
+	result := map[string]*Availdatedata{}
+
+	latestDataPeriodsList := make([]LatestDataPeriod, 0)
+	query := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName())
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriodsList, 0, false)
+	csr.Close()
+
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	for _, project := range allProject {
+		latestDataPeriods = make([]LatestDataPeriod, 0)
+		for _, latestDate := range latestDataPeriodsList {
+			if project != "All" {
+				if latestDate.ProjectName == project {
+					latestDataPeriods = append(latestDataPeriods, latestDate)
+				}
+			} else {
+				latestDataPeriods = append(latestDataPeriods, latestDate)
+			}
+		}
+		datePeriod := new(Availdatedata)
+		xdp := reflect.ValueOf(datePeriod).Elem()
+		for _, d := range latestDataPeriods {
+			f := xdp.FieldByName(d.Type)
+			if f.IsValid() {
+				if f.CanSet() {
+					if f.Len() > 0 {
+						if f.Len() == 2 {
+							if (d.Data[0].Sub(f.Index(0).Interface().(time.Time)) < 0 && d.Data[0].Year() > 1) ||
+								f.Index(0).Interface().(time.Time).Year() == 1 {
+								f.Index(0).Set(reflect.ValueOf(d.Data[0]))
+							}
+							if d.Data[1].Sub(f.Index(1).Interface().(time.Time)) > 0 {
+								f.Index(1).Set(reflect.ValueOf(d.Data[1]))
+							}
+						}
+					} else {
+						f.Set(reflect.ValueOf(d.Data))
+					}
+				}
+			}
+		}
+		result[project] = datePeriod
+	}
+
+	return result
+}
