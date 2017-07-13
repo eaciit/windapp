@@ -845,6 +845,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 						tk.M{}.Set("$match", tk.M{}.
 							Set("projectname", project).
 							Set("turbine", turbineX).
+							Set("reduceavailability", true).
 							Set("startdateinfo.dateid", dtId)),
 						tk.M{}.Set("$group", tk.M{}.
 							Set("_id", "").
