@@ -208,7 +208,7 @@ page.showHidePeriod = function (idx) {
 	var period = $('#periodList-' + id).data('kendoDropDownList').value();
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),1,0,0,0,0));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1,1,0,0,0,0));
     var endMonthDate = new Date(app.getDateMax(maxDateData));
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0,1,0,0,0,0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0,1,0,0,0,0));

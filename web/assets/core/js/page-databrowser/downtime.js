@@ -165,8 +165,18 @@ dbd.InitDEgrid = function() {
                     class: "align-center"
                 },
                 filterable: false
+            }, {
+                title: "Reduce Availability",
+                field: "ReduceAvailability",
+                 template: '# if (ReduceAvailability == true ) { # Yes # } else {# No #}#',
+                width: 80,
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "text-align:center;"
+                }
             },
-
 
         ]
     });
