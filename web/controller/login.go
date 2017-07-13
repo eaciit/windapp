@@ -309,11 +309,18 @@ func getLastAvailDate() *Availdatedata {
 		f := xdp.FieldByName(d.Type)
 		if f.IsValid() {
 			if f.CanSet() {
-				// tmpTime := mapCheck[d.Type]
-				// log.Printf("> %v | %v \n", d.Data[0].String(), d.Data[1].String())
-				if d.Data[0].String() != d.Data[1].String() {
+				if f.Len() > 0 {
+					if f.Len() == 2 {
+						if (d.Data[0].Sub(f.Index(0).Interface().(time.Time)) < 0 && d.Data[0].Year() > 1) ||
+							f.Index(0).Interface().(time.Time).Year() == 1 {
+							f.Index(0).Set(reflect.ValueOf(d.Data[0]))
+						}
+						if d.Data[1].Sub(f.Index(1).Interface().(time.Time)) > 0 {
+							f.Index(1).Set(reflect.ValueOf(d.Data[1]))
+						}
+					}
+				} else {
 					f.Set(reflect.ValueOf(d.Data))
-					// log.Printf(">> %v | %v \n", d.Data[0].String(), d.Data[1].String())
 				}
 			}
 		}
