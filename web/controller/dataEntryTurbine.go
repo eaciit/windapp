@@ -5,8 +5,10 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"github.com/eaciit/knot/knot.v1"
-	"github.com/eaciit/toolkit"
+	// "github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
+	"github.com/eaciit/dbox"
+ 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"strings"
 )
 
@@ -23,56 +25,66 @@ func (m *DataEntryTurbineController) GetList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := struct {
+		Project string
+		Turbine []interface{}
 		Skip int
 		Take int
 		Sort []Sorting
 	}{}
+
 	e := k.GetPayload(&p)
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	csr, e := DB().Find(new(TurbineModel), toolkit.M{}.Set("skip", p.Skip).Set("limit", p.Take))
-	defer csr.Close()
+	turbine := p.Turbine
+	project := p.Project
+
+	query := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).Skip(p.Skip).Take(p.Take)
+
+	if project != "" {
+	  query = query.Where(dbox.Eq("project",project))
+	}
+
+	if len(turbine) > 0 {
+	  query = query.Where(dbox.In("turbineid", turbine...))
+	}
+
 
 	if len(p.Sort) > 0 {
 		var arrsort []string
 		for _, val := range p.Sort {
 			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+p.Sort[0].Field))
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
 			} else {
-				arrsort = append(arrsort, strings.ToLower(p.Sort[0].Field))
+				arrsort = append(arrsort, strings.ToLower(val.Field))
 			}
 		}
-		csr, e = DB().Find(new(TurbineModel), toolkit.M{}.Set("order", arrsort).Set("skip", p.Skip).Set("limit", p.Take))
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
+		query = query.Order(arrsort...)
 	}
 
-	results := make([]TurbineModel, 0)
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+
+	results := make([]TurbineMaster, 0)
 	e = csr.Fetch(&results, 0, false)
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	results2 := results
 
-	csr, e = DB().Find(new(TurbineModel), toolkit.M{})
-	defer csr.Close()
-
-	results = make([]TurbineModel, 0)
-	e = csr.Fetch(&results, 0, false)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
 	data := struct {
-		Data  []TurbineModel
+		Data  []TurbineMaster
 		Total int
 	}{
 		Data:  results2,
-		Total: len(results),
+		Total: csr.Count(),
 	}
 
 	return helper.CreateResult(true, data, "success")

@@ -1,9 +1,16 @@
 <script>
+    app.currentDateData = '{{.CurrentDateData}}';
     vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-dataentry-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+    #filter-analytic{
+        margin-bottom: -25px;
+    }
+</style>
 
 <div class="row">
+    {{template "_filter-analytic.html"}}
     <div class="col-md-12 col-sm-12 ez panel-content no-filter">
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore">
@@ -64,4 +71,7 @@
         </div>
     </div>
 </div>
+<script>
+    fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>
 <!-- End Form Modal --> 
