@@ -382,7 +382,12 @@ func (w *PageController) MonitoringByProject(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/by-project.html"
 	return w.GetParams(r, true)
 }
-
+func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-monitoring/custom.html"
+	return w.GetParams(r, true)
+}
 func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
