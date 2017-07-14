@@ -108,7 +108,6 @@ var mt = {
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
-	                format: "{0:n2}",
 	                width: 120,
 	            },{
 	                field: "totdowntime",
