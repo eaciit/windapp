@@ -290,7 +290,8 @@ bp.PlotData = function(data) {
             var colorTemperature = val.TemperatureColor;
             $('#temperature_'+ turbine).attr('class', colorTemperature);
             
-            $('#temperaturecolor_'+ turbine).attr('class',val.BulletColor);
+            $('#temperaturecolor_'+ turbine).addClass(val.BulletColor);
+
             if (val.TemperatureInfo != "" && val.TemperatureInfo != undefined) {
                 $('#temperaturecolor_'+ turbine).attr('data-original-title', val.TemperatureInfo);
             } else {
@@ -442,12 +443,24 @@ $(function() {
         $("#restore-screen").hide();  
     });
 
+    $('.bstooltip').mouseenter(function(){
+        var that = $(this)
+        that.tooltip('show');
+        setTimeout(function(){
+            that.tooltip('hide');
+        }, 7000);
+    });
+
+    $('.bstooltip').mouseleave(function(){
+        $(this).tooltip('hide');
+    });
+
     $(document).on("click", ".popover .close" , function(){
         $(this).parents(".popover").popover('hide');
     });
 
     setTimeout(function() {
         bp.GetData()
-        setInterval(bp.GetData, 4000);
+        setInterval(bp.GetData, 5000);
     }, 600);
 });

@@ -3,14 +3,26 @@
 viewModel.AnalyticDgrScada = new Object();
 var page = viewModel.AnalyticDgrScada;
 
+vm.currentMenu('Turbine Master');
+vm.currentTitle('Turbine Master');
+vm.breadcrumb([{ title: 'Data Entry', href: '#' },{ title: 'Turbine Master', href: viewModel.appName + 'page/dataentryturbine' }]);
+
 page.CurrentData = ko.observable({ Id: '', Model: '', WindSpeed: 0, Power1: 0 });
 
 var Data = {
 	LoadData: function() {
-		this.InitGrid();
+		app.loading(true);
+		var isValid = fa.LoadData();
+        if(isValid) {
+            this.InitGrid();
+        }
 	},
 	InitGrid: function() {
-		var param = {};
+		var param = {
+			Project: fa.project,
+			Turbine: fa.turbine(),
+		};
+
 		$('#gridDataEntryTurbine').html("");
 		$('#gridDataEntryTurbine').kendoGrid({
 	      dataSource: {
@@ -61,8 +73,13 @@ var Data = {
 	        { title: "Longitude", field: "Longitude", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120 },
 	        { title: "Elevation", field: "Elevation", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120 },
 	        { title: "Capacity (mW)", field: "Capacitymw", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120 }
-	      ]
+	      ],
+	      dataBound : function(){
+	      		app.loading(false);
+	      }
 	    });
+
+	    
 	},
 	New: function(){
 		page.CurrentData({ Id: data.Id, Model: data.Model, WindSpeed: data.WindSpeed, Power1: data.Power1 });
@@ -170,12 +187,34 @@ page.ShowModal =  function(modalId, showhide) {
 	}
 }
 
-vm.currentMenu('Turbine Master');
-vm.currentTitle('Turbine Master');
-vm.breadcrumb([{ title: 'Data Entry', href: '#' },{ title: 'Turbine Master', href: viewModel.appName + 'page/dataentryturbine' }]);
+page.hideElement = function(){
+	$("#periodList").closest(".k-widget").hide();
+    $("#dateStart").closest(".k-widget").hide();
+    $("#dateEnd").closest(".k-widget").hide();
+    $(".input-group").find("label").hide();
+}
+
 
 
 $(function (){
-	Data.LoadData();
+	page.hideElement();
+
+	setTimeout(function(){
+		Data.LoadData();
+	},500);
+	
+	
+	$('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
+        Data.LoadData();
+    });
+
+    $('#projectList').kendoDropDownList({
+        change: function () {  
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
+    });
+
 });
 

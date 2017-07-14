@@ -1466,3 +1466,27 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
+
+func (m *AnalyticLossAnalysisController) GetAvailDate_DRAFT(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	type AvailDatePayload struct {
+		Project string
+	}
+
+	p := AvailDatePayload{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	datePeriod := k.Session("availdate", "").(map[string]*Availdatedata)
+	if p.Project == "" {
+		p.Project = "All"
+	}
+	result := tk.M{}
+	result["availabledate"] = datePeriod[p.Project]
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
+	lastDateData = datePeriod[p.Project].ScadaData[1].UTC()
+	result["lastdate"] = lastDateData
+
+	return helper.CreateResult(true, result, "success")
+}
