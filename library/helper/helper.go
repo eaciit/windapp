@@ -591,3 +591,56 @@ func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability
 	}
 	return
 }
+
+func PopulateTurbines(_db dbox.IConnection, project string) (tkturbines tk.M) {
+	tkturbines = tk.M{}
+
+	csr, e := _db.NewQuery().
+		Select("turbineid", "turbinename").
+		From("ref_turbine").
+		Where(dbox.Eq("project", project)).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+
+	defer csr.Close()
+
+	data := []tk.M{}
+	e = csr.Fetch(&data, 0, false)
+	for _, val := range data {
+		tkturbines.Set(val.GetString("turbineid"), val.GetString("turbinename"))
+	}
+	return
+}
+
+func PopulateTurbinesCapacity(_db dbox.IConnection, project string) (tkturbines tk.M) {
+	tkturbines = tk.M{}
+
+	query := _db.NewQuery().
+		Select("project", "turbineid", "capacitymw").
+		From("ref_turbine")
+
+	if project != "" && strings.ToLower(project) != "fleet" {
+		query.Where(dbox.Eq("project", project))
+	}
+	csr, e := query.Cursor(nil)
+
+	if e != nil {
+		return
+	}
+
+	defer csr.Close()
+
+	data := []tk.M{}
+	e = csr.Fetch(&data, 0, false)
+	for _, val := range data {
+		_id := val.GetString("turbineid")
+		if project == "" || strings.ToLower(project) == "fleet" {
+			_id = val.GetString("project")
+		}
+		tkturbines.Set(_id, val.GetFloat64("capacitymw"))
+	}
+	return
+}
