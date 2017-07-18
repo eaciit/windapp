@@ -53,7 +53,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 
-		// log.Printf("%v | %v \n", tStart.String(), tEnd.String())
+		// tk.Printfn("%v | %v", tStart.String(), tEnd.String())
 
 		// log.Printf("EndDate: %v \n", tEnd)
 
