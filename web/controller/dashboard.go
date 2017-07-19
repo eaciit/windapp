@@ -1429,10 +1429,14 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 				// }
 			}
 		}
-
+		project := p.ProjectName
+		if p.ProjectName == "Fleet" {
+			project = ""
+		}
+		turbineName, _ := helper.GetTurbineNameList(project)
 		for _, turbine := range turbines {
 			resVal := tk.M{}
-			resVal.Set("_id", turbine)
+			resVal.Set("_id", turbineName[turbine])
 
 			for _, val := range resY {
 				valTurbine := val.Get("_id").(tk.M).GetString("id3")
