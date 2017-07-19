@@ -159,6 +159,10 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	}
 	/*======== END OF JMR PART ==================*/
 	LossAnalysisResult := []tk.M{}
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
 
 	for _, val := range resultScada {
 		id := val.GetString("_id")
@@ -173,7 +177,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		}
 
 		LossAnalysisResult = append(LossAnalysisResult, tk.M{
-			"Id":               val.GetString("_id"),
+			"Id":               turbineName[val.GetString("_id")],
 			"Production":       val.GetFloat64("Production") / 1000,
 			"LossEnergy":       val.GetFloat64("LossEnergy") / 1000,
 			"MachineDownHours": val.GetFloat64("MachineDownHours"),
@@ -761,6 +765,10 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 
 		resY := []tk.M{}
 
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return result, e
+		}
 		for _, t := range downCause {
 			title := tk.ToString(t)
 
@@ -788,7 +796,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 
 		for _, turbine := range turbines {
 			resVal := tk.M{}
-			resVal.Set("_id", turbine)
+			resVal.Set("_id", turbineName[turbine])
 
 			for _, val := range resY {
 				valTurbine := val.Get("_id").(tk.M).GetString("id3")
