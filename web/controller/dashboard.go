@@ -2672,11 +2672,18 @@ func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int
 		return
 	}
 
+	lastProject := ""
+	turbineName := map[string]string{}
 	for _, val := range tmpResult {
+		if lastProject != val.GetString("projectname") {
+			lastProject = val.GetString("projectname")
+			turbineName, _ = helper.GetTurbineNameList(lastProject)
+		}
 		if val.Get("starttime") != nil {
 			start := val.Get("datestart").(time.Time)
 			downHours := currentDate.UTC().Sub(start.UTC()).Hours()
 			if dayDuration > 1 {
+				val.Set("turbine", turbineName[val.GetString("turbine")])
 				if downHours >= float64(24*dayDuration) {
 					val.Set("result", downHours)
 					val.Set("isdown", true)
