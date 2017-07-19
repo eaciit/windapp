@@ -264,7 +264,8 @@ func (u *UpdateScadaOemMinutes) updateScadaOEM(data *ScadaDataOEM, arrMED []minE
 				aDuration += endTime.Sub(startTime).Seconds()
 			*/
 
-			if a.ReduceAvailability {
+			//@ASP 29-07-2017 : Reduce availability only for machine down
+			if a.ReduceAvailability || !a.DownMachine {
 				aDuration += endTime.Sub(startTime).Seconds()
 
 				if a.DownGrid {
