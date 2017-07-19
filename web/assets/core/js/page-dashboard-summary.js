@@ -117,7 +117,7 @@ sum.loadData = function () {
                     }
                     seriesObj["name"] = key;
                     seriesObj["field"] = key;
-                    seriesObj["color"] = colorField[projectCount];
+                    seriesObj["color"] = colorFieldProject[projectCount];
                     availabilitySeries.push(seriesObj);
                     projectCount++;
                 }
@@ -136,7 +136,7 @@ sum.loadData = function () {
                     }
                     seriesObj["name"] = project;
                     seriesObj["field"] = project;
-                    seriesObj["color"] = colorField[1];
+                    seriesObj["color"] = colorFieldProject[1];
                     availabilitySeries.push(seriesObj);
                     sum.AvailabilityChart(availabilityData, availabilitySeries);
                 } else {
@@ -713,7 +713,7 @@ sum.AvailabilityChart = function (dataSource, dataSeries) {
         //     color: "#ff880e",
         // }],
         series: dataSeries,
-        // seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             max: 100,
             majorUnit: 25,

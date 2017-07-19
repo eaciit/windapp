@@ -488,3 +488,4 @@ var colorField = ["#ff9933","#21c4af","#4589b0", "#e4cc37","#008571", "#3ca5bf",
     "#9999FF"];
 var colorDegField = ["#ffcf9e","#a6e7df","#ffc8c0","#ffe2b8","#d9f2ba","#a4d8e7","#ffc0db","#fab3ae","#efa5a2","#cfc8dc","#d6a0e0","#a8e6cc","#f5b9bd","#e7d8b5","#ffbbd5","#e7a89d","#edc7be","#ffa9ef","#adddd0","#9fe0f7","#fabcaf","#ff99af","#b9cada","#ffc1c1","#ffeec1","#c6ddff","#c9bbb5"];
 var colorFields2 =  ["#9e9e9e","#337ab7","#ff0000"];
+var colorFieldProject = ["#abe8db","#1fbec3","#1384a7","#0a547b"]
