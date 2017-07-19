@@ -140,6 +140,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		}
 		caggr.Close()
 
+		turbineName := map[string]string{}
 		for idxChild, val := range aggrData {
 			projectname = val["_id"].(tk.M)["projectname"].(string)
 			turbinename = val["_id"].(tk.M)["turbine"].(string)
@@ -184,6 +185,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 					results["Summary"][len(results["Summary"])-1].Project = projectname
 					results["Summary"][len(results["Summary"])-1].StartDate = tStart
 					results["Summary"][len(results["Summary"])-1].EndDate = tEnd
+					turbineName, _ = helper.GetTurbineNameList(projectname)
 				}
 				results["Summary"][len(results["Summary"])-1].PotentialPowerYTD += val.GetFloat64("totaldenPower") / 1000
 				results["Summary"][len(results["Summary"])-1].PowerYTD += val.GetFloat64("totalPower") / 1000
@@ -194,7 +196,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 
 				results["Data"] = append(results["Data"], resulttemp)
 				indexTurbine[turbinename] = idxChild
-				results["Data"][indexTurbine[turbinename]].Turbine = turbinename
+				results["Data"][indexTurbine[turbinename]].Turbine = turbineName[turbinename]
 				results["Data"][indexTurbine[turbinename]].Project = projectname
 				results["Data"][indexTurbine[turbinename]].PerformanceIndexYTD = tk.Div(val.GetFloat64("totalPower")/1000, val.GetFloat64("totaldenPower")/1000) * 100
 				results["Data"][indexTurbine[turbinename]].PotentialPowerYTD = val.GetFloat64("totaldenPower") / 1000
