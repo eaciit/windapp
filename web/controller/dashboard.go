@@ -405,7 +405,10 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	}
 	fields := tk.M{"$sum": "$power"}
 
-	pipe := []tk.M{{"$match": matches}, {"$group": tk.M{"_id": ids, "production": fields}}}
+	pipe := []tk.M{{"$match": matches},
+		{"$group": tk.M{"_id": ids, "production": fields}},
+		{"$sort": tk.M{"projectname": 1}}}
+
 	csrScada, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Command("pipe", pipe).
@@ -452,9 +455,17 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	totalTurbines := tk.M{}
 	detailData := tk.M{}
 	detail := []tk.M{}
+
+	listturbine := tk.M{}
+	tproject := ""
 	for _, val := range resultScada {
 		data := val["_id"].(tk.M)
 		project := data.GetString("project")
+		if tproject != project {
+			tproject = project
+			listturbine = PopulateTurbines(DB().Connection, tproject)
+		}
+
 		_id := project + "_" + data.GetString("turbine")
 		if dataPowerLost.Has(_id) {
 			val.Set("lostenergy", dataPowerLost.GetFloat64(_id))
@@ -463,6 +474,9 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		val.Unset("_id")
 		val.Set("production", val.GetFloat64("production")/6)
 		val.Set("turbine", data.GetString("turbine"))
+		if listturbine.Has(data.GetString("turbine")) {
+			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
+		}
 		detail = append(detail, val)
 		detailData.Set(project, detail)
 
@@ -560,8 +574,18 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	// 		dataItem = append(dataItem, val["dataitems"].(tk.M))
 	// 	}
 	// }
+
+	listname := tk.M{}
+	if p.GetString("project") != "Fleet" {
+		listname = PopulateTurbines(DB().Connection, p.GetString("project"))
+	}
+
 	for _, val := range result {
-		dataItem = append(dataItem, val["dataitems"].(tk.M))
+		vtkm := val["dataitems"].(tk.M)
+		if listname.Has(vtkm.GetString("name")) {
+			vtkm.Set("name", listname.GetString(vtkm.GetString("name")))
+		}
+		dataItem = append(dataItem, vtkm)
 	}
 
 	data := struct {
@@ -1405,10 +1429,14 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 				// }
 			}
 		}
-
+		project := p.ProjectName
+		if p.ProjectName == "Fleet" {
+			project = ""
+		}
+		turbineName, _ := helper.GetTurbineNameList(project)
 		for _, turbine := range turbines {
 			resVal := tk.M{}
-			resVal.Set("_id", turbine)
+			resVal.Set("_id", turbineName[turbine])
 
 			for _, val := range resY {
 				valTurbine := val.Get("_id").(tk.M).GetString("id3")
@@ -2644,11 +2672,18 @@ func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int
 		return
 	}
 
+	lastProject := ""
+	turbineName := map[string]string{}
 	for _, val := range tmpResult {
+		if lastProject != val.GetString("projectname") {
+			lastProject = val.GetString("projectname")
+			turbineName, _ = helper.GetTurbineNameList(lastProject)
+		}
 		if val.Get("starttime") != nil {
 			start := val.Get("datestart").(time.Time)
 			downHours := currentDate.UTC().Sub(start.UTC()).Hours()
 			if dayDuration > 1 {
+				val.Set("turbine", turbineName[val.GetString("turbine")])
 				if downHours >= float64(24*dayDuration) {
 					val.Set("result", downHours)
 					val.Set("isdown", true)
@@ -2911,6 +2946,16 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 
 	e = csr.Fetch(&result, 0, false)
 
+	if strings.ToLower(p.ProjectName) != "fleet" {
+		listturbines := PopulateTurbines(DB().Connection, p.ProjectName)
+		for i, itkm := range result {
+			if listturbines.Has(itkm.GetString("_id")) {
+				itkm.Set("_id", listturbines.GetString(itkm.GetString("_id")))
+				result[i] = itkm
+			}
+		}
+	}
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -3061,6 +3106,20 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	if len(resTable) > 0 {
 		log.Printf("resTable: %#v \n", resTable[0])
 	}*/
+
+	listturbine := tk.M{}
+	tprojectname := ""
+	for i, _alarm := range resTable {
+		if _alarm.Farm != tprojectname {
+			tprojectname = _alarm.Farm
+			listturbine = PopulateTurbines(DB().Connection, tprojectname)
+		}
+
+		if listturbine.Has(_alarm.Turbine) {
+			_alarm.Turbine = listturbine.GetString(_alarm.Turbine)
+			resTable[i] = _alarm
+		}
+	}
 
 	result.Set("data", resTable)
 	result.Set("total", total)
@@ -3292,28 +3351,44 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 	}
 
+	listturbine, listcapacity := tk.M{}, tk.M{}
+	if projectName != "" {
+		listturbine = PopulateTurbines(DB().Connection, projectName)
+	}
+
+	listcapacity = PopulateTurbinesCapacity(DB().Connection, projectName)
+
 	for idx, dt := range result {
 		lowestPlf := tk.ToFloat64(result[idx].GetFloat64("lowestplf"), 2, tk.RoundingAuto)
 		lowestMachineAvail := tk.ToFloat64(result[idx].GetFloat64("lowestmachineavail"), 2, tk.RoundingAuto)
 		maxLossEnergy := tk.ToFloat64(result[idx].GetFloat64("maxlossenergy"), 2, tk.RoundingAuto)
 
 		if projectName != "" {
-			result[idx].Set("name", dt.Get("_id").(tk.M).GetString("id1"))
+			_name := dt.Get("_id").(tk.M).GetString("id1")
+			result[idx].Set("name", _name)
+			if listturbine.Has(_name) {
+				result[idx].Set("name", listturbine.GetString(_name))
+			}
 			result[idx].Set("lowestplf", formatStringFloat(tk.ToString(lowestPlf), 2)+" %")
 			result[idx].Set("lowestmachineavail", formatStringFloat(tk.ToString(lowestMachineAvail), 2)+" %")
 			result[idx].Set("maxlossenergy", maxLossEnergy)
 
+			turbineMW = listcapacity.GetFloat64(_name)
 			maxCapacity := turbineMW * totalHours
+			// tk.Printfn("%v : maxCapacity := %v * %v", _name, turbineMW, totalHours)
+			// tk.Printfn("%v : plf := %v / %v", _name, result[idx].GetFloat64("production"), maxCapacity)
 			result[idx].Set("maxcapacity", maxCapacity)
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 		} else {
 			result[idx].Set("name", dt.GetString("_id"))
 			result[idx].Set("noofwtg", totalTurbine.GetInt(result[idx].GetString("name")))
 
+			turbineMW = listcapacity.GetFloat64(dt.GetString("_id"))
 			maxCapacity := turbineMW * totalTurbine.GetFloat64(result[idx].GetString("name")) * totalHours
 			result[idx].Set("maxcapacity", maxCapacity)
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 			// ---- lowestplf
+			// tk.Printfn("%v : maxCapacity := %v * %v", dt.GetString("_id"), turbineMW, totalHours)
 
 			pipeSub := []tk.M{
 				{"$match": matches},

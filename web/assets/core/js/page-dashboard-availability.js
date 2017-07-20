@@ -262,7 +262,7 @@ avail.fleetMachAvail = function (dataSource) {
             // opacity : 0.7,
             stacked: false
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -341,7 +341,7 @@ avail.fleetGridAvail = function (dataSource) {
             // opacity : 0.7,
             stacked: false
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -533,7 +533,7 @@ avail.DTLostEnergy = function (dataSource) {
             // opacity : 0.7,
             stacked: false
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -733,7 +733,7 @@ avail.DTLostEnergyFleet = function (dataSource) {
             // opacity : 0.7,
             stacked: true
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -905,7 +905,7 @@ avail.projectMachAvail = function (dataSource) {
             // opacity : 0.7,
             stacked: true
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -985,7 +985,7 @@ avail.projectGridAvail = function (dataSource) {
             // opacity : 0.7,
             stacked: true
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,

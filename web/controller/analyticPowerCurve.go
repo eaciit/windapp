@@ -353,6 +353,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	sort.Strings(sortTurbines)
 
 	selArr := 1
+	turbineName := map[string]string{}
+	if p.Project != "" {
+		turbineName, _ = helper.GetTurbineNameList(p.Project)
+	}
 	for idx, turbineX := range sortTurbines {
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
@@ -363,7 +367,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 		var datas [][]float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
+		turbineData.Set("name", turbineName[turbineX])
 		turbineData.Set("type", "scatterLine")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
@@ -514,6 +518,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	selArr := 0
 	dataSeries = append(dataSeries, pcData)
 
+	turbineName := map[string]string{}
+	if p.Project != "" {
+		turbineName, _ = helper.GetTurbineNameList(p.Project)
+	}
 	for _, turbineX := range sortTurbines {
 		selArr = 0
 		for _, monthX := range sortMonth {
@@ -529,6 +537,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			splitMonth = strings.Split(monthList.GetString(tk.ToString(monthX)), " ")
 			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
 
+			turbineX = turbineName[turbineX]
 			monthData := tk.M{}
 			monthData.Set("name", turbineX)
 			monthData.Set("type", "scatterLine")

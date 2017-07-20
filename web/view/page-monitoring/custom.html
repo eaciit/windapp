@@ -1,0 +1,79 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/custom.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/custom.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+
+<style type="text/css">
+    .span-saved-views {
+        font-size:12px;
+    }
+    .dropable{
+        border: 2px solid #eee;
+        min-height: 250px;
+        margin:10px; padding:10px;
+        width: 100%;
+        padding: 1px; 
+        font-size: 4em; text-align: center; 
+        color: #eee;
+        vertical-align: middle;
+    }
+
+    #sortable { margin-left:-10px;list-style-type: none; margin: 0; padding: 0; margin-top: 10px;}
+
+</style>
+<div class="row">
+    <div class="col-md-12 col-sm-12 ez panel-content" id="panel-content-comparison">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-heading">
+                    <div class="pull-right div-saved-views">
+                        <span class="span-saved-views"><b>Saved Views <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Saved views by the user, maximum 3 views for each user"></i></b></span>&nbsp;
+                        <select class="form-control input-sm" id="savedViews"></select>
+                        <button type="button" class="btn btn-sm btn-primary btn-filter-refresh" id="btnSaveView">Save</button>
+                    </div>
+                    
+                </div>
+                <div class="panel-body">
+                    <div class="col-sm-12 text-center" style="margin-left: -10px;">
+                        <div id="sortable">
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">1</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">2</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">3</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">4</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">5</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">6</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">7</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">8</div>
+                            </div>
+                            <div class="ui-state-default col-md-4">
+                                <div class="dropable">9</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    bpc.projectList({{.ProjectList}});
+    // page.rawturbine({{.TurbineList}});
+</script>

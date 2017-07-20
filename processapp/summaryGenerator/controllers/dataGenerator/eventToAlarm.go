@@ -134,7 +134,12 @@ func (ev *EventToAlarm) doConversion(event *EventDown) {
 		alarm.AEbOK = false
 		alarm.WeatherStop = false
 		alarm.Line = counterRow
-		alarm.ReduceAvailability = event.ReduceAvailability
+
+		//@ASP 29-07-2017 : Reduce availability only for machine down
+		alarm.ReduceAvailability = true
+		if alarm.MachineDown {
+			alarm.ReduceAvailability = event.ReduceAvailability
+		}
 
 		timeStartWhr := event.TimeStart
 		timeEndWhr := event.TimeEnd.Add(10 * time.Minute)
