@@ -48,6 +48,7 @@ sum.loadData = function () {
                 return;
             }
 
+
             if (res.data.length > 0){
                 sum.dataSource(res.data[0]);
                 sum.noOfProjects(res.data[0].NoOfProjects);
@@ -62,6 +63,7 @@ sum.loadData = function () {
                 // vm.dateAsOf(lastUpdate.addHours(-7));
                 sum.ProductionChart(res.data[0].Productions);
                 sum.CumProduction(res.data[0].CummulativeProductions);
+                vm.dateAsOf(lastUpdate);
             } else {
                 var projectStr = $("#projectId").data("kendoDropDownList").text();
                 if (projectStr != "Fleet"){
@@ -82,6 +84,7 @@ sum.loadData = function () {
                 sum.CumProduction(null);
             }
             sum.SummaryData(project);
+            
         });
 
         param = { ProjectName: project, Date: maxdate, ProjectList: sum.paramAvailPeriod};
@@ -962,12 +965,19 @@ sum.ToMonitoringProject = function(project) {
 
 sum.ToMonitoringIndividual = function(project, turbine) {
     setTimeout(function(){
+        app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+
+        document.cookie = "projectname="+project+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-        window.location = viewModel.appName + "page/monitoringbyturbine";
-    },300);
+
+        if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+            window.location = viewModel.appName + "page/monitoringbyturbine";
+        } else {
+            app.loading(false);
+        }
+    },1500);
 }
 
 sum.ProductionChart = function (dataSource) {
