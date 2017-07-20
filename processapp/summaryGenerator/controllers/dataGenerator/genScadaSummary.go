@@ -719,7 +719,8 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				filter := tk.M{}
 				filter = filter.Set("projectname", tk.M{}.Set("$eq", project))
 				filter = filter.Set("turbine", tk.M{}.Set("$eq", turbineX))
-				filter = filter.Set("power", tk.M{}.Set("$gte", -200))
+				// filter = filter.Set("power", tk.M{}.Set("$gte", -200))
+				filter = filter.Set("available", 1)
 
 				dt := d.BaseController.GetLatest("ScadaSummaryDaily", project, turbineX)
 
@@ -740,6 +741,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Set("pcvalue", tk.M{}.Set("$sum", "$pcvalue")).
 					Set("pcdeviation", tk.M{}.Set("$sum", "$pcdeviation")).
 					Set("oktime", tk.M{}.Set("$sum", "$oktime")).
+					Set("oksecs", tk.M{}.Set("$sum", "$oksecs")).
 					Set("minutes", tk.M{}.Set("$sum", "$minutes")).
 					Set("totalts", tk.M{}.Set("$sum", 1)).
 					Set("griddowntime", tk.M{}.Set("$sum", "$griddowntime")).
@@ -782,6 +784,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					// pcvalue := data["pcvalue"].(float64)
 					pcdeviation := data.GetFloat64("pcdeviation")
 					oktime := data.GetFloat64("oktime")
+					// oksecs := data.GetFloat64("oksecs")
 					totalts := data.GetInt("totalts")
 					griddowntime := data.GetFloat64("griddowntime")
 					machinedowntime := data.GetFloat64("machinedowntime")
@@ -796,12 +799,17 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.PCDeviation = pcdeviation
 					dt.Revenue = power * revenueMultiplier
 					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
+
 					dt.OkTime = oktime
 					dt.TrueAvail = tk.Div(oktime, 144*600)
 					dt.ScadaAvail = tk.Div(float64(totalts), 144.0)
+					dt.TotalAvail = dt.TrueAvail
+
+					// obsolete please see bellow the calculation using data from alarm
+					// @asp 20-07-2017
 					dt.MachineAvail = tk.Div(((600.0 * 144.0) - machinedowntime), 144.0*600.0)
 					dt.GridAvail = tk.Div(((600.0 * 144.0) - griddowntime), 144.0*600.0)
-					dt.TotalAvail = dt.TrueAvail
+					// ===================================================================
 
 					turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
 					capacity := 0.0
@@ -997,6 +1005,11 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.MachineDownLoss = alarmPowerLostMachine
 					dt.GridDownLoss = alarmPowerLostGrid
 					dt.OtherDownLoss = alarmPowerLostOther
+
+					// the calculation using data from alarm
+					dt.MachineAvail = tk.Div(((600.0 * 144.0) - (dt.MachineDownHours * 3600)), 144.0*600.0)
+					dt.GridAvail = tk.Div(((600.0 * 144.0) - (dt.GridDownHours * 3600)), 144.0*600.0)
+					// ===================================================================
 
 					pipeJmr := []tk.M{tk.M{}.Set("$unwind", "$sections"), tk.M{}.Set("$match", tk.M{}.Set("sections.turbine", turbineX).Set("dateinfo.monthid", monthId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$sections.turbine").Set("boetotalloss", tk.M{}.Set("$sum", "$sections.boetotalloss")))}
 					csrJmr, _ := ctx.NewQuery().
