@@ -105,6 +105,10 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	}
 	tmpResult := []MiniScada{}
 	_data := MiniScada{}
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	for _, turbineX := range turbine {
 		pipes = []tk.M{}
 		tmpResult = []MiniScada{}
@@ -178,7 +182,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 				distHelper := tk.M{}
 
 				if len(exist) > 0 {
-					distHelper.Set("Turbine", turbineX)
+					distHelper.Set("Turbine", turbineName[turbineX])
 					distHelper.Set("Category", wc)
 
 					Minute := crowd.From(&exist).Sum(func(x interface{}) interface{} {
@@ -188,7 +192,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 
 					distHelper.Set("Contribute", Minute/totalMinutes)
 				} else {
-					distHelper.Set("Turbine", turbineX)
+					distHelper.Set("Turbine", turbineName[turbineX])
 					distHelper.Set("Category", wc)
 					distHelper.Set("Contribute", -0.0)
 				}

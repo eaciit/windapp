@@ -314,11 +314,15 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	_data := MiniScada{}
 	calibratedWindDir := 0.0
 
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	for _, turbineVal := range turbine {
 		coId++
 		groupdata := toolkit.M{}
 		groupdata.Set("Index", coId)
-		groupdata.Set("Name", turbineVal)
+		groupdata.Set("Name", turbineName[turbineVal])
 
 		if turbineVal != "MetTower" {
 			pipes = []toolkit.M{}
@@ -721,10 +725,18 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 	selArr := 0
 	calibratedWindDir := 0.0
 
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	for _, turbineVal := range turbine {
 		coId++
 		turbineData := toolkit.M{}
-		turbineData.Set("name", turbineVal)
+		namaTurbine := turbineVal
+		if turbineVal != "Met Tower" {
+			namaTurbine = turbineName[turbineVal]
+		}
+		turbineData.Set("name", namaTurbine)
 		turbineData.Set("type", "polarLine")
 		turbineData.Set("color", colorWindrose[selArr])
 		turbineData.Set("idxseries", selArr)
