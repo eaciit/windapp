@@ -968,9 +968,15 @@ sum.ToMonitoringIndividual = function(project, turbine) {
         app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+
+        document.cookie = "projectname="+project+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-        window.location = viewModel.appName + "page/monitoringbyturbine";
+
+        if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+            window.location = viewModel.appName + "page/monitoringbyturbine";
+        } else {
+            app.loading(false);
+        }
     },1500);
 }
 
