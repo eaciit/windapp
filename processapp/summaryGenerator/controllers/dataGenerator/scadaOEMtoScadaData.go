@@ -124,7 +124,7 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	// scada.OkTime = data.MTTR
 
 	scada.OkTime = (600 - (data.GridDowntime + data.MachineDowntime + data.UnknownDowntime))
-	scada.OkSecs = scada.OkTime
+	scada.OkSecs = 600
 
 	scada.UnknownTime = data.UnknownDowntime
 	scada.UnknownTimeAll = data.UnknownDowntimeAll
