@@ -27,7 +27,7 @@ km.ExportKeyMetrics = function () {
     });
 }
 
-km.createChart = function () {
+km.createChart = function (turbinename) {
     $("#totalCountData").html('(Total Count Data: ' + km.dsTotaldataWS() + ')');
     var turbineData = '';
     if(fa.turbine().length == 0) {
@@ -35,7 +35,15 @@ km.createChart = function () {
     }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine().join(", ");
+        var turbineName;
+        for(var i=0; i<fa.turbine().length; i++) {
+            if(i==0) {
+                turbineName = turbinename[fa.turbine()[i]];
+            } else {
+                turbineName += ", " + turbinename[fa.turbine()[i]];
+            }
+        }
+        turbineData = turbineName;
     }
     $("#turbineListTitle").html('for ' + turbineData);
     $("#dh-chart").replaceWith('<div id="dh-chart"></div>');
@@ -118,7 +126,7 @@ km.createChart = function () {
 
 }
 
-km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
+km.createChartProduction = function (turbinename) {
     $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
     var turbineData = '';
     if(fa.turbine().length == 0) {
@@ -126,7 +134,15 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
     }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine().join(", ");
+        var turbineName;
+        for(var i=0; i<fa.turbine().length; i++) {
+            if(i==0) {
+                turbineName = turbinename[fa.turbine()[i]];
+            } else {
+                turbineName += ", " + turbinename[fa.turbine()[i]];
+            }
+        }
+        turbineData = turbineName;
     }
     var _rotationlabel = 0
     if (km.BinValue() > 20) {
@@ -257,7 +273,7 @@ km.getData = function () {
                 km.dsTotaldataWS(res.data.totaldata);
                 // km.dsValuewindSpeed.push(0);
                 // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
-                km.createChart();
+                km.createChart(res.data.turbinename);
             }
         });
 
@@ -278,7 +294,7 @@ km.getData = function () {
                 km.dsTotaldataProduction(res.data.totaldata);
                 // km.dsValueProduction.push(0);
                 // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
-                km.createChartProduction();
+                km.createChartProduction(res.data.turbinename);
             }
         });
 

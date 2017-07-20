@@ -1232,11 +1232,16 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 			valuewindspeed[i] = value
 		}
 	}
+	turbineName, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	data := tk.M{
 		"categorywindspeed": categorywindspeed,
 		"valuewindspeed":    valuewindspeed,
 		"totaldata":         totalData,
+		"turbinename":       turbineName,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1323,11 +1328,16 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 			valueproduction[i] = value
 		}
 	}
+	turbineName, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	data := tk.M{
 		"categoryproduction": categoryproduction,
 		"valueproduction":    valueproduction,
 		"totaldata":          totalData,
+		"turbinename":        turbineName,
 	}
 
 	return helper.CreateResult(true, data, "success")
