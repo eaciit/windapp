@@ -94,12 +94,19 @@ func (c *WindFarmAnalysisController) GetDataByTurbine1(k *knot.WebContext) inter
 	csr.Close()
 
 	title := make([]string, 4)
+	turbineName, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	if len(datas) > 0 {
 		d := datas[0]
 		title[0] = "Rolling 12 Days<br /><span class='k-info'>" + d.Roll12Days.DateText + "</span>"
 		title[1] = "Rolling 12 Weeks<br /><span class='k-info'>" + d.Roll12Weeks.DateText + "</span>"
 		title[2] = "Rolling 12 Months<br /><span class='k-info'>" + d.Roll12Months.DateText + "</span>"
 		title[3] = "Rolling 12 Quarters<br /><span class='k-info'>" + d.Roll12Quarters.DateText + "</span>"
+		for idx, val := range datas {
+			datas[idx].Turbine = turbineName[val.Turbine]
+		}
 	}
 
 	datareturn := tk.M{}.Set("data", datas).Set("header", title)
