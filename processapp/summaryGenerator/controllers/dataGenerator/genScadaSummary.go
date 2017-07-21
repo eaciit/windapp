@@ -1142,10 +1142,9 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 			vperiodid, _ := strconv.Atoi(vid[4:6])
 
 			if groupBy == "dateinfo.monthid" {
-				vdate, _ := time.Parse("2006-1-2", tk.Sprintf("%v-%v-%v", vyearid, vperiodid, 1))
-				// totalHour = float64(time.Date(tk.ToInt(vyearid, 0), tk.ToInt(vperiodid, 0), 0, 0, 0, 0, 0, time.UTC).Day()) * 24.0
-				totalHour = float64(vdate.Day()) * 24.0
-				log.Println(vid, "||", vdate, "||", vyearid, "-", vperiodid, "||", totalHour)
+				vdate, err := time.Parse("2006-1-2", tk.Sprintf("%v-%v-%v", vyearid, vperiodid, 1))
+				totalHour = float64(time.Date(vdate.Year(), vdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day()) * 24.0
+				log.Println(err, "||", vdate, "||", vyearid, "-", vperiodid, "||", totalHour)
 			}
 			if groupBy == "dateinfo.qtrid" {
 				totalHour = float64(GetDaysNoByQuarter(vyearid, vperiodid, endDate)) * 24.0
