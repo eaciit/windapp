@@ -1142,7 +1142,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 			vperiodid, _ := strconv.Atoi(vid[4:6])
 
 			if groupBy == "dateinfo.monthid" {
-				vdate, _ := time.Parse("2006-01-02", tk.Sprintf("%v-%v-%v", vyearid, vperiodid, 1))
+				vdate, _ := time.Parse("2006-1-2", tk.Sprintf("%v-%v-%v", vyearid, vperiodid, 1))
 				// totalHour = float64(time.Date(tk.ToInt(vyearid, 0), tk.ToInt(vperiodid, 0), 0, 0, 0, 0, 0, time.UTC).Day()) * 24.0
 				totalHour = float64(vdate.Day()) * 24.0
 				log.Println(vid, "||", vdate, "||", vyearid, "-", vperiodid, "||", totalHour)
@@ -1173,7 +1173,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 
 		vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
 
-		if groupBy == "dateinfo.monthid" {
+		if groupBy == "dateinfo.monthid" || groupBy == "dateinfo.qtrid" {
 			log.Println(vid, "data = ", _id, oktime, totalHour, noOfTurbine, plfDivider, groupBy)
 			log.Println(vid, "MD = ", vmchavail)
 			log.Println(vid, "GD = ", vgridavail)
