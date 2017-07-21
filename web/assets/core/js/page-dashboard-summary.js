@@ -22,6 +22,8 @@ sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
 sum.dataSourceWindDistribution = ko.observable();
 sum.windDistData = ko.observable();
+sum.availData = ko.observableArray([]);
+sum.availSeries = ko.observable([]);
 sum.periodSelected = ko.observable('currentmonth');
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -128,7 +130,12 @@ sum.loadData = function () {
                     availabilitySeries.push(seriesObj);
                     projectCount++;
                 }
+
+                sum.availData(availabilityData);
+                sum.availSeries(availabilitySeries);
+
                 sum.AvailabilityChart(availabilityData, availabilitySeries);
+
                 // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
                 var availData = res.data["Data"];
@@ -145,12 +152,19 @@ sum.loadData = function () {
                     seriesObj["field"] = project;
                     seriesObj["color"] = colorFieldProject[1];
                     availabilitySeries.push(seriesObj);
+
+                    sum.availData(availabilityData);
+                    sum.availSeries(availabilitySeries);
+
                     sum.AvailabilityChart(availabilityData, availabilitySeries);
                 } else {
+                    sum.availData(availData);
+                    sum.availSeries(availabilitySeries);
                     sum.AvailabilityChart(availData, availabilitySeries);
                 }
                 // sum.AvailabilityChart(res.data["Data"]);
             }
+
             sum.ProdCurLast(res.data["Data"]);
 
             sum.indiaMap(project)
