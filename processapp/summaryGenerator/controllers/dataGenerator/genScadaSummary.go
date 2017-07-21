@@ -1171,12 +1171,12 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 
 		vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
 
-		// if groupBy == "dateinfo.qtrid" {
-		// 	log.Println(vid, "PLF = ", vplf, oktime, (totalHour * float64(noOfTurbine) * 3600.0))
-		// 	log.Println(vid, "MD = ", vmchavail)
-		// 	log.Println(vid, "GD = ", vgridavail)
-		// 	log.Println(vid, "TV = ", vtotalavail)
-		// }
+		if groupBy == "dateinfo.monthid" {
+			log.Println(vid, "data = ", _id, oktime, totalHour, noOfTurbine, plfDivider)
+			log.Println(vid, "MD = ", vmchavail)
+			log.Println(vid, "GD = ", vgridavail)
+			log.Println(vid, "TV = ", vtotalavail)
+		}
 
 		id = append(id, vid)
 		group = append(group, vgroup)
