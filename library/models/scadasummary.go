@@ -2,6 +2,7 @@ package models
 
 import (
 	. "eaciit/wfdemo-git/library/helper"
+	"fmt"
 	"time"
 
 	"github.com/eaciit/orm"
@@ -94,7 +95,7 @@ func (m *ScadaSummaryByMonth) TableName() string {
 
 type ScadaSummaryDaily struct {
 	orm.ModelBase      `bson:"-",json:"-"`
-	ID                 bson.ObjectId ` bson:"_id" , json:"_id" `
+	ID                 string ` bson:"_id" , json:"_id" `
 	DateInfo           DateInfo
 	ProjectName        string
 	Turbine            string
@@ -129,11 +130,14 @@ type ScadaSummaryDaily struct {
 }
 
 func (m *ScadaSummaryDaily) New() *ScadaSummaryDaily {
-	m.ID = bson.NewObjectId()
+	m.ID = fmt.Sprintf("%s_%s_%s", m.ProjectName, m.Turbine, m.DateInfo.DateId.UTC().Format("20060102"))
 	return m
 }
 
 func (m *ScadaSummaryDaily) RecordID() interface{} {
+	if m.ID == "" {
+		m.ID = fmt.Sprintf("%s_%s_%s", m.ProjectName, m.Turbine, m.DateInfo.DateId.UTC().Format("20060102"))
+	}
 	return m.ID
 }
 

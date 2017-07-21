@@ -802,7 +802,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					machinedowntime := data.GetFloat64("machinedowntime")
 					avgwindspeed := data.GetFloat64("avgwindspeed")
 
-					dt := new(ScadaSummaryDaily).New()
+					dt := new(ScadaSummaryDaily)
 					dt.DateInfo = GetDateInfo(dtId)
 					dt.ProjectName = project
 					dt.Turbine = turbineX
@@ -811,6 +811,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.PCDeviation = pcdeviation
 					dt.Revenue = power * revenueMultiplier
 					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
+					dt = dt.New()
 
 					dt.OkTime = oktime
 					dt.TrueAvail = tk.Div(oktime, 144*600)
@@ -1144,8 +1145,8 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 			if groupBy == "dateinfo.monthid" {
 				vdate, _ := time.Parse("2006-1-2", tk.Sprintf("%d-%d-%v", vyearid, vperiodid, 1))
 				totalHour = float64(time.Date(vdate.Year(), vdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day()) * 24.0
-				if next := vdate.AddDate(0, 1, 0); next.After(endDate.AddDate(0, 1, 0).UTC()) {
-					totalHour = endDate.AddDate(0, 1, 0).UTC().Sub(vdate).Hours()
+				if next := endDate.UTC().AddDate(0, 1, 0); next.Before(vdate.UTC()) {
+					totalHour = next.Sub(vdate.UTC()).Hours()
 				}
 			}
 			if groupBy == "dateinfo.qtrid" {
