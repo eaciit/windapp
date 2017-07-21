@@ -148,7 +148,8 @@ sum.loadData = function () {
                 // sum.AvailabilityChart(res.data["Data"]);
             }
             sum.ProdCurLast(res.data["Data"]);
-            sum.indiaMap(project);
+
+            sum.indiaMap(project)
 
             if (res.data != null ){
                 sum.isDetailProd(false);
@@ -880,78 +881,137 @@ sum.ProdCurLast = function (dataSource) {
     });
 }
 
-sum.indiaMap = function (project) {
-    $("#india-map").html("");
-    var param = { projectname: project }
+// INDIA MAPS
 
+
+var arrMarkers = [];
+var turbines = [];
+var map;
+
+sum.setMarkers = function(map, turbineInfos,project) {
+    turbineInfos.forEach(function (obj, idx) {
+        
+        var imgUrl ="../res/img/turbine-"+obj.status+".png";
+
+        var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
+            map: map,
+            title: obj.name,
+            icon: {
+                url: imgUrl, // url
+                scaledSize: new google.maps.Size(70, 50), // scaled size
+            }
+        });
+
+        arrMarkers.push(marker);
+
+        var infowindow = new google.maps.InfoWindow({
+            content: ""
+        });
+
+        google.maps.event.addListener(marker, 'click', function () {
+            var project = $("#projectId").data("kendoDropDownList").value();
+            if(project == "Fleet"){
+                // sum.ToMonitoringProject(obj.name);
+                setTimeout(function(){
+                    $("#projectId").data('kendoDropDownList').value(obj.name);
+                    lgd.LoadData();
+                }, 200);
+            }else{
+                sum.ToMonitoringIndividual(project, obj.value);
+            }
+        });
+    });
+
+    if(project == "Fleet"){
+        map.setCenter({
+            lat : 22.460533,
+            lng : 79.650879
+        }); 
+        map.setZoom(4);
+    }else{
+        map.setCenter({
+            lat : turbineInfos[0].coords[0],
+            lng : turbineInfos[0].coords[1]
+        }); 
+        map.setZoom(10);
+    }
+
+
+}
+
+sum.initialize = function() {
+    $("#india-map").html("");
+    var mapOptions = {
+        types: ['(region)'],
+        componentRestrictions: {country: "in"},
+        // center: (projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
+        // center: center,
+        center: new google.maps.LatLng(22.460533, 79.650879) ,
+        // zoom: (project == 'Fleet' ? 4 : 10),
+        zoom: 4,
+        mapTypeId: google.maps.MapTypeId.HYBRID,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            position: google.maps.ControlPosition.LEFT_BOTTOM
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        scaleControl: true,
+        streetViewControl: true,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+    }
+    map = new google.maps.Map(document.getElementById("india-map"), mapOptions);
+
+    var project =  $("#projectId").data("kendoDropDownList").value();
+
+    $.when(sum.indiaMap(project)).done(function(){
+        setTimeout(function(){
+             sum.setMarkers(map, turbines,project);
+        },500);
+    })
+   
+}
+
+sum.removeMarkers = function(){
+    var i;
+    for(i=0;i<arrMarkers.length;i++){
+        arrMarkers[i].setMap(null);
+    }
+    arrMarkers = [];
+
+}
+
+sum.indiaMap = function (project) {
+    var param = { projectname: project }
     toolkit.ajaxPost(viewModel.appName + "dashboard/getmapdata", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
-        var turbineInfos = res.data;
-        var center = new google.maps.LatLng(turbineInfos[0].coords[0], turbineInfos[0].coords[1]);
-        var mapProp = {
-            types: ['(region)'],
-            componentRestrictions: {country: "in"},
-            // center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
-            center: center,
-            zoom: (param.projectname == 'Fleet' ? 4 : 10),
-            mapTypeId: google.maps.MapTypeId.HYBRID,
-            mapTypeControl: true,
-            mapTypeControlOptions: {
-                position: google.maps.ControlPosition.LEFT_BOTTOM
-            },
-            zoomControl: true,
-            zoomControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
-            },
-            scaleControl: true,
-            streetViewControl: true,
-            streetViewControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
-            },
-            fullscreenControl: true,
-            fullscreenControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
-            },
-        };
-        var map = new google.maps.Map(document.getElementById("india-map"), mapProp);
+        sum.removeMarkers();
+        var jsonObj = res.data,i;
 
-        var markers = new Array();
+        turbines =[];//Erasing the beaches array
 
-        turbineInfos.forEach(function (obj, idx) {
-            var imgUrl ="../res/img/turbine-"+obj.status+".png";
+        turbines = jsonObj;
+        //Adding the new ones
+        // for(i=0;i < jsonObj.turbines.length; i++) {
+        //     turbines.push(jsonObj.turbines[i]);
+        // }
 
-            var marker = new google.maps.Marker({
-                position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
-                map: map,
-                title: obj.name,
-                icon: {
-                    url: imgUrl, // url
-                    scaledSize: new google.maps.Size(70, 50), // scaled size
-                }
-            });
+        //Adding them to the map
+        sum.setMarkers(map, turbines,project);
 
-            var infowindow = new google.maps.InfoWindow({
-                content: ""
-            });
-
-            google.maps.event.addListener(marker, 'click', function () {
-                var project = $("#projectId").data("kendoDropDownList").value();
-                if(project == "Fleet"){
-                    // sum.ToMonitoringProject(obj.name);
-                    setTimeout(function(){
-                        $("#projectId").data('kendoDropDownList').value(obj.name);
-                        lgd.LoadData();
-                    }, 200);
-                }else{
-                    sum.ToMonitoringIndividual(project, obj.value);
-                }
-            });
-        });
-    });
-
+    })
 }
 
 sum.ToMonitoringProject = function(project) {

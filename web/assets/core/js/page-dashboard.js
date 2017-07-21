@@ -120,13 +120,6 @@ vm.isDashboard(true);
 vm.breadcrumb([{ title: 'Dashboard', href: viewModel.appName + 'page/landing' }, { title: 'Home', href: '#' }]);
 
 $(function () {
-    lgd.isSummary(true);
-    lgd.isProduction(false);
-    lgd.isAvailability(false);
-    lgd.projectName("Fleet");
-
-    lgd.LoadData();
-
     $(".prodToTable").on("change", function(){
         if($("#chartProduction").data("kendoGrid") != undefined){
             $("#chartProduction thead [data-field='category']").html("");
@@ -165,4 +158,21 @@ $(function () {
     });
 
     
+
+    setTimeout(function(){
+        lgd.isSummary(true);
+        lgd.isProduction(false);
+        lgd.isAvailability(false);
+        lgd.projectName("Fleet");
+
+        lgd.LoadData();
+        google.maps.event.addDomListener(window, 'load', sum.initialize());
+
+    },500);
+
+    setInterval(function() {
+       var project =  $("#projectId").data("kendoDropDownList").value();
+       sum.indiaMap(project);
+    }, 5000);
+
 });
