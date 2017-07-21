@@ -737,7 +737,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				dt := d.BaseController.GetLatest("ScadaSummaryDaily", project, turbineX)
 
 				if dt.Format("2006") != "0001" {
-					filter = filter.Set("dateinfo.dateid", tk.M{}.Set("$gt", dt))
+					filter = filter.Set("dateinfo.dateid", tk.M{}.Set("$gte", dt))
 				}
 
 				pipe := []tk.M{}
