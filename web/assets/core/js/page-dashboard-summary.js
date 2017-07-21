@@ -31,6 +31,10 @@ sum.paramPeriod = [];
 
 sum.paramAvailPeriod = [];
 
+var arrMarkers = [];
+var turbines = [];
+var map;
+
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
@@ -174,8 +178,21 @@ sum.loadData = function () {
 
         $.when(ajax1, ajax2, ajax3).done(function(){
             setTimeout(function(){
+                if(project == "Fleet"){
+                    map.setCenter({
+                        lat : 22.460533,
+                        lng : 79.650879
+                    }); 
+                    map.setZoom(4);
+                }else{
+                    map.setCenter({
+                        lat : turbines[0].coords[0],
+                        lng : turbines[0].coords[1]
+                    }); 
+                    map.setZoom(10);
+                }
                 app.loading(false);
-            },200);        
+            },1000);        
         })
     }
 
@@ -883,11 +900,6 @@ sum.ProdCurLast = function (dataSource) {
 
 // INDIA MAPS
 
-
-var arrMarkers = [];
-var turbines = [];
-var map;
-
 sum.setMarkers = function(map, turbineInfos,project) {
     turbineInfos.forEach(function (obj, idx) {
         
@@ -922,21 +934,6 @@ sum.setMarkers = function(map, turbineInfos,project) {
             }
         });
     });
-
-    if(project == "Fleet"){
-        map.setCenter({
-            lat : 22.460533,
-            lng : 79.650879
-        }); 
-        map.setZoom(4);
-    }else{
-        map.setCenter({
-            lat : turbineInfos[0].coords[0],
-            lng : turbineInfos[0].coords[1]
-        }); 
-        map.setZoom(10);
-    }
-
 
 }
 
