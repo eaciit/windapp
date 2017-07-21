@@ -415,7 +415,7 @@ func GetDaysNoByQuarter(year int, qtr int, lastDate time.Time) int {
 	totalDays := 0
 	lastMonth := qtr * 3
 	for i := 1; i <= lastMonth; i++ {
-		date, _ := time.Parse("2006-01-02", tk.Sprintf("%v-%v-%v", year, i, 1))
+		date, _ := time.Parse("2006-1-2", tk.Sprintf("%v-%v-%v", year, i, 1))
 		dateMonth := time.Date(date.Year(), date.Month(), 0, 0, 0, 0, 0, time.UTC)
 		if dateMonth.Month() != lastDate.Month() && dateMonth.Year() != lastDate.Year() {
 			totalDays += dateMonth.Day()
