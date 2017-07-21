@@ -420,7 +420,7 @@ func GetDaysNoByQuarter(year int, qtr int, lastDate time.Time) int {
 		if dateMonth.Month() != lastDate.Month() && dateMonth.Year() != lastDate.Year() {
 			totalDays += dateMonth.Day()
 		} else {
-			totalDays += lastDate.Day()
+			totalDays += tk.ToInt((lastDate.Sub(time.Date(lastDate.Year(), lastDate.Month(), 1, 0, 0, 0, 0, lastDate.Location())).Hours() / 24), "RoundAuto")
 		}
 	}
 	// tk.Println(totalDays, lastMonth, year, qtr)
