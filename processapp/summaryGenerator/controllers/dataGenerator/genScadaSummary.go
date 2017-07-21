@@ -55,7 +55,12 @@ func (d *GenScadaSummary) Generate(base *BaseController) {
 			project := v.Value
 
 			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Gte("power", -200))
+			//
+			// filter = append(filter, dbox.Gte("power", -200))
+			// using same filter for all generation function
+			// @asp 21-07-2017
+			filter = append(filter, dbox.Eq("available", 1))
+
 			group := []string{}
 
 			if project != "Fleet" {
@@ -302,7 +307,11 @@ func (d *GenScadaSummary) GenerateSummaryByProject(base *BaseController) {
 			group := "projectname"
 
 			filter := []*dbox.Filter{}
-			filter = append(filter, dbox.Gte("power", -200))
+			// filter = append(filter, dbox.Gte("power", -200))
+			// using same filter for all generation function
+			// @asp 21-07-2017
+			filter = append(filter, dbox.Eq("available", 1))
+
 			var max time.Time
 
 			if projectName != "Fleet" {
@@ -510,7 +519,10 @@ func (d *GenScadaSummary) GenerateSummaryByFleet(base *BaseController) {
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", "Fleet"))
 
 		csr, e := ctx.NewQuery().From(new(ScadaData).TableName()).
-			Where(dbox.Gte("power", -200)).
+			// using same filter for all generation function
+			// @asp 21-07-2017
+			Where(dbox.Eq("available", 1)).
+			// Where(dbox.Gte("power", -200)).
 			Aggr(dbox.AggrSum, "$power", "totalpower").
 			Aggr(dbox.AggrSum, "$energy", "energy").
 			Aggr(dbox.AggrSum, "$energylost", "totalenergylost").
