@@ -4,12 +4,14 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+
 	"github.com/eaciit/knot/knot.v1"
 	// "github.com/eaciit/toolkit"
-	"gopkg.in/mgo.v2/bson"
-	"github.com/eaciit/dbox"
- 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"strings"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type DataEntryTurbineController struct {
@@ -27,9 +29,9 @@ func (m *DataEntryTurbineController) GetList(k *knot.WebContext) interface{} {
 	p := struct {
 		Project string
 		Turbine []interface{}
-		Skip int
-		Take int
-		Sort []Sorting
+		Skip    int
+		Take    int
+		Sort    []Sorting
 	}{}
 
 	e := k.GetPayload(&p)
@@ -44,13 +46,12 @@ func (m *DataEntryTurbineController) GetList(k *knot.WebContext) interface{} {
 	query := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).Skip(p.Skip).Take(p.Take)
 
 	if project != "" {
-	  query = query.Where(dbox.Eq("project",project))
+		query = query.Where(dbox.Eq("project", project))
 	}
 
 	if len(turbine) > 0 {
-	  query = query.Where(dbox.In("turbineid", turbine...))
+		query = query.Where(dbox.In("turbineid", turbine...))
 	}
-
 
 	if len(p.Sort) > 0 {
 		var arrsort []string
@@ -69,7 +70,6 @@ func (m *DataEntryTurbineController) GetList(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	defer csr.Close()
-
 
 	results := make([]TurbineMaster, 0)
 	e = csr.Fetch(&results, 0, false)
@@ -139,15 +139,15 @@ func (m *DataEntryTurbineController) Save(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := struct {
-		Id        		bson.ObjectId
-		TurbineId       string
-		TurbineName     string
-		Feeder      	string
-		Project         string
-		Latitude		float64
-		Longitude		float64
-		Elevation		float64
-		Capacitymw		float64
+		Id          string
+		TurbineId   string
+		TurbineName string
+		Feeder      string
+		Project     string
+		Latitude    float64
+		Longitude   float64
+		Elevation   float64
+		Capacitymw  float64
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
@@ -155,20 +155,21 @@ func (m *DataEntryTurbineController) Save(k *knot.WebContext) interface{} {
 	}
 
 	mdl := new(TurbineModel)
-	if p.Id == "" {
-		mdl.Id = bson.NewObjectId()
-	} else {
-		mdl.Id = p.Id
-	}
 
-	mdl.TurbineId 		= p.TurbineId
-	mdl.TurbineName		= p.TurbineName
-	mdl.Feeder 			= p.Feeder
-	mdl.Project			= p.Project
-	mdl.Latitude		= p.Latitude
-	mdl.Longitude		= p.Longitude
-	mdl.Elevation		= p.Elevation
-	mdl.Capacitymw		= p.Capacitymw
+	mdl.TurbineId = p.TurbineId
+	mdl.TurbineName = p.TurbineName
+	mdl.Feeder = p.Feeder
+	mdl.Project = p.Project
+	mdl.Latitude = p.Latitude
+	mdl.Longitude = p.Longitude
+	mdl.Elevation = p.Elevation
+	mdl.Capacitymw = p.Capacitymw
+
+	if p.Id != "" {
+		mdl.Id = p.Id
+	} else {
+		mdl = mdl.New()
+	}
 
 	e = DB().Save(mdl)
 	if e != nil {
