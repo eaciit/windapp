@@ -1751,8 +1751,8 @@ avail.DTTurbines = function () {
             }
 
             $("#dtturbines").append('<div class="btn-group" role="group">' +
-                '<button type="button" class="btn btn-sm ' + btn + '">' + turbine + '</button>' +
-                '<button type="button" class="btn btn-sm btn-warning">' + value + '</button>' +
+                '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
+                '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
                 '</div>');
             });
         }        
