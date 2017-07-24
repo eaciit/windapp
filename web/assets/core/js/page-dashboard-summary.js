@@ -166,9 +166,7 @@ sum.loadData = function () {
             }
 
             sum.ProdCurLast(res.data["Data"]);
-
-            sum.indiaMap(project)
-
+            
             if (res.data != null ){
                 sum.isDetailProd(false);
                 sum.isDetailProdByProject(false);
@@ -190,24 +188,27 @@ sum.loadData = function () {
             });
         }
 
-        $.when(ajax1, ajax2, ajax3).done(function(){
+        $.when(sum.indiaMap(project),ajax1, ajax2, ajax3).done(function(){
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({
-                        lat : 22.460533,
-                        lng : 79.650879
+                        lat : 23.334166,
+                        lng : 75.037611
                     }); 
-                    map.setZoom(4);
+                    map.setZoom(5);
+                    app.loading(false);
                 }else{
                     map.setCenter({
                         lat : turbines[0].coords[0],
                         lng : turbines[0].coords[1]
                     }); 
                     map.setZoom(10);
+                    
                 }
                 app.loading(false);
-            },1000);        
-        })
+            },1000);
+        });
+
     }
 
 };
@@ -958,9 +959,9 @@ sum.initialize = function() {
         componentRestrictions: {country: "in"},
         // center: (projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
         // center: center,
-        center: new google.maps.LatLng(22.460533, 79.650879) ,
+        center: new google.maps.LatLng(23.334166, 75.037611) ,
         // zoom: (project == 'Fleet' ? 4 : 10),
-        zoom: 4,
+        zoom: 5,
         mapTypeId: google.maps.MapTypeId.HYBRID,
         mapTypeControl: true,
         mapTypeControlOptions: {
