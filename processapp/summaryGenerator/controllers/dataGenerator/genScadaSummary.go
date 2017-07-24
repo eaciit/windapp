@@ -1149,7 +1149,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 					totalHour = next.Sub(vdate.UTC()).Hours()
 				}
 
-				log.Println(">>", vid, vdate, endDate, totalHour)
+				// log.Println(">>", vid, vdate, endDate, totalHour)
 			}
 			if groupBy == "dateinfo.qtrid" {
 				totalHour = float64(GetDaysNoByQuarter(vyearid, vperiodid, endDate)) * 24.0

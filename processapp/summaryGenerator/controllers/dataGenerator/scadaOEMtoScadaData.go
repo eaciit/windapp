@@ -135,7 +135,9 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.NacelleTemperature = data.Temp_Nacelle
 	scada.AdjWindSpeed = tk.RoundingAuto64(data.AI_intern_WindSpeed, 1)
 	scada.AmbientTemperature = data.Temp_Outdoor
-	scada.AvgBladeAngle = minValueFloat
+	PitchAngle := getPitchAngle(data)
+
+	scada.AvgBladeAngle = PitchAngle
 	scada.AvgWindSpeed = data.AI_intern_WindSpeed
 	scada.UnitsGenerated = minValueFloat
 	scada.EstimatedPower = data.DenPower
@@ -175,5 +177,32 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.MTTF = data.MTTF
 	scada.PerformanceIndex = data.PerformanceIndex
 
+	// Only for Tejuva-OEM we mark wind direction as Nacelle Deviation
+	scada.NacelleDeviation = data.AI_intern_WindDirection
+
 	u.Ctx.Insert(scada)
+}
+
+func getPitchAngle(data *ScadaDataOEM) float64 {
+
+	PitchAngle, _PitchCount := float64(0), float64(0) //-10, >= 120
+
+	if data.AI_intern_PitchAngle1 >= -10 && data.AI_intern_PitchAngle1 <= -120 {
+		_PitchCount++
+		PitchAngle += data.AI_intern_PitchAngle1
+	}
+
+	if data.AI_intern_PitchAngle2 >= -10 && data.AI_intern_PitchAngle2 <= -120 {
+		_PitchCount++
+		PitchAngle += data.AI_intern_PitchAngle2
+	}
+
+	if data.AI_intern_PitchAngle3 >= -10 && data.AI_intern_PitchAngle3 <= -120 {
+		_PitchCount++
+		PitchAngle += data.AI_intern_PitchAngle3
+	}
+
+	PitchAngle = tk.Div(PitchAngle, _PitchCount)
+
+	return PitchAngle
 }
