@@ -1145,7 +1145,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 			if groupBy == "dateinfo.monthid" {
 				vdate, _ := time.Parse("2006-1-2", tk.Sprintf("%d-%d-%v", vyearid, vperiodid, 1))
 				totalHour = float64(time.Date(vdate.Year(), vdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day()) * 24.0
-				if next := endDate.UTC().AddDate(0, 1, 0); next.Before(vdate.UTC().AddDate(0, 1, 0)) {
+				if next := endDate.UTC().AddDate(0, 0, 1); next.Before(vdate.UTC().AddDate(0, 1, 0)) {
 					totalHour = next.Sub(vdate.UTC()).Hours()
 				}
 
