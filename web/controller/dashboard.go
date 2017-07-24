@@ -209,7 +209,7 @@ func (m *DashboardController) GetScadaLastUpdate(k *knot.WebContext) interface{}
 			val.CummulativeProductions[idxCumm] = cumm
 		}
 
-		turbineDownOneDays := getTotalDownTurbine(val.ProjectName, val.LastUpdate, 1)
+		turbineDownOneDays := getTotalDownTurbine(val.ProjectName, val.LastUpdate, 0)
 		turbineDownTwoDays := getTotalDownTurbine(val.ProjectName, val.LastUpdate, 2)
 
 		val.CurrentDown = turbineDownOneDays
@@ -2632,7 +2632,7 @@ func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int
 	var pipes []tk.M
 	match := tk.M{}
 
-	currentDate = time.Now().UTC()
+	currentDate = getTimeNow()
 	fromDate = currentDate.UTC().AddDate(0, 0, dayDuration*-1)
 
 	if dayDuration > 1 {
@@ -2647,8 +2647,6 @@ func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	// rconn := GetConnRealtime()
-	// defer rconn.Close()
 	rconn := DBRealtime()
 
 	csr, e := rconn.NewQuery().
@@ -2679,17 +2677,18 @@ func getDownTurbineStatus(project string, currentDate time.Time, dayDuration int
 			lastProject = val.GetString("projectname")
 			turbineName, _ = helper.GetTurbineNameList(lastProject)
 		}
-		if val.Get("starttime") != nil {
+		if val.Get("datestart") != nil {
 			start := val.Get("datestart").(time.Time)
 			downHours := currentDate.UTC().Sub(start.UTC()).Hours()
 			if dayDuration > 1 {
-				val.Set("turbine", turbineName[val.GetString("turbine")])
+				val.Set("_id", turbineName[val.GetString("turbine")])
 				if downHours >= float64(24*dayDuration) {
 					val.Set("result", downHours)
 					val.Set("isdown", true)
 					result = append(result, val)
 				}
 			} else {
+				val.Set("_id", turbineName[val.GetString("turbine")])
 				val.Set("result", downHours)
 				val.Set("isdown", true)
 				result = append(result, val)
