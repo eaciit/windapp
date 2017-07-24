@@ -368,19 +368,25 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			maxValue = val
 		}
 	}
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	data := struct {
-		Data       []tk.M
-		Categories []string
-		CatTitle   string
-		Min        int
-		Max        int
+		Data        []tk.M
+		Categories  []string
+		CatTitle    string
+		Min         int
+		Max         int
+		TurbineName map[string]string
 	}{
-		Data:       dataSeries,
-		Categories: categories,
-		CatTitle:   catTitle,
-		Min:        tk.ToInt((minValue - 2), tk.RoundingAuto),
-		Max:        tk.ToInt((maxValue + 2), tk.RoundingAuto),
+		Data:        dataSeries,
+		Categories:  categories,
+		CatTitle:    catTitle,
+		Min:         tk.ToInt((minValue - 2), tk.RoundingAuto),
+		Max:         tk.ToInt((maxValue + 2), tk.RoundingAuto),
+		TurbineName: turbineName,
 	}
 
 	return helper.CreateResult(true, data, "success")

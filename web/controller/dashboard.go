@@ -3267,7 +3267,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 	group.Set("production", tk.M{"$sum": "$production"})
 	group.Set("plf", tk.M{"$avg": "$plf"})
-	group.Set("totalavail", tk.M{"$avg": "$totalavail"})
+	group.Set("oktime", tk.M{"$sum": "$oktime"})
 	group.Set("machineavail", tk.M{"$avg": "$machineavail"})
 	group.Set("lowestmachineavail", tk.M{"$min": "$machineavail"})
 	group.Set("lowestplf", tk.M{"$min": "$plf"})
@@ -3379,6 +3379,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			// tk.Printfn("%v : plf := %v / %v", _name, result[idx].GetFloat64("production"), maxCapacity)
 			result[idx].Set("maxcapacity", maxCapacity)
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
+			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, totalHours))
 		} else {
 			result[idx].Set("name", dt.GetString("_id"))
 			result[idx].Set("noofwtg", totalTurbine.GetInt(result[idx].GetString("name")))
@@ -3387,6 +3388,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			maxCapacity := turbineMW * totalTurbine.GetFloat64(result[idx].GetString("name")) * totalHours
 			result[idx].Set("maxcapacity", maxCapacity)
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
+
+			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, (totalHours*totalTurbine.GetFloat64(result[idx].GetString("name")))))
 			// ---- lowestplf
 			// tk.Printfn("%v : maxCapacity := %v * %v", dt.GetString("_id"), turbineMW, totalHours)
 

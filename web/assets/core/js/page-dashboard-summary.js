@@ -22,6 +22,8 @@ sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
 sum.dataSourceWindDistribution = ko.observable();
 sum.windDistData = ko.observable();
+sum.availData = ko.observableArray([]);
+sum.availSeries = ko.observable([]);
 sum.periodSelected = ko.observable('currentmonth');
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -30,6 +32,10 @@ sum.periodList = [
 sum.paramPeriod = [];
 
 sum.paramAvailPeriod = [];
+
+var arrMarkers = [];
+var turbines = [];
+var map;
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
@@ -48,6 +54,7 @@ sum.loadData = function () {
                 return;
             }
 
+
             if (res.data.length > 0){
                 sum.dataSource(res.data[0]);
                 sum.noOfProjects(res.data[0].NoOfProjects);
@@ -62,6 +69,7 @@ sum.loadData = function () {
                 // vm.dateAsOf(lastUpdate.addHours(-7));
                 sum.ProductionChart(res.data[0].Productions);
                 sum.CumProduction(res.data[0].CummulativeProductions);
+                vm.dateAsOf(lastUpdate);
             } else {
                 var projectStr = $("#projectId").data("kendoDropDownList").text();
                 if (projectStr != "Fleet"){
@@ -82,6 +90,7 @@ sum.loadData = function () {
                 sum.CumProduction(null);
             }
             sum.SummaryData(project);
+            
         });
 
         param = { ProjectName: project, Date: maxdate, ProjectList: sum.paramAvailPeriod};
@@ -121,7 +130,12 @@ sum.loadData = function () {
                     availabilitySeries.push(seriesObj);
                     projectCount++;
                 }
+
+                sum.availData(availabilityData);
+                sum.availSeries(availabilitySeries);
+
                 sum.AvailabilityChart(availabilityData, availabilitySeries);
+
                 // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
                 var availData = res.data["Data"];
@@ -138,14 +152,22 @@ sum.loadData = function () {
                     seriesObj["field"] = project;
                     seriesObj["color"] = colorFieldProject[1];
                     availabilitySeries.push(seriesObj);
+
+                    sum.availData(availabilityData);
+                    sum.availSeries(availabilitySeries);
+
                     sum.AvailabilityChart(availabilityData, availabilitySeries);
                 } else {
+                    sum.availData(availData);
+                    sum.availSeries(availabilitySeries);
                     sum.AvailabilityChart(availData, availabilitySeries);
                 }
                 // sum.AvailabilityChart(res.data["Data"]);
             }
+
             sum.ProdCurLast(res.data["Data"]);
-            sum.indiaMap(project);
+
+            sum.indiaMap(project)
 
             if (res.data != null ){
                 sum.isDetailProd(false);
@@ -170,8 +192,21 @@ sum.loadData = function () {
 
         $.when(ajax1, ajax2, ajax3).done(function(){
             setTimeout(function(){
+                if(project == "Fleet"){
+                    map.setCenter({
+                        lat : 22.460533,
+                        lng : 79.650879
+                    }); 
+                    map.setZoom(4);
+                }else{
+                    map.setCenter({
+                        lat : turbines[0].coords[0],
+                        lng : turbines[0].coords[1]
+                    }); 
+                    map.setZoom(10);
+                }
                 app.loading(false);
-            },200);        
+            },1000);        
         })
     }
 
@@ -877,78 +912,117 @@ sum.ProdCurLast = function (dataSource) {
     });
 }
 
-sum.indiaMap = function (project) {
-    $("#india-map").html("");
-    var param = { projectname: project }
+// INDIA MAPS
 
+sum.setMarkers = function(map, turbineInfos,project) {
+    turbineInfos.forEach(function (obj, idx) {
+        
+        var imgUrl ="../res/img/turbine-"+obj.status+".png";
+
+        var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
+            map: map,
+            title: obj.name,
+            icon: {
+                url: imgUrl, // url
+                scaledSize: new google.maps.Size(70, 50), // scaled size
+            }
+        });
+
+        arrMarkers.push(marker);
+
+        var infowindow = new google.maps.InfoWindow({
+            content: ""
+        });
+
+        google.maps.event.addListener(marker, 'click', function () {
+            var project = $("#projectId").data("kendoDropDownList").value();
+            if(project == "Fleet"){
+                // sum.ToMonitoringProject(obj.name);
+                setTimeout(function(){
+                    $("#projectId").data('kendoDropDownList').value(obj.name);
+                    lgd.LoadData();
+                }, 200);
+            }else{
+                sum.ToMonitoringIndividual(project, obj.value);
+            }
+        });
+    });
+
+}
+
+sum.initialize = function() {
+    $("#india-map").html("");
+    var mapOptions = {
+        types: ['(region)'],
+        componentRestrictions: {country: "in"},
+        // center: (projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
+        // center: center,
+        center: new google.maps.LatLng(22.460533, 79.650879) ,
+        // zoom: (project == 'Fleet' ? 4 : 10),
+        zoom: 4,
+        mapTypeId: google.maps.MapTypeId.HYBRID,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            position: google.maps.ControlPosition.LEFT_BOTTOM
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        scaleControl: true,
+        streetViewControl: true,
+        streetViewControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+    }
+    map = new google.maps.Map(document.getElementById("india-map"), mapOptions);
+
+    var project =  $("#projectId").data("kendoDropDownList").value();
+
+    $.when(sum.indiaMap(project)).done(function(){
+        setTimeout(function(){
+             sum.setMarkers(map, turbines,project);
+        },500);
+    })
+   
+}
+
+sum.removeMarkers = function(){
+    var i;
+    for(i=0;i<arrMarkers.length;i++){
+        arrMarkers[i].setMap(null);
+    }
+    arrMarkers = [];
+
+}
+
+sum.indiaMap = function (project) {
+    var param = { projectname: project }
     toolkit.ajaxPost(viewModel.appName + "dashboard/getmapdata", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
-        var turbineInfos = res.data;
-        var center = new google.maps.LatLng(turbineInfos[0].coords[0], turbineInfos[0].coords[1]);
-        var mapProp = {
-            types: ['(region)'],
-            componentRestrictions: {country: "in"},
-            // center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
-            center: center,
-            zoom: (param.projectname == 'Fleet' ? 4 : 10),
-            mapTypeId: google.maps.MapTypeId.HYBRID,
-            mapTypeControl: true,
-            mapTypeControlOptions: {
-                position: google.maps.ControlPosition.LEFT_BOTTOM
-            },
-            zoomControl: true,
-            zoomControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
-            },
-            scaleControl: true,
-            streetViewControl: true,
-            streetViewControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
-            },
-            fullscreenControl: true,
-            fullscreenControlOptions: {
-                position: google.maps.ControlPosition.RIGHT_BOTTOM
-            },
-        };
-        var map = new google.maps.Map(document.getElementById("india-map"), mapProp);
+        sum.removeMarkers();
+        var jsonObj = res.data,i;
 
-        var markers = new Array();
+        turbines =[];//Erasing the beaches array
 
-        turbineInfos.forEach(function (obj, idx) {
-            var imgUrl ="../res/img/turbine-"+obj.status+".png";
+        turbines = jsonObj;
+        //Adding the new ones
+        // for(i=0;i < jsonObj.turbines.length; i++) {
+        //     turbines.push(jsonObj.turbines[i]);
+        // }
 
-            var marker = new google.maps.Marker({
-                position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
-                map: map,
-                title: obj.name,
-                icon: {
-                    url: imgUrl, // url
-                    scaledSize: new google.maps.Size(70, 50), // scaled size
-                }
-            });
+        //Adding them to the map
+        sum.setMarkers(map, turbines,project);
 
-            var infowindow = new google.maps.InfoWindow({
-                content: ""
-            });
-
-            google.maps.event.addListener(marker, 'click', function () {
-                var project = $("#projectId").data("kendoDropDownList").value();
-                if(project == "Fleet"){
-                    // sum.ToMonitoringProject(obj.name);
-                    setTimeout(function(){
-                        $("#projectId").data('kendoDropDownList').value(obj.name);
-                        lgd.LoadData();
-                    }, 200);
-                }else{
-                    sum.ToMonitoringIndividual(project, obj.value);
-                }
-            });
-        });
-    });
-
+    })
 }
 
 sum.ToMonitoringProject = function(project) {
@@ -962,12 +1036,19 @@ sum.ToMonitoringProject = function(project) {
 
 sum.ToMonitoringIndividual = function(project, turbine) {
     setTimeout(function(){
+        app.loading(true);
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+
+        document.cookie = "projectname="+project+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-        window.location = viewModel.appName + "page/monitoringbyturbine";
-    },300);
+
+        if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+            window.location = viewModel.appName + "page/monitoringbyturbine";
+        } else {
+            app.loading(false);
+        }
+    },1500);
 }
 
 sum.ProductionChart = function (dataSource) {

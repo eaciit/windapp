@@ -150,10 +150,18 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 	if len(list) > 0 {
 		datas := []tk.M{}
+		turbineName := map[string]string{}
+		latestProject := ""
 
 		for _, dt := range list {
-			t := dt.GetString("turbine")
 			p := dt.GetString("project")
+			if latestProject != p {
+				turbineName, e = helper.GetTurbineNameList(p)
+				if e != nil {
+					return helper.CreateResult(false, nil, e.Error())
+				}
+			}
+			t := turbineName[dt.GetString("turbine")]
 			_ = p
 			pTo := dt.Get("periodTo").(time.Time)
 			pFrom := dt.Get("periodFrom").(time.Time)

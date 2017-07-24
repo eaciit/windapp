@@ -42,6 +42,7 @@ func (u *UpdateOEMToScada) RunMapping(base *BaseController) {
 		filter := []*dbox.Filter{}
 		filter = append(filter, dbox.Eq("projectname", "Tejuva"))
 		filter = append(filter, dbox.Eq("turbine", turbine))
+		filter = append(filter, dbox.Gte("ai_intern_activpower", -200))
 
 		latestDate := u.BaseController.GetLatest("ScadaData", "Tejuva", turbine)
 		if latestDate.Format("2006") != "0001" {
@@ -124,7 +125,7 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	// scada.OkTime = data.MTTR
 
 	scada.OkTime = (600 - (data.GridDowntime + data.MachineDowntime + data.UnknownDowntime))
-	scada.OkSecs = scada.OkTime
+	scada.OkSecs = 600
 
 	scada.UnknownTime = data.UnknownDowntime
 	scada.UnknownTimeAll = data.UnknownDowntimeAll
@@ -134,7 +135,9 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.NacelleTemperature = data.Temp_Nacelle
 	scada.AdjWindSpeed = tk.RoundingAuto64(data.AI_intern_WindSpeed, 1)
 	scada.AmbientTemperature = data.Temp_Outdoor
-	scada.AvgBladeAngle = minValueFloat
+	PitchAngle := getPitchAngle(data)
+
+	scada.AvgBladeAngle = PitchAngle
 	scada.AvgWindSpeed = data.AI_intern_WindSpeed
 	scada.UnitsGenerated = minValueFloat
 	scada.EstimatedPower = data.DenPower
@@ -174,5 +177,32 @@ func (u *UpdateOEMToScada) mapOEMToScada(data *ScadaDataOEM) {
 	scada.MTTF = data.MTTF
 	scada.PerformanceIndex = data.PerformanceIndex
 
+	// Only for Tejuva-OEM we mark wind direction as Nacelle Deviation
+	scada.NacelleDeviation = data.AI_intern_WindDirection
+
 	u.Ctx.Insert(scada)
+}
+
+func getPitchAngle(data *ScadaDataOEM) float64 {
+
+	PitchAngle, _PitchCount := float64(0), float64(0) //-10, >= 120
+
+	if data.AI_intern_PitchAngle1 >= -10 && data.AI_intern_PitchAngle1 <= -120 {
+		_PitchCount++
+		PitchAngle += data.AI_intern_PitchAngle1
+	}
+
+	if data.AI_intern_PitchAngle2 >= -10 && data.AI_intern_PitchAngle2 <= -120 {
+		_PitchCount++
+		PitchAngle += data.AI_intern_PitchAngle2
+	}
+
+	if data.AI_intern_PitchAngle3 >= -10 && data.AI_intern_PitchAngle3 <= -120 {
+		_PitchCount++
+		PitchAngle += data.AI_intern_PitchAngle3
+	}
+
+	PitchAngle = tk.Div(PitchAngle, _PitchCount)
+
+	return PitchAngle
 }

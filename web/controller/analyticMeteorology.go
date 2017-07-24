@@ -137,8 +137,13 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 		}
 	}
 
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	for _, _turbine := range pturbine {
-		_tkm := tk.M{}.Set("Turbine", _turbine)
+		_tkm := tk.M{}.Set("Turbine", turbineName[_turbine])
 		for i := 1; i < len(arrturbine); i++ {
 			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
 			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
@@ -201,13 +206,15 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	}
 
 	data := struct {
-		Column []string
-		Data   []tk.M
-		Heat   []tk.M
+		Column      []string
+		Data        []tk.M
+		Heat        []tk.M
+		TurbineName map[string]string
 	}{
-		Column: arrturbine,
-		Data:   dataSeries,
-		Heat:   dataHeat,
+		Column:      arrturbine,
+		Data:        dataSeries,
+		Heat:        dataHeat,
+		TurbineName: turbineName,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -258,6 +265,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 	match := tk.M{}
 
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lt": tEnd})
+	match.Set("available", 1)
 
 	if p.Project != "" {
 		match.Set("projectname", p.Project)
@@ -367,13 +375,18 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 	}
 
 	sort.Strings(turbineList)
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	for _, val := range turbineList {
 		/*data = append(data, tk.M{
 			"hours":   val,
 			"details": tmpRes[val],
 		})*/
 
-		turbines = append(turbines, tk.M{}.Set("turbine", val).Set("details", tmpRes.Get(val)))
+		turbines = append(turbines, tk.M{}.Set("turbine", turbineName[val]).Set("details", tmpRes.Get(val)))
 	}
 
 	// met tower

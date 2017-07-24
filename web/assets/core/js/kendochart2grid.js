@@ -23,7 +23,7 @@
 		var columns = [{
 			field: 'category',
 			template: dateFormat == undefined ? "#= category #" : Template,
-			title: 'Category Axis'
+			title: " "
 		}]
 
 		if (chart.options.series.length > 0) {

@@ -229,7 +229,7 @@ wd.WindDis = function(){
         pm.showFilter();
         if(pm.isFirstWindDis() === true){
             app.loading(true);
-            wd.populateTurbine();
+            // wd.populateTurbine();
             wd.ChartWindDistributon();
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
