@@ -1210,6 +1210,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 			os.Exit(0)
 		}
 
+		// @CLARIFYTHIS
 		budgetMonths := []float64{
 			5911.8744,
 			6023.419200000001,
@@ -1249,8 +1250,8 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				Aggr(dbox.AggrSum, "$otherdowntimehours", "totalunknowntime").
 				Aggr(dbox.AggrSum, "$machinedownhours", "totalmachinedowntime").
 				Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed"). //check if this can happened or not
-				Aggr(dbox.AggrSum, "$sumwindspeed", "sumwindspeed").
-				Aggr(dbox.AggrSum, "$countwindspeed", "countwindspeed").
+				Aggr(dbox.AggrSum, "$detwindspeed.sumwindspeed", "sumwindspeed").
+				Aggr(dbox.AggrSum, "$detwindspeed.countwindspeed", "countwindspeed").
 				Aggr(dbox.AggrSum, "$totalrows", "totalrows").
 				Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
 				Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
@@ -1289,6 +1290,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				power := data.GetFloat64("totalpower") / 1000 //kW to MW
 				energy := data.GetFloat64("energy") / 1000    // kWh to MWh
 
+				// @CLARIFYTHIS
 				revenueTimes := 5.74                                 // check this hardcoded
 				revenue := revenueTimes * power * 1000 * 1000 * 1000 //MW to Watt
 				revenueInLacs := revenue / 100000
@@ -1325,7 +1327,15 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				mdl.PLF = res.GetFloat64("plf")
 				mdl.Budget = budget * 1000
 				mdl.AvgWindSpeed = tk.Div(data.GetFloat64("sumwindspeed"), data.GetFloat64("countwindspeed"))
-				mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * 0.133)
+
+				// @CLARIFYTHIS
+				expwstimes := 0.133
+				randno := tk.RandInt(5)
+				if randno > 3 {
+					expwstimes = -0.125
+				}
+
+				mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * expwstimes)
 				mdl.DowntimeHours = imachinedowntime + iunknowntime + igriddowntime
 				mdl.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
 				mdl.RevenueLoss = (data.GetFloat64("totalenergylost") * revenueTimes)
