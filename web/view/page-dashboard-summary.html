@@ -78,7 +78,7 @@
 
 <div data-bind="visible:lgd.isSummary">
 	<div class="col-md-8 col-sm-8">
-		<div class="col-md-6 col-sm-6 hardcore landing">
+		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
 					Latest Production (kWh)
@@ -99,6 +99,28 @@
 				</div>
 			</div>
 		</div>
+		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+					Production (GWh) - Last 12 Months
+					<span class="tools pull-right">
+	                  <div class="btn-group" data-toggle="buttons">
+	                      <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonthFleet').kendoChart2Grid('n2')">
+	                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+	                      </label>
+	                      <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonthFleet',sum.dataSourceScada())">
+	                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+	                      </label>
+	                  </div>
+	              </span>
+				</div>
+				<div class="panel-body" style="height: 185px;">
+					<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+					<div id="chartProdMonthFleet"></div>
+				</div>
+			</div>
+		</div>
+
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
@@ -123,7 +145,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing">
+		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
 					Cumulative Production (GWh) - Month to Date
@@ -144,6 +166,27 @@
 				</div>
 			</div>
 		</div>
+		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+					Production (GWh) - Current Year & Last Year
+					<span class="tools pull-right">
+                      <div class="btn-group" data-toggle="buttons">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLastFleet').kendoChart2Grid('n2')">
+                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                          </label>
+                          <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast('chartCurrLastFleet',sum.dataSourceScada())">
+                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                          </label>
+                      </div>
+                  </span>
+				</div>
+				<div class="panel-body" style="height: 185px;">
+					<div id="chartCurrLastFleet"></div>
+				</div>
+			</div>
+		</div>
+
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
@@ -207,7 +250,7 @@
 	</div>
 	<div class="col-md-12 col-sm-12 no-padding">
 		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-4 col-sm-4 hardcore landing">
+			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
 					Production (GWh) - Last 12 Months
@@ -292,7 +335,20 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12 ez panel-content" data-bind="visible:lgd.projectName() == 'Fleet'">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore summary-div">
+					<div class="panel-heading">
+					Summary Data for Last 12 Months
+					</div>
+					<div class="panel-body panel-summary gridSummaryData" style="height: 185px;">
+						<div id="gridSummaryDataFleet"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-12 col-sm-12 ez panel-content" data-bind="visible:lgd.projectName() != 'Fleet'">
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
@@ -345,6 +401,7 @@
 					<div class="col-md-8">
 						<div id="chartDetailProduction"></div>
 						<div class="clearfix">&nbsp;</div>
+						<div id="chartDetailLostEnergy"></div>
 					</div>
 					<div class="col-md-4">
 						<div id="gridDetailProduction"></div>

@@ -71,6 +71,9 @@ sum.loadData = function () {
                 sum.ProductionChart(res.data[0].Productions);
                 sum.CumProduction(res.data[0].CummulativeProductions);
                 vm.dateAsOf(lastUpdate);
+
+                sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
+
             } else {
                 var projectStr = $("#projectId").data("kendoDropDownList").text();
                 if (projectStr != "Fleet"){
@@ -84,13 +87,14 @@ sum.loadData = function () {
                     sum.totalMaxCapacity("N/A");
                 }   
 
+                sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
+
                 sum.dataSource(null);
                 sum.currentDown("N/A");
                 sum.twoDaysDown("N/A");       
                 sum.ProductionChart(null);
                 sum.CumProduction(null);
             }
-            sum.SummaryData(project);
             
         });
 
@@ -103,10 +107,12 @@ sum.loadData = function () {
             sum.PLF(res.data["Data"]);
             sum.LostEnergy(res.data["Data"]);
             sum.Windiness(res.data["Data"]);
-            sum.ProdMonth(res.data["Data"]);
+            
             var availabilityData = [];
             var availabilitySeries = [];
             if(project === "Fleet") {
+                sum.ProdCurLast('chartCurrLastFleet',res.data["Data"]);
+                sum.ProdMonth('chartProdMonthFleet',res.data["Data"]);
                 var availDatas = res.data["Availability"];
                 var projectCount = 0;
                 for(var key in availDatas){
@@ -139,6 +145,8 @@ sum.loadData = function () {
 
                 // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
+                sum.ProdCurLast('chartCurrLast',res.data["Data"]);
+                sum.ProdMonth('chartProdMonth',res.data["Data"]);
                 var availData = res.data["Data"];
                 if(res.data["Data"] !== undefined) {
                     var seriesObj = {};
@@ -166,7 +174,7 @@ sum.loadData = function () {
                 // sum.AvailabilityChart(res.data["Data"]);
             }
 
-            sum.ProdCurLast(res.data["Data"]);
+            
             
             if (res.data != null ){
                 sum.isDetailProd(false);
@@ -215,11 +223,11 @@ sum.loadData = function () {
 
 };
 
-sum.SummaryData = function (project) {
+sum.SummaryData = function (id,project) {
     var param = {project: project};
     var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getsummarydata", param, function (result) {
-        $('#gridSummaryData').html("");
-        $("#gridSummaryData").kendoGrid({
+        $('#'+id).html("");
+        $('#'+id).kendoGrid({
             height: 155,
             theme: "flat",
             dataSource: {
@@ -263,19 +271,19 @@ sum.SummaryData = function (project) {
 
     $.when(ajax1).done(function(){
         setTimeout(function(){
-            var grid = $("#gridSummaryData").data("kendoGrid");
+            var grid = $('#'+id).data("kendoGrid");
             if (project == "Fleet") {
-                $("#gridSummaryData th[data-field=name]").html("Project Name")
+                $("#"+id+" th[data-field=name]").html("Project Name")
                 grid.showColumn("noofwtg");
             } else {
-                $("#gridSummaryData th[data-field=name]").html("Turbine Name")
+                $("#"+id+" th[data-field=name]").html("Turbine Name")
                 grid.hideColumn("noofwtg");
             }
             var dataSource = grid.dataSource.data();
             $.each(dataSource, function (i, row) {
                 $('tr[data-uid="' + row.uid + '"]').css("border-bottom", "1pt solid black");
             });
-            $("#gridSummaryData").data("kendoGrid").refresh();
+            $("#"+id).data("kendoGrid").refresh();
         }, 100);        
     })
 }
@@ -608,9 +616,9 @@ sum.WindDistribution = function (dataSource) {
     });
 }
 
-sum.ProdMonth = function (dataSource) {
-    $("#chartProdMonth").replaceWith('<div id="chartProdMonth"></div>');
-    $("#chartProdMonth").kendoChart({
+sum.ProdMonth = function (id, dataSource) {
+    $("#"+id).replaceWith('<div id='+id+'></div>');
+    $("#"+id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: { field: "DateInfo.MonthId", dir: 'asc' }
@@ -798,9 +806,10 @@ sum.AvailabilityChart = function (dataSource, dataSeries) {
     });
 }
 
-sum.ProdCurLast = function (dataSource) {
-    $("#chartCurrLast").replaceWith('<div id="chartCurrLast"></div>');
-    $("#chartCurrLast").kendoChart({
+sum.ProdCurLast = function (id,dataSource) {
+
+    $("#"+id).replaceWith('<div id='+id+'></div>');
+    $("#"+id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: { field: "DateInfo.MonthId", dir: 'asc' }
@@ -1253,6 +1262,7 @@ sum.CumProduction = function (dataSource) {
 
 
 sum.DetailProd = function (e) {
+    app.loading(true);
     var bulan = e.category;
     sum.detailProdTxt(bulan);
     vm.isDashboard(false);
@@ -1302,13 +1312,84 @@ sum.DetailProd = function (e) {
                 field: "production",
                 gap: 3,
                 // opacity : 0.7,
-            }, {
-                name: "Lost Energy" + measurement,
-                field: "lostenergy",
-                gap: 3
-                // opacity : 0.7,
             }],
             seriesColors: colorField,
+            seriesClick: function (e) {
+                sum.DetailProdByProject(e, bulan, dataSource);
+            },
+            valueAxis: {
+                // majorUnit : 2000,
+                line: {
+                    visible: false
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+            },
+            categoryAxis: {
+                field: "project",
+                majorGridLines: {
+                    visible: false
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                majorTickType: "none"
+            },
+            tooltip: {
+                visible: true,
+                template: "#: series.name # : #:  kendo.toString(value, 'n2') #",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            }
+        });
+
+        $("#chartDetailLostEnergy").kendoChart({
+            theme: "material",
+            dataSource: {
+                data: dataSource
+            },
+            title: {
+                text: ""
+            },
+            legend: {
+                position: "top",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
+            },
+            chartArea: {
+                height: 200,
+                padding: 0,
+                margin: 0,
+            },
+            seriesDefaults: {
+                type: "column",
+                area: {
+                    line: {
+                        style: "smooth"
+                    }
+                }
+            },
+            series: [{
+                name: "Lost Energy" + measurement,
+                field: "lostenergy",
+                gap: 3,
+                color: colorField[1],
+                // opacity : 0.7,
+            }],
+            // seriesColors: colorField[1],
             seriesClick: function (e) {
                 sum.DetailProdByProject(e, bulan, dataSource);
             },
@@ -1364,9 +1445,14 @@ sum.DetailProd = function (e) {
             dataSource: {
                 data: dataSource,
                 pageSize: 5
+            },
+            dataBound: function(){
+                app.loading(false);
             }
         });
     });
+    
+    
 }
 
 sum.DetailProdByProject = function (e, month, data) {
