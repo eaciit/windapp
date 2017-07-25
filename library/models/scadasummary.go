@@ -93,6 +93,11 @@ func (m *ScadaSummaryByMonth) TableName() string {
 	return "rpt_scadasummarybymonth"
 }
 
+type DetailWindSpeed struct {
+	SumWindSpeed   float64
+	CountWindSpeed float64
+}
+
 type ScadaSummaryDaily struct {
 	orm.ModelBase      `bson:"-",json:"-"`
 	ID                 string ` bson:"_id" , json:"_id" `
@@ -127,6 +132,8 @@ type ScadaSummaryDaily struct {
 	ProductionRatio    float64
 	NoOfFailures       int
 	TotalMinutes       int
+	DetWindSpeed       DetailWindSpeed
+	TotalRows          float64
 }
 
 func (m *ScadaSummaryDaily) New() *ScadaSummaryDaily {
