@@ -1141,8 +1141,8 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 					turbineList, _ = helper.GetTurbineList([]interface{}{turbine})
 				}
 
-				oktime := data.GetFloat64("totaloktime")
-				power := data.GetFloat64("totalpower") / 1000 //KW ke MW
+				oktime := data.GetFloat64("totaloktime") / 3600 // in hour
+				power := data.GetFloat64("totalpower") / 1000   //KW ke MW
 
 				imachinedowntime := data.GetFloat64("totalmachinedowntime")
 				igriddowntime := data.GetFloat64("totalgriddowntime")
@@ -1183,7 +1183,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				item.PLF = res.GetFloat64("plf")
 				item.MachineAvail = res.GetFloat64("machineavailability")
 				item.TrueAvail = res.GetFloat64("totalavailability")
-				item.LostEnergy = data.GetFloat64("totalenergylost")
+				item.LostEnergy = data.GetFloat64("totalenergylost") / 1000000000 // Watt to GWatt
 				item.DowntimeHours = data.GetFloat64("totalenergylost")
 
 				items = append(items, item)
@@ -1279,7 +1279,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				noofturbine := d.BaseController.TotalTurbinePerMonth[project+"_"+monthid]
 				totalcapacity := d.BaseController.CapacityPerMonth[project+"_"+monthid]
 
-				oktime := data.GetFloat64("totaloktime")
+				oktime := data.GetFloat64("totaloktime") / 3600 // in hour
 
 				power := data.GetFloat64("totalpower") / 1000 //kW to MW
 				energy := data.GetFloat64("energy") / 1000    // kWh to MWh
@@ -1322,7 +1322,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				mdl.AvgWindSpeed = tk.Div(data.GetFloat64("sumwindspeed"), data.GetFloat64("countwindspeed"))
 				mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * 0.133)
 				mdl.DowntimeHours = imachinedowntime + iunknowntime + igriddowntime
-				mdl.LostEnergy = data.GetFloat64("totalenergylost")
+				mdl.LostEnergy = data.GetFloat64("totalenergylost") / 1000000000 // Watt to GWatt
 				mdl.RevenueLoss = (data.GetFloat64("totalenergylost") * revenueTimes)
 
 				if mdl != nil {
@@ -1430,8 +1430,8 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 		vgroup := _id.GetString("value")
 		vpower := d.GetFloat64("power") / 1000 // kW to MW
 		vws := d.GetFloat64("windspeed")
-		vprod := d.GetFloat64("energy") / 1000 // kWh to MWh
-		oktime := d.GetFloat64("oktime")
+		vprod := d.GetFloat64("energy") / 1000  // kWh to MWh
+		oktime := d.GetFloat64("oktime") / 3600 // in hour
 		griddown := d.GetFloat64("griddowntime")
 		machinedown := d.GetFloat64("machinedowntime")
 		unknowndown := d.GetFloat64("unknowndowntime")
