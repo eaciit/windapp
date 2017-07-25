@@ -1099,18 +1099,15 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 			projectName := v.Value
 			group := "projectname"
 
-			filter := []*dbox.Filter{}
-
 			if projectName != "Fleet" {
-				filter = append(filter, dbox.Eq("projectname", projectName))
 				group = "turbine"
 				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			}
 
 			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
 
-			if len(filter) > 1 {
-				iQuery = iQuery.Where(dbox.And(filter...))
+			if projectName != "Fleet" {
+				iQuery = iQuery.Where(dbox.Eq("projectname", projectName))
 			}
 
 			csr, e := iQuery.
@@ -1173,6 +1170,8 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 						}
 					}
 				}
+
+				tk.Println(noofturbine, energy, totalhour, capacity)
 
 				in := tk.M{}.Set("noofturbine", noofturbine).Set("oktime", oktime).Set("energy", energy).
 					Set("totalhour", totalhour).Set("totalcapacity", capacity).

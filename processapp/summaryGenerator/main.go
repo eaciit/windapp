@@ -86,5 +86,5 @@ func main() {
 		*/
 	}
 
-	tk.Printf("DONE in %v Hrs \n", time.Now().UTC().Sub(start).Hours())
+	tk.Printf("DONE in %v Minutes \n", time.Now().UTC().Sub(start).Minutes())
 }
