@@ -713,9 +713,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 		}
 
 		projectList, _ := helper.GetProjectList()
-
 		mapRevenue := map[string]float64{}
-
 		for _, v := range projectList {
 			mapRevenue[v.Value] = v.RevenueMultiplier
 		}
@@ -854,8 +852,15 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					sMonthNo := strconv.Itoa(monthId)[4:6]
 					monthNo, _ = strconv.Atoi(sMonthNo)
 
+					pipebudget := []tk.M{
+						tk.M{}.Set("$match", tk.M{}.
+							Set("projectname", project).
+							Set("monthno", monthNo)),
+					}
+
 					csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
-						Where(dbox.And(dbox.Eq("monthno", monthNo), dbox.Eq("projectname", project))).
+						Command("pipe", pipebudget).
+						// Where(dbox.And(dbox.Eq("monthno", monthNo), dbox.Eq("projectname", project))).
 						Cursor(nil)
 
 					budgets := make([]ExpPValueModel, 0)
@@ -1210,20 +1215,35 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 			os.Exit(0)
 		}
 
-		// @CLARIFYTHIS
-		budgetMonths := []float64{
-			5911.8744,
-			6023.419200000001,
-			7027.3224,
-			8588.9496,
-			14389.2792,
-			16954.8096,
-			15727.8168,
-			12046.8384,
-			9704.3976,
-			5688.784799999999,
-			3569.4336,
-			5911.8744}
+		projectList, _ := helper.GetProjectList()
+		mapRevenue := map[string]float64{}
+		for _, v := range projectList {
+			mapRevenue[v.Value] = v.RevenueMultiplier
+		}
+
+		inprojectactive := func(str string) bool {
+			for _, v := range projectList {
+				if v.Value == str {
+					return true
+				}
+			}
+			return false
+		}
+
+		mapbudget := map[string]float64{}
+		csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+			Cursor(nil)
+
+		budgets := make([]ExpPValueModel, 0)
+		_ = csrBudget.Fetch(&budgets, 0, false)
+		csrBudget.Close()
+
+		for _, budget := range budgets {
+			mapbudget[tk.Sprintf("%s_%d", budget.ProjectName, budget.MonthNo)] = budget.P75NetGenMWH
+			if inprojectactive(budget.ProjectName) {
+				mapbudget[tk.Sprintf("fleet_%d", budget.MonthNo)] = budget.P75NetGenMWH
+			}
+		}
 
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
 
@@ -1276,7 +1296,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				day := "01"
 
 				iMonth, _ := strconv.Atoi(string(month))
-				iMonth = iMonth - 1
+				// iMonth = iMonth - 1
 
 				dtStr := year + "-" + month + "-" + day
 				dtId, _ := time.Parse("2006-01-02", dtStr)
@@ -1291,8 +1311,13 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				energy := data.GetFloat64("energy") / 1000    // kWh to MWh
 
 				// @CLARIFYTHIS
-				revenueTimes := 5.74                                 // check this hardcoded
-				revenue := revenueTimes * power * 1000 * 1000 * 1000 //MW to Watt
+				// revenueTimes := 5.74                                 // check this hardcoded
+				revenueTimes := mapRevenue[project]
+				if project == "fleet" {
+					revenueTimes = 5.74 // check this hardcoded
+				}
+
+				revenue := revenueTimes * power * 1000 //MW to kWatt
 				revenueInLacs := revenue / 100000
 
 				maxdate := data.Get("max", time.Time{}).(time.Time)
@@ -1311,7 +1336,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 
 				res := helper.CalcAvailabilityAndPLF(in)
 
-				budget := budgetMonths[iMonth]
+				budget := mapbudget[tk.Sprintf("%s_%d", project, iMonth)]
 
 				mdl := new(ScadaSummaryByMonth).New()
 				mdl.ProjectName = project
