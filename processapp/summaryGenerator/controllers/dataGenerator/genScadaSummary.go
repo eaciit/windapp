@@ -1171,6 +1171,8 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 					}
 				}
 
+				tk.Println(">>", noofturbine, oktime, energy, totalhour, capacity)
+
 				in := tk.M{}.Set("noofturbine", noofturbine).Set("oktime", oktime).Set("energy", energy).
 					Set("totalhour", totalhour).Set("totalcapacity", capacity).
 					Set("machinedowntime", imachinedowntime).Set("griddowntime", igriddowntime).Set("otherdowntime", iunknowntime)
@@ -1181,11 +1183,11 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 
 				item.Name = turbine
 				item.NoOfWtg = noofturbine
-				item.Production = power / 6
+				item.Production = data.GetFloat64("totalpower") / 6
 				item.PLF = res.GetFloat64("plf")
 				item.MachineAvail = res.GetFloat64("machineavailability")
 				item.TrueAvail = res.GetFloat64("totalavailability")
-				item.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
+				item.LostEnergy = data.GetFloat64("totalenergylost")
 				item.DowntimeHours = imachinedowntime + igriddowntime + iunknowntime
 
 				items = append(items, item)
