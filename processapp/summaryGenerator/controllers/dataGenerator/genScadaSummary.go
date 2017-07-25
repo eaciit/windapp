@@ -1229,17 +1229,18 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 		for _, v := range d.BaseController.ProjectList {
 			project := v.Value
 
-			filter := []*dbox.Filter{}
 			group := []string{}
 			if project != "Fleet" {
-				filter = append(filter, dbox.Eq("projectname", project))
 				group = []string{"projectname", "dateinfo.monthid"}
 			} else {
 				group = []string{"dateinfo.monthid"}
 			}
 
-			csr, e := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName()).
-				Where(dbox.And(filter...)).
+			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
+			if project != "Fleet" {
+				iQuery = iQuery.Where(dbox.Eq("projectname", project))
+			}
+			csr, e := iQuery.
 				Aggr(dbox.AggrSum, "$powerkw", "totalpower").
 				Aggr(dbox.AggrSum, "$production", "energy").
 				Aggr(dbox.AggrSum, "$lostenergy", "totalenergylost").
