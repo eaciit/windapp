@@ -1144,7 +1144,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				}
 
 				oktime := data.GetFloat64("totaloktime") / 3600 // in hour
-				power := data.GetFloat64("totalpower") / 1000   //KW ke MW
+				power := data.GetFloat64("totalpower")          //KW ke MW
 
 				imachinedowntime := data.GetFloat64("totalmachinedowntime")
 				igriddowntime := data.GetFloat64("totalgriddowntime")
@@ -1183,7 +1183,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 
 				item.Name = turbine
 				item.NoOfWtg = noofturbine
-				item.Production = data.GetFloat64("totalpower") / 6
+				item.Production = power / 6
 				item.PLF = res.GetFloat64("plf")
 				item.MachineAvail = res.GetFloat64("machineavailability")
 				item.TrueAvail = res.GetFloat64("totalavailability")
