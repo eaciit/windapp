@@ -1187,7 +1187,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				item.PLF = res.GetFloat64("plf") / 100
 				item.MachineAvail = res.GetFloat64("machineavailability") / 100
 				item.TrueAvail = res.GetFloat64("totalavailability") / 100
-				item.LostEnergy = data.GetFloat64("totalenergylost") / 100
+				item.LostEnergy = data.GetFloat64("totalenergylost")
 				item.DowntimeHours = imachinedowntime + igriddowntime + iunknowntime
 
 				items = append(items, item)
