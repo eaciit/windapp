@@ -1160,18 +1160,16 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				for _, v := range turbineList {
 					if projectName != "Fleet" {
 						if v.Value == turbine {
-							capacity += capacity
+							capacity += v.Capacity
 							noofturbine += 1
 						}
 					} else {
 						if v.Project == turbine {
-							capacity += capacity
+							capacity += v.Capacity
 							noofturbine += 1
 						}
 					}
 				}
-
-				tk.Println(noofturbine, energy, totalhour, capacity)
 
 				in := tk.M{}.Set("noofturbine", noofturbine).Set("oktime", oktime).Set("energy", energy).
 					Set("totalhour", totalhour).Set("totalcapacity", capacity).
