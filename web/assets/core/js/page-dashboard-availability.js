@@ -58,7 +58,7 @@ avail.loadData = function () {
             }
             if (project == "Fleet") {
                 if (res.data.lostenergybytype != null) {
-                   avail.DTLEbyType(res.data.lostenergybytype); /*"#chartDTLEbyType"*/
+                   // avail.DTLEbyType(res.data.lostenergybytype); /*"#chartDTLEbyType"*/
                 }
                 if (res.data.lostenergy != null) {
                     avail.DTLostEnergyData(res.data.lostenergy);
@@ -131,9 +131,9 @@ avail.refreshChart = function () {
             if($("#chartDTLostEnergy").data("kendoChart") != undefined) {
                 $("#chartDTLostEnergy").data("kendoChart").refresh();
             }
-            if($("#chartDTLEbyType").data("kendoChart") != undefined) {
-                $("#chartDTLEbyType").data("kendoChart").refresh();
-            }
+            // if($("#chartDTLEbyType").data("kendoChart") != undefined) {
+            //     $("#chartDTLEbyType").data("kendoChart").refresh();
+            // }
         }else{
             if($("#projectChartMachAvail").data("kendoChart") != undefined) {
                 $("#projectChartMachAvail").data("kendoChart").refresh();

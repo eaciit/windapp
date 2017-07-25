@@ -39,6 +39,7 @@ var map;
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
+
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
         for(var i=0;i<sum.periodList.length;i++) {
@@ -205,6 +206,7 @@ sum.loadData = function () {
                     map.setZoom(10);
                     
                 }
+                lgd.start();
                 app.loading(false);
             },1000);
         });

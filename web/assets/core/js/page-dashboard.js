@@ -50,7 +50,8 @@ var projectSelected = '';
 var projectSelectedLevel2 = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
 var maxdate = maxDateData;
-var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 36000);
+// var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 36000);
+var mapIndia;
 
 
 lgd.populateProject = function (data) {
@@ -77,6 +78,7 @@ lgd.populateProject = function (data) {
 
 lgd.LoadData = function () {
     app.loading(true);
+    lgd.stop();
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = { ProjectName: project, Date: maxdate };
 
@@ -99,6 +101,17 @@ lgd.LoadData = function () {
     }, 600);
 }
 
+
+lgd.start = function() {  // use a one-off timer
+    mapIndia =  setInterval(function() {
+       var project =  $("#projectId").data("kendoDropDownList").value();
+       sum.indiaMap(project);
+    }, 5000);
+};
+
+lgd.stop = function(){
+    clearTimeout(mapIndia);
+};
 
 lgd.createDonutChart = function (param) {
     $('#' + param.id).attr("data-percent", param.value);
@@ -127,7 +140,7 @@ $(function () {
     });
 
     $("#tabSummary").on("click", function () {
-        intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 4000);
+        // intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 4000);
         lgd.isSummary(true);
         lgd.isProduction(false);
         lgd.isAvailability(false);
@@ -136,7 +149,7 @@ $(function () {
     });
 
     $("#tabProduction").on("click", function () {
-        clearInterval(intervalMap);
+        lgd.stop();
         lgd.isSummary(false);
         lgd.isProduction(true);
         lgd.isAvailability(false);
@@ -145,7 +158,7 @@ $(function () {
     });
 
     $("#tabAvailability").on("click", function () {
-        clearInterval(intervalMap);
+        lgd.stop();
         lgd.isSummary(false);
         lgd.isProduction(false);
         lgd.isAvailability(true);
@@ -169,10 +182,5 @@ $(function () {
         google.maps.event.addDomListener(window, 'load', sum.initialize());
 
     },500);
-
-    setInterval(function() {
-       var project =  $("#projectId").data("kendoDropDownList").value();
-       sum.indiaMap(project);
-    }, 5000);
 
 });
