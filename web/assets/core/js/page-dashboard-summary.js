@@ -104,13 +104,14 @@ sum.loadData = function () {
                 return;
             }
             sum.dataSourceScada(res.data["Data"]);
-            sum.PLF(res.data["Data"]);
+            
             sum.LostEnergy(res.data["Data"]);
             sum.Windiness(res.data["Data"]);
             
             var availabilityData = [];
             var availabilitySeries = [];
             if(project === "Fleet") {
+                sum.PLF('chartPLFFleet',res.data["Data"]);
                 sum.ProdCurLast('chartCurrLastFleet',res.data["Data"]);
                 sum.ProdMonth('chartProdMonthFleet',res.data["Data"]);
                 var availDatas = res.data["Availability"];
@@ -145,6 +146,7 @@ sum.loadData = function () {
 
                 // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
             } else {
+                sum.PLF('chartPLF',res.data["Data"]);
                 sum.ProdCurLast('chartCurrLast',res.data["Data"]);
                 sum.ProdMonth('chartProdMonth',res.data["Data"]);
                 var availData = res.data["Data"];
@@ -288,9 +290,9 @@ sum.SummaryData = function (id,project) {
     })
 }
 
-sum.PLF = function (dataSource) {
-    $("#chartPLF").replaceWith('<div id="chartPLF"></div>');
-    $("#chartPLF").kendoChart({
+sum.PLF = function (id,dataSource) {
+    $("#"+id).replaceWith('<div id='+id+'></div>');
+    $("#"+id).kendoChart({
         dataSource: {
             data: dataSource,
             sort: { field: "DateInfo.MonthId", dir: 'asc' }

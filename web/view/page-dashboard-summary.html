@@ -167,26 +167,25 @@
 			</div>
 		</div>
 		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
-			<div class="panel ez no-padding hardcore">
+			<div class="panel ez no-padding hardcore plf-div">
 				<div class="panel-heading">
-					Production (GWh) - Current Year & Last Year
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLastFleet').kendoChart2Grid('n2')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast('chartCurrLastFleet',sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+				PLF (%) for all Projects - Last 12 Months
+				<span class="tools pull-right">
+                  <div class="btn-group" data-toggle="buttons">
+                      <label class="btn btn-primary btn-xs" onclick="$('#chartPLFFleet').kendoChart2Grid('n0')">
+                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                      </label>
+                      <label class="btn btn-primary btn-xs" onclick="sum.PLF(sum.dataSourceScada())">
+                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                      </label>
+                  </div>
+              </span>
 				</div>
 				<div class="panel-body" style="height: 185px;">
-					<div id="chartCurrLastFleet"></div>
+					<div id="chartPLFFleet"></div>
 				</div>
 			</div>
 		</div>
-
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
@@ -271,7 +270,28 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing">
+			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Production (GWh) - Current Year & Last Year
+						<span class="tools pull-right">
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLastFleet').kendoChart2Grid('n2')">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast('chartCurrLastFleet',sum.dataSourceScada())">
+		                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              </span>
+					</div>
+					<div class="panel-body" style="height: 185px;">
+						<div id="chartCurrLastFleet"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 				<div class="panel ez no-padding hardcore plf-div">
 					<div class="panel-heading">
 					PLF (%) for all Projects - Last 12 Months
