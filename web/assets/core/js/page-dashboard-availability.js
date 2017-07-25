@@ -249,6 +249,11 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
                 width: "2px",
             },
         },
+        seriesClick: function (e) {
+            if(id == 'fleetChartTopLossCatEnergyLoss'){
+                avail.toDetailDTLELevel1(e, id);
+            }
+        }
     });
 }
 avail.fleetMachAvail = function (dataSource) {
@@ -1130,7 +1135,7 @@ avail.LossEnergyByType = function (dataSource) {
             majorTickType: "none"
         },
         tooltip: {
-            visible: true,
+            visible: false,
             format: "{0:n1}",
             // template : "#: series.name # for #: category # : #:  kendo.toString(value, 'n0') #",
             sharedTemplate: kendo.template($("#templateDowntimeLostEnergy").html()),
@@ -1791,12 +1796,15 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyByDown(lastDataChartLevel1);
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(tableRequest).done(function(){
-                setTimeout(function(){
-                    app.loading(false);
-                },50);
-            });
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(tableRequest).done(function(){
+            //     setTimeout(function(){
+            //         app.loading(false);
+            //     },50);
+            // });
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         } else if (source == "ddl") {
             projectSelected = $("#projectList").data("kendoDropDownList").value();
             /*set title label*/
@@ -1818,8 +1826,9 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
                 avail.DTLostEnergyByDown(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(chartRequest, tableRequest).done(function(){
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(chartRequest, tableRequest).done(function(){
+            $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
                 },50);
@@ -1850,9 +1859,10 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
             avail.DTLostEnergyByDown(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        var tableRequest = avail.toDetailDTLETTable(param);
+        // var tableRequest = avail.toDetailDTLETTable(param);
 
-        $.when(chartRequest, tableRequest).done(function(){
+        // $.when(chartRequest, tableRequest).done(function(){
+        $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -1931,6 +1941,7 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
 
         app.loading(false);
     });
+
     avail.toDetailDTLETTable(param);
 }
 
@@ -1959,12 +1970,15 @@ avail.toDetailDTLELevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyFleet(lastDataChartLevel1);
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(tableRequest).done(function(){
-                setTimeout(function(){
-                    app.loading(false);
-                },50);
-            });
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(tableRequest).done(function(){
+            //     setTimeout(function(){
+            //         app.loading(false);
+            //     },50);
+            // });
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         } else if (source == "ddl") {
             if (dtType == "") {
                 dtType = "All Types"
@@ -1988,8 +2002,9 @@ avail.toDetailDTLELevel1 = function (e, source) {
                 avail.DTLostEnergyFleet(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(chartRequest, tableRequest).done(function(){
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(chartRequest, tableRequest).done(function(){
+            $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
                 },50);
@@ -2020,9 +2035,10 @@ avail.toDetailDTLELevel1 = function (e, source) {
             avail.DTLostEnergyFleet(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        var tableRequest = avail.toDetailDTLETTable(param);
+        // var tableRequest = avail.toDetailDTLETTable(param);
 
-        $.when(chartRequest, tableRequest).done(function(){
+        // $.when(chartRequest, tableRequest).done(function(){
+        $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -2095,9 +2111,9 @@ avail.toDetailDTLELevel2 = function (e, source) {
 
         app.loading(false);
     });
-    var tableRequest = avail.toDetailDTLETTable(param);
+    // var tableRequest = avail.toDetailDTLETTable(param);
 
-    $.when(chartRequest, tableRequest).done(function(){
+    $.when(chartRequest).done(function(){
         setTimeout(function(){
             app.loading(false);
         },50);
