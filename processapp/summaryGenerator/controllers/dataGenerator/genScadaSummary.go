@@ -1364,7 +1364,10 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 			Set("oktime", tk.M{}.Set("$sum", "$oktime")).
 			Set("griddowntime", tk.M{}.Set("$sum", "$griddownhours")).
 			Set("machinedowntime", tk.M{}.Set("$sum", "$machinedownhours")).
+			Set("unknowndowntime", tk.M{}.Set("$sum", "$otherdowntimehours")).
 			Set("totaltimestamp", tk.M{}.Set("$sum", 1)).
+			Set("maxdate", tk.M{}.Set("$max", "$dateinfo.dateid")).
+			Set("mindate", tk.M{}.Set("$min", "$dateinfo.dateid")).
 			Set("minutes", tk.M{}.Set("$sum", "$totalminutes")),
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
@@ -1402,7 +1405,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 
 	for _, d := range scadaSums {
 		_id := d.Get("_id").(tk.M)
-		//log.Println(_id)
+
 		vid := "0"
 		if groupBy != "dateinfo.dateid" {
 			vid = strconv.Itoa(_id.GetInt("period"))
@@ -1415,8 +1418,6 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 				if next := endDate.UTC().AddDate(0, 0, 1); next.Before(vdate.UTC().AddDate(0, 1, 0)) {
 					totalHour = next.Sub(vdate.UTC()).Hours()
 				}
-
-				// log.Println(">>", vid, vdate, endDate, totalHour)
 			}
 			if groupBy == "dateinfo.qtrid" {
 				totalHour = float64(GetDaysNoByQuarter(vyearid, vperiodid, endDate)) * 24.0
@@ -1427,22 +1428,26 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 		}
 
 		vgroup := _id.GetString("value")
-		//log.Println(vgroup)
-		vpower := d.GetFloat64("power")
+		vpower := d.GetFloat64("power") / 1000 // kW to MW
 		vws := d.GetFloat64("windspeed")
-		vprod := d.GetFloat64("energy")
+		vprod := d.GetFloat64("energy") / 1000 // kWh to MWh
 		oktime := d.GetFloat64("oktime")
 		griddown := d.GetFloat64("griddowntime")
 		machinedown := d.GetFloat64("machinedowntime")
-		sumTimeStamp := d.GetFloat64("totaltimestamp")
-		minutes := d.GetFloat64("minutes") / 60
+		unknowndown := d.GetFloat64("unknowndowntime")
+		// sumTimeStamp := d.GetFloat64("totaltimestamp")
+		// minutes := d.GetFloat64("minutes") / 60
 
 		// vplf := tk.Div(vprod, (totalHour*float64(noOfTurbine)*2100.0)) * 100
 		// vtotalavail := tk.Div(tk.Div(oktime, 3600.0), (totalHour*float64(noOfTurbine))) * 100
 		// vgridavail := tk.Div(((totalHour*float64(noOfTurbine))-griddown), (totalHour*float64(noOfTurbine))) * 100
 		// vmchavail := tk.Div(((totalHour*float64(noOfTurbine))-machinedown), (totalHour*float64(noOfTurbine))) * 100
 
-		vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
+		maxDate := d.Get("maxdate", time.Time{}).(time.Time)
+		minDate := d.Get("mindate", time.Time{}).(time.Time)
+		totalHour := maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+		//vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
 
 		// if groupBy == "dateinfo.monthid" || groupBy == "dateinfo.qtrid" {
 		// 	log.Println(vid, "data = ", _id, oktime, totalHour, noOfTurbine, plfDivider, groupBy)
@@ -1451,15 +1456,21 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 		// 	log.Println(vid, "TV = ", vtotalavail)
 		// }
 
+		in := tk.M{}.Set("noofturbine", noOfTurbine).Set("oktime", oktime).Set("energy", vprod).
+			Set("totalhour", totalHour).Set("totalcapacity", plfDivider).
+			Set("machinedowntime", machinedown).Set("griddowntime", griddown).Set("otherdowntime", unknowndown)
+
+		res := helper.CalcAvailabilityAndPLF(in)
+
 		id = append(id, vid)
 		group = append(group, vgroup)
 		power = append(power, tk.Div(vpower, dividerPower))
 		windspeed = append(windspeed, vws)
 		production = append(production, tk.Div(vprod, dividerPower))
-		plf = append(plf, vplf)
-		totalavail = append(totalavail, vtotalavail)
-		machineavail = append(machineavail, vmchavail)
-		gridavail = append(gridavail, vgridavail)
+		plf = append(plf, res.GetFloat64("plf"))
+		totalavail = append(totalavail, res.GetFloat64("totalavailability"))
+		machineavail = append(machineavail, res.GetFloat64("machineavailability"))
+		gridavail = append(gridavail, res.GetFloat64("gridavailability"))
 	}
 
 	ret := tk.M{
