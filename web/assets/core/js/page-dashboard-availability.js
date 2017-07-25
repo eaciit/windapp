@@ -19,8 +19,15 @@ avail.detailDTTopTxt = ko.observable();
 avail.isDetailDTTop = ko.observable(false);
 avail.mdTypeList = ko.observableArray([]);
 avail.projectItem = ko.observableArray([]);
+avail.fleetMachAvailData = ko.observableArray([]);
+avail.fleetGridAvailData = ko.observableArray([]);
+avail.DTLostEnergyData = ko.observableArray([]);
+avail.LossCategoriesData = ko.observableArray([]);
+
+
 
 avail.loadData = function () {
+
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = {};
 
@@ -36,7 +43,9 @@ avail.loadData = function () {
                 return;
             }
             if (project == "Fleet") {
+                avail.fleetMachAvailData(res.data.machineAvailability);
                 avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                avail.fleetGridAvailData(res.data.gridAvailability);
                 avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
             } else {
                 avail.projectMachAvail(res.data.machineAvailability); /*"#projectChartMachAvail"*/
@@ -49,9 +58,10 @@ avail.loadData = function () {
             }
             if (project == "Fleet") {
                 if (res.data.lostenergybytype != null) {
-                   avail.DTLEbyType(res.data.lostenergybytype); /*"#chartDTLEbyType"*/
+                   // avail.DTLEbyType(res.data.lostenergybytype); /*"#chartDTLEbyType"*/
                 }
                 if (res.data.lostenergy != null) {
+                    avail.DTLostEnergyData(res.data.lostenergy);
                     avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
                 }
                 avail.DTTurbines();
@@ -75,6 +85,7 @@ avail.loadData = function () {
             if (!app.isFine(res)) {
                 return;
             }
+            avail.LossCategoriesData(res.data);
             if (project == "Fleet") {
                 avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
@@ -120,9 +131,9 @@ avail.refreshChart = function () {
             if($("#chartDTLostEnergy").data("kendoChart") != undefined) {
                 $("#chartDTLostEnergy").data("kendoChart").refresh();
             }
-            if($("#chartDTLEbyType").data("kendoChart") != undefined) {
-                $("#chartDTLEbyType").data("kendoChart").refresh();
-            }
+            // if($("#chartDTLEbyType").data("kendoChart") != undefined) {
+            //     $("#chartDTLEbyType").data("kendoChart").refresh();
+            // }
         }else{
             if($("#projectChartMachAvail").data("kendoChart") != undefined) {
                 $("#projectChartMachAvail").data("kendoChart").refresh();
@@ -164,6 +175,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
     }
 
     $('#'+id).html("");
+    $("#"+id).replaceWith('<div id='+id+'></div>');
     $('#'+id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -232,6 +244,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
     });
 }
 avail.fleetMachAvail = function (dataSource) {
+    $("#fleetChartMachAvail").replaceWith('<div id="fleetChartMachAvail"></div>');
     $("#fleetChartMachAvail").kendoChart({
         dataSource: {
             data: dataSource,
@@ -250,7 +263,12 @@ avail.fleetMachAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195
+            height: 165,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -311,6 +329,7 @@ avail.fleetMachAvail = function (dataSource) {
 }
 
 avail.fleetGridAvail = function (dataSource) {
+    $("#fleetChartGridAvail").replaceWith('<div id="fleetChartGridAvail"></div>');
     $("#fleetChartGridAvail").kendoChart({
         dataSource: {
             data: dataSource,
@@ -329,7 +348,12 @@ avail.fleetGridAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195
+            height: 165,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -503,6 +527,7 @@ avail.DTLEbyType = function (dataSource) {
 }
 
 avail.DTLostEnergy = function (dataSource) {
+    $("#chartDTLostEnergy").replaceWith('<div id="chartDTLostEnergy"></div>');
     $("#chartDTLostEnergy").kendoChart({
         dataSource: {
             data: dataSource,
@@ -1726,8 +1751,8 @@ avail.DTTurbines = function () {
             }
 
             $("#dtturbines").append('<div class="btn-group" role="group">' +
-                '<button type="button" class="btn btn-sm ' + btn + '">' + turbine + '</button>' +
-                '<button type="button" class="btn btn-sm btn-warning">' + value + '</button>' +
+                '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
+                '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
                 '</div>');
             });
         }        
