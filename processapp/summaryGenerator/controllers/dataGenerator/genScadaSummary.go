@@ -1183,7 +1183,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				item.PLF = res.GetFloat64("plf")
 				item.MachineAvail = res.GetFloat64("machineavailability")
 				item.TrueAvail = res.GetFloat64("totalavailability")
-				item.LostEnergy = data.GetFloat64("totalenergylost") / 1000000000 // Watt to GWatt
+				item.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
 				item.DowntimeHours = data.GetFloat64("totalenergylost")
 
 				items = append(items, item)
@@ -1322,7 +1322,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				mdl.AvgWindSpeed = tk.Div(data.GetFloat64("sumwindspeed"), data.GetFloat64("countwindspeed"))
 				mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * 0.133)
 				mdl.DowntimeHours = imachinedowntime + iunknowntime + igriddowntime
-				mdl.LostEnergy = data.GetFloat64("totalenergylost") / 1000000000 // Watt to GWatt
+				mdl.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
 				mdl.RevenueLoss = (data.GetFloat64("totalenergylost") * revenueTimes)
 
 				if mdl != nil {

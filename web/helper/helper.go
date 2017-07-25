@@ -856,24 +856,24 @@ func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machin
 func CalcAvailabilityAndPLF(in toolkit.M) (res toolkit.M) {
 	res = toolkit.M{}
 	totalhour := in.GetFloat64("totalhour")
-	devider := in.GetFloat64("noofturbine") * totalhour
+	divider := in.GetFloat64("noofturbine") * totalhour
 
-	plf := toolkit.Div(in.GetFloat64("energy"), (devider*in.GetFloat64("totalcapacity"))) * 100
+	plf := toolkit.Div(in.GetFloat64("energy"), (totalhour*in.GetFloat64("totalcapacity"))) * 100
 	res.Set("plf", plf)
 
-	totalavailability := toolkit.Div(in.GetFloat64("oktime"), devider) * 100
+	totalavailability := toolkit.Div(in.GetFloat64("oktime"), divider) * 100
 	res.Set("totalavailability", totalavailability)
 
 	gdown, mdown, odown := in.GetFloat64("griddowntime"), in.GetFloat64("machinedowntime"), in.GetFloat64("otherdowntime")
-	mdowndevider := devider - gdown - odown
+	mdowndivider := divider - gdown - odown
 
-	machineavailability := toolkit.Div(mdowndevider-mdown, mdowndevider) * 100
+	machineavailability := toolkit.Div(mdowndivider-mdown, mdowndivider) * 100
 	res.Set("machineavailability", machineavailability)
 
-	gridavailability := toolkit.Div(devider-gdown, devider) * 100
+	gridavailability := toolkit.Div(divider-gdown, divider) * 100
 	res.Set("gridavailability", gridavailability)
 
-	dataavailability := toolkit.Div(in.GetFloat64("counttimestamp")/6, devider) * 100
+	dataavailability := toolkit.Div(in.GetFloat64("counttimestamp")/6, divider) * 100
 	res.Set("dataavailability", dataavailability)
 
 	return
