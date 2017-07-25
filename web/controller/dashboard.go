@@ -3496,6 +3496,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	}
 
 	listcapacity = PopulateTurbinesCapacity(DB().Connection, projectName)
+	lastProject := ""
+	turbineName := map[string]string{}
 
 	for idx, dt := range result {
 		lowestPlf := tk.ToFloat64(result[idx].GetFloat64("lowestplf"), 2, tk.RoundingAuto)
@@ -3520,6 +3522,14 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, totalHours))
 		} else {
+
+			if lastProject != dt.GetString("_id") {
+				lastProject = dt.GetString("_id")
+				turbineName, e = helper.GetTurbineNameList(lastProject)
+				if e != nil {
+					return helper.CreateResult(false, nil, e.Error())
+				}
+			}
 			result[idx].Set("name", dt.GetString("_id"))
 			result[idx].Set("noofwtg", totalTurbine.GetInt(result[idx].GetString("name")))
 
@@ -3531,9 +3541,10 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, (totalHours*totalTurbine.GetFloat64(result[idx].GetString("name")))))
 			// ---- lowestplf
 			// tk.Printfn("%v : maxCapacity := %v * %v", dt.GetString("_id"), turbineMW, totalHours)
-
+			matchesTurbine := tmp
+			matchesTurbine = append(matchesTurbine, tk.M{"projectname": dt.GetString("_id")})
 			pipeSub := []tk.M{
-				{"$match": matches},
+				{"$match": tk.M{"$and": matchesTurbine}},
 				{"$sort": tk.M{"plf": 1}},
 				{"$limit": 1},
 			}
@@ -3557,13 +3568,13 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			}
 
 			if len(lowest) > 0 {
-				result[idx].Set("lowestplf", formatStringFloat(tk.ToString(lowestPlf), 2)+"% ("+lowest[0].GetString("turbine")+")")
+				result[idx].Set("lowestplf", formatStringFloat(tk.ToString(lowestPlf), 2)+"% ("+turbineName[lowest[0].GetString("turbine")]+")")
 			}
 
 			// ---- lowestmachineavail
 
 			pipeSub = []tk.M{
-				{"$match": matches},
+				{"$match": tk.M{"$and": matchesTurbine}},
 				{"$sort": tk.M{"machineavail": 1}},
 				{"$limit": 1},
 			}
@@ -3587,13 +3598,13 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			}
 
 			if len(lowest) > 0 {
-				result[idx].Set("lowestmachineavail", formatStringFloat(tk.ToString(lowestMachineAvail), 2)+"% ("+lowest[0].GetString("turbine")+")")
+				result[idx].Set("lowestmachineavail", formatStringFloat(tk.ToString(lowestMachineAvail), 2)+"% ("+turbineName[lowest[0].GetString("turbine")]+")")
 			}
 
 			// ---- maxlossenergy
 
 			pipeSub = []tk.M{
-				{"$match": matches},
+				{"$match": tk.M{"$and": matchesTurbine}},
 				{"$sort": tk.M{"lostenergy": -1}},
 				{"$limit": 1},
 			}
@@ -3617,7 +3628,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			}
 
 			if len(highest) > 0 {
-				result[idx].Set("maxlossenergy", formatStringFloat(tk.ToString(maxLossEnergy), 2)+" ("+highest[0].GetString("turbine")+")")
+				result[idx].Set("maxlossenergy", formatStringFloat(tk.ToString(maxLossEnergy), 2)+" ("+turbineName[highest[0].GetString("turbine")]+")")
 			}
 		}
 	}
