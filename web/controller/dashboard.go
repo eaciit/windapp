@@ -747,10 +747,16 @@ func (m *DashboardController) GetLossCategories(k *knot.WebContext) interface{} 
 	}
 
 	if !p.IsDetail {
-		lossD, lossF, loss := getLossCategoriesTopDFP(p)
+		var lossD, lossF, loss, dataSeries []tk.M
+		if p.ProjectName != "Fleet" {
+			lossD, lossF, loss = getLossCategoriesTopDFP(p)
+		} else {
+			lossD, lossF, loss, dataSeries = getLossCategoriesTopStack(p)
+		}
 		result.Set("lossCatDuration", lossD)
 		result.Set("lossCatFrequency", lossF)
 		result.Set("lossCatLoss", loss)
+		result.Set("dataseries", dataSeries)
 	}
 	return helper.CreateResult(true, result, "success")
 }
@@ -1689,6 +1695,140 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 // 	return
 // }
 
+func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq, resultPowerLost, dataSeries []tk.M) {
+	var pipes []tk.M
+	var fromDate time.Time
+	match := tk.M{}
+
+	if p.DateStr == "" {
+		fromDate = p.Date.AddDate(0, -12, 0)
+
+		match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+
+		if p.ProjectName != "Fleet" {
+			match.Set("projectname", p.ProjectName)
+		}
+
+		downCause := tk.M{}
+		downCause.Set("griddown", "Grid Down")
+		downCause.Set("machinedown", "Machine Down")
+		downCause.Set("unknown", "Unknown")
+		downDone := []string{}
+
+		projectList := map[string]int{}
+		tmpResultPowerLost := tk.M{}
+		tmpResultFreq := tk.M{}
+		tmpResultDuration := tk.M{}
+		for f, t := range downCause {
+			pipes = []tk.M{}
+			loopMatch := match
+			field := tk.ToString(f)
+			title := tk.ToString(t)
+
+			downDone = append(downDone, field)
+
+			for _, done := range downDone {
+				match.Unset(done)
+			}
+
+			loopMatch.Set(field, true)
+
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			pipes = append(pipes, tk.M{"$match": loopMatch})
+			pipes = append(pipes,
+				tk.M{
+					"$group": tk.M{
+						"_id":       tk.M{"id1": "detail." + field, "id2": title, "project": "$projectname"},
+						"duration":  tk.M{"$sum": "$detail.duration"},
+						"freq":      tk.M{"$sum": 1},
+						"powerlost": tk.M{"$sum": "$detail.powerlost"}},
+				},
+			)
+
+			csr, e := DB().Connection.NewQuery().
+				From(new(Alarm).TableName()).
+				Command("pipe", pipes).
+				Cursor(nil)
+
+			if e != nil {
+				return
+			}
+
+			resLoop := []tk.M{}
+			e = csr.Fetch(&resLoop, 0, false)
+
+			csr.Close()
+
+			keys := ""
+			for _, res := range resLoop {
+				resID, _ := tk.ToM(res["_id"])
+				projectList[resID.GetString("project")] = 1
+				keys = resID.GetString("id1") + "_" + resID.GetString("id2")
+				if tmpResultPowerLost.Has(keys) {
+					currData, _ := tk.ToM(tmpResultPowerLost[keys])
+					currData.Set(resID.GetString("project"), res.GetFloat64("powerlost"))
+					tmpResultPowerLost[keys] = currData
+				} else {
+					tmpResultPowerLost[keys] = tk.M{resID.GetString("project"): res.GetFloat64("powerlost")}
+				}
+				if tmpResultFreq.Has(keys) {
+					currData, _ := tk.ToM(tmpResultFreq[keys])
+					currData.Set(resID.GetString("project"), res.GetInt("freq"))
+					tmpResultFreq[keys] = currData
+				} else {
+					tmpResultFreq[keys] = tk.M{resID.GetString("project"): res.GetInt("freq")}
+				}
+				if tmpResultDuration.Has(keys) {
+					currData, _ := tk.ToM(tmpResultDuration[keys])
+					currData.Set(resID.GetString("project"), res.GetFloat64("duration"))
+					tmpResultDuration[keys] = currData
+				} else {
+					tmpResultDuration[keys] = tk.M{resID.GetString("project"): res.GetFloat64("duration")}
+				}
+			}
+		}
+		for key := range projectList {
+			dataSeries = append(dataSeries, tk.M{
+				"field": key,
+				"name":  key,
+			})
+		}
+
+		ids := []string{}
+		hasil := tk.M{}
+		for key, res := range tmpResultDuration {
+			ids = strings.Split(key, "_")
+			hasil, _ = tk.ToM(res)
+			hasil.Set("_id", tk.M{
+				"id1": ids[0],
+				"id2": ids[1],
+			})
+
+			resultDuration = append(resultDuration, hasil)
+		}
+		for key, res := range tmpResultFreq {
+			ids = strings.Split(key, "_")
+			hasil, _ = tk.ToM(res)
+			hasil.Set("_id", tk.M{
+				"id1": ids[0],
+				"id2": ids[1],
+			})
+			resultFreq = append(resultFreq, hasil)
+		}
+		for key, res := range tmpResultPowerLost {
+			ids = strings.Split(key, "_")
+			hasil, _ = tk.ToM(res)
+			hasil.Set("_id", tk.M{
+				"id1": ids[0],
+				"id2": ids[1],
+			})
+			resultPowerLost = append(resultPowerLost, hasil)
+		}
+	}
+
+	return
+}
+
 func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, resultPowerLost []tk.M) {
 	var pipes []tk.M
 	var fromDate time.Time
@@ -1764,48 +1904,48 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			}
 		}
 
-		size := len(tmpResult)
-		sizeF := len(tmpResultFreq)
-		sizeP := len(tmpResultPower)
+		// size := len(tmpResult)
+		// sizeF := len(tmpResultFreq)
+		// sizeP := len(tmpResultPower)
 
-		if size > 1 {
-			for i := 0; i < size; i++ {
-				for j := size - 1; j >= i+1; j-- {
-					a := tmpResult[j].GetFloat64("duration")
-					b := tmpResult[j-1].GetFloat64("duration")
+		// if size > 1 {
+		// 	for i := 0; i < size; i++ {
+		// 		for j := size - 1; j >= i+1; j-- {
+		// 			a := tmpResult[j].GetFloat64("duration")
+		// 			b := tmpResult[j-1].GetFloat64("duration")
 
-					if a > b {
-						tmpResult[j], tmpResult[j-1] = tmpResult[j-1], tmpResult[j]
-					}
-				}
-			}
-		}
+		// 			if a > b {
+		// 				tmpResult[j], tmpResult[j-1] = tmpResult[j-1], tmpResult[j]
+		// 			}
+		// 		}
+		// 	}
+		// }
 
-		if sizeF > 1 {
-			for i := 0; i < sizeF; i++ {
-				for j := sizeF - 1; j >= i+1; j-- {
-					a := tmpResultFreq[j].GetInt("freq")
-					b := tmpResultFreq[j-1].GetInt("freq")
+		// if sizeF > 1 {
+		// 	for i := 0; i < sizeF; i++ {
+		// 		for j := sizeF - 1; j >= i+1; j-- {
+		// 			a := tmpResultFreq[j].GetInt("freq")
+		// 			b := tmpResultFreq[j-1].GetInt("freq")
 
-					if a > b {
-						tmpResultFreq[j], tmpResultFreq[j-1] = tmpResultFreq[j-1], tmpResultFreq[j]
-					}
-				}
-			}
-		}
+		// 			if a > b {
+		// 				tmpResultFreq[j], tmpResultFreq[j-1] = tmpResultFreq[j-1], tmpResultFreq[j]
+		// 			}
+		// 		}
+		// 	}
+		// }
 
-		if sizeP > 1 {
-			for i := 0; i < size; i++ {
-				for j := size - 1; j >= i+1; j-- {
-					a := tmpResultPower[j].GetFloat64("powerlost")
-					b := tmpResultPower[j-1].GetFloat64("powerlost")
+		// if sizeP > 1 {
+		// 	for i := 0; i < size; i++ {
+		// 		for j := size - 1; j >= i+1; j-- {
+		// 			a := tmpResultPower[j].GetFloat64("powerlost")
+		// 			b := tmpResultPower[j-1].GetFloat64("powerlost")
 
-					if a > b {
-						tmpResultPower[j], tmpResultPower[j-1] = tmpResultPower[j-1], tmpResultPower[j]
-					}
-				}
-			}
-		}
+		// 			if a > b {
+		// 				tmpResultPower[j], tmpResultPower[j-1] = tmpResultPower[j-1], tmpResultPower[j]
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		for _, res := range tmpResult {
 			resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})

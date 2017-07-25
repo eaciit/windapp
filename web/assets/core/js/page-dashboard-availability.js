@@ -87,9 +87,9 @@ avail.loadData = function () {
             }
             avail.LossCategoriesData(res.data);
             if (project == "Fleet") {
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh', res.data.dataseries); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours', res.data.dataseries); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times', res.data.dataseries); /*"#fleetChartTopLossCatFreq"*/
             } else {
                 avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
@@ -164,7 +164,17 @@ avail.refreshChart = function () {
 
 
 
-avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
+avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseries){
+    var isStack = false;
+    var catLossSeries = [{
+            type: "column",
+            field: "result",
+        }];
+    if(id.indexOf("fleet") >= 0) {
+        isStack = true;
+        catLossSeries = dataseries;
+    }
+
     var templateLossCat = ''
     if(measurement == "MWh") {
        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
@@ -196,11 +206,9 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         },
         seriesDefaults: {
             type: "column",
+            stack: isStack,
         },
-        series: [{
-            type: "column",
-            field: "result",
-        }],
+        series: catLossSeries,
         seriesColors: colorField,
         valueAxis: {
             labels: {
