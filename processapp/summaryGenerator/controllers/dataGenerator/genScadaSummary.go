@@ -1504,9 +1504,9 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 
 		id = append(id, vid)
 		group = append(group, vgroup)
-		power = append(power, tk.Div(vpower, dividerPower))
+		power = append(power, tk.Div(vpower*1000, dividerPower))
 		windspeed = append(windspeed, vws)
-		production = append(production, tk.Div(vprod, dividerPower))
+		production = append(production, tk.Div(vprod*1000, dividerPower))
 		plf = append(plf, res.GetFloat64("plf"))
 		totalavail = append(totalavail, res.GetFloat64("totalavailability"))
 		machineavail = append(machineavail, res.GetFloat64("machineavailability"))
