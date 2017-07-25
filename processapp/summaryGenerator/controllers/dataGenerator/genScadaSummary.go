@@ -1107,8 +1107,13 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			}
 
-			csr, e := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName()).
-				Where(dbox.And(filter...)).
+			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
+
+			if len(filter) > 1 {
+				iQuery = iQuery.Where(dbox.And(filter...))
+			}
+
+			csr, e := iQuery.
 				Aggr(dbox.AggrSum, "$powerkw", "totalpower").
 				Aggr(dbox.AggrSum, "$production", "energy").
 				Aggr(dbox.AggrSum, "$lostenergy", "totalenergylost").
@@ -1184,7 +1189,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				item.MachineAvail = res.GetFloat64("machineavailability")
 				item.TrueAvail = res.GetFloat64("totalavailability")
 				item.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
-				item.DowntimeHours = data.GetFloat64("totalenergylost")
+				item.DowntimeHours = imachinedowntime + igriddowntime + iunknowntime
 
 				items = append(items, item)
 			}
