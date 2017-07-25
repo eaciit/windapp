@@ -14,7 +14,7 @@
     </header>    
     <div class="content-wrapper">
       <section class="content-header">
-        <div class="breadcrumb pull-right" data-bind="{visible : (vm.isDashboard() == true) }">
+        <div class="breadcrumb pull-right" data-bind="{visible : (vm.isDashboard() == true && lgd.projectName() !== 'Fleet') }">
           <span class="dashboard-date-info">Data as of : <strong data-bind="text: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy HH:mm')"></strong></span>
         </div>
         <div class="pull-right bread-info" data-bind="{visible : (vm.isDashboard() != true) }">

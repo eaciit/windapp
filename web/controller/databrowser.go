@@ -2,6 +2,7 @@ package controller
 
 import (
 	. "eaciit/wfdemo-git/library/core"
+	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"reflect"
@@ -541,16 +542,25 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 
 	arrmettowercond := []interface{}{}
 
+	config := lh.ReadConfig()
+
+	loc, err := time.LoadLocation(config["ReadTimeLoc"])
+	if err != nil {
+		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
+	}
+
 	for i, val := range results {
 		if val.Has("timestamputc") {
-			itime := val.Get("timestamputc", time.Time{}).(time.Time).UTC()
+			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
+			itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
+				strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
 			arrmettowercond = append(arrmettowercond, itime)
 			val.Set("timestamputc", itime)
 			results[i] = val
 		}
 		if istimestamp {
-			itime := val.Get("timestamp", time.Time{}).(time.Time)
-			val.Set("timestamp", itime.UTC())
+			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
+			val.Set("timestamp", itime)
 			results[i] = val
 		}
 	}

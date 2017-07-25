@@ -713,9 +713,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 		}
 
 		projectList, _ := helper.GetProjectList()
-
 		mapRevenue := map[string]float64{}
-
 		for _, v := range projectList {
 			mapRevenue[v.Value] = v.RevenueMultiplier
 		}
@@ -740,8 +738,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					filter = filter.Set("dateinfo.dateid", tk.M{}.Set("$gte", dt))
 				}
 
-				pipe := []tk.M{}
+				countws := tk.M{"$cond": tk.M{}.
+					Set("if", tk.M{"$ifNull": []interface{}{"$avgwindspeed", false}}).
+					Set("then", 1).
+					Set("else", 0)}
 
+				pipe := []tk.M{}
 				pipe = append(pipe, tk.M{}.Set("$match", filter))
 				pipe = append(pipe, tk.M{}.Set("$group", tk.M{}.
 					Set("_id", tk.M{}.
@@ -758,7 +760,10 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Set("totalts", tk.M{}.Set("$sum", 1)).
 					Set("griddowntime", tk.M{}.Set("$sum", "$griddowntime")).
 					Set("machinedowntime", tk.M{}.Set("$sum", "$machinedowntime")).
-					Set("avgwindspeed", tk.M{}.Set("$avg", "$avgwindspeed"))))
+					Set("avgwindspeed", tk.M{}.Set("$avg", "$avgwindspeed")).
+					Set("sumwindspeed", tk.M{}.Set("$sum", "$avgwindspeed")).
+					Set("countwindspeed", tk.M{}.Set("$sum", countws)).
+					Set("totalrows", tk.M{}.Set("$sum", 1))))
 
 				pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
 
@@ -813,6 +818,11 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
 					dt = dt.New()
 
+					dt.TotalRows = data.GetFloat64("totalrows")
+
+					dt.DetWindSpeed = DetailWindSpeed{SumWindSpeed: data.GetFloat64("sumwindspeed"),
+						CountWindSpeed: data.GetFloat64("countwindspeed")}
+
 					dt.OkTime = oktime
 					dt.TrueAvail = tk.Div(oktime, 144*600)
 					dt.ScadaAvail = tk.Div(float64(totalts), 144.0)
@@ -824,7 +834,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.GridAvail = tk.Div(((600.0 * 144.0) - griddowntime), 144.0*600.0)
 					// ===================================================================
 
-					turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
+					turbineList, _ := helper.GetTurbineList([]interface{}{dt.ProjectName})
 					capacity := 0.0
 
 					for _, v := range turbineList {
@@ -842,8 +852,15 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					sMonthNo := strconv.Itoa(monthId)[4:6]
 					monthNo, _ = strconv.Atoi(sMonthNo)
 
+					pipebudget := []tk.M{
+						tk.M{}.Set("$match", tk.M{}.
+							Set("projectname", project).
+							Set("monthno", monthNo)),
+					}
+
 					csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
-						Where(dbox.And(dbox.Eq("monthno", monthNo), dbox.Eq("projectname", project))).
+						Command("pipe", pipebudget).
+						// Where(dbox.And(dbox.Eq("monthno", monthNo), dbox.Eq("projectname", project))).
 						Cursor(nil)
 
 					budgets := make([]ExpPValueModel, 0)
@@ -1069,6 +1086,296 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 	}
 }
 
+func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseController) {
+	if base != nil {
+
+		d.BaseController = base
+
+		ctx, e := PrepareConnection()
+		if e != nil {
+			ErrorHandler(e, "Scada Summary")
+			os.Exit(0)
+		}
+
+		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
+
+		for _, v := range d.BaseController.ProjectList {
+			var turbineList []TurbineOut
+			projectName := v.Value
+			group := "projectname"
+
+			if projectName != "Fleet" {
+				group = "turbine"
+				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
+			}
+
+			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
+
+			if projectName != "Fleet" {
+				iQuery = iQuery.Where(dbox.Eq("projectname", projectName))
+			}
+
+			csr, e := iQuery.
+				Aggr(dbox.AggrSum, "$powerkw", "totalpower").
+				Aggr(dbox.AggrSum, "$production", "energy").
+				Aggr(dbox.AggrSum, "$lostenergy", "totalenergylost").
+				Aggr(dbox.AggrSum, "$oktime", "totaloktime").
+				// Aggr(dbox.AggrSum, "$minutes", "totalminutes").
+				Aggr(dbox.AggrSum, "$griddownhours", "totalgriddowntime").
+				Aggr(dbox.AggrSum, "$otherdowntimehours", "totalunknowntime").
+				Aggr(dbox.AggrSum, "$machinedownhours", "totalmachinedowntime").
+				// Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
+				Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
+				Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
+				Group(group).
+				Cursor(nil)
+			defer csr.Close()
+
+			_ = e
+
+			datas := []tk.M{}
+			e = csr.Fetch(&datas, 0, false)
+
+			mdl := new(ScadaSummaryByProject).New()
+			mdl.ID = projectName
+
+			items := make([]ScadaSummaryByProjectItem, 0)
+			for _, data := range datas {
+				id := data["_id"].(tk.M)
+				turbine := id[group].(string)
+
+				if projectName == "Fleet" {
+					turbineList, _ = helper.GetTurbineList([]interface{}{turbine})
+				}
+
+				oktime := data.GetFloat64("totaloktime") / 3600 // in hour
+				power := data.GetFloat64("totalpower")          //KW ke MW
+
+				imachinedowntime := data.GetFloat64("totalmachinedowntime")
+				igriddowntime := data.GetFloat64("totalgriddowntime")
+				iunknowntime := data.GetFloat64("totalunknowntime")
+
+				maxDate := data.Get("max", time.Time{}).(time.Time)
+				minDate := data.Get("min", time.Time{}).(time.Time)
+				totalhour := maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+				energy := data.GetFloat64("energy") / 1000 //KWh ke MWh
+
+				noofturbine, capacity := int(0), float64(0)
+				for _, v := range turbineList {
+					if projectName != "Fleet" {
+						if v.Value == turbine {
+							capacity += v.Capacity
+							noofturbine += 1
+						}
+					} else {
+						if v.Project == turbine {
+							capacity += v.Capacity
+							noofturbine += 1
+						}
+					}
+				}
+
+				// tk.Println(">>", noofturbine, oktime, energy, totalhour, capacity)
+
+				in := tk.M{}.Set("noofturbine", noofturbine).Set("oktime", oktime).Set("energy", energy).
+					Set("totalhour", totalhour).Set("totalcapacity", capacity).
+					Set("machinedowntime", imachinedowntime).Set("griddowntime", igriddowntime).Set("otherdowntime", iunknowntime)
+
+				res := helper.CalcAvailabilityAndPLF(in)
+
+				var item ScadaSummaryByProjectItem
+
+				item.Name = turbine
+				item.NoOfWtg = noofturbine
+				item.Production = power / 6
+				item.PLF = res.GetFloat64("plf") / 100
+				item.MachineAvail = res.GetFloat64("machineavailability") / 100
+				item.TrueAvail = res.GetFloat64("totalavailability") / 100
+				item.LostEnergy = data.GetFloat64("totalenergylost")
+				item.DowntimeHours = imachinedowntime + igriddowntime + iunknowntime
+
+				items = append(items, item)
+			}
+
+			mdl.DataItems = items
+
+			d.BaseController.Ctx.Insert(mdl)
+		}
+	}
+}
+
+func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController) {
+	if base != nil {
+		d.BaseController = base
+
+		ctx, e := PrepareConnection()
+		if e != nil {
+			ErrorHandler(e, "Scada Summary")
+			os.Exit(0)
+		}
+
+		projectList, _ := helper.GetProjectList()
+		mapRevenue := map[string]float64{}
+		for _, v := range projectList {
+			mapRevenue[v.Value] = v.RevenueMultiplier
+		}
+
+		inprojectactive := func(str string) bool {
+			for _, v := range projectList {
+				if v.Value == str {
+					return true
+				}
+			}
+			return false
+		}
+
+		mapbudget := map[string]float64{}
+		csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+			Cursor(nil)
+
+		budgets := make([]ExpPValueModel, 0)
+		_ = csrBudget.Fetch(&budgets, 0, false)
+		csrBudget.Close()
+
+		for _, budget := range budgets {
+			mapbudget[tk.Sprintf("%s_%d", budget.ProjectName, budget.MonthNo)] = budget.P75NetGenMWH
+			if inprojectactive(budget.ProjectName) {
+				mapbudget[tk.Sprintf("fleet_%d", budget.MonthNo)] = budget.P75NetGenMWH
+			}
+		}
+
+		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
+
+		for _, v := range d.BaseController.ProjectList {
+			project := v.Value
+
+			group := []string{}
+			if project != "Fleet" {
+				group = []string{"projectname", "dateinfo.monthid"}
+			} else {
+				group = []string{"dateinfo.monthid"}
+			}
+
+			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
+			if project != "Fleet" {
+				iQuery = iQuery.Where(dbox.Eq("projectname", project))
+			}
+			csr, e := iQuery.
+				Aggr(dbox.AggrSum, "$powerkw", "totalpower").
+				Aggr(dbox.AggrSum, "$production", "energy").
+				Aggr(dbox.AggrSum, "$lostenergy", "totalenergylost").
+				Aggr(dbox.AggrSum, "$oktime", "totaloktime").
+				Aggr(dbox.AggrSum, "$griddownhours", "totalgriddowntime").
+				Aggr(dbox.AggrSum, "$otherdowntimehours", "totalunknowntime").
+				Aggr(dbox.AggrSum, "$machinedownhours", "totalmachinedowntime").
+				Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed"). //check if this can happened or not
+				Aggr(dbox.AggrSum, "$detwindspeed.sumwindspeed", "sumwindspeed").
+				Aggr(dbox.AggrSum, "$detwindspeed.countwindspeed", "countwindspeed").
+				Aggr(dbox.AggrSum, "$totalrows", "totalrows").
+				Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
+				Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
+				Group(group...).
+				Cursor(nil)
+			defer csr.Close()
+
+			if e != nil {
+				ErrorHandler(e, "Scada Summary")
+				os.Exit(0)
+			}
+
+			datas := []tk.M{}
+			e = csr.Fetch(&datas, 0, false)
+
+			for _, data := range datas {
+				id := data["_id"].(tk.M)
+				imonthid := id["dateinfo_monthid"].(int)
+				monthid := strconv.Itoa(imonthid)
+				year := monthid[0:4]
+				month := monthid[4:6]
+				day := "01"
+
+				iMonth, _ := strconv.Atoi(string(month))
+				// iMonth = iMonth - 1
+
+				dtStr := year + "-" + month + "-" + day
+				dtId, _ := time.Parse("2006-01-02", dtStr)
+				dtinfo := GetDateInfo(dtId)
+
+				noofturbine := d.BaseController.TotalTurbinePerMonth[project+"_"+monthid]
+				totalcapacity := d.BaseController.CapacityPerMonth[project+"_"+monthid]
+
+				oktime := data.GetFloat64("totaloktime") / 3600 // in hour
+
+				power := data.GetFloat64("totalpower") / 1000 //kW to MW
+				energy := data.GetFloat64("energy") / 1000    // kWh to MWh
+
+				// @CLARIFYTHIS
+				// revenueTimes := 5.74                                 // check this hardcoded
+				revenueTimes := mapRevenue[project]
+				if project == "fleet" {
+					revenueTimes = 5.74 // check this hardcoded
+				}
+
+				revenue := revenueTimes * power * 1000 //MW to kWatt
+				revenueInLacs := revenue / 100000
+
+				maxdate := data.Get("max", time.Time{}).(time.Time)
+				mindate := data.Get("min", time.Time{}).(time.Time)
+
+				totalhour := maxdate.AddDate(0, 0, 1).UTC().Sub(mindate.UTC()).Hours()
+				totalrows := data.GetFloat64("totalrows")
+
+				imachinedowntime := data.GetFloat64("totalmachinedowntime")
+				igriddowntime := data.GetFloat64("totalgriddowntime")
+				iunknowntime := data.GetFloat64("totalunknowntime")
+
+				in := tk.M{}.Set("noofturbine", noofturbine).Set("oktime", oktime).Set("energy", energy).
+					Set("totalhour", totalhour).Set("totalcapacity", totalcapacity).Set("counttimestamp", totalrows).
+					Set("machinedowntime", imachinedowntime).Set("griddowntime", igriddowntime).Set("otherdowntime", iunknowntime)
+
+				res := helper.CalcAvailabilityAndPLF(in)
+
+				budget := mapbudget[tk.Sprintf("%s_%d", project, iMonth)]
+
+				mdl := new(ScadaSummaryByMonth).New()
+				mdl.ProjectName = project
+				mdl.DateInfo = dtinfo
+				mdl.Production = power / 6
+				// mdl.ProductionLastYear = (powerlastyear / divider)
+				mdl.Revenue = revenue
+				mdl.RevenueInLacs = revenueInLacs
+				mdl.TrueAvail = res.GetFloat64("totalavailability")
+				mdl.ScadaAvail = res.GetFloat64("dataavailability")
+				mdl.MachineAvail = res.GetFloat64("machineavailability")
+				mdl.GridAvail = res.GetFloat64("gridavailability")
+				mdl.PLF = res.GetFloat64("plf")
+				mdl.Budget = budget * 1000
+				mdl.AvgWindSpeed = tk.Div(data.GetFloat64("sumwindspeed"), data.GetFloat64("countwindspeed"))
+
+				// @CLARIFYTHIS
+				expwstimes := 0.133
+				randno := tk.RandInt(5)
+				if randno > 3 {
+					expwstimes = -0.125
+				}
+
+				mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * expwstimes)
+				mdl.DowntimeHours = imachinedowntime + iunknowntime + igriddowntime
+				mdl.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
+				mdl.RevenueLoss = (data.GetFloat64("totalenergylost") * revenueTimes)
+
+				if mdl != nil {
+					d.BaseController.Ctx.Insert(mdl)
+				}
+
+			}
+
+		}
+
+	}
+}
+
 func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName string,
 	startDate time.Time, endDate time.Time, groupBy string, totalHour float64, noOfTurbine int, dividerPower float64,
 	pipeMatch tk.M, pipeGroup tk.M, plfDivider float64) tk.M {
@@ -1097,7 +1404,10 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 			Set("oktime", tk.M{}.Set("$sum", "$oktime")).
 			Set("griddowntime", tk.M{}.Set("$sum", "$griddownhours")).
 			Set("machinedowntime", tk.M{}.Set("$sum", "$machinedownhours")).
+			Set("unknowndowntime", tk.M{}.Set("$sum", "$otherdowntimehours")).
 			Set("totaltimestamp", tk.M{}.Set("$sum", 1)).
+			Set("maxdate", tk.M{}.Set("$max", "$dateinfo.dateid")).
+			Set("mindate", tk.M{}.Set("$min", "$dateinfo.dateid")).
 			Set("minutes", tk.M{}.Set("$sum", "$totalminutes")),
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
@@ -1135,7 +1445,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 
 	for _, d := range scadaSums {
 		_id := d.Get("_id").(tk.M)
-		//log.Println(_id)
+
 		vid := "0"
 		if groupBy != "dateinfo.dateid" {
 			vid = strconv.Itoa(_id.GetInt("period"))
@@ -1148,8 +1458,6 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 				if next := endDate.UTC().AddDate(0, 0, 1); next.Before(vdate.UTC().AddDate(0, 1, 0)) {
 					totalHour = next.Sub(vdate.UTC()).Hours()
 				}
-
-				// log.Println(">>", vid, vdate, endDate, totalHour)
 			}
 			if groupBy == "dateinfo.qtrid" {
 				totalHour = float64(GetDaysNoByQuarter(vyearid, vperiodid, endDate)) * 24.0
@@ -1160,22 +1468,26 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 		}
 
 		vgroup := _id.GetString("value")
-		//log.Println(vgroup)
-		vpower := d.GetFloat64("power")
+		vpower := d.GetFloat64("power") / 1000 // kW to MW
 		vws := d.GetFloat64("windspeed")
-		vprod := d.GetFloat64("energy")
-		oktime := d.GetFloat64("oktime")
+		vprod := d.GetFloat64("energy") / 1000  // kWh to MWh
+		oktime := d.GetFloat64("oktime") / 3600 // in hour
 		griddown := d.GetFloat64("griddowntime")
 		machinedown := d.GetFloat64("machinedowntime")
-		sumTimeStamp := d.GetFloat64("totaltimestamp")
-		minutes := d.GetFloat64("minutes") / 60
+		unknowndown := d.GetFloat64("unknowndowntime")
+		// sumTimeStamp := d.GetFloat64("totaltimestamp")
+		// minutes := d.GetFloat64("minutes") / 60
 
 		// vplf := tk.Div(vprod, (totalHour*float64(noOfTurbine)*2100.0)) * 100
 		// vtotalavail := tk.Div(tk.Div(oktime, 3600.0), (totalHour*float64(noOfTurbine))) * 100
 		// vgridavail := tk.Div(((totalHour*float64(noOfTurbine))-griddown), (totalHour*float64(noOfTurbine))) * 100
 		// vmchavail := tk.Div(((totalHour*float64(noOfTurbine))-machinedown), (totalHour*float64(noOfTurbine))) * 100
 
-		vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
+		maxDate := d.Get("maxdate", time.Time{}).(time.Time)
+		minDate := d.Get("mindate", time.Time{}).(time.Time)
+		totalHour := maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+		//vmchavail, vgridavail, _, vtotalavail, vplf := helper.GetAvailAndPLF(float64(noOfTurbine), oktime, vprod/1000, machinedown, griddown, sumTimeStamp, totalHour, minutes, plfDivider)
 
 		// if groupBy == "dateinfo.monthid" || groupBy == "dateinfo.qtrid" {
 		// 	log.Println(vid, "data = ", _id, oktime, totalHour, noOfTurbine, plfDivider, groupBy)
@@ -1184,15 +1496,21 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 		// 	log.Println(vid, "TV = ", vtotalavail)
 		// }
 
+		in := tk.M{}.Set("noofturbine", noOfTurbine).Set("oktime", oktime).Set("energy", vprod).
+			Set("totalhour", totalHour).Set("totalcapacity", plfDivider).
+			Set("machinedowntime", machinedown).Set("griddowntime", griddown).Set("otherdowntime", unknowndown)
+
+		res := helper.CalcAvailabilityAndPLF(in)
+
 		id = append(id, vid)
 		group = append(group, vgroup)
-		power = append(power, tk.Div(vpower, dividerPower))
+		power = append(power, tk.Div(vpower*1000, dividerPower))
 		windspeed = append(windspeed, vws)
-		production = append(production, tk.Div(vprod, dividerPower))
-		plf = append(plf, vplf)
-		totalavail = append(totalavail, vtotalavail)
-		machineavail = append(machineavail, vmchavail)
-		gridavail = append(gridavail, vgridavail)
+		production = append(production, tk.Div(vprod*1000, dividerPower))
+		plf = append(plf, res.GetFloat64("plf"))
+		totalavail = append(totalavail, res.GetFloat64("totalavailability"))
+		machineavail = append(machineavail, res.GetFloat64("machineavailability"))
+		gridavail = append(gridavail, res.GetFloat64("gridavailability"))
 	}
 
 	ret := tk.M{

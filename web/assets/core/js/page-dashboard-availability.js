@@ -87,9 +87,9 @@ avail.loadData = function () {
             }
             avail.LossCategoriesData(res.data);
             if (project == "Fleet") {
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh', res.data.dataseries); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours', res.data.dataseries); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times', res.data.dataseries); /*"#fleetChartTopLossCatFreq"*/
             } else {
                 avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
@@ -164,7 +164,17 @@ avail.refreshChart = function () {
 
 
 
-avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
+avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseries){
+    var isStack = false;
+    var catLossSeries = [{
+            type: "column",
+            field: "result",
+        }];
+    if(id.indexOf("fleet") >= 0) {
+        isStack = true;
+        catLossSeries = dataseries;
+    }
+
     var templateLossCat = ''
     if(measurement == "MWh") {
        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
@@ -196,11 +206,9 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         },
         seriesDefaults: {
             type: "column",
+            stack: isStack,
         },
-        series: [{
-            type: "column",
-            field: "result",
-        }],
+        series: catLossSeries,
         seriesColors: colorField,
         valueAxis: {
             labels: {
@@ -241,6 +249,11 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
                 width: "2px",
             },
         },
+        seriesClick: function (e) {
+            if(id == 'fleetChartTopLossCatEnergyLoss'){
+                avail.toDetailDTLELevel1(e, id);
+            }
+        }
     });
 }
 avail.fleetMachAvail = function (dataSource) {
@@ -1122,7 +1135,7 @@ avail.LossEnergyByType = function (dataSource) {
             majorTickType: "none"
         },
         tooltip: {
-            visible: true,
+            visible: false,
             format: "{0:n1}",
             // template : "#: series.name # for #: category # : #:  kendo.toString(value, 'n0') #",
             sharedTemplate: kendo.template($("#templateDowntimeLostEnergy").html()),
@@ -1783,12 +1796,15 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyByDown(lastDataChartLevel1);
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(tableRequest).done(function(){
-                setTimeout(function(){
-                    app.loading(false);
-                },50);
-            });
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(tableRequest).done(function(){
+            //     setTimeout(function(){
+            //         app.loading(false);
+            //     },50);
+            // });
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         } else if (source == "ddl") {
             projectSelected = $("#projectList").data("kendoDropDownList").value();
             /*set title label*/
@@ -1810,8 +1826,9 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
                 avail.DTLostEnergyByDown(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(chartRequest, tableRequest).done(function(){
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(chartRequest, tableRequest).done(function(){
+            $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
                 },50);
@@ -1842,9 +1859,10 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
             avail.DTLostEnergyByDown(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        var tableRequest = avail.toDetailDTLETTable(param);
+        // var tableRequest = avail.toDetailDTLETTable(param);
 
-        $.when(chartRequest, tableRequest).done(function(){
+        // $.when(chartRequest, tableRequest).done(function(){
+        $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -1923,6 +1941,7 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
 
         app.loading(false);
     });
+
     avail.toDetailDTLETTable(param);
 }
 
@@ -1951,12 +1970,15 @@ avail.toDetailDTLELevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyFleet(lastDataChartLevel1);
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(tableRequest).done(function(){
-                setTimeout(function(){
-                    app.loading(false);
-                },50);
-            });
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(tableRequest).done(function(){
+            //     setTimeout(function(){
+            //         app.loading(false);
+            //     },50);
+            // });
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         } else if (source == "ddl") {
             if (dtType == "") {
                 dtType = "All Types"
@@ -1980,8 +2002,9 @@ avail.toDetailDTLELevel1 = function (e, source) {
                 avail.DTLostEnergyFleet(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(chartRequest, tableRequest).done(function(){
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(chartRequest, tableRequest).done(function(){
+            $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
                 },50);
@@ -2012,9 +2035,10 @@ avail.toDetailDTLELevel1 = function (e, source) {
             avail.DTLostEnergyFleet(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        var tableRequest = avail.toDetailDTLETTable(param);
+        // var tableRequest = avail.toDetailDTLETTable(param);
 
-        $.when(chartRequest, tableRequest).done(function(){
+        // $.when(chartRequest, tableRequest).done(function(){
+        $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -2087,9 +2111,9 @@ avail.toDetailDTLELevel2 = function (e, source) {
 
         app.loading(false);
     });
-    var tableRequest = avail.toDetailDTLETTable(param);
+    // var tableRequest = avail.toDetailDTLETTable(param);
 
-    $.when(chartRequest, tableRequest).done(function(){
+    $.when(chartRequest).done(function(){
         setTimeout(function(){
             app.loading(false);
         },50);

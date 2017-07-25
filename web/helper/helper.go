@@ -839,6 +839,46 @@ func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machin
 	return
 }
 
+//=============================
+//Revision Of GetAvailAndPLF @asp:20170725
+//=============================
+//	Input : noofturbine, oktime, energy, counttimestamp, totalhour, totalcapacity,
+//			machinedowntime, griddowntime, otherdowntime
+//
+//	counttimestamp -> count total data that available (*every data in 10 mins conv)
+//	oktime, totalhour -> in hour
+//	machinedowntime, griddowntime, otherdowntime -> in hour
+//	totalcapacity -> in MWatt
+//  energy -> in MWh
+//
+//	Output : totalavailability, plf, machineavailability, gridavailability, dataavailability
+//=============================
+func CalcAvailabilityAndPLF(in toolkit.M) (res toolkit.M) {
+	res = toolkit.M{}
+	totalhour := in.GetFloat64("totalhour")
+	divider := in.GetFloat64("noofturbine") * totalhour
+
+	plf := toolkit.Div(in.GetFloat64("energy"), (totalhour*in.GetFloat64("totalcapacity"))) * 100
+	res.Set("plf", plf)
+
+	totalavailability := toolkit.Div(in.GetFloat64("oktime"), divider) * 100
+	res.Set("totalavailability", totalavailability)
+
+	gdown, mdown, odown := in.GetFloat64("griddowntime"), in.GetFloat64("machinedowntime"), in.GetFloat64("otherdowntime")
+	mdowndivider := divider - gdown - odown
+
+	machineavailability := toolkit.Div(mdowndivider-mdown, mdowndivider) * 100
+	res.Set("machineavailability", machineavailability)
+
+	gridavailability := toolkit.Div(divider-gdown, divider) * 100
+	res.Set("gridavailability", gridavailability)
+
+	dataavailability := toolkit.Div(in.GetFloat64("counttimestamp")/6, divider) * 100
+	res.Set("dataavailability", dataavailability)
+
+	return
+}
+
 func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
 	min, max, err = hp.GetDataDateAvailable(collectionName, timestampColumn, where, DB().Connection)
 	return
