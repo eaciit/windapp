@@ -7,6 +7,10 @@
 viewModel.availability = {};
 var avail = viewModel.availability;
 var isFleetDetail = false;
+var lastDataChartLevel1 = [];
+var detailDTLostEnergyTxtLevel1 = '';
+var detailDTLETxtForDDLLevel1 = '';
+var detailDTLETxtForDDLLevel2 = '';
 
 avail.isDetailDTLostEnergy = ko.observable(false);
 avail.detailDTLostEnergyTxt = ko.observable();
@@ -27,46 +31,64 @@ avail.loadData = function () {
     }
 
     if (lgd.isAvailability()) {
-        var request = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntime", param, function (res) {
+        var availReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getmachgridavailability", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-
-            avail.fleetMachAvail(res.data.machineAvailability);
-            avail.fleetGridAvail(res.data.gridAvailability);
-            avail.DTLostEnergy(res.data.lostenergy);
             if (project == "Fleet") {
-                avail.DTLEbyType(res.data.lostenergybytype[0]);
-                avail.TopTurbineByLoss(res.data.loss);
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh');
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times');
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours');
-            }else{
-                avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh');
-                avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times');
-                avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours');
+                avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
+            } else {
+                avail.projectMachAvail(res.data.machineAvailability); /*"#projectChartMachAvail"*/
+                avail.projectGridAvail(res.data.gridAvailability); /*"#projectChartGridAvail"*/
             }
-
-            avail.projectMachAvail(res.data.machineAvailability);
-            avail.projectGridAvail(res.data.gridAvailability);
-            avail.LossEnergyByType(res.data.lostenergy)
-            avail.DTLoss(res.data.loss);
-            avail.DTDuration(res.data.duration);
-            avail.DTFrequency(res.data.frequency);
-            
-            if (project == "Fleet"){
-                avail.DTTurbines();
-            }            
-
-            if (avail.mdTypeList.length == 0) {
-                avail.getMDTypeList();
-            }
-
-            // app.loading(false);
-            // avail.refreshChart();S
         });
-
-        $.when(request).done(function(){
+        var lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                if (res.data.lostenergybytype != null) {
+                   avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
+                }
+                if (res.data.lostenergy != null) {
+                    avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
+                }
+                avail.DTTurbines();
+            } else {
+                avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
+            }
+        });
+        var downtimeTopReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimetop", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.TopTurbineByLoss(res.data.loss); /*"#fleetChartTopTurbineLoss"*/
+            } else {
+                avail.DTLoss(res.data.loss); /*#"projectChartTopTurbineLosses"*/
+                avail.DTDuration(res.data.duration); /*#"projectChartDTDuration"*/
+                avail.DTFrequency(res.data.frequency); /*#"projectChartDTFrequency"*/
+            }
+        });
+        var lossCatReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlosscategories", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (project == "Fleet") {
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
+            } else {
+                avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
+                avail.TLossCat('projectChartTopLossCatFreq',false, res.data.lossCatFrequency, 'Times'); /*#"projectChartTopLossCatFreq"*/
+            }
+        });
+        if (avail.mdTypeList.length == 0) {
+            avail.getMDTypeList();
+        }
+        $.when(availReq, lostEnergyReq, downtimeTopReq, lossCatReq).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },300)
@@ -77,23 +99,52 @@ avail.loadData = function () {
 avail.refreshChart = function () {
     if(lgd.isAvailability() == true){
         if($("#projectId").data("kendoDropDownList").value() == 'Fleet'){
-            $("#fleetChartMachAvail").data("kendoChart").refresh();
-            $("#fleetChartGridAvail").data("kendoChart").refresh();
-            $("#fleetChartTopTurbineLoss").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatEnergyLoss").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatFreq").data("kendoChart").refresh();
-            $("#fleetChartTopLossCatDuration").data("kendoChart").refresh();
-            $("#chartDTLostEnergy").data("kendoChart").refresh();
-            $("#chartDTLEbyType").data("kendoChart").refresh();
+            if($("#fleetChartMachAvail").data("kendoChart") != undefined) {
+                $("#fleetChartMachAvail").data("kendoChart").refresh();
+            }
+            if($("#fleetChartGridAvail").data("kendoChart") != undefined) {
+                $("#fleetChartGridAvail").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopTurbineLoss").data("kendoChart") != undefined) {
+                $("#fleetChartTopTurbineLoss").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatEnergyLoss").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatEnergyLoss").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatFreq").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatFreq").data("kendoChart").refresh();
+            }
+            if($("#fleetChartTopLossCatDuration").data("kendoChart") != undefined) {
+                $("#fleetChartTopLossCatDuration").data("kendoChart").refresh();
+            }
+            if($("#chartDTLostEnergy").data("kendoChart") != undefined) {
+                $("#chartDTLostEnergy").data("kendoChart").refresh();
+            }
+            if($("#chartDTLEbyType").data("kendoChart") != undefined) {
+                $("#chartDTLEbyType").data("kendoChart").refresh();
+            }
         }else{
-            $("#projectChartMachAvail").data("kendoChart").refresh();
-            $("#projectChartGridAvail").data("kendoChart").refresh();
-            $("#projectChartDTDuration").data("kendoChart").refresh();
-            $("#projectChartDTFrequency").data("kendoChart").refresh();
-            $("#projectChartTopLossCatEnergyLoss").data("kendoChart").refresh();
-            $("#projectChartTopLossCatFreq").data("kendoChart").refresh();
-            $("#projectChartTopLossCatDuration").data("kendoChart").refresh();
-
+            if($("#projectChartMachAvail").data("kendoChart") != undefined) {
+                $("#projectChartMachAvail").data("kendoChart").refresh();
+            }
+            if($("#projectChartGridAvail").data("kendoChart") != undefined) {
+                $("#projectChartGridAvail").data("kendoChart").refresh();
+            }
+            if($("#projectChartDTDuration").data("kendoChart") != undefined) {
+                $("#projectChartDTDuration").data("kendoChart").refresh();
+            }
+            if($("#projectChartDTFrequency").data("kendoChart") != undefined) {
+                $("#projectChartDTFrequency").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatEnergyLoss").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatEnergyLoss").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatFreq").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatFreq").data("kendoChart").refresh();
+            }
+            if($("#projectChartTopLossCatDuration").data("kendoChart") != undefined) {
+                $("#projectChartTopLossCatDuration").data("kendoChart").refresh();
+            }
         }
     }else{
         return;
@@ -103,6 +154,14 @@ avail.refreshChart = function () {
 
 
 avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
+    var templateLossCat = ''
+    if(measurement == "MWh") {
+       templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
+    } else if(measurement == "Hours") {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n1')# " + measurement
+    } else {
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
+    }
 
     $('#'+id).html("");
     $('#'+id).kendoChart({
@@ -115,7 +174,10 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         },
         legend: {
             position: "top",
-            visible: true
+            visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -127,11 +189,12 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
             type: "column",
             field: "result",
         }],
-        seriesColor: colorField,
+        seriesColors: colorField,
         valueAxis: {
             labels: {
                 step: 2,
-                template: (byTotalLostenergy == true) ? "#= value / 1000 #" : "#= value#"
+                template: (byTotalLostenergy == true) ? "#= value / 1000 #" : "#= value#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -146,6 +209,9 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         },
         categoryAxis: {
             field: "_id.id2",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             majorGridLines: {
                 visible: false
             },
@@ -154,7 +220,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         tooltip: {
             visible: true,
             format: "{0:n1}",
-            template: (byTotalLostenergy == true) ? "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# "+measurement : "<b>#: category # :</b> #: kendo.toString(value, 'n1')# "+measurement,
+            template: templateLossCat,
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -179,6 +245,9 @@ avail.fleetMachAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -191,14 +260,14 @@ avail.fleetMachAvail = function (dataSource) {
             type: "column",
             field: "result",
             // opacity : 0.7,
-            stacked: true
+            stacked: false
         }],
         seriesColors: colorField,
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
-                // format: "{0:p0}",
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             line: {
                 visible: false
@@ -215,13 +284,14 @@ avail.fleetMachAvail = function (dataSource) {
             majorGridLines: {
                 visible: false
             },
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
             labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 template: '#=  value.substring(0,3) #'
             },
             majorTickType: "none"
+            /*labels:{
+                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
+            },*/
         },
         tooltip: {
             visible: true,
@@ -254,6 +324,9 @@ avail.fleetGridAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -266,14 +339,14 @@ avail.fleetGridAvail = function (dataSource) {
             type: "column",
             field: "result",
             // opacity : 0.7,
-            stacked: true
+            stacked: false
         }],
         seriesColors: colorField,
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
-                // format: "{0:p1}",
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             line: {
                 visible: false
@@ -290,13 +363,14 @@ avail.fleetGridAvail = function (dataSource) {
             majorGridLines: {
                 visible: false
             },
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
             labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 template: '#=  value.substring(0,3) #'
             },
             majorTickType: "none"
+            /*labels:{
+                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
+            },*/
         },
         tooltip: {
             visible: true,
@@ -329,13 +403,16 @@ avail.DTLEbyType = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
         },
         seriesDefaults: {
             type: "column",
-            stack: true
+            stacked: true
         },
         series: [{
             type: "column",
@@ -366,11 +443,12 @@ avail.DTLEbyType = function (dataSource) {
                 visible: false
             }
         }],
-        seriesColor: colorField,
+        seriesColors: colorField,
         valueAxis: [{
             name: "PowerLost",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -404,7 +482,8 @@ avail.DTLEbyType = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -429,7 +508,7 @@ avail.DTLEbyType = function (dataSource) {
         //   $("#chartDTLEbyTypeCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, false, "chartbytype");
+            avail.toDetailDTLELevel1(e, "chartbytype");
         }
     });
     // $("#chartDTLEbyType").mouseleave(function(e){
@@ -451,6 +530,9 @@ avail.DTLostEnergy = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -463,12 +545,13 @@ avail.DTLostEnergy = function (dataSource) {
             type: "column",
             field: "result",
             // opacity : 0.7,
-            stacked: true
+            stacked: false
         }],
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -489,7 +572,8 @@ avail.DTLostEnergy = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -515,7 +599,7 @@ avail.DTLostEnergy = function (dataSource) {
         //   $("#chartDTLostEnergyCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, false, "chart");
+            avail.toDetailLossEnergyLevel1(e, "chart");
         }
     });
     //  $("#chartDTLostEnergy").mouseleave(function(e){
@@ -538,6 +622,9 @@ avail.TopTurbineByLoss = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -547,25 +634,32 @@ avail.TopTurbineByLoss = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -580,6 +674,7 @@ avail.TopTurbineByLoss = function (dataSource) {
             labels: {
                 step: 2,
                 template: "#: kendo.toString(value/1000, 'n0') #",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -597,7 +692,8 @@ avail.TopTurbineByLoss = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -620,8 +716,7 @@ avail.TopTurbineByLoss = function (dataSource) {
     });
 }
 
-avail.DTLostEnergyManeh = function (dataSource) {
-    avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months");
+avail.DTLostEnergyFleet = function (dataSource) {
     $("#chartDTLostEnergyDetail").kendoChart({
         dataSource: {
             data: dataSource,
@@ -635,6 +730,9 @@ avail.DTLostEnergyManeh = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -652,7 +750,8 @@ avail.DTLostEnergyManeh = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -673,7 +772,8 @@ avail.DTLostEnergyManeh = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -699,7 +799,7 @@ avail.DTLostEnergyManeh = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailDTLELevel2(e, "chart");
         }
     });
     // $("#chartDTLostEnergyDetail").mouseleave(function(e){
@@ -725,6 +825,9 @@ avail.DTLostEnergyByDown = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -740,7 +843,8 @@ avail.DTLostEnergyByDown = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -757,6 +861,9 @@ avail.DTLostEnergyByDown = function (dataSource) {
             majorGridLines: {
                 visible: false
             },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             majorTickType: "none"
         },
         tooltip: {
@@ -772,7 +879,7 @@ avail.DTLostEnergyByDown = function (dataSource) {
             },
         },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailLossEnergyLevel2(e, "chart");
         }
     });
 
@@ -795,6 +902,9 @@ avail.projectMachAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -813,7 +923,8 @@ avail.projectMachAvail = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
             },
             line: {
@@ -835,7 +946,8 @@ avail.projectMachAvail = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -870,6 +982,9 @@ avail.projectGridAvail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 195
@@ -888,7 +1003,8 @@ avail.projectGridAvail = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                template: '#=  value * 100 #'
+                template: '#=  value * 100 #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
             },
             line: {
@@ -910,7 +1026,8 @@ avail.projectGridAvail = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -946,6 +1063,9 @@ avail.LossEnergyByType = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -963,7 +1083,8 @@ avail.LossEnergyByType = function (dataSource) {
         seriesColors: colorField,
         valueAxis: {
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -984,7 +1105,8 @@ avail.LossEnergyByType = function (dataSource) {
                 template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
             },*/
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1010,7 +1132,7 @@ avail.LossEnergyByType = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
-            avail.toDetailDTLostEnergy(e, true, "chart");
+            avail.toDetailLossEnergyLevel2(e, "chart")
         }
     });
 
@@ -1034,6 +1156,9 @@ avail.DTDuration = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1043,25 +1168,32 @@ avail.DTDuration = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -1074,7 +1206,8 @@ avail.DTDuration = function (dataSource) {
                 visible: false
             },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1092,7 +1225,8 @@ avail.DTDuration = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1130,6 +1264,9 @@ avail.DTLoss = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1139,25 +1276,32 @@ avail.DTLoss = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -1172,6 +1316,7 @@ avail.DTLoss = function (dataSource) {
             labels: {
                 step: 2,
                 template: "#: kendo.toString(value/1000, 'n0') #",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1189,7 +1334,8 @@ avail.DTLoss = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1226,6 +1372,9 @@ avail.DTFrequency = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160
@@ -1235,25 +1384,32 @@ avail.DTFrequency = function (dataSource) {
             stack: true,
             // opacity : 0.7
         },
-        series: [{
-            field: "AEBOK",
-            name: "AEBOK"
-        }, {
-            field: "ExternalStop",
-            name: "External Stop"
-        }, {
+        series: [
+        // {
+        //     field: "AEBOK",
+        //     name: "AEBOK"
+        // }, 
+        // {
+        //     field: "ExternalStop",
+        //     name: "External Stop"
+        // }, 
+        {
             field: "GridDown",
             name: "Grid Down"
-        }, {
-            field: "InternalGrid",
-            name: "InternalGrid"
-        }, {
+        }, 
+        // {
+        //     field: "InternalGrid",
+        //     name: "InternalGrid"
+        // }, 
+        {
             field: "MachineDown",
             name: "Machine Down"
-        }, {
-            field: "WeatherStop",
-            name: "Weather Stop"
-        }, {
+        }, 
+        // {
+        //     field: "WeatherStop",
+        //     name: "Weather Stop"
+        // }, 
+        {
             field: "Unknown",
             name: "Unknown"
         }],
@@ -1266,7 +1422,8 @@ avail.DTFrequency = function (dataSource) {
             },
             name: "result",
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -1285,7 +1442,8 @@ avail.DTFrequency = function (dataSource) {
                 visible: false
             },
             labels: {
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -1321,6 +1479,9 @@ avail.DTLostEnergyDetail = function (dataSource) {
         legend: {
             position: "top",
             visible: true,
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         series: [{
             type: "column",
@@ -1342,7 +1503,8 @@ avail.DTLostEnergyDetail = function (dataSource) {
             name: "EnergyLost",
             title: { visible: false },
             labels: {
-                step: 2
+                step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
 
             line: {
@@ -1366,7 +1528,8 @@ avail.DTLostEnergyDetail = function (dataSource) {
             },
             labels: {
                 // template: '#=  value.substring(0,3) #'
-                rotation: -330
+                rotation: -330,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none",
             axisCrossingValues: [0, 30],
@@ -1424,6 +1587,9 @@ avail.DTTopDetail = function (turbine, type) {
             legend: {
                 position: "top",
                 visible: false,
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             chartArea: {
                 height: 160
@@ -1445,7 +1611,8 @@ avail.DTTopDetail = function (turbine, type) {
                 //majorUnit: 100,
                 labels: {
                     step: 2,
-                    template: (type == 'MWh' ? "#:  kendo.toString(value/1000, 'n0') #" : "#:  kendo.toString(value, 'n0') #")
+                    template: (type == 'MWh' ? "#:  kendo.toString(value/1000, 'n0') #" : "#:  kendo.toString(value, 'n0') #"),
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
                     visible: false
@@ -1463,7 +1630,8 @@ avail.DTTopDetail = function (turbine, type) {
                     visible: false
                 },
                 labels: {
-                    template: '#=  value.substring(0,3) #'
+                    template: '#=  value.substring(0,3) #',
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorTickType: "none"
             },
@@ -1559,7 +1727,7 @@ avail.DTTurbines = function () {
             return;
         }
 
-        if (res.data.length == 0){
+        if (res.data == null){
             $("#dtturbines").html("<center><h2>NONE</h2></center>");
         }else{
             $.each(res.data, function (idx, val) {
@@ -1580,8 +1748,100 @@ avail.DTTurbines = function () {
     });
 }
 
+avail.toDetailLossEnergyLevel1 = function (e, source) {
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isAvailability(false);
+    avail.isDetailDTLostEnergy(true);
 
-avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
+    var param = {}; /*buat parameter tabel*/
+    var paramChart = {}; /*buat parameter chart*/
+    var method = "getdowntimefleetbydown"; /*nama controller untuk generate chart*/
+
+    $(".show_hide_downtime").hide();
+    $(".show_hide_project").show();
+
+    if (source == "button" || source == "ddl") {
+        if (source == "button") {
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLostEnergyTxtLevel1);
+
+            /*set parameter for table*/
+            param = lastParam;
+            $("#projectList").data("kendoDropDownList").value(param.Type);
+
+            /*create chart & table*/
+            avail.DTLostEnergyByDown(lastDataChartLevel1);
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
+            });
+        } else if (source == "ddl") {
+            projectSelected = $("#projectList").data("kendoDropDownList").value();
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel1 + projectSelected);
+            detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
+
+            /*set parameter for chart and table*/
+            param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
+            paramChart = { ProjectName: projectSelected, DateStr: lastParamChart.DateStr, Type: dtType , IsDetail: true };
+            lastParam = param;
+            lastParamChart = paramChart;                
+
+            /*create chart & table*/
+            var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+
+                avail.DTLostEnergyByDown(res.data.lostenergy);
+                lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+            });
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(chartRequest, tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
+            });            
+        }
+    } else {
+        monthDetailDT = e.category;
+        $("#projectList").data("kendoDropDownList").value(e.series.name);
+        $("#mdTypeListFleet").data("kendoDropDownList").value(0); /*karena yang di select ada project maka by default 'All Types'*/
+        projectSelected = $("#projectList").data("kendoDropDownList").value();
+
+        /*set title label*/
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + e.series.name);
+        detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
+        detailDTLETxtForDDLLevel1 = "Lost Energy for " + monthDetailDT + " - "; /*digunakan ketika ingin ganti2 title via ddl */
+
+        /*set parameter for chart and table*/
+        paramChart = { ProjectName: projectSelected, DateStr: monthDetailDT, IsDetail: true };
+        param = { ProjectName: projectSelected, DateStr: monthDetailDT };            
+        lastParam = param;
+        lastParamChart = paramChart;
+
+        /*create chart & table*/
+        var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            avail.DTLostEnergyByDown(res.data.lostenergy);
+            lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+        });
+        var tableRequest = avail.toDetailDTLETTable(param);
+
+        $.when(chartRequest, tableRequest).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },50);
+        });
+    }
+}
+
+avail.toDetailLossEnergyLevel2 = function (e, source) {
     app.loading(true);
     vm.isDashboard(false);
     lgd.isAvailability(false);
@@ -1589,146 +1849,243 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
 
     var project = $("#projectId").data("kendoDropDownList").value();
     var dateStr = '';
-    var type = '';
-    var param = {};
-    var paramChart = {};
-    var method = "getdowntime";
+    var param = {};/*param grid & param chart is similar*/
 
-    if (source == "chart" || source == "chartbytype") {
-        monthDetailDT = e.category;
-        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + e.series.name);
-
-        if (source == "chart") {
-            dateStr = e.category;
-        }
-        type = e.series.name;
-    } else if (source == "button") {
-        avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months - " + lastParam.Type);
+    $(".show_hide_downtime").show();
+    $(".show_hide_project").hide();
+    if (project == "Fleet") {
+        isFleetDetail = true;
     }
-    if (project == "Fleet" && isDetailFleet == false) { /*by type level 1*/
-        $(".show_hide_downtime").hide();
-        $(".show_hide_project").show();
 
-        if (source == "button" || source == "ddl") {
-            if (source == "button") {
-                if (avail.LEFleetByDown() == true) {
-                    method = "getdowntimefleetbydown";
-                }
+    if(source != "ddl") { /*karena kalo dari ddl, nilai variabel 'e' adalah null, tidak ada button karena level 2*/
+        monthDetailDT = e.category;
+        dateStr = e.category;
+    }
 
-                param = lastParam;
-                paramChart = lastParamChart;
-                $("#projectList").data("kendoDropDownList").value(param.Type);
-            } else if (source == "ddl") {
-                if (avail.LEFleetByDown() == true) {
-                    method = "getdowntimefleetbydown";
-                    paramChart = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType , IsDetail: true };
-                } else {
-                    if (dtType == "") {
-                        dtType = "All Types"
-                    }
-                    paramChart = { ProjectName: projectSelected, Date: lastParamChart.Date, Type: dtType , IsDetail: true };
-                }
+    if (source == "chart") {
+        if(projectSelected == "") { /*jika non fleet karena tidak melalui level 1*/
+            projectSelected = project;
+        }
+        dtType = e.series.name;
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType + " (" + projectSelected + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
+    } else if (source == "ddl") {
+        var ddlVal = dtType;
+        if (ddlVal == "") {
+            ddlVal = "All Types";
+        }
+        avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel2 + ddlVal + " (" + projectSelected + ")");
+    } else if (source == "chartperproject") {
+        dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
+        projectSelected = e.series.name;
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType + " (" + projectSelected + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
+    }
 
-                param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
-                lastParam = param;
-                lastParamChart = paramChart;
-            }
-            toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
+    if (project == "Fleet") {
+        if (source == "chart") {
+            param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: dtType };
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        } else if (source == "ddl") {
+            param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParamChart.DateStr, Type: dtType };
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        }
+    } else {
+        if (source == "chart") {
+            param = { ProjectName: project, DateStr: dateStr, Type: dtType };
+            lastParamLevel2 = param; /*butuh last param karena tidak berasal dari level 1 melainkan langsung ke level 2*/
+            avail.LEFleetByDown(true); /*numpang variabel biar pas ganti ddl bisa balik lagi ke fungsi ini*/
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        } else if (source == "ddl") {
+            param = { ProjectName: project, DateStr: lastParamLevel2.DateStr, Type: dtType };
+            $("#mdTypeList").data("kendoDropDownList").value(dtType);
+        }
+    }
 
-                if (method == "getdowntimefleetbydown") {
-                    avail.DTLostEnergyByDown(res.data.lostenergy);
-                } else {
-                    avail.DTLostEnergyManeh(res.data.lostenergy);
-                }
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
 
-                app.loading(false);
-                avail.setDownTimeSeriesCheck();
+        var dataSource = res.data;
+        avail.DTLostEnergyDetail(dataSource);
+
+        app.loading(false);
+    });
+    avail.toDetailDTLETTable(param);
+}
+
+avail.toDetailDTLELevel1 = function (e, source) {
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isAvailability(false);
+    avail.isDetailDTLostEnergy(true);
+
+    var param = {}; /*buat parameter tabel*/
+    var paramChart = {}; /*buat parameter chart*/
+    var method = "getdowntime"; /*nama controller untuk generate chart*/
+
+    $(".show_hide_downtime").hide();
+    $(".show_hide_project").show();
+
+    if (source == "button" || source == "ddl") {
+        if (source == "button") {
+            $("#projectList").data("kendoDropDownList").value(projectSelected);
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLostEnergyTxtLevel1);
+
+            /*set parameter for table*/
+            param = lastParam;
+            param.DateStr = "fleet date";
+
+            /*create chart & table*/
+            avail.DTLostEnergyFleet(lastDataChartLevel1);
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
             });
-        } else {
-            $("#projectList").data("kendoDropDownList").select(0);
-            projectSelected = $("#projectList").data("kendoDropDownList").value();
-
-            if (source == "chart") {
-                $("#mdTypeListFleet").data("kendoDropDownList").value(0);
-                paramChart = { ProjectName: projectSelected, DateStr: e.category, IsDetail: true };
-                param = { ProjectName: projectSelected, DateStr: e.category };
-
-                method = "getdowntimefleetbydown";
-            } else {
-                $("#mdTypeListFleet").data("kendoDropDownList").value(e.category);
-                paramChart = { ProjectName: projectSelected, Date: maxdate, Type: e.category, IsDetail: true };
-                param = { ProjectName: projectSelected, DateStr: "fleet date", Type: e.category };
+        } else if (source == "ddl") {
+            if (dtType == "") {
+                dtType = "All Types"
             }
+            projectSelected = $("#projectList").data("kendoDropDownList").value();
+            /*set title label*/
+            avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel1 + dtType);
+            detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
 
+            /*set parameter for chart and table*/
+            paramChart = { ProjectName: projectSelected, Date: lastParamChart.Date, Type: dtType , IsDetail: true };
+            param = { ProjectName: projectSelected, DateStr: lastParam.DateStr, Type: dtType };
             lastParam = param;
             lastParamChart = paramChart;
 
-            toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
+            /*create chart & table*/
+            var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
-
-                if (method == "getdowntimefleetbydown") {
-                    avail.DTLostEnergyByDown(res.data.lostenergy);
-                } else {
-                    avail.DTLostEnergyManeh(res.data.lostenergy);
-                }
-
-                avail.FleetDTLEDownType = e.category;
-                avail.setDownTimeSeriesCheck();
-                app.loading(false);
+                avail.DTLostEnergyFleet(res.data.lostenergy);
+                lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+            });
+            var tableRequest = avail.toDetailDTLETTable(param);
+            $.when(chartRequest, tableRequest).done(function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },50);
             });
         }
-    } else { /*bagian detail (level 2)*/
-        $(".show_hide_downtime").show();
-        $(".show_hide_project").hide();
-        $("#projectList").data("kendoDropDownList").value(projectSelected);
-        if (project == "Fleet" && isDetailFleet == true) {
-            isFleetDetail = true;
-        }
+    } else { /*chart*/
+        monthDetailDT = e.category;
+        $("#projectList").data("kendoDropDownList").select(0);
+        $("#mdTypeListFleet").data("kendoDropDownList").value(monthDetailDT);
+        projectSelected = $("#projectList").data("kendoDropDownList").value();
 
-        // dtType = $("#mdTypeList").data("kendoDropDownList").value();
+        /*set title label*/
+        avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months - " + monthDetailDT);
+        detailDTLostEnergyTxtLevel1 = avail.detailDTLostEnergyTxt(); /*digunakan ketika tombol back dari level 2 ditekan*/
+        detailDTLETxtForDDLLevel1 = "Lost Energy for Last 12 months - "; /*digunakan ketika ingin ganti2 title via ddl */
 
-        if (dtType == "All Types") {
-            dtType = "";
-        }
+        /*set parameter for chart and table*/
+        paramChart = { ProjectName: projectSelected, Date: maxdate, Type: monthDetailDT, IsDetail: true };
+        param = { ProjectName: projectSelected, DateStr: "fleet date", Type: monthDetailDT };
+        lastParam = param;
+        lastParamChart = paramChart;
 
-        if (project == "Fleet") {
-            if (source == "chart") {
-                param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: type };
-                lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(type);
-            } else if (source == "ddl") {
-                param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParam.DateStr, Type: dtType };
-                $("#mdTypeList").data("kendoDropDownList").value(dtType);
-            }
-        } else {
-            if (source == "chart") {
-                param = { ProjectName: project, DateStr: dateStr, Type: type };
-                lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(type);
-            } else if (source == "ddl") {
-                param = { ProjectName: project, DateStr: lastParam.DateStr, Type: dtType };
-                lastParam = param;
-                $("#mdTypeList").data("kendoDropDownList").value(dtType);
-            }
-        }
-
-        toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
+        /*create chart & table*/
+        var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/" + method, paramChart, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
+            avail.DTLostEnergyFleet(res.data.lostenergy);
+            lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
+        });
+        var tableRequest = avail.toDetailDTLETTable(param);
 
-            var dataSource = res.data;
-            avail.DTLostEnergyDetail(dataSource);
-
-            app.loading(false);
+        $.when(chartRequest, tableRequest).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         });
     }
+}
 
+avail.toDetailDTLELevel2 = function (e, source) {
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isAvailability(false);
+    avail.isDetailDTLostEnergy(true);
+
+    var dateStr = '';
+    var param = {};
+    var paramChart = {};
+
+    $(".show_hide_downtime").show();
+    $(".show_hide_project").hide();
+    isFleetDetail = true;
+
+    if(source != "ddl") { /*karena kalo dari ddl, nilai variabel 'e' adalah null*/
+        monthDetailDT = e.category;
+        dateStr = e.category;
+    }
+    
+    if (source == "chart") {
+        dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
+        /*set title label*/
+        
+        var ddlVal = dtType;
+        if(projectSelected == "Fleet") {
+            projectSelectedLevel2 = e.series.name;
+            if (ddlVal == "") {
+                ddlVal = "All Types";
+            }
+        } else {
+            projectSelectedLevel2 = projectSelected
+            ddlVal = e.series.name;
+            dtType = ddlVal;
+        }
+        avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + ddlVal + " (" + projectSelectedLevel2 + ")");
+        detailDTLETxtForDDLLevel2 = "Lost Energy for " + monthDetailDT + " - ";
+
+        $("#mdTypeList").data("kendoDropDownList").value(dtType);
+
+        /*set param chart & table*/
+        param = { ProjectName: lastParamChart.ProjectName, DateStr: dateStr, Type: dtType };
+        lastParam = param;
+    } else if (source == "ddl") {
+        var ddlVal = dtType;
+        if (ddlVal == "") {
+            ddlVal = "All Types";
+        }
+        /*set label*/
+        avail.detailDTLostEnergyTxt(detailDTLETxtForDDLLevel2 + ddlVal + " (" + projectSelectedLevel2 + ")");
+
+        param = { ProjectName: lastParamChart.ProjectName, DateStr: lastParam.DateStr, Type: dtType };
+        $("#mdTypeList").data("kendoDropDownList").value(dtType);
+    }
+
+    /*create chart & table*/
+    var chartRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimelostenergydetail", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var dataSource = res.data;
+        avail.DTLostEnergyDetail(dataSource);
+
+        app.loading(false);
+    });
+    var tableRequest = avail.toDetailDTLETTable(param);
+
+    $.when(chartRequest, tableRequest).done(function(){
+        setTimeout(function(){
+            app.loading(false);
+        },50);
+    });
+}
+
+avail.toDetailDTLETTable = function(param) {
     $('#gridDTLostEnergyDetail').html("");
     $('#gridDTLostEnergyDetail').kendoGrid({
         dataSource: {
@@ -1774,19 +2131,19 @@ avail.toDetailDTLostEnergy = function (e, isDetailFleet, source) {
         },
         //resizable: true,
         columns: [
-            { title: "Date", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
+            { title: "Date", field: "detail.StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
             { title: "Turbine", field: "Turbine", width: 90, attributes: { style: "text-align:center;" } },
-            { title: "Start Time", field: "StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 75, attributes: { style: "text-align:center;" } },
+            { title: "Start Time", field: "detail.StartDate", template: "#= kendo.toString(moment.utc(StartDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 75, attributes: { style: "text-align:center;" } },
             { title: "End Date", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('DD-MMM-YYYY'), 'dd-MMM-yyyy') #", width: 80 },
             { title: "End Time", field: "EndDate", template: "#= kendo.toString(moment.utc(EndDate).format('HH:mm:ss'), 'HH:mm:ss') #", width: 70, attributes: { style: "text-align:center;" } },
             { title: "Alert Description", field: "AlertDescription", width: 200 },
-            { title: "External Stop", field: "ExternalStop", width: 80, sortable: false, template: '# if (ExternalStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "External Stop", field: "ExternalStop", width: 80, sortable: false, template: '# if (ExternalStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             { title: "Grid Down", field: "GridDown", width: 80, sortable: false, template: '# if (GridDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            { title: "Internal Grid", field: "InternalGrid", width: 80, sortable: false, template: '# if (InternalGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "Internal Grid", field: "InternalGrid", width: 80, sortable: false, template: '# if (InternalGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             { title: "Machine Down", field: "MachineDown", width: 80, sortable: false, template: '# if (MachineDown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            { title: "AEbOK", field: "AEbOK", width: 80, sortable: false, template: '# if (AEbOK == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "AEbOK", field: "AEbOK", width: 80, sortable: false, template: '# if (AEbOK == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
             { title: "Unknown", field: "Unknown", width: 80, sortable: false, template: '# if (Unknown == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
-            { title: "Weather Stop", field: "WeatherStop", width: 80, sortable: false, template: '# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
+            // { title: "Weather Stop", field: "WeatherStop", width: 80, sortable: false, template: '# if (WeatherStop == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#', headerAttributes: { style: "text-align: center" }, attributes: { style: "text-align:center;" } },
         ]
     });
 }
@@ -1869,26 +2226,32 @@ avail.getMDTypeList = function () {
     });
 };
 
-avail.getDetailDT = function () {
+avail.getDetailDT = function () { /*ddl change in level 2*/
     if (!lgd.isFirst()) {
         dtType = $("#mdTypeList").data("kendoDropDownList").value();
 
-        if (dtType == "") {
-            avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - All Type");
+        // if (dtType == "") {
+        //     avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - All Types");
+        // } else {
+        //     avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType);
+        // }
+        if (avail.LEFleetByDown()) {
+            avail.toDetailLossEnergyLevel2(null, "ddl");
         } else {
-            avail.detailDTLostEnergyTxt("Lost Energy for " + monthDetailDT + " - " + dtType);
+            avail.toDetailDTLELevel2(null, "ddl");
         }
-
-        avail.toDetailDTLostEnergy(null, true, "ddl");
     }
 }
 
-avail.getDetailDTFromProject = function () {
+avail.getDetailDTFromProject = function () { /*ddl change & project in level 1*/
     if (!lgd.isFirst()) {
         projectSelected = $("#projectList").data("kendoDropDownList").value();
         dtType = $("#mdTypeListFleet").data("kendoDropDownList").value();
-        avail.detailDTLostEnergyTxt("Lost Energy for Last 12 months - " + projectSelected);
-        avail.toDetailDTLostEnergy(null, false, "ddl");
+        if (avail.LEFleetByDown()) {
+            avail.toDetailLossEnergyLevel1(null, "ddl");
+        } else {
+            avail.toDetailDTLELevel1(null, "ddl");
+        }
     }
 }
 
@@ -1898,7 +2261,11 @@ avail.backToDownTimeChart = function () {
         vm.isDashboard(false);
         avail.isDetailDTLostEnergy(true);
         isFleetDetail = false;
-        avail.toDetailDTLostEnergy(null, false, "button");
+        if (avail.LEFleetByDown()) {
+            avail.toDetailLossEnergyLevel1(null, "button");
+        } else {
+            avail.toDetailDTLELevel1(null, "button");
+        }
         if ($("#projectList").data("kendoDropDownList") != null) {
             $("#projectList").data("kendoDropDownList").value(projectSelected);
         }

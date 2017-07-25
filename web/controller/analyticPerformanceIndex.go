@@ -111,8 +111,10 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		}
 
 		if len(turbine) != 0 {
-			query = append(query, tk.M{"projectname": tk.M{"$in": turbine}})
+			query = append(query, tk.M{"turbine": tk.M{"$in": turbine}})
 		}
+
+		query = append(query, tk.M{"available": 1})
 
 		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 		group = tk.M{
@@ -146,8 +148,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				// last24hours
 				results["Summary"][len(results["Summary"])-1].PotentialPowerLast24Hours += val.GetFloat64("totaldenPower") / 1000
 				results["Summary"][len(results["Summary"])-1].PowerLast24Hours += val.GetFloat64("totalPower") / 1000
-				results["Summary"][len(results["Summary"])-1].PerformanceIndexLast24Hours += tk.Div(results["Summary"][len(results["Summary"])-1].PowerLast24Hours, results["Summary"][len(results["Summary"])-1].PotentialPowerLast24Hours) * 100
-				results["Summary"][len(results["Summary"])-1].ProductionIndexLast24Hours += tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
+				results["Summary"][len(results["Summary"])-1].PerformanceIndexLast24Hours = tk.Div(results["Summary"][len(results["Summary"])-1].PowerLast24Hours, results["Summary"][len(results["Summary"])-1].PotentialPowerLast24Hours) * 100
+				results["Summary"][len(results["Summary"])-1].ProductionIndexLast24Hours = tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
 				results["Data"][indexTurbine[turbinename]].PerformanceIndexLast24Hours = tk.Div(val.GetFloat64("totalPower")/1000, val.GetFloat64("totaldenPower")/1000) * 100
 				results["Data"][indexTurbine[turbinename]].PotentialPowerLast24Hours = val.GetFloat64("totaldenPower") / 1000
 				results["Data"][indexTurbine[turbinename]].PowerLast24Hours = val.GetFloat64("totalPower") / 1000
@@ -157,8 +159,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				// lastweek
 				results["Summary"][len(results["Summary"])-1].PotentialPowerLastWeek += val.GetFloat64("totaldenPower") / 1000
 				results["Summary"][len(results["Summary"])-1].PowerLastWeek += val.GetFloat64("totalPower") / 1000
-				results["Summary"][len(results["Summary"])-1].PerformanceIndexLastWeek += tk.Div(results["Summary"][len(results["Summary"])-1].PowerLastWeek, results["Summary"][len(results["Summary"])-1].PotentialPowerLastWeek) * 100
-				results["Summary"][len(results["Summary"])-1].ProductionIndexLastWeek += tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
+				results["Summary"][len(results["Summary"])-1].PerformanceIndexLastWeek = tk.Div(results["Summary"][len(results["Summary"])-1].PowerLastWeek, results["Summary"][len(results["Summary"])-1].PotentialPowerLastWeek) * 100
+				results["Summary"][len(results["Summary"])-1].ProductionIndexLastWeek = tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
 				results["Data"][indexTurbine[turbinename]].PerformanceIndexLastWeek = tk.Div(val.GetFloat64("totalPower")/1000, val.GetFloat64("totaldenPower")/1000) * 100
 				results["Data"][indexTurbine[turbinename]].PotentialPowerLastWeek = val.GetFloat64("totaldenPower") / 1000
 				results["Data"][indexTurbine[turbinename]].PowerLastWeek = val.GetFloat64("totalPower") / 1000
@@ -168,8 +170,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				// mtd
 				results["Summary"][len(results["Summary"])-1].PotentialPowerMTD += val.GetFloat64("totaldenPower") / 1000
 				results["Summary"][len(results["Summary"])-1].PowerMTD += val.GetFloat64("totalPower") / 1000
-				results["Summary"][len(results["Summary"])-1].PerformanceIndexMTD += tk.Div(results["Summary"][len(results["Summary"])-1].PowerMTD, results["Summary"][len(results["Summary"])-1].PotentialPowerMTD) * 100
-				results["Summary"][len(results["Summary"])-1].ProductionIndexMTD += tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
+				results["Summary"][len(results["Summary"])-1].PerformanceIndexMTD = tk.Div(results["Summary"][len(results["Summary"])-1].PowerMTD, results["Summary"][len(results["Summary"])-1].PotentialPowerMTD) * 100
+				results["Summary"][len(results["Summary"])-1].ProductionIndexMTD = tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
 				results["Data"][indexTurbine[turbinename]].PerformanceIndexMTD = tk.Div(val.GetFloat64("totalPower")/1000, val.GetFloat64("totaldenPower")/1000) * 100
 				results["Data"][indexTurbine[turbinename]].PotentialPowerMTD = val.GetFloat64("totaldenPower") / 1000
 				results["Data"][indexTurbine[turbinename]].PowerMTD = val.GetFloat64("totalPower") / 1000
@@ -185,8 +187,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				}
 				results["Summary"][len(results["Summary"])-1].PotentialPowerYTD += val.GetFloat64("totaldenPower") / 1000
 				results["Summary"][len(results["Summary"])-1].PowerYTD += val.GetFloat64("totalPower") / 1000
-				results["Summary"][len(results["Summary"])-1].PerformanceIndexYTD += tk.Div(results["Summary"][len(results["Summary"])-1].PowerYTD, results["Summary"][len(results["Summary"])-1].PotentialPowerYTD) * 100
-				results["Summary"][len(results["Summary"])-1].ProductionIndexYTD += tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
+				results["Summary"][len(results["Summary"])-1].PerformanceIndexYTD = tk.Div(results["Summary"][len(results["Summary"])-1].PowerYTD, results["Summary"][len(results["Summary"])-1].PotentialPowerYTD) * 100
+				results["Summary"][len(results["Summary"])-1].ProductionIndexYTD = tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
 
 				lastProject = projectname
 
@@ -205,8 +207,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				// period
 				results["Summary"][len(results["Summary"])-1].PotentialPower += val.GetFloat64("totaldenPower") / 1000
 				results["Summary"][len(results["Summary"])-1].Power += val.GetFloat64("totalPower") / 1000
-				results["Summary"][len(results["Summary"])-1].PerformanceIndex += tk.Div(results["Summary"][len(results["Summary"])-1].Power, results["Summary"][len(results["Summary"])-1].PotentialPower) * 100
-				results["Summary"][len(results["Summary"])-1].ProductionIndex += tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
+				results["Summary"][len(results["Summary"])-1].PerformanceIndex = tk.Div(results["Summary"][len(results["Summary"])-1].Power, results["Summary"][len(results["Summary"])-1].PotentialPower) * 100
+				results["Summary"][len(results["Summary"])-1].ProductionIndex = tk.Div(tk.Div(val.GetFloat64("totalPower"), 1000), tk.Div(val.GetFloat64("totalOKTime"), 3600))
 				results["Data"][indexTurbine[turbinename]].PerformanceIndex = tk.Div(val.GetFloat64("totalPower")/1000, val.GetFloat64("totaldenPower")/1000) * 100
 				results["Data"][indexTurbine[turbinename]].PotentialPower = val.GetFloat64("totaldenPower") / 1000
 				results["Data"][indexTurbine[turbinename]].Power = val.GetFloat64("totalPower") / 1000

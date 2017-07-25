@@ -4,15 +4,13 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
-
 	// "time"
 	// "fmt"
+	"sort"
 
 	"github.com/eaciit/crowd"
-	// "github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
-	"sort"
 )
 
 type AnalyticWindDistributionController struct {
@@ -65,6 +63,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
+	query = append(query, tk.M{"available": 1})
 	if p.Project != "" {
 		query = append(query, tk.M{"projectname": p.Project})
 	}

@@ -48,6 +48,8 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+	match.Set("available", 1)
+	match.Set("power", tk.M{"$ne": -999999})
 
 	if len(turbine) > 0 {
 		match.Set("turbine", tk.M{"$in": turbine})
@@ -132,67 +134,54 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 		var datas []float64
 		for _, val := range list {
-			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
-			var totalTurbine float64
+			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, totalTurbine, hourValue, plfDivider float64
+
+			if len(turbine) == 0 {
+				var turbineList []TurbineOut
+				if project != "" {
+					turbineList, _ = helper.GetTurbineList([]interface{}{project})
+				} else {
+					turbineList, _ = helper.GetTurbineList(nil)
+				}
+				totalTurbine = float64(len(turbineList))
+
+				for _, v := range turbineList {
+					plfDivider += v.Capacity
+				}
+
+			} else {
+				totalTurbine = float64(len(turbine))
+			}
 
 			minDate := val.Get("mindate").(time.Time)
 			maxDate := val.Get("maxdate").(time.Time)
 
-			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
-			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
+			if breakDown == "Date" {
+				id := val.Get("_id").(tk.M)
+				id1 := id.Get("id1").(time.Time)
+				hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
+			} else {
+				hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+			}
 
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
 			energy := power / 6
-
 			mDownTime := val.GetFloat64("machinedowntime") / 3600.0
 			gDownTime := val.GetFloat64("griddowntime") / 3600.0
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
-
-			/*if breakDown == "Date" {}
-			if breakDown == "Month" {}
-			if breakDown == "Year" {}
-			if breakDown == "Project" {}*/
-			/*if breakDown == "Turbine" || breakDown == "Date" || breakDown == "Month" || breakDown == "Year" {
-				totalTurbine = 1.0
-			} else {
-				totalTurbine = tk.ToFloat64(len(turbine), 0, tk.RoundingAuto)
-			}*/
-
-			if len(turbine) == 0 {
-				totalTurbine = 24.0
-			} else {
-				totalTurbine = tk.ToFloat64(len(turbine), 1, tk.RoundingAuto)
-			}
-
-			/*plf = energy / (totalTurbine * duration * 24.0 * 2100) * 100 * 1000
-			trueAvail = (okTime / 3600) / (duration * totalTurbine * 24.0) * 100
-			machineAvail = (hourValue - mDownTime) / (totalTurbine * 24.0 * duration) * 100
-			gridAvail = (hourValue - gDownTime) / (totalTurbine * 24.0 * duration) * 100
-			dataAvail = sumTimeStamp / (144 * duration * totalTurbine) * 100
-			// prod = energy / totalEnergy * 100
-			prod = energy*/
-
-			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
-			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-
-			/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
-
 			minutes := val.GetFloat64("minutes") / 60
-			machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
 
-			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+
 			prod = energy
-
-			// log.Printf("%v | %v \n", hourValue, totalTurbine)
-
-			// log.Printf("hours: %v | %v | %v  \n", end.Sub(start).Hours(), start.String(), end.String())
 
 			_ = duration
 
 			if key == "Machine Availability" {
+				/*log.Printf("(%v - %v ) / (%v * %v) * 100 \n", minutes, mDownTime, totalTurbine, hourValue)
+				log.Printf("mavail: %v \n", machineAvail)*/
+
 				datas = append(datas, tk.ToFloat64(machineAvail, 2, tk.RoundingAuto))
 				val := tk.ToInt(tk.ToFloat64(machineAvail, 2, tk.RoundingAuto), tk.RoundingUp)
 				if val > max {

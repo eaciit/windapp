@@ -1,0 +1,28 @@
+{
+    "Draft": "/data1/wfdemo-watch/opc_alert/draft",
+    "Process": "/data1/wfdemo-watch/opc_alert/process",
+    "Fail": "/data1/wfdemo-watch/opc_alert/fail",
+    "Success": "/data1/wfdemo-watch/opc_alert/success",
+    "Errors": "/data1/wfdemo-watch/opc_alert/errors",
+    "Archive": "/data1/wfdemo-watch/opc_alert/archive",
+    "Commands": [
+        {
+            "action": "COPY_TO_PROCESS",
+            "command": "mv %v %v",
+            "success": "DONE",
+            "fail": "DONE"
+        },
+        {
+            "action": "COPY_TO_SUCCESS",
+            "command": "mv %v %v",
+            "success": "DONE",
+            "fail": "DONE"
+        },
+        {
+            "action": "COPY_TO_FAIL",
+            "command": "mv %v %v",
+            "success": "DONE",
+            "fail": "DONE"
+        }
+    ]
+}

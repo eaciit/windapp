@@ -2,13 +2,18 @@ package helper
 
 import (
 	. "eaciit/wfdemo-git/library/core"
+	hp "eaciit/wfdemo-git/library/helper"
+	md "eaciit/wfdemo-git/library/models"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
@@ -60,142 +65,175 @@ type FilterJS struct {
 }
 
 type Filter struct {
-	Field string      `json:"field"`
-	Op    string      `json:"operator"`
-	Value interface{} `json:"value"`
+	Field   string      `json:"field"`
+	Op      string      `json:"operator"`
+	Value   interface{} `json:"value"`
+	Filters []Filter    `json:"filters"`
 }
 
 func (s *Payloads) ParseFilter() (filters []*dbox.Filter, err error) {
-	datelist := []string{
-		"timestamp",
-		"dateinfo.dateid",
-		"startdate",
-	}
-
 	if s != nil {
 		for _, each := range s.Filter.Filters {
-			field := strings.ToLower(each.Field)
-			switch each.Op {
-			case "gte":
-				var value interface{} = each.Value
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Gte(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Gte(field, value))
-				}
-			case "gt":
-				var value interface{} = each.Value
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Gt(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Gt(field, value))
-				}
-			case "lte":
-				var value interface{} = each.Value
-
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Lte(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Lte(field, value))
-				}
-			case "lt":
-				var value interface{} = each.Value
-
-				if toolkit.TypeName(value) == "string" {
-					if value.(string) != "" {
-						if toolkit.HasMember(datelist, field) {
-							var t time.Time
-							b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
-							if err != nil {
-								toolkit.Println(err.Error())
-							}
-							if s.Misc.Has("period") {
-								_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
-							} else {
-								t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
-							}
-							value = t
-						}
-						filters = append(filters, dbox.Lt(field, value))
-					}
-				} else {
-					filters = append(filters, dbox.Lt(field, value))
-				}
-			case "eq":
-				value := each.Value
-
-				if field == "turbine" && value.(string) == "" {
-					continue
-				} else if field == "isvalidtimeduration" && value.(bool) == true {
-					continue
-				} else if field == "projectid" && value.(string) == "" {
-					continue
-				}
-
-				filters = append(filters, dbox.Eq(field, value))
-			case "neq":
-				value := each.Value
-				filters = append(filters, dbox.Ne(field, value))
-			case "in":
-				value := each.Value
-				if (field == "turbineid" && toolkit.SliceLen(value) == 0) ||
-					field == "turbine" && toolkit.SliceLen(value) == 0 {
-					continue
-				}
-				filters = append(filters, dbox.In(field, value.([]interface{})...))
+			filtersTmp := []*dbox.Filter{}
+			filtersTmp, err = doParseFilter(each, s)
+			for _, eachTmp := range filtersTmp {
+				filters = append(filters, eachTmp)
 			}
 		}
 	}
 
-	/*toolkit.Println("======= PARSE FILTER =======")
-	for _, val := range filters {
-		toolkit.Println(val.Field, val.Op, val.Value)
+	/*for _, val := range filters {
+		log.Printf("filter: %#v \n", val)
+		if val.Field == "timestamp" {
+			log.Printf("timestamp: %#v \n", val.Value.(time.Time).String())
+		}
 	}*/
+
+	return
+}
+
+func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error) {
+	datelist := []string{
+		"timestamp",
+		"dateinfo.dateid",
+		"startdate",
+		"timestart",
+	}
+
+	field := strings.ToLower(each.Field)
+
+	if each.Filters != nil || len(each.Filters) > 0 {
+		for _, eachF := range each.Filters {
+			filtersTmp := []*dbox.Filter{}
+			filtersTmp, err = doParseFilter(&eachF, s)
+			for _, eachTmp := range filtersTmp {
+				filters = append(filters, eachTmp)
+			}
+		}
+	} else {
+		switch each.Op {
+		case "gte":
+			var value interface{} = each.Value
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Gte(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Gte(field, value))
+			}
+		case "gt":
+			var value interface{} = each.Value
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 00:00:00")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Gt(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Gt(field, value))
+			}
+		case "lte":
+			var value interface{} = each.Value
+
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Lte(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Lte(field, value))
+			}
+		case "lt":
+			var value interface{} = each.Value
+
+			if toolkit.TypeName(value) == "string" {
+				if value.(string) != "" {
+					if toolkit.HasMember(datelist, field) {
+						var t time.Time
+						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
+						if err != nil {
+							toolkit.Println(err.Error())
+						}
+						if s.Misc.Has("period") {
+							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
+						} else {
+							t, _ = time.Parse("2006-01-02 15:04:05", b.UTC().Format("2006-01-02")+" 23:59:59")
+						}
+						value = t
+					}
+					filters = append(filters, dbox.Lt(field, value))
+				}
+			} else {
+				filters = append(filters, dbox.Lt(field, value))
+			}
+		case "eq":
+			value := each.Value
+
+			if field == "turbine" && value.(string) == "" {
+				return
+			} else if field == "isvalidtimeduration" && value.(bool) == true {
+				return
+			} else if field == "projectid" && value.(string) == "" {
+				return
+			}
+
+			if field == "projectname" && value.(string) != "" {
+				anProject := strings.Split(value.(string), "(")
+				project := strings.TrimRight(anProject[0], " ")
+				filters = append(filters, dbox.Eq(field, project))
+			} else if field == "_id" && bson.IsObjectIdHex(toolkit.ToString(value)) {
+				filters = append(filters, dbox.Eq(field, bson.ObjectIdHex(toolkit.ToString(value))))
+			} else {
+				filters = append(filters, dbox.Eq(field, value))
+			}
+		case "neq":
+			value := each.Value
+			filters = append(filters, dbox.Ne(field, value))
+		case "in":
+			value := each.Value
+			if (field == "turbineid" && toolkit.SliceLen(value) == 0) ||
+				field == "turbine" && toolkit.SliceLen(value) == 0 {
+				return
+			}
+			filters = append(filters, dbox.In(field, value.([]interface{})...))
+		}
+	}
 
 	return
 }
@@ -301,16 +339,79 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
-	if toolkit.ToString(sessionid) == "" || (!success && data == nil) {
-		dataX := struct {
-			Data []toolkit.M
-		}{
-			Data: []toolkit.M{},
-		}
 
-		data = dataX
-		success = false
-		message = "Your session has expired, please login"
+	// log.Printf(">> %v \n", sessionid)
+
+	if toolkit.ToString(sessionid) == "" {
+		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "Your session has expired, please login"
+		}
+	} else {
+		if !success && data == nil {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "data is empty"
+		}
+	}
+
+	return map[string]interface{}{
+		"data":    data,
+		"success": success,
+		"message": message,
+	}
+}
+
+func CreateResultX(success bool, data interface{}, message string, r *knot.WebContext) map[string]interface{} {
+	if !success {
+		toolkit.Println("ERROR! ", message)
+		if DebugMode {
+			panic(message)
+		}
+	}
+	sessionid := r.Session("sessionid", "")
+
+	// log.Printf(">> %v \n", sessionid)
+
+	if toolkit.ToString(sessionid) == "" {
+		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "Your session has expired, please login"
+		}
+	} else {
+		if !success && data == nil {
+			dataX := struct {
+				Data []toolkit.M
+			}{
+				Data: []toolkit.M{},
+			}
+
+			data = dataX
+			success = false
+			message = "data is empty"
+		}
 	}
 
 	return map[string]interface{}{
@@ -486,11 +587,11 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 	} else {
 		iLastDateData := GetLastDateData(r)
 		/*jika memiliki custom date sendiri seperti wind rose yang max date nya 31 Juli 2016*/
-		customLastDate := r.Session("custom_lastdate")
+		// customLastDate := r.Session("custom_lastdate")
 
-		if customLastDate != nil {
-			iLastDateData = customLastDate.(time.Time)
-		}
+		// if customLastDate != nil {
+		// 	iLastDateData = customLastDate.(time.Time)
+		// }
 		endDate = iLastDateData
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
 		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
@@ -530,47 +631,139 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			}
 		}
 	}
-
-	// r.SetSession("custom_lastdate", nil)
 	return
 }
 
-func GetProjectList() (result []string, e error) {
-	csr, e := DB().Connection.NewQuery().From("ref_project").Cursor(nil)
+/*func GetAllTurbineList() (result []toolkit.M, e error) {
+	var projects []interface{}
+	resProj, e := GetProjectList()
+
+	for _, v := range resProj {
+		projects = append(projects, v.Value)
+	}
+
+	csr, e := DB().Connection.
+		NewQuery().
+		From(new(md.TurbineMaster).TableName()).
+		Where(dbox.In("Project", projects...)).
+		Order("project, turbineid").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+	e = csr.Fetch(&result, 0, false)
+
+	return
+}*/
+
+func HelperSetDb(conn dbox.IConnection) {
+	_ = SetDb(conn)
+}
+
+func GetProjectList() (result []md.ProjectOut, e error) {
+	csr, e := DB().Connection.NewQuery().
+		From(new(md.ProjectMaster).TableName()).
+		Where(dbox.Eq("active", true)).
+		Cursor(nil)
 
 	if e != nil {
 		return
 	}
 	defer csr.Close()
 
-	data := []toolkit.M{}
+	data := []md.ProjectMaster{}
 	e = csr.Fetch(&data, 0, false)
 
 	for _, val := range data {
-		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid"))
+		result = append(result, md.ProjectOut{
+			Name:              fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
+			Value:             val.ProjectId,
+			Coords:            []float64{val.Latitude, val.Longitude},
+			RevenueMultiplier: val.RevenueMultiplier,
+			City:              val.City,
+		})
+	}
+
+	// sort.Strings(result)
+	return
+}
+
+func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
+	var filter []*dbox.Filter
+
+	if len(projects) > 0 {
+		filter = append(filter, dbox.In("project", projects...))
+	}
+
+	csr, e := DB().Connection.
+		NewQuery().
+		From(new(md.TurbineMaster).TableName()).
+		Where(filter...).
+		// Order("project, turbineid").
+		Order("turbinename").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []md.TurbineMaster{}
+	e = csr.Fetch(&data, 0, false)
+
+	for _, val := range data {
+		result = append(result, md.TurbineOut{
+			Project:  val.Project,
+			Turbine:  val.TurbineName,
+			Value:    val.TurbineId,
+			Capacity: val.CapacityMW,
+			Coords:   []float64{val.Latitude, val.Longitude},
+		})
+	}
+
+	return
+}
+
+func GetProjectTurbineList(projects []interface{}) (result map[string]toolkit.M, sortedKey []string, e error) {
+	var filter []*dbox.Filter
+	result = map[string]toolkit.M{}
+	sortedKey = []string{}
+
+	if len(projects) > 0 {
+		filter = append(filter, dbox.In("project", projects...))
+	}
+
+	csr, e := DB().Connection.
+		NewQuery().
+		From(new(md.TurbineMaster).TableName()).
+		Where(filter...).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	data := []md.TurbineMaster{}
+	e = csr.Fetch(&data, 0, false)
+
+	keys := []string{}
+
+	for _, val := range data {
+		list := toolkit.M{}
+
+		if result[val.Project] != nil {
+			list = result[val.Project]
+		} else {
+			keys = append(keys, val.Project)
 		}
+		list.Set(val.TurbineId, val)
+		result[val.Project] = list
 	}
 
-	sort.Strings(result)
-	return
-}
-
-func GetTurbineList() (result []string, e error) {
-	csr, e := DB().Connection.NewQuery().From("ref_turbine").Cursor(nil)
-
-	if e != nil {
-		return
-	}
-	defer csr.Close()
-
-	data := []toolkit.M{}
-	e = csr.Fetch(&data, 0, false)
-
-	for _, val := range data {
-		result = append(result, val.GetString("turbineid"))
-	}
-	sort.Strings(result)
+	sort.Strings(keys)
 
 	return
 }
@@ -580,7 +773,6 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 	endStr := tEnd.Format("0601")
 
 	minDateStr := minDate.Format("0601")
-
 	maxDateStr := maxDate.Format("0601")
 
 	if startStr == minDateStr {
@@ -604,39 +796,29 @@ func GetHourValue(tStart time.Time, tEnd time.Time, minDate time.Time, maxDate t
 	return
 }
 
-func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
-	q := DB().Connection.
-		NewQuery().
-		From(collectionName)
-
-	if where != nil {
-		q.Where(where)
-	}
-
-	csr, err := q.
-		Aggr(dbox.AggrMin, "$"+timestampColumn, "min").
-		Aggr(dbox.AggrMax, "$"+timestampColumn, "max").
-		Group("enable").
-		Cursor(nil)
-
-	defer csr.Close()
-
-	if err != nil {
-		csr.Close()
-		return
-	}
-
-	data := []toolkit.M{}
-	err = csr.Fetch(&data, 0, false)
-
-	if err != nil || len(data) == 0 {
-		csr.Close()
-		return
-	}
-
-	min = data[0].Get("min").(time.Time)
-	max = data[0].Get("max").(time.Time)
-
-	csr.Close()
+// totalTurbine in float64
+// okTime sum ok time
+// energy should be div by 1000
+// machineDownTime, gridDownTime already in hour value
+// minutes should be div by 60
+func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machineDownTime float64, gridDownTime float64, countTimeStamp float64, hourValue float64, totalMinutes float64, plfDivider float64) (machineAvail float64, gridAvail float64, dataAvail float64, totalAvail float64, plf float64) {
+	divider := (totalTurbine * hourValue)
+	plf = energy / (plfDivider * hourValue) * 100
+	// log.Printf(">>> %v >>> %v | %v | %v \n", plf, energy, plfDivider, hourValue)
+	totalAvail = (okTime / 3600) / divider * 100
+	machineAvail = (totalMinutes - machineDownTime) / divider * 100
+	gridAvail = (totalMinutes - gridDownTime) / divider * 100
+	dataAvail = (countTimeStamp * 10 / 60) / divider * 100
 	return
+}
+
+func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
+	min, max, err = hp.GetDataDateAvailable(collectionName, timestampColumn, where, DB().Connection)
+	return
+}
+
+func GetHFDFolder() string {
+	config := hp.ReadConfig()
+	source := config["hfdfolder"]
+	return source + string(os.PathSeparator)
 }

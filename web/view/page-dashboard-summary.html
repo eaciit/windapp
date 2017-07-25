@@ -31,7 +31,7 @@
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(kendo.format('{0:n2}',points[i].value), 2)# GWh</span></div>
   # } #
 </script>
-<script id="templateDTLEbyType" type="text/x-kendo-template">
+<!-- <script id="templateDTLEbyType" type="text/x-kendo-template">
   <div><b>#: category #</b></div>
   # for (var i = 0; i < points.length; i++) { 
   		if(i==0) { #
@@ -42,6 +42,18 @@
     		<div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: points[i].value # times</span></div>
   # 	}
   	} #
+</script> -->
+<script id="templateDTLEbyType" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { 
+        if(points[i].series.name == 'Frequency') { #
+            <tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n0')#</td></tr></table>
+  #     } else if (points[i].series.name == 'Duration') { #
+            <tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# Hours</td></tr>
+  #     } else { #
+            <table><tr><td>#: points[i].series.name# </td><td>:</td><td> #: kendo.toString(points[i].value, 'n1')# MWh</td></tr>
+  #     }
+    } #
 </script>
 <script id="templateDowntimeLostEnergy" type="text/x-kendo-template">
   <div><b>#: category #</b></div>
@@ -55,6 +67,12 @@
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n1')# m/s</span></div>
   # } #
 </script>
+<script id="templateDistribution" type="text/x-kendo-template">
+  <div style="text-align:center"><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) { #
+    <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'p1') #</span></div>
+  # } #
+</script>
 
 <div data-bind="visible:lgd.isSummary">
 	<div class="col-md-8 col-sm-8">
@@ -64,7 +82,7 @@
 					Production (kWh) - Last 24 Hours
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartProduction').kendoChart2Grid('n2')">
+                          <label class="btn btn-primary btn-xs prodToTable" onclick="$('#chartProduction').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.ProductionChart(sum.dataSource().Productions)">
@@ -82,18 +100,21 @@
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
-					Availability (%) - Last 12 Months
-        		<span class="tools pull-right">
-        			  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+					Availability (%) - Last 12 Months &nbsp;
+					<!-- <span data-bind='visible: lgd.isFleet'>
+						<select type="text" id="projectAvail" class="ddlAvailability" data-bind="kendoDropDownList: { value: lgd.projectAvailSelected, data: lgd.projectAvailList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateAvailability, suggest: true}"></select>
+					</span> -->
+        			<span class="tools pull-right">
+						<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
+						<div class="btn-group" data-toggle="buttons">
+						  <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
+						      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+						  </label>
+						  <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.dataSourceScada())">
+						      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+						  </label>
+						</div>
+                  	</span>
 				</div>
 				<div class="panel-body" style="height: 185px;">
 					<div id="chartAbility"></div>
@@ -106,7 +127,7 @@
 					Cumulative Production (GWh) - Month to Date
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid('n1')">
+                          <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid('n1','dd-MMM-yyyy')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
                           <label class="btn btn-primary btn-xs" onclick="sum.CumProduction(sum.dataSource().CummulativeProductions)">
@@ -243,6 +264,28 @@
 					<div class="panel-body" style="height: 185px;">
 						<div id="chartWindinessCustomTooltip"></div>
 						<div id="chartWindiness"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing" id="div-winddistribution">
+				<div class="panel ez no-padding hardcore winddistribution-div">
+					<div class="panel-heading">
+					Wind Distribution - Current Month
+						<!--<select type="text" id="periodType" class="ddlWindDistPeriod" data-bind="kendoDropDownList: { value: sum.periodSelected, data: sum.periodList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateWindDist, suggest: true}"></select> -->
+						<span class="tools pull-right">
+	                      <div class="btn-group" data-toggle="buttons">
+	                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
+	                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+	                          </label>
+	                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
+	                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+	                          </label>
+	                      </div>
+	                  	</span>
+					</div>
+					<div class="panel-body" style="height: 185px;">
+						<div id="chartWindDistributionCustomTooltip"></div>
+						<div id="chartWindDistribution"></div>
 					</div>
 				</div>
 			</div>

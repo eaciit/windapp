@@ -1,0 +1,860 @@
+@-webkit-keyframes flash-animation {  
+    from { background: yellow!important; }
+    to   { background: default; }
+}
+
+@keyframes flash-animation {  
+    from { background: yellow!important; }
+    to   { background: default; }
+}
+
+.onTop{
+    z-index: 10;
+}
+.value-div{
+  margin-top: 50.5px;
+  margin-left: 20px;
+}
+.value-group{
+  margin-top: 22px;
+  padding-left: 20px;
+}
+.color-base.active>span {
+    color: #fff !important;
+}
+.margintop30{
+  margin-top: 30px;
+}
+.marginbottom20{
+  margin-bottom: 20px;
+}
+.btn{
+  font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+}
+
+.flash {
+    -webkit-animation-name: flash-animation;
+    -webkit-animation-duration: 1.5s;
+
+    animation-name: flash-animation;
+    animation-duration: 1.5s;
+}   
+.redvalue {
+    color: red;
+}
+.orangevalue {
+    color: #EA6020;
+}
+.defaultcolor{
+  color: #585555;
+}
+
+.margin-left-10 {
+    margin-left: 10px;
+}
+
+.margin-right-10 {
+    margin-right: 10px;
+}
+.feeder-title {
+  margin-bottom: 15px;
+}
+.prod-sum-head{
+  margin-bottom: -10px;
+}
+/*==================================== WEATHER FORECAST.css ========================*/
+#weatherChart.k-chart{
+    margin-top: -13px;
+    background: transparent;
+}
+
+/*======================== CONTROL SUMMARY =======================*/
+.control-summary {
+  padding: 0px 0px 0px 0px;
+  width: 150px;
+  height: 50px;
+  margin: 0px 10px 15px 0px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #dedeec;
+}
+
+.productivity-box {
+  width: 250px;
+}
+
+.control-summary-hs {
+  padding: 0px 0px 0px 0px;
+  width: 150px;
+  height: 50px;
+  margin: 0px 10px 0px 0px;    
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid #dedeec;
+}
+
+label.summary-header {
+  padding: 5px 0px 0px 5px;
+  font-size: 12px;
+  color: #585555;
+  text-align: center;
+}
+
+label.summary-number {
+  padding: 0px 0px 5px 5px;
+  font-size: 19px;
+  color: #585555;
+  text-align: center;
+  margin-top: -5px;
+}
+
+.left-border-org {
+  background-color: #ffffff;
+  float: left;
+  border-left: 4px solid #eb5b19;
+}
+
+.left-border-green {
+  background-color: #ffffff;
+  float: left;
+  border-left: 4px solid #337ab7;
+}
+
+/*==================================== CUSTOM.CSS =========================*/
+
+.k-grid-content, .k-grid-content-locked {
+    border-bottom: 1px solid #DCDCDC;
+}
+.k-grid-content-locked { 
+    min-height: 40px;
+}
+.panel-control {
+    text-align: right;
+}
+
+.input-grid{
+    padding: 0px 0px !important;
+}
+
+.float-right{
+    float: right;
+}
+
+.paramvalue-panel{
+    width: 420px;
+    margin: auto;
+}
+
+.financial-panel{
+    width: 350px;
+    margin: auto;
+}
+
+.expectedgeneration-panel{
+    width: 560px;
+    margin: auto;
+}
+
+.expectedenergydistribution-panel{
+    width: 307px;
+    margin: auto;
+}
+
+.powercurve-panel{
+    width: 540px;
+    margin: auto;
+}
+
+.preventive-panel{
+    width: 850px;
+    margin: auto;
+}
+
+.MT-panel{
+    width: 500px;
+    margin: auto;
+}
+
+
+.float-left{
+    float: left;
+}
+
+.modal-dialog{
+    margin-top: 150px;
+}
+
+.width-txt{
+    width: 50%;
+}
+
+.reportcomparison-panel{
+    width: 670px;
+    margin: auto;
+}
+
+.margin-top-6{
+    margin-top: 6px;
+}
+
+.breakdowndate .k-picker-wrap.k-state-default{
+    width: 66px !important;
+}
+
+.breakdowndate .k-widget.k-timepicker.k-header{
+    width: 90.5px !important;
+}
+
+.formulaparamdropdown{
+    width: 92px;
+}
+
+.selectperiodlabel{
+    margin-top: 4px;
+}
+
+.btngroupcomparison{
+    width: 175px;
+}
+
+.period1label{
+    width: 215px;
+}
+
+.period1label .k-widget.k-datepicker.k-header.k-input{
+    width: 110px !important;
+}
+
+.margin-bottom-6{
+    margin-bottom: 6px;
+}
+
+.reportcomparisontable .table-bordered>tbody>tr>td{
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+
+.bold{
+    font-weight: bold;
+}
+
+/* =============== TURBINE PART =============== */
+
+.turbine-item-label {
+  margin-bottom: 5px;
+  font-weight: 700;
+  padding-right: 0px;
+  margin-right: 0px;
+}
+.turbine-item-value {
+  float: right;
+  margin-right: 5px;
+}
+.list-turbine-item {
+  padding: 0px 10px 0px 15px;
+}
+.form-group-turbine {
+  clear: both;
+  margin-bottom: -2px;  
+}
+.margin-top-min-10 {
+  margin-top: -10px;
+}
+.margin-top-min-5 {
+  margin-top: -5px;
+}
+
+.turbine-pic-part {
+    text-align: center;
+    padding-left: 20px;
+    /*margin-top: 30px;*/
+    margin-left: -10px;
+    margin-right: 10px;
+}
+
+.title-outside {
+  margin-bottom: 15px;
+}
+/* =============== WEATHER PART ============ */
+.form-group {
+  clear: both;
+  margin-bottom: 0px;  
+}
+
+.weather-label {
+  margin-bottom: 5px;
+  padding-left: 5px;
+  font-weight: 700;
+}
+
+.vcenter {
+    display: inline-block;
+    vertical-align: top;
+    float: none;
+    padding-top: 10px;
+}
+
+/*.list-group-item {
+    padding: 6px 10px 4px 10px;
+}*/
+
+.list-weather-item {
+  padding: 6px 10px 4px 20px;
+}
+
+.list-group-item.main-item {
+  padding: 0;
+  background: #ecf0f5;
+  margin-bottom: -30px;
+}
+.list-group-part {
+  padding-right: 15px;
+}
+.left-weather {
+  border-right: 1px solid #e0e0e0;
+  padding: 10px 15px;
+}
+.right-location {
+  padding: 35px 0;  
+}
+h4.content-heading {
+    margin-top: 0px;
+    margin-bottom: 25px;
+}
+
+.project-icon {
+    border: 1px solid #EDEFF0;
+    margin: 0px 0px 10px 0;
+}
+.project-icon div {
+    border-right: 1px solid #EDEFF0;
+    padding: 5px 15px 5px 15px;
+    margin: 0;
+    min-height: 55px;
+    text-align: center;
+}
+.project-icon div:last-child {
+    border-right: none;
+}
+.project-icon h4 {
+  padding-top: 5px;
+}
+.project-info {
+    margin-top: -15px;
+    margin-bottom: -5px;
+    z-index: 1;
+}
+.project-info-last-update {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.fa-green {
+  color: #31B445;
+}
+.fa-red {
+  color: #db1e1e;
+}
+.fa-yellow {
+  color: #f2d115;
+}
+.fa-grey {
+  color: #7f7f7f;
+}
+.fa-orange {
+  color: #EA6020;
+}
+.bg-green {
+  background-color:#31B445;
+}
+.bg-red {
+  background-color:#db1e1e;
+}
+.bg-grey {
+  background-color:#7f7f7f;
+}
+.bg-orange {
+  background-color:#EA6020;
+}
+
+.bg-default-green{
+    background-color: #A5D6A7;
+}
+
+.bg-default-red{
+    background-color: #F8BBD0;
+}
+.bg-default-orange{
+    background-color: #FFCC80;
+}
+.bg-default-grey{
+    background-color: #B0BEC5;
+}
+.table.table-monitoring {
+  margin-top: -15px;
+  margin-bottom: 15px;
+  width: 400px;
+}
+.table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
+.table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
+  padding: 3px 5px;
+  font-size: 12px;
+}
+
+.project-icon { border: none; }
+.project-icon div {    
+  border: 1px solid #e0e0e0;
+  margin-bottom: 5px;
+}
+.project-icon div:first-child {
+  border-left: 1px solid #e0e0e0;
+}
+.project-icon div:last-child {
+  border-right: 1px solid #e0e0e0;
+  display: none;
+} 
+.project-icon div.not-hide {
+  display: inline;
+}
+.project-icon div:last-child h4 { font-size: 16px; padding-bottom: 2px; }
+/*div.source-info.pull-right {
+  margin-top: 25px;
+}*/
+/* ===================================== MODAL CSS ====================================================*/
+
+.modal-dialog {
+  width: 97%;
+  /*height: 95%;*/
+  margin: 20px;
+  padding: 0;
+}
+
+.modal-content {
+  height: auto;
+  /*min-height: 95%;*/
+  border-radius: 0;
+}
+
+.modal-lg {
+     width: auto !important;
+}
+
+.sector-label {
+    padding: 3px 5px 3px 3px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.section-part {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+.legend-part {
+    text-align: center;
+    margin-bottom: 5px;
+}
+.modal-footer {
+    padding: 15px;
+    text-align: right;
+    border-top: 0px solid #e5e5e5; 
+}
+.margintop15{
+    margin-top: 15px;
+}
+.link-detail:hover{
+    cursor: pointer;
+    /*background: #ddd !important;*/
+}
+.fa-project-info:hover, .linked:hover {
+    color: #fff !important;
+}
+.linked{
+    color: #fff;
+}
+
+.span-legend {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.div-info{
+    background: #f1f2f2;
+    text-align: center;
+    border-radius: 10px;
+    font-weight: 400;
+}
+
+.direct-page{
+    margin: 10px;
+}
+
+#turbine_weather{
+  font-size: 12px;
+  vertical-align: top;
+  padding-top: 5px;
+  /*font-weight: 400;*/
+}
+#turbine_img_weather,#img_weather{
+    width: 100px;
+    height: 100px;
+    margin-top: -20px;
+}
+#turbine_temperature{
+    font-size: 22px;
+    margin-bottom: -20px;
+}
+
+.circle{
+  -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    padding-top: 7px;
+    border-radius: 30px;
+    border: 2px solid #dd4b39;
+    width: 50px;
+    height: 50px;
+}
+
+.vibrations{
+  margin-top: -15px;
+}
+
+.direct-part{
+  margin-top: -20px;
+}
+
+.txt-power{
+  padding-left: 25px;
+}
+
+.txt-windspeed{
+  padding-left: 15px;
+}
+
+.windpower-part{
+  z-index: 10;
+}
+.borderOrange{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #ff7a00;
+}
+.borderYellow{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #ffc700;
+}
+.borderRed{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #c20000;
+}
+.borderGrey{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border:1.5px solid #eee;
+}
+.txt-pitch-angel{
+    font-size: 20px;
+}
+.border-left-grey{
+    border-left: 2px solid #eee;
+}
+ .border-right-grey{
+    border-right:2px solid #eee;
+}
+
+.panel-body{
+    margin-bottom: 50px;
+}
+
+.turbine-weather{
+    margin-top: -5px;margin-left: 0px;
+}
+
+.lat-info{
+    margin-top: -10px;margin-bottom: 10px;
+}
+
+.list-group-item {
+    border: 1px solid #fff; 
+}
+
+
+.gaugeVal {
+    font-size: 20px;
+    font-weight: bold;
+    position: relative;
+    left: 0;
+    right: 0;
+    top: -20px;
+    text-align: center;
+    color: #555;
+}
+
+.directTitle{
+  padding-left: 25px;
+}
+
+.gotoAnalysis {
+  margin-top: -180px
+}
+
+.live-chart-div{
+  margin-top: -5px;
+  margin-bottom: 10px;
+  margin-left: -20px;
+}
+
+.nav-replace-title{
+  padding-left: 5px;
+}
+
+#dateInfo{
+    font-weight: bold;
+    margin-top: -145px;
+    margin-left: 10px;
+}
+
+#container{
+  padding-top: 15px;
+}
+
+.custom{
+  display: initial;
+}
+.summary-text{
+  font-size: 14px;
+  color: #6d96ac;
+}
+.text-small{
+  font-size: 10px
+}
+.txt-danger{
+  color:#dd4b39;
+}
+.txt-success{
+  color: #00a65a;
+}
+.txt-grey{
+  color: #7f7f7f;
+}
+
+.sum-custom{
+  margin-top: -5px;
+  padding-top: 0px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  border-right: 1px solid #d0c9c9;
+}
+.project-info-custom {
+    margin-top: -15px;
+    margin-bottom: -5px;
+    position: relative;
+    border-bottom: 2px solid #ecf0f5;
+}
+#project_img_weather{
+  margin:-15px;
+}
+
+
+.notes{
+  position: absolute;
+  bottom: 30px;
+}
+#monitoring-content{
+  margin-top: 10px;
+  margin-bottom: -15px;
+}
+.last-separator{
+  margin-right: 10px;
+}
+
+#project_weather{
+  margin-left: 15px;
+}
+
+.feeder-content{
+    overflow-x:auto;
+    overflow-y:hidden;
+    max-width:100%;
+    display: inline-flex;
+    margin-bottom: -50px;
+}
+.feeder-column{
+   margin-bottom: -5px;
+   padding-right: 10px;
+}
+.landing{
+  margin-bottom: -10px;
+}
+.hardcore > .panel-body{
+  margin-bottom: 65px;
+}
+#location{
+  margin-top: 5px;
+  margin-left: 10px
+}
+.project-info > label{
+  margin-top: 15px;
+}
+.panel-content > .nav-replace-title{
+  padding-left: 5px;
+}
+
+.progress-custom{
+  width: 70px;
+  display: inline-block;
+  padding-top: 0px;
+  line-height: 1;
+  text-align: left;
+}
+
+.lbl{
+  display: inline;
+  padding: 0.2em 0.5em 0.2em;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.1em;
+  font-family: 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;
+  font-size: 85%;
+  font-weight: 600;
+  display: inline-flex;
+}
+
+.maximize-mode, .maximize-mode .content-wrapper, .maximize-mode .content,  .maximize-mode .panel{
+    background-color: #263238  !important;
+    color: white;
+}
+
+.maximize-mode .defaultcolor{
+  color : #ffffff !important;
+}
+
+.maximize-mode .feeder-column {
+    padding-right: 15px;
+}
+.maximize-mode .table-monitoring > thead > tr > th,
+.maximize-mode .table-monitoring > tbody > tr > th,
+.maximize-mode .table-monitoring > tfoot > tr > th,
+.maximize-mode .table-monitoring > thead > tr > td,
+.maximize-mode .table-monitoring > tbody > tr > td,
+.maximize-mode .table-monitoring > tfoot > tr > td {
+   border-top: 1px solid #263238;
+}
+
+.maximize-mode .table-monitoring>thead>tr>th {
+    border-bottom: 1px solid #CFD8DC;
+}
+
+.maximize-mode .table-striped>tbody>tr:nth-of-type(odd) {
+    background-color: #2d3b42 !important;
+}
+
+.maximize-mode .bg-default-grey{
+    background-color: #37474F;
+}
+.maximize-mode .bg-default-red{
+    background-color: #730f03;
+}
+.maximize-mode .bg-default-orange{
+    background-color: #6d3f17;
+}
+.maximize-mode .bg-default-green{
+    background-color: #144818;
+}
+.maximize-mode .main-header, .maximize-mode .bread-info{
+    display: none;
+}
+
+.maximize-mode .breadcrumb{
+    display: block;
+}
+
+.maximize-mode .ez.panel {
+    border-radius: 0px;
+}
+
+.maximize-mode .table-sum {
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
+.maximize-mode .table-detail {
+    margin-bottom: 2px;
+}
+
+.maximize-mode .table-detail>tbody>tr>td {
+    border-top: 0px !important;
+}
+
+.maximize-mode .table-detail>thead>tr>td {
+    border-bottom: 1px solid darkgray !important;
+}
+
+.maximize-mode .monitoring-date{
+    color: #ea5b19;
+    font-size: 20px;
+}
+
+.maximize-btn{
+    margin-top: 0px;
+}
+
+.maximize-mode .maximize-btn{
+    margin-top: -45px;
+}
+
+.maximize-mode .table-striped>tbody>tr:nth-of-type(odd) {
+  background-color: #fff;
+}
+
+.maximize-mode .detail-tbl .table-striped>tbody>tr:nth-of-type(odd) {
+  background-color: #;
+}
+
+.maximize-mode .modal-lg {
+   color: #585555;
+}
+
+.maximize-mode .panel-body{
+    padding: 0px;
+}
+.panel-content{
+    margin-top: -5px;
+    margin-bottom: -10px;
+}
+.bread-info{
+    margin-top: 5px;
+}
+
+/*SCROLLBAR*/
+.feeder-content::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+}
+
+.feeder-content::-webkit-scrollbar
+{
+    height: 3px;
+    background-color: #F5F5F5;
+}
+
+.feeder-content::-webkit-scrollbar-thumb
+{
+    background-color: #455a64;
+    border: 2px solid #555555;
+}

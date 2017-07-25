@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
+
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
@@ -44,6 +45,7 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 		match.Set("projectname", project)
 	}
 	match.Set("avgwindspeed", tk.M{}.Set("$gte", 3))
+	match.Set("available", 1)
 
 	if len(turbine) > 0 {
 		match.Set("turbine", tk.M{}.Set("$in", turbine))
@@ -52,7 +54,7 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 	group := tk.M{
 		"_id":        "$wsavgforpc",
 		"energy":     tk.M{}.Set("$sum", "$energy"),
-		"totalavail": tk.M{}.Set("$avg", "$totalavail"),
+		"totalavail": tk.M{}.Set("$sum", "$totalavail"),
 		"totalcount": tk.M{}.Set("$sum", 1),
 	}
 
@@ -108,15 +110,15 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 	}
 	energyAcumulative := 0.0
 	timeAcumulative := 0
+
 	for _, d := range results {
 		windSpeed := d["_id"].(float64)
 		energy := d["energy"].(float64)
-		totalavail := d["totalavail"].(float64)
 		time := d["totalcount"].(int)
 
 		energyAcumulative = energyAcumulative + energy
 		timeAcumulative = timeAcumulative + time
-		totalAvail := totalavail * 100
+		totalAvail := tk.Div(d["totalavail"].(float64), float64(time)) * 100
 		energyPros := tk.Div(energyAcumulative, totalEnergy) * 100
 		timePros := tk.Div(float64(timeAcumulative), float64(totalTime)) * 100
 

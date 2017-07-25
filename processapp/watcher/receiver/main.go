@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/eaciit/database/base"
 	"github.com/eaciit/orm"
@@ -21,10 +22,16 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"bytes"
+
+	"eaciit/wfdemo-git/library/helper"
+	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/watcher/controllers"
-	"time"
 
 	tk "github.com/eaciit/toolkit"
+	"gopkg.in/mgo.v2/bson"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 )
 
 const (
@@ -153,8 +160,8 @@ func processFile(filePath string, com []Command) {
 		if len(byteOut) == 0 {
 			break
 		} else {
-			fmt.Println(string(byteOut))
-			time.Sleep(200 * time.Millisecond)
+			// fmt.Println(string(byteOut))
+			time.Sleep(5 * time.Second)
 		}
 
 	}
@@ -337,6 +344,7 @@ func run(action Command, file string) (next string) {
 	//log.Printf("cmdstr: %v \n", cmdStr)
 	// mux.Unlock()
 
+	_ismvsucces := false
 	if runCommand {
 		out, err := runCMD(cmdStr)
 
@@ -346,13 +354,19 @@ func run(action Command, file string) (next string) {
 
 		if err != nil {
 			log.Printf("result: %v %s\n%s", err.Error(), cmdStr, string(out))
-			next = action.Success
 		} else {
-			next = action.Success
+			_ismvsucces = true
 		}
+
+		next = action.Success
 	} else {
 		log.Println("DONE")
 		next = action.Fail
+	}
+
+	if action.Action == "COPY_TO_SUCCESS" && runCommand && _ismvsucces {
+		_cmd := fmt.Sprintf("rm %v", filepath.Join(conf.Success, file))
+		_, _ = runCMD(_cmd)
 	}
 
 	// log.Printf("next: %v \n", next)
@@ -387,24 +401,280 @@ func doProcess(file string) (success bool) {
 		if err != nil {
 			tk.Println(err)
 		} else {
+			UpdateLastHFDAvail()
+			UpdateLastMonitoring()
 			tk.Println(">> DONE <<")
 		}
+		success = true
+	}
 
-		// errorLine = tk.M{}
-		// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
-		// WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
-		// log.Println("GenTenFromThreeSecond: DONE")
+	return
+}
 
-		/*
-			muxDo.Lock()
-			errorLine = tk.M{}
-			conv := dc.NewDataConversion(base.Ctx)
-			errorLine = conv.Generate(fileName)
-			// errorLine = new(GenTenFromThreeSecond).Generate(base, fileName)
-			WriteWatcherErrors(errorLine, fileName+"-ten", conf.Errors)
-			log.Printf("GenTenFromThreeSecond: %v DONE | in %v seconds \n", file, time.Now().Sub(start).Seconds())
-			success = true
-			muxDo.Unlock()*/
+func UpdateLastHFDAvail() {
+
+	_nt0 := time.Now()
+	tk.Println("Start Update Last HDF Available ...")
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	type latestdataperiod struct {
+		ID          bson.ObjectId ` bson:"_id" , json:"_id" `
+		Projectname string
+		Type        string
+		Data        []time.Time
+	}
+
+	csr, err := workerconn.NewQuery().
+		Select().
+		From("LatestDataPeriod").
+		Where(dbox.Eq("type", "ScadaDataHFD")).
+		Cursor(nil)
+
+	if err != nil || csr.Count() == 0 {
+		return
+	}
+
+	_dt := new(latestdataperiod)
+
+	_ = csr.Fetch(_dt, 1, false)
+	csr.Close()
+
+	pipes := []tk.M{tk.M{"$group": tk.M{"_id": "$projectname",
+		"mintimestamp": tk.M{"$min": "$timestamp"},
+		"maxtimestamp": tk.M{"$max": "$timestamp"},
+	}}}
+
+	xcsr, err := workerconn.NewQuery().
+		From(new(ScadaConvTenMin).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+
+	_tkm := tk.M{}
+	_ = xcsr.Fetch(&_tkm, 1, false)
+	xcsr.Close()
+
+	_min := _tkm.Get("mintimestamp", time.Time{}).(time.Time)
+	_max := _tkm.Get("maxtimestamp", time.Time{}).(time.Time)
+
+	_dt.Data[0] = _min
+	_dt.Data[1] = _max
+
+	_ = workerconn.NewQuery().
+		From("LatestDataPeriod").
+		SetConfig("multiexec", true).
+		Save().Exec(tk.M{}.Set("data", _dt))
+
+	tk.Println(" >>> End Update Last HDF Available in ", time.Since(_nt0).String())
+}
+
+func UpdateLastMonitoring() {
+	_nt0 := time.Now()
+	tk.Println(" >>> Start Update Last Monitoring ...")
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	var sworkerconn dbox.IConnection
+	for {
+		var err error
+		sworkerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer sworkerconn.Close()
+
+	type latestdataperiod struct {
+		ID          bson.ObjectId ` bson:"_id" , json:"_id" `
+		Projectname string
+		Type        string
+		Data        []time.Time
+	}
+
+	csr, err := workerconn.NewQuery().
+		Select().
+		From("LatestDataPeriod").
+		Where(dbox.Eq("type", "ScadaDataHFD")).
+		Cursor(nil)
+
+	if err != nil || csr.Count() == 0 {
+		return
+	}
+
+	_dt := new(latestdataperiod)
+
+	_ = csr.Fetch(_dt, 1, false)
+	csr.Close()
+
+	speriode := _dt.Data[1].AddDate(0, 0, -1)
+	eperiode := _dt.Data[1]
+
+	err = workerconn.NewQuery().
+		Delete().
+		From(new(Monitoring).TableName()).
+		Where(dbox.Lte("timestamp", speriode)).
+		Exec(nil)
+
+	if err != nil {
+		tk.Println(">>> Error found on Delete : ", err.Error())
+	}
+
+	msmonitor := PrepareMasterMonitoring()
+	tk.Println(">>> periode ", speriode, " ----- ", eperiode)
+	xcsr, err := workerconn.NewQuery().
+		Select("timestamp", "projectname", "turbine", "fast_activepower_kw", "fast_windspeed_ms", "fast_rotorspeed_rpm",
+			"slow_tempnacelle", "fast_pitchangle").
+		From(new(ScadaConvTenMin).TableName()).
+		Where(dbox.And(dbox.Lte("timestamp", eperiode), dbox.Gt("timestamp", speriode))).
+		Order("timestamp").
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	sqsave := sworkerconn.NewQuery().
+		From(new(Monitoring).TableName()).
+		SetConfig("multiexec", true).
+		Save()
+
+	// _lstatus := make(map[string]Monitoring, 0)
+	for {
+		_tkm := tk.M{}
+		err = xcsr.Fetch(&_tkm, 1, false)
+		if err != nil {
+			break
+		}
+
+		_timestamp := _tkm.Get("timestamp", time.Time{}).(time.Time)
+		_key := tk.Sprintf("%s#%s#%s",
+			_tkm.GetString("projectname"),
+			_tkm.GetString("turbine"),
+			_timestamp.Format("060102_150405"),
+		)
+		_monitor := Monitoring{}
+
+		if _mo, _bo := msmonitor[_key]; _bo {
+			_monitor = _mo
+
+			// 	if _mo.Status != "" {
+			// 		_astatus := Monitoring{}
+
+			// 		_astatus.Status = _mo.Status
+			// 		_astatus.Type = _mo.Type
+			// 		_astatus.StatusCode = _mo.StatusCode
+			// 		_astatus.StatusDesc = _mo.StatusDesc
+
+			// 		_lstatus[_mo.Turbine] = _astatus
+			// 	}
+			// } else if _lsdata, _lscond := _lstatus[_tkm.GetString("turbine")]; _lscond {
+			// 	_monitor.Status = _lsdata.Status
+			// 	_monitor.Type = _lsdata.Type
+			// 	_monitor.StatusCode = _lsdata.StatusCode
+			// 	_monitor.StatusDesc = _lsdata.StatusDesc
+		}
+
+		if _monitor.Status == "" {
+			_monitor.Status = "N/A"
+		}
+
+		_monitor.ID = _key
+		_monitor.TimeStamp = _timestamp
+		_monitor.DateInfo = helper.GetDateInfo(_timestamp)
+		_monitor.LastUpdate = _nt0
+		_monitor.LastUpdateDateInfo = helper.GetDateInfo(_nt0)
+		_monitor.Project = _tkm.GetString("projectname")
+		_monitor.Turbine = _tkm.GetString("turbine")
+
+		if _val := _tkm.GetFloat64("fast_activepower_kw"); _val != -9999999 {
+			_monitor.Production = (_val / 1000) / 6
+		} else {
+			_monitor.Production = _val
+		}
+
+		// if _val := _tkm.GetFloat64("fast_windspeed_ms"); _val != -9999999 {
+		_monitor.WindSpeed = _tkm.GetFloat64("fast_windspeed_ms")
+		// }
+
+		// if _val := _tkm.GetFloat64("fast_rotorspeed_rpm"); _val != -9999999 {
+		_monitor.RotorSpeedRPM = _tkm.GetFloat64("fast_rotorspeed_rpm")
+		// }
+		_monitor.PitchAngle = _tkm.GetFloat64("fast_pitchangle")
+		_monitor.WindDirection = _tkm.GetFloat64("slow_tempnacelle")
+		// WindDirection
+		//"slow_tempnacelle","fast_pitchangle"
+
+		_ = sqsave.Exec(tk.M{}.Set("data", _monitor))
+
+	}
+	xcsr.Close()
+
+	tk.Println(" >>> End Update Last Monitoring in ", time.Since(_nt0).String())
+}
+
+func PrepareMasterMonitoring() (_mnt map[string]Monitoring) {
+	_mnt = make(map[string]Monitoring)
+
+	var workerconn dbox.IConnection
+	for {
+		var err error
+		workerconn, err = PrepareConnection()
+		if err == nil {
+			break
+		} else {
+			tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+			<-time.After(time.Second * 3)
+		}
+	}
+	defer workerconn.Close()
+
+	xcsr, err := workerconn.NewQuery().
+		Select().
+		From(new(Monitoring).TableName()).
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	defer xcsr.Close()
+
+	for {
+		_amnt := Monitoring{}
+		err = xcsr.Fetch(&_amnt, 1, false)
+		if err != nil {
+			break
+		}
+
+		_mnt[_amnt.ID] = _amnt
 	}
 
 	return

@@ -3,11 +3,11 @@
 viewModel.KeyMetrics = new Object();
 var km = viewModel.KeyMetrics;
 km.MinValue = ko.observable(0);
-km.MaxValue = ko.observable(1000);
-km.BinValue = ko.observable(20);
-km.MinValueWindSpeed = ko.observable(1);
+km.MaxValue = ko.observable(2000);
+km.BinValue = ko.observable(40);
+km.MinValueWindSpeed = ko.observable(0);
 km.MaxValueWindSpeed = ko.observable(24);
-km.BinValueWindSpeed = ko.observable(23);
+km.BinValueWindSpeed = ko.observable(24);
 km.CategoryProduction = ko.observableArray([]);
 km.ValueProduction = ko.observableArray([]);
 km.dsCategorywindspeed = ko.observableArray();
@@ -28,14 +28,20 @@ km.ExportKeyMetrics = function () {
 }
 
 km.createChart = function () {
+    $("#totalCountData").html('(Total Count Data: ' + km.dsTotaldataWS() + ')');
+    var turbineData = '';
+    if(fa.turbine().length == 0) {
+        turbineData = 'All Turbines';
+    }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
+        turbineData = 'All Turbines';
+    } else {
+        turbineData = fa.turbine().join(", ");
+    }
+    $("#turbineListTitle").html('for ' + turbineData);
     $("#dh-chart").replaceWith('<div id="dh-chart"></div>');
 
     $("#dh-chart").kendoChart({
         theme: "flat",
-        title: {
-            text: "Histogram for Wind Speed (m/s) \n (Total Count Data: " + km.dsTotaldataWS() + ")",
-            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-        },
         legend: {
             position: "top",
             visible: false
@@ -58,6 +64,7 @@ km.createChart = function () {
             },
             labels: {
                 // format: "{0:p2}"
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 format: "{0}"
             },
             majorGridLines: {
@@ -87,9 +94,10 @@ km.createChart = function () {
                 // padding: { 
                 //     left: 600 / valuewindspeed.length
                 // },
-                margin: {
-                    left: -600 / km.dsValuewindSpeed().length
-                },
+                // margin: {
+                //     left: -600 / km.dsValuewindSpeed().length
+                // },
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 template: "#: (value.split('~'))[0] #"
             },
             axisCrossingValue: [0]
@@ -111,13 +119,23 @@ km.createChart = function () {
 }
 
 km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
+    $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
+    var turbineData = '';
+    if(fa.turbine().length == 0) {
+        turbineData = 'All Turbines';
+    }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
+        turbineData = 'All Turbines';
+    } else {
+        turbineData = fa.turbine().join(", ");
+    }
+    var _rotationlabel = 0
+    if (km.BinValue() > 20) {
+        _rotationlabel = 68
+    }
+    $("#turbineListProd").html('for ' + turbineData);
     $("#dhprod-chart").replaceWith("<div id='dhprod-chart'></div>");
     $("#dhprod-chart").kendoChart({
         theme: "flat",
-        title: {
-            text: "Histogram for Production (MWh) \n (Total Count Data: " + km.dsTotaldataProduction() + ")",
-            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-        },
         legend: {
             position: "top",
             visible: false
@@ -139,7 +157,8 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
             labels: {
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -167,12 +186,14 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
                 visible: false
             },
             labels: {
+                rotation : _rotationlabel,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // padding: { 
                 //     left: 600 / categoryproduction.length
                 // },
-                margin: {
-                    left: -600 / km.dsCategoryProduction().length
-                },
+                // margin: {
+                //     left: -600 / km.dsCategoryProduction().length
+                // },
                 template: "#: ((value.split('~'))[0]) #",
                 format: "{0:n0}"
             }
@@ -198,113 +219,85 @@ vm.currentTitle('Histograms');
 vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
 
 km.getData = function () {
-    fa.getProjectInfo();
-    fa.LoadData();
-    app.loading(true);
+    // fa.getProjectInfo();
+    if(fa.LoadData()) {
+        app.loading(true);
 
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    })
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            var minDatetemp = new Date(res.data.ScadaData[0]);
+            var maxDatetemp = new Date(res.data.ScadaData[1]);
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        })
 
-    var paramFilter = {
-        period: fa.period,
-        Turbine: fa.turbine,
-        DateStart: fa.dateStart,
-        DateEnd: fa.dateEnd,
-        Project: fa.project
-    };
+        var paramFilter = {
+            period: fa.period,
+            Turbine: fa.turbine(),
+            DateStart: fa.dateStart,
+            DateEnd: fa.dateEnd,
+            Project: fa.project
+        };
 
-    var parDataWS = {
-        MinValue: parseFloat(km.MinValueWindSpeed()),
-        MaxValue: parseFloat(km.MaxValueWindSpeed()),
-        BinValue: parseInt(km.BinValueWindSpeed()),
-        Filter: paramFilter
-    };
-    var requestHistogram = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        if (res.data != null) {
-            km.dsCategorywindspeed(res.data.categorywindspeed);
-            km.dsValuewindSpeed(res.data.valuewindspeed);
-            km.dsTotaldataWS(res.data.totaldata);
-            km.dsValuewindSpeed.push(0);
-            km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
-            km.createChart();
-        }
-    });
+        var parDataWS = {
+            MinValue: parseFloat(km.MinValueWindSpeed()),
+            MaxValue: parseFloat(km.MaxValueWindSpeed()),
+            BinValue: parseInt(km.BinValueWindSpeed()),
+            Filter: paramFilter
+        };
+        var requestHistogram = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (res.data != null) {
+                km.dsCategorywindspeed(res.data.categorywindspeed);
+                km.dsValuewindSpeed(res.data.valuewindspeed);
+                km.dsTotaldataWS(res.data.totaldata);
+                // km.dsValuewindSpeed.push(0);
+                // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
+                km.createChart();
+            }
+        });
 
-    var parDataProd = {
-        MinValue: parseFloat(km.MinValue()),
-        MaxValue: parseFloat(km.MaxValue()),
-        BinValue: parseInt(km.BinValue()),
-        Filter: paramFilter
-    };
-    var requestProduction  = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        if (res.data != null) {
+        var parDataProd = {
+            MinValue: parseFloat(km.MinValue()),
+            MaxValue: parseFloat(km.MaxValue()),
+            BinValue: parseInt(km.BinValue()),
+            Filter: paramFilter
+        };
+        var requestProduction  = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (res.data != null) {
 
-            km.dsCategoryProduction(res.data.categoryproduction);
-            km.dsValueProduction(res.data.valueproduction);
-            km.dsTotaldataProduction(res.data.totaldata);
-            km.dsValueProduction.push(0);
-            km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
-            km.createChartProduction();
-        }
-    });
+                km.dsCategoryProduction(res.data.categoryproduction);
+                km.dsValueProduction(res.data.valueproduction);
+                km.dsTotaldataProduction(res.data.totaldata);
+                // km.dsValueProduction.push(0);
+                // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
+                km.createChartProduction();
+            }
+        });
 
-    $.when(requestHistogram, requestProduction).done(function(){
-        setTimeout(function(){
-            app.loading(false);
-        },500);
-    });
-    // }, 750);
-    // app.loading(false);
+        $.when(requestHistogram, requestProduction).done(function(){
+            setTimeout(function(){
+                app.loading(false);
+            },500);
+        });
+    }
 }
 
 km.SubmitValues = function () {
     km.getData();
-    // app.loading(true);
-    // km.CategoryProduction([]);
-    // km.ValueProduction([]);
-
-    // var filter = {
-    //     Turbine: fa.turbine,
-    //     DateStart: fa.dateStart,
-    //     DateEnd: fa.dateEnd,
-    //     Project: fa.project
-    // };
-
-    // var param = {
-    //     MinValue: parseFloat(km.MinValue()),
-    //     MaxValue: parseFloat(km.MaxValue()),
-    //     BinValue: parseInt(km.BinValue()),
-    //     Filter: filter
-    // };
-
-    // toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", param, function (res) {
-    //     if (!app.isFine(res)) {
-    //         app.loading(false);
-    //         return;
-    //     }
-    //     if(res.data != null) {
-    //         km.createChartProduction(res.data.categoryproduction, res.data.valueproduction, res.data.totaldata);
-    //         app.loading(false);
-    //     }
-    // });
 }
 
 
 $(document).ready(function () {
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         setTimeout(function () {
             km.getData();
         }, 300);
@@ -314,9 +307,24 @@ $(document).ready(function () {
         e.preventDefault();
     });
 
+    $('#projectList').kendoDropDownList({
+		change: function () {  
+			var project = $('#projectList').data("kendoDropDownList").value();
+			fa.populateTurbine(project);
+            setTimeout(function() {
+                $('#turbineList').multiselect('select', fa.turbineList()[0].value);
+            }, 100);
+		}
+	});
+
     setTimeout(function () {
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+          $el.multiselect('deselect', $(this).val());
+        });
+
         if(fa.turbineList().length > 1){
-            $('#turbineList').data('kendoMultiSelect').value(fa.turbineList()[1]);
+            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
         }
         km.getData();
     }, 800);

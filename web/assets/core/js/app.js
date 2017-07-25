@@ -179,6 +179,7 @@ app.showError = function (message) {
 };
 app.isFine = function (res) {
     if (!res.success && res.message.indexOf('expired') > -1) {
+        app.isLoading(false);
         swal({
             title: "Warning",
             type: "warning",
@@ -190,7 +191,7 @@ app.isFine = function (res) {
         });
         return false;
     }
-    if (!res.success) {
+    if (!res.success && res.message != "data is empty") {
         sweetAlert('Warning', res.message, 'error');
         return false;
     }
@@ -236,7 +237,8 @@ app.prepareTooltipster = function ($o, argConfig) {
             touchDevices: false,
             trigger: 'hover',
             position: position,
-            content: $('<div />').html($(e).attr('title'))
+            content: $('<div />').html($(e).attr('title')),
+            multiple: true
         };
         if (typeof argConfig !== 'undefined') {
             config = $.extend(true, config, argConfig);
@@ -456,6 +458,11 @@ app.auth = function(status){
 
 app.getUTCDate = function(strdate){
     var d = moment.utc(strdate);
+    return d;
+}
+
+app.getDateMax = function(strdate){
+    var d = moment.utc(strdate);
     return new Date(d.year(), d.month(), d.date(), 0, 0, 0)
 }
 app.toUTC = function(d){
@@ -472,6 +479,12 @@ app.currentDateData = ko.observable;
 
 app.extend('String', s);
 
-var colorField = ["#ff880e","#21c4af","#ff7663","#ffb74f","#a2df53","#1c9ec4","#ff63a5","#f44336","#D91E18","#8877A9","#9A12B3","#26C281","#E7505A","#C49F47","#ff5597","#c3260c","#d4735e","#ff2ad7","#34ac8b","#11b2eb","#f35838","#ff0037","#507ca3","#ff6565","#ffd664","#72aaff","#795548"];
+// var colorField = ["#ff880e","#21c4af","#ff7663","#ffb74f","#a2df53","#1c9ec4","#ff63a5","#f44336","#D91E18","#8877A9","#9A12B3","#26C281","#E7505A","#C49F47","#ff5597","#c3260c","#d4735e","#ff2ad7","#34ac8b","#11b2eb","#f35838","#ff0037","#507ca3","#ff6565","#ffd664","#72aaff","#795548"];
+var colorField = ["#ff9933","#21c4af","#4589b0", "#e4cc37","#008571", "#3ca5bf",
+    "#003399", "#cccccc", "#9C27B0", "#BA68C8", "#1A237E",
+    "#5C6BC0", "#1E88E5", "#0277BD", "#0097A7", "#26A69A",
+    "#81C784", "#8BC34A", "#24752A", "#827717", "#004D40",
+    "#C0CA33", "#FF6F00", "#D6C847", "#FFB300", "#BA8914",
+    "#9999FF"];
 var colorDegField = ["#ffcf9e","#a6e7df","#ffc8c0","#ffe2b8","#d9f2ba","#a4d8e7","#ffc0db","#fab3ae","#efa5a2","#cfc8dc","#d6a0e0","#a8e6cc","#f5b9bd","#e7d8b5","#ffbbd5","#e7a89d","#edc7be","#ffa9ef","#adddd0","#9fe0f7","#fabcaf","#ff99af","#b9cada","#ffc1c1","#ffeec1","#c6ddff","#c9bbb5"];
 var colorFields2 =  ["#9e9e9e","#337ab7","#ff0000"];

@@ -46,21 +46,27 @@ us.TableColumns = ko.observableArray([{ headerTemplate: "<center><input type='ch
         return ["<input type='checkbox' class='deletecheck' idcheck='" + d._id + "' onclick=\"us.checkDeleteData(this, 'delete')\" />"].join(" ");
     } }, {
     field: "loginid",
-    title: "Login Id"
+    title: "Login ID",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "fullname",
-    title: "Fullame"
+    title: "Full Name",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "email",
-    title: "Email"
+    title: "Email",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "enable",
-    title: "Enable"
+    title: "Enable",
+    headerAttributes: { style: "text-align: center;" },
+    attributes: { style: "text-align: center;" }
 }, {
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
         return ["<button class='btn btn-sm btn-warning' onclick='us.editData(\"" + d._id + "\")'><span class='fa fa-pencil' ></span></button>"].join(" ");
-    }
+    },
+    attributes: { style: "text-align: center;" }
 }]);
 
 us.listGroupsColumns = ko.observableArray([{

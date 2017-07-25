@@ -1,7 +1,8 @@
 (function () {
 	const CHART_DATA = 'chart2grid-chart'
 
-	jQuery.fn.kendoChart2Grid =  function (options) {
+	jQuery.fn.kendoChart2Grid =  function (options, dateFormat) {
+
 		var self = this
 
 		if (self.data('kendoGrid') != undefined) {
@@ -13,18 +14,22 @@
 		} else {
 			decimal = 'n2';
 		}
+
+		var Template = "#= kendo.toString(kendo.parseDate(category, 'yyyy-MM-dd'), '" + dateFormat+ "') #"
 		
 		var chart = self.data('kendoChart')
 		var isUsingDataSource = false
 		var data = []
 		var columns = [{
 			field: 'category',
+			template: dateFormat == undefined ? "#= category #" : Template,
 			title: 'Category Axis'
 		}]
 
 		if (chart.options.series.length > 0) {
 			if (chart.options.series[0].data[0] instanceof Object) {
 				isUsingDataSource = true
+
 			}
 		}
 
@@ -39,7 +44,10 @@
 				if (i == 0) {
 					columns.push({
 						field: columnField,
-						title: (e.hasOwnProperty('name') ? e.name : e.field)
+						title: (e.hasOwnProperty('name') ? e.name : e.field),
+						attributes: { style: "text-align:center;" },
+						headerAttributes: { style: "text-align:center;" },
+						//template: "#: kendo.toString(kendo.parseDate(new Date('DateId')), 'dd-MM-yyyy')#"
 					})
 				}
 			})

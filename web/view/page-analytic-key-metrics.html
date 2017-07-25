@@ -1,5 +1,6 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-key-metrics.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-key-metrics.css">
@@ -19,11 +20,11 @@
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading">Compare Metrics&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+					<!-- <div class="panel-heading">Compare Metrics&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
 						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
-					</div>
+					</div> -->
 					<div class="panel-body">
-						<div class="databrowser-date-info">
+						<div class="date-info">
 	                         Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
 	                    </div>
 						<div class="col-md-9">
@@ -43,6 +44,5 @@
 </div>
 <div class="clearfix"></div>
 <script>
-	fa.populateTurbine({{.TurbineList}});
-	fa.populateProject({{.ProjectList}});
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
 </script>

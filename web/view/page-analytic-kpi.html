@@ -1,5 +1,6 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-kpi.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-kpi.css">
@@ -9,8 +10,8 @@
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
-					KPI&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
-					| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+					<!-- KPI&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
+					| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span> -->
 					<div class="pull-right" style="margin-right:8px">
 						<span style="font-size:12px;"><b>Saved Views <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Saved views by the user, maximum 3 views for each user"></i></b></span>&nbsp;
 						<select class="form-control input-sm" id="savedViews"></select>
@@ -18,9 +19,10 @@
 					</div>
 				</div>
 				<div class="panel-body">
-					<div class="databrowser-date-info">
+					<div class="date-info">
                         Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
                     </div>
+                    <div class="clearfix">&nbsp;</div>
 					<div class="col-md-12 col-sm-12 list">
 						<label class="col-md-1 col-sm-1 control-label keyA-label">Key A</label>
 						<select class="col-md-1 col-sm-1" id="key1" name="table" data-bind="kendoDropDownList: { data: page.key1, dataValueField: 'value', dataTextField: 'text', suggest: true}"
@@ -109,6 +111,5 @@
 	</div>
 </div>
 <script>
-	fa.populateTurbine({{.TurbineList}});
-	fa.populateProject({{.ProjectList}});
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
 </script>

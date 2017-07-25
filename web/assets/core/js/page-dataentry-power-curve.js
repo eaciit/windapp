@@ -30,8 +30,16 @@ var Data = {
 	        },
 	        pageSize: 10,
 	        schema: {
-	          data: "Data",
-	          total: "Total"
+	          data: function(res) {
+                    return res.data.Data
+                },
+                total: function(res) {
+	                if (!app.isFine(res)) {
+	                    return;
+	                }
+
+	                return res.data.Total;
+	            }
 	        },
 	        sort: [
 				{ field: 'WindSpeed', dir: 'asc' }
@@ -47,8 +55,8 @@ var Data = {
 	      scrollable: false,
 	      columns: [
 	        { title: "Model", field: "Model", width: 120 },
-	        { title: "Avg. Wind Speed<br>(m/s)", field: "WindSpeed", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-right" }, format: "{0:n2}", width: 120 },
-	        { title: "Standard Power<br>(KW)", field: "Power1", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-right" }, format: "{0:n0}", width: 120 },
+	        { title: "Avg. Wind Speed<br>(m/s)", field: "WindSpeed", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120 },
+	        { title: "Standard Power<br>(KW)", field: "Power1", headerAttributes: { style:"text-align: right" }, attributes:{ class:"align-center" }, format: "{0:n0}", width: 120 },
 	        { title: "Control",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" },template: "<div class='middles'><a href=\"javascript:Data.Edit('#: ID #')\" class=\"btn btn-xs btn-warning\"><i class=\"fa fa-pencil\"></i>&nbsp;&nbsp;Edit</a></div>",width: 100}
 	      ]
 	    });
@@ -64,10 +72,13 @@ var Data = {
 	    var param = { id: id };
 	    var $this = this;
 
-		toolkit.ajaxPost(url, param, function(data) {
-			if (!app.isFine(data)) {
+		toolkit.ajaxPost(url, param, function(res) {
+			if (!app.isFine(res)) {
 	            return;
 	        }
+
+	        var data = res.data;
+
             page.CurrentData({ ID: data.ID, Model: data.Model, WindSpeed: data.WindSpeed, Power1: data.Power1 });
 			$this.ShowForm('show');
         });
@@ -107,7 +118,7 @@ var Data = {
 	    var url = viewModel.appName + "dataentrypowercurve/save";
 	    var data = page.CurrentData();
 	    var param = {
-	    	Id: data.ID,
+	    	ID: data.ID,
 	    	Model: data.Model,
 	    	WindSpeed: parseFloat(data.WindSpeed),
 	    	Power1: parseFloat(data.Power1)
@@ -117,14 +128,12 @@ var Data = {
 	    toolkit.ajaxPost(url, param, function(data) {
 	    	if (!app.isFine(data)) {
 	            return;
-	        }
-            if(data=="") {
-		        $this.ShowForm('hide');
+	        }else{
+	        	$this.ShowForm('hide');
 		        swal('Success', 'Data has been saved successfully!', 'success');
 		        $this.LoadData();
-		    } else {
-		        swal("Warning", data, "error");
-		    }
+	        }
+            
         });
 	},
 	ResetValidation: function (selectorID) {

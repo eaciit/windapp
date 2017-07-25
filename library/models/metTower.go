@@ -11,6 +11,7 @@ import (
 type MetTower struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            bson.ObjectId ` bson:"_id" , json:"_id" `
+	Project       string
 	Line          int
 	TimeStamp     time.Time
 	DateInfo      DateInfo
@@ -75,10 +76,11 @@ type MetTower struct {
 	BaroAirPress855mStdDev float64
 	BaroAirPress855mCount  float64
 
-	WindDirNo      int    // added by ams, Sep 19, 2016
-	WindDirDesc    string // added by ams, Sep 19, 2016
-	WSCategoryNo   int    // added by ams, Sep 19, 2016
-	WSCategoryDesc string // added by ams, Sep 19, 2016
+	WindDirNo      int     // added by ams, Sep 19, 2016
+	WindDirDesc    string  // added by ams, Sep 19, 2016
+	WSCategoryNo   int     // added by ams, Sep 19, 2016
+	WSCategoryDesc string  // added by ams, Sep 19, 2016
+	WindSpeedBin   float64 // added by ams, Jan 11, 2016
 
 	YawAngleVoltageAvg          float64
 	YawAngleVoltageMax          float64

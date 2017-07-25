@@ -25,12 +25,15 @@ type ScadaData struct {
 	AlarmWeatherStop          float64
 	ExternalStopTime          float64
 	GridDownTime              float64
+	GridDownTimeAll           float64
 	GridOkSecs                float64
 	InternalLineDown          float64
 	MachineDownTime           float64
+	MachineDownTimeAll        float64
 	OkSecs                    float64
 	OkTime                    float64
 	UnknownTime               float64
+	UnknownTimeAll            float64
 	WeatherStopTime           float64
 	GeneratorRPM              float64
 	NacelleYawPositionUntwist float64
@@ -69,6 +72,9 @@ type ScadaData struct {
 	TotalAvail                float64 // new added on Sep 27, 2016 by ams
 	MachineAvail              float64 // new added on Sep 27, 2016 by ams
 	GridAvail                 float64 // new added on Sep 27, 2016 by ams
+	TotalAvailAll             float64 // new added on May 12, 2017 by fr
+	MachineAvailAll           float64 // new added on May 12, 2017 by fr
+	GridAvailAll              float64 // new added on May 12, 2017 by fr
 	DenPcDeviation            float64 // new added on Sep 27, 2016 by ams
 	DenDeviationPct           float64 // new added on Sep 27, 2016 by ams
 	DenPcValue                float64 // new added on Sep 27, 2016 by ams

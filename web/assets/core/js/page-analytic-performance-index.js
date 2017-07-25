@@ -15,10 +15,11 @@ var hideYTD = false;
 var Data = {
     LoadData: function () {
         app.loading(false);
-        fa.LoadData();
-        fa.getProjectInfo();
-        this.InitGrid();
-
+        var isValid = fa.LoadData();
+        if (isValid) {
+            this.InitGrid();
+        }
+        // fa.getProjectInfo();
     },
     InitGrid : function(){
         toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
@@ -58,7 +59,7 @@ var Data = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
+            turbine: fa.turbine(),
             project: fa.project
         };
 
@@ -80,8 +81,7 @@ var Data = {
                 },
                 schema: {
                     data: function(res) {
-
-                        if (!app.isFine(res)) {
+                        if (res.data.Data == undefined) {
                             return;
                         }
                         var summary = res.data.Summary;
@@ -90,9 +90,10 @@ var Data = {
                         return res.data.Data;
                     },
                     total: function (res) {
-                        if (!app.isFine(res)) {
+                        if (res.data.Data == undefined) {
                             return;
                         }
+
                         return res.data.Data.length;
                     },
                     model: {
@@ -254,7 +255,15 @@ var Data = {
 
 $(function(){
     $('#btnRefresh').on('click', function () {
+        fa.checkTurbine();
         Data.LoadData();
+    });
+
+    $('#projectList').kendoDropDownList({
+        change: function () {  
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
     });
 
     $( window ).resize(function() {

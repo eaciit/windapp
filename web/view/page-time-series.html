@@ -1,31 +1,94 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+	var pageType = '{{.PageType}}';
+	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-time-series.js?ANTI_CACHE={{.AntiCache}}"></script>
-<!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/scroller/horizontal.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-time-series.css">
+
+
+<script src="{{BaseUrl}}res/highstock/highstock.js"></script>
+<script src="{{BaseUrl}}res/highstock/exporting.js"></script>
+<script src="{{BaseUrl}}res/highstock/value-in-legend.js"></script>
+<script src="{{BaseUrl}}res/scroller/sly.min.js"></script>
+<script id="template" type="text/x-kendo-template">
+  <div><b>#: kendo.toString(category, 'dd MMM yyyy HH:mm') #</b></div>
+  # for (var i = 0; i < points.length; i++) {
+        if(i == 0) { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# m/s</span></div>
+  #     } else { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# MWh</span></div>
+  #     }
+    } #
+</script>
 <div>
 	<div class="row">
-		{{template "_filter-analytic.html"}}
+		{{template "page-filter-scatter.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading">
-						Time Series Plots&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
-						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
-					</div>
 					<div class="panel-body">
-						
+						<div class="date-info" style="margin-left: 5px;">
+	                        <div class="pull-right" data-bind="visible:pg.pageType() == 'HFD'"><a href="#"  onclick="pg.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a></div>
+	                    </div>
+						<div class="col-md-12">
+							<div id="chartTimeSeries"></div>
+							<div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
+							<!-- <div class="col-md-12 zoom-div">
+								<span><button class="btn btn-default btn-zoom" onclick="pg.ZoomIn()">+</button> &nbsp; <button class="btn btn-default btn-zoom" onclick="pg.ZoomOut()">-</button></span>
+							</div> -->
+						</div>
 						<div class="clearfix">&nbsp;</div>
-						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-body row">
+				<div class="col-md-12">
+					<div class="col-md-10" id="selectTagsDiv"></div>
+					<div class="col-md-2">
+						<button type="submit" id="saveTags" class="btn btn-primary tooltipster tooltipstered" title="Select Tags" onclick="pg.getDataStockChart('selectTags');"><i class="fa fa-check"></i> </button>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<br>
+					<div class="checkbox" style="margin: -10px -10px;">
+						<label>
+                            <input type="checkbox" name="options" onclick="pg.hideRange();" id="option1" checked>
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="colRed"><b class="colBlack">Fix yAxis</b></span>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="options" onclick="pg.hideErr();" id="option2" checked>
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="colRed"><b class="colBlack">Faulty / Erroneous</b></span>
+                        </label>
+					</div>
+					<!-- <div class="btn-group col-md-12" data-toggle="buttons">
+						<label class="btn btn-primary active" onclick="pg.hideRange();">
+							<input type="checkbox" name="options" id="option1" autocomplete="off" checked> Fix yAxis
+						</label>
+						<label class="btn btn-primary active" onclick="pg.hideErr();">
+							<input type="checkbox" name="options" id="option2" autocomplete="off" checked> Outliers
+						</label>
+					</div> -->
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+					Close
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="clearfix"></div>
 <script>
-    $(document).ready(function () {
-        app.loading(false);
-    });
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
 </script>

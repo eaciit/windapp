@@ -3,10 +3,11 @@ package controller
 import (
 	. "eaciit/wfdemo-git/library/core"
 	"eaciit/wfdemo-git/web/helper"
-	"sort"
 
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
+
+	. "eaciit/wfdemo-git/library/models"
 
 	"github.com/eaciit/dbox"
 )
@@ -27,23 +28,14 @@ func CreateHelperController() *HelperController {
 
 func (m *HelperController) GetTurbineList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
+	var projects []interface{}
+	resProj, e := helper.GetProjectList()
 
-	csr, e := DB().Connection.NewQuery().From("ref_turbine").Cursor(nil)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+	for _, v := range resProj {
+		projects = append(projects, v.Value)
 	}
-	defer csr.Close()
 
-	data := []toolkit.M{}
-	e = csr.Fetch(&data, 0, false)
-
-	result := []string{}
-
-	for _, val := range data {
-		result = append(result, val.GetString("turbineid"))
-	}
-	sort.Strings(result)
+	result, e := helper.GetTurbineList(projects)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -68,6 +60,8 @@ func (m *HelperController) GetProjectInfo(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	filter = append(filter, dbox.Eq("active", true))
+
 	if p.Project != "" {
 		filter = append(filter, dbox.Eq("project", p.Project))
 	}
@@ -76,7 +70,7 @@ func (m *HelperController) GetProjectInfo(k *knot.WebContext) interface{} {
 		filter = append(filter, dbox.In("turbineid", p.Turbines...))
 	}
 
-	csr, e := DB().Connection.NewQuery().From("ref_turbine").
+	csr, e := DB().Connection.NewQuery().From(new(TurbineMaster).TableName()).
 		Where(filter...).
 		Order("turbineid").
 		Cursor(nil)
@@ -115,24 +109,7 @@ func (m *HelperController) GetProjectInfo(k *knot.WebContext) interface{} {
 func (m *HelperController) GetProjectList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	csr, e := DB().Connection.NewQuery().From("ref_project").Cursor(nil)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer csr.Close()
-
-	data := []toolkit.M{}
-	e = csr.Fetch(&data, 0, false)
-
-	result := []string{}
-
-	for _, val := range data {
-		if val.GetString("projectid") == "Tejuva" {
-			result = append(result, val.GetString("projectid"))
-		}
-	}
-	sort.Strings(result)
+	result, e := helper.GetProjectList()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())

@@ -48,14 +48,22 @@ func main() {
 			rURL := r.Request.URL.String()
 			sessionid := r.Session("sessionid", "")
 			helper.WC = r
-
-			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" {
+			if rURL == "/"+prefix+"/page/login" {
+				if strings.Contains(r.Request.Referer(), "login/default") {
+					r.Writer.Header().Set("Access-Control-Allow-Origin", "http://ostrowfm-realtime.eaciitapp.com")
+					payload := toolkit.M{}
+					if err := r.GetForms(&payload); err != nil {
+						fmt.Println("payload error", err.Error())
+					}
+					r.SetSession("keyRealtime", payload.GetString("key"))
+				}
+			}
+			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" &&
+				!strings.Contains(rURL, "/"+prefix+"/login/loginrealtime") {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
-
 				if !active {
-					r.SetSession("sessionid", "")
 					urlSplit := strings.Split(rURL, "/")
-
+					r.SetSession("sessionid", "")
 					if len(urlSplit) > 2 {
 						if urlSplit[2] == "page" {
 							http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)

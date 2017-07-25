@@ -7,6 +7,7 @@ import (
 type ExpPValueModel struct {
 	orm.ModelBase      `bson:"-",json:"-"`
 	ID                 string ` bson:"_id" , json:"_id" `
+	ProjectName        string
 	MonthNo            int
 	EnergyDistribution float64
 	P50NetGenMWH       float64

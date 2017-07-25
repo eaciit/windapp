@@ -43,30 +43,40 @@ ac.AccessColumns = ko.observableArray([{ headerTemplate: "<center><input type='c
         return ["<input type='checkbox' class='deletecheck' idcheck='" + d._id + "' onclick=\"ac.checkDeleteData(this, 'delete')\" />"].join(" ");
     } }, {
     field: "_id",
-    title: "ID"
+    title: "ID",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "title",
-    title: "Title"
+    title: "Title",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "icon",
-    title: "Icon"
+    title: "Icon",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "parentid",
-    title: "Parent ID"
+    title: "Parent ID",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "url",
-    title: "URL"
+    title: "URL",
+    headerAttributes: { style: "text-align: center;" }
 }, {
     field: "index",
-    title: "Index"
+    title: "Index",
+    headerAttributes: { style: "text-align: center;" },
+    attributes:{ class:"align-center" },
 },{
     field: "enable",
-    title: "Enable"
+    title: "Enable",
+    headerAttributes: { style: "text-align: center;" },
+    attributes: { style: "text-align: center;" }
 }, {
     headerTemplate: "<center>Action</center>", width: 100,
     template: function template(d) {
         return ["<button class='btn btn-sm btn-warning' onclick='ac.editData(\"" + d._id + "\")'><span class='fa fa-pencil'></span></button>"].join(" ");
-    }
+    },
+    attributes: { style: "text-align: center;" }
 }]);
 
 ac.filter = ko.mapping.fromJS(ac.templateFilter);

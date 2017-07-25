@@ -15,6 +15,7 @@ type ScadaConvTenMin struct {
 	DateInfo      DateInfo
 	ProjectName   string
 	Turbine       string
+	IsNull        bool
 
 	Fast_ActivePower_kW        float64
 	Fast_ActivePower_kW_StdDev float64
@@ -22,6 +23,7 @@ type ScadaConvTenMin struct {
 	Fast_ActivePower_kW_Max    float64
 	Fast_ActivePower_kW_Count  int
 
+	Fast_WindSpeed_bin       float64
 	Fast_WindSpeed_ms        float64
 	Fast_WindSpeed_ms_StdDev float64
 	Fast_WindSpeed_ms_Min    float64
@@ -560,5 +562,5 @@ func (m *ScadaConvTenMin) RecordID() interface{} {
 }
 
 func (m *ScadaConvTenMin) TableName() string {
-	return "Temp_ScadaConvTenMin"
+	return "ScadaDataHFD"
 }

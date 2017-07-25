@@ -25,22 +25,11 @@ func init() {
 
 	runtime.GOMAXPROCS(4)
 	ConfigPath = controller.CONFIG_PATH
-	// port := new(Ports)
-	// port.ID = "port"
-	// if err := port.GetPort(); err != nil {
-	// 	toolkit.Printf("Error get port: %s \n", err.Error())
-	// }
-	// if port.Port == 0 {
-	// 	if err := setup.Port(port); err != nil {
-	// 		toolkit.Printf("Error set port: %s \n", err.Error())
-	// 	}
-	// }
 
 	if err := setAclDatabase(); err != nil {
 		toolkit.Printf("Error set acl database : %s \n", err.Error())
 	}
 
-	// server.Address = toolkit.Sprintf("localhost:%v", toolkit.ToString(port.Port))
 	app.Static("res", filepath.Join(controller.AppBasePath, AppName, "assets"))
 	app.Static("image", filepath.Join(controller.AppBasePath, AppName, "assets", "img"))
 	app.Register(controller.CreatePageController(AppName))
@@ -68,6 +57,7 @@ func init() {
 	app.Register(controller.CreateAnalyticWindAvailabilityController())
 	app.Register(controller.CreateAnalyticKeyMetricsController())
 	app.Register(controller.CreateAnalyticComparisonController())
+	app.Register(controller.CreateTrendLinePlotsController())
 	app.Register(controller.CreateAnalyticHistogramController())
 	app.Register(controller.CreateHelperController())
 	app.Register(controller.CreateUserPreferencesController())
@@ -84,6 +74,11 @@ func init() {
 	app.Register(controller.CreateReportingController())
 
 	app.Register(controller.CreateWindFarmAnalysisController())
+	app.Register(controller.CreateMonitoringController())
+	app.Register(controller.CreateDataAvailabilityController())
+	app.Register(controller.CreateEmailController())
+
+	app.Register(controller.CreateMonitoringRealtimeController())
 
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")

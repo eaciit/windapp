@@ -12,8 +12,49 @@
 	var viewModel = { appName: '/web/' };
 </script>
 
-<link rel="shortcut icon" href="{{BaseUrl}}res/img/favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="{{BaseUrl}}res/img/favicon.gif" type="image/gif" />
 <!-- <link rel="icon" href="{{BaseUrl}}res/img/logo.png" type="image/x-icon" /> -->
+
+<!-- ############################ CSS #############################-->
+
+
+<link rel="stylesheet" href="{{BaseUrl}}res/bootstrap/css/bootstrap.min.css" />
+<!-- font-awesome -->
+<link rel="stylesheet" href="{{BaseUrl}}res/font-awesome/css/font-awesome.min.css" />
+<!-- material-switch -->
+<link rel="stylesheet" href="{{BaseUrl}}res/material-switch/style.css" />
+<!-- kendo-ui -->
+<!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.default.min.css" rel="stylesheet"> -->
+<link href="{{BaseUrl}}res/kendo-ui/styles/kendo.common-bootstrap.min.css" rel="stylesheet">
+<!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.bootstrap.min.css" rel="stylesheet"> -->
+<link href="{{BaseUrl}}res/kendo-ui/styles/kendo.dataviz.min.css" rel="stylesheet">
+<!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.dataviz.bootstrap.min.css" rel="stylesheet"> -->
+<!-- <link rel="stylesheet" href="{{BaseUrl}}res/core/css/kendo.ez.css" /> -->
+<link rel="stylesheet" href="{{BaseUrl}}res/kendo-ui/styles/kendo.ez.css" />
+<link rel="stylesheet" href="{{BaseUrl}}res/tooltipster/css/tooltipster.css" />
+<link rel="stylesheet" href="{{BaseUrl}}res/tooltipster/css/tooltipster-val.css" />
+<link rel="stylesheet" href="{{BaseUrl}}res/sweetalert/sweet-alert.css">
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/sweetalert-custom.css">
+<!-- adminLTE -->
+<link rel="stylesheet" href="{{BaseUrl}}res/adminLTE/css/AdminLTE.css">
+<link rel="stylesheet" href="{{BaseUrl}}res/adminLTE/css/skins/_all-skins.min.css">
+<!-- <link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout.css" /> -->
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout2.css?ANTI_CACHE={{.AntiCache}}" />
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/font-awesome-animation.min.css" />
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/ec-cegete.css" />
+
+<!-- fonts -->
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/fonts.css" />
+
+<!-- normalize -->
+<link rel="stylesheet" href="{{BaseUrl}}res/core/css/normalize.css" />
+
+<!-- spinkit -->
+<link rel="stylesheet" href="{{BaseUrl}}res/spinkit/spinkit.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+
+<!-- ############################ JS #############################-->
+
 
 <!-- jquery -->
 <script src="{{BaseUrl}}res/jquery/jquery-2.1.0.min.js"></script>
@@ -28,8 +69,6 @@
 		$('.is-loading').removeClass('is-loading');
 	});
 </script> -->
-<!-- map -->
-<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDY0kkJiTPVd2U7aTOAwhc9ySH6oHxOIYM"></script>
 <!-- knockout -->
 <script src="{{BaseUrl}}res/knockout/knockout-3.4.0.js"></script>
 <script src="{{BaseUrl}}res/knockout/knockout.mapping.js"></script>
@@ -43,23 +82,9 @@
 
 <!-- bootstrap -->
 <script src="{{BaseUrl}}res/bootstrap/js/bootstrap.min.js"></script>
-<link rel="stylesheet" href="{{BaseUrl}}res/bootstrap/css/bootstrap.min.css" />
+<script src="{{BaseUrl}}res/bootstrap/js/bootstrap-multiselect.js"></script>
+<link rel="stylesheet" href="{{BaseUrl}}res/bootstrap/css/bootstrap-multiselect.css" />
 
-
-<!-- font-awesome -->
-<link rel="stylesheet" href="{{BaseUrl}}res/font-awesome/css/font-awesome.min.css" />
-
-<!-- material-switch -->
-<link rel="stylesheet" href="{{BaseUrl}}res/material-switch/style.css" />
-
-<!-- kendo-ui -->
-<!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.default.min.css" rel="stylesheet"> -->
-<link href="{{BaseUrl}}res/kendo-ui/styles/kendo.common-bootstrap.min.css" rel="stylesheet">
-<!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.bootstrap.min.css" rel="stylesheet"> -->
-<link href="{{BaseUrl}}res/kendo-ui/styles/kendo.dataviz.min.css" rel="stylesheet">
-<!-- <link href="{{BaseUrl}}res/kendo-ui/styles/kendo.dataviz.bootstrap.min.css" rel="stylesheet"> -->
-<!-- <link rel="stylesheet" href="{{BaseUrl}}res/core/css/kendo.ez.css" /> -->
-<link rel="stylesheet" href="{{BaseUrl}}res/kendo-ui/styles/kendo.ez.css" />
 <script src="{{BaseUrl}}res/kendo-ui/js/kendo.all.min.js"></script>
 <script src="{{BaseUrl}}res/kendo-ui/js/jszip.min.js"></script>
 
@@ -75,8 +100,6 @@
 
 
 <!-- tooltipster -->
-<link rel="stylesheet" href="{{BaseUrl}}res/tooltipster/css/tooltipster.css" />
-<link rel="stylesheet" href="{{BaseUrl}}res/tooltipster/css/tooltipster-val.css" />
 <script src="{{BaseUrl}}res/tooltipster/js/jquery.tooltipster.min.js"></script>
 
 <!-- excellent export -->
@@ -86,32 +109,24 @@
 <script src="{{BaseUrl}}res/jquery.sortable/jquery.sortable.min.js"></script>
 
 <!-- sweet alert -->
-<link rel="stylesheet" href="{{BaseUrl}}res/sweetalert/sweet-alert.css">
+
 <script src="{{BaseUrl}}res/sweetalert/sweet-alert.min.js"></script>
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/sweetalert-custom.css">
+
 
 <!-- toolkit -->
 <script src="{{BaseUrl}}res/toolkit/toolkit.js"></script>
 
-<!-- fonts -->
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/fonts.css" />
 
-<!-- normalize -->
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/normalize.css" />
 
-<!-- spinkit -->
-<link rel="stylesheet" href="{{BaseUrl}}res/spinkit/spinkit.css" />
+
+
 {{.}}
 <!-- core -->
-<script src="{{BaseUrl}}res/core/js/app.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/app.js?ANTI_CACHE={{.AntiCachegit}}"></script>
 <script src="{{BaseUrl}}res/core/js/layout.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/kendochart2grid.js"></script>
 <!-- Ionicons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
 
-<!-- adminLTE -->
-<link rel="stylesheet" href="{{BaseUrl}}res/adminLTE/css/AdminLTE.css">
-<link rel="stylesheet" href="{{BaseUrl}}res/adminLTE/css/skins/_all-skins.min.css">
 <!-- SlimScroll -->
 <script src="{{BaseUrl}}res/adminLTE/plugins/slimScroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
@@ -122,7 +137,3 @@
 <script src="{{BaseUrl}}res/adminLTE/js/demo.js"></script>
 <!-- circle -->
 <script src="{{BaseUrl}}res/js/pie-chart.js"></script>
-<!-- <link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout.css" /> -->
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/layout2.css" />
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/font-awesome-animation.min.css" />
-<link rel="stylesheet" href="{{BaseUrl}}res/core/css/ec-cegete.css" />

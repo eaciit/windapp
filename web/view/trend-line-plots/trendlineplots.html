@@ -1,0 +1,59 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-trend-line-plots/trendlineplots.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/trend-line-plots/trendlineplots.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+					</div>
+					<div class="panel-body">
+						<div class="col-md-12">							
+							<div class="date-info">
+		                        Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
+		                    </div>
+						</div>
+
+                        
+						<div class="clearfix">&nbsp;</div>
+
+						<div  class="col-md-12 ">
+							<div class="col-md-9 ">
+								<div id="charttlp"></div>
+							</div>
+							<div class="col-md-3">
+								<span><b class="colBlack">Select</b></span>&nbsp;&nbsp;
+								<select class="compTemp" id="compTemp" name="table" data-bind="kendoDropDownList: { data: tlp.compTemp, dataValueField: 'value', dataTextField: 'text', value:tlp.compTempVal, suggest: true }">
+			               		</select>
+								<div class="checkbox custom-header" id="showHideChk"></div>
+								<div class="col-md-12 col-sm-12 " id="right-turbine-list"></div>
+								<div class="clearfix" style="line-height: 5px">&nbsp;</div>
+			               		<div class="checkbox margin-left-15">
+				               		<label>
+	                                    <input type="checkbox" id="deviation" data-bind="checked: tlp.isDeviation" onchange="tlp.initChart()">
+	                                    <span class="cr" style="margin-top: 5px;"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+	                                </label>
+	                                    <span class="colRed"><b class="colBlack">For deviation ±</span>&nbsp; 
+	                                    <select class="compTemp devDrop" id="ddldeviation" name="table" data-bind="kendoDropDownList: {data: tlp.deviationList, value:tlp.deviation, suggest: true, enabled:tlp.isDeviation,change:function(){ tlp.initChart()}}">
+			               				</select>
+	                                
+                                </div>
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>

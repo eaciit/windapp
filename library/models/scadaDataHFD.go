@@ -9,12 +9,13 @@ import (
 
 type ScadaDataHFD struct {
 	orm.ModelBase `bson:"-",json:"-"`
-	ID            string ` bson:"_id" , json:"_id" `
+	ID            string ` bson:"_id" json:"_id" `
 	TimeStamp     time.Time
 	TimeStampInt  int64
 	DateInfo      DateInfo
 	ProjectName   string
 	Turbine       string
+	IsNull        bool
 
 	Fast_ActivePower_kW        float64
 	Fast_ActivePower_kW_StdDev float64
@@ -27,6 +28,7 @@ type ScadaDataHFD struct {
 	Fast_WindSpeed_ms_Min    float64
 	Fast_WindSpeed_ms_Max    float64
 	Fast_WindSpeed_ms_Count  int
+	Fast_WindSpeed_Bin       float64
 
 	Slow_NacellePos        float64
 	Slow_NacellePos_StdDev float64

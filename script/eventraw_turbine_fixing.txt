@@ -19,3 +19,6 @@ db.EventRaw.updateMany({"turbine":"TJ24"},{$set:{"turbine":"TJ024"}},{multi:true
 db.EventRaw.updateMany({"turbine":"TJ25"},{$set:{"turbine":"TJ025"}},{multi:true})
 
 db.EventRaw.updateMany({"turbine":"TJW24"},{$set:{"turbine":"TJW024"}},{multi:true})
+
+
+db.ScadaDataOEM.updateMany({"turbine":"TJW204"},{$set:{"turbine":"TJW024"}},{multi:true})

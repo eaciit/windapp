@@ -1,0 +1,28 @@
+<script src="{{BaseUrl}}res/core/js/page-loss-analysis/downtime-top10.js?ANTI_CACHE={{.AntiCache}}"></script>
+
+<div class="col-md-12">
+	<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
+	<div class="panel ez no-padding hardcore">
+		<div class="panel-heading text-center">Top 10 Turbine Downtime by Duration (Hours)</div>
+		<div class="panel-body">
+			<div id="chartDTDuration"></div>
+		</div>
+	</div>
+</div>
+<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
+	<div class="panel ez no-padding hardcore">
+		<div class="panel-heading text-center">Top 10 Turbine Downtime by Frequency</div>
+		<div class="panel-body">
+			<div id="chartDTFrequency"></div>
+		</div>
+	</div>
+</div>
+<div class="col-md-4" data-bind="visible:pg.isDetailDTTop()==false">
+	<div class="panel ez no-padding hardcore">
+		<div class="panel-heading text-center">Top 10 Turbine Downtime by Losses (MWh)</div>
+		<div class="panel-body">
+			<div id="chartTopTurbineLoss"></div>
+		</div>
+	</div>
+</div>                               	
+</div>

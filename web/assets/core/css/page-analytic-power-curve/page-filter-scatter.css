@@ -1,0 +1,33 @@
+.show_hide {
+    display:none;
+}
+.col-md-1 {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+.filter-content{
+    margin-bottom: 10px;
+}
+.k-datepicker, .k-timepicker, .k-datetimepicker, .k-colorpicker, .k-numerictextbox, .k-dropdown, .k-selectbox, .k-toolbar .k-split-button{
+    white-space:inherit;
+}
+
+.label-filters {
+    padding: 0px 10px 0px 10px;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+#btnRefresh {
+    margin-left: 5px;
+}
+
+.period-list {
+	width:100px;
+}
+#projectList {
+	width:145px;
+}
+.input-filter {
+	width:110px;
+}

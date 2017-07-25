@@ -24,8 +24,6 @@ var (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	log.Println("Starting convert event data to down...")
 	conn, err := PrepareConnection()
 	if err != nil {
 		log.Println(err)
@@ -41,15 +39,14 @@ func main() {
 		event.Run()*/
 
 	/*event := NewEventRawConversion(ctx, dir)
-	event.Run()
+	event.Run()*/
 
 	down := NewDownConversion(ctx, dir)
-	down.Run()*/
+	down.Run()
 
-	alarm := NewAlarmConversion(ctx, dir)
-	alarm.Run()
+	/*alarm := NewAlarmConversion(ctx, dir)
+	alarm.Run()*/
 
-	log.Println("End processing event data to down...")
 }
 
 func PrepareConnection() (dbox.IConnection, error) {
@@ -67,7 +64,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 		return nil, e
 	}
 
-	log.Println("DB Connect...")
+	log.Println("DB Connect ", config["database"], "@", config["host"], " ...")
 
 	return c, nil
 }

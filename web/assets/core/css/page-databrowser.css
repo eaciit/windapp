@@ -20,12 +20,12 @@
     margin-top: -45px;
 }
 
-label.control-label {
+/*label.control-label {
     padding: 3.9px 30px 6px 6px;
     display: inline-block;
     height: 27.5px;
     font-weight: bold;
-}
+}*/
 
 label.summary-header {
     padding: 5px 0px 0px 5px;
@@ -180,22 +180,13 @@ label.summary-number {
     }
 }
 
-.databrowser-date-info{
-    background: #ea5b19;
-    margin-bottom: 10px;
-    padding: 5px 10px;
-    color: #fff;
-    font-size: 12px;
-    border-radius: 3px;
-}
-
 .col-md-1 {
     padding-left: 0px;
     padding-right: 0px;
 }
-.k-header{
+/*.k-header{
     text-align: right;
-}
+}*/
 /*#customGrid div.k-grid-header {
     background-color: #ffffff;
 }
@@ -216,7 +207,7 @@ label.summary-number {
 }
 
 .grid-custom-db-new.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-locked>table>thead>tr {
-    height: 90px !important;
+    height: 90px;
 }
 .lbl-period{
     padding-left: 0px;

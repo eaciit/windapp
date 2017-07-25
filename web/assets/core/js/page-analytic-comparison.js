@@ -49,6 +49,9 @@ page.period = ko.observable();
 page.defaultId = ko.observable();
 page.selectedKeys = ko.observableArray([]);
 
+page.rawproject = ko.observableArray([]);
+page.rawturbine = ko.observableArray([]);
+
 page.views = ko.observableArray([]);
 page.viewList = ko.observableArray([]);
 page.selectedView = ko.observable();
@@ -69,7 +72,7 @@ page.getData = function () {
 	        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
 	        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 	    }),
-		app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
+		/*app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
 			if (!app.isFine(res)) {
 				return;
 			}
@@ -115,7 +118,8 @@ page.getData = function () {
 				}
 				page.projectList(datavalue);
 			}
-		}), page.getViews()).then(function () {
+		}),*/
+		page.getViews()).then(function () {
 			page.generateElementFilter(1, "first load", 0);
 			$('.key-list input[type="checkbox"]').change();
 		});
@@ -141,99 +145,11 @@ page.checkTurbine = function (id) {
 
 page.populateProject = function (id) {
 	setTimeout(function () {
-		$("#projectList-" + id).data("kendoDropDownList").value("Tejuva");
+		$("#projectList-" + id).data("kendoDropDownList").value(page.rawproject()[0].Value);
 		page.project = $("#projectList-" + id).data("kendoDropDownList").value();
 	}, 500);
 };
 
-/*page.showHidePeriod = function (idx) {
-
-	var id = (idx == null ? 1 : idx);
-	var period = $('#periodList-' + id).data('kendoDropDownList').value();
-
-	var tempDate = new Date(app.currentDateData);
-	var endMonthDate = new Date(Date.UTC(tempDate.getFullYear(), tempDate.getMonth() - 1,
-		1, 0, 0, 0, 0));
-	var startMonthDate = new Date(Date.UTC(tempDate.getFullYear(), tempDate.getMonth(),
-		tempDate.getDate() - 1, 0, 0, 0, 0));
-	var endDate = new Date(Date.UTC(tempDate.getFullYear(), tempDate.getMonth(),
-		tempDate.getDate() - 1, 0, 0, 0, 0));
-	var startDate = new Date(Date.UTC(tempDate.getFullYear(), tempDate.getMonth(),
-		tempDate.getDate() - 1, 0, 0, 0, 0));
-
-	if (period == "custom") {
-		$('#label-start-' + id).html("Start date");
-		$('#label-end-' + id).html("End date");
-		$("#show_hide" + id).show();
-		$('#dateStart-' + id).data('kendoDatePicker').setOptions({
-			start: "month",
-			depth: "month",
-			format: 'dd-MMM-yyyy'
-		});
-		$('#dateEnd-' + id).data('kendoDatePicker').setOptions({
-			start: "month",
-			depth: "month",
-			format: 'dd-MMM-yyyy'
-		});
-		if (lastPeriod == "monthly") {
-			$('#dateStart-' + id).data('kendoDatePicker').value(endMonthDate);
-			$('#dateEnd-' + id).data('kendoDatePicker').value(startMonthDate);
-		} else if (lastPeriod == "yearly") {
-			$('#dateStart-' + id).data('kendoDatePicker').value(new Date(Date.UTC(tempDate.getFullYear(), 0, 1, 0, 0, 0, 0)));
-			$('#dateEnd-' + id).data('kendoDatePicker').value(new Date(Date.UTC(tempDate.getFullYear(), 11, 31, 0, 0, 0, 0)));
-		}
-	} else if (period == "monthly") {
-		lastPeriod = "monthly";
-		$('#label-start-' + id).html("Start month");
-		$('#label-end-' + id).html("End month");
-		$('#dateStart-' + id).data('kendoDatePicker').setOptions({
-			start: "year",
-			depth: "year",
-			format: "MMMM yyyy"
-		});
-		$('#dateEnd-' + id).data('kendoDatePicker').setOptions({
-			start: "year",
-			depth: "year",
-			format: "MMMM yyyy"
-		});
-
-		$('#dateStart-' + id).data('kendoDatePicker').value(endMonthDate);
-		$('#dateEnd-' + id).data('kendoDatePicker').value(startMonthDate);
-
-		$("#show_hide" + id).show();
-	} else if (period == "yearly") {
-		lastPeriod = "yearly";
-		$('#dateStart-' + id).data('kendoDatePicker').setOptions({
-			start: "decade",
-			depth: "decade",
-			format: "yyyy"
-		});
-		$('#dateEnd-' + id).data('kendoDatePicker').setOptions({
-			start: "decade",
-			depth: "decade",
-			format: "yyyy"
-		});
-		$('#label-start-' + id).html("Start year");
-		$('#label-end-' + id).html("End year");
-		$('#dateStart-' + id).data('kendoDatePicker').value(new Date(Date.UTC(tempDate.getFullYear(), 0, 1, 0, 0, 0, 0)));
-		$('#dateEnd-' + id).data('kendoDatePicker').value(new Date(Date.UTC(tempDate.getFullYear(), 11, 31, 0, 0, 0, 0)));
-		$("#show_hide" + id).show();
-	} else {
-		if (period == "lastweek") {
-			startDate.setDate(endDate.getDate() - 7);
-		} else if (period == "lastmonth") {
-			startDate.setDate(endDate.getDate() - 30);
-		} else if (period == "lastthreemonth") {
-			startDate.setDate(endDate.getDate() - 90);
-		} else if (period == "lastyear") {
-			startDate.setDate(endDate.getDate() - 365);
-		}
-
-		$('#dateStart-' + id).data('kendoDatePicker').value(startDate);
-		$('#dateEnd-' + id).data('kendoDatePicker').value(endDate);
-		$("#show_hide" + id).hide();
-	}
-}*/
 page.checkCompleteDate = function(id){
     var period = $('#periodList-' + id).data('kendoDropDownList').value();
 
@@ -293,7 +209,7 @@ page.showHidePeriod = function (idx) {
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),1,0,0,0,0));
-    var endMonthDate = new Date(app.toUTC(maxDateData));
+    var endMonthDate = new Date(app.getDateMax(maxDateData));
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0,1,0,0,0,0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0,1,0,0,0,0));
     var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),maxDateData.getDate()-1,0,0,0,0));
@@ -329,12 +245,12 @@ page.showHidePeriod = function (idx) {
 		$('#dateStart-' + id).data('kendoDatePicker').setOptions({
 			start: "year",
 			depth: "year",
-			format: "MMMM yyyy"
+			format: "MMM yyyy"
 		});
 		$('#dateEnd-' + id).data('kendoDatePicker').setOptions({
 			start: "year",
 			depth: "year",
-			format: "MMMM yyyy"
+			format: "MMM yyyy"
 		});
 
 		$('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
@@ -386,6 +302,7 @@ page.ChangeKeyList = function (e) {
 		$list.append("<div data-value='" + val + "' class='selected-key'>" + value + "</div>");
 		$list2.find('div[data-value="default"]').remove();
 		$list2.append("<div data-value='" + val + "' class='result-selected-key'> &nbsp;<span style='float:right'> 0 </span></div>");
+		page.refreshAll();
 	} else {
 		page.selectedKeys.remove(val);
 		$list.find('div[data-value="' + val + '"]').slideUp("fast", function () {
@@ -401,7 +318,6 @@ page.ChangeKeyList = function (e) {
 			}
 		});
 	}
-	page.refreshAll();
 }
 
 page.getRandomId = function () {
@@ -420,7 +336,7 @@ page.InitDefaultValue = function (id) {
 
 	var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),maxDateData.getDate()-7,0,0,0,0));
-    var lastEndDate = new Date(app.toUTC(maxDateData));
+    var lastEndDate = new Date(app.getDateMax(maxDateData));
 
 	$('#dateStart-' + id).data('kendoDatePicker').value(lastStartDate);
 	$('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);
@@ -513,6 +429,69 @@ page.checkKeyFromSavedView = function (val) {
 	});
 }
 
+page.populateProjectX = function (selected, id) {
+    if (page.rawproject().length == 0) {
+        page.projectList([{ value: "", text: "" }]);
+    } else {
+        var datavalue = [];        
+        $.each(page.rawproject(), function (key, val) {
+            var data = {};
+            data.value = val.Value;
+            data.text = val.Name;
+            datavalue.push(data);
+        });
+        page.projectList(datavalue);
+
+        // override to set the value
+        
+        // setTimeout(function () {
+			if ($("#projectList-"+id).data("kendoDropDownList")!=null){
+				if (selected != "") {
+					$("#projectList-"+id).data("kendoDropDownList").value(selected);
+				} else {
+					$("#projectList-"+id).data("kendoDropDownList").select(1);
+				}               
+				var project = $("#projectList-"+id).data("kendoDropDownList").value();
+				page.populateTurbineX(project);	
+			}else{
+				page.populateTurbineX(page.rawproject()[0].Value);
+			}
+        // }, 100);
+    }
+};
+
+page.populateTurbineX = function (selected, id) {
+    if (page.rawturbine().length == 0) {
+        page.turbineList([{ value: "", text: "" }]);
+    } else {
+        var datavalue = [];
+        var allturbine = {}
+        allturbine.value = "All Turbine";
+        allturbine.text = "All Turbines";
+        datavalue.push(allturbine);
+
+        $.each(page.rawturbine(), function (key, val) {
+            if (selected == "") {
+                var data = {};
+                data.value = val.Value;
+                data.text = val.Turbine;
+                datavalue.push(data);
+            }else if (selected == val.Project){
+                var data = {};
+                data.value = val.Value;
+                data.text = val.Turbine;
+                datavalue.push(data);
+            }
+        });
+
+        page.turbineList(datavalue);
+    }
+
+    // setTimeout(function () {
+    //     $('#turbineList-'+id).data('kendoMultiSelect').value(["All Turbine"]);
+    // }, 500);
+};
+
 page.generateElementFilter = function (id_element, source, dataViews) {
 	var id = (id_element == null ? page.getRandomId() : id_element);
 	var ids = {};
@@ -580,20 +559,28 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 
 		$(".filter-form").append(formFilter);
 
+		page.populateProjectX(page.rawproject()[0].Value, id);
+
 		$("#projectList-" + id).kendoDropDownList({
 			dataValueField: 'value',
 			dataTextField: 'text',
 			optionLabel: 'Please Select',
 			suggest: true,
 			dataSource: page.projectList(),
+			change: function () {  
+				var project = $("#projectList-"+id).data("kendoDropDownList").value();
+				page.populateTurbineX(project,id);
+				$('#turbineList-'+id).data('kendoMultiSelect').setDataSource(new kendo.data.DataSource({ data: page.turbineList() }));
+			}
 		});
 		$("#turbineList-" + id).kendoMultiSelect({
-			dataSource: page.turbineList(),
 			dataValueField: 'value',
 			dataTextField: 'text',
 			suggest: true,
+			dataSource: page.turbineList(),
 			change: function () { page.checkTurbine(id) }
-		});
+		});		
+
 		$("#periodList-" + id).kendoDropDownList({
 			dataSource: page.periodList(),
 			dataValueField: 'value',
@@ -640,15 +627,15 @@ page.removeFilter = function (id) {
 }
 
 page.refreshFilter = function (id) {
-	$('#btn-refresh-'+id).button("loading");
 	setTimeout(function(){
 		var startdate = $('#dateStart-' + id).data('kendoDatePicker').value();
-		var enddata = $('#dateEnd-' + id).data('kendoDatePicker').value();
+		var enddata = app.toUTC($('#dateEnd-' + id).data('kendoDatePicker').value());
 		var period = $('#periodList-' + id).data('kendoDropDownList').value();
-		if (startdate > enddata) {
+		if (startdate - enddata > 25200000) {
 			toolkit.showError("Invalid Date Range Selection");
 			return;
 		} else {
+			$('#btn-refresh-'+id).button("loading");
 			var turbine = [];
 			var isAllTurbine = false;
 
@@ -666,8 +653,8 @@ page.refreshFilter = function (id) {
 
 			var param = {
 				period: period,
-				DateStart: $('#dateStart-' + id).data('kendoDatePicker').value(),
-				DateEnd: $('#dateEnd-' + id).data('kendoDatePicker').value(),
+				DateStart: startdate,
+				DateEnd: enddata,
 				Turbine: turbine,
 				Project: $("#projectList-" + id).data("kendoDropDownList").value(),
 				Keys: page.selectedKeys(),
@@ -694,6 +681,27 @@ page.refreshFilter = function (id) {
 						}
 					});
 				});
+
+				if (jQuery.isEmptyObject(res.data)) {
+					$.each($('#td-filter-result-1 .result-content-selected-key div'), function(i,v){
+						var idx = $(v).attr("data-value"), val = 0;
+						$.each(keys, function (iSel, valSel) {
+							if (valSel.value == idx) {
+								if (valSel.value == "Revenue") {
+									if (val < 100000) {
+										$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.unit);
+									} else {
+										val = val / 100000
+										$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.altUnit);
+									}
+								} else {
+									$('#td-filter-result-' + id + ' > div > div[data-value="' + idx + '"]  > span').html(kendo.toString(val, "n") + " " + valSel.unit);
+								}
+							}
+						});
+					});
+				}
+
 				$('#btn-refresh-'+id).button("reset");
 			});
 			if (isAllTurbine) {

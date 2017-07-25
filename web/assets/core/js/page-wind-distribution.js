@@ -21,14 +21,14 @@ var color = ["#B71C1C", "#E57373", "#F44336", "#D81B60", "#F06292", "#880E4F",
 
 wd.populateTurbine = function(){
     wd.turbine([]);
-    if(fa.turbine == ""){
+    if(fa.turbine().length == 0){
         $.each(fa.turbineList(), function(i, val){
             if (i > 0){
                 wd.turbine.push(val.text);
             }
         });
     }else{
-        wd.turbine(fa.turbine);
+        wd.turbine(fa.turbine());
     }
 
 }
@@ -48,7 +48,7 @@ var Data = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
-            turbine: fa.turbine,
+            turbine: fa.turbine(),
             project: fa.project
         };
 

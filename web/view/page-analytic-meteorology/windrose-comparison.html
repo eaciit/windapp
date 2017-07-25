@@ -1,0 +1,29 @@
+<script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/windrose-comparison.js?ANTI_CACHE={{.AntiCache}}"></script>
+<!-- <div class="col-md-12 list">
+	<div class="col-md-3 col-xs-12">
+		<label class="control-label keyA-label">Sectors</label>
+		<select id="nosectionComparison" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.WindRoseComparison }"
+			style="width:50px;">
+        </select>&nbsp;
+		<label class="txtWarComparison" data-bind="text: '&nbsp;&nbsp;Sector width : ' + pm.sectorDerajatComparison() + ' °'">&nbsp;</label>
+	</div>
+
+	<div class="col-md-6 col-xs-12">
+		<div id="legend-list-comparison" class="col-md-12 col-sm-12 pl15">
+		</div>
+	</div>
+</div> -->
+
+<div class="col-md-9 windrose-part">
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div id="WRChartComparison" class="windrose-item-comparison"></div>
+		</div>
+	</div>
+	<!-- <div class="clearfix">&nbsp;</div> -->
+</div>
+<div class="col-md-3 turList">
+	<!-- <div class="clearfix">&nbsp;</div> -->
+	<div class="checkbox" id="checkAllCompare"></div>
+	<div class="col-md-12 col-sm-12" id="turbine-list-compare"></div>
+</div>

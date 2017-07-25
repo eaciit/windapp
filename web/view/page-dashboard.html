@@ -1,5 +1,8 @@
+<!-- map -->
+<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDSK-g_Zrf7RKSAguPa-nLv0DF6XPdF-Ro"></script>
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-dashboard.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-dashboard.css">
@@ -10,7 +13,7 @@
 			<li>
 				<div class="input-group input-group-sm ez margin-bottom-10 margin-right-5">
 					<div class="width-full">
-						<select type="text" id="projectId" class="dropdownFilter" data-bind="kendoDropDownList: { value: lgd.projectName, data: lgd.projectList, dataTextField: 'text',dataValueField: 'value',change:lgd.LoadData}"></select>
+						<select type="text" id="projectId" class="dropdownFilter" data-bind="kendoDropDownList: { value: lgd.projectName, data: lgd.projectList, dataTextField: 'text', dataValueField: 'value', change:lgd.LoadData, suggest: true}"></select>
 					</div>
 				</div>
 			</li>
@@ -29,3 +32,6 @@
 
 	{{template "page-dashboard-summary.html"}} {{template "page-dashboard-production.html"}} {{template "page-dashboard-availability.html"}}
 </div>
+<script>
+	lgd.populateProject({{.ProjectList}});
+</script>

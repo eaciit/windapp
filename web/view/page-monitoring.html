@@ -1,556 +1,300 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
 <script src="{{BaseUrl}}res/core/js/page-monitoring.js?ANTI_CACHE={{.AntiCache}}"></script>
-<style type="text/css">
-    .green{
-        color: #31b445;
-    }
-    .red{
-        color: #e91e3a;
-    }
-    .bold{
-        text-weight:bold;
-    }
-    .summary{
-        font-size: 16px;
-    }
-    .table-sum{
-        margin-bottom: 10px;
-        margin-top: 10px;
-    }
-    .table-sum, .table-sum>tbody>tr>td, .table-sum>tbody>tr>th, .table-sum>tfoot>tr>td, .table-sum>tfoot>tr>th, .table-sum>thead>tr>td, .table-sum>thead>tr>th {
-        border: 0px solid #f4f4f4;
-    }
-    .table-sum>tbody>tr>td, .table-sum>tbody>tr>th, .table-sum>tfoot>tr>td, .table-sum>tfoot>tr>th, .table-sum>thead>tr>td, .table-sum>thead>tr>th {
-        border-top: 0px solid #ffffff;
-        border-right: 2px solid #eee;
-        padding: 0px;
-    }
-    .no-border{
-        border-right:0px solid #eee;
-    }
-    .gauge-custom{
-        margin-bottom: -35px;
-        margin-top: -40px;
-    }
-    .align-left{
-        text-align: left;
-        padding-left: 5px !important;
-        font-size: 10px;
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
 <div class="row">
-    <div class="col-md-12 col-sm-12 ez panel-content">
-        <div class="col-md-12 col-sm-12 hardcore landing">
-            <div class="panel ez no-padding hardcore">
-                <div class="panel-heading">
-                    Monitoring&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="warningrmation"></i>&nbsp;
-                </div>
-                <div class="panel-body" style="text-align:center">
-                    <div class="col-md-12">
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge1" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Tejuva</td>
-                                        <td><i class="fa fa-flash"></i></td>
-                                        <td><i class="fa fa-tachometer"></i></td>
-                                        <td><i class="fa fa-line-chart"></i></td>
-                                        <td><i class="fa fa-gears"></i></td>
-                                        <td><i class="fa fa-th"></i></td>
-                                        <td><i>10<sup>m</sup></i></td>
-                                        <td><i>3<sub>s</sub></i></td>
-                                        <td><i>Ov.</i></td>
-                                        <td><i>C.</i></td>
-                                        <td><i class="fa fa-bell"></i></td>
-                                        <td><i class="fa fa-th-large"></i></td>
-                                        <td><i>Vc.</i></td>
-                                        <td><i class="fa fa-warning"></i></td>
-                                        <td><i>Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone"></i></td>
-                                        <td><i>>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>TJW001</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>TJW002</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>TJW003</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>TJW004</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                 <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge2" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Norbury</td>
-                                        <td><i class="fa fa-flash"></i></td>
-                                        <td><i class="fa fa-tachometer"></i></td>
-                                        <td><i class="fa fa-line-chart"></i></td>
-                                        <td><i class="fa fa-gears"></i></td>
-                                        <td><i class="fa fa-th"></i></td>
-                                        <td><i>10<sup>m</sup></i></td>
-                                        <td><i>3<sub>s</sub></i></td>
-                                        <td><i>Ov.</i></td>
-                                        <td><i>C.</i></td>
-                                        <td><i class="fa fa-bell"></i></td>
-                                        <td><i class="fa fa-th-large"></i></td>
-                                        <td><i>Vc.</i></td>
-                                        <td><i class="fa fa-warning"></i></td>
-                                        <td><i>Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone"></i></td>
-                                        <td><i>>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>Norbury1</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Norbury2</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Norbury3</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Norbury4</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <div class="col-md-1 col-sm-1 time-info-div">
+                        <div class = "time-info"><span data-bind="text:monitoring.last_minute" ><span/></div>
+                        <span data-bind="text:monitoring.last_date" ><span/>
                     </div>
-                    <div class="col-md-12">
-                        <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                 <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge3" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Backen</td>
-                                        <td><i class="fa fa-flash"></i></td>
-                                        <td><i class="fa fa-tachometer"></i></td>
-                                        <td><i class="fa fa-line-chart"></i></td>
-                                        <td><i class="fa fa-gears"></i></td>
-                                        <td><i class="fa fa-th"></i></td>
-                                        <td><i>10<sup>m</sup></i></td>
-                                        <td><i>3<sub>s</sub></i></td>
-                                        <td><i>Ov.</i></td>
-                                        <td><i>C.</i></td>
-                                        <td><i class="fa fa-bell"></i></td>
-                                        <td><i class="fa fa-th-large"></i></td>
-                                        <td><i>Vc.</i></td>
-                                        <td><i class="fa fa-warning"></i></td>
-                                        <td><i>Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone"></i></td>
-                                        <td><i>>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>Backen1</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Backen2</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Backen3</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Backen4</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: monitoring.projectList, dataValueField: 'value', dataTextField: 'text', optionLabel: 'All Projects', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                    <label class="col-md-1 col-sm-1 control-label label-filter" >Turbine</label>
+                    <select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: monitoring.turbineList(), dataValueField: 'value', dataTextField: 'text', change: function() {monitoring.checkTurbine()}, suggest: true }"
+                    style="width:250px">
+                    </select>&nbsp;
+                    <button class="btn btn-sm btn-primary" id="btnRefresh"><i class="fa fa-refresh"></i> Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="col-md-12 col-sm-12 hardcore landing">
+                <div class="panel ez no-padding hardcore mb-5">
+                    <div class="panel-heading">      
+                        <div class="pull-right maximize-btn">
+                            <i class="fa fa-window-maximize tooltipster tooltipstered pull-right" aria-hidden="true" title="maximize screen" style="cursor: pointer;" id="max-screen"></i>
+                            <i class="fa fa-window-restore tooltipster tooltipstered pull-right" aria-hidden="true" title="restore screen" style="cursor: pointer;" id="restore-screen"></i>
+                            <i class="fa fa-bell tooltipster tooltipstered pull-right" aria-hidden="true" title="Notification" style="cursor: pointer;" data-toggle="control-sidebar"></i>
                         </div>
-                         <div class="col-md-6">
-                            <table class="table table-bordered table-sum">
-                                 <thead>
-                                    <tr>
-                                        <td width="20%">WF/Turbines</td>
-                                        <td width="20%">Tot.Capacity</td>
-                                        <td width="20%">Wind Speed Avg.</td>
-                                        <td width="20%">Tot. Prod</td>
-                                        <td class="no-border align-left">Wind Speed</td>
-                                    </tr>
-                                </thead>
-                                <tbody class="bold summary">
-                                    <tr>
-                                        <td>1/24</td>
-                                        <td>2.1 MW</td>
-                                        <td>5.7 m/s</td>
-                                        <td>120 MWh</td>
-                                        <td class="no-border">
-                                            <div id="gauge4" class="gauge-custom"></div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="table table-condensed table-striped">
-                                <thead class="bold">
-                                    <tr>
-                                        <td width="10%">Delling</td>
-                                        <td><i class="fa fa-flash"></i></td>
-                                        <td><i class="fa fa-tachometer"></i></td>
-                                        <td><i class="fa fa-line-chart"></i></td>
-                                        <td><i class="fa fa-gears"></i></td>
-                                        <td><i class="fa fa-th"></i></td>
-                                        <td><i>10<sup>m</sup></i></td>
-                                        <td><i>3<sub>s</sub></i></td>
-                                        <td><i>Ov.</i></td>
-                                        <td><i>C.</i></td>
-                                        <td><i class="fa fa-bell"></i></td>
-                                        <td><i class="fa fa-th-large"></i></td>
-                                        <td><i>Vc.</i></td>
-                                        <td><i class="fa fa-warning"></i></td>
-                                        <td><i>Rt.</i></td>
-                                        <td><i class="fa fa-volume-control-phone"></i></td>
-                                        <td><i>>24</i></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                     <tr>
-                                        <td>Delling1</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Delling2</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Delling3</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-check green"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                     <tr>
-                                        <td>Delling4</td>
-                                        <td>80</td>
-                                        <td>10</td>
-                                        <td>70</td>
-                                        <td>90</td>
-                                        <td>90</td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-times red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                        <td><i class="fa fa-circle red"></i></td>
-                                        <td><i class="fa fa-circle green"></i></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+
+                    </div>
+                    <div class="panel-body">                        
+                        <div class="col-md-12 multicol-div">
+                            <div class="col-md-6 multicol" data-bind="foreach:monitoring.data">
+                                <table class="table table-condensed table-sum">
+                                    <thead>
+                                        <tr>
+                                            <td width="25%" data-bind="text:project"></td>
+                                            <td width="25%">Capacity(MW)</td>
+                                            <td width="25%">WS Avg.(m/s)</td>
+                                            <td width="25%">Prod(KWh)</td>
+                                        </tr>
+                                    </thead>
+                                     <tbody class="bold summary">
+                                        <tr>
+                                            <td> <span data-bind="text:kendo.toString(totalturbines,'n0')"></span></td>
+                                            <td> <span data-bind="text:kendo.toString(totalcap,'n1')"></span><!--/ <span class="green">50.4</span></td>-->
+                                            <td> <span data-bind="text:kendo.toString(totalwsavg,'n1')"><!--</span> / <span class="green">6</span></td>-->
+                                            <td> <span data-bind="text:kendo.toString(totalprod,'n1')"></span>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table class="table table-condensed table-detail table-striped">
+                                    <thead class="bold">
+                                        <tr>
+                                            <td width="">Timestamp</td>
+                                            <td width="">Turbine</td>
+                                            <td width=""><i class="fa fa-flash tooltipster tooltipstered" title="Production (KWh)"></i></td>
+                                            <td width=""><i class="fa fa-tachometer tooltipster tooltipstered" title="WS (m/s)"></i></td>
+                                            <td width=""><i class="fa fa-location-arrow tooltipster tooltipstered" title="Wind Direction"></i></td>
+                                            <td width=""><i class="fa fa-cog tooltipster tooltipstered" title="Rotor RPM"></i></td>
+                                            <td width=""><i class="fa fa-location-arrow tooltipster tooltipstered" title="Pitch Angle"></i></td>
+                                            <td width=""><i class="fa fa-bell tooltipster tooltipstered" title="Status"></i></td>
+                                            <td width=""><i class="fa fa-edit tooltipster tooltipstered" title="Status Code"></i></td>                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:$data.turbines">
+                                        <tr>
+                                            <!--<td data-bind="text:kendo.toString(kendo.parseDate(timestamp), 'dd-mm-yyyy HH:mm')"></td>-->
+                                            <td data-bind="text:timestampstr"></td>
+                                            <td class="link-detail" data-bind="text:turbine, click: function(){ monitoring.showDetail($parent.project, turbine)}"></td>
+                                            <td >
+                                                <span data-bind="text:kendo.toString(production,'n1'), attr : { class: (production <= 0) ? 'red' : ''}"></span>/
+                                                <span data-bind="text:kendo.toString(todayproduction,'n1')" class="green"></span>
+                                            </td>
+                                            <td data-bind="text:kendo.toString(windspeed,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
+                                            <td >
+                                                <!--<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval:winddirection+45}"></i>&nbsp;-->
+                                                <span data-bind="text:kendo.toString(winddirection,'n1')"></span>
+                                            </td>
+                                            <td data-bind="text:kendo.toString(rotorspeedrpm,'n1'), attr : { class: (windspeed <= 0) ? 'red' : ''}"></td>
+                                            <td >
+                                                <!--<i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval:pitchangle+45}"></i>&nbsp;-->
+                                                <span data-bind="text:kendo.toString(pitchangle,'n1')"></span>
+                                            </td>
+                                            <td ><i data-bind="attr : {class: (status == 'brake') ? 'fa fa-circle red' : (status == 'N/A') ? 'fa fa-circle dim' : 'fa fa-circle green'}"></i></td>
+                                            <td class="pull-left">
+                                                <span data-bind="text:statuscode,attr : {class: (statusdesc == '') ? 'emptyval' : 'tooltipster tooltipstered', title:statusdesc}"></span>&nbsp;
+                                            </td>
+                                            <td></td>                                          
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <hr>
+                            </div>
                         </div>
+                        <br>
+                        <aside class="control-sidebar control-sidebar-light">
+                           <div class="col-md-12 details-title">
+                                <h4>Events</h4>
+                           </div>
+                           <div class="col-md-12">
+                                <table class='table borderless able table-condensed table-hover'>
+                                    <tbody data-bind="foreach:monitoring.event"> 
+                                        <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
+                                            <td data-bind="text:TimeStampStr"></td>
+                                            <td data-bind="text:Project"></td>
+                                            <td class="link-detail" data-bind="text:Turbine, click: function(){ monitoring.showDetail(Project, Turbine)}"></td>
+                                            <td ><i data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></i></td>
+                                            <td data-bind="text:AlarmId"></td>
+                                            <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                           </div>
+                        </aside>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal modal-lg fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="panel panel-default">
+                                <div class="panel-body text-center">
+                                    <div class="col-md-12 text-center">
+                                        <strong><span data-bind="text:monitoring.selectedProject"></span></strong> (Last 24 Hours)
+                                    </div>
+                                    <div class="col-md-12 text-center" style="font-size: 27px;">
+                                        <i data-bind="attr : {class: (monitoring.selectedMonitoring().status == 'brake') ? 'fa fa-circle red' : (monitoring.selectedMonitoring().status == 'N/A') ? 'fa fa-circle dim' : 'fa fa-circle green'}"></i>&nbsp;<strong><span data-bind="text:monitoring.selectedTurbine"></span></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="panel panel-default">
+                                <div class="panel-body text-center">
+                                    <div class="col-md-12 text-center">
+                                        <strong><span data-bind='text:(monitoring.selectedMonitoring().statuscode=="" ? "none" : monitoring.selectedMonitoring().statuscode)'></span></strong>
+                                    </div>
+                                    <div class="col-md-12 text-center">
+                                        <span style="font-size: 27px;" data-bind='text:(monitoring.selectedMonitoring().statusdesc=="" ? "none" : monitoring.selectedMonitoring().statusdesc)'></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="col-md-4">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Total Prod.(KWh)</strong></span>
+                                        </div>
+                                        <div class="col-md-12 text-center">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(monitoring.selectedMonitoring().totalProduction,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>WS(m/s)</strong></span>
+                                        </div>
+                                        <div class="col-md-12 text-center">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(monitoring.selectedMonitoring().windspeed,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Rotor RPM</strong></span>
+                                        </div>                                        
+                                        <div class="col-md-12 text-center">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(monitoring.selectedMonitoring().rotorspeedrpm,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                        
+                        </div>
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="col-md-6">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Wind Direction</strong></span>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <i class="fa fa-location-arrow rotation" style="font-size: 40px;" data-bind="attr: {rotationval:monitoring.selectedMonitoring().winddirection+45}"></i>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(monitoring.selectedMonitoring().winddirection,'n1')"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="col-md-12 text-center">
+                                            <span><strong>Pitch Angle</strong></span>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <i class="fa fa-location-arrow rotation" style="font-size: 40px;" data-bind="attr: {rotationval:monitoring.selectedMonitoring().pitchangle+45}"></i>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <span style="font-size: 30px;"><span data-bind="text:kendo.toString(monitoring.selectedMonitoring().pitchangle,'n1')"></span></span>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>                        
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="col-md-12 col-xs-12 section-part">
+                                        <label class="sector-label">Sectors</label>
+                                        <select id="nosection" name="table" data-bind="kendoDropDownList: { data: wr.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.GetData }"
+                                            style="width:50px;">
+                                        </select>&nbsp;
+                                        <label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
+                                    </div>
+                                    <div class="col-md-12 col-xs-12 legend-part">
+                                        <div id="legend-list" class="col-md-12 col-sm-12 pl15">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+                                        <div data-bind="attr:{id: 'chart-' + Name}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="row-fluid">
+                                        <div id="chartline"></div>
+                                    </div>
+                                    <!--<div class="row-fluid">
+                                        <div>
+                                            <div id="chartWindSpeed"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row-fluid">
+                                        <div>
+                                            <div id="chartProduction"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row-fluid">
+                                        <div>
+                                            <div id="dataAvailChart"></div>
+                                        </div>
+                                    </div>-->
+                                </div>
+                            </div>
+                        </div>                        
+                        <div class="col-md-3 detail-tbl">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <table class='table borderless able table-condensed table-hover table-striped'>
+                                        <tbody data-bind="foreach:monitoring.detailEvent"> 
+                                            <tr data-bind="attr : {class: (Status == 'down') ? 'red' : 'green'}">
+                                                <td data-bind="text:TimeStampStr"></td>
+                                                <!--<td data-bind="text:Project"></td>
+                                                <td data-bind="text:Turbine"></td>-->
+                                                <td data-bind="attr : {class: (Status == 'down') ? 'fa fa-circle red tooltipster' : 'fa fa-circle green tooltipster',title: AlarmDescription}"></td>
+                                                <td data-bind="text:AlarmId"></td>
+                                                <td data-bind="text:(Status == 'up'? secondsToHms(Duration) : '')"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    monitoring.populateTurbine({{.TurbineList}});
+    monitoring.populateProject({{.ProjectList}});
+</script>

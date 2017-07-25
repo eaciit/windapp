@@ -53,6 +53,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 
+		// log.Printf("%v | %v \n", tStart.String(), tEnd.String())
+
 		// log.Printf("EndDate: %v \n", tEnd)
 
 		if e != nil {
@@ -60,6 +62,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		}
 		match := tk.M{}
 		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("power", tk.M{"$gte": -200})
 
 		if len(p.Turbine) > 0 {
 			match.Set("turbine", tk.M{"$in": p.Turbine})
@@ -67,6 +70,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 		group := tk.M{
 			"power":           tk.M{"$sum": "$power"},
+			"energy":          tk.M{"$sum": "$energy"},
 			"machinedowntime": tk.M{"$sum": "$machinedowntime"},
 			"griddowntime":    tk.M{"$sum": "$griddowntime"},
 			"oktime":          tk.M{"$sum": "$oktime"},
@@ -84,6 +88,8 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		} else {
 			group.Set("_id", "all")
 		}
+
+		match.Set("available", 1)
 
 		pipes = append(pipes, tk.M{"$match": match})
 		pipes = append(pipes, tk.M{"$group": group})
@@ -103,49 +109,59 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		if len(list) > 0 {
 			val := list[0]
 
-			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod float64
+			var plf, trueAvail, machineAvail, gridAvail, dataAvail, prod, plfDivider float64
 			var totalTurbine float64
 
 			// totalTurbine = 1.0
 			// hourValue := val.GetFloat64("minutes") / 60.0
 
-			if len(p.Turbine) == 0 {
-				totalTurbine = 24.0
+			var turbineList []TurbineOut
+			if p.Project != "" {
+				turbineList, _ = helper.GetTurbineList([]interface{}{p.Project})
 			} else {
-				totalTurbine = tk.ToFloat64(len(p.Turbine), 1, tk.RoundingAuto)
+				turbineList, _ = helper.GetTurbineList(nil)
 			}
+
+			if len(p.Turbine) == 0 {
+				for _, v := range turbineList {
+					plfDivider += v.Capacity
+					totalTurbine += 1
+				}
+
+			} else {
+				for _, vt := range p.Turbine {
+					for _, v := range turbineList {
+						if vt == v.Value {
+							plfDivider += v.Capacity
+							totalTurbine += 1
+						}
+					}
+				}
+			}
+
+			// log.Printf(">> %v | %v \n", plfDivider, totalTurbine)
 
 			minDate := val.Get("mindate").(time.Time)
 			maxDate := val.Get("maxdate").(time.Time)
 
 			hourValue := helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 
-			// hourValue := tk.ToFloat64(maxDate.Day(), 1, tk.RoundingUp) * 24.0
-			// hourValue := tk.ToFloat64(maxDate.Sub(tStart).Hours()/24, 1, tk.RoundingUp) * 24.0
-
-			// log.Printf("%v | %v | %v | \n", totalTurbine, maxDate.UTC(), hourValue, val.GetFloat64("minutes")/60.0)
+			// log.Printf(">> %v | %v - %v | %v >> %v \n", tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC(), hourValue)
 
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
-			energy := power / 6
+			_ = power
+			energy := val.GetFloat64("energy") / 1000.0
 			revenue := energy * 5.740 * 1000
-
 			mDownTime := val.GetFloat64("machinedowntime") / 3600.0
 			gDownTime := val.GetFloat64("griddowntime") / 3600.0
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
-
-			plf = energy / (totalTurbine * hourValue * 2100) * 100 * 1000
-
-			trueAvail = (okTime / 3600) / (totalTurbine * hourValue) * 100
-
-			/*machineAvail = (hourValue - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (hourValue - gDownTime) / (totalTurbine * hourValue) * 100*/
-
 			minutes := val.GetFloat64("minutes") / 60
-			machineAvail = (minutes - mDownTime) / (totalTurbine * hourValue) * 100
-			gridAvail = (minutes - gDownTime) / (totalTurbine * hourValue) * 100
 
-			dataAvail = (sumTimeStamp * 10 / 60) / (hourValue * totalTurbine) * 100
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+
+			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
+
 			prod = energy
 
 			// log.Printf("%v | %v | %v | \n", trueAvail, machineAvail, hourValue)
@@ -246,7 +262,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 		csr, e = DB().Connection.NewQuery().
 			From(new(ExpPValueModel).TableName()).
-			Where(dbox.In("monthno", months...)).
+			Where(dbox.And(dbox.In("monthno", months...), dbox.Eq("projectname", p.Project))).
 			Cursor(nil)
 
 		if e != nil {

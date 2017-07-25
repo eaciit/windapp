@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/core"
 	"errors"
 	"fmt"
+
 	"github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/orm"
@@ -42,10 +43,10 @@ func GetUserName(sessionId interface{}) (tUser acl.User, err error) {
 
 func GetListOfMenu(sessionid string) (result toolkit.Ms, err error) {
 	if sessionid == "" {
-		return nil, errors.New("Your session has expired, please log in again")
+		return nil, errors.New("Your session has expired, please log")
 	}
 	if !acl.IsSessionIDActive(sessionid) {
-		return nil, errors.New("Your session has expired, please log in again")
+		return nil, errors.New("Your session has expired, please log")
 	}
 	result, err = acl.GetListMenuBySessionId(sessionid)
 	if err != nil {

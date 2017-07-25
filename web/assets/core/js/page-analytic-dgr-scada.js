@@ -13,7 +13,7 @@ ads.modelList = ko.observableArray([
 ]);
 
 ads.model = ko.observable("Regen");
-ads.project = ko.observable("Tejuva");
+ads.project = ko.observable(fa.rawproject()[0].Value);
 ads.turbine = ko.observable("All Turbine");
 
 /*var dataSource = [
@@ -38,7 +38,7 @@ var Data = {
 	InitSummaryGrid: function () {
 		var param = {
 			period: fa.period,
-			Turbine: fa.turbine,
+			Turbine: fa.turbine(),
 			DateStart: fa.dateStart,
 			DateEnd: fa.dateEnd,
 			Project: fa.project

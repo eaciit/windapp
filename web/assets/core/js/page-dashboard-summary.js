@@ -19,137 +19,225 @@ sum.currentDown = ko.observable();
 sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
+sum.dataSourceWindDistribution = ko.observable();
+sum.windDistData = ko.observable();
+sum.periodSelected = ko.observable('currentmonth');
+sum.periodList = [
+    // {"text": "Last 12 Months", "value": "last12months"},
+    {"text": "Current Month", "value": "currentmonth"}
+]
+sum.paramPeriod = [];
+
+sum.paramAvailPeriod = [];
 
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
-        var param = { ProjectName: project, Date: maxdate };
+        for(var i=0;i<sum.periodList.length;i++) {
+            sum.paramPeriod.push(sum.periodList[i].value);
+        }
+        for(var i=0;i<lgd.projectAvailList().length;i++) {
+            sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
+        }
+        var param = { ProjectName: project, Date: maxdate};
 
         var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
 
-            sum.dataSource(res.data[0]);
+            if (res.data.length > 0){
+                sum.dataSource(res.data[0]);
+                sum.noOfProjects(res.data[0].NoOfProjects);
+                sum.noOfTurbines(res.data[0].NoOfTurbines);
+                sum.totalMaxCapacity((res.data[0].TotalMaxCapacity / 1000) + " MW");
+                sum.currentDown(res.data[0].CurrentDown);
+                sum.twoDaysDown(res.data[0].TwoDaysDown);
 
-            sum.noOfProjects(res.data[0].NoOfProjects);
-            sum.noOfTurbines(res.data[0].NoOfTurbines);
-            sum.totalMaxCapacity(res.data[0].TotalMaxCapacity / 1000);
-            sum.currentDown(res.data[0].CurrentDown);
-            sum.twoDaysDown(res.data[0].TwoDaysDown);
+                var lastUpdate = new Date(res.data[0].LastUpdate);
 
-            var lastUpdate = new Date(res.data[0].LastUpdate);
+                // vm.dateAsOf(lastUpdate.addHours(-7));
+                sum.ProductionChart(res.data[0].Productions);
+                sum.CumProduction(res.data[0].CummulativeProductions);
+            } else {
+                var projectStr = $("#projectId").data("kendoDropDownList").text();
+                if (projectStr != "Fleet"){
+                    sum.noOfProjects(1);
+                    var split = (projectStr.split(" ("))[1].split("|");
+                    sum.noOfTurbines(split[0]);
+                    sum.totalMaxCapacity(split[1].slice(0, -1));
+                }else{
+                    sum.noOfProjects($("#projectId").data("kendoDropDownList").dataSource.total()-1);
+                    sum.noOfTurbines("N/A");
+                    sum.totalMaxCapacity("N/A");
+                }   
 
-            // vm.dateAsOf(lastUpdate.addHours(-7));
-            sum.ProductionChart(res.data[0].Productions);
-            sum.CumProduction(res.data[0].CummulativeProductions);
+                sum.dataSource(null);
+                sum.currentDown("N/A");
+                sum.twoDaysDown("N/A");       
+                sum.ProductionChart(null);
+                sum.CumProduction(null);
+            }
             sum.SummaryData(project);
         });
 
+        param = { ProjectName: project, Date: maxdate, ProjectList: sum.paramAvailPeriod};
         var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
-            sum.dataSourceScada(res.data);
-            sum.PLF(res.data);
-            sum.LostEnergy(res.data);
-            sum.Windiness(res.data);
-            sum.ProdMonth(res.data);
-            sum.AvailabilityChart(res.data);
-            sum.ProdCurLast(res.data);
+            sum.dataSourceScada(res.data["Data"]);
+            sum.PLF(res.data["Data"]);
+            sum.LostEnergy(res.data["Data"]);
+            sum.Windiness(res.data["Data"]);
+            sum.ProdMonth(res.data["Data"]);
+            var availabilityData = [];
+            var availabilitySeries = [];
+            if(project === "Fleet") {
+                var availDatas = res.data["Availability"];
+                var projectCount = 0;
+                for(var key in availDatas){
+                    var availData = availDatas[key];
+                    var seriesObj = {};
+                    for(var i=0;i<availData.length;i++){
+                        if(projectCount < 1) {
+                            var availObject = {
+                                "DateInfo": availData[i].DateInfo
+                            }
+                            availObject[key] = availData[i].TrueAvail;
+                            availabilityData.push(availObject);
+                        } else {
+                            var availObject = availabilityData[i]
+                            availObject[key] = availData[i].TrueAvail;
+                            availabilityData[i] = availObject;
+                        }
+                    }
+                    seriesObj["name"] = key;
+                    seriesObj["field"] = key;
+                    seriesObj["color"] = colorField[projectCount];
+                    availabilitySeries.push(seriesObj);
+                    projectCount++;
+                }
+                sum.AvailabilityChart(availabilityData, availabilitySeries);
+                // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
+            } else {
+                var availData = res.data["Data"];
+                if(res.data["Data"] !== undefined) {
+                    var seriesObj = {};
+                    for(var i=0;i<availData.length;i++){
+                        var availObject = {
+                            "DateInfo": availData[i].DateInfo
+                        }
+                        availObject[project] = availData[i].TrueAvail;
+                        availabilityData.push(availObject);
+                    }
+                    seriesObj["name"] = project;
+                    seriesObj["field"] = project;
+                    seriesObj["color"] = colorField[1];
+                    availabilitySeries.push(seriesObj);
+                    sum.AvailabilityChart(availabilityData, availabilitySeries);
+                } else {
+                    sum.AvailabilityChart(availData, availabilitySeries);
+                }
+                // sum.AvailabilityChart(res.data["Data"]);
+            }
+            sum.ProdCurLast(res.data["Data"]);
             sum.indiaMap(project);
-            sum.isDetailProd(false);
-            sum.isDetailProdByProject(false);
+
+            if (res.data != null ){
+                sum.isDetailProd(false);
+                sum.isDetailProdByProject(false);
+            }
         });
 
+        var ajax3
 
+        if (project=="Fleet") {
+            param = { ProjectName: project, Date: maxdate, PeriodList: sum.paramPeriod};
+            ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistribution", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
 
-        $.when(ajax1, ajax2).done(function(){
+                sum.WindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.dataSourceWindDistribution(res.data.Data[sum.periodSelected()]);
+                sum.windDistData(res.data.Data);
+            });
+        }
+
+        $.when(ajax1, ajax2, ajax3).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },200);        
         })
     }
+
 };
 
 sum.SummaryData = function (project) {
-    var filters = [
-        { field: "_id", operator: "eq", value: project },
-    ];
-    var filter = { filters: filters }
-    var param = { filter: filter };
-    $('#gridSummaryData').html("");
-    $("#gridSummaryData").kendoGrid({
-        height: 155,
-        theme: "flat",
-        dataSource: {
+    var param = {project: project};
+    var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getsummarydata", param, function (result) {
+        $('#gridSummaryData').html("");
+        $("#gridSummaryData").kendoGrid({
+            height: 155,
+            theme: "flat",
+            dataSource: {
+                // serverPaging: true,
+                // serverSorting: true,
+                data: result,
+                // pageSize: 2,
+                schema: {
+                    data: function (res) {
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+                        return res.data.Data
+                    },
+                    total: function (res) {
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+                        return res.data.Total;
+                    }
+                },
+            },
             serverPaging: true,
             serverSorting: true,
-            transport: {
-                read: {
-                    url: viewModel.appName + "dashboard/getsummarydata",
-                    type: "POST",
-                    data: param,
-                    dataType: "json",
-                    contentType: "application/json; charset=utf-8"
-                },
-                parameterMap: function (options) {
-                    return JSON.stringify(options);
-                }
+            pageable: {
+                pageSize: 2,
+                input: true, 
             },
-            pageSize: 2,
-            schema: {
-                data: function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    return res.data.Data
-                },
-                total: function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    return res.data.Total;
-                }
-            },
-            sort: [
-                { field: 'name', dir: 'asc' },
-            ],
-        },
-        /*serverPaging: true,
-        serverSorting: true,*/
-        pageable: {
-            pageSize: 2,
-            input: true, 
-        },
-        columns: [
-            { title: "Project Name", field: "name", headerAttributes: { style: "text-align:left;" }, attributes: { style: "text-align:left;" } },
-            { title: "No. of WTG", field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Production<br>(GWh)", field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "PLF<br>(%)", field: "plf", width: 80, format: "{0:n2}", template: "#= kendo.toString(plf*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Lost Energy<br>(MWh)", field: "lostenergy", template: "#= kendo.toString(lostenergy/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Machine Availability<br>(%)", field: "machineavail", format: "{0:n2}", template: "#= kendo.toString(machineavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-            { title: "Total Availability<br>(%)", field: "trueavail", format: "{0:n2}", template: "#= kendo.toString(trueavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
-        ]
+            columns: [
+                { title: "Project Name", width:100, field: "name", headerAttributes: { style: "text-align:left;" }, attributes: { style: "text-align:left;" } },
+                { title: "No. of WTG", width:90, field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Production<br>(GWh)", width:100, field: "production", template: "#= kendo.toString(production/1000000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "PLF<br>(%)", width:100, field: "plf", format: "{0:n2}", template: "#= kendo.toString(plf*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Lost Energy<br>(MWh)", width:100,field: "lostenergy", template: "#= kendo.toString(lostenergy/1000, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Downtime<br>(Hours)", width:120,field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Machine Availability<br>(%)", width:120, field: "machineavail", format: "{0:n2}", template: "#= kendo.toString(machineavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+                { title: "Total Availability<br>(%)", width:120, field: "trueavail", format: "{0:n2}", template: "#= kendo.toString(trueavail*100, 'n2') #", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
+            ]
+        });
     });
 
-    setTimeout(function () {
-        var grid = $("#gridSummaryData").data("kendoGrid");
-        if (project == "Fleet") {
-            $("#gridSummaryData th[data-field=name]").html("Project Name")
-            grid.showColumn("noofwtg");
-        } else {
-            $("#gridSummaryData th[data-field=name]").html("Turbine Name")
-            grid.hideColumn("noofwtg");
-        }
-        var dataSource = grid.dataSource.data();
-        $.each(dataSource, function (i, row) {
-            $('tr[data-uid="' + row.uid + '"]').css("border-bottom", "1pt solid black");
-        });
-        $("#gridSummaryData").data("kendoGrid").refresh();
-    }, 100);
+    $.when(ajax1).done(function(){
+        setTimeout(function(){
+            var grid = $("#gridSummaryData").data("kendoGrid");
+            if (project == "Fleet") {
+                $("#gridSummaryData th[data-field=name]").html("Project Name")
+                grid.showColumn("noofwtg");
+            } else {
+                $("#gridSummaryData th[data-field=name]").html("Turbine Name")
+                grid.hideColumn("noofwtg");
+            }
+            var dataSource = grid.dataSource.data();
+            $.each(dataSource, function (i, row) {
+                $('tr[data-uid="' + row.uid + '"]').css("border-bottom", "1pt solid black");
+            });
+            $("#gridSummaryData").data("kendoGrid").refresh();
+        }, 100);        
+    })
 }
 
 sum.PLF = function (dataSource) {
@@ -191,7 +279,8 @@ sum.PLF = function (dataSource) {
             },
             axisCrossingValue: -10,
             labels: {
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -202,7 +291,8 @@ sum.PLF = function (dataSource) {
         categoryAxis: {
             field: "DateInfo.MonthDesc",
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: false
@@ -265,6 +355,9 @@ sum.LostEnergy = function (dataSource) {
             line: {
                 visible: false
             },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             axisCrossingValue: -10,
             majorGridLines: {
                 visible: true,
@@ -278,7 +371,8 @@ sum.LostEnergy = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -310,7 +404,10 @@ sum.Windiness = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160,
@@ -343,7 +440,8 @@ sum.Windiness = function (dataSource) {
         valueAxis: {
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             max: 10,
             majorUnit: 2,
@@ -363,7 +461,8 @@ sum.Windiness = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -372,6 +471,91 @@ sum.Windiness = function (dataSource) {
             format: "{0:n1}",
             shared: true,
             sharedTemplate: kendo.template($("#templateWindiness").html()),
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+
+        },
+    });
+}
+sum.UpdateWindDist = function() {
+    setTimeout(function() {
+        sum.WindDistribution(sum.windDistData()[sum.periodSelected()]);
+    }, 300);
+}
+sum.WindDistribution = function (dataSource) {
+    $("#chartWindDistribution").replaceWith('<div id="chartWindDistribution"></div>');
+    $("#chartWindDistribution").kendoChart({
+        dataSource: {
+            data: dataSource,
+            group: { field: "Project" },
+            sort: { field: "Category", dir: 'asc' }
+        },
+        theme: "flat",
+        title: {
+            text: ""
+        },
+        legend: {
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
+        },
+        chartArea: {
+            height: 160,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
+        },
+        series: [{
+            type: "line",
+            style: "smooth",
+            field: "Contribute",
+            // opacity : 0.7,
+            markers: {
+                visible: false,
+            }
+        }],
+        seriesColors: colorField,
+        valueAxis: {
+            labels: {
+                step: 2,
+                format: "{0:p0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            line: {
+                visible: false
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            }
+        },
+        categoryAxis: {
+            field: "Category",
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                step: 2,
+                // rotation: 25
+            },
+            majorTickType: "none"
+        },
+        tooltip: {
+            visible: true,
+            format: "{0:n1}",
+            shared: true,
+            sharedTemplate: kendo.template($("#templateDistribution").html()),
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -397,6 +581,9 @@ sum.ProdMonth = function (dataSource) {
         },
         legend: {
             position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 150,
@@ -422,7 +609,7 @@ sum.ProdMonth = function (dataSource) {
             name: "Production",
             field: "Production",
             // opacity : 0.7,
-            color: "#ff880e",
+            color: "#ff9933",
         }],
         // seriesColors: colorField,
         seriesClick: function (e) {
@@ -441,7 +628,8 @@ sum.ProdMonth = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         }],
         categoryAxis: {
@@ -450,7 +638,8 @@ sum.ProdMonth = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -470,8 +659,12 @@ sum.ProdMonth = function (dataSource) {
         }
     });
 }
-
-sum.AvailabilityChart = function (dataSource) {
+// sum.UpdateAvailability = function() {
+//     setTimeout(function() {
+//         sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
+//     }, 300);
+// }
+sum.AvailabilityChart = function (dataSource, dataSeries) {
     $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({
         dataSource: {
@@ -483,7 +676,8 @@ sum.AvailabilityChart = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
             height: 165,
@@ -494,24 +688,29 @@ sum.AvailabilityChart = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "area",
-            area: {
-                line: {
-                    style: "smooth"
-                }
+            type: "line",
+            style: "smooth",
+            // area: {
+            //     line: {
+            //         style: "smooth"
+            //     }
+            // }
+            markers: {
+                visible: false,
             }
         },
-        series: [{
-            name: "DBA",
-            field: "ScadaAvail",
-            // opacity : 0.5,
-            color: "#21c4af"
-        }, {
-            name: "TBA",
-            field: "TrueAvail",
-            // opacity : 0.5,
-            color: "#ff880e",
-        }],
+        // series: [{
+        //     name: "Tejuva",
+        //     field: "ScadaAvail",
+        //     // opacity : 0.5,
+        //     color: "#21c4af"
+        // }, {
+        //     name: "Lahori",
+        //     field: "TrueAvail",
+        //     // opacity : 0.5,
+        //     color: "#ff880e",
+        // }],
+        series: dataSeries,
         // seriesColors: colorField,
         valueAxis: {
             max: 100,
@@ -522,7 +721,8 @@ sum.AvailabilityChart = function (dataSource) {
             axisCrossingValue: -10,
             labels: {
                 // format: "{0}%"
-                format: "{0}"
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -536,7 +736,8 @@ sum.AvailabilityChart = function (dataSource) {
                 visible: false
             },
             labels: {
-                template: '#=  value.substring(0,3) #'
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -569,7 +770,10 @@ sum.ProdCurLast = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 160,
@@ -586,6 +790,7 @@ sum.ProdCurLast = function (dataSource) {
                 }
             }
         },
+        seriesColors: colorField,
         series: [{
             type: "column",
             style: "smooth",
@@ -593,7 +798,7 @@ sum.ProdCurLast = function (dataSource) {
             field: "Production",
             // opacity : 0.7,
             axis: "production",
-            color: "#21c4af",
+            // color: "#21c4af",
         }, {
             type: "column",
             style: "smooth",
@@ -601,14 +806,14 @@ sum.ProdCurLast = function (dataSource) {
             field: "ProductionLastYear",
             // opacity : 0.7,
             axis: "production",
-            color: "#ff880e",
+            // color: "#ff880e",
         }, {
             type: "line",
             style: "smooth",
             name: "Variance(%)",
             field: "Variance",
             axis: "variance",
-            color: "#ff7663",
+            // color: "#ff7663",
             markers: {
                 visible: false
             }
@@ -619,6 +824,7 @@ sum.ProdCurLast = function (dataSource) {
             },
             labels: {
                 step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorGridLines: {
                 visible: true,
@@ -679,9 +885,12 @@ sum.indiaMap = function (project) {
         }
 
         var turbineInfos = res.data;
-        var center = turbineInfos[0].coords[0] + "," + turbineInfos[0].coords[1];
+        var center = new google.maps.LatLng(turbineInfos[0].coords[0], turbineInfos[0].coords[1]);
         var mapProp = {
-            center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : new google.maps.LatLng(27.131461, 70.618559)),
+            types: ['(region)'],
+            componentRestrictions: {country: "in"},
+            // center: (param.projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
+            center: center,
             zoom: (param.projectname == 'Fleet' ? 4 : 10),
             mapTypeId: google.maps.MapTypeId.HYBRID,
             mapTypeControl: true,
@@ -707,13 +916,15 @@ sum.indiaMap = function (project) {
         var markers = new Array();
 
         turbineInfos.forEach(function (obj, idx) {
+            var imgUrl ="../res/img/turbine-"+obj.status+".png";
+
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
                 map: map,
                 title: obj.name,
                 icon: {
-                    url: "../res/img/wind-turbine.png", // url
-                    scaledSize: new google.maps.Size(30, 30), // scaled size
+                    url: imgUrl, // url
+                    scaledSize: new google.maps.Size(70, 50), // scaled size
                 }
             });
 
@@ -722,23 +933,52 @@ sum.indiaMap = function (project) {
             });
 
             google.maps.event.addListener(marker, 'click', function () {
-                map.panTo(this.getPosition());
-                map.setZoom(20);
+                var project = $("#projectId").data("kendoDropDownList").value();
+                if(project == "Fleet"){
+                    // sum.ToMonitoringProject(obj.name);
+                    setTimeout(function(){
+                        $("#projectId").data('kendoDropDownList').value(obj.name);
+                        lgd.LoadData();
+                    }, 200);
+                }else{
+                    sum.ToMonitoringIndividual(project, obj.value);
+                }
             });
         });
     });
 
 }
 
+sum.ToMonitoringProject = function(project) {
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },300);
+}
+
+sum.ToMonitoringIndividual = function(project, turbine) {
+    setTimeout(function(){
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyturbine";
+    },300);
+}
+
 sum.ProductionChart = function (dataSource) {
     var dataFormat = "n2";
-    if (dataSource.length > 0) {
-        var totalPotential = 0;
-        for (var i = 0; i < dataSource.length; i++) {
-            totalPotential += dataSource[i].PotentialKwh;
-        }
-        if (totalPotential > 10) {
-            dataFormat = "n0";
+    if (dataSource != null){
+        if (dataSource.length > 0) {
+            var totalPotential = 0;
+            for (var i = 0; i < dataSource.length; i++) {
+                totalPotential += dataSource[i].PotentialKwh;
+            }
+            if (totalPotential > 10) {
+                dataFormat = "n0";
+            }
         }
     }
 
@@ -753,7 +993,10 @@ sum.ProductionChart = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             height: 165,
@@ -780,12 +1023,13 @@ sum.ProductionChart = function (dataSource) {
             name: "Production",
             field: "EnergyKwh",
             // opacity : 0.5,
-            color: "#ff880e"
+            color: "#ff9933"
         }],
         valueAxis: {
             labels: {
                 step: 2,
-                format: dataFormat
+                format: dataFormat,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
                 visible: false
@@ -813,6 +1057,7 @@ sum.ProductionChart = function (dataSource) {
             },
             labels: {
                 step: 2,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // template : "#: Number(kendo.toString(kendo.parseDate(value), 'HH')) #"
             },
             majorTickType: "none"
@@ -845,7 +1090,8 @@ sum.CumProduction = function (dataSource) {
             text: ""
         },
         legend: {
-            position: "top"
+            position: "top",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
             height: 170,
@@ -872,7 +1118,7 @@ sum.CumProduction = function (dataSource) {
             name: "Production",
             field: "CumProduction",
             // opacity : 0.5,
-            color: "#ff880e"
+            color: "#ff9933"
         }],
         // seriesColors: colorField,
         valueAxis: {
@@ -887,7 +1133,8 @@ sum.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0"
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
         categoryAxis: {
@@ -897,7 +1144,8 @@ sum.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 3,
-                template: "#: Number(kendo.toString(kendo.parseDate(value), 'dd'))#"
+                template: "#: Number(kendo.toString(kendo.parseDate(value), 'dd'))#",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
         },
@@ -946,6 +1194,9 @@ sum.DetailProd = function (e) {
             },
             legend: {
                 position: "top",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
             },
             chartArea: {
                 height: 200,
@@ -980,6 +1231,9 @@ sum.DetailProd = function (e) {
                 line: {
                     visible: false
                 },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
                 axisCrossingValue: -10,
                 majorGridLines: {
                     visible: true,
@@ -991,6 +1245,9 @@ sum.DetailProd = function (e) {
                 field: "project",
                 majorGridLines: {
                     visible: false
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 majorTickType: "none"
             },
@@ -1056,6 +1313,9 @@ sum.DetailProdByProject = function (e, month, data) {
         },
         legend: {
             position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
         },
         chartArea: {
             padding: 0,
@@ -1083,6 +1343,9 @@ sum.DetailProdByProject = function (e, month, data) {
             line: {
                 visible: false
             },
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
             axisCrossingValue: -10,
             majorGridLines: {
                 visible: true,
@@ -1097,7 +1360,8 @@ sum.DetailProdByProject = function (e, month, data) {
             },
             majorTickType: "none",
             labels: {
-                rotation: 45
+                rotation: 45,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
         },
         tooltip: {

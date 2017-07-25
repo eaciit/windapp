@@ -1,15 +1,14 @@
-[
-	{
+[{
 		"_id": "db_acl",
 		"data": {
 			"db": "wfdemo-oem",
 			"driver": "mongo",
-			"host": "go.eaciit.com:27123",
-			"pass": "B1gD@ta",
+			"host": "52.77.236.193:27123",
+			"pass": "",
 			"setting": {
 				"timeout": 3000
 			},
-			"user": "eaciit"
+			"user": ""
 		}
 	},
 	{
@@ -17,17 +16,17 @@
 		"data": {
 			"db": "wfdemo-oem",
 			"driver": "mongo",
-			"host": "go.eaciit.com:27123",
-			"pass": "B1gD@ta",
+			"host": "52.77.236.193:27123",
+			"pass": "",
 			"setting": {
 				"timeout": 3000
 			},
-			"user": "eaciit"
+			"user": ""
 		}
 	},
 	{
 		"_id": "port",
-		"data": 8014
+		"data": 8004
 	},
 	{
 		"_id": "default_username",
@@ -36,5 +35,4 @@
 	{
 		"_id": "default_password",
 		"data": "Password.1"
-	}
-]
+	}]

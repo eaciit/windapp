@@ -20,6 +20,21 @@ type LoginController struct {
 	App
 }
 
+type Availdatedata struct {
+	ScadaData         []time.Time
+	DGRData           []time.Time
+	Alarm             []time.Time
+	JMR               []time.Time
+	MET               []time.Time
+	Duration          []time.Time
+	ScadaAnomaly      []time.Time
+	AlarmOverlapping  []time.Time
+	AlarmScadaAnomaly []time.Time
+	ScadaDataOEM      []time.Time
+	ScadaDataHFD      []time.Time
+	Warning           []time.Time
+}
+
 func CreateLoginController() *LoginController {
 	var controller = new(LoginController)
 	return controller
@@ -35,9 +50,8 @@ func (l *LoginController) CheckCurrentSession(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 	sessionid := r.Session("sessionid", "")
 
-	// toolkit.Printf("CheckCurrentSession: %#v \v", sessionid)
-
 	if !acl.IsSessionIDActive(toolkit.ToString(sessionid)) {
+		toolkit.Printf(">> CheckCurrentSession - notactive: %#v \v", sessionid)
 		r.SetSession("sessionid", "")
 		return helper.CreateResult(false, false, "inactive")
 	}
@@ -138,6 +152,42 @@ func (l *LoginController) GetUserName(r *knot.WebContext) interface{} {
 	return helper.CreateResult(true, tUser.LoginID, "")
 }
 
+func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputJson
+
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
+
+	if r.Session("keyRealtime", "") == "58e4931965d1041094641f0f" {
+		MenuList = []string{}
+		credentials := toolkit.M{"username": "realtime", "password": "realtime@1234"}
+		menus, sessid, err := LoginProcess(credentials)
+		if err != nil {
+			return helper.CreateResult(false, "", err.Error())
+		}
+
+		WriteLog(sessid, "realtime login", r.Request.URL.String())
+		r.SetSession("sessionid", sessid)
+		r.SetSession("menus", menus)
+		helper.WC = r
+		MenuList = menus
+
+		datePeriod := getLastAvailDate()
+		r.SetSession("availdate", datePeriod)
+
+		lastDateData = datePeriod.ScadaData[1].UTC()
+		r.SetSession("lastdate_data", lastDateData)
+
+		data := toolkit.M{
+			"status":    true,
+			"sessionid": sessid,
+		}
+
+		return helper.CreateResult(true, data, "Login Success")
+	}
+
+	return helper.CreateResult(false, "", "You have no right to access this page")
+}
+
 func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 
@@ -152,76 +202,23 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	if err != nil {
 		return helper.CreateResult(false, "", err.Error())
 	}
+
+	// log.Printf("sessid: %v \n", sessid)
+
 	WriteLog(sessid, "login", r.Request.URL.String())
 	r.SetSession("sessionid", sessid)
 	r.SetSession("menus", menus)
 	helper.WC = r
 	MenuList = menus
 
-	// temporary add last date hardcode, then will change to get it from database automatically
-	// add by ams, 2016-10-04
-
-	query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Order("-timestamp").Take(1)
-
-	csr, e := query.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	Result := make([]ScadaData, 0)
-	e = csr.Fetch(&Result, 0, false)
-
-	csr.Close()
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	for _, val := range Result {
-		// toolkit.Printf("Result : %s \n", val.TimeStamp.UTC())
-		lastDateData = val.TimeStamp.UTC()
-	}
-
-	// toolkit.Printf("Result : %s \n", lastDateData)
-	lastDateData = lastDateData.UTC()
-	r.SetSession("lastdate_data", lastDateData)
-
 	// Get Available Date All Collection
-	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e = DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	e = csr.Fetch(&latestDataPeriods, 0, false)
-	csr.Close()
-
-	// toolkit.Println(latestDataPeriods)
-
-	type availdatedata struct {
-		ScadaData         []time.Time
-		DGRData           []time.Time
-		Alarm             []time.Time
-		JMR               []time.Time
-		MET               []time.Time
-		Duration          []time.Time
-		ScadaAnomaly      []time.Time
-		AlarmOverlapping  []time.Time
-		AlarmScadaAnomaly []time.Time
-	}
-
-	datePeriod := new(availdatedata)
-	xdp := reflect.ValueOf(datePeriod).Elem()
-	for _, d := range latestDataPeriods {
-		f := xdp.FieldByName(d.Type)
-		if f.IsValid() {
-			if f.CanSet() {
-				f.Set(reflect.ValueOf(d.Data))
-			}
-		}
-	}
-
+	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+
+	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
+
+	lastDateData = datePeriod.ScadaData[1].UTC()
+	r.SetSession("lastdate_data", lastDateData)
 
 	data := toolkit.M{
 		"status":    true,
@@ -290,4 +287,37 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 	}
 
 	return helper.CreateResult(true, result, "Authenticate Success")
+}
+
+func getLastAvailDate() *Availdatedata {
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	// toolkit.Println(latestDataPeriods)
+
+	// mapCheck := map[string]time.Time{}
+
+	datePeriod := new(Availdatedata)
+	xdp := reflect.ValueOf(datePeriod).Elem()
+	for _, d := range latestDataPeriods {
+		f := xdp.FieldByName(d.Type)
+		if f.IsValid() {
+			if f.CanSet() {
+				// tmpTime := mapCheck[d.Type]
+				// log.Printf("> %v | %v \n", d.Data[0].String(), d.Data[1].String())
+				if d.Data[0].String() != d.Data[1].String() {
+					f.Set(reflect.ValueOf(d.Data))
+					// log.Printf(">> %v | %v \n", d.Data[0].String(), d.Data[1].String())
+				}
+			}
+		}
+	}
+
+	return datePeriod
 }

@@ -12,15 +12,21 @@ import (
 	"strings"
 	"time"
 
+	"path/filepath"
+
+	"github.com/eaciit/orm"
 	tk "github.com/eaciit/toolkit"
 	"github.com/tealeg/xlsx"
 	// _ "github.com/tealeg/xlsx"
+
+	"github.com/eaciit/dbox"
+	_ "github.com/eaciit/dbox/dbc/mongo"
 )
 
 var (
 	wd = func() string {
 		d, _ := os.Getwd()
-		return d + "/"
+		return d
 	}()
 
 	DateFormat1 = "02-01-2006 15:04:05"
@@ -226,7 +232,7 @@ func WriteErrors(errorList tk.M, fileName string) (e error) {
 
 func ReadConfig() map[string]string {
 	ret := make(map[string]string)
-	file, err := os.Open(wd + "conf/app.conf")
+	file, err := os.Open(filepath.Join(wd, "config", "app.conf"))
 	if err == nil {
 		defer file.Close()
 
@@ -245,6 +251,24 @@ func ReadConfig() map[string]string {
 	}
 
 	return ret
+}
+
+func GetConnRealtime() dbox.IConnection {
+	config := ReadConfig()
+
+	ci := &dbox.ConnectionInfo{config["host"], config["dbrealtime"], config["username"], config["password"], tk.M{}.Set("timeout", 3000)}
+	c, _ := dbox.NewConnection("mongo", ci)
+
+	for {
+		e := c.Connect()
+		if e != nil {
+			tk.Println("Realtime DB Connection Found ", e.Error())
+		} else {
+			break
+		}
+	}
+
+	return c
 }
 
 func GetDateRange(dt time.Time, isBefore bool) (result time.Time) {
@@ -431,27 +455,31 @@ func GetPeriodBackByDate(periodType string, lastDate time.Time, noPeriodBack int
 		}
 		startQtr := lastQtr
 		startYear := lastYear
-		for i := lastQtr; i > 0; i-- {
+		noQtr := exactNoPeriodBack
+		for noQtr > 0 {
 			startQtr--
 			if startQtr == 0 {
 				startQtr = 4
 				startYear--
 			}
+			noQtr--
 		}
 
 		startMonthOfStartQtr := (startQtr * 3) - 2
-		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, startMonthOfStartQtr, 1))
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, LeftPad2Len(tk.ToString(startMonthOfStartQtr), "0", 2), "01"))
 	case "MONTH":
 		startMonth := lastMonth
 		startYear := lastYear
-		for i := lastMonth; i > 0; i-- {
+		noMonths := exactNoPeriodBack
+		for noMonths > 0 {
 			startMonth--
 			if startMonth == 0 {
 				startMonth = 12
 				startYear--
 			}
+			noMonths--
 		}
-		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, startMonth, 1))
+		ret, _ = time.Parse(dateLayout, tk.Sprintf("%v-%v-%v", startYear, LeftPad2Len(tk.ToString(startMonth), "0", 2), "01"))
 	case "WEEK":
 		lastYear, lastWeek := lastDate.ISOWeek()
 		startWeek := lastWeek
@@ -487,4 +515,79 @@ func FirstDayOfISOWeek(year int, week int, timezone *time.Location) time.Time {
 		isoYear, isoWeek = date.ISOWeek()
 	}
 	return date
+}
+
+func GetDataDateAvailable(collectionName string, timestampColumn string, where *dbox.Filter, ctx dbox.IConnection) (min time.Time, max time.Time, err error) {
+	q := ctx.
+		NewQuery().
+		From(collectionName)
+
+	if where != nil {
+		q.Where(where)
+	}
+
+	csr, err := q.
+		Aggr(dbox.AggrMin, "$"+timestampColumn, "min").
+		Aggr(dbox.AggrMax, "$"+timestampColumn, "max").
+		Group("enable").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if err != nil {
+		csr.Close()
+		return
+	}
+
+	data := []tk.M{}
+	err = csr.Fetch(&data, 0, false)
+
+	if err != nil || len(data) == 0 {
+		csr.Close()
+		return
+	}
+
+	min = data[0].Get("min").(time.Time)
+	max = data[0].Get("max").(time.Time)
+
+	csr.Close()
+	return
+}
+
+func GetNormalAddDateMonth(dt time.Time, month int) (res time.Time) {
+	tmp, _ := time.Parse("060102_150405", dt.Format("0601")+"01_"+dt.Format("150405"))
+	res = tmp.AddDate(0, month, 0)
+
+	return
+}
+
+func UpperFirstLetter(str string) string {
+	if len(str) > 0 {
+		str = strings.ToUpper(str[:1]) + str[1:]
+	}
+
+	return str
+}
+
+func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability map[string]bool, e error) {
+	csr, e := ctx.Connection.NewQuery().
+		From("AlarmBrake").
+		Order("alarmname").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if e != nil {
+		return
+	}
+
+	data := []tk.M{}
+	e = csr.Fetch(&data, 0, false)
+
+	brakeReducesAvailability = map[string]bool{}
+
+	for _, val := range data {
+		brakeReducesAvailability[val.GetString("alarmname")] = val.Get("reducesavailability").(bool)
+	}
+	return
 }

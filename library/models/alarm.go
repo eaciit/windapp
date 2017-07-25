@@ -110,26 +110,28 @@ func (m *AlarmIncorrect) TableName() string {
 }
 
 type Alarm struct {
-	orm.ModelBase    `bson:"-",json:"-"`
-	ID               bson.ObjectId ` bson:"_id" , json:"_id" `
-	Farm             string
-	StartDate        time.Time
-	StartDateInfo    DateInfo
-	EndDate          time.Time
-	Duration         float64 // duration in hours
-	Turbine          string
-	AlertDescription string
-	ExternalStop     bool
-	GridDown         bool
-	InternalGrid     bool
-	MachineDown      bool
-	AEbOK            bool
-	Unknown          bool
-	WeatherStop      bool
-	Line             int
-	ProjectName      string
-	PowerLost        float64
-	Detail           []AlarmDetail
+	orm.ModelBase      `bson:"-",json:"-"`
+	ID                 bson.ObjectId ` bson:"_id" , json:"_id" `
+	Farm               string
+	StartDate          time.Time
+	StartDateInfo      DateInfo
+	EndDate            time.Time
+	Duration           float64 // duration in hours
+	Turbine            string
+	AlertDescription   string
+	BrakeType          string // add by ams, regarding to add new req | 20170130
+	ExternalStop       bool
+	GridDown           bool
+	InternalGrid       bool
+	MachineDown        bool
+	AEbOK              bool
+	Unknown            bool
+	WeatherStop        bool
+	Line               int
+	ProjectName        string
+	PowerLost          float64
+	Detail             []AlarmDetail
+	ReduceAvailability bool
 }
 
 func (m *Alarm) New() *Alarm {
@@ -150,6 +152,7 @@ type AlarmDetail struct {
 	EndDate          time.Time
 	DetailDateInfo   DateInfo
 	AlertDescription string
+	BrakeType        string // add by ams, regarding to add new req | 20170130
 	Duration         float64
 	Power            float64
 	PowerLost        float64

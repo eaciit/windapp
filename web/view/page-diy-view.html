@@ -1,5 +1,6 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-diy-view.js?ANTI_CACHE={{.AntiCache}}"></script>
 <!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
@@ -28,4 +29,5 @@
     $(document).ready(function () {
         app.loading(false);
     });
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
 </script>

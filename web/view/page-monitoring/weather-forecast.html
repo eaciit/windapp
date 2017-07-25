@@ -1,0 +1,108 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-monitoring/weather-forecast.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+<div class="row">
+    <div class="row">
+        <div class="col-md-12 col-sm-12 ez panel-content">
+            <div class="nav nav-pills nav-replace-title" style="padding-left: 5px;">
+                <div class="col-md-12 col-sm-12 filter-content">
+                    <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
+                    <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: wf.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                    style="width:145px"></select>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-body">
+                    <div class="col-md-3">
+                        <h4 class="content-heading"><strong>Current</strong></h4>
+                        <div class="list-group">
+                            <div class="list-group-item main-item">
+                                <h4 class="text-center"><b><i class="fa fa-map-marker"></i>&nbsp;<span id="turbine_location"></span></b></h4>
+                                <p class="text-center">
+                                   <img id="img_weather" src="http://openweathermap.org/img/w/02d.png" />
+                                   <span style="font-size: 20px" class="vcenter"><span id="temperature"></span> &deg; C</span> 
+                                </p> 
+                            </div>
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Weather</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="weather"></span>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Sea Level</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="sea_level"></span>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Wind Speed</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="wind_speed"></span> m/s
+                                </div>
+                                </div>
+                            </div>                      
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Wind Direction</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="wind_direction"></span> &deg;
+                                </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Pressure</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="pressure"></span> hpa
+                                </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Humidity</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="humidity"></span> %
+                                </div>
+                                </div>
+                            </div>
+                            <div class="list-group-item list-weather-item">
+                                <div class="form-group row">
+                                <label class="col-md-5 col-xs-4 weather-label">Last Update</label>
+                                <div class="col-md-7 col-xs-8">
+                                    :&nbsp;&nbsp;&nbsp;<span id="last_update"></span>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="source-info pull-right">
+                            Source&nbsp;&nbsp;&nbsp;<a href="https://openweathermap.org/" target="_blank"><img src="{{BaseUrl}}/res/img/logo_OpenWeatherMap_orange.svg" width="120" /></a>
+                        </div>
+                        <h4 class="content-heading"><strong>Forecast</strong></h4>
+                        <div id="weatherChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    wf.populateProject({{.ProjectList}});
+</script>

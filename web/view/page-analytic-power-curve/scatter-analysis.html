@@ -1,0 +1,80 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/scatter-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
+<style type="text/css">
+	.inputScatter{
+	    height: 30px;
+	    max-width: 50px;
+	    margin-left: 5px;
+	    padding: 5px;
+	    text-align: center;
+	}
+	.scatter-div{
+	    margin-top: 0px;
+	    margin-bottom: 5px;
+	}
+</style>
+<div>
+	<div class="row">
+		{{template "page-filter-scatter.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+					</div>
+					<div class="panel-body">
+						<!-- <a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportIndividualMonthPdf">
+							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
+						</a> -->
+						<div class="date-info">
+							<div>
+                            	Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                            </div>
+                        </div>
+						<div class="clearfix">&nbsp;</div>
+
+						<div class="col-md-9 scatter">
+							<div class="scatter-chart">
+								<div id="scatterChart"></div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="scatter-chart">
+								<div class="scatter-comparison">
+									<span><label class="label-scatter">Scatter Comparison</label></span>
+									<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
+					                </select>
+								</div>
+								<div class="clearfix">&nbsp;</div>
+								<div class="form-inline scatter-div">
+									<div class="form-group">
+											<span><strong><</strong></span>
+                                            <input type="text" name="less" id="txtLessVal" class="form-control input-xs inputScatter" data-bind="value:page.lessValue" onchange="page.LoadData()">
+                                             <input data-bind="kendoColorPicker: { palette: 'websafe', value: page.lessSelectedColour, change: function(){ page.changeView('<')}}" id="lessColor"/>
+		                                    <select class="scatter-type" id="lessMarker" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.lessSelectedMarker(), change: function(){ page.changeView('<')}}">
+							                </select>
+									</div>
+								</div>
+								<div class="form-inline scatter-div">
+									<div class="form-group">
+											<span><strong>></strong></span>
+                                            <input type="text" name="less" id="txtGreaterVal" class="form-control input-xs inputScatter" data-bind="value:page.greaterValue" onchange="page.LoadData()">
+                                            <input data-bind="kendoColorPicker: { palette: 'websafe', value: page.greaterSelectedColour, change: function(){ page.changeView('>')} }" id="greaterColor" />
+                                             <select class="scatter-type" id="greaterMarker" name="table" data-bind="kendoDropDownList: { data: page.markerStyleList, dataValueField: 'value', dataTextField: 'text', suggest: true, value:page.greaterSelectedMarker, change: function(){ page.changeView('>')}}"></select>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>

@@ -1,0 +1,53 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/scatter.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
+
+<div class="row">
+	{{template "page-filter-scatter.html"}}
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+<!-- 					<div class="scatter-comparison pull-right">
+						<span><label class="label-scatter">Scatter Comparison</label></span>
+						<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
+		                </select>
+					</div> -->
+				</div>
+				<div class="panel-body">
+					<!-- <a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportIndividualMonthPdf">
+						<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
+					</a> -->
+					<div class="date-info">
+						<div>
+                        	Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+                        </div>
+                    </div>
+					<div class="clearfix">&nbsp;</div>
+
+					<div class="col-md-9 scatter">
+						<div class="scatter-chart">
+							<div id="scatterChart"></div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="scatter-chart">
+							<div class="scatter-comparison">
+								<span><label class="label-scatter">Scatter Comparison</label></span>
+								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
+		                </select>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>

@@ -251,7 +251,20 @@ func calcdata(wi int, jobs <-chan time.Time, result chan<- int) {
 
 	_tinterval := time.Time{}
 	for _tinterval = range jobs {
-		workerconn, _ := PrepareConnection()
+		// workerconn, _ := PrepareConnection()
+
+		var workerconn dbox.IConnection
+		for {
+			var err error
+			workerconn, err = PrepareConnection()
+			if err == nil {
+				break
+			} else {
+				tk.Printfn("==#DB-ERRCONN==\n %s \n", err.Error())
+				<-time.After(time.Second * 3)
+			}
+		}
+
 		csr, e := workerconn.NewQuery().
 			Select().From(dtablename).
 			Where(dbox.Eq("timestampconverted", _tinterval)).
@@ -411,6 +424,12 @@ func workersave(wi int, jobs <-chan ScadaConvTenMin, result chan<- int) {
 				if _str == "Fast_YawService" {
 					tVal = reflect.ValueOf(&trx).Elem().FieldByName(tk.Sprintf("%s_Min", _str)).Float()
 				}
+
+				if _str == "Fast_WindSpeed_ms" {
+					_tVal := tk.ToFloat64(tVal, 0, tk.RoundingAuto)
+					reflect.ValueOf(&trx).Elem().FieldByName("Fast_WindSpeed_bin").SetFloat(_tVal)
+				}
+
 				reflect.ValueOf(&trx).Elem().FieldByName(_str).SetFloat(tVal)
 
 				istddev2 := reflect.ValueOf(&trx).Elem().FieldByName(_strdev).Float()
@@ -538,6 +557,7 @@ func getinterval(tablename string, match tk.M) (arrval []time.Time) {
 func fillto10min(_sts *ScadaThreeSecs, _sctm *ScadaConvTenMin, key string) {
 
 	for _, _str := range structlist {
+
 		_strmax := tk.Sprintf("%s_Max", _str)
 		_strmin := tk.Sprintf("%s_Min", _str)
 
