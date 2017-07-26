@@ -65,7 +65,7 @@ sum.loadData = function () {
                 sum.currentDown(res.data[0].CurrentDown);
                 sum.twoDaysDown(res.data[0].TwoDaysDown);
 
-                var lastUpdate = new Date(res.data[0].LastUpdate);
+                var lastUpdate = res.data[0].LastUpdate;
 
                 // vm.dateAsOf(lastUpdate.addHours(-7));
                 sum.ProductionChart(res.data[0].Productions);
