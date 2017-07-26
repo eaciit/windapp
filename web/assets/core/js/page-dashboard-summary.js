@@ -975,6 +975,20 @@ sum.initialize = function() {
         center: new google.maps.LatLng(23.334166, 75.037611) ,
         // zoom: (project == 'Fleet' ? 4 : 10),
         zoom: 5,
+        styles: [
+          {
+            "featureType": "administrative.country",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#ff2631"
+              },
+              {
+                "weight": 2
+              }
+            ]
+          }
+        ],
         mapTypeId: google.maps.MapTypeId.HYBRID,
         mapTypeControl: true,
         mapTypeControlOptions: {
