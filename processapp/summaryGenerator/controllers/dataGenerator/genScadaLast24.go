@@ -219,7 +219,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 					match := tk.M{}
 
-					match.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("power", tk.M{}.Set("$gte", -200))
+					match.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("available", tk.M{}.Set("$eq", 1))
 
 					if projectName != "Fleet" {
 						match.Set("projectname", projectName)
