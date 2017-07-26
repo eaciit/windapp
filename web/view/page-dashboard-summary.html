@@ -1,7 +1,7 @@
 <script src="{{BaseUrl}}res/core/js/page-dashboard-summary.js?ANTI_CACHE={{.AntiCache}}"></script>
 
 <script id="templateProd" type="text/x-kendo-template">
-  <div style="text-align:center"><b>#: kendo.toString(kendo.parseDate(vm.dateAsOf()), 'dd MMM yyyy') # #: category #:00</b></div>
+  <div style="text-align:center"><b>#: kendo.toString(moment(vm.dateAsOf()).utc().format('DD MMM YYYY')) # #: category #:00</b></div>
   # for (var i = 0; i < points.length; i++) { #
     <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2') # kWh</span></div>
   # } #
