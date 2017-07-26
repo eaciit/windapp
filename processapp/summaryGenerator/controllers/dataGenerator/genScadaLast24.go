@@ -135,7 +135,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					items := make([]LastData24Hours, 0)
 					cdatehour := dateId.UTC()
 					for i := 0; i < 24; i++ {
-						cdatehour = cdatehour.Add(time.Duration(i) * time.Hour)
+						cdatehour = cdatehour.Add(1 * time.Hour)
 
 						// year := strconv.Itoa(dateId.Year())
 						// month := dateId.Month().String()
