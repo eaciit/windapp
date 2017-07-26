@@ -15,7 +15,8 @@ dbe.InitEventGrid = function() {
 
     var misc = {
         "tipe": "eventraw",
-        "needtotalturbine": true
+        "needtotalturbine": true,
+        "period": fa.period,
     }
 
     var param = {"misc": misc}

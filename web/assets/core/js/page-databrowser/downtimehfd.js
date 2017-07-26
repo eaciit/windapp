@@ -15,7 +15,8 @@ dbdhfd.InitDEHFDgrid = function() {
 
     var misc = {
         "tipe": "eventdownhfd",
-        "needtotalturbine": true
+        "needtotalturbine": true,
+        "period": fa.period,
     }
 
     var param = {"misc": misc}
