@@ -133,7 +133,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					mdl.NoOfTurbines = totalTurbine
 
 					items := make([]LastData24Hours, 0)
-					cdatehour := dateId.UTC()
+					cdatehour := dateId.UTC().Add(-1 * time.Hour)
 					for i := 0; i < 24; i++ {
 						cdatehour = cdatehour.Add(1 * time.Hour)
 
