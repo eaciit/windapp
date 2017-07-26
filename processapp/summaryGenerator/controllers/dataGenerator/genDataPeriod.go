@@ -204,8 +204,8 @@ func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestam
 		return
 	}
 
-	min = data[0].Get("min").(time.Time)
-	max = data[0].Get("max").(time.Time)
+	min = data[0].Get("min", time.Time{}).(time.Time).UTC()
+	max = data[0].Get("max", time.Time{}).(time.Time).UTC()
 
 	csr.Close()
 	return
