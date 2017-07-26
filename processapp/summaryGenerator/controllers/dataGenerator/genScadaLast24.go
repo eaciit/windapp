@@ -194,7 +194,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 								windspeed = iwindspeed.(float64)
 							}
 							last.Hour = i
-							last.TimeHour = timeHr
+							last.TimeHour = cdatehour
 							last.AvgWindSpeed = windspeed
 							last.PowerKw = power
 							last.EnergyKwh = power / 6
@@ -204,7 +204,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 							last.GridAvail = gridAvail
 						} else {
 							last.Hour = i
-							last.TimeHour = timeHr
+							last.TimeHour = cdatehour
 							last.AvgWindSpeed = 0.0
 							last.PowerKw = 0.0
 							last.EnergyKwh = 0.0
