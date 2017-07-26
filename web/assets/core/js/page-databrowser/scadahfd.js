@@ -143,7 +143,8 @@ dbsh.InitScadaHFDGrid= function() {
 
     var misc = {
         "tipe": "scadahfd",
-        "needtotalturbine": true
+        "needtotalturbine": true,
+        "period": fa.period,
     }
     var param = {
         "Custom": {

@@ -12,11 +12,15 @@ dbc.InitCustomGrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
+    var misc = {
+        "period": fa.period,
+    }
 
     var param = {
         "Custom": {
             "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
-        }
+        },
+        "misc": misc
     };
 
     var filters = [{

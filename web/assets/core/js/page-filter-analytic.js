@@ -545,4 +545,10 @@ $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();
     fa.InitDefaultValue();
+    setTimeout(function(){
+        $(".multiselect-native-select").find(".btn-group").find(".multiselect-filter").find(".input-group").addClass("input-group-sm");
+        $(".multiselect-native-select").find(".btn-group").find(".multiselect-filter").find(".input-group").find(".input-group-addon").remove();
+        $(".multiselect-native-select").find(".btn-group").find(".multiselect-filter").find(".input-group").find(".input-group-btn").remove();
+    },1000);
+    
 });

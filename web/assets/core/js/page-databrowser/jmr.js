@@ -67,8 +67,12 @@ dbj.InitGridJMR = function() {
     var filter = {
         filters: filters
     }
+    var misc = {
+        "period": fa.period,
+    }
     var param = {
-        filter: filter
+        filter: filter,
+        "misc": misc,
     };
 
     $('#dataGridJMR').html("");
@@ -150,7 +154,10 @@ dbj.InitJMRDetail = function(e) {
         value: turbine
     }, ];
 
-    var param = {};
+    var misc = {
+        "period": fa.period,
+    }
+    var param = {"misc": misc};
 
     $("<div/>").appendTo(e.detailCell).kendoGrid({
         selectable: "multiple",

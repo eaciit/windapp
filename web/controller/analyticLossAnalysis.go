@@ -68,7 +68,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		ids = "$projectname"
 		breakdown = "Project"
 	}
-
+	// Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
+	// Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids,
 		"Production":       tk.M{"$sum": "$production"},
 		"MachineDownLoss":  tk.M{"$sum": "$machinedownloss"},
@@ -80,6 +81,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		"MachineDownHours": tk.M{"$sum": "$machinedownhours"},
 		"GridDownHours":    tk.M{"$sum": "$griddownhours"},
 		"OtherDownHours":   tk.M{"$sum": "$otherdowntimehours"},
+		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
+		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
 		"LossEnergy":       tk.M{"$sum": "$lostenergy"}}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -99,6 +102,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	// maxDate := data.Get("maxdate", time.Time{}).(time.Time)
+	// minDate := data.Get("mindate", time.Time{}).(time.Time).AddDate(0, 0, 1)
 	availability := getAvailabilityValue(tStart, tEnd, project, turbine, breakdown)
 
 	// for _, avail := range availability {
@@ -915,16 +920,17 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 	}
 
 	group := tk.M{
-		"power":           tk.M{"$sum": "$power"},
-		"machinedowntime": tk.M{"$sum": "$machinedowntime"},
-		"griddowntime":    tk.M{"$sum": "$griddowntime"},
+		"power":           tk.M{"$sum": "$powerkw"},
+		"machinedowntime": tk.M{"$sum": "$machinedownhours"},
+		"griddowntime":    tk.M{"$sum": "$griddownhours"},
+		"unknowndowntime": tk.M{"$sum": "$griddownhours"},
 		"oktime":          tk.M{"$sum": "$oktime"},
-		"powerlost":       tk.M{"$sum": "$powerlost"},
-		"totaltimestamp":  tk.M{"$sum": 1},
-		"available":       tk.M{"$sum": "$available"},
-		"minutes":         tk.M{"$sum": "$minutes"},
-		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
-		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
+		"powerlost":       tk.M{"$sum": "$lostenergy"},
+		"totaltimestamp":  tk.M{"$sum": "$totalrows"},
+		// "available":       tk.M{"$sum": "$available"},
+		// "minutes":         tk.M{"$sum": "$minutes"},
+		"maxdate": tk.M{"$max": "$dateinfo.dateid"},
+		"mindate": tk.M{"$min": "$dateinfo.dateid"},
 	}
 
 	if project != "" {
@@ -948,7 +954,7 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id1": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
 
@@ -999,8 +1005,8 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 			}
 		}
 
-		minDate := val.Get("mindate").(time.Time)
-		maxDate := val.Get("maxdate").(time.Time)
+		minDate := val.Get("mindate", time.Time{}).(time.Time)
+		maxDate := val.Get("maxdate", time.Time{}).(time.Time)
 
 		// if breakDown == "Date" {
 		// 	id1 := id.Get("id1").(time.Time)
@@ -1008,33 +1014,42 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 		// 	hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
 		// } else {
 
-		hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+		// hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 		// }
 
-		okTime := val.GetFloat64("oktime")
-		power := val.GetFloat64("power") / 1000.0
+		hourValue = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+		okTime := val.GetFloat64("oktime") / 3600
+		power := val.GetFloat64("power")
 		energy := power / 6
-		mDownTime := val.GetFloat64("machinedowntime") / 3600.0
-		gDownTime := val.GetFloat64("griddowntime") / 3600.0
+		mDownTime := val.GetFloat64("machinedowntime")
+		gDownTime := val.GetFloat64("griddowntime")
+		uDownTime := val.GetFloat64("unknowndowntime")
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 		minutes := val.GetFloat64("minutes") / 60
 
-		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+		// machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+
+		in := tk.M{}.Set("noofturbine", totalTurbine).Set("oktime", okTime).Set("energy", energy/1000).
+			Set("totalhour", hourValue).Set("totalcapacity", plfDivider).Set("counttimestamp", sumTimeStamp).
+			Set("machinedowntime", mDownTime).Set("griddowntime", gDownTime).Set("otherdowntime", uDownTime)
+
+		calc := helper.CalcAvailabilityAndPLF(in)
 
 		res := tk.M{
 			key: tk.M{
-				"oktime":          okTime,
+				"oktime":          okTime * 3600,
 				"power":           power,
 				"energy":          energy,
 				"machinedowntime": mDownTime,
 				"griddowntime":    gDownTime,
 				"count":           sumTimeStamp,
 				"minutes":         minutes,
-				"machineavail":    machineAvail,
-				"gridavail":       gridAvail,
-				"dataavail":       dataAvail,
-				"totalavail":      trueAvail,
-				"plf":             plf,
+				"machineavail":    calc.GetFloat64("machineavailability"),
+				"gridavail":       calc.GetFloat64("gridavailability"),
+				"dataavail":       calc.GetFloat64("dataavailability"),
+				"totalavail":      calc.GetFloat64("totalavailability"),
+				"plf":             calc.GetFloat64("plf"),
 			},
 		}
 		result = append(result, res)
