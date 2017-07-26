@@ -2427,6 +2427,17 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 	var pipes []tk.M
 	var fromDate time.Time
 
+	turbineName, e := helper.GetTurbineNameList(p.ProjectName)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for key, val := range turbineName {
+		if p.Turbine == val {
+			p.Turbine = key
+		}
+	}
+
 	fromDate = p.Date.AddDate(0, -12, 0)
 	pipes = append(pipes, tk.M{"$match": tk.M{"turbine": p.Turbine, "startdate": tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()}}})
 	if p.Type == "Hours" {
@@ -3310,6 +3321,17 @@ func (m *DashboardController) GetDownTimeTopDetailTable(k *knot.WebContext) inte
 	fromDate = p.Date.AddDate(0, -12, 0)
 
 	var filter []*dbox.Filter
+
+	turbineName, e := helper.GetTurbineNameList(p.ProjectName)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for key, val := range turbineName {
+		if p.Turbine == val {
+			p.Turbine = key
+		}
+	}
 
 	filter = append(filter, dbox.Eq("turbine", p.Turbine))
 	filter = append(filter, dbox.Gte("startdate", fromDate.UTC()))
