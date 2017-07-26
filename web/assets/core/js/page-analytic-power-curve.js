@@ -36,12 +36,12 @@ page.backToMain = function() {
     page.isMain(true);
     page.isDetail(false);
 }
-page.toDetail = function(selected) {
+page.toDetail = function(turbineid,turbinename) {
     var isValid = fa.LoadData();
     if (isValid) {
         page.isMain(false);
         page.isDetail(true);
-        Data.InitCurveDetail(selected);
+        Data.InitCurveDetail(turbineid,turbinename);
     }
 }
 page.populateTurbine = function() {
@@ -348,7 +348,7 @@ var Data = {
         var turbineList = [];
         var kolor = [];
         // var kolorDeg = [];
-        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
+        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'turbineid');
 
         var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
@@ -356,7 +356,7 @@ var Data = {
             var chk = $('input[id*=chk-][type=checkbox]:checked')[a].name;
             turbineList.push(chk);
             var even = _.find(dataTurbine, function(nm) {
-                return nm.name == chk
+                return nm.turbineid == chk
             });
             kolor.push(even.color);
             var indOf = 0;
@@ -385,6 +385,7 @@ var Data = {
             IsDownTime: page.showDownTime(),
             ViewSession: page.viewSession()
         };
+
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
             if (!app.isFine(res)) {
                 return;
@@ -509,17 +510,17 @@ var Data = {
             page.ShowHideAfterInitChart();
         });
     },
-    InitCurveDetail: function(selected) {
+    InitCurveDetail: function(turbineid,turbinename) {
         app.loading(true);
-        page.detailTitle(selected);
+        page.detailTitle(turbinename);
         page.detailStartDate(fa.dateStart.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateStart.getUTCFullYear());
         page.detailEndDate(fa.dateEnd.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateEnd.getUTCFullYear());
 
         var colorDetail = [];
 
-        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
+        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'turbineid');
         var colD = _.find(dtTurbines, function(num) {
-            return num.name == selected;
+            return num.turbineid == turbineid;
         }).color;
         if (colD != undefined) {
             colorDetail.push(colD);
@@ -529,7 +530,7 @@ var Data = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
-            turbine: [selected],
+            turbine: [turbineid],
             project: fa.project,
             Color: colorDetail
         };
@@ -659,8 +660,8 @@ var Data = {
             if(val.name != "Power Curve"){
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
-                '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.name + '\')" type="button">' + val.name + '</button>' +
+                '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + val.idxseries + '" hidden>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + '</button>' +
                 '</div>');
             }
         });
