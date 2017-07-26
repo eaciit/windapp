@@ -14,7 +14,8 @@ dbs.InitScadaGrid = function() {
     // }
     var misc = {
         "tipe": "scadaoem",
-        "needtotalturbine": true
+        "needtotalturbine": true,
+        "period": fa.period,
     }
     var param = {"misc": misc};
 

@@ -174,6 +174,7 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	p.Misc.Set("knot_data", k)
 	filter, _ := p.ParseFilter()
 	tipe := p.Misc.GetString("tipe")
 	needTotalTurbine := p.Misc["needtotalturbine"].(bool)
@@ -713,8 +714,8 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 		xFilter = append(filter, dbox.Gte("fast_windspeed_ms", 0))
 		xFilter = append(xFilter, dbox.Lte("fast_windspeed_ms", 25))
 	case "fast_activepower_kw":
-		xFilter = append(filter, dbox.Gte("fast_activepower_kw", 0))
-		xFilter = append(xFilter, dbox.Lte("fast_activepower_kw", 2500))
+		xFilter = append(filter, dbox.Ne("fast_activepower_kw", -999999.0))
+		xFilter = append(xFilter, dbox.Or(dbox.Eq("isnull", false), dbox.Eq("isnull", nil)))
 	default:
 		return 0
 	}
