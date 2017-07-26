@@ -65,7 +65,7 @@ sum.loadData = function () {
                 sum.currentDown(res.data[0].CurrentDown);
                 sum.twoDaysDown(res.data[0].TwoDaysDown);
 
-                var lastUpdate = new Date(res.data[0].LastUpdate);
+                var lastUpdate = res.data[0].LastUpdate;
 
                 // vm.dateAsOf(lastUpdate.addHours(-7));
                 sum.ProductionChart(res.data[0].Productions);
@@ -975,6 +975,20 @@ sum.initialize = function() {
         center: new google.maps.LatLng(23.334166, 75.037611) ,
         // zoom: (project == 'Fleet' ? 4 : 10),
         zoom: 5,
+        styles: [
+          {
+            "featureType": "administrative.country",
+            "elementType": "geometry",
+            "stylers": [
+              {
+                "color": "#ff2631"
+              },
+              {
+                "weight": 2
+              }
+            ]
+          }
+        ],
         mapTypeId: google.maps.MapTypeId.HYBRID,
         mapTypeControl: true,
         mapTypeControlOptions: {
