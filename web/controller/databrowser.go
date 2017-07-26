@@ -345,6 +345,7 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	p.Misc.Set("knot_data", k)
 	filter, _ := p.ParseFilter()
 
 	query := DB().Connection.NewQuery().From(new(JMR).TableName()).Skip(p.Skip).Take(p.Take)
@@ -401,7 +402,7 @@ func (m *DataBrowserController) GetJMRDetails(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
+	p.Misc.Set("knot_data", k)
 	filter, _ := p.ParseFilter()
 
 	query := DB().Connection.NewQuery().From(new(JMR).TableName())
@@ -491,6 +492,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	p.Misc.Set("knot_data", k)
 	filter, _ := p.ParseFilter()
 
 	istimestamp := false

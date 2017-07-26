@@ -8,7 +8,8 @@ dbm.InitMet = function() {
 
     var misc = {
         "tipe": "met",
-        "needtotalturbine": false
+        "needtotalturbine": false,
+        "period": fa.period,
     }
 
     var param = {"misc": misc}

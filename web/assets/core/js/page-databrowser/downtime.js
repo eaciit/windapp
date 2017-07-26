@@ -15,7 +15,8 @@ dbd.InitDEgrid = function() {
 
     var misc = {
         "tipe": "eventdown",
-        "needtotalturbine": true
+        "needtotalturbine": true,
+        "period": fa.period,
     }
 
     var param = {"misc": misc}
