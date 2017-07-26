@@ -1713,17 +1713,23 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		downCause.Set("griddown", "Grid Down")
 		downCause.Set("machinedown", "Machine Down")
 		downCause.Set("unknown", "Unknown")
+		sortedDown := []string{}
+		for key := range downCause {
+			sortedDown = append(sortedDown, key)
+		}
+		sort.Strings(sortedDown)
+
 		downDone := []string{}
 
 		projectList := map[string]int{}
 		tmpResultPowerLost := tk.M{}
 		tmpResultFreq := tk.M{}
 		tmpResultDuration := tk.M{}
-		for f, t := range downCause {
+		for _, val := range sortedDown {
 			pipes = []tk.M{}
 			loopMatch := match
-			field := tk.ToString(f)
-			title := tk.ToString(t)
+			field := val
+			title := downCause.GetString(val)
 
 			downDone = append(downDone, field)
 
@@ -1796,33 +1802,38 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 
 		ids := []string{}
 		hasil := tk.M{}
-		for key, res := range tmpResultDuration {
-			ids = strings.Split(key, "_")
-			hasil, _ = tk.ToM(res)
-			hasil.Set("_id", tk.M{
-				"id1": ids[0],
-				"id2": ids[1],
-			})
+		for _, val := range sortedDown {
+			keys := "detail." + val + "_" + downCause.GetString(val)
+			if tmpResultDuration.Has(keys) {
+				ids = strings.Split(keys, "_")
+				hasil, _ = tk.ToM(tmpResultDuration[keys])
+				hasil.Set("_id", tk.M{
+					"id1": ids[0],
+					"id2": ids[1],
+				})
 
-			resultDuration = append(resultDuration, hasil)
-		}
-		for key, res := range tmpResultFreq {
-			ids = strings.Split(key, "_")
-			hasil, _ = tk.ToM(res)
-			hasil.Set("_id", tk.M{
-				"id1": ids[0],
-				"id2": ids[1],
-			})
-			resultFreq = append(resultFreq, hasil)
-		}
-		for key, res := range tmpResultPowerLost {
-			ids = strings.Split(key, "_")
-			hasil, _ = tk.ToM(res)
-			hasil.Set("_id", tk.M{
-				"id1": ids[0],
-				"id2": ids[1],
-			})
-			resultPowerLost = append(resultPowerLost, hasil)
+				resultDuration = append(resultDuration, hasil)
+			}
+			if tmpResultFreq.Has(keys) {
+				ids = strings.Split(keys, "_")
+				hasil, _ = tk.ToM(tmpResultFreq[keys])
+				hasil.Set("_id", tk.M{
+					"id1": ids[0],
+					"id2": ids[1],
+				})
+
+				resultFreq = append(resultFreq, hasil)
+			}
+			if tmpResultPowerLost.Has(keys) {
+				ids = strings.Split(keys, "_")
+				hasil, _ = tk.ToM(tmpResultPowerLost[keys])
+				hasil.Set("_id", tk.M{
+					"id1": ids[0],
+					"id2": ids[1],
+				})
+
+				resultPowerLost = append(resultPowerLost, hasil)
+			}
 		}
 	}
 
@@ -1852,16 +1863,22 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 		downCause.Set("unknown", "Unknown")
 		// downCause.Set("weatherstop", "Weather Stop")
 
-		tmpResult := []tk.M{}
-		tmpResultFreq := []tk.M{}
-		tmpResultPower := []tk.M{}
+		sortedDown := []string{}
+		for key := range downCause {
+			sortedDown = append(sortedDown, key)
+		}
+		sort.Strings(sortedDown)
+
+		// tmpResult := []tk.M{}
+		// tmpResultFreq := []tk.M{}
+		// tmpResultPower := []tk.M{}
 		downDone := []string{}
 
-		for f, t := range downCause {
+		for _, val := range sortedDown {
 			pipes = []tk.M{}
 			loopMatch := match
-			field := tk.ToString(f)
-			title := tk.ToString(t)
+			field := val
+			title := downCause.GetString(val)
 
 			downDone = append(downDone, field)
 
@@ -1898,9 +1915,12 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			csr.Close()
 
 			for _, res := range resLoop {
-				tmpResult = append(tmpResult, res)
-				tmpResultFreq = append(tmpResultFreq, res)
-				tmpResultPower = append(tmpResultPower, res)
+				// tmpResult = append(tmpResult, res)
+				// tmpResultFreq = append(tmpResultFreq, res)
+				// tmpResultPower = append(tmpResultPower, res)
+				resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
+				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
+				resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
 			}
 		}
 
@@ -1947,15 +1967,15 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 		// 	}
 		// }
 
-		for _, res := range tmpResult {
-			resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
-		}
-		for _, res := range tmpResultFreq {
-			resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
-		}
-		for _, res := range tmpResultPower {
-			resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
-		}
+		// for _, res := range tmpResult {
+		// 	resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
+		// }
+		// for _, res := range tmpResultFreq {
+		// 	resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
+		// }
+		// for _, res := range tmpResultPower {
+		// 	resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
+		// }
 	}
 
 	return
