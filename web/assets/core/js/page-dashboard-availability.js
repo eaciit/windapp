@@ -1156,6 +1156,7 @@ avail.LossEnergyByType = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
+            projectSelected = $("#projectId").data("kendoDropDownList").value();
             avail.toDetailLossEnergyLevel2(e, "chart")
         }
     });
@@ -1942,7 +1943,11 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
         app.loading(false);
     });
 
-    avail.toDetailDTLETTable(param);
+    // avail.toDetailDTLETTable(param);
+    console.log(project);
+    if(project == 'Fleet'){
+        avail.toDetailDTLETTable(param);
+    }
 }
 
 avail.toDetailDTLELevel1 = function (e, source) {
@@ -2111,9 +2116,9 @@ avail.toDetailDTLELevel2 = function (e, source) {
 
         app.loading(false);
     });
-    // var tableRequest = avail.toDetailDTLETTable(param);
+    var tableRequest = avail.toDetailDTLETTable(param);
 
-    $.when(chartRequest).done(function(){
+    $.when(chartRequest,tableRequest).done(function(){
         setTimeout(function(){
             app.loading(false);
         },50);
@@ -2304,6 +2309,7 @@ avail.backToDownTimeChart = function () {
         if ($("#projectList").data("kendoDropDownList") != null) {
             $("#projectList").data("kendoDropDownList").value(projectSelected);
         }
+        $("#gridDTLostEnergyDetail").html("");
     } else {
         avail.LEFleetByDown(false);
         vm.isDashboard(true);
