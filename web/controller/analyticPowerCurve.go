@@ -429,6 +429,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
 
+	//tk.Printf("Start : #%v\n", tStart)
+	//tk.Printf("End : #%v\n", tEnd)
+
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
@@ -451,6 +454,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
 	}
+
+	//tk.Printf("%#v\n", match)
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 
@@ -516,6 +521,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
+
+	//tk.Printf("Sort Turbines : %#v\n", sortTurbines)
+
 	selArr := 0
 	dataSeries = append(dataSeries, pcData)
 
@@ -523,6 +531,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if p.Project != "" {
 		turbineName, _ = helper.GetTurbineNameList(p.Project)
 	}
+	//tk.Printf("Turbines : %#v\n", turbineName)
 	for _, turbineX := range sortTurbines {
 		selArr = 0
 		for _, monthX := range sortMonth {
@@ -538,9 +547,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			splitMonth = strings.Split(monthList.GetString(tk.ToString(monthX)), " ")
 			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
 
-			turbineX = turbineName[turbineX]
+			turbineXid := turbineName[turbineX]
 			monthData := tk.M{}
-			monthData.Set("name", turbineX)
+			monthData.Set("name", turbineXid)
+			monthData.Set("turbineid", turbineX)
 			monthData.Set("type", "scatterLine")
 			monthData.Set("style", "smooth")
 			monthData.Set("dashType", "solid")
