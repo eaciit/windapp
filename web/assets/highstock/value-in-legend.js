@@ -34,6 +34,12 @@
 
 
                 chart.legend.render();
+            }else{
+                 H.each(chart.legend.allItems, function (item) {
+                    item.legendItem.attr({
+                        text: '<span style="color:' + item.color + '"> ' + item.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+item.tooltipOptions.valueSuffix+'</n>'
+                    });
+                });
             }
         });
     });
