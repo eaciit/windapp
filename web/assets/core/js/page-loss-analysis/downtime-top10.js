@@ -145,7 +145,7 @@ dt.Downtime = function(){
                 project: fa.project,
             }
 
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getdowntimetab", param, function (res) {
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getdowntimetabduration", param, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
@@ -155,13 +155,40 @@ dt.Downtime = function(){
 
                     /*Downtime Tab*/
                     dt.GenChartDownAlarmComponent("downtime",res.data.duration,'chartDTDuration',SeriesDowntime,true,"Turbine", "Hours",false,-330,HDowntime,wAll,"N1");
+
+                    pg.isFirstDowntime(false);
+                    app.loading(false);
+                },300);
+            });
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getdowntimetabfreq", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                setTimeout(function(){
+                    var HDowntime = $('#filter-analytic').width() * 0.2
+                    var wAll = $('#filter-analytic').width() * 0.275
+
+                    /*Downtime Tab*/
                     dt.GenChartDownAlarmComponent("downtime",res.data.frequency,'chartDTFrequency',SeriesDowntime,true,"Turbine", "Times",false,-330,HDowntime,wAll,"N0");
+
+                    pg.isFirstDowntime(false);
+                    app.loading(false);
+                },300);
+            });
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getdowntimetabloss", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                setTimeout(function(){
+                    var HDowntime = $('#filter-analytic').width() * 0.2
+                    var wAll = $('#filter-analytic').width() * 0.275
+
+                    /*Downtime Tab*/
                     dt.GenChartDownAlarmComponent("downtime",res.data.loss,'chartTopTurbineLoss',SeriesDowntime,true,"Turbine","MWh",false,-330,HDowntime,wAll,"N1");
 
                     pg.isFirstDowntime(false);
                     app.loading(false);
                 },300);
-            
             });
             $('#availabledatestart').html(pg.availabledatestartalarm2());
             $('#availabledateend').html(pg.availabledateendalarm2());
