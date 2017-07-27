@@ -639,6 +639,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		}
 		match.Set("_id", tk.M{"$ne": ""})
 		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("reduceavailability", true)
 
 		if p.Project != "" {
 			match.Set("projectname", p.Project)
