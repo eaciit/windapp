@@ -23,6 +23,7 @@ avail.fleetMachAvailData = ko.observableArray([]);
 avail.fleetGridAvailData = ko.observableArray([]);
 avail.DTLostEnergyData = ko.observableArray([]);
 avail.LossCategoriesData = ko.observableArray([]);
+avail.LossCategoriesDataSeries = ko.observableArray([]);
 
 
 
@@ -85,8 +86,10 @@ avail.loadData = function () {
             if (!app.isFine(res)) {
                 return;
             }
-            avail.LossCategoriesData(res.data);
+
             if (project == "Fleet") {
+                avail.LossCategoriesData(res.data);
+                avail.LossCategoriesDataSeries(res.data.dataseries);
                 avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh', res.data.dataseries); /*"#fleetChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours', res.data.dataseries); /*"#fleetChartTopLossCatDuration"*/
                 avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times', res.data.dataseries); /*"#fleetChartTopLossCatFreq"*/
