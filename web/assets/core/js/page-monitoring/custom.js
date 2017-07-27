@@ -14,6 +14,10 @@ vm.breadcrumb([
 bpc.projectList = ko.observableArray([]);
 
 
+bpc.getData = function(){
+	
+}
+
 $(function() {
 
 	$('#savedViews').kendoDropDownList({

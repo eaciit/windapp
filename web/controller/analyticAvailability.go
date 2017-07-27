@@ -48,21 +48,22 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 
 	match := tk.M{}
 	match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
-	match.Set("available", 1)
-	match.Set("power", tk.M{"$ne": -999999})
+	// match.Set("available", 1)
+	// match.Set("power", tk.M{"$ne": -999999})
 
 	if len(turbine) > 0 {
 		match.Set("turbine", tk.M{"$in": turbine})
 	}
 
 	group := tk.M{
-		"power":           tk.M{"$sum": "$power"},
-		"machinedowntime": tk.M{"$sum": "$machinedowntime"},
-		"griddowntime":    tk.M{"$sum": "$griddowntime"},
+		"power":           tk.M{"$sum": "$powerkw"},
+		"machinedowntime": tk.M{"$sum": "$machinedownhours"},
+		"griddowntime":    tk.M{"$sum": "$griddownhours"},
+		"unknowndowntime": tk.M{"$sum": "$otherdowntimehours"},
 		"oktime":          tk.M{"$sum": "$oktime"},
-		"powerlost":       tk.M{"$sum": "$powerlost"},
+		"powerlost":       tk.M{"$sum": "$lostenergy"},
 		"totaltimestamp":  tk.M{"$sum": 1},
-		"available":       tk.M{"$sum": "$available"},
+		"available":       tk.M{"$sum": "$totalrows"},
 		"minutes":         tk.M{"$sum": "$minutes"},
 		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
 		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
@@ -89,7 +90,7 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id1": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
 
@@ -167,12 +168,21 @@ func (m *AnalyticAvailabilityController) GetData(k *knot.WebContext) interface{}
 			okTime := val.GetFloat64("oktime")
 			power := val.GetFloat64("power") / 1000.0
 			energy := power / 6
-			mDownTime := val.GetFloat64("machinedowntime") / 3600.0
-			gDownTime := val.GetFloat64("griddowntime") / 3600.0
+			mDownTime := val.GetFloat64("machinedowntime")
+			gDownTime := val.GetFloat64("griddowntime")
+			uDownTime := val.GetFloat64("unknowndowntime")
 			sumTimeStamp := val.GetFloat64("totaltimestamp")
-			minutes := val.GetFloat64("minutes") / 60
+			// minutes := val.GetFloat64("minutes") / 60
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+			hourValue = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+			// machineAvail, gridAvail, dataAvail, trueAvail, plf = helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+			in := tk.M{}.Set("noofturbine", totalTurbine).Set("oktime", okTime/3600).Set("energy", energy/1000).
+				Set("totalhour", hourValue).Set("totalcapacity", plfDivider).Set("counttimestamp", sumTimeStamp).
+				Set("machinedowntime", mDownTime).Set("griddowntime", gDownTime).Set("otherdowntime", uDownTime)
+			res := helper.CalcAvailabilityAndPLF(in)
+
+			machineAvail, gridAvail, dataAvail, trueAvail, plf = res.GetFloat64("machineavailability"), res.GetFloat64("gridavailability"), res.GetFloat64("dataavailability"), res.GetFloat64("totalavailability"), res.GetFloat64("plf")
 
 			prod = energy
 
