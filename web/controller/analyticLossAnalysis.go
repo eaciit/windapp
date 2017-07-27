@@ -895,7 +895,12 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
 
-		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		if topType == "frequency" {
+			match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		} else {
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		}
+
 		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$" + Id, "result": tk.M{"$sum": "$detail.duration"}}})
