@@ -915,9 +915,17 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 
 	arrmettowercond := []interface{}{}
 
+	config := lh.ReadConfig()
+	loc, err := time.LoadLocation(config["ReadTimeLoc"])
+	if err != nil {
+		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
+	}
+
 	for i, val := range results {
 		if val.Has("timestamputc") {
-			itime := val.Get("timestamputc", time.Time{}).(time.Time).UTC()
+			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
+			itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
+				strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
 			arrmettowercond = append(arrmettowercond, itime)
 			val.Set("timestamputc", itime)
 			results[i] = val
