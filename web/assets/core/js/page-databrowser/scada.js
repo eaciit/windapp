@@ -77,9 +77,9 @@ dbs.InitScadaGrid = function() {
 
                     $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                     $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
-                    $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
-                    $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
-                    $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
+                    $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MWh');
+                    $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
+                    $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n1') + ' m/s');
                     return res.data.Total;
                 }
             },
