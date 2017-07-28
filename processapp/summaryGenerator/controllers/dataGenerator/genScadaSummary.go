@@ -916,12 +916,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 							Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")).
 							Set("count", tk.M{}.Set("$sum", 1))),
 					}
-					csrAlarm, erx := ctx.NewQuery().
+					csrAlarm, _ := ctx.NewQuery().
 						Command("pipe", pipeAlarm).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
 
-					tk.Printfn("DEBUG-01 >> %v || \n %v || \n %v", pipeAlarm, erx, new(Alarm).TableName())
+					// tk.Printfn("DEBUG-01 >> %v || \n %v || \n %v", pipeAlarm, erx, new(Alarm).TableName())
 					alarms := []tk.M{}
 					_ = csrAlarm.Fetch(&alarms, 0, false)
 					csrAlarm.Close()
