@@ -1697,6 +1697,51 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 // 	return
 // }
 
+func getLossCategoriesFreq(matchSource, downCause tk.M, val string) (resLoop []tk.M) {
+	pipes := []tk.M{}
+	match := tk.M{}
+	for key, valMatch := range matchSource {
+		if key == "detail.startdate" {
+			key = "startdate"
+		}
+		match.Set(key, valMatch)
+	}
+
+	loopMatch := match
+	field := val
+	title := downCause.GetString(val)
+
+	loopMatch.Set(field, true)
+
+	pipes = append(pipes, tk.M{"$match": loopMatch})
+	pipes = append(pipes,
+		tk.M{
+			"$group": tk.M{
+				"_id":  tk.M{"id1": field, "id2": title, "project": "$projectname"},
+				"freq": tk.M{"$sum": 1}},
+		},
+	)
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(Alarm).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+
+	e = csr.Fetch(&resLoop, 0, false)
+	if e != nil {
+		return
+	}
+
+	csr.Close()
+
+	return
+
+}
+
 func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq, resultPowerLost, dataSeries []tk.M) {
 	var pipes []tk.M
 	var fromDate time.Time
@@ -1748,7 +1793,6 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 					"$group": tk.M{
 						"_id":       tk.M{"id1": "detail." + field, "id2": title, "project": "$projectname"},
 						"duration":  tk.M{"$sum": "$detail.duration"},
-						"freq":      tk.M{"$sum": 1},
 						"powerlost": tk.M{"$sum": "$detail.powerlost"}},
 				},
 			)
@@ -1768,6 +1812,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 			csr.Close()
 
 			keys := ""
+
 			for _, res := range resLoop {
 				resID, _ := tk.ToM(res["_id"])
 				projectList[resID.GetString("project")] = 1
@@ -1779,13 +1824,6 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 				} else {
 					tmpResultPowerLost[keys] = tk.M{resID.GetString("project"): res.GetFloat64("powerlost")}
 				}
-				if tmpResultFreq.Has(keys) {
-					currData, _ := tk.ToM(tmpResultFreq[keys])
-					currData.Set(resID.GetString("project"), res.GetInt("freq"))
-					tmpResultFreq[keys] = currData
-				} else {
-					tmpResultFreq[keys] = tk.M{resID.GetString("project"): res.GetInt("freq")}
-				}
 				if tmpResultDuration.Has(keys) {
 					currData, _ := tk.ToM(tmpResultDuration[keys])
 					currData.Set(resID.GetString("project"), res.GetFloat64("duration"))
@@ -1794,7 +1832,22 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 					tmpResultDuration[keys] = tk.M{resID.GetString("project"): res.GetFloat64("duration")}
 				}
 			}
+
+			resLoopFreq := getLossCategoriesFreq(match, downCause, val)
+			for _, res := range resLoopFreq {
+				resID, _ := tk.ToM(res["_id"])
+				projectList[resID.GetString("project")] = 1
+				keys = resID.GetString("id1") + "_" + resID.GetString("id2")
+				if tmpResultFreq.Has(keys) {
+					currData, _ := tk.ToM(tmpResultFreq[keys])
+					currData.Set(resID.GetString("project"), res.GetInt("freq"))
+					tmpResultFreq[keys] = currData
+				} else {
+					tmpResultFreq[keys] = tk.M{resID.GetString("project"): res.GetInt("freq")}
+				}
+			}
 		}
+
 		for key := range projectList {
 			dataSeries = append(dataSeries, tk.M{
 				"field": key,
@@ -1806,6 +1859,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		hasil := tk.M{}
 		for _, val := range sortedDown {
 			keys := "detail." + val + "_" + downCause.GetString(val)
+			keysFreq := val + "_" + downCause.GetString(val)
 			if tmpResultDuration.Has(keys) {
 				ids = strings.Split(keys, "_")
 				hasil, _ = tk.ToM(tmpResultDuration[keys])
@@ -1816,9 +1870,9 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 
 				resultDuration = append(resultDuration, hasil)
 			}
-			if tmpResultFreq.Has(keys) {
-				ids = strings.Split(keys, "_")
-				hasil, _ = tk.ToM(tmpResultFreq[keys])
+			if tmpResultFreq.Has(keysFreq) {
+				ids = strings.Split(keysFreq, "_")
+				hasil, _ = tk.ToM(tmpResultFreq[keysFreq])
 				hasil.Set("_id", tk.M{
 					"id1": ids[0],
 					"id2": ids[1],
@@ -1921,8 +1975,12 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 				// tmpResultFreq = append(tmpResultFreq, res)
 				// tmpResultPower = append(tmpResultPower, res)
 				resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
-				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
 				resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
+			}
+
+			resLoopFreq := getLossCategoriesFreq(match, downCause, val)
+			for _, res := range resLoopFreq {
+				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
 			}
 		}
 
