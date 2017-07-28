@@ -292,7 +292,7 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 
 func getLastAvailDate() *Availdatedata {
 	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
 	if e != nil {
 		return nil
 	}
@@ -332,7 +332,7 @@ func getLastAvailDate() *Availdatedata {
 
 func getLastAvailDateAll() toolkit.M {
 	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
 	if e != nil {
 		return nil
 	}
@@ -367,7 +367,7 @@ func getLastAvailDate_DRAFT() map[string]*Availdatedata {
 	result := map[string]*Availdatedata{}
 
 	latestDataPeriodsList := make([]LatestDataPeriod, 0)
-	query := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName())
+	query := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName())
 	csr, e := query.Cursor(nil)
 	if e != nil {
 		return nil
