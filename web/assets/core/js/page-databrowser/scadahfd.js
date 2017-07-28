@@ -189,6 +189,7 @@ dbsh.InitScadaHFDGrid= function() {
         var col = {
             field: val._id,
             title: val.label,
+            type: "number",
             width: 120,
             headerAttributes: {
                 style: "text-align:center"
@@ -196,7 +197,7 @@ dbsh.InitScadaHFDGrid= function() {
             attributes: {
                 style: "text-align:center"
             },
-            template: "#=kendo.toString("+val._id+", 'n2')#"
+            // template: "#=kendo.toString("+val._id+", 'n2')#"
         };
 
         columns.push(col);
