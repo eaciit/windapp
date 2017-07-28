@@ -214,6 +214,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+	r.SetSession("availdateall", getLastAvailDateAll())
 
 	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
@@ -291,7 +292,7 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 
 func getLastAvailDate() *Availdatedata {
 	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
 	if e != nil {
 		return nil
 	}
@@ -329,6 +330,30 @@ func getLastAvailDate() *Availdatedata {
 	return datePeriod
 }
 
+func getLastAvailDateAll() toolkit.M {
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	result := toolkit.M{}
+	for _, val := range latestDataPeriods {
+		if result.Has(val.ProjectName) {
+			currData, _ := toolkit.ToM(result[val.ProjectName])
+			currData.Set(val.Type, val.Data)
+			result.Set(val.ProjectName, currData)
+		} else {
+			result.Set(val.ProjectName, toolkit.M{val.Type: val.Data})
+		}
+	}
+
+	return result
+}
+
 func getLastAvailDate_DRAFT() map[string]*Availdatedata {
 	//contoh akses data
 	// lastDateData = datePeriod["All"].ScadaData[1].UTC()
@@ -342,7 +367,7 @@ func getLastAvailDate_DRAFT() map[string]*Availdatedata {
 	result := map[string]*Availdatedata{}
 
 	latestDataPeriodsList := make([]LatestDataPeriod, 0)
-	query := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName())
+	query := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName())
 	csr, e := query.Cursor(nil)
 	if e != nil {
 		return nil

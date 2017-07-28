@@ -67,6 +67,8 @@ dbs.InitScadaGrid = function() {
                     app.loading(false);
                     dbr.oemvis(false);
                     app.isFine(res);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     
                     return res.data.Data
                 },

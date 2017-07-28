@@ -161,6 +161,7 @@ var Data = {
     },
     InitLinePowerCurve: function() {
         var isValid = fa.LoadData();
+        page.getSelectedFilter();
         if(isValid) {
             page.deviationVal($("#deviationValue").val());
 

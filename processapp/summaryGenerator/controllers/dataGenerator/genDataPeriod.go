@@ -27,7 +27,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 	// reset data
 	// #faisal
 	// remove this function
-	d.BaseController.Ctx.DeleteMany(NewLatestDataPeriod(), dbox.Ne("projectname", ""))
+	// d.BaseController.Ctx.DeleteMany(NewLatestDataPeriod(), dbox.Ne("projectname", ""))
 
 	projects, _ := helper.GetProjectList()
 
@@ -39,137 +39,245 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		jmrResults := make([]time.Time, 2)
 		metResults := make([]time.Time, 2)
 		durationResults := make([]time.Time, 2)
-		scadaAnomalyresults := make([]time.Time, 2)
-		alarmOverlappingresults := make([]time.Time, 2)
-		alarmScadaAnomalyresults := make([]time.Time, 2)
 		scadaHFDResult := make([]time.Time, 2)
 		warningResult := make([]time.Time, 2)
+		eventDownResult := make([]time.Time, 2)
+		eventRawResult := make([]time.Time, 2)
+		eventDownHFDResult := make([]time.Time, 2)
 		scadaOEMResult := make([]time.Time, 2)
+		// scadaAnomalyresults := make([]time.Time, 2)
+		// alarmOverlappingresults := make([]time.Time, 2)
+		// alarmScadaAnomalyresults := make([]time.Time, 2)
 
 		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 		dgrResults[0], dgrResults[1], e = getDataDateAvailable(conn, new(DGRModel).TableName(), "dateinfo.dateid", dbox.Eq("site", projectName))
 		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
-		alarmOverlappingresults[0], alarmOverlappingresults[1], e = getDataDateAvailable(conn, new(AlarmOverlapping).TableName(), "startdate", dbox.Eq("farm", projectName))
-		alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = getDataDateAvailable(conn, new(AlarmScadaAnomaly).TableName(), "startdate", dbox.Eq("farm", projectName))
-		jmrResults[0], jmrResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "dateinfo.dateid", dbox.Eq("projectname", projectName))
+		jmrResults[0], jmrResults[1], e = getDataDateAvailable(conn, new(JMR).TableName(), "dateinfo.dateid", nil)
 		metResults[0], metResults[1], e = getDataDateAvailable(conn, new(MetTower).TableName(), "timestamp", nil)
 		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
-		scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
 		scadaHFDResult[0], scadaHFDResult[1], e = getDataDateAvailable(conn, new(ScadaDataHFD).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 		warningResult[0], warningResult[1], e = getDataDateAvailable(conn, new(EventAlarm).TableName(), "timestart", dbox.Eq("projectname", projectName))
+		eventDownResult[0], eventDownResult[1], e = getDataDateAvailable(conn, new(EventDown).TableName(), "timestart", dbox.Eq("projectname", projectName))
+		eventRawResult[0], eventRawResult[1], e = getDataDateAvailable(conn, new(EventRaw).TableName(), "timestamp", dbox.Eq("projectname", projectName))
+		eventDownHFDResult[0], eventDownHFDResult[1], e = getDataDateAvailable(conn, new(EventDownHFD).TableName(), "timestart", dbox.Eq("projectname", projectName))
 		scadaOEMResult[0], scadaOEMResult[1], e = getDataDateAvailable(conn, new(ScadaDataOEM).TableName(), "timestamp", dbox.Eq("projectname", projectName))
+		// alarmOverlappingresults[0], alarmOverlappingresults[1], e = getDataDateAvailable(conn, new(AlarmOverlapping).TableName(), "startdate", dbox.Eq("farm", projectName))
+		// alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = getDataDateAvailable(conn, new(AlarmScadaAnomaly).TableName(), "startdate", dbox.Eq("farm", projectName))
+		// scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
 
 		availdatedata := struct {
-			ScadaData         []time.Time
-			DGRData           []time.Time
-			Alarm             []time.Time
-			JMR               []time.Time
-			MET               []time.Time
-			Duration          []time.Time
-			ScadaAnomaly      []time.Time
-			AlarmOverlapping  []time.Time
-			AlarmScadaAnomaly []time.Time
-			ScadaDataHFD      []time.Time
-			Warning           []time.Time
-			ScadaDataOEM      []time.Time
+			ScadaData    []time.Time
+			DGRData      []time.Time
+			Alarm        []time.Time
+			JMR          []time.Time
+			MET          []time.Time
+			Duration     []time.Time
+			ScadaDataHFD []time.Time
+			Warning      []time.Time
+			ScadaDataOEM []time.Time
+			EventDown    []time.Time
+			EventRaw     []time.Time
+			EventDownHFD []time.Time
+			// ScadaAnomaly      []time.Time
+			// AlarmOverlapping  []time.Time
+			// AlarmScadaAnomaly []time.Time
 		}{
-			ScadaData:         scadaResults,
-			DGRData:           dgrResults,
-			Alarm:             alarmResults,
-			JMR:               jmrResults,
-			MET:               metResults,
-			Duration:          durationResults,
-			ScadaAnomaly:      scadaAnomalyresults,
-			AlarmOverlapping:  alarmOverlappingresults,
-			AlarmScadaAnomaly: alarmScadaAnomalyresults,
-			ScadaDataHFD:      scadaHFDResult,
-			Warning:           warningResult,
-			ScadaDataOEM:      scadaOEMResult,
+			ScadaData:    scadaResults,
+			DGRData:      dgrResults,
+			Alarm:        alarmResults,
+			JMR:          jmrResults,
+			MET:          metResults,
+			Duration:     durationResults,
+			ScadaDataHFD: scadaHFDResult,
+			Warning:      warningResult,
+			ScadaDataOEM: scadaOEMResult,
+			EventDown:    eventDownResult,
+			EventRaw:     eventRawResult,
+			EventDownHFD: eventDownHFDResult,
+			// ScadaAnomaly:      scadaAnomalyresults,
+			// AlarmOverlapping:  alarmOverlappingresults,
+			// AlarmScadaAnomaly: alarmScadaAnomalyresults,
 		}
 
-		mdl := NewLatestDataPeriod()
+		mdl := new(LatestDataPeriod)
+
 		mdl.Type = "ScadaData"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaData
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "DGRData"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.DGRData
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "Alarm"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Alarm
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "JMR"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.JMR
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "MET"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.MET
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "Duration"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Duration
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
-		mdl.Type = "ScadaAnomaly"
-		mdl.ProjectName = projectName
-		mdl.Data = availdatedata.ScadaAnomaly
-
-		d.BaseController.Ctx.Insert(mdl)
-
-		mdl = NewLatestDataPeriod()
-		mdl.Type = "AlarmOverlapping"
-		mdl.ProjectName = projectName
-		mdl.Data = availdatedata.AlarmOverlapping
-
-		d.BaseController.Ctx.Insert(mdl)
-
-		mdl = NewLatestDataPeriod()
-		mdl.Type = "AlarmScadaAnomaly"
-		mdl.ProjectName = projectName
-		mdl.Data = availdatedata.AlarmScadaAnomaly
-
-		d.BaseController.Ctx.Insert(mdl)
-
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "ScadaDataHFD"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaDataHFD
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "Warning"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Warning
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
 
-		mdl = NewLatestDataPeriod()
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "ScadaDataOEM"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaDataOEM
+		mdl = mdl.New()
 
-		d.BaseController.Ctx.Insert(mdl)
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "EventDown"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.EventDown
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "EventRaw"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.EventRaw
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "EventDownHFD"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.EventDownHFD
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		// mdl = new(LatestDataPeriod)
+		// mdl.Type = "ScadaAnomaly"
+		// mdl.ProjectName = projectName
+		// mdl.Data = availdatedata.ScadaAnomaly
+		// mdl = mdl.New()
+
+		// d.BaseController.Ctx.Save(mdl)
+
+		// mdl = new(LatestDataPeriod)
+		// mdl.Type = "AlarmOverlapping"
+		// mdl.ProjectName = projectName
+		// mdl.Data = availdatedata.AlarmOverlapping
+		// mdl = mdl.New()
+
+		// d.BaseController.Ctx.Save(mdl)
+
+		// mdl = new(LatestDataPeriod)
+		// mdl.Type = "AlarmScadaAnomaly"
+		// mdl.ProjectName = projectName
+		// mdl.Data = availdatedata.AlarmScadaAnomaly
+		// mdl = mdl.New()
+
+		// d.BaseController.Ctx.Save(mdl)
+	}
+
+}
+
+func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
+	d.BaseController = base
+	conn, e := PrepareConnection()
+	if e != nil {
+		toolkit.Println("Scada Summary : " + e.Error())
+		os.Exit(0)
+	}
+
+	projects, _ := helper.GetProjectList()
+
+	for _, proj := range projects {
+		projectName := proj.Value
+		scadaResults := make([]time.Time, 2)
+		alarmResults := make([]time.Time, 2)
+		durationResults := make([]time.Time, 2)
+
+		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
+		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
+		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
+
+		availdatedata := struct {
+			ScadaData []time.Time
+			Alarm     []time.Time
+			Duration  []time.Time
+		}{
+			ScadaData: scadaResults,
+			Alarm:     alarmResults,
+			Duration:  durationResults,
+		}
+
+		mdl := new(LatestDataPeriod)
+
+		mdl.Type = "ScadaData"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.ScadaData
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "Alarm"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.Alarm
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "Duration"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.Duration
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
 	}
 
 }

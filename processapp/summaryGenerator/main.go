@@ -48,7 +48,7 @@ func main() {
 		tk.Println("step 3")
 		new(GenAlarmSummary).Generate(base) // step 3
 		tk.Println("step 4")
-		new(GenDataPeriod).Generate(base) // step 4
+		new(GenDataPeriod).GenerateMinify(base) // step 4
 		tk.Println("step 5")
 		new(GenScadaLast24).Generate(base) // step 5
 		// tk.Println("step 6")

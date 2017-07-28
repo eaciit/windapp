@@ -189,7 +189,7 @@ dbsh.InitScadaHFDGrid= function() {
         var col = {
             field: val._id,
             title: val.label,
-            // type: "number",
+            type: "number",
             width: 120,
             headerAttributes: {
                 style: "text-align:center"
@@ -197,8 +197,7 @@ dbsh.InitScadaHFDGrid= function() {
             attributes: {
                 style: "text-align:center"
             },
-            filterable: false,
-            template: "#=kendo.toString("+val._id+", 'n2')#"
+            // template: "#=kendo.toString("+val._id+", 'n2')#"
         };
 
         columns.push(col);
@@ -228,6 +227,8 @@ dbsh.InitScadaHFDGrid= function() {
                 data: function(res) {
                     app.loading(false);
                     dbr.hfdvis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {
