@@ -1751,6 +1751,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		fromDate = p.Date.AddDate(0, -12, 0)
 
 		match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+		match.Set("reduceavailability", true)
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
@@ -1905,6 +1906,7 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 		fromDate = p.Date.AddDate(0, -12, 0)
 
 		match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+		match.Set("reduceavailability", true)
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
