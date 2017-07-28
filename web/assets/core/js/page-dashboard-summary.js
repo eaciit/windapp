@@ -931,7 +931,8 @@ sum.ProdCurLast = function (id,dataSource) {
 sum.setMarkers = function(map, turbineInfos,project) {
     turbineInfos.forEach(function (obj, idx) {
         
-        var imgUrl ="../res/img/turbine-"+obj.status+".png";
+        var imgUrl ="../res/img/turb-"+obj.status+".png";
+
 
         var marker = new google.maps.Marker({
             position: new google.maps.LatLng(obj.coords[0], obj.coords[1]),
@@ -939,7 +940,7 @@ sum.setMarkers = function(map, turbineInfos,project) {
             title: obj.name,
             icon: {
                 url: imgUrl, // url
-                scaledSize: new google.maps.Size(70, 50), // scaled size
+                scaledSize: new google.maps.Size(20, 20), // scaled size
             }
         });
 
