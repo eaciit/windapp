@@ -68,6 +68,8 @@ dbe.InitEventGrid = function() {
                 data: function(res) {
                     app.loading(false);
                     dbr.eventrawvis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {

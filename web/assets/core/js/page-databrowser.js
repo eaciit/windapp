@@ -48,7 +48,8 @@ dbr.filterJMR = ko.observableArray([]);
 var turbineval = [];
 var availDateList = {};
 var availDateAll;
-
+dbr.LastFilter;
+dbr.LastSort;
 dbr.selectedColumn = ko.observableArray([]);
 dbr.unselectedColumn = ko.observableArray([]);
 dbr.ColumnList = ko.observableArray([]);
@@ -410,28 +411,9 @@ dbr.ScadaException = function() {
     if(!dbr.isScadaExceptionTimeDurationLoaded()) {
         dbr.isScadaExceptionTimeDurationLoaded(true);
         dbt.InitGridExceptionTimeDuration();
-        app.ajaxPost(viewModel.appName + "/databrowser/getdurationavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //Duration Data
-            if (res.data.Duration.length == 0) {
-                res.data.Duration = [];
-            } else {
-                if (res.data.Duration.length > 0) {
-                    var minDatetemp = new Date(res.data.Duration[0]);
-                    var maxDatetemp = new Date(res.data.Duration[1]);
-                    availDateList.availabledatestartduration = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendduration = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartduration);
-                    $('#availabledateend').html(availDateList.availabledateendduration);
-                }
-            }
-        });
+        dbr.setAvailableDate();
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartduration);
-        $('#availabledateend').html(availDateList.availabledateendduration);
+        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -442,28 +424,9 @@ dbr.ScadaAnomalies = function() {
     if(!dbr.isScadaAnomaliesLoaded()) {
         dbr.isScadaAnomaliesLoaded(true);
         dbsa.InitGridAnomalies();
-        app.ajaxPost(viewModel.appName + "/databrowser/getscadaanomalyavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //Scada Anomaly Data
-            if (res.data.ScadaAnomaly.length == 0) {
-                res.data.ScadaAnomaly = [];
-            } else {
-                if (res.data.ScadaAnomaly.length > 0) {
-                    var minDatetemp = new Date(res.data.ScadaAnomaly[0]);
-                    var maxDatetemp = new Date(res.data.ScadaAnomaly[1]);
-                    availDateList.availabledatestartscadaanomaly = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendscadaanomaly = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartscadaanomaly);
-                    $('#availabledateend').html(availDateList.availabledateendscadaanomaly);
-                }
-            }
-        });
+        dbr.setAvailableDate();
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartscadaanomaly);
-        $('#availabledateend').html(availDateList.availabledateendscadaanomaly);
+        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -474,29 +437,9 @@ dbr.AlarmOverlapping = function() {
     if(!dbr.isAlarmOverlappingLoaded()) {
         dbr.isAlarmOverlappingLoaded(true);
         dbao.InitGridAlarmOverlapping();
-        app.ajaxPost(viewModel.appName + "/databrowser/getalarmoverlappingavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //AlarmOverlapping Data
-            if (res.data.AlarmOverlapping.length == 0) {
-                res.data.AlarmOverlapping = [];
-            } else {
-                if (res.data.AlarmOverlapping.length > 0) {
-                    var minDatetemp = new Date(res.data.AlarmOverlapping[0]);
-                    var maxDatetemp = new Date(res.data.AlarmOverlapping[1]);
-
-                    availDateList.availabledatestartalarmoverlapping = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendalarmoverlapping = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartalarmoverlapping);
-                    $('#availabledateend').html(availDateList.availabledateendalarmoverlapping);
-                }
-            }
-        });
+        dbr.setAvailableDate();
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartalarmoverlapping);
-        $('#availabledateend').html(availDateList.availabledateendalarmoverlapping);
+        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -507,28 +450,9 @@ dbr.AlarmAnomalies = function() {
     if(!dbr.isAlarmAnomaliesLoaded()) {
         dbr.isAlarmAnomaliesLoaded(true);
         dbaa.InitGridAlarmAnomalies();
-        app.ajaxPost(viewModel.appName + "/databrowser/getalarmscadaanomalyavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //AlarmScadaAnomaly Data
-            if (res.data.AlarmScadaAnomaly.length == 0) {
-                res.data.AlarmScadaAnomaly = [];
-            } else {
-                if (res.data.AlarmScadaAnomaly.length > 0) {
-                    var minDatetemp = new Date(res.data.AlarmScadaAnomaly[0]);
-                    var maxDatetemp = new Date(res.data.AlarmScadaAnomaly[1]);
-                    availDateList.availabledatestartalarmscadaanomaly = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendalarmscadaanomaly = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartalarmscadaanomaly);
-                    $('#availabledateend').html(availDateList.availabledateendalarmscadaanomaly);
-                }
-            }
-        });
+        dbr.setAvailableDate();
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartalarmscadaanomaly);
-        $('#availabledateend').html(availDateList.availabledateendalarmscadaanomaly);
+        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -638,27 +562,27 @@ function DataBrowserExporttoExcel(functionName) {
     dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
     dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 
-    // var turbine = [];
-    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-    //     turbine = turbineval;
-    // } else {
-    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
-    // }
+    var misc = {
+        tipe: functionName,
+        "period": fa.period,
+    }
 
-    var Filter = {
-        DateStart: dateStart,
-        DateEnd: dateEnd,
-        Turbine: fa.turbine(),
+    var param = {
         Project: fa.project,
-        Misc: {tipe: functionName}
+        "Custom": {
+            "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
+        },
+        "misc": misc,
+        filter: dbr.LastFilter,
+        sort: dbr.LastSort,
     };
+
     var urlName = viewModel.appName + "databrowser/genexceldata";
     if(functionName === "genexcelcustom10minutes") {
         urlName = viewModel.appName + "databrowser/" + functionName;
-        Filter["Custom"] = {"ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())}
     }
 
-    app.ajaxPost(urlName, Filter, function(res) {
+    app.ajaxPost(urlName, param, function(res) {
         if (!app.isFine(res)) {
             app.loading(false);
             return;

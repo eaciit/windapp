@@ -67,6 +67,8 @@ dbdhfd.InitDEHFDgrid = function() {
                     app.loading(false);
                     dbr.downeventhfdvis(false);
                     app.isFine(ress);
+                    dbr.LastFilter = ress.data.LastFilter;
+                    dbr.LastSort = ress.data.LastSort;
                     return ress.data.Data
                 },
                 total: function(res) {

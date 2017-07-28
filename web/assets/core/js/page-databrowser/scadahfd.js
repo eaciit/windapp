@@ -226,6 +226,8 @@ dbsh.InitScadaHFDGrid= function() {
                 data: function(res) {
                     app.loading(false);
                     dbr.hfdvis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {
