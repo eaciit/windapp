@@ -1543,6 +1543,12 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
 }
 
+func (m *AnalyticLossAnalysisController) GetAvailDateAll(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	return helper.CreateResult(true, k.Session("availdateall", ""), "success")
+}
+
 func (m *AnalyticLossAnalysisController) GetAvailDate_DRAFT(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	type AvailDatePayload struct {

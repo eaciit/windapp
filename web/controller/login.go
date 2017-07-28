@@ -214,6 +214,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+	r.SetSession("availdateall", getLastAvailDateAll())
 
 	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
@@ -327,6 +328,30 @@ func getLastAvailDate() *Availdatedata {
 	}
 
 	return datePeriod
+}
+
+func getLastAvailDateAll() toolkit.M {
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	result := toolkit.M{}
+	for _, val := range latestDataPeriods {
+		if result.Has(val.ProjectName) {
+			currData, _ := toolkit.ToM(result[val.ProjectName])
+			currData.Set(val.Type, val.Data)
+			result.Set(val.ProjectName, currData)
+		} else {
+			result.Set(val.ProjectName, toolkit.M{val.Type: val.Data})
+		}
+	}
+
+	return result
 }
 
 func getLastAvailDate_DRAFT() map[string]*Availdatedata {
