@@ -1,8 +1,10 @@
 package models
 
 import (
-	"github.com/eaciit/orm"
+	"fmt"
 	"time"
+
+	"github.com/eaciit/orm"
 )
 
 type LatestDataPeriod struct {
@@ -13,12 +15,15 @@ type LatestDataPeriod struct {
 	Data          []time.Time
 }
 
-func (m *LatestDataPeriod) NewLatestDataPeriod() *LatestDataPeriod {
-	m.Id = m.ProjectName + "_" + m.Type
-
+func (m *LatestDataPeriod) New() *LatestDataPeriod {
+	m.Id = fmt.Sprintf("%s_%s", m.ProjectName, m.Type)
 	return m
 }
 
+func (m *LatestDataPeriod) RecordID() interface{} {
+	return fmt.Sprintf("%s_%s", m.ProjectName, m.Type)
+}
+
 func (m *LatestDataPeriod) TableName() string {
-	return "LatestDataPeriod"
+	return "_datacomeduration"
 }

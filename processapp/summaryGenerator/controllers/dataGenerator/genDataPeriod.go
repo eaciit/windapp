@@ -104,7 +104,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "ScadaData"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaData
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -112,7 +112,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "DGRData"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.DGRData
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -120,7 +120,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "Alarm"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Alarm
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -128,7 +128,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "JMR"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.JMR
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -136,7 +136,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "MET"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.MET
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -144,7 +144,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "Duration"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Duration
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -152,7 +152,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "ScadaDataHFD"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaDataHFD
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -160,7 +160,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "Warning"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Warning
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -168,7 +168,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "ScadaDataOEM"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.ScadaDataOEM
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -176,7 +176,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "EventDown"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.EventDown
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -184,7 +184,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "EventRaw"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.EventRaw
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -192,7 +192,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		mdl.Type = "EventDownHFD"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.EventDownHFD
-		mdl.NewLatestDataPeriod()
+		mdl = mdl.New()
 
 		d.BaseController.Ctx.Save(mdl)
 
@@ -200,7 +200,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		// mdl.Type = "ScadaAnomaly"
 		// mdl.ProjectName = projectName
 		// mdl.Data = availdatedata.ScadaAnomaly
-		// mdl.NewLatestDataPeriod()
+		// mdl = mdl.New()
 
 		// d.BaseController.Ctx.Save(mdl)
 
@@ -208,7 +208,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		// mdl.Type = "AlarmOverlapping"
 		// mdl.ProjectName = projectName
 		// mdl.Data = availdatedata.AlarmOverlapping
-		// mdl.NewLatestDataPeriod()
+		// mdl = mdl.New()
 
 		// d.BaseController.Ctx.Save(mdl)
 
@@ -216,9 +216,68 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		// mdl.Type = "AlarmScadaAnomaly"
 		// mdl.ProjectName = projectName
 		// mdl.Data = availdatedata.AlarmScadaAnomaly
-		// mdl.NewLatestDataPeriod()
+		// mdl = mdl.New()
 
 		// d.BaseController.Ctx.Save(mdl)
+	}
+
+}
+
+func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
+	d.BaseController = base
+	conn, e := PrepareConnection()
+	if e != nil {
+		toolkit.Println("Scada Summary : " + e.Error())
+		os.Exit(0)
+	}
+
+	projects, _ := helper.GetProjectList()
+
+	for _, proj := range projects {
+		projectName := proj.Value
+		scadaResults := make([]time.Time, 2)
+		alarmResults := make([]time.Time, 2)
+		durationResults := make([]time.Time, 2)
+
+		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
+		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
+		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
+
+		availdatedata := struct {
+			ScadaData []time.Time
+			Alarm     []time.Time
+			Duration  []time.Time
+		}{
+			ScadaData: scadaResults,
+			Alarm:     alarmResults,
+			Duration:  durationResults,
+		}
+
+		mdl := new(LatestDataPeriod)
+
+		mdl.Type = "ScadaData"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.ScadaData
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "Alarm"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.Alarm
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
+		mdl.Type = "Duration"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.Duration
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
 	}
 
 }
