@@ -25,5 +25,5 @@ func (m *LatestDataPeriod) RecordID() interface{} {
 }
 
 func (m *LatestDataPeriod) TableName() string {
-	return "_datacomeduration"
+	return "LatestDataPeriod"
 }
