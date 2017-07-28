@@ -48,12 +48,13 @@ type PayloadsDB struct {
 }
 
 type Payloads struct {
-	Skip   int
-	Take   int
-	Sort   []Sorting
-	Filter *FilterJS `json:"filter"`
-	Misc   toolkit.M `json:"misc"`
-	Custom toolkit.M `json:"custom"`
+	Project string
+	Skip    int
+	Take    int
+	Sort    []Sorting
+	Filter  *FilterJS `json:"filter"`
+	Misc    toolkit.M `json:"misc"`
+	Custom  toolkit.M `json:"custom"`
 }
 
 type Sorting struct {

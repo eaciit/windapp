@@ -54,7 +54,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
 		alarmOverlappingresults[0], alarmOverlappingresults[1], e = getDataDateAvailable(conn, new(AlarmOverlapping).TableName(), "startdate", dbox.Eq("farm", projectName))
 		alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = getDataDateAvailable(conn, new(AlarmScadaAnomaly).TableName(), "startdate", dbox.Eq("farm", projectName))
-		jmrResults[0], jmrResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "dateinfo.dateid", dbox.Eq("projectname", projectName))
+		jmrResults[0], jmrResults[1], e = getDataDateAvailable(conn, new(JMR).TableName(), "dateinfo.dateid", nil)
 		metResults[0], metResults[1], e = getDataDateAvailable(conn, new(MetTower).TableName(), "timestamp", nil)
 		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
 		scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))

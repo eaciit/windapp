@@ -322,6 +322,8 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		TotalTurbine     int
 		TotalEnergy      float64
 		TotalDuration    float64
+		LastFilter       *helper.FilterJS
+		LastSort         []helper.Sorting
 	}{
 		Data:             result,
 		Total:            ccount.Count(),
@@ -332,6 +334,8 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		TotalTurbine:     totalTurbine,
 		TotalEnergy:      totalActivePower / 6,
 		TotalDuration:    totalDuration,
+		LastFilter:       p.Filter,
+		LastSort:         p.Sort,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -383,11 +387,15 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 	defer ccount.Close()
 
 	data := struct {
-		Data  []JMR
-		Total int
+		Data       []JMR
+		Total      int
+		LastFilter *helper.FilterJS
+		LastSort   []helper.Sorting
 	}{
-		Data:  tmpResult,
-		Total: ccount.Count(),
+		Data:       tmpResult,
+		Total:      ccount.Count(),
+		LastFilter: p.Filter,
+		LastSort:   p.Sort,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -692,6 +700,8 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		AvgWindSpeed     float64
 		TotalTurbine     int
 		TotalEnergy      float64
+		LastFilter       *helper.FilterJS
+		LastSort         []helper.Sorting
 	}{
 		Data:             result,
 		Total:            ccount.Count(),
@@ -701,6 +711,8 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
 		TotalTurbine:     totalTurbine,
 		TotalEnergy:      totalEnergy,
+		LastFilter:       p.Filter,
+		LastSort:         p.Sort,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -756,23 +768,19 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	var filter []*dbox.Filter
-
-	p := new(helper.PayloadsDB)
+	p := new(helper.Payloads)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-	turbine := p.Turbine
+	p.Misc.Set("knot_data", k)
+	filter, _ := p.ParseFilter()
 	typeExcel := p.Misc.GetString("tipe")
 
 	var pathDownload string
 	header := []string{}
 	tablename := ""
-	timeField := "timestamp"
 	fieldList := []string{}
 	separator := "_"
 
@@ -784,24 +792,21 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 		header = []string{"TimeStamp", "ProjectName", "Turbine", "Fast_ActivePower_kW", "Fast_ActivePower_kW_StdDev", "Fast_ActivePower_kW_Min", "Fast_ActivePower_kW_Max", "Fast_ActivePower_kW_Count", "Fast_WindSpeed_ms", "Fast_WindSpeed_ms_StdDev", "Fast_WindSpeed_ms_Min", "Fast_WindSpeed_ms_Max", "Fast_WindSpeed_ms_Count", "Slow_NacellePos", "Slow_NacellePos_StdDev", "Slow_NacellePos_Min", "Slow_NacellePos_Max", "Slow_NacellePos_Count", "Slow_WindDirection", "Slow_WindDirection_StdDev", "Slow_WindDirection_Min", "Slow_WindDirection_Max", "Slow_WindDirection_Count", "Fast_CurrentL3", "Fast_CurrentL3_StdDev", "Fast_CurrentL3_Min", "Fast_CurrentL3_Max", "Fast_CurrentL3_Count", "Fast_CurrentL1", "Fast_CurrentL1_StdDev", "Fast_CurrentL1_Min", "Fast_CurrentL1_Max", "Fast_CurrentL1_Count", "Fast_ActivePowerSetpoint_kW", "Fast_ActivePowerSetpoint_kW_StdDev", "Fast_ActivePowerSetpoint_kW_Min", "Fast_ActivePowerSetpoint_kW_Max", "Fast_ActivePowerSetpoint_kW_Count", "Fast_CurrentL2", "Fast_CurrentL2_StdDev", "Fast_CurrentL2_Min", "Fast_CurrentL2_Max", "Fast_CurrentL2_Count", "Fast_DrTrVibValue", "Fast_DrTrVibValue_StdDev", "Fast_DrTrVibValue_Min", "Fast_DrTrVibValue_Max", "Fast_DrTrVibValue_Count", "Fast_GenSpeed_RPM", "Fast_GenSpeed_RPM_StdDev", "Fast_GenSpeed_RPM_Min", "Fast_GenSpeed_RPM_Max", "Fast_GenSpeed_RPM_Count", "Fast_PitchAccuV1", "Fast_PitchAccuV1_StdDev", "Fast_PitchAccuV1_Min", "Fast_PitchAccuV1_Max", "Fast_PitchAccuV1_Count", "Fast_PitchAngle", "Fast_PitchAngle_StdDev", "Fast_PitchAngle_Min", "Fast_PitchAngle_Max", "Fast_PitchAngle_Count", "Fast_PitchAngle3", "Fast_PitchAngle3_StdDev", "Fast_PitchAngle3_Min", "Fast_PitchAngle3_Max", "Fast_PitchAngle3_Count", "Fast_PitchAngle2", "Fast_PitchAngle2_StdDev", "Fast_PitchAngle2_Min", "Fast_PitchAngle2_Max", "Fast_PitchAngle2_Count", "Fast_PitchConvCurrent1", "Fast_PitchConvCurrent1_StdDev", "Fast_PitchConvCurrent1_Min", "Fast_PitchConvCurrent1_Max", "Fast_PitchConvCurrent1_Count", "Fast_PitchConvCurrent3", "Fast_PitchConvCurrent3_StdDev", "Fast_PitchConvCurrent3_Min", "Fast_PitchConvCurrent3_Max", "Fast_PitchConvCurrent3_Count", "Fast_PitchConvCurrent2", "Fast_PitchConvCurrent2_StdDev", "Fast_PitchConvCurrent2_Min", "Fast_PitchConvCurrent2_Max", "Fast_PitchConvCurrent2_Count", "Fast_PowerFactor", "Fast_PowerFactor_StdDev", "Fast_PowerFactor_Min", "Fast_PowerFactor_Max", "Fast_PowerFactor_Count", "Fast_ReactivePowerSetpointPPC_kVA", "Fast_ReactivePowerSetpointPPC_kVA_StdDev", "Fast_ReactivePowerSetpointPPC_kVA_Min", "Fast_ReactivePowerSetpointPPC_kVA_Max", "Fast_ReactivePowerSetpointPPC_kVA_Count", "Fast_ReactivePower_kVAr", "Fast_ReactivePower_kVAr_StdDev", "Fast_ReactivePower_kVAr_Min", "Fast_ReactivePower_kVAr_Max", "Fast_ReactivePower_kVAr_Count", "Fast_RotorSpeed_RPM", "Fast_RotorSpeed_RPM_StdDev", "Fast_RotorSpeed_RPM_Min", "Fast_RotorSpeed_RPM_Max", "Fast_RotorSpeed_RPM_Count", "Fast_VoltageL1", "Fast_VoltageL1_StdDev", "Fast_VoltageL1_Min", "Fast_VoltageL1_Max", "Fast_VoltageL1_Count", "Fast_VoltageL2", "Fast_VoltageL2_StdDev", "Fast_VoltageL2_Min", "Fast_VoltageL2_Max", "Fast_VoltageL2_Count", "Slow_CapableCapacitiveReactPwr_kVAr", "Slow_CapableCapacitiveReactPwr_kVAr_StdDev", "Slow_CapableCapacitiveReactPwr_kVAr_Min", "Slow_CapableCapacitiveReactPwr_kVAr_Max", "Slow_CapableCapacitiveReactPwr_kVAr_Count", "Slow_CapableInductiveReactPwr_kVAr", "Slow_CapableInductiveReactPwr_kVAr_StdDev", "Slow_CapableInductiveReactPwr_kVAr_Min", "Slow_CapableInductiveReactPwr_kVAr_Max", "Slow_CapableInductiveReactPwr_kVAr_Count", "Slow_DateTime_Sec", "Slow_DateTime_Sec_StdDev", "Slow_DateTime_Sec_Min", "Slow_DateTime_Sec_Max", "Slow_DateTime_Sec_Count", "Fast_PitchAngle1", "Fast_PitchAngle1_StdDev", "Fast_PitchAngle1_Min", "Fast_PitchAngle1_Max", "Fast_PitchAngle1_Count", "Fast_VoltageL3", "Fast_VoltageL3_StdDev", "Fast_VoltageL3_Min", "Fast_VoltageL3_Max", "Fast_VoltageL3_Count", "Slow_CapableCapacitivePwrFactor", "Slow_CapableCapacitivePwrFactor_StdDev", "Slow_CapableCapacitivePwrFactor_Min", "Slow_CapableCapacitivePwrFactor_Max", "Slow_CapableCapacitivePwrFactor_Count", "Fast_Total_Production_kWh", "Fast_Total_Production_kWh_StdDev", "Fast_Total_Production_kWh_Min", "Fast_Total_Production_kWh_Max", "Fast_Total_Production_kWh_Count", "Fast_Total_Prod_Day_kWh", "Fast_Total_Prod_Day_kWh_StdDev", "Fast_Total_Prod_Day_kWh_Min", "Fast_Total_Prod_Day_kWh_Max", "Fast_Total_Prod_Day_kWh_Count", "Fast_Total_Prod_Month_kWh", "Fast_Total_Prod_Month_kWh_StdDev", "Fast_Total_Prod_Month_kWh_Min", "Fast_Total_Prod_Month_kWh_Max", "Fast_Total_Prod_Month_kWh_Count", "Fast_ActivePowerOutPWCSell_kW", "Fast_ActivePowerOutPWCSell_kW_StdDev", "Fast_ActivePowerOutPWCSell_kW_Min", "Fast_ActivePowerOutPWCSell_kW_Max", "Fast_ActivePowerOutPWCSell_kW_Count", "Fast_Frequency_Hz", "Fast_Frequency_Hz_StdDev", "Fast_Frequency_Hz_Min", "Fast_Frequency_Hz_Max", "Fast_Frequency_Hz_Count", "Slow_TempG1L2", "Slow_TempG1L2_StdDev", "Slow_TempG1L2_Min", "Slow_TempG1L2_Max", "Slow_TempG1L2_Count", "Slow_TempG1L3", "Slow_TempG1L3_StdDev", "Slow_TempG1L3_Min", "Slow_TempG1L3_Max", "Slow_TempG1L3_Count", "Slow_TempGearBoxHSSDE", "Slow_TempGearBoxHSSDE_StdDev", "Slow_TempGearBoxHSSDE_Min", "Slow_TempGearBoxHSSDE_Max", "Slow_TempGearBoxHSSDE_Count", "Slow_TempGearBoxIMSNDE", "Slow_TempGearBoxIMSNDE_StdDev", "Slow_TempGearBoxIMSNDE_Min", "Slow_TempGearBoxIMSNDE_Max", "Slow_TempGearBoxIMSNDE_Count", "Slow_TempOutdoor", "Slow_TempOutdoor_StdDev", "Slow_TempOutdoor_Min", "Slow_TempOutdoor_Max", "Slow_TempOutdoor_Count", "Fast_PitchAccuV3", "Fast_PitchAccuV3_StdDev", "Fast_PitchAccuV3_Min", "Fast_PitchAccuV3_Max", "Fast_PitchAccuV3_Count", "Slow_TotalTurbineActiveHours", "Slow_TotalTurbineActiveHours_StdDev", "Slow_TotalTurbineActiveHours_Min", "Slow_TotalTurbineActiveHours_Max", "Slow_TotalTurbineActiveHours_Count", "Slow_TotalTurbineOKHours", "Slow_TotalTurbineOKHours_StdDev", "Slow_TotalTurbineOKHours_Min", "Slow_TotalTurbineOKHours_Max", "Slow_TotalTurbineOKHours_Count", "Slow_TotalTurbineTimeAllHours", "Slow_TotalTurbineTimeAllHours_StdDev", "Slow_TotalTurbineTimeAllHours_Min", "Slow_TotalTurbineTimeAllHours_Max", "Slow_TotalTurbineTimeAllHours_Count", "Slow_TempG1L1", "Slow_TempG1L1_StdDev", "Slow_TempG1L1_Min", "Slow_TempG1L1_Max", "Slow_TempG1L1_Count", "Slow_TempGearBoxOilSump", "Slow_TempGearBoxOilSump_StdDev", "Slow_TempGearBoxOilSump_Min", "Slow_TempGearBoxOilSump_Max", "Slow_TempGearBoxOilSump_Count", "Fast_PitchAccuV2", "Fast_PitchAccuV2_StdDev", "Fast_PitchAccuV2_Min", "Fast_PitchAccuV2_Max", "Fast_PitchAccuV2_Count", "Slow_TotalGridOkHours", "Slow_TotalGridOkHours_StdDev", "Slow_TotalGridOkHours_Min", "Slow_TotalGridOkHours_Max", "Slow_TotalGridOkHours_Count", "Slow_TotalActPowerOut_kWh", "Slow_TotalActPowerOut_kWh_StdDev", "Slow_TotalActPowerOut_kWh_Min", "Slow_TotalActPowerOut_kWh_Max", "Slow_TotalActPowerOut_kWh_Count", "Fast_YawService", "Fast_YawService_StdDev", "Fast_YawService_Min", "Fast_YawService_Max", "Fast_YawService_Count", "Fast_YawAngle", "Fast_YawAngle_StdDev", "Fast_YawAngle_Min", "Fast_YawAngle_Max", "Fast_YawAngle_Count", "Slow_CapableInductivePwrFactor", "Slow_CapableInductivePwrFactor_StdDev", "Slow_CapableInductivePwrFactor_Min", "Slow_CapableInductivePwrFactor_Max", "Slow_CapableInductivePwrFactor_Count", "Slow_TempGearBoxHSSNDE", "Slow_TempGearBoxHSSNDE_StdDev", "Slow_TempGearBoxHSSNDE_Min", "Slow_TempGearBoxHSSNDE_Max", "Slow_TempGearBoxHSSNDE_Count", "Slow_TempHubBearing", "Slow_TempHubBearing_StdDev", "Slow_TempHubBearing_Min", "Slow_TempHubBearing_Max", "Slow_TempHubBearing_Count", "Slow_TotalG1ActiveHours", "Slow_TotalG1ActiveHours_StdDev", "Slow_TotalG1ActiveHours_Min", "Slow_TotalG1ActiveHours_Max", "Slow_TotalG1ActiveHours_Count", "Slow_TotalActPowerOutG1_kWh", "Slow_TotalActPowerOutG1_kWh_StdDev", "Slow_TotalActPowerOutG1_kWh_Min", "Slow_TotalActPowerOutG1_kWh_Max", "Slow_TotalActPowerOutG1_kWh_Count", "Slow_TotalReactPowerInG1_kVArh", "Slow_TotalReactPowerInG1_kVArh_StdDev", "Slow_TotalReactPowerInG1_kVArh_Min", "Slow_TotalReactPowerInG1_kVArh_Max", "Slow_TotalReactPowerInG1_kVArh_Count", "Slow_NacelleDrill", "Slow_NacelleDrill_StdDev", "Slow_NacelleDrill_Min", "Slow_NacelleDrill_Max", "Slow_NacelleDrill_Count", "Slow_TempGearBoxIMSDE", "Slow_TempGearBoxIMSDE_StdDev", "Slow_TempGearBoxIMSDE_Min", "Slow_TempGearBoxIMSDE_Max", "Slow_TempGearBoxIMSDE_Count", "Fast_Total_Operating_hrs", "Fast_Total_Operating_hrs_StdDev", "Fast_Total_Operating_hrs_Min", "Fast_Total_Operating_hrs_Max", "Fast_Total_Operating_hrs_Count", "Slow_TempNacelle", "Slow_TempNacelle_StdDev", "Slow_TempNacelle_Min", "Slow_TempNacelle_Max", "Slow_TempNacelle_Count", "Fast_Total_Grid_OK_hrs", "Fast_Total_Grid_OK_hrs_StdDev", "Fast_Total_Grid_OK_hrs_Min", "Fast_Total_Grid_OK_hrs_Max", "Fast_Total_Grid_OK_hrs_Count", "Fast_Total_WTG_OK_hrs", "Fast_Total_WTG_OK_hrs_StdDev", "Fast_Total_WTG_OK_hrs_Min", "Fast_Total_WTG_OK_hrs_Max", "Fast_Total_WTG_OK_hrs_Count", "Slow_TempCabinetTopBox", "Slow_TempCabinetTopBox_StdDev", "Slow_TempCabinetTopBox_Min", "Slow_TempCabinetTopBox_Max", "Slow_TempCabinetTopBox_Count", "Slow_TempGeneratorBearingNDE", "Slow_TempGeneratorBearingNDE_StdDev", "Slow_TempGeneratorBearingNDE_Min", "Slow_TempGeneratorBearingNDE_Max", "Slow_TempGeneratorBearingNDE_Count", "Fast_Total_Access_hrs", "Fast_Total_Access_hrs_StdDev", "Fast_Total_Access_hrs_Min", "Fast_Total_Access_hrs_Max", "Fast_Total_Access_hrs_Count", "Slow_TempBottomPowerSection", "Slow_TempBottomPowerSection_StdDev", "Slow_TempBottomPowerSection_Min", "Slow_TempBottomPowerSection_Max", "Slow_TempBottomPowerSection_Count", "Slow_TempGeneratorBearingDE", "Slow_TempGeneratorBearingDE_StdDev", "Slow_TempGeneratorBearingDE_Min", "Slow_TempGeneratorBearingDE_Max", "Slow_TempGeneratorBearingDE_Count", "Slow_TotalReactPowerIn_kVArh", "Slow_TotalReactPowerIn_kVArh_StdDev", "Slow_TotalReactPowerIn_kVArh_Min", "Slow_TotalReactPowerIn_kVArh_Max", "Slow_TotalReactPowerIn_kVArh_Count", "Slow_TempBottomControlSection", "Slow_TempBottomControlSection_StdDev", "Slow_TempBottomControlSection_Min", "Slow_TempBottomControlSection_Max", "Slow_TempBottomControlSection_Count", "Slow_TempConv1", "Slow_TempConv1_StdDev", "Slow_TempConv1_Min", "Slow_TempConv1_Max", "Slow_TempConv1_Count", "Fast_ActivePowerRated_kW", "Fast_ActivePowerRated_kW_StdDev", "Fast_ActivePowerRated_kW_Min", "Fast_ActivePowerRated_kW_Max", "Fast_ActivePowerRated_kW_Count", "Fast_NodeIP", "Fast_NodeIP_StdDev", "Fast_NodeIP_Min", "Fast_NodeIP_Max", "Fast_NodeIP_Count", "Fast_PitchSpeed1", "Fast_PitchSpeed1_StdDev", "Fast_PitchSpeed1_Min", "Fast_PitchSpeed1_Max", "Fast_PitchSpeed1_Count", "Slow_CFCardSize", "Slow_CFCardSize_StdDev", "Slow_CFCardSize_Min", "Slow_CFCardSize_Max", "Slow_CFCardSize_Count", "Slow_CPU_Number", "Slow_CPU_Number_StdDev", "Slow_CPU_Number_Min", "Slow_CPU_Number_Max", "Slow_CPU_Number_Count", "Slow_CFCardSpaceLeft", "Slow_CFCardSpaceLeft_StdDev", "Slow_CFCardSpaceLeft_Min", "Slow_CFCardSpaceLeft_Max", "Slow_CFCardSpaceLeft_Count", "Slow_TempBottomCapSection", "Slow_TempBottomCapSection_StdDev", "Slow_TempBottomCapSection_Min", "Slow_TempBottomCapSection_Max", "Slow_TempBottomCapSection_Count", "Slow_RatedPower", "Slow_RatedPower_StdDev", "Slow_RatedPower_Min", "Slow_RatedPower_Max", "Slow_RatedPower_Count", "Slow_TempConv3", "Slow_TempConv3_StdDev", "Slow_TempConv3_Min", "Slow_TempConv3_Max", "Slow_TempConv3_Count", "Slow_TempConv2", "Slow_TempConv2_StdDev", "Slow_TempConv2_Min", "Slow_TempConv2_Max", "Slow_TempConv2_Count", "Slow_TotalActPowerIn_kWh", "Slow_TotalActPowerIn_kWh_StdDev", "Slow_TotalActPowerIn_kWh_Min", "Slow_TotalActPowerIn_kWh_Max", "Slow_TotalActPowerIn_kWh_Count", "Slow_TotalActPowerInG1_kWh", "Slow_TotalActPowerInG1_kWh_StdDev", "Slow_TotalActPowerInG1_kWh_Min", "Slow_TotalActPowerInG1_kWh_Max", "Slow_TotalActPowerInG1_kWh_Count", "Slow_TotalActPowerInG2_kWh", "Slow_TotalActPowerInG2_kWh_StdDev", "Slow_TotalActPowerInG2_kWh_Min", "Slow_TotalActPowerInG2_kWh_Max", "Slow_TotalActPowerInG2_kWh_Count", "Slow_TotalActPowerOutG2_kWh", "Slow_TotalActPowerOutG2_kWh_StdDev", "Slow_TotalActPowerOutG2_kWh_Min", "Slow_TotalActPowerOutG2_kWh_Max", "Slow_TotalActPowerOutG2_kWh_Count", "Slow_TotalG2ActiveHours", "Slow_TotalG2ActiveHours_StdDev", "Slow_TotalG2ActiveHours_Min", "Slow_TotalG2ActiveHours_Max", "Slow_TotalG2ActiveHours_Count", "Slow_TotalReactPowerInG2_kVArh", "Slow_TotalReactPowerInG2_kVArh_StdDev", "Slow_TotalReactPowerInG2_kVArh_Min", "Slow_TotalReactPowerInG2_kVArh_Max", "Slow_TotalReactPowerInG2_kVArh_Count", "Slow_TotalReactPowerOut_kVArh", "Slow_TotalReactPowerOut_kVArh_StdDev", "Slow_TotalReactPowerOut_kVArh_Min", "Slow_TotalReactPowerOut_kVArh_Max", "Slow_TotalReactPowerOut_kVArh_Count", "Slow_UTCoffset_int", "Slow_UTCoffset_int_StdDev", "Slow_UTCoffset_int_Min", "Slow_UTCoffset_int_Max", "Slow_UTCoffset_int_Count"}
 		tablename = new(ScadaDataHFD).TableName()
 	case "DowntimeEvent":
-		header = []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration"}
+		header = []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration", "Reduce Availability"}
 		tablename = new(EventDown).TableName()
-		timeField = "timestart"
 		separator = ""
 	case "EventRaw":
 		header = []string{"TimeStamp", "Project Name", "Turbine", "Event Type", "Alarm Description", "Turbine Status", "Brake Type", "Brake Program", "Alarm Id", "Alarm Toggle"}
 		tablename = new(EventRaw).TableName()
 		separator = ""
 	case "MetTower":
-		header = []string{"TimeStamp", "WindDirNo", "WindDirDesc", "WSCategoryNo", "WSCategoryDesc", "VHubWS90mAvg", "VHubWS90mMax", "VHubWS90mMin", "VHubWS90mStdDev", "VHubWS90mCount", "VRefWS88mAvg", "VRefWS88mMax", "VRefWS88mMin", "VRefWS88mStdDev", "VRefWS88mCount", "VTipWS42mAvg", "VTipWS42mMax", "VTipWS42mMin", "VTipWS42mStdDev", "VTipWS42mCount", "DHubWD88mAvg", "DHubWD88mMax", "DHubWD88mMin", "DHubWD88mStdDev", "DHubWD88mCount", "DRefWD86mAvg", "DRefWD86mMax", "DRefWD86mMin", "DRefWD86mStdDev", "DRefWD86mCount", "THubHHubHumid855mAvg", "THubHHubHumid855mMax", "THubHHubHumid855mMin", "THubHHubHumid855mStdDev", "THubHHubHumid855mCount", "TRefHRefHumid855mAvg", "TRefHRefHumid855mMax", "TRefHRefHumid855mMin", "TRefHRefHumid855mStdDev", "TRefHRefHumid855mCount", "THubHHubTemp855mAvg", "THubHHubTemp855mMax", "THubHHubTemp855mMin", "THubHHubTemp855mStdDev", "THubHHubTemp855mCount", "TRefHRefTemp855mAvg", "TRefHRefTemp855mMax", "TRefHRefTemp855mMin", "TRefHRefTemp855mStdDev", "TRefHRefTemp855mCount", "BaroAirPress855mAvg", "BaroAirPress855mMax", "BaroAirPress855mMin", "BaroAirPress855mStdDev", "BaroAirPress855mCount", "YawAngleVoltageAvg", "YawAngleVoltageMax", "YawAngleVoltageMin", "YawAngleVoltageStdDev", "YawAngleVoltageCount", "OtherSensorVoltageAI1Avg", "OtherSensorVoltageAI1Max", "OtherSensorVoltageAI1Min", "OtherSensorVoltageAI1StdDev", "OtherSensorVoltageAI1Count", "OtherSensorVoltageAI2Avg", "OtherSensorVoltageAI2Max", "OtherSensorVoltageAI2Min", "OtherSensorVoltageAI2StdDev", "OtherSensorVoltageAI2Count", "OtherSensorVoltageAI3Avg", "OtherSensorVoltageAI3Max", "OtherSensorVoltageAI3Min", "OtherSensorVoltageAI3StdDev", "OtherSensorVoltageAI3Count", "OtherSensorVoltageAI4Avg", "OtherSensorVoltageAI4Max", "OtherSensorVoltageAI4Min", "OtherSensorVoltageAI4StdDev", "OtherSensorVoltageAI4Count", "GenRPMCurrentAvg", "GenRPMCurrentMax", "GenRPMCurrentMin", "GenRPMCurrentStdDev", "GenRPMCurrentCount", "WS_SCSCurrentAvg", "WS_SCSCurrentMax", "WS_SCSCurrentMin", "WS_SCSCurrentStdDev", "WS_SCSCurrentCount", "RainStatusCount", "RainStatusSum", "OtherSensor2StatusIO1Avg", "OtherSensor2StatusIO1Max", "OtherSensor2StatusIO1Min", "OtherSensor2StatusIO1StdDev", "OtherSensor2StatusIO1Count", "OtherSensor2StatusIO2Avg", "OtherSensor2StatusIO2Max", "OtherSensor2StatusIO2Min", "OtherSensor2StatusIO2StdDev", "OtherSensor2StatusIO2Count", "OtherSensor2StatusIO3Avg", "OtherSensor2StatusIO3Max", "OtherSensor2StatusIO3Min", "OtherSensor2StatusIO3StdDev", "OtherSensor2StatusIO3Count", "OtherSensor2StatusIO4Avg", "OtherSensor2StatusIO4Max", "OtherSensor2StatusIO4Min", "OtherSensor2StatusIO4StdDev", "OtherSensor2StatusIO4Count", "OtherSensor2StatusIO5Avg", "OtherSensor2StatusIO5Max", "OtherSensor2StatusIO5Min", "OtherSensor2StatusIO5StdDev", "OtherSensor2StatusIO5Count", "A1Avg", "A1Max", "A1Min", "A1StdDev", "A1Count", "A2Avg", "A2Max", "A2Min", "A2StdDev", "A2Count", "A3Avg", "A3Max", "A3Min", "A3StdDev", "A3Count", "A4Avg", "A4Max", "A4Min", "A4StdDev", "A4Count", "A5Avg", "A5Max", "A5Min", "A5StdDev", "A5Count", "A6Avg", "A6Max", "A6Min", "A6StdDev", "A6Count", "A7Avg", "A7Max", "A7Min", "A7StdDev", "A7Count", "A8Avg", "A8Max", "A8Min", "A8StdDev", "A8Count", "A9Avg", "A9Max", "A9Min", "A9StdDev", "A9Count", "A10Avg", "A10Max", "A10Min", "A10StdDev", "A10Count", "AC1Avg", "AC1Max", "AC1Min", "AC1StdDev", "AC1Count", "AC2Avg", "AC2Max", "AC2Min", "AC2StdDev", "AC2Count", "C1Avg", "C1Max", "C1Min", "C1StdDev", "C1Count", "C2Avg", "C2Max", "C2Min", "C2StdDev", "C2Count", "C3Avg", "C3Max", "C3Min", "C3StdDev", "C3Count", "D1Avg", "D1Max", "D1Min", "D1StdDev", "M1_1Avg", "M1_1Max", "M1_1Min", "M1_1StdDev", "M1_1Count", "M1_2Avg", "M1_2Max", "M1_2Min", "M1_2StdDev", "M1_2Count", "M1_3Avg", "M1_3Max", "M1_3Min", "M1_3StdDev", "M1_3Count", "M1_4Avg", "M1_4Max", "M1_4Min", "M1_4StdDev", "M1_4Count", "M1_5Avg", "M1_5Max", "M1_5Min", "M1_5StdDev", "M1_5Count", "M2_1Avg", "M2_1Max", "M2_1Min", "M2_1StdDev", "M2_1Count", "M2_2Avg", "M2_2Max", "M2_2Min", "M2_2StdDev", "M2_2Count", "M2_3Avg", "M2_3Max", "M2_3Min", "M2_3StdDev", "M2_3Count", "M2_4Avg", "M2_4Max", "M2_4Min", "M2_4StdDev", "M2_4Count", "M2_5Avg", "M2_5Max", "M2_5Min", "M2_5StdDev", "M2_5Count", "M2_6Avg", "M2_6Max", "M2_6Min", "M2_6StdDev", "M2_6Count", "M2_7Avg", "M2_7Max", "M2_7Min", "M2_7StdDev", "M2_7Count", "M2_8Avg", "M2_8Max", "M2_8Min", "M2_8StdDev", "M2_8Count", "VAvg", "VMax", "VMin", "IAvg", "IMax", "IMin", "T", "Addr"}
+		header = []string{"TimeStamp", "WindDirNo", "VHubWS90mAvg", "VHubWS90mMax", "VHubWS90mMin", "VHubWS90mStdDev", "VHubWS90mCount", "VRefWS88mAvg", "VRefWS88mMax", "VRefWS88mMin", "VRefWS88mStdDev", "VRefWS88mCount", "VTipWS42mAvg", "VTipWS42mMax", "VTipWS42mMin", "VTipWS42mStdDev", "VTipWS42mCount", "DHubWD88mAvg", "DHubWD88mMax", "DHubWD88mMin", "DHubWD88mStdDev", "DHubWD88mCount", "DRefWD86mAvg", "DRefWD86mMax", "DRefWD86mMin", "DRefWD86mStdDev", "DRefWD86mCount", "THubHHubHumid855mAvg", "THubHHubHumid855mMax", "THubHHubHumid855mMin", "THubHHubHumid855mStdDev", "THubHHubHumid855mCount", "TRefHRefHumid855mAvg", "TRefHRefHumid855mMax", "TRefHRefHumid855mMin", "TRefHRefHumid855mStdDev", "TRefHRefHumid855mCount", "THubHHubTemp855mAvg", "THubHHubTemp855mMax", "THubHHubTemp855mMin", "THubHHubTemp855mStdDev", "THubHHubTemp855mCount", "TRefHRefTemp855mAvg", "TRefHRefTemp855mMax", "TRefHRefTemp855mMin", "TRefHRefTemp855mStdDev", "TRefHRefTemp855mCount", "BaroAirPress855mAvg", "BaroAirPress855mMax", "BaroAirPress855mMin", "BaroAirPress855mStdDev", "BaroAirPress855mCount", "YawAngleVoltageAvg", "YawAngleVoltageMax", "YawAngleVoltageMin", "YawAngleVoltageStdDev", "YawAngleVoltageCount", "OtherSensorVoltageAI1Avg", "OtherSensorVoltageAI1Max", "OtherSensorVoltageAI1Min", "OtherSensorVoltageAI1StdDev", "OtherSensorVoltageAI1Count", "OtherSensorVoltageAI2Avg", "OtherSensorVoltageAI2Max", "OtherSensorVoltageAI2Min", "OtherSensorVoltageAI2StdDev", "OtherSensorVoltageAI2Count", "OtherSensorVoltageAI3Avg", "OtherSensorVoltageAI3Max", "OtherSensorVoltageAI3Min", "OtherSensorVoltageAI3StdDev", "OtherSensorVoltageAI3Count", "OtherSensorVoltageAI4Avg", "OtherSensorVoltageAI4Max", "OtherSensorVoltageAI4Min", "OtherSensorVoltageAI4StdDev", "OtherSensorVoltageAI4Count", "GenRPMCurrentAvg", "GenRPMCurrentMax", "GenRPMCurrentMin", "GenRPMCurrentStdDev", "GenRPMCurrentCount", "WS_SCSCurrentAvg", "WS_SCSCurrentMax", "WS_SCSCurrentMin", "WS_SCSCurrentStdDev", "WS_SCSCurrentCount", "RainStatusCount", "RainStatusSum", "OtherSensor2StatusIO1Avg", "OtherSensor2StatusIO1Max", "OtherSensor2StatusIO1Min", "OtherSensor2StatusIO1StdDev", "OtherSensor2StatusIO1Count", "OtherSensor2StatusIO2Avg", "OtherSensor2StatusIO2Max", "OtherSensor2StatusIO2Min", "OtherSensor2StatusIO2StdDev", "OtherSensor2StatusIO2Count", "OtherSensor2StatusIO3Avg", "OtherSensor2StatusIO3Max", "OtherSensor2StatusIO3Min", "OtherSensor2StatusIO3StdDev", "OtherSensor2StatusIO3Count", "OtherSensor2StatusIO4Avg", "OtherSensor2StatusIO4Max", "OtherSensor2StatusIO4Min", "OtherSensor2StatusIO4StdDev", "OtherSensor2StatusIO4Count", "OtherSensor2StatusIO5Avg", "OtherSensor2StatusIO5Max", "OtherSensor2StatusIO5Min", "OtherSensor2StatusIO5StdDev", "OtherSensor2StatusIO5Count", "A1Avg", "A1Max", "A1Min", "A1StdDev", "A1Count", "A2Avg", "A2Max", "A2Min", "A2StdDev", "A2Count", "A3Avg", "A3Max", "A3Min", "A3StdDev", "A3Count", "A4Avg", "A4Max", "A4Min", "A4StdDev", "A4Count", "A5Avg", "A5Max", "A5Min", "A5StdDev", "A5Count", "A6Avg", "A6Max", "A6Min", "A6StdDev", "A6Count", "A7Avg", "A7Max", "A7Min", "A7StdDev", "A7Count", "A8Avg", "A8Max", "A8Min", "A8StdDev", "A8Count", "A9Avg", "A9Max", "A9Min", "A9StdDev", "A9Count", "A10Avg", "A10Max", "A10Min", "A10StdDev", "A10Count", "AC1Avg", "AC1Max", "AC1Min", "AC1StdDev", "AC1Count", "AC2Avg", "AC2Max", "AC2Min", "AC2StdDev", "AC2Count", "C1Avg", "C1Max", "C1Min", "C1StdDev", "C1Count", "C2Avg", "C2Max", "C2Min", "C2StdDev", "C2Count", "C3Avg", "C3Max", "C3Min", "C3StdDev", "C3Count", "D1Avg", "D1Max", "D1Min", "D1StdDev", "M1_1Avg", "M1_1Max", "M1_1Min", "M1_1StdDev", "M1_1Count", "M1_2Avg", "M1_2Max", "M1_2Min", "M1_2StdDev", "M1_2Count", "M1_3Avg", "M1_3Max", "M1_3Min", "M1_3StdDev", "M1_3Count", "M1_4Avg", "M1_4Max", "M1_4Min", "M1_4StdDev", "M1_4Count", "M1_5Avg", "M1_5Max", "M1_5Min", "M1_5StdDev", "M1_5Count", "M2_1Avg", "M2_1Max", "M2_1Min", "M2_1StdDev", "M2_1Count", "M2_2Avg", "M2_2Max", "M2_2Min", "M2_2StdDev", "M2_2Count", "M2_3Avg", "M2_3Max", "M2_3Min", "M2_3StdDev", "M2_3Count", "M2_4Avg", "M2_4Max", "M2_4Min", "M2_4StdDev", "M2_4Count", "M2_5Avg", "M2_5Max", "M2_5Min", "M2_5StdDev", "M2_5Count", "M2_6Avg", "M2_6Max", "M2_6Min", "M2_6StdDev", "M2_6Count", "M2_7Avg", "M2_7Max", "M2_7Min", "M2_7StdDev", "M2_7Count", "M2_8Avg", "M2_8Max", "M2_8Min", "M2_8StdDev", "M2_8Count", "VAvg", "VMax", "VMin", "IAvg", "IMax", "IMin", "T", "Addr", "WindDirDesc", "WSCategoryNo", "WSCategoryDesc"}
 		tablename = new(MetTower).TableName()
 		separator = ""
 		p.Project = ""
-		turbine = []interface{}{}
 	case "DowntimeEventHFD":
-		header = []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration"}
+		header = []string{"TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Turbine", "Alarm Description", "Duration"}
 		tablename = new(EventDownHFD).TableName()
-		timeField = "timestart"
 		separator = ""
 	}
 
@@ -816,17 +821,18 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 		tk.Println(err)
 	}
 
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte(timeField, tStart))
-	filter = append(filter, dbox.Lte(timeField, tEnd))
-	if len(turbine) != 0 {
-		filter = append(filter, dbox.In("turbine", turbine...))
-	}
-	if p.Project != "" {
-		filter = append(filter, dbox.Eq("projectname", p.Project))
-	}
-
 	query := DB().Connection.NewQuery().From(tablename).Where(dbox.And(filter...))
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(val.Field))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
 
 	csr, e := query.Cursor(nil)
 	if e != nil {
@@ -860,15 +866,14 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	p := new(helper.PayloadsDB)
+	p := new(helper.Payloads)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-	turbine := p.Turbine
+	p.Misc.Set("knot_data", k)
+	filter, _ := p.ParseFilter()
 
 	istimestamp := false
 	arrscadaoem := []string{"_id", "timestamputc"}
@@ -890,18 +895,25 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			fieldList = append(fieldList, _tkm.GetString("_id"))
 		}
 	}
-	var filter []*dbox.Filter
-	filter = append(filter, dbox.Gte("timestamp", tStart))
-	filter = append(filter, dbox.Lte("timestamp", tEnd))
-	if len(turbine) > 0 {
-		filter = append(filter, dbox.In("turbine", turbine...))
-	}
-	if p.Project != "" {
-		filter = append(filter, dbox.Eq("projectname", p.Project))
+
+	query := DB().Connection.NewQuery().
+		Select(arrscadaoem...).
+		From(new(ScadaDataOEM).TableName()).
+		Where(dbox.And(filter...))
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(val.Field))
+			}
+		}
+		query = query.Order(arrsort...)
 	}
 
-	csr, e := DB().Connection.NewQuery().Select(arrscadaoem...).
-		From(new(ScadaDataOEM).TableName()).Where(dbox.And(filter...)).Cursor(nil)
+	csr, e := query.Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1138,556 +1150,4 @@ func SecondsToHms(d float64) string {
 	res = hstring + ":" + mstring + ":" + sstring
 
 	return res
-}
-
-// Get date info each tab
-
-func (m *DataBrowserController) GetAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	Scadaresults := make([]time.Time, 0)
-	Alarmresults := make([]time.Time, 0)
-	JMRresults := make([]time.Time, 0)
-	METresults := make([]time.Time, 0)
-
-	// Scada Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Scadaresults = append(Scadaresults, val.TimeStamp.UTC())
-		}
-	}
-
-	// Alarm Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "startdate")
-		} else {
-			arrsort = append(arrsort, "-startdate")
-		}
-
-		query := DB().Connection.NewQuery().From(new(Alarm).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]Alarm, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Alarmresults = append(Alarmresults, val.StartDate.UTC())
-		}
-	}
-
-	// JMR Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "dateinfo.dateid")
-		} else {
-			arrsort = append(arrsort, "-dateinfo.dateid")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			JMRresults = append(JMRresults, val.DateInfo.DateId.UTC())
-		}
-	}
-
-	// MET Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(MetTower).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]MetTower, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			METresults = append(METresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		ScadaData []time.Time
-		Alarm     []time.Time
-		JMR       []time.Time
-		MET       []time.Time
-	}{
-		ScadaData: Scadaresults,
-		Alarm:     Alarmresults,
-		JMR:       JMRresults,
-		MET:       METresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetDowntimeEventvailDateHFD(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	DowntimeEventresults := make([]time.Time, 0)
-
-	// Downtime Event Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestart")
-		} else {
-			arrsort = append(arrsort, "-timestart")
-		}
-
-		query := DB().Connection.NewQuery().From(new(EventDownHFD).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]EventDown, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			DowntimeEventresults = append(DowntimeEventresults, val.TimeStart.UTC())
-		}
-	}
-
-	data := struct {
-		DowntimeEvent []time.Time
-	}{
-		DowntimeEvent: DowntimeEventresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetScadaAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	Scadaresults := make([]time.Time, 0)
-
-	// Scada Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Scadaresults = append(Scadaresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		ScadaData []time.Time
-	}{
-		ScadaData: Scadaresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetJMRAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	JMRresults := make([]time.Time, 0)
-
-	// JMR Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "dateinfo.dateid")
-		} else {
-			arrsort = append(arrsort, "-dateinfo.dateid")
-		}
-
-		query := DB().Connection.NewQuery().From(new(JMR).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaData, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			JMRresults = append(JMRresults, val.DateInfo.DateId.UTC())
-		}
-	}
-
-	data := struct {
-		JMR []time.Time
-	}{
-		JMR: JMRresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetMETAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	METresults := make([]time.Time, 0)
-
-	// MET Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(MetTower).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]MetTower, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			METresults = append(METresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		MET []time.Time
-	}{
-		MET: METresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetEventAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	EventDateresults := make([]time.Time, 0)
-
-	// AlarmScadaAnomaly Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(EventRaw).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]EventRaw, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			EventDateresults = append(EventDateresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		EventDate []time.Time
-	}{
-		EventDate: EventDateresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetCustomAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	Dateresults := make([]time.Time, 0)
-
-	// ScadaDataOEM
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		queryMetTower := DB().Connection.NewQuery().From(new(MetTower).TableName()).Skip(0).Take(1)
-		queryMetTower = queryMetTower.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		csrM, eM := queryMetTower.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		if eM != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csrM.Close()
-
-		Result := make([]ScadaDataOEM, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		ResultMetTower := make([]MetTower, 0)
-		eM = csrM.Fetch(&ResultMetTower, 0, false)
-
-		for _, val := range Result {
-			Dateresults = append(Dateresults, val.TimeStamp.UTC())
-		}
-		for _, val := range ResultMetTower {
-			Dateresults = append(Dateresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		CustomDate []time.Time
-	}{
-		CustomDate: Dateresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetScadaDataOEMAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	ScadaDataOEMresults := make([]time.Time, 0)
-
-	// ScadaDataOEM Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaDataOEM, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			ScadaDataOEMresults = append(ScadaDataOEMresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		ScadaDataOEM []time.Time
-	}{
-		ScadaDataOEM: ScadaDataOEMresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetDowntimeEventvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	DowntimeEventresults := make([]time.Time, 0)
-
-	// Downtime Event Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestart")
-		} else {
-			arrsort = append(arrsort, "-timestart")
-		}
-
-		query := DB().Connection.NewQuery().From(new(EventDown).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]EventDown, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			DowntimeEventresults = append(DowntimeEventresults, val.TimeStart.UTC())
-		}
-	}
-
-	data := struct {
-		DowntimeEvent []time.Time
-	}{
-		DowntimeEvent: DowntimeEventresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *DataBrowserController) GetScadaDataHFDAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	ScadaDataHFDresults := make([]time.Time, 0)
-
-	// ScadaDataHFD Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaDataHFD, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			ScadaDataHFDresults = append(ScadaDataHFDresults, val.TimeStamp.UTC())
-		}
-	}
-
-	data := struct {
-		ScadaDataHFD []time.Time
-	}{
-		ScadaDataHFD: ScadaDataHFDresults,
-	}
-
-	return helper.CreateResult(true, data, "success")
 }

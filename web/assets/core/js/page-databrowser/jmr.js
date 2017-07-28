@@ -98,6 +98,8 @@ dbj.InitGridJMR = function() {
                     app.isFine(res);
                     app.loading(false);
                     dbr.jmrvis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {

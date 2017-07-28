@@ -857,6 +857,8 @@ dbm.InitMet = function() {
                     }
                     app.loading(false);
                     dbr.mettowervis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {
