@@ -1065,7 +1065,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 					dt.ProductionRatio = 0.0
 
-					d.BaseController.Ctx.Insert(dt)
+					d.BaseController.Ctx.Save(dt)
 
 					count++
 					total++
