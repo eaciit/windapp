@@ -3129,6 +3129,7 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 	result := []tk.M{}
 
 	dateStr := strings.Split(p.DateStr, " ")
+	pipes = append(pipes, tk.M{"$unwind": "$detail"})
 
 	if dateStr[0] != "fleet" {
 		date, e = time.Parse("Jan 2006 02 15:04:05", dateStr[0][0:3]+" "+dateStr[1]+" 01 00:00:00")
@@ -3140,9 +3141,9 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 		dateInfo := GetDateInfo(date)
 
 		if p.Type != "" {
-			pipes = append(pipes, tk.M{"$match": tk.M{"startdateinfo.monthid": dateInfo.MonthId, strings.ToLower(strings.Replace(p.Type, " ", "", 1)): true}})
+			pipes = append(pipes, tk.M{"$match": tk.M{"detail.detaildateinfo.monthid": dateInfo.MonthId, strings.ToLower(strings.Replace(p.Type, " ", "", 1)): true}})
 		} else {
-			pipes = append(pipes, tk.M{"$match": tk.M{"startdateinfo.monthid": dateInfo.MonthId}})
+			pipes = append(pipes, tk.M{"$match": tk.M{"detail.detaildateinfo.monthid": dateInfo.MonthId}})
 		}
 
 	} else {
@@ -3156,9 +3157,9 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 		}
 
 		if p.Type != "" {
-			pipes = append(pipes, tk.M{"$match": tk.M{"startdateinfo.dateid": tk.M{"$gte": date, "$lte": date2}, strings.ToLower(strings.Replace(p.Type, " ", "", 1)): true}})
+			pipes = append(pipes, tk.M{"$match": tk.M{"detail.detaildateinfo.dateid": tk.M{"$gte": date, "$lte": date2}, strings.ToLower(strings.Replace(p.Type, " ", "", 1)): true}})
 		} else {
-			pipes = append(pipes, tk.M{"$match": tk.M{"startdateinfo.dateid": tk.M{"$gte": date, "$lte": date2}}})
+			pipes = append(pipes, tk.M{"$match": tk.M{"detail.detaildateinfo.dateid": tk.M{"$gte": date, "$lte": date2}}})
 		}
 	}
 
@@ -3166,8 +3167,8 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 		tk.M{
 			"$group": tk.M{
 				"_id":       "$turbine",
-				"powerlost": tk.M{"$sum": "$powerlost"},
-				"duration":  tk.M{"$sum": "$duration"},
+				"powerlost": tk.M{"$sum": "$detail.powerlost"},
+				"duration":  tk.M{"$sum": "$detail.duration"},
 			},
 		},
 	)
