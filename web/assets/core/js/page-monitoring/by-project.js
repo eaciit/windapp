@@ -286,7 +286,6 @@ bp.PlotData = function(data) {
                 }, 750);
             }
 
-
             var colorTemperature = val.TemperatureColor;
             $('#temperature_'+ turbine).attr('class', colorTemperature);
             
@@ -324,14 +323,20 @@ bp.PlotData = function(data) {
 
             var comparison = 0;
             $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
-            if((val.ActivePower / val.Capacity) >= 0){
+            var tes = val.ActivePower / val.Capacity;
+            
+            if((val.ActivePower / val.Capacity) > 0){
                 comparison = (val.ActivePower / val.Capacity) * 70;
-                
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
                 $('#statusturbine_'+ turbine).css('width', comparison + 'px');
             }else{
                 comparison = 0;
                 $('#statusturbine_'+ turbine).attr('class', 'lbl');
+            }
+
+            if(colorStatus=="lbl bg-red"){
+                $('#statusturbine_'+ turbine).attr('class', colorStatus);
+                $('#statusturbine_'+ turbine).css('width',  70 +'px');
             }
 
 
