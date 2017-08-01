@@ -921,6 +921,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 						From(new(Alarm).TableName()).
 						Cursor(nil)
 
+					// tk.Printfn("DEBUG-01 >> %v || \n %v || \n %v", pipeAlarm, erx, new(Alarm).TableName())
 					alarms := []tk.M{}
 					_ = csrAlarm.Fetch(&alarms, 0, false)
 					csrAlarm.Close()
@@ -1064,7 +1065,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 					dt.ProductionRatio = 0.0
 
-					d.BaseController.Ctx.Insert(dt)
+					d.BaseController.Ctx.Save(dt)
 
 					count++
 					total++

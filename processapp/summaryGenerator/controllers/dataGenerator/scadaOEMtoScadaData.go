@@ -187,17 +187,17 @@ func getPitchAngle(data *ScadaDataOEM) float64 {
 
 	PitchAngle, _PitchCount := float64(0), float64(0) //-10, >= 120
 
-	if data.AI_intern_PitchAngle1 >= -10 && data.AI_intern_PitchAngle1 <= -120 {
+	if data.AI_intern_PitchAngle1 >= -10 && data.AI_intern_PitchAngle1 <= 120 {
 		_PitchCount++
 		PitchAngle += data.AI_intern_PitchAngle1
 	}
 
-	if data.AI_intern_PitchAngle2 >= -10 && data.AI_intern_PitchAngle2 <= -120 {
+	if data.AI_intern_PitchAngle2 >= -10 && data.AI_intern_PitchAngle2 <= 120 {
 		_PitchCount++
 		PitchAngle += data.AI_intern_PitchAngle2
 	}
 
-	if data.AI_intern_PitchAngle3 >= -10 && data.AI_intern_PitchAngle3 <= -120 {
+	if data.AI_intern_PitchAngle3 >= -10 && data.AI_intern_PitchAngle3 <= 120 {
 		_PitchCount++
 		PitchAngle += data.AI_intern_PitchAngle3
 	}
