@@ -406,6 +406,26 @@ func addingBulletColorAndTempInfo(redCount, orangeCount, greenCount int, tempInf
 	}
 }
 
+func getAvgValue(value, countPtr, avgPtr *float64, tags string) {
+	switch tags {
+	case "TempG1L1":
+		*avgPtr += *value
+		*countPtr++
+	case "TempG1L2":
+		*avgPtr += *value
+		*countPtr++
+	case "TempG1L3":
+		*avgPtr += *value
+		*countPtr++
+	case "TempGeneratorBearingDE":
+		*avgPtr += *value
+		*countPtr++
+	case "TempGeneratorBearingNDE":
+		*avgPtr += *value
+		*countPtr++
+	}
+}
+
 func GetMonitoringByProjectV2(project string, locationTemp float64, pageType string) (rtkm tk.M) {
 	rtkm = tk.M{}
 	alldata, allturbine := []tk.M{}, tk.M{}
@@ -501,6 +521,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csrTempStart.Close()
 
 	tempStartTime := map[string]time.Time{}
+	tagsWinding := []string{"TempG1L1", "TempG1L2", "TempG1L3"}
+	tagsBearing := []string{"TempGeneratorBearingDE", "TempGeneratorBearingNDE"}
 
 	for _, val := range tempStartData {
 		tempStartTime[val.GetString("_id")] = val.Get("timestart", time.Time{}).(time.Time).UTC()
@@ -519,6 +541,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	AvgGenBearing := 0.0
 	countGenBearing := 0.0
 
+	dataRealtimeValue := 0.0
+	tags := ""
+
 	for {
 		_tdata := tk.M{}
 		err = csr.Fetch(&_tdata, 1, false)
@@ -526,7 +551,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			break
 		}
 
-		tags := _tdata.GetString("tags")
+		tags = _tdata.GetString("tags")
+		dataRealtimeValue = _tdata.GetFloat64("value")
 
 		// isfound := false
 		// for k, _ := range arrfield {
@@ -568,19 +594,19 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 									if AvgGenWind > tempData.GetFloat64("error_limit") {
 										redCount++
 										timeString = setTemperatureStart("red", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
-											tempStartTime[_tdata.GetString("_id")], true, hasData, _tdata.GetFloat64("value"))
+											tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
 
 										tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", AvgGenWind, timeString)
 									} else if AvgGenWind > tempData.GetFloat64("warning_limit") {
 										orangeCount++
 										timeString = setTemperatureStart("orange", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
-											tempStartTime[_tdata.GetString("_id")], true, hasData, _tdata.GetFloat64("value"))
+											tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
 
 										tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", AvgGenWind, timeString)
 									} else {
 										greenCount++
-										_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tempStartTime[_tdata.GetString("_id")],
-											time.Time{}, false, hasData, _tdata.GetFloat64("value"))
+										_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
+											time.Time{}, false, hasData, dataRealtimeValue)
 									}
 								} else {
 									// tempInfo["Generator Winding"] = "N/A"
@@ -591,19 +617,19 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 									if AvgGenBearing > tempData.GetFloat64("error_limit") {
 										redCount++
 										timeString = setTemperatureStart("red", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
-											tempStartTime[_tdata.GetString("_id")], true, hasData, _tdata.GetFloat64("value"))
+											tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
 
 										tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", AvgGenBearing, timeString)
 									} else if AvgGenBearing > tempData.GetFloat64("warning_limit") {
 										orangeCount++
 										timeString = setTemperatureStart("orange", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
-											tempStartTime[_tdata.GetString("_id")], true, hasData, _tdata.GetFloat64("value"))
+											tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
 
 										tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", AvgGenBearing, timeString)
 									} else {
 										greenCount++
-										_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tempStartTime[_tdata.GetString("_id")],
-											time.Time{}, false, hasData, _tdata.GetFloat64("value"))
+										_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
+											time.Time{}, false, hasData, dataRealtimeValue)
 									}
 								} else {
 									// tempInfo["Generator Bearing"] = "N/A"
@@ -692,7 +718,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		// _iContinue = true
 
 		afield, isexist := arrfield[tags]
-		_ifloat := _tdata.GetFloat64("value")
+		_ifloat := dataRealtimeValue
 		if _ifloat != defaultValue && isexist {
 			switch afield {
 			case "ActivePower":
@@ -747,36 +773,29 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if pageType == "monitoring" {
 			_, hasData = tempStartTime[_tdata.GetString("_id")]
 
-			if _tdata.GetFloat64("value") > -999999 && tags == "TempOutdoor" {
-				if _tdata.GetFloat64("value") < locationTemp-4 || _tdata.GetFloat64("value") > locationTemp+4 {
+			if dataRealtimeValue > -999999 && tags == "TempOutdoor" {
+				if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
 					_itkm.Set("TemperatureColor", "txt-red")
+					redCount++
+					timeString = setTemperatureStart("red", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
+						tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
+
+					tempInfo["External Temp"] = tk.Sprintf("%.2f &deg;C<br />(%s)", dataRealtimeValue, timeString)
 				} else {
+					greenCount++
+					_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
+						time.Time{}, false, hasData, dataRealtimeValue)
 					_itkm.Set("TemperatureColor", "txt-grey")
 				}
 			} else {
 				// tempInfo["External Temp"] = "N/A"
 			}
-
-			if _tdata.GetFloat64("value") > -999999 && tags == "TempG1L1" {
-				AvgGenWind += _tdata.GetFloat64("value")
-				countGenWind++
-			}
-			if _tdata.GetFloat64("value") > -999999 && tags == "TempG1L2" {
-				AvgGenWind += _tdata.GetFloat64("value")
-				countGenWind++
-			}
-			if _tdata.GetFloat64("value") > -999999 && tags == "TempG1L3" {
-				AvgGenWind += _tdata.GetFloat64("value")
-				countGenWind++
-			}
-
-			if _tdata.GetFloat64("value") > -999999 && tags == "TempGeneratorBearingDE" {
-				AvgGenBearing += _tdata.GetFloat64("value")
-				countGenBearing++
-			}
-			if _tdata.GetFloat64("value") > -999999 && tags == "TempGeneratorBearingNDE" {
-				AvgGenBearing += _tdata.GetFloat64("value")
-				countGenBearing++
+			if dataRealtimeValue > -999999 {
+				if tk.HasMember(tagsWinding, tags) {
+					getAvgValue(&dataRealtimeValue, &countGenWind, &AvgGenWind, tags)
+				} else if tk.HasMember(tagsBearing, tags) {
+					getAvgValue(&dataRealtimeValue, &countGenBearing, &AvgGenBearing, tags)
+				}
 			}
 
 			for _, tempData := range tempCondition {
@@ -784,24 +803,24 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				paramName := tempData.GetString("temp_param")
 				if !isAverage {
 					fieldName := tempData.GetString("field_name")
-					tempValue := _tdata.GetFloat64("value")
+					tempValue := dataRealtimeValue
 					if tempValue > -999999 && tags == fieldName {
 						if tempValue > tempData.GetFloat64("error_limit") {
 							redCount++
 							timeString = setTemperatureStart("red", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
-								tempStartTime[_tdata.GetString("_id")], true, hasData, _tdata.GetFloat64("value"))
+								tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
 
 							tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", tempValue, timeString)
 						} else if tempValue > tempData.GetFloat64("warning_limit") {
 							orangeCount++
 							timeString = setTemperatureStart("orange", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
-								tempStartTime[_tdata.GetString("_id")], true, hasData, _tdata.GetFloat64("value"))
+								tempStartTime[_tdata.GetString("_id")], true, hasData, dataRealtimeValue)
 
 							tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", tempValue, timeString)
 						} else {
 							greenCount++
-							_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tempStartTime[_tdata.GetString("_id")],
-								time.Time{}, false, hasData, _tdata.GetFloat64("value"))
+							_ = setTemperatureStart("green", _tdata.GetString("_id"), project, _tTurbine, tags, tstamp.UTC(),
+								time.Time{}, false, hasData, dataRealtimeValue)
 						}
 					} else {
 						// tempInfo[paramName] = "N/A"
