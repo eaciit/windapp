@@ -1214,11 +1214,11 @@ sum.CumProduction = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "area",
-            area: {
-                line: {
-                    style: "smooth"
-                }
+            type: "line",
+            style: "smooth",
+            // opacity : 0.7,
+            markers: {
+                visible: false,
             }
         },
         series: [{

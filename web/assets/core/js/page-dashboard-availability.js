@@ -287,14 +287,17 @@ avail.fleetMachAvail = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "column",
-            stack: true
+            type: "line",
+            stack: false
         },
         series: [{
-            type: "column",
+            type: "line",
+            style: "smooth",
             field: "result",
             // opacity : 0.7,
-            stacked: false
+            markers: {
+                visible: false,
+            }
         }],
         seriesColors: colorFieldProject,
         valueAxis: {
@@ -372,14 +375,17 @@ avail.fleetGridAvail = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "column",
-            stack: true
+            type: "line",
+            stack: false
         },
         series: [{
-            type: "column",
+            type: "line",
+            style: "smooth",
             field: "result",
             // opacity : 0.7,
-            stacked: false
+            markers: {
+                visible: false,
+            }
         }],
         seriesColors: colorFieldProject,
         valueAxis: {

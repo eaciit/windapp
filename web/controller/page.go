@@ -15,7 +15,7 @@ type PageController struct {
 }
 
 var (
-	DefaultIncludes = []string{"_head.html", "_menu.html", "_loader.html", "_script_template.html"}
+	DefaultIncludes = []string{"_head.html", "_menu.html", "_loader.html", "_script_template.html","_dateinfo.html"}
 )
 
 func CreatePageController(AppName string) *PageController {

@@ -367,7 +367,7 @@ pc.initChart = function() {
                 $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
                 $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
             });
-
+            
             var link = "analyticpowercurve/getlistpowercurvecomparison"
 
             app.loading(true);

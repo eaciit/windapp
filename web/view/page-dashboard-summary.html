@@ -175,7 +175,7 @@
                       <label class="btn btn-primary btn-xs" onclick="$('#chartPLFFleet').kendoChart2Grid('n0')">
                           <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                       </label>
-                      <label class="btn btn-primary btn-xs" onclick="sum.PLF(sum.dataSourceScada())">
+                      <label class="btn btn-primary btn-xs" onclick="sum.PLF('chartPLFFleet', sum.dataSourceScada())">
                           <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
                       </label>
                   </div>
@@ -300,7 +300,7 @@
                           <label class="btn btn-primary btn-xs" onclick="$('#chartPLF').kendoChart2Grid('n0')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.PLF(sum.dataSourceScada())">
+                          <label class="btn btn-primary btn-xs" onclick="sum.PLF('chartPLF',sum.dataSourceScada())">
                               <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
                           </label>
                       </div>
