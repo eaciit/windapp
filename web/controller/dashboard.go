@@ -2320,30 +2320,31 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		}
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
-		match.Set("available", 1)
+		// match.Set("available", 1)
 
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
 		}
 
 		group := tk.M{
-			"_id":           tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-			"minutes":       tk.M{"$sum": "$minutes"},
+			"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
+			// "minutes":       tk.M{"$sum": "$minutes"},
 			"mindate":       tk.M{"$min": "$dateinfo.dateid"},
 			"maxdate":       tk.M{"$max": "$dateinfo.dateid"},
-			"machineResult": tk.M{"$sum": "$machinedowntime"},
-			"gridResult":    tk.M{"$sum": "$griddowntime"},
+			"machineResult": tk.M{"$sum": "$machinedownhours"},
+			"gridResult":    tk.M{"$sum": "$griddownhours"},
+			"unknownResult": tk.M{"$sum": "$otherdowntimehours"},
 		}
 
 		pipe := []tk.M{
 			{"$match": match},
 			{"$group": group},
 			{"$sort": tk.M{"_id.id1": -1}},
-			{"$limit": 12},
+			// {"$limit": 12},
 		}
 
 		csr, e := DB().Connection.NewQuery().
-			From(new(ScadaData).TableName()).
+			From(new(ScadaSummaryDaily).TableName()).
 			Command("pipe", pipe).
 			Cursor(nil)
 
@@ -2414,26 +2415,33 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			if scada.Get("mindate") != nil {
 				id := scada.Get("_id").(tk.M)
 				project := id.GetString("id3")
-				m := scada.GetFloat64("machineResult") / 3600.0
-				g := scada.GetFloat64("gridResult") / 3600.0
-				minDate := scada.Get("mindate").(time.Time)
-				maxDate := scada.Get("maxdate").(time.Time)
-				minutes := scada.GetFloat64("minutes") / 60
+				m := scada.GetFloat64("machineResult")
+				g := scada.GetFloat64("gridResult")
+				u := scada.GetFloat64("unknownResult")
 
-				fromDateSub, _ := time.Parse("060102_150405", minDate.Format("0601")+"01_000000")
-				tmpDt, _ := time.Parse("060102_150405", minDate.AddDate(0, 1, 0).Format("0601")+"01_000000")
-				toDateSub := tmpDt.AddDate(0, 0, -1)
+				minDate := scada.Get("mindate").(time.Time).UTC()
+				maxDate := scada.Get("maxdate").(time.Time).UTC()
+				// minutes := scada.GetFloat64("minutes") / 60
+
+				// fromDateSub, _ := time.Parse("060102_150405", minDate.Format("0601")+"01_000000")
+				// tmpDt, _ := time.Parse("060102_150405", minDate.AddDate(0, 1, 0).Format("0601")+"01_000000")
+				// toDateSub := tmpDt.AddDate(0, 0, -1)
 
 				turbineList, _ := helper.GetTurbineList([]interface{}{project})
 				totalTurbine := float64(len(turbineList))
 
-				hourValue := helper.GetHourValue(fromDateSub.UTC(), toDateSub.UTC(), minDate.UTC(), maxDate.UTC())
-				mAvail, gAvail, _, _, _ := helper.GetAvailAndPLF(totalTurbine, float64(0), float64(0), m, g, float64(0), hourValue, minutes, float64(0))
+				// hourValue := helper.GetHourValue(fromDateSub.UTC(), toDateSub.UTC(), minDate.UTC(), maxDate.UTC())
+				hourValue := maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+				// mAvail, gAvail, _, _, _ := helper.GetAvailAndPLF(totalTurbine, float64(0), float64(0), m, g, float64(0), hourValue, minutes, float64(0))
 
-				// log.Printf("%v | %v \n", mAvail, gAvail)
+				in := tk.M{}.Set("noofturbine", totalTurbine).Set("oktime", 0).Set("energy", 0).
+					Set("totalhour", hourValue).Set("totalcapacity", 0).
+					Set("machinedowntime", m).Set("griddowntime", g).Set("otherdowntime", u)
 
-				scada.Set("machineResult", tk.ToFloat64((mAvail), 2, tk.RoundingAuto)/100)
-				scada.Set("gridResult", tk.ToFloat64((gAvail), 2, tk.RoundingAuto)/100)
+				res := helper.CalcAvailabilityAndPLF(in)
+
+				scada.Set("machineResult", res.GetFloat64("machineavailability")/100)
+				scada.Set("gridResult", res.GetFloat64("gridavailability")/100)
 
 				// log.Printf(">>> %#v \n", scada)
 
@@ -3538,7 +3546,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		// {"$limit": p.Take},
 	}
 
-	tk.Printf("%v\n", matches)
+	// tk.Printf("%v\n", matches)
 
 	pipeCount := []tk.M{
 		{"$match": matches},
