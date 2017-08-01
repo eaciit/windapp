@@ -58,15 +58,8 @@ var Data = {
             app.loading(true);
             var dateStart = $('#dateStart').data('kendoDatePicker').value();
             var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                var minDatetemp = new Date(res.data.ScadaData[0]);
-                var maxDatetemp = new Date(res.data.ScadaData[1]);
-                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-            })
+            
+            di.getAvailDate();
 
             var columnBreakdown = $('#columnsBreakdown').val();
             var rowBreakdown = $('#rowsBreakdown').val();

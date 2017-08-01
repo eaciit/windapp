@@ -96,15 +96,8 @@ page.InitLinePowerCurve = function() {
     fa.LoadData();
     listOfChart = [];
 
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    })
+    di.getAvailDate();
+
 
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name

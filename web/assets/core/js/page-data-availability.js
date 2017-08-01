@@ -25,6 +25,7 @@ page.hideFilter = function(){
 
 page.getData = function(){
 	fa.LoadData();
+	di.getAvailDate();
 	var param = {
         period: fa.period,
         dateStart: fa.dateStart,

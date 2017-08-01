@@ -358,16 +358,8 @@ pc.initChart = function() {
         } else if(p2DateStart - p2DateEnd > 25200000) {
             toolkit.showError("Invalid Date Range Selection for Filter 2");
         } else {
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                var minDatetemp = new Date(res.data.ScadaData[0]);
-                var maxDatetemp = new Date(res.data.ScadaData[1]);
-                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-            });
-
+            di.getAvailDate();
+            
             var link = "analyticpowercurve/getlistpowercurvecomparison"
 
             app.loading(true);
