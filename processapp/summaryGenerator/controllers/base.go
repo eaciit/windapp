@@ -65,6 +65,7 @@ type BaseController struct {
 	CapacityPerMonth     map[string]float64
 	TotalTurbinePerMonth map[string]float64
 	ProjectList          []ProjectOut
+	Log                  *tk.LogEngine
 }
 
 func (b *BaseController) GetTurbineScada() {
