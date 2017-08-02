@@ -202,7 +202,7 @@ fa.populateProject = function (selected) {
             if (selected != "") {
                 $("#projectList").data("kendoDropDownList").value(selected);
             } else {
-                $("#projectList").data("kendoDropDownList").select(1);
+                $("#projectList").data("kendoDropDownList").select(0);
             }               
             fa.project = $("#projectList").data("kendoDropDownList").value();
             fa.populateTurbine(fa.project);
