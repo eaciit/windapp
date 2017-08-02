@@ -23,6 +23,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		toolkit.Println("Scada Summary : " + e.Error())
 		os.Exit(0)
 	}
+	defer conn.Close()
 
 	// reset data
 	// #faisal

@@ -68,6 +68,10 @@ func main() {
 		tk.Println("step 12")
 		new(GenScadaSummary).GenWFAnalysisByTurbine2(base) // step 12
 
+		// additional step for optimization perpose
+		tk.Println("step additional 01")
+		new(GenDataWindDistribution).GenerateCurrentMonth(base) // step add.01
+
 		// not dependent Generate
 		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
 		// new(EventReduceAvailability).ConvertEventReduceAvailability(base)
