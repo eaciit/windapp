@@ -546,6 +546,8 @@ $(document).ready(function () {
     fa.showHidePeriod();
     fa.InitDefaultValue();
     setTimeout(function(){
+        $("#dateStart").attr("readonly", true);
+        $("#dateEnd").attr("readonly", true);
         $(".multiselect-native-select").find(".btn-group").find(".multiselect-filter").find(".input-group").addClass("input-group-sm");
         $(".multiselect-native-select").find(".btn-group").find(".multiselect-filter").find(".input-group").find(".input-group-addon").remove();
         $(".multiselect-native-select").find(".btn-group").find(".multiselect-filter").find(".input-group").find(".input-group-btn").remove();
