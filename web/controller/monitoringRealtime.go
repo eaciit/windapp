@@ -63,6 +63,9 @@ var (
 		"Tower vibration": "", "Grid-side choke temperature": "TempGridChoke", "Generator-side choke temperature": "TempGeneratorChoke",
 		"Temperature inside converter cabinet 2": "TempConvCabinet2",
 	}
+	tagsWinding = []string{"TempG1L1", "TempG1L2", "TempG1L3"}
+	tagsBearing = []string{"TempGeneratorBearingDE", "TempGeneratorBearingNDE"}
+	tagsTemp    = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 )
 
 const (
@@ -539,7 +542,7 @@ func addingBulletColorAndTempInfo(redCount, orangeCount, greenCount int, tempInf
 	} else if greenCount > 0 && redCount == 0 {
 		_itkm.Set("BulletColor", "fa fa-circle txt-green")
 		tempNormalTime := getTemperatureStart(dbox.And(dbox.Eq("project", project), dbox.Eq("turbine", turbine),
-			dbox.Eq("enable", false)), "normal")
+			dbox.Eq("enable", false), dbox.Ne("tags", "TempOutdoor")), "normal")
 
 		timeNormal, hasNormal := tempNormalTime[project+"_"+turbine]
 		if hasNormal {
@@ -611,16 +614,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
 		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
-	// temperatureList := map[string]string{
-	// 	"TempG1L1": "GenWinding1", "TempG1L2": "GenWinding2", "TempG1L3": "GenWinding3",
-	// 	"TempGeneratorBearingDE": "GenBearing1", "TempGeneratorBearingNDE": "GenBearing2",
-	// 	"TempGearBoxOilSump": "GearboxOil", "TempHubBearing": "MainBearing", "TempGridChoke": "LineChoke",
-	// 	"TempGeneratorChoke": "GenChoke", "TempConvCabinet2": "ConvCabinet2",
-	// }
-
-	// for key, val := range temperatureList {
-	// 	arrfield[key] = val
-	// }
 
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
@@ -660,10 +653,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
 	indiaTime := lastUpdate.In(indiaLoc)
 	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
-
-	tagsWinding := []string{"TempG1L1", "TempG1L2", "TempG1L3"}
-	tagsBearing := []string{"TempGeneratorBearingDE", "TempGeneratorBearingNDE"}
-	tagsTemp := []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
 
