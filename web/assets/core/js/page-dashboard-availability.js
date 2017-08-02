@@ -287,22 +287,25 @@ avail.fleetMachAvail = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "line",
+            type: "column",
             stack: false
         },
         series: [{
-            type: "line",
+            type: "column",
             style: "smooth",
             field: "result",
+            // width:10,
+            gap:15,
+            spacing: 5,
             // opacity : 0.7,
-            markers: {
-                visible: false,
-            }
+            // markers: {
+            //     visible: false,
+            // }
         }],
         seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
-                step: 2,
+                // step: 2,
                 template: '#=  value * 100 #',
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
@@ -314,7 +317,8 @@ avail.fleetMachAvail = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
-            }
+            },
+            max: 1,
         },
         categoryAxis: {
             field: "_id.id2",
@@ -375,22 +379,25 @@ avail.fleetGridAvail = function (dataSource) {
             }
         },
         seriesDefaults: {
-            type: "line",
+            type: "column",
             stack: false
         },
         series: [{
-            type: "line",
+            type: "column",
             style: "smooth",
             field: "result",
+            // width:10,
+            gap:15,
+            spacing: 5,
             // opacity : 0.7,
-            markers: {
-                visible: false,
-            }
+            // markers: {
+            //     visible: false,
+            // }
         }],
         seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
-                step: 2,
+                // step: 2,
                 template: '#=  value * 100 #',
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
@@ -402,7 +409,8 @@ avail.fleetGridAvail = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
-            }
+            },
+            max: 1,
         },
         categoryAxis: {
             field: "_id.id2",
