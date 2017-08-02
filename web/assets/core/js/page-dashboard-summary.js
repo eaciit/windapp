@@ -188,7 +188,7 @@ sum.loadData = function () {
 
         if (project=="Fleet") {
             param = { ProjectName: project, Date: maxdate, PeriodList: sum.paramPeriod};
-            ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistribution", param, function (res) {
+            ajax3 = toolkit.ajaxPost(viewModel.appName + "dashboard/getwinddistributionrev", param, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
