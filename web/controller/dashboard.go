@@ -2775,6 +2775,54 @@ func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *DashboardController) GetWindDistributionRev(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var dataSeries []tk.M
+
+	type PayloadWindDist struct {
+		ProjectName string
+		Date        time.Time
+		PeriodList  []string
+	}
+
+	p := new(PayloadWindDist)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	csr, _ := DB().
+		Connection.
+		NewQuery().
+		Select("Contribute", "Project", "Category").
+		From("rpt_winddistributioncurrentmonth").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	for {
+		tkm := tk.M{}
+		e = csr.Fetch(&tkm, 1, false)
+		if e != nil {
+			break
+		}
+
+		dataSeries = append(dataSeries, tkm)
+	}
+
+	result := tk.M{}
+	result["currentmonth"] = dataSeries
+	data := struct {
+		Data tk.M
+	}{
+		Data: result,
+	}
+
+	return helper.CreateResult(true, data, "success")
+
+}
+
 func (m *DashboardController) GetDownTimeTurbines(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
