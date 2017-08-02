@@ -3624,6 +3624,10 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 	for idx, dt := range result {
 		lowestPlf := tk.ToFloat64(result[idx].GetFloat64("lowestplf"), 2, tk.RoundingAuto)
+		if lowestPlf <= 0 {
+			lowestPlf = 0
+		}
+
 		lowestMachineAvail := tk.ToFloat64(result[idx].GetFloat64("lowestmachineavail"), 2, tk.RoundingAuto)
 		maxLossEnergy := tk.ToFloat64(result[idx].GetFloat64("maxlossenergy"), 2, tk.RoundingAuto)
 
