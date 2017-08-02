@@ -339,9 +339,6 @@ bp.PlotData = function(data) {
                 $('#statusturbine_'+ turbine).css('width',  70 +'px');
             }
 
-
-
-
             $('#statusturbinedefault_'+turbine).popover({
                 placement: 'bottom',
                 html: 'true',
