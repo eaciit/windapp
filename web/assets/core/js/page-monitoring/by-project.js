@@ -315,6 +315,12 @@ bp.PlotData = function(data) {
             } else if(val.Status === 1 && val.IsWarning === true) {
                 colorStatus = "lbl bg-orange";
                 defaultColorStatus = "bg-default-orange";
+            } else if(val.Status == 999) {
+                colorStatus = "lbl bg-greenneon";
+                defaultColorStatus = "bg-default-greenneon";
+            } else if(val.Status == 888) {
+                colorStatus = "lbl bg-mustard";
+                defaultColorStatus = "bg-default-mustard";
             }
             if(val.DataComing==0) {
                 colorStatus = "lbl bg-grey";

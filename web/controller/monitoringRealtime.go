@@ -533,7 +533,7 @@ func setTemperatureStart(_tdata tk.M, project, _tTurbine, tags string, timestart
 	return
 }
 
-func addingBulletColorAndTempInfo(redCount, orangeCount, greenCount int, tempInfo map[string]string, _itkm *tk.M, project,
+func addingBulletColorAndTempInfo(redCount, orangeCount, greenCount int, waitingForWsTurbine, curtailmentTurbine, tempInfo map[string]string, _itkm *tk.M, project,
 	turbine string, currentTimeIndia time.Time) {
 	if orangeCount > 0 || (redCount > 0 && greenCount > 0) {
 		_itkm.Set("BulletColor", "fa fa-circle txt-orange")
@@ -550,9 +550,17 @@ func addingBulletColorAndTempInfo(redCount, orangeCount, greenCount int, tempInf
 				_itkm.Set("BulletColor", "fa fa-circle txt-blink")
 			}
 		}
-
 	} else {
 		_itkm.Set("BulletColor", "fa fa-circle txt-grey")
+	}
+	_, hasCurtailment := curtailmentTurbine[project+"_"+turbine]
+	if hasCurtailment {
+		_itkm.Set("Status", 999)
+	}
+
+	_, hasWaitingForWS := waitingForWsTurbine[project+"_"+turbine]
+	if hasWaitingForWS {
+		_itkm.Set("Status", 888)
 	}
 
 	temperatureInfo := ""
@@ -575,6 +583,27 @@ func getAvgValue(value, countPtr, avgPtr *float64, tipe string) {
 		*avgPtr += *value
 		*countPtr++
 	}
+}
+
+func getCurtailmentData(tablename string, filter *dbox.Filter) (curtailmentTurbine map[string]string) {
+	csrCurtailment, err := DBRealtime().NewQuery().From(tablename).
+		Where(filter).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	data := []tk.M{}
+	err = csrCurtailment.Fetch(&data, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrCurtailment.Close()
+
+	curtailmentTurbine = map[string]string{}
+	for _, val := range data {
+		curtailmentTurbine[val.GetString("_id")] = ""
+	}
+
+	return
 }
 
 func GetMonitoringByProjectV2(project string, locationTemp float64, pageType string) (rtkm tk.M) {
@@ -650,6 +679,20 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	tempStartTime := getTemperatureStart(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true)), "error")
 
+	// csrTempStart, err := DBRealtime().NewQuery().From("_temperaturestart").Where(filter).Cursor(nil)
+	// if err != nil {
+	// 	tk.Println(err.Error())
+	// }
+	// tempStartData := []tk.M{}
+	// err = csrTempStart.Fetch(&tempStartData, 0, false)
+	// if err != nil {
+	// 	tk.Println(err.Error())
+	// }
+	// csrTempStart.Close()
+
+	curtailmentTurbine := getCurtailmentData("_curtailmentduration", dbox.And(dbox.Eq("status", true), dbox.Eq("show", true)))
+	waitingForWsTurbine := getCurtailmentData("_waitingforwindspeed", dbox.Eq("status", true))
+
 	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
 	indiaTime := lastUpdate.In(indiaLoc)
 	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
@@ -712,7 +755,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				if pageType == "monitoring" {
 					setTemperatureStart(_tdata, project, _iTurbine, tags, tstamp.UTC(), tempStartTime, countGenWind, countGenBearing, AvgGenWind,
 						AvgGenBearing, true, &redCount, &orangeCount, &greenCount, tempInfo, tempCondition)
-					addingBulletColorAndTempInfo(redCount, orangeCount, greenCount, tempInfo, &_itkm, project, _iTurbine, lastUpdateIndia)
+					addingBulletColorAndTempInfo(redCount, orangeCount, greenCount, waitingForWsTurbine, curtailmentTurbine, tempInfo, &_itkm, project, _iTurbine, lastUpdateIndia)
 				}
 				alldata = append(alldata, _itkm)
 			}
@@ -871,7 +914,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if pageType == "monitoring" {
 			setTemperatureStart(_tdata, project, _iTurbine, tags, tstamp.UTC(), tempStartTime, countGenWind, countGenBearing, AvgGenWind,
 				AvgGenBearing, true, &redCount, &orangeCount, &greenCount, tempInfo, tempCondition)
-			addingBulletColorAndTempInfo(redCount, orangeCount, greenCount, tempInfo, &_itkm, project, _iTurbine, lastUpdateIndia)
+			addingBulletColorAndTempInfo(redCount, orangeCount, greenCount, waitingForWsTurbine, curtailmentTurbine, tempInfo, &_itkm, project, _iTurbine, lastUpdateIndia)
 		}
 		alldata = append(alldata, _itkm)
 	}
