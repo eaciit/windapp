@@ -860,6 +860,9 @@ func CalcAvailabilityAndPLF(in toolkit.M) (res toolkit.M) {
 	divider := in.GetFloat64("noofturbine") * totalhour
 
 	plf := toolkit.Div(in.GetFloat64("energy"), (totalhour*in.GetFloat64("totalcapacity"))) * 100
+	if plf <= 0 {
+		plf = 0
+	}
 	res.Set("plf", plf)
 
 	totalavailability := toolkit.Div(in.GetFloat64("oktime"), divider) * 100
