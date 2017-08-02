@@ -27,8 +27,8 @@ page.scatterList = ko.observableArray([
     { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
     { "value": "ambient", "text": "Ambient Temperature" },
-    { "value": "mainbearing", "text": "Temp Main Bearing" },
-    { "value": "gearbox", "text": "Temp  Gearbox HSS De" },
+    // { "value": "mainbearing", "text": "Temp Main Bearing" },
+    // { "value": "gearbox", "text": "Temp  Gearbox HSS De" },
 ]);
 
 vm.currentMenu('Scatter');
