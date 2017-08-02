@@ -95,6 +95,15 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 	for _, oproject := range projects {
 		proj := oproject.Value
 
+		// ==========================================
+		_ = conn.NewQuery().
+			Delete().
+			From("rpt_winddistributioncurrentmonth").
+			Where(dbox.Eq("Project", proj)).
+			SetConfig("multiexec", true).
+			Exec(nil)
+		// ==========================================
+
 		_data := []tk.M{}
 		pipes = []tk.M{}
 
@@ -196,13 +205,6 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 				distHelper.Set("_id", tk.Sprintf("%s_%v", proj, wc))
 				_ = qSave.Exec(tk.M{}.Set("data", distHelper))
 			}
-		} else {
-			_ = conn.NewQuery().
-				Delete().
-				From("rpt_winddistributioncurrentmonth").
-				Where(dbox.Eq("Project", proj)).
-				SetConfig("multiexec", true).
-				Exec(nil)
 		}
 	}
 
