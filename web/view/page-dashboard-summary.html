@@ -93,7 +93,7 @@
                       </div>
                   </span>
 				</div>
-				<div class="panel-body" style="height: 185px;">
+				<div class="panel-body content-chart">
 					<div id="chartProductionCustomTooltip"></div>
 					<div id="chartProduction"></div>
 				</div>
@@ -114,7 +114,7 @@
 	                  </div>
 	              </span>
 				</div>
-				<div class="panel-body" style="height: 185px;">
+				<div class="panel-body content-chart">
 					<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 					<div id="chartProdMonthFleet"></div>
 				</div>
@@ -140,7 +140,7 @@
 						</div>
                   	</span>
 				</div>
-				<div class="panel-body" style="height: 185px;">
+				<div class="panel-body content-chart">
 					<div id="chartAbility"></div>
 				</div>
 			</div>
@@ -160,7 +160,7 @@
                       </div>
                   </span>
 				</div>
-				<div class="panel-body" style="height: 185px;">
+				<div class="panel-body content-chart">
 					<!--<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>-->
 					<div id="chartCumProduction"></div>
 				</div>
@@ -181,7 +181,7 @@
                   </div>
               </span>
 				</div>
-				<div class="panel-body" style="height: 185px;">
+				<div class="panel-body content-chart">
 					<div id="chartPLFFleet"></div>
 				</div>
 			</div>
@@ -201,7 +201,7 @@
                       </div>
                   </span>
 				</div>
-				<div class="panel-body" style="height: 185px;">
+				<div class="panel-body content-chart">
 					<!-- <div id="chartDTLostEnergyCustomTooltip"></div> -->
 					<div id="chartLostEnergy"></div>
 				</div>
@@ -258,13 +258,13 @@
                           <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonth').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth(sum.dataSourceScada())">
+                          <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonth',sum.dataSourceScada())">
                               <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
                           </label>
                       </div>
                   </span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="chartProdMonth"></div>
 					</div>
@@ -285,7 +285,7 @@
 		                  </div>
 		              </span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="chartCurrLastFleet"></div>
 					</div>
 				</div>
@@ -306,7 +306,7 @@
                       </div>
                   </span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="chartPLF"></div>
 					</div>
 				</div>
@@ -326,7 +326,7 @@
                       </div>
                   </span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="chartWindinessCustomTooltip"></div>
 						<div id="chartWindiness"></div>
 					</div>
@@ -348,7 +348,7 @@
 	                      </div>
 	                  	</span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="chartWindDistributionCustomTooltip"></div>
 						<div id="chartWindDistribution"></div>
 					</div>
@@ -378,13 +378,13 @@
                           <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLast').kendoChart2Grid('n2')">
                               <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
                           </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast(sum.dataSourceScada())">
+                          <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast('chartCurrLast',sum.dataSourceScada())">
                               <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
                           </label>
                       </div>
                   </span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="chartCurrLast"></div>
 					</div>
 				</div>

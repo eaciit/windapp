@@ -65,6 +65,9 @@ page.ExportPowerCurvePdf = function() {
       }).appendTo('body');
 
 
+      var dateStart = moment(fa.dateStart).format("DD MMM YYYY");
+      var dateEnd = moment(fa.dateEnd).format("DD MMM YYYY");
+
       var options = chart.options;
 
       var exportOptions ={
@@ -73,6 +76,7 @@ page.ExportPowerCurvePdf = function() {
               visible: true
             },
             title:{
+                text: "Power Curve : " + dateStart + " until " + dateEnd,
                 visible: true,
             },
             chartArea: {

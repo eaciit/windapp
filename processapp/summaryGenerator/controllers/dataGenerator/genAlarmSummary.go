@@ -5,7 +5,6 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"eaciit/wfdemo-git/web/helper"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -48,7 +47,7 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 
 		for _, proj := range projects {
 			projectName := proj.Value
-			log.Printf("> %v \n", projectName)
+			d.Log.AddLog(tk.Sprintf("> %v \n", projectName), sInfo)
 			// turbineList, _ := helper.GetTurbineList([]interface{}{projectName})
 			// totalTurbine := len(turbineList)
 

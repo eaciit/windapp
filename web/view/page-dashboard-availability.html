@@ -2,9 +2,9 @@
 <div data-bind="visible:lgd.isAvailability">
 	<div id="availability-fleet" data-bind="visible:lgd.isFleet">
 		<div class="col-md-12 col-sm-12">
-			<div class="col-md-6 col-sm-6 hardcore landing">
+			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">
+					<div class="panel-heading ph-availability" style="margin-bottom: -15px;">
 						Machine Availability(%) - Last 12 Months
 						<span class="tools pull-right">
 	                      	<div class="btn-group" data-toggle="buttons">
@@ -17,14 +17,14 @@
 	                      	</div>
 	                  	</span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="fleetChartMachAvail"></div>
 					</div>
 				</div>
 			</div>
-			<div class="col-md-6 col-sm-6 hardcore landing">
+			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">
+					<div class="panel-heading ph-availability" style="margin-bottom: -15px;">
 						Grid Availability(%) - Last 12 Months
 						<span class="tools pull-right">
 	                      	<div class="btn-group" data-toggle="buttons">
@@ -37,19 +37,19 @@
 	                      	</div>
 	                  	</span>
 					</div>
-					<div class="panel-body" style="height: 185px;">
+					<div class="panel-body content-chart">
 						<div id="fleetChartGridAvail"></div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div class="col-md-12 col-sm-12">
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Turbines Down (Hours) - Last 24 Hours</div>
+					<div class="panel-heading ph-availability" style="margin-bottom: -15px;">Turbines Down (Hours) - Last 24 Hours</div>
 					<div class="panel-body box-list" id="dtturbines"></div>
 				</div>
 			</div>
+		</div>
+		<div class="col-md-12 col-sm-12">
 			<!-- <div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">Lost Energy (MWh) by Down Time Type - Last 12 Months</div>
@@ -76,7 +76,7 @@
                       	</div>
                   	</span>
 					</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-custom">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 
 						<div id="chartDTLostEnergy"></div>
@@ -86,7 +86,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Losses (MWh) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-custom">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="fleetChartTopTurbineLoss"></div>
 					</div>
@@ -109,7 +109,7 @@
                       	</div>
                   	</span>
 					</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-loss">
 						<div id="fleetChartTopLossCatEnergyLoss"></div>
 					</div>
 				</div>
@@ -129,7 +129,7 @@
                       	</div>
                   	</span>
 					</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-loss">
 						<div id="fleetChartTopLossCatDuration"></div>
 					</div>
 				</div>
@@ -149,7 +149,7 @@
                       	</div>
                   	</span>
 					</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-loss">
 						<div id="fleetChartTopLossCatFreq"></div>
 					</div>
 				</div>
@@ -160,24 +160,26 @@
 		<div class="col-md-12 col-sm-12">
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Machine Availability(%) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-heading ph-availability-project">Machine Availability(%) - Last 12 Months</div>
+					<div class="panel-body content-chart-project">
 						<div id="projectChartMachAvail" class="margin-top-25"></div>
 					</div>
 				</div>
 			</div>
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Grid Availability(%) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-heading ph-availability-project">Grid Availability(%) - Last 12 Months</div>
+					<div class="panel-body content-chart-project">
 						<div id="projectChartGridAvail" class="margin-top-25"></div>
 					</div>
 				</div>
 			</div>
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Lost Energy Downtime Type - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-heading ph-availability-project">
+						Lost Energy Downtime Type - Last 12 Months
+					</div>
+					<div class="panel-body content-chart-project">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="projectChartLossEnergy"></div>
 					</div>
@@ -187,24 +189,30 @@
 		<div class="col-md-12 col-sm-12">
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Loss Categories by Total Energy Loss(MWh) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-heading ph-availability">
+					Loss Categories by Total Energy Loss(MWh) - Last 12 Months
+					</div>
+					<div class="panel-body content-chart-loss">
 						<div id="projectChartTopLossCatEnergyLoss"></div>
 					</div>
 				</div>
 			</div>
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Loss Categories by Duration(Hours) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-heading ph-availability">
+					Loss Categories by Duration(Hours) - Last 12 Months
+					</div>
+					<div class="panel-body content-chart-loss">
 						<div id="projectChartTopLossCatDuration"></div>
 					</div>
 				</div>
 			</div>
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Loss Categories by Frequency - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-heading ph-availability">
+					Loss Categories by Frequency - Last 12 Months
+					</div>
+					<div class="panel-body content-chart-loss">
 						<div id="projectChartTopLossCatFreq"></div>
 					</div>
 				</div>
@@ -214,7 +222,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Losses(MWh) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-custom">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="projectChartTopTurbineLosses"></div>
 					</div>
@@ -223,7 +231,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Duration (Hours) - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-custom">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="projectChartDTDuration"></div>
 					</div>
@@ -232,7 +240,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Frequency - Last 12 Months</div>
-					<div class="panel-body">
+					<div class="panel-body content-chart-custom">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="projectChartDTFrequency"></div>
 					</div>

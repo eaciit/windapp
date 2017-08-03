@@ -5,7 +5,6 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"eaciit/wfdemo-git/web/helper"
-	"log"
 	"math"
 	"os"
 	"strconv"
@@ -15,6 +14,12 @@ import (
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
+)
+
+const (
+	sError   = "ERROR"
+	sInfo    = "INFO"
+	sWarning = "WARNING"
 )
 
 type GenScadaSummary struct {
@@ -776,13 +781,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				e = csr.Fetch(&scadaSums, 0, false)
 				csr.Close()
 
-				log.Printf("%v | %v | %v \n", project, turbineX, len(scadaSums))
-
-				// if turbine == "HBR038" {
-				// 	for _, t := range pipe {
-				// 		log.Printf("%#v \n", t)
-				// 	}
-				// }
+				d.Log.AddLog(tk.Sprintf("%v | %v | %v \n", project, turbineX, len(scadaSums)), sInfo)
 
 				revenueMultiplier := mapRevenue[project]
 				revenueDividerInLacs := 100000.0
@@ -1070,13 +1069,13 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					count++
 					total++
 					if count == 1000 {
-						log.Printf("Total processed data %v\n", total)
+						d.Log.AddLog(tk.Sprintf("Total processed data %v\n", total), sInfo)
 						count = 0
 					}
 
 					// break
 				}
-				log.Printf("Total processed data %v | %v\n", turbineX, total)
+				d.Log.AddLog(tk.Sprintf("Total processed data %v | %v\n", turbineX, total), sInfo)
 				wg.Done()
 			}(turbine, v.(tk.M).GetString("project"))
 
@@ -1421,7 +1420,7 @@ func (d *GenScadaSummary) getWFAnalysisData(ctx dbox.IConnection, projectName st
 	scadaSums := []tk.M{}
 	e := csr.Fetch(&scadaSums, 0, false)
 	if e != nil {
-		log.Println(e.Error())
+		d.Log.AddLog(e.Error(), sError)
 	}
 	csr.Close()
 

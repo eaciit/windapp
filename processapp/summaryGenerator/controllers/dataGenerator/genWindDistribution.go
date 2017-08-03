@@ -43,7 +43,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 
 	conn, e := PrepareConnection()
 	if e != nil {
-		tk.Println("Wind Distribution : " + e.Error())
+		d.Log.AddLog(tk.Sprintf("Wind Distribution : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
 	defer conn.Close()
@@ -58,7 +58,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		Cursor(nil)
 
 	if e != nil {
-		tk.Println("Wind Distribution : " + e.Error())
+		d.Log.AddLog(tk.Sprintf("Wind Distribution : %s"+e.Error()), sWarning)
 	}
 	defer csr.Close()
 
