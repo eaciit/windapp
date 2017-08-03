@@ -306,26 +306,8 @@ bp.PlotData = function(data) {
                 $('#alarmdesc_'+ turbine).attr('data-original-title', "This turbine already UP");
             }
 
-            var colorStatus = "lbl bg-green";
-            var defaultColorStatus = "bg-default-green";
-
-            if(val.Status==0) {
-                colorStatus = "lbl bg-red"; // faa-flash animated
-                defaultColorStatus = "bg-default-red";
-            } else if(val.Status === 1 && val.IsWarning === true) {
-                colorStatus = "lbl bg-orange";
-                defaultColorStatus = "bg-default-orange";
-            } else if(val.Status == 999) {
-                colorStatus = "lbl bg-greenneon";
-                defaultColorStatus = "bg-default-greenneon";
-            } else if(val.Status == 888) {
-                colorStatus = "lbl bg-mustard";
-                defaultColorStatus = "bg-default-mustard";
-            }
-            if(val.DataComing==0) {
-                colorStatus = "lbl bg-grey";
-                defaultColorStatus = "bg-default-grey";
-            }
+            var colorStatus = val.ColorStatus;
+            var defaultColorStatus = val.DefaultColorStatus;
 
             var comparison = 0;
             $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
