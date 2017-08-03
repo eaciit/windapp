@@ -187,6 +187,12 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
         templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
     }
 
+    var margin = 0;
+
+    if(dataseries != undefined){
+        margin = -10;
+    }
+
     $('#'+id).html("");
     $("#"+id).replaceWith('<div id='+id+'></div>');
     $('#'+id).kendoChart({
@@ -205,7 +211,12 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
             }
         },
         chartArea: {
-            height: 160
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: margin
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -260,6 +271,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
     });
 }
 avail.fleetMachAvail = function (dataSource) {
+    console.log(dataSource);
     $("#fleetChartMachAvail").replaceWith('<div id="fleetChartMachAvail"></div>');
     $("#fleetChartMachAvail").kendoChart({
         dataSource: {
@@ -279,7 +291,7 @@ avail.fleetMachAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 165,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -371,7 +383,7 @@ avail.fleetGridAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 165,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -576,7 +588,12 @@ avail.DTLostEnergy = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 195,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -668,7 +685,12 @@ avail.TopTurbineByLoss = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 205,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -948,7 +970,12 @@ avail.projectMachAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -963,7 +990,7 @@ avail.projectMachAvail = function (dataSource) {
         seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
-                step: 2,
+                // step: 2,
                 template: '#=  value * 100 #',
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
@@ -976,7 +1003,8 @@ avail.projectMachAvail = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
-            }
+            },
+            max : 1,
         },
         categoryAxis: {
             field: "_id.id2",
@@ -1028,7 +1056,12 @@ avail.projectGridAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1043,7 +1076,7 @@ avail.projectGridAvail = function (dataSource) {
         seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
-                step: 2,
+                // step: 2,
                 template: '#=  value * 100 #',
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
@@ -1056,7 +1089,8 @@ avail.projectGridAvail = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
-            }
+            },
+            max : 1
         },
         categoryAxis: {
             field: "_id.id2",
@@ -1109,7 +1143,12 @@ avail.LossEnergyByType = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 180,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1203,7 +1242,12 @@ avail.DTDuration = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 200,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1311,7 +1355,12 @@ avail.DTLoss = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 200,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1419,7 +1468,12 @@ avail.DTFrequency = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 200,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",

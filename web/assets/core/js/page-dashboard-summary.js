@@ -306,7 +306,7 @@ sum.PLF = function (id,dataSource) {
             visible: false,
         },
         chartArea: {
-            height: 160,
+            height: 185,
             background: "transparent",
             padding: 0,
         },
@@ -381,7 +381,7 @@ sum.LostEnergy = function (dataSource) {
             visible: false,
         },
         chartArea: {
-            height: 170,
+            height: 185,
             background: "transparent",
             padding: 0,
         },
@@ -460,7 +460,7 @@ sum.Windiness = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -556,7 +556,7 @@ sum.WindDistribution = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -636,7 +636,7 @@ sum.ProdMonth = function (id, dataSource) {
             }
         },
         chartArea: {
-            height: 150,
+            height: 175,
             background: "transparent",
             padding: 0,
             margin: {
@@ -730,7 +730,7 @@ sum.AvailabilityChart = function (dataSource, dataSeries) {
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
-            height: 165,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -827,7 +827,7 @@ sum.ProdCurLast = function (id,dataSource) {
             }
         },
         chartArea: {
-            height: 160,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -1111,7 +1111,7 @@ sum.ProductionChart = function (dataSource) {
             }
         },
         chartArea: {
-            height: 165,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -1206,7 +1206,7 @@ sum.CumProduction = function (dataSource) {
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
-            height: 170,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
