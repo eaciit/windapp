@@ -51,23 +51,21 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
 
-	// tk.Println("Date select : ", tStart, " ~ ", tEnd)
-	queryMet = append(queryMet, query...)
-	queryMet = append(queryMet, tk.M{"vhubws90mavg": tk.M{"$gte": 0}})
-	queryMet = append(queryMet, tk.M{"vhubws90mavg": tk.M{"$lte": 30}})
-
-	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": queryMet}})
-	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"vhubws90mavg": 1, "timestamp": 1}})
-
 	if p.Project != "" {
 		query = append(query, tk.M{"projectname": p.Project})
 	}
+	queryMet = append(queryMet, query...)
+	queryMet = append(queryMet, tk.M{"vhubws90mavg": tk.M{"$gte": 0}})
+	queryMet = append(queryMet, tk.M{"vhubws90mavg": tk.M{"$lte": 30}})
 
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0}})
 	query = append(query, tk.M{"avgwindspeed": tk.M{"$lte": 30}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "avgwindspeed": 1, "timestamp": 1}})
+
+	pipesmet = append(pipesmet, tk.M{"$match": tk.M{"$and": queryMet}})
+	pipesmet = append(pipesmet, tk.M{"$project": tk.M{"vhubws90mavg": 1, "timestamp": 1}})
 
 	csr, err := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
 		Command("pipe", pipes).Cursor(nil)
@@ -482,6 +480,7 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 
 	if p.Project != "" {
 		matchTurbine.Set("projectname", p.Project)
+		matchMet.Set("projectname", p.Project)
 	}
 
 	if len(p.Turbine) > 0 {

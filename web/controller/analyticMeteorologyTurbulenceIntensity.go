@@ -49,6 +49,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 	if p.Project != "" {
 		query = append(query, tk.M{"projectname": tk.M{"$eq": p.Project}})
+		querymet = append(querymet, tk.M{"projectname": p.Project})
 	}
 
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})

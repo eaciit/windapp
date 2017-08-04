@@ -451,6 +451,9 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			queryT = append(queryT, toolkit.M{"_id": toolkit.M{"$ne": nil}})
 			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
 			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
+			if p.Project != "" {
+				queryT = append(queryT, toolkit.M{"projectname": p.Project})
+			}
 
 			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryT}})
 			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"vhubws90mavg": 1, "dhubwd88mavg": 1, "timestamp": 1}})
@@ -880,6 +883,9 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 			queryT = append(queryT, toolkit.M{"_id": toolkit.M{"$ne": nil}})
 			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
 			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
+			if p.Project != "" {
+				queryT = append(queryT, toolkit.M{"projectname": p.Project})
+			}
 
 			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryT}})
 			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"vhubws90mavg": 1, "dhubwd88mavg": 1}})
