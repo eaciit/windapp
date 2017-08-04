@@ -579,10 +579,18 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
 		arrmettower = append(arrmettower, "timestamp")
-		_csr, _e := DB().Connection.NewQuery().
+		queryMet := DB().Connection.NewQuery().
 			Select(arrmettower...).
-			From("MetTower").
-			Where(dbox.In("timestamp", arrmettowercond...)).Cursor(nil)
+			From("MetTower")
+
+		filterMet := dbox.In("timestamp", arrmettowercond...)
+		for _, val := range filter {
+			if val.Field == "projectname" {
+				filterMet = dbox.And(dbox.Eq(val.Field, val.Value), filterMet)
+			}
+		}
+		_csr, _e := queryMet.Where(filterMet).Cursor(nil)
+
 		if _e != nil {
 			return helper.CreateResult(false, nil, _e.Error())
 		}
@@ -952,8 +960,15 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
 		arrmettower = append(arrmettower, "timestamp")
-		csrMet, _e := DB().Connection.NewQuery().Select(arrmettower...).From("MetTower").
-			Where(dbox.In("timestamp", arrmettowercond...)).Cursor(nil)
+		queryMet := DB().Connection.NewQuery().Select(arrmettower...).From("MetTower")
+
+		filterMet := dbox.In("timestamp", arrmettowercond...)
+		for _, val := range filter {
+			if val.Field == "projectname" {
+				filterMet = dbox.And(dbox.Eq(val.Field, val.Value), filterMet)
+			}
+		}
+		csrMet, _e := queryMet.Where(filterMet).Cursor(nil)
 		if _e != nil {
 			return helper.CreateResult(false, nil, _e.Error())
 		}
