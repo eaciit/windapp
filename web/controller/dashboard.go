@@ -413,18 +413,21 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	}
 
 	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
-	matches := tk.M{"dateinfo.monthdesc": p.GetString("date"), "available": 1}
+	matches := tk.M{"dateinfo.monthdesc": p.GetString("date")}
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
 	}
-	fields := tk.M{"$sum": "$power"}
 
 	pipe := []tk.M{{"$match": matches},
-		{"$group": tk.M{"_id": ids, "production": fields}},
+		{"$group": tk.M{
+			"_id":        ids,
+			"production": tk.M{"$sum": "$production"},
+			"lostenergy": tk.M{"$sum": "$lostenergy"},
+		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
 	csrScada, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
 
@@ -435,35 +438,10 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 	resultScada := []tk.M{}
 	e = csrScada.Fetch(&resultScada, 0, false)
-
-	matches.Unset("dateinfo.monthdesc")
-	matches.Unset("available")
-
-	matches.Set("startdateinfo.monthdesc", p.GetString("date"))
-	fields = tk.M{"$sum": "$powerlost"}
-
-	pipe = []tk.M{{"$match": matches}, {"$group": tk.M{"_id": ids, "totalpowerlost": fields,
-		"totalduration": tk.M{"$sum": "$duration"}}}}
-	csrAlarm, e := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).
-		Command("pipe", pipe).
-		Cursor(nil)
-
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrAlarm.Close()
 
-	resultAlarm := []tk.M{}
-	e = csrAlarm.Fetch(&resultAlarm, 0, false)
-
-	dataPowerLost := tk.M{}
-	dataDuration := tk.M{}
-	for _, val := range resultAlarm {
-		data := val["_id"].(tk.M)
-		dataPowerLost.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalpowerlost"))
-		dataDuration.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalduration"))
-	}
 	totalPower := tk.M{}
 	totalPowerLost := tk.M{}
 	totalTurbines := tk.M{}
@@ -479,14 +457,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			tproject = project
 			listturbine = PopulateTurbines(DB().Connection, tproject)
 		}
-
-		_id := project + "_" + data.GetString("turbine")
-		if dataPowerLost.Has(_id) {
-			val.Set("lostenergy", dataPowerLost.GetFloat64(_id))
-			val.Set("downtime", dataDuration.GetFloat64(_id))
-		}
 		val.Unset("_id")
-		val.Set("production", val.GetFloat64("production")/6)
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {
 			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
@@ -494,31 +465,77 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		detail = append(detail, val)
 		detailData.Set(project, detail)
 
-		if totalPower.Has(project) {
-			totalPower.Set(data.GetString("project"), totalPower.GetFloat64(project)+val.GetFloat64("production"))
+		if totalTurbines.Has(project) {
+			totalTurbines.Set(project, totalTurbines.GetInt(project)+1)
 		} else {
-			totalPower.Set(data.GetString("project"), val.GetFloat64("production"))
+			totalTurbines.Set(project, 1)
+		}
+		if totalPower.Has(project) {
+			totalPower.Set(project, totalPower.GetFloat64(project)+val.GetFloat64("production"))
+		} else {
+			totalPower.Set(project, val.GetFloat64("production"))
 		}
 		if totalPowerLost.Has(project) {
-			totalPowerLost.Set(data.GetString("project"), totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
+			totalPowerLost.Set(project, totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
 		} else {
-			totalPowerLost.Set(data.GetString("project"), val.GetFloat64("lostenergy"))
+			totalPowerLost.Set(project, val.GetFloat64("lostenergy"))
 		}
-		if totalTurbines.Has(project) {
-			totalTurbines.Set(data.GetString("project"), totalTurbines.GetInt(project)+1)
-		} else {
-			totalTurbines.Set(data.GetString("project"), 1)
-		}
+	}
+
+	csrMonthly, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryByMonth).TableName()).
+		Where(dbox.And(
+			dbox.Eq("projectname", p.GetString("project")),
+			dbox.Eq("dateinfo.monthdesc", p.GetString("date")),
+		)).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrMonthly.Close()
+
+	resultMonthly := []ScadaSummaryByMonth{}
+	e = csrMonthly.Fetch(&resultMonthly, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+
+	bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
+	csrBudget, e := DB().Connection.NewQuery().
+		From(new(ExpPValueModel).TableName()).
+		Where(dbox.And(
+			dbox.Eq("projectname", p.GetString("project")),
+			dbox.Eq("monthno", bulan),
+		)).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrBudget.Close()
+
+	resultBudget := []ExpPValueModel{}
+	e = csrBudget.Fetch(&resultBudget, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
 	}
 
 	dataItem := []tk.M{}
 	for project, val := range totalPower {
 		data := tk.M{
-			"project":    project,
-			"production": val.(float64),
-			"lostenergy": totalPowerLost.GetFloat64(project),
-			"wtg":        totalTurbines.GetInt(project),
-			"detail":     detailData[project],
+			"project":       project,
+			"production":    val.(float64),
+			"lostenergy":    totalPowerLost.GetFloat64(project),
+			"wtg":           totalTurbines.GetInt(project),
+			"detail":        detailData[project],
+			"avgwindspeed":  resultMonthly[0].AvgWindSpeed,
+			"downtimehours": resultMonthly[0].DowntimeHours,
+			"plf":           resultMonthly[0].PLF,
+			"trueavail":     resultMonthly[0].TrueAvail,
+			"budget_p50":    resultBudget[0].P50NetGenMWH,
+			"budget_p75":    resultBudget[0].P75NetGenMWH,
+			"budget_p90":    resultBudget[0].P90NetGenMWH,
 		}
 		dataItem = append(dataItem, data)
 	}

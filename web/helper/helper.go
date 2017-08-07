@@ -260,56 +260,56 @@ func HandleError(err error, optionalArgs ...interface{}) bool {
 }
 
 func CheckEnergyComparison(newdata toolkit.Ms, key1 string, key2 string) toolkit.Ms {
-	countData1 := 0
-	countData2 := 0
+	// countData1 := 0
+	// countData2 := 0
 	result := toolkit.Ms{}
-	measurement := ""
-	for _, data := range newdata {
-		if data.GetFloat64(key1) < data.GetFloat64(key2) {
-			countData1++
-		} else {
-			countData2++
-		}
-	}
+	measurement := "MWh"
+	// for _, data := range newdata {
+	// 	if data.GetFloat64(key1) < data.GetFloat64(key2) {
+	// 		countData1++
+	// 	} else {
+	// 		countData2++
+	// 	}
+	// }
 
-	kunciData := ""
-	if countData1 > countData2 {
-		kunciData = key1
-	} else {
-		kunciData = key2
-	}
+	// kunciData := ""
+	// if countData1 > countData2 {
+	// 	kunciData = key1
+	// } else {
+	// 	kunciData = key2
+	// }
 
-	countSatuan := toolkit.M{}
+	// countSatuan := toolkit.M{}
 
-	for _, data := range newdata {
-		cekVal := data.GetFloat64(kunciData) / 1000000
-		energyType := "GWh"
-		if cekVal < 1 {
-			cekVal = data.GetFloat64(kunciData) / 1000
-			energyType = "MWh"
-			if cekVal < 1 {
-				cekVal = data.GetFloat64(kunciData)
-				energyType = "kWh"
-			}
-		}
-		if countSatuan.Has(energyType) {
-			countSatuan.Set(energyType, countSatuan.GetInt(energyType)+1)
-		} else {
-			countSatuan.Set(energyType, 1)
-		}
-	}
+	// for _, data := range newdata {
+	// 	cekVal := data.GetFloat64(kunciData) / 1000000
+	// 	energyType := "MWh"
+	// 	if cekVal < 1 {
+	// 		cekVal = data.GetFloat64(kunciData) / 1000
+	// 		energyType = "MWh"
+	// 		if cekVal < 1 {
+	// 			cekVal = data.GetFloat64(kunciData)
+	// 			energyType = "kWh"
+	// 		}
+	// 	}
+	// 	if countSatuan.Has(energyType) {
+	// 		countSatuan.Set(energyType, countSatuan.GetInt(energyType)+1)
+	// 	} else {
+	// 		countSatuan.Set(energyType, 1)
+	// 	}
+	// }
 
-	pembagi := 0.00
-	if (countSatuan.GetInt("GWh") > countSatuan.GetInt("MWh")) && (countSatuan.GetInt("GWh") > countSatuan.GetInt("kWh")) {
-		pembagi = 1000000
-		measurement = "GWh"
-	} else if (countSatuan.GetInt("MWh") > countSatuan.GetInt("GWh")) && (countSatuan.GetInt("MWh") > countSatuan.GetInt("kWh")) {
-		pembagi = 1000
-		measurement = "MWh"
-	} else {
-		pembagi = 1
-		measurement = "kWh"
-	}
+	pembagi := 1000.0
+	// if (countSatuan.GetInt("GWh") > countSatuan.GetInt("MWh")) && (countSatuan.GetInt("GWh") > countSatuan.GetInt("kWh")) {
+	// 	pembagi = 1000000
+	// 	measurement = "GWh"
+	// } else if (countSatuan.GetInt("MWh") > countSatuan.GetInt("GWh")) && (countSatuan.GetInt("MWh") > countSatuan.GetInt("kWh")) {
+	// 	pembagi = 1000
+	// 	measurement = "MWh"
+	// } else {
+	// 	pembagi = 1
+	// 	measurement = "kWh"
+	// }
 
 	for _, data := range newdata {
 		data.Set(key1, data.GetFloat64(key1)/pembagi)
