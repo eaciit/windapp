@@ -530,23 +530,27 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		tk.Println(err.Error())
 	}
 
-	csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
-		Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
-		Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
 	tempCondition := []tk.M{}
-	err = csrTemp.Fetch(&tempCondition, 0, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrTemp.Close()
+	curtailmentTurbine, waitingForWsTurbine, temperatureData, tempNormalData := tk.M{}, tk.M{}, tk.M{}, tk.M{}
+	if pageType == "monitoring" {
+		csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
+			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
+			Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
 
-	curtailmentTurbine := getDataPerTurbine("_curtailmentduration", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"show": true}, tk.M{"projectname": project}}}, false)
-	waitingForWsTurbine := getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
-	temperatureData := getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
-	tempNormalData := getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{tk.M{"status": false}, tk.M{"projectname": project}}}, true)
+		err = csrTemp.Fetch(&tempCondition, 0, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrTemp.Close()
+
+		curtailmentTurbine = getDataPerTurbine("_curtailmentduration", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"show": true}, tk.M{"projectname": project}}}, false)
+		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
+		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
+		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{tk.M{"status": false}, tk.M{"projectname": project}}}, true)
+	}
 
 	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
 	indiaTime := lastUpdate.In(indiaLoc)

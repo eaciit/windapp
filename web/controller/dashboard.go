@@ -261,84 +261,96 @@ func GetDataAvailability(datalastmonth []ScadaSummaryByMonth, projectname string
 
 	dataVariance := new(ScadaSummaryVariance)
 
-	for i := startmonth; i <= endmonth; i++ {
-		//check if month more than 12
-		if i-(int(i/100)*100) > 12 {
-			i = (i - 12) + 100
-		}
+	csr, e := DB().Connection.NewQuery().
+		From("rpt_scadasummarybymonth").
+		Where(dbox.Eq("projectname", projectname)).
+		Cursor(nil)
 
-		yearloop := int(i / 100)
-		monthloop := i - (int(i/100) * 100)
+	if e != nil {
+		return nil
+	}
+	defer csr.Close()
 
-		csr, e := DB().Connection.NewQuery().
-			From("rpt_scadasummarybymonth").
-			Where(dbox.And(dbox.Eq("dateinfo.monthid", i), dbox.Eq("projectname", projectname))).
-			Cursor(nil)
+	data := make([]ScadaSummaryByMonth, 0)
+	e = csr.Fetch(&data, 0, false)
+	dataPerMonth := map[string]ScadaSummaryByMonth{}
 
-		if e != nil {
-			return nil
-		}
-		defer csr.Close()
+	for _, val := range data {
+		dataPerMonth[val.ProjectName+"_"+tk.ToString(val.DateInfo.MonthId)] = val
+	}
 
-		data := make([]ScadaSummaryByMonth, 0)
-		e = csr.Fetch(&data, 0, false)
+	hasValue := false
+	keys := ""
 
-		if len(data) > 0 {
-			dataVariance.ID = data[0].ID
-			dataVariance.DateInfo = data[0].DateInfo
-			dataVariance.ProjectName = data[0].ProjectName
-			dataVariance.Production = data[0].Production / 1000
-			dataVariance.ProductionLastYear = data[0].ProductionLastYear
-			dataVariance.Revenue = data[0].Revenue
-			dataVariance.RevenueInLacs = data[0].RevenueInLacs
-			dataVariance.TrueAvail = data[0].TrueAvail
-			dataVariance.ScadaAvail = data[0].ScadaAvail
-			dataVariance.MachineAvail = data[0].MachineAvail
-			dataVariance.GridAvail = data[0].GridAvail
-			dataVariance.PLF = data[0].PLF
-			dataVariance.Budget = data[0].Budget / 1000000
-			dataVariance.AvgWindSpeed = data[0].AvgWindSpeed
-			dataVariance.ExpWindSpeed = data[0].ExpWindSpeed
-			dataVariance.DowntimeHours = data[0].DowntimeHours
-			dataVariance.LostEnergy = data[0].LostEnergy
-			dataVariance.RevenueLoss = data[0].RevenueLoss
-			if data[0].ProductionLastYear == 0 {
-				dataVariance.Variance = 100
-			} else {
-				dataVariance.Variance = math.Abs((data[0].Production - data[0].ProductionLastYear) / data[0].ProductionLastYear * 100)
+	if len(data) > 0 {
+		for i := startmonth; i <= endmonth; i++ {
+			//check if month more than 12
+			if i-(int(i/100)*100) > 12 {
+				i = (i - 12) + 100
 			}
 
-			result = append(result, *dataVariance)
-		} else {
-			// Temporary data to fill result if month doesn't exist
-			datatemp := new(ScadaSummaryByMonth)
+			yearloop := int(i / 100)
+			monthloop := i - (int(i/100) * 100)
+			keys = projectname + "_" + tk.ToString(i)
+			_, hasValue = dataPerMonth[keys]
 
-			datatemp.ID = ""
-			datatemp.ProjectName = projectname
-			dateInfo := GetDateInfo(time.Date(yearloop, time.Month(monthloop), 1, 17, 0, 0, 0, time.UTC))
-			datatemp.DateInfo = dateInfo
+			if hasValue {
+				dataVariance.ID = dataPerMonth[keys].ID
+				dataVariance.DateInfo = dataPerMonth[keys].DateInfo
+				dataVariance.ProjectName = dataPerMonth[keys].ProjectName
+				dataVariance.Production = dataPerMonth[keys].Production / 1000
+				dataVariance.ProductionLastYear = dataPerMonth[keys].ProductionLastYear
+				dataVariance.Revenue = dataPerMonth[keys].Revenue
+				dataVariance.RevenueInLacs = dataPerMonth[keys].RevenueInLacs
+				dataVariance.TrueAvail = dataPerMonth[keys].TrueAvail
+				dataVariance.ScadaAvail = dataPerMonth[keys].ScadaAvail
+				dataVariance.MachineAvail = dataPerMonth[keys].MachineAvail
+				dataVariance.GridAvail = dataPerMonth[keys].GridAvail
+				dataVariance.PLF = dataPerMonth[keys].PLF
+				dataVariance.Budget = dataPerMonth[keys].Budget / 1000000
+				dataVariance.AvgWindSpeed = dataPerMonth[keys].AvgWindSpeed
+				dataVariance.ExpWindSpeed = dataPerMonth[keys].ExpWindSpeed
+				dataVariance.DowntimeHours = dataPerMonth[keys].DowntimeHours
+				dataVariance.LostEnergy = dataPerMonth[keys].LostEnergy
+				dataVariance.RevenueLoss = dataPerMonth[keys].RevenueLoss
+				if dataPerMonth[keys].ProductionLastYear == 0 {
+					dataVariance.Variance = 100
+				} else {
+					dataVariance.Variance = math.Abs((dataPerMonth[keys].Production - dataPerMonth[keys].ProductionLastYear) / dataPerMonth[keys].ProductionLastYear * 100)
+				}
 
-			dataVariance.ID = datatemp.ID
-			dataVariance.DateInfo = datatemp.DateInfo
-			dataVariance.ProjectName = datatemp.ProjectName
-			dataVariance.Production = datatemp.Production
-			dataVariance.ProductionLastYear = datatemp.ProductionLastYear
-			dataVariance.Revenue = datatemp.Revenue
-			dataVariance.RevenueInLacs = datatemp.RevenueInLacs
-			dataVariance.TrueAvail = datatemp.TrueAvail
-			dataVariance.ScadaAvail = datatemp.ScadaAvail
-			dataVariance.MachineAvail = datatemp.MachineAvail
-			dataVariance.GridAvail = datatemp.GridAvail
-			dataVariance.PLF = datatemp.PLF
-			dataVariance.Budget = datatemp.Budget
-			dataVariance.AvgWindSpeed = datatemp.AvgWindSpeed
-			dataVariance.ExpWindSpeed = datatemp.ExpWindSpeed
-			dataVariance.DowntimeHours = datatemp.DowntimeHours
-			dataVariance.LostEnergy = datatemp.LostEnergy
-			dataVariance.RevenueLoss = datatemp.RevenueLoss
-			dataVariance.Variance = 0
+				result = append(result, *dataVariance)
+			} else {
+				// Temporary data to fill result if month doesn't exist
+				datatemp := new(ScadaSummaryByMonth)
 
-			result = append(result, *dataVariance)
+				datatemp.ID = ""
+				datatemp.ProjectName = projectname
+				dateInfo := GetDateInfo(time.Date(yearloop, time.Month(monthloop), 1, 17, 0, 0, 0, time.UTC))
+				datatemp.DateInfo = dateInfo
+
+				dataVariance.ID = datatemp.ID
+				dataVariance.DateInfo = datatemp.DateInfo
+				dataVariance.ProjectName = datatemp.ProjectName
+				dataVariance.Production = datatemp.Production
+				dataVariance.ProductionLastYear = datatemp.ProductionLastYear
+				dataVariance.Revenue = datatemp.Revenue
+				dataVariance.RevenueInLacs = datatemp.RevenueInLacs
+				dataVariance.TrueAvail = datatemp.TrueAvail
+				dataVariance.ScadaAvail = datatemp.ScadaAvail
+				dataVariance.MachineAvail = datatemp.MachineAvail
+				dataVariance.GridAvail = datatemp.GridAvail
+				dataVariance.PLF = datatemp.PLF
+				dataVariance.Budget = datatemp.Budget
+				dataVariance.AvgWindSpeed = datatemp.AvgWindSpeed
+				dataVariance.ExpWindSpeed = datatemp.ExpWindSpeed
+				dataVariance.DowntimeHours = datatemp.DowntimeHours
+				dataVariance.LostEnergy = datatemp.LostEnergy
+				dataVariance.RevenueLoss = datatemp.RevenueLoss
+				dataVariance.Variance = 0
+
+				result = append(result, *dataVariance)
+			}
 		}
 	}
 
@@ -401,18 +413,21 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	}
 
 	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
-	matches := tk.M{"dateinfo.monthdesc": p.GetString("date"), "available": 1}
+	matches := tk.M{"dateinfo.monthdesc": p.GetString("date")}
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
 	}
-	fields := tk.M{"$sum": "$power"}
 
 	pipe := []tk.M{{"$match": matches},
-		{"$group": tk.M{"_id": ids, "production": fields}},
+		{"$group": tk.M{
+			"_id":        ids,
+			"production": tk.M{"$sum": "$production"},
+			"lostenergy": tk.M{"$sum": "$lostenergy"},
+		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
 	csrScada, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
 
@@ -423,35 +438,10 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 	resultScada := []tk.M{}
 	e = csrScada.Fetch(&resultScada, 0, false)
-
-	matches.Unset("dateinfo.monthdesc")
-	matches.Unset("available")
-
-	matches.Set("startdateinfo.monthdesc", p.GetString("date"))
-	fields = tk.M{"$sum": "$powerlost"}
-
-	pipe = []tk.M{{"$match": matches}, {"$group": tk.M{"_id": ids, "totalpowerlost": fields,
-		"totalduration": tk.M{"$sum": "$duration"}}}}
-	csrAlarm, e := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).
-		Command("pipe", pipe).
-		Cursor(nil)
-
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrAlarm.Close()
 
-	resultAlarm := []tk.M{}
-	e = csrAlarm.Fetch(&resultAlarm, 0, false)
-
-	dataPowerLost := tk.M{}
-	dataDuration := tk.M{}
-	for _, val := range resultAlarm {
-		data := val["_id"].(tk.M)
-		dataPowerLost.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalpowerlost"))
-		dataDuration.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalduration"))
-	}
 	totalPower := tk.M{}
 	totalPowerLost := tk.M{}
 	totalTurbines := tk.M{}
@@ -467,14 +457,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			tproject = project
 			listturbine = PopulateTurbines(DB().Connection, tproject)
 		}
-
-		_id := project + "_" + data.GetString("turbine")
-		if dataPowerLost.Has(_id) {
-			val.Set("lostenergy", dataPowerLost.GetFloat64(_id))
-			val.Set("downtime", dataDuration.GetFloat64(_id))
-		}
 		val.Unset("_id")
-		val.Set("production", val.GetFloat64("production")/6)
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {
 			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
@@ -482,31 +465,77 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		detail = append(detail, val)
 		detailData.Set(project, detail)
 
-		if totalPower.Has(project) {
-			totalPower.Set(data.GetString("project"), totalPower.GetFloat64(project)+val.GetFloat64("production"))
+		if totalTurbines.Has(project) {
+			totalTurbines.Set(project, totalTurbines.GetInt(project)+1)
 		} else {
-			totalPower.Set(data.GetString("project"), val.GetFloat64("production"))
+			totalTurbines.Set(project, 1)
+		}
+		if totalPower.Has(project) {
+			totalPower.Set(project, totalPower.GetFloat64(project)+val.GetFloat64("production"))
+		} else {
+			totalPower.Set(project, val.GetFloat64("production"))
 		}
 		if totalPowerLost.Has(project) {
-			totalPowerLost.Set(data.GetString("project"), totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
+			totalPowerLost.Set(project, totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
 		} else {
-			totalPowerLost.Set(data.GetString("project"), val.GetFloat64("lostenergy"))
+			totalPowerLost.Set(project, val.GetFloat64("lostenergy"))
 		}
-		if totalTurbines.Has(project) {
-			totalTurbines.Set(data.GetString("project"), totalTurbines.GetInt(project)+1)
-		} else {
-			totalTurbines.Set(data.GetString("project"), 1)
-		}
+	}
+
+	csrMonthly, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryByMonth).TableName()).
+		Where(dbox.And(
+			dbox.Eq("projectname", p.GetString("project")),
+			dbox.Eq("dateinfo.monthdesc", p.GetString("date")),
+		)).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrMonthly.Close()
+
+	resultMonthly := []ScadaSummaryByMonth{}
+	e = csrMonthly.Fetch(&resultMonthly, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+
+	bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
+	csrBudget, e := DB().Connection.NewQuery().
+		From(new(ExpPValueModel).TableName()).
+		Where(dbox.And(
+			dbox.Eq("projectname", p.GetString("project")),
+			dbox.Eq("monthno", bulan),
+		)).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrBudget.Close()
+
+	resultBudget := []ExpPValueModel{}
+	e = csrBudget.Fetch(&resultBudget, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
 	}
 
 	dataItem := []tk.M{}
 	for project, val := range totalPower {
 		data := tk.M{
-			"project":    project,
-			"production": val.(float64),
-			"lostenergy": totalPowerLost.GetFloat64(project),
-			"wtg":        totalTurbines.GetInt(project),
-			"detail":     detailData[project],
+			"project":       project,
+			"production":    val.(float64),
+			"lostenergy":    totalPowerLost.GetFloat64(project),
+			"wtg":           totalTurbines.GetInt(project),
+			"detail":        detailData[project],
+			"avgwindspeed":  resultMonthly[0].AvgWindSpeed,
+			"downtimehours": resultMonthly[0].DowntimeHours,
+			"plf":           resultMonthly[0].PLF,
+			"trueavail":     resultMonthly[0].TrueAvail,
+			"budget_p50":    resultBudget[0].P50NetGenMWH,
+			"budget_p75":    resultBudget[0].P75NetGenMWH,
+			"budget_p90":    resultBudget[0].P90NetGenMWH,
 		}
 		dataItem = append(dataItem, data)
 	}
@@ -2453,33 +2482,62 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			scada.Unset("minutes")
 		}
 	}
-
-	for _, res := range result {
-		id := res.Get("_id")
-		machineResult = append(machineResult, tk.M{"_id": id, "result": res.GetFloat64("machineResult")})
-		gridResult = append(gridResult, tk.M{"_id": id, "result": res.GetFloat64("gridResult")})
+	if p.ProjectName != "Fleet" {
+		for _, res := range result {
+			machineResult = append(machineResult, tk.M{"_id": res.Get("_id"), "result": res.GetFloat64("machineResult")})
+			gridResult = append(gridResult, tk.M{"_id": res.Get("_id"), "result": res.GetFloat64("gridResult")})
+		}
+	} else {
+		orderNo := 0
+		ids := tk.M{}
+		for _, res := range result {
+			orderNo++
+			ids, _ = tk.ToM(res.Get("_id"))
+			machineResult = append(machineResult, tk.M{
+				"DataId":  tk.ToString(ids.GetInt("id1")),
+				"Title":   ids.GetString("id2"),
+				"OrderNo": orderNo,
+				"Value":   res.GetFloat64("machineResult"),
+				"Project": ids.GetString("id3"),
+			})
+			gridResult = append(gridResult, tk.M{
+				"DataId":  tk.ToString(ids.GetInt("id1")),
+				"Title":   ids.GetString("id2"),
+				"OrderNo": orderNo,
+				"Value":   res.GetFloat64("gridResult"),
+				"Project": ids.GetString("id3"),
+			})
+		}
 	}
+
+	mrTmp := []tk.M{}
+	grTmp := []tk.M{}
 
 	if len(machineResult) > (len(projects) * 12) {
 		length := len(machineResult)
 		div := (length / len(projects))
 
-		mrTmp := []tk.M{}
-		grTmp := []tk.M{}
-
 		for i := 1; i < len(projects)+1; i++ {
 			offerX := (div * i) - 12
 			// log.Printf("> %v | %v | %v | %v \n", div, div*i, offerX, offerX+12)
-
-			mrTmp = append(mrTmp, machineResult[offerX:offerX+12]...)
-			grTmp = append(grTmp, gridResult[offerX:offerX+12]...)
+			if p.ProjectName != "Fleet" {
+				mrTmp = append(mrTmp, machineResult[offerX:offerX+12]...)
+				grTmp = append(grTmp, gridResult[offerX:offerX+12]...)
+			} else {
+				mrTmp = append(mrTmp, tk.M{
+					"Project": machineResult[offerX].GetString("Project"),
+					"Details": machineResult[offerX : offerX+12],
+				})
+				grTmp = append(grTmp, tk.M{
+					"Project": gridResult[offerX].GetString("Project"),
+					"Details": gridResult[offerX : offerX+12],
+				})
+			}
 		}
-
 		machineResult = mrTmp
 		gridResult = grTmp
 	}
 
-	// tk.Println()
 	return
 }
 
