@@ -261,84 +261,96 @@ func GetDataAvailability(datalastmonth []ScadaSummaryByMonth, projectname string
 
 	dataVariance := new(ScadaSummaryVariance)
 
-	for i := startmonth; i <= endmonth; i++ {
-		//check if month more than 12
-		if i-(int(i/100)*100) > 12 {
-			i = (i - 12) + 100
-		}
+	csr, e := DB().Connection.NewQuery().
+		From("rpt_scadasummarybymonth").
+		Where(dbox.Eq("projectname", projectname)).
+		Cursor(nil)
 
-		yearloop := int(i / 100)
-		monthloop := i - (int(i/100) * 100)
+	if e != nil {
+		return nil
+	}
+	defer csr.Close()
 
-		csr, e := DB().Connection.NewQuery().
-			From("rpt_scadasummarybymonth").
-			Where(dbox.And(dbox.Eq("dateinfo.monthid", i), dbox.Eq("projectname", projectname))).
-			Cursor(nil)
+	data := make([]ScadaSummaryByMonth, 0)
+	e = csr.Fetch(&data, 0, false)
+	dataPerMonth := map[string]ScadaSummaryByMonth{}
 
-		if e != nil {
-			return nil
-		}
-		defer csr.Close()
+	for _, val := range data {
+		dataPerMonth[val.ProjectName+"_"+tk.ToString(val.DateInfo.MonthId)] = val
+	}
 
-		data := make([]ScadaSummaryByMonth, 0)
-		e = csr.Fetch(&data, 0, false)
+	hasValue := false
+	keys := ""
 
-		if len(data) > 0 {
-			dataVariance.ID = data[0].ID
-			dataVariance.DateInfo = data[0].DateInfo
-			dataVariance.ProjectName = data[0].ProjectName
-			dataVariance.Production = data[0].Production / 1000
-			dataVariance.ProductionLastYear = data[0].ProductionLastYear
-			dataVariance.Revenue = data[0].Revenue
-			dataVariance.RevenueInLacs = data[0].RevenueInLacs
-			dataVariance.TrueAvail = data[0].TrueAvail
-			dataVariance.ScadaAvail = data[0].ScadaAvail
-			dataVariance.MachineAvail = data[0].MachineAvail
-			dataVariance.GridAvail = data[0].GridAvail
-			dataVariance.PLF = data[0].PLF
-			dataVariance.Budget = data[0].Budget / 1000000
-			dataVariance.AvgWindSpeed = data[0].AvgWindSpeed
-			dataVariance.ExpWindSpeed = data[0].ExpWindSpeed
-			dataVariance.DowntimeHours = data[0].DowntimeHours
-			dataVariance.LostEnergy = data[0].LostEnergy
-			dataVariance.RevenueLoss = data[0].RevenueLoss
-			if data[0].ProductionLastYear == 0 {
-				dataVariance.Variance = 100
-			} else {
-				dataVariance.Variance = math.Abs((data[0].Production - data[0].ProductionLastYear) / data[0].ProductionLastYear * 100)
+	if len(data) > 0 {
+		for i := startmonth; i <= endmonth; i++ {
+			//check if month more than 12
+			if i-(int(i/100)*100) > 12 {
+				i = (i - 12) + 100
 			}
 
-			result = append(result, *dataVariance)
-		} else {
-			// Temporary data to fill result if month doesn't exist
-			datatemp := new(ScadaSummaryByMonth)
+			yearloop := int(i / 100)
+			monthloop := i - (int(i/100) * 100)
+			keys = projectname + "_" + tk.ToString(i)
+			_, hasValue = dataPerMonth[keys]
 
-			datatemp.ID = ""
-			datatemp.ProjectName = projectname
-			dateInfo := GetDateInfo(time.Date(yearloop, time.Month(monthloop), 1, 17, 0, 0, 0, time.UTC))
-			datatemp.DateInfo = dateInfo
+			if hasValue {
+				dataVariance.ID = dataPerMonth[keys].ID
+				dataVariance.DateInfo = dataPerMonth[keys].DateInfo
+				dataVariance.ProjectName = dataPerMonth[keys].ProjectName
+				dataVariance.Production = dataPerMonth[keys].Production / 1000
+				dataVariance.ProductionLastYear = dataPerMonth[keys].ProductionLastYear
+				dataVariance.Revenue = dataPerMonth[keys].Revenue
+				dataVariance.RevenueInLacs = dataPerMonth[keys].RevenueInLacs
+				dataVariance.TrueAvail = dataPerMonth[keys].TrueAvail
+				dataVariance.ScadaAvail = dataPerMonth[keys].ScadaAvail
+				dataVariance.MachineAvail = dataPerMonth[keys].MachineAvail
+				dataVariance.GridAvail = dataPerMonth[keys].GridAvail
+				dataVariance.PLF = dataPerMonth[keys].PLF
+				dataVariance.Budget = dataPerMonth[keys].Budget / 1000000
+				dataVariance.AvgWindSpeed = dataPerMonth[keys].AvgWindSpeed
+				dataVariance.ExpWindSpeed = dataPerMonth[keys].ExpWindSpeed
+				dataVariance.DowntimeHours = dataPerMonth[keys].DowntimeHours
+				dataVariance.LostEnergy = dataPerMonth[keys].LostEnergy
+				dataVariance.RevenueLoss = dataPerMonth[keys].RevenueLoss
+				if dataPerMonth[keys].ProductionLastYear == 0 {
+					dataVariance.Variance = 100
+				} else {
+					dataVariance.Variance = math.Abs((dataPerMonth[keys].Production - dataPerMonth[keys].ProductionLastYear) / dataPerMonth[keys].ProductionLastYear * 100)
+				}
 
-			dataVariance.ID = datatemp.ID
-			dataVariance.DateInfo = datatemp.DateInfo
-			dataVariance.ProjectName = datatemp.ProjectName
-			dataVariance.Production = datatemp.Production
-			dataVariance.ProductionLastYear = datatemp.ProductionLastYear
-			dataVariance.Revenue = datatemp.Revenue
-			dataVariance.RevenueInLacs = datatemp.RevenueInLacs
-			dataVariance.TrueAvail = datatemp.TrueAvail
-			dataVariance.ScadaAvail = datatemp.ScadaAvail
-			dataVariance.MachineAvail = datatemp.MachineAvail
-			dataVariance.GridAvail = datatemp.GridAvail
-			dataVariance.PLF = datatemp.PLF
-			dataVariance.Budget = datatemp.Budget
-			dataVariance.AvgWindSpeed = datatemp.AvgWindSpeed
-			dataVariance.ExpWindSpeed = datatemp.ExpWindSpeed
-			dataVariance.DowntimeHours = datatemp.DowntimeHours
-			dataVariance.LostEnergy = datatemp.LostEnergy
-			dataVariance.RevenueLoss = datatemp.RevenueLoss
-			dataVariance.Variance = 0
+				result = append(result, *dataVariance)
+			} else {
+				// Temporary data to fill result if month doesn't exist
+				datatemp := new(ScadaSummaryByMonth)
 
-			result = append(result, *dataVariance)
+				datatemp.ID = ""
+				datatemp.ProjectName = projectname
+				dateInfo := GetDateInfo(time.Date(yearloop, time.Month(monthloop), 1, 17, 0, 0, 0, time.UTC))
+				datatemp.DateInfo = dateInfo
+
+				dataVariance.ID = datatemp.ID
+				dataVariance.DateInfo = datatemp.DateInfo
+				dataVariance.ProjectName = datatemp.ProjectName
+				dataVariance.Production = datatemp.Production
+				dataVariance.ProductionLastYear = datatemp.ProductionLastYear
+				dataVariance.Revenue = datatemp.Revenue
+				dataVariance.RevenueInLacs = datatemp.RevenueInLacs
+				dataVariance.TrueAvail = datatemp.TrueAvail
+				dataVariance.ScadaAvail = datatemp.ScadaAvail
+				dataVariance.MachineAvail = datatemp.MachineAvail
+				dataVariance.GridAvail = datatemp.GridAvail
+				dataVariance.PLF = datatemp.PLF
+				dataVariance.Budget = datatemp.Budget
+				dataVariance.AvgWindSpeed = datatemp.AvgWindSpeed
+				dataVariance.ExpWindSpeed = datatemp.ExpWindSpeed
+				dataVariance.DowntimeHours = datatemp.DowntimeHours
+				dataVariance.LostEnergy = datatemp.LostEnergy
+				dataVariance.RevenueLoss = datatemp.RevenueLoss
+				dataVariance.Variance = 0
+
+				result = append(result, *dataVariance)
+			}
 		}
 	}
 
