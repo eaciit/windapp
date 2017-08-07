@@ -271,7 +271,6 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
     });
 }
 avail.fleetMachAvail = function (dataSource) {
-    console.log(dataSource);
     $("#fleetChartMachAvail").replaceWith('<div id="fleetChartMachAvail"></div>');
     $("#fleetChartMachAvail").kendoChart({
         dataSource: {
@@ -2015,7 +2014,6 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
     });
 
     // avail.toDetailDTLETTable(param);
-    console.log(project);
     if(project == 'Fleet'){
         avail.toDetailDTLETTable(param);
     }
