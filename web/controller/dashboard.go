@@ -2465,25 +2465,32 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			scada.Unset("minutes")
 		}
 	}
-	orderNo := 0
-	ids := tk.M{}
-	for _, res := range result {
-		orderNo++
-		ids, _ = tk.ToM(res.Get("_id"))
-		machineResult = append(machineResult, tk.M{
-			"DataId":  tk.ToString(ids.GetInt("id1")),
-			"Title":   ids.GetString("id2"),
-			"OrderNo": orderNo,
-			"Value":   res.GetFloat64("machineResult"),
-			"Project": ids.GetString("id3"),
-		})
-		gridResult = append(gridResult, tk.M{
-			"DataId":  tk.ToString(ids.GetInt("id1")),
-			"Title":   ids.GetString("id2"),
-			"OrderNo": orderNo,
-			"Value":   res.GetFloat64("gridResult"),
-			"Project": ids.GetString("id3"),
-		})
+	if p.ProjectName != "Fleet" {
+		for _, res := range result {
+			machineResult = append(machineResult, tk.M{"_id": res.Get("_id"), "result": res.GetFloat64("machineResult")})
+			gridResult = append(gridResult, tk.M{"_id": res.Get("_id"), "result": res.GetFloat64("gridResult")})
+		}
+	} else {
+		orderNo := 0
+		ids := tk.M{}
+		for _, res := range result {
+			orderNo++
+			ids, _ = tk.ToM(res.Get("_id"))
+			machineResult = append(machineResult, tk.M{
+				"DataId":  tk.ToString(ids.GetInt("id1")),
+				"Title":   ids.GetString("id2"),
+				"OrderNo": orderNo,
+				"Value":   res.GetFloat64("machineResult"),
+				"Project": ids.GetString("id3"),
+			})
+			gridResult = append(gridResult, tk.M{
+				"DataId":  tk.ToString(ids.GetInt("id1")),
+				"Title":   ids.GetString("id2"),
+				"OrderNo": orderNo,
+				"Value":   res.GetFloat64("gridResult"),
+				"Project": ids.GetString("id3"),
+			})
+		}
 	}
 
 	mrTmp := []tk.M{}
@@ -2496,15 +2503,19 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		for i := 1; i < len(projects)+1; i++ {
 			offerX := (div * i) - 12
 			// log.Printf("> %v | %v | %v | %v \n", div, div*i, offerX, offerX+12)
-
-			mrTmp = append(mrTmp, tk.M{
-				"Project": machineResult[offerX].GetString("Project"),
-				"Details": machineResult[offerX : offerX+12],
-			})
-			grTmp = append(grTmp, tk.M{
-				"Project": gridResult[offerX].GetString("Project"),
-				"Details": gridResult[offerX : offerX+12],
-			})
+			if p.ProjectName != "Fleet" {
+				mrTmp = append(mrTmp, machineResult[offerX:offerX+12]...)
+				grTmp = append(grTmp, gridResult[offerX:offerX+12]...)
+			} else {
+				mrTmp = append(mrTmp, tk.M{
+					"Project": machineResult[offerX].GetString("Project"),
+					"Details": machineResult[offerX : offerX+12],
+				})
+				grTmp = append(grTmp, tk.M{
+					"Project": gridResult[offerX].GetString("Project"),
+					"Details": gridResult[offerX : offerX+12],
+				})
+			}
 		}
 		machineResult = mrTmp
 		gridResult = grTmp
