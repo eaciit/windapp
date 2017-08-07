@@ -173,6 +173,9 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		filter = append(filter, dbox.Ne("_id", ""))
 		filter = append(filter, dbox.Gte("timestamp", tStart))
 		filter = append(filter, dbox.Lte("timestamp", tEnd))
+		if project != "" {
+			filter = append(filter, dbox.Eq("projectname", project))
+		}
 
 		csrMet, e := DB().Connection.NewQuery().
 			From(new(MetTower).TableName()).
