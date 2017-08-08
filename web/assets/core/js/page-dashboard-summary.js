@@ -27,6 +27,7 @@ sum.availData = ko.observableArray([]);
 sum.availSeries = ko.observable([]);
 sum.periodSelected = ko.observable('currentmonth');
 sum.detailSummary = ko.observableArray([]);
+sum.getScadaLastUpdate = ko.observableArray([]);
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
     {"text": "Current Month", "value": "currentmonth"}
@@ -42,63 +43,72 @@ var map;
 vm.dateAsOf(app.currentDateData);
 sum.loadData = function () {
 
-    if (lgd.isSummary()) {
-        var project = $("#projectId").data("kendoDropDownList").value();
-        for(var i=0;i<sum.periodList.length;i++) {
-            sum.paramPeriod.push(sum.periodList[i].value);
+    var project = $("#projectId").data("kendoDropDownList").value();
+    for(var i=0;i<sum.periodList.length;i++) {
+        sum.paramPeriod.push(sum.periodList[i].value);
+    }
+    for(var i=0;i<lgd.projectAvailList().length;i++) {
+        sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
+    }
+    var param = { ProjectName: project, Date: maxdate};
+
+
+    var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
         }
-        for(var i=0;i<lgd.projectAvailList().length;i++) {
-            sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
-        }
-        var param = { ProjectName: project, Date: maxdate};
 
-        var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
+        sum.getScadaLastUpdate(res.data);
 
-
-            if (res.data.length > 0){
-                sum.dataSource(res.data[0]);
-                sum.noOfProjects(res.data[0].NoOfProjects);
-                sum.noOfProjectsExFleet(res.data[0].NoOfProjects);
-                sum.noOfTurbines(res.data[0].NoOfTurbines);
-                sum.totalMaxCapacity((res.data[0].TotalMaxCapacity / 1000) + " MW");
-                sum.currentDown(res.data[0].CurrentDown);
-                sum.twoDaysDown(res.data[0].TwoDaysDown);
-
-                var lastUpdate = res.data[0].LastUpdate;
-
-                // vm.dateAsOf(lastUpdate.addHours(-7));
-                sum.ProductionChart(res.data[0].Productions);
-                sum.CumProduction(res.data[0].CummulativeProductions);
-                vm.dateAsOf(lastUpdate);
-
-                sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
-
-            } else {
-                var projectStr = $("#projectId").data("kendoDropDownList").text();
-                if (projectStr != "Fleet"){
-                    sum.noOfProjects(1);
-                    var split = (projectStr.split(" ("))[1].split("|");
-                    sum.noOfTurbines(split[0]);
-                    sum.totalMaxCapacity(split[1].slice(0, -1));
-                }else{
-                    sum.noOfProjects($("#projectId").data("kendoDropDownList").dataSource.total()-1);
-                    sum.noOfTurbines("N/A");
-                    sum.totalMaxCapacity("N/A");
-                }   
-
-                sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
-
-                sum.dataSource(null);
-                sum.currentDown("N/A");
-                sum.twoDaysDown("N/A");       
-                sum.ProductionChart(null);
-                sum.CumProduction(null);
-            }
+        if (sum.getScadaLastUpdate().length > 0){
+            var lastUpdate = sum.getScadaLastUpdate()[0].LastUpdate;
+            vm.dateAsOf(lastUpdate);
             
-        });
+        }
+        
+    });
+
+    if (lgd.isSummary()) {
+        var getscadalastupdate = sum.getScadaLastUpdate();
+        if (sum.getScadaLastUpdate().length > 0){
+            sum.dataSource(getscadalastupdate[0]);
+            sum.noOfProjects(getscadalastupdate[0].NoOfProjects);
+            sum.noOfProjectsExFleet(getscadalastupdate[0].NoOfProjects);
+            sum.noOfTurbines(getscadalastupdate[0].NoOfTurbines);
+            sum.totalMaxCapacity((getscadalastupdate[0].TotalMaxCapacity / 1000) + " MW");
+            sum.currentDown(getscadalastupdate[0].CurrentDown);
+            sum.twoDaysDown(getscadalastupdate[0].TwoDaysDown);
+
+            
+
+            // vm.dateAsOf(lastUpdate.addHours(-7));
+            sum.ProductionChart(getscadalastupdate[0].Productions);
+            sum.CumProduction(getscadalastupdate[0].CummulativeProductions);
+           
+
+            sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
+
+        } else {
+            var projectStr = $("#projectId").data("kendoDropDownList").text();
+            if (projectStr != "Fleet"){
+                sum.noOfProjects(1);
+                var split = (projectStr.split(" ("))[1].split("|");
+                sum.noOfTurbines(split[0]);
+                sum.totalMaxCapacity(split[1].slice(0, -1));
+            }else{
+                sum.noOfProjects($("#projectId").data("kendoDropDownList").dataSource.total()-1);
+                sum.noOfTurbines("N/A");
+                sum.totalMaxCapacity("N/A");
+            }   
+
+            sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
+
+            sum.dataSource(null);
+            sum.currentDown("N/A");
+            sum.twoDaysDown("N/A");       
+            sum.ProductionChart(null);
+            sum.CumProduction(null);
+        }
 
         param = { ProjectName: project, Date: maxdate, ProjectList: sum.paramAvailPeriod};
         var ajax2 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadasummarybymonth", param, function (res) {
