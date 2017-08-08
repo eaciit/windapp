@@ -26,6 +26,7 @@ sum.windDistData = ko.observable();
 sum.availData = ko.observableArray([]);
 sum.availSeries = ko.observable([]);
 sum.periodSelected = ko.observable('currentmonth');
+sum.detailSummary = ko.observableArray([]);
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
     {"text": "Current Month", "value": "currentmonth"}
@@ -676,9 +677,10 @@ sum.ProdMonthFleet = function (id, dataSource) {
         series: series,
         // seriesColors: colorField,
         seriesClick: function (e) {
-            $.when(lgd.stop()).done(function(){
+            setTimeout(function(){
+                lgd.stop();
                 sum.DetailProdByProject(e);
-            });
+            },500);
             
         },
         valueAxes: [{
@@ -1603,7 +1605,7 @@ sum.DetailProdByProject = function (e) {
 
         var measurement = " (" + dataSource.measurement + ") ";
 
-
+        sum.detailSummary(dataSource);
         sum.detailProdMsTxt(measurement);
 
         $("#chartDetailProdByProject").kendoChart({
@@ -1623,6 +1625,7 @@ sum.DetailProdByProject = function (e) {
             chartArea: {
                 padding: 0,
                 margin: 0,
+                height: 350,
             },
             seriesDefaults: {
                 type: "column",

@@ -108,7 +108,7 @@
 	                      <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonthFleet').kendoChart2Grid('n2')">
 	                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
 	                      </label>
-	                      <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonthFleet',sum.dataSourceScada())">
+	                      <label class="btn btn-primary btn-xs" onclick="sum.ProdMonthFleet('chartProdMonthFleet',sum.dataSourceScadaAvailability())">
 	                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
 	                      </label>
 	                  </div>
@@ -446,8 +446,52 @@
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading"><span data-bind="text:sum.detailProdProjectTxt"></span>&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdDateTxt"></strong></div>
+				<div class="panel-heading"><span data-bind="text:sum.detailProdProjectTxt"></span>&nbsp;(<span data-bind="text:sum.detailSummary().wtg"></span> Turbines)&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdDateTxt"></strong></div>
 				<div class="panel-body">
+					<div class="col-md-12">
+						<div class="control-summary production-part left-border-org">
+							<div class="col-md-12">
+								<div class="col-md-4 sum-production">
+		                            <label class="summary-header">Production (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+		                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().production , 'n2')">0</label>
+	                        	</div>
+	                        	<div class="col-md-8" style="width: 350px;">
+									<div class="col-md-4 border-right">
+			                            <label class="summary-header">P50 (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p50, 'n2')">0</label>
+		                        	</div>
+		                        	<div class="col-md-4">
+			                            <label class="summary-header">P75 (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p75, 'n2')">0</label>
+		                        	</div>
+		                        	<div class="col-md-4 border-left">
+			                            <label class="summary-header">P90 (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p90, 'n2')">0</label>
+		                        	</div>
+		                        </div>
+                            </div>
+                        </div>
+                        <div class="control-summary left-border-org">
+                            <label class="summary-header">Availability (%)</label><br />
+                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().trueavail , 'n2')">0</label>
+                        </div>
+                        <div class="control-summary left-border-org">
+                            <label class="summary-header">PLF (%)</label><br />
+                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().plf , 'n2')">0</label>
+                        </div>
+                        <div class="control-summary left-border-org">
+                            <label class="summary-header">Avg Wind Speed(m/s)</label><br />
+                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().avgwindspeed , 'n2')">0</label>
+                        </div>
+                        <div class="control-summary left-border-org">
+                            <label class="summary-header">Lost Energy(MWh)</label><br />
+                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().lostenergy , 'n2')">0</label>
+                        </div>
+                        <div class="control-summary left-border-org">
+                            <label class="summary-header">Downtime (Hrs)</label><br />
+                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().downtimehours , 'n2')">0</label>
+                        </div>
+					</div>
 					<div class="col-md-12">
 						<div id="chartDetailProdByProject"></div>
 						<div class="clearfix">&nbsp;</div>
