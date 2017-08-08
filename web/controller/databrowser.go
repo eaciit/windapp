@@ -589,12 +589,18 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	arrscadaoem := []string{"_id"}
 	source := "ScadaDataHFD"
 	timestamp := "timestamp"
+	var val1 reflect.Value
 	switch tipe {
 	case "ScadaOEM":
 		tablename = new(ScadaDataOEM).TableName()
 		arrscadaoem = append(arrscadaoem, "timestamputc")
 		source = "ScadaDataOEM"
 		timestamp = "timestamputc"
+		obj1 := ScadaDataOEM{}
+		val1 = reflect.Indirect(reflect.ValueOf(obj1))
+	case "ScadaHFD":
+		obj1 := ScadaDataHFD{}
+		val1 = reflect.Indirect(reflect.ValueOf(obj1))
 	}
 
 	istimestamp := false
@@ -783,9 +789,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	allFieldRequested = append(allFieldRequested, arrmettower...)
 	allHeader := map[string]string{}
 	header := map[string]string{}
-	obj1 := ScadaDataOEM{}
 	obj2 := MetTower{}
-	val1 := reflect.Indirect(reflect.ValueOf(obj1))
 	val2 := reflect.Indirect(reflect.ValueOf(obj2))
 	fieldName := ""
 	for i := 0; i < val1.Type().NumField(); i++ {
