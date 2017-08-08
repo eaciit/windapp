@@ -332,7 +332,7 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Slow_TempConv2", "Slow_TempConv3", "Fast_PitchAccuV1", "Fast_PitchAccuV2", "Fast_PitchAccuV3", "Fast_PowerFactor",
 		"Fast_Total_Prod_Day_kWh"}
 
-	headerResult = []string{"Time Stamp", "Turbine", "Active Power", "Wind Speed", "Nacelle Pos", "Wind Direction",
+	headerResult = []string{"TimeStamp", "Turbine", "Active Power", "Wind Speed", "Nacelle Pos", "Wind Direction",
 		"Pitch Angle", "Pitch Angle1", "Pitch Angle2", "Pitch Angle3", "Generator Speed", "Rotor Speed",
 		"Reactive Power", "Frequency Grid", "Ambient Temp", "Temp Nacelle", "Temp GearBox HSS NDE", "Temp GearBox HSS DE",
 		"Temp GearBox IMS DE", "Temp GearBox Oil Sump", "Temp GearBox IMS NDE", "Temp Generator Bearing DE", "Temp Generator Bearing NDE",
