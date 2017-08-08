@@ -437,17 +437,17 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 	return
 }
 
-func getDataPerTurbine(tablename string, filter *dbox.Filter, isNormal bool) (result tk.M) {
+func getDataPerTurbine(tablename string, filter tk.M, isNormal bool) (result tk.M) {
 	query := DBRealtime().NewQuery().From(tablename)
+	pipes := []tk.M{}
 	if filter != nil {
-		query = query.Where(filter)
+		pipes = append(pipes, tk.M{"$match": filter})
 	}
 	if isNormal {
-		pipes := []tk.M{}
 		pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "timemax": tk.M{"$max": "$timeend"}}})
-		query = query.Command("pipe", pipes)
 	}
-	csrData, err := query.Cursor(nil)
+
+	csrData, err := query.Command("pipe", pipes).Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
 	}
@@ -530,23 +530,27 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		tk.Println(err.Error())
 	}
 
-	csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
-		Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
-		Cursor(nil)
-	if err != nil {
-		tk.Println(err.Error())
-	}
 	tempCondition := []tk.M{}
-	err = csrTemp.Fetch(&tempCondition, 0, false)
-	if err != nil {
-		tk.Println(err.Error())
-	}
-	csrTemp.Close()
+	curtailmentTurbine, waitingForWsTurbine, temperatureData, tempNormalData := tk.M{}, tk.M{}, tk.M{}, tk.M{}
+	if pageType == "monitoring" {
+		csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
+			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
+			Cursor(nil)
+		if err != nil {
+			tk.Println(err.Error())
+		}
 
-	curtailmentTurbine := getDataPerTurbine("_curtailmentduration", dbox.And(dbox.Eq("status", true), dbox.Eq("show", true), dbox.Eq("projectname", project)), false)
-	waitingForWsTurbine := getDataPerTurbine("_waitingforwindspeed", dbox.And(dbox.Eq("status", true), dbox.Eq("projectname", project)), false)
-	temperatureData := getDataPerTurbine("_temperaturestart", dbox.Eq("projectname", project), false)
-	tempNormalData := getDataPerTurbine("_temperaturestart", dbox.And(dbox.Eq("status", false), dbox.Eq("projectname", project)), true)
+		err = csrTemp.Fetch(&tempCondition, 0, false)
+		if err != nil {
+			tk.Println(err.Error())
+		}
+		csrTemp.Close()
+
+		curtailmentTurbine = getDataPerTurbine("_curtailmentduration", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"show": true}, tk.M{"projectname": project}}}, false)
+		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
+		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
+		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{tk.M{"status": false}, tk.M{"projectname": project}}}, true)
+	}
 
 	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
 	indiaTime := lastUpdate.In(indiaLoc)
@@ -556,7 +560,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	dataRealtimeValue := 0.0
 	tags := ""
-	tstamp := time.Time{}
+	tstamp, servertstamp := time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
 	for {
@@ -568,6 +572,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 		tags = _tdata.GetString("tags")
 		dataRealtimeValue = _tdata.GetFloat64("value")
+		servertstamp = _tdata.Get("servertimestamp", time.Time{}).(time.Time).UTC()
 
 		// isfound := false
 		// for k, _ := range arrfield {
@@ -667,7 +672,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("name", turbineMp.GetString("name")).
 					Set("value", _tTurbine)
 			}
-
 		}
 
 		// _iContinue = true
@@ -684,6 +688,17 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			}
 
 			_itkm.Set(afield, _ifloat)
+
+			_itkm.Set("isserverlate", true)
+			iststamp := _itkm.Get("servertimestamp", time.Time{}).(time.Time).UTC()
+			if servertstamp.UTC().After(iststamp.UTC()) {
+				iststamp = servertstamp
+				_itkm.Set("servertimestamp", servertstamp)
+			}
+
+			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 3 {
+				_itkm.Set("isserverlate", false)
+			}
 		}
 
 		// for _, afield := range arrfield {
@@ -711,9 +726,16 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			} else if _itkm.GetInt("Status") == 1 && _itkm["IsWarning"].(bool) {
 				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-orange")
 			}
-			if _itkm.GetInt("DataComing") == 0 {
+
+			if _itkm.GetInt("DataComing") == 0 && _itkm.Get("isserverlate", true).(bool) {
 				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-grey")
 			}
+
+			_itkm.Set("isbordered", false)
+			if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
+				_itkm.Set("isbordered", true)
+			}
+
 			if _itkm.GetFloat64("ActivePower") < 0 {
 				_itkm.Set("ActivePowerColor", "redvalue")
 			} else {

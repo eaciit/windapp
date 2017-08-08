@@ -6,7 +6,7 @@
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability" style="margin-bottom: -15px;">
 						Machine Availability(%) - Last 12 Months
-						<span class="tools pull-right">
+						<!-- <span class="tools pull-right">
 	                      	<div class="btn-group" data-toggle="buttons">
 		                        <label class="btn btn-primary btn-xs prodToTable" onclick="$('#fleetChartMachAvail').kendoChart2Grid('n2')">
 		                            <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
@@ -15,10 +15,11 @@
 		                            <input type="radio" name="convert" id="tochart" value="tochart" autofocus="true"><i class="fa fa-bar-chart"></i>
 		                        </label>
 	                      	</div>
-	                  	</span>
+	                  	</span> -->
 					</div>
 					<div class="panel-body content-chart">
-						<div id="fleetChartMachAvail"></div>
+						<div class="legend-machine-project text-center"></div>
+						<div id="fleetChartMachAvail" class="col-md-12"></div>
 					</div>
 				</div>
 			</div>
@@ -38,6 +39,7 @@
 	                  	</span>
 					</div>
 					<div class="panel-body content-chart">
+						<div class="legend-grid-project text-center"></div>
 						<div id="fleetChartGridAvail"></div>
 					</div>
 				</div>

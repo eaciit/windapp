@@ -26,6 +26,74 @@ avail.LossCategoriesData = ko.observableArray([]);
 avail.LossCategoriesDataSeries = ko.observableArray([]);
 
 
+avail.ChartLineCfg = function(data, color, legend, height) {
+    return { 
+        dataSource: {
+            data: data,
+            sort: {
+                field: "OrderNo",
+                dir: "asc"
+            }
+        },
+        chartArea: {
+            background: "transparent",
+            height: height,
+        },
+        title: {
+            visible: false
+        },
+        legend: {
+            visible: false
+        },
+        seriesDefaults: {
+            type: "line"
+        },
+        series: [{
+            field: "Value",
+            name: "",
+            style: "smooth",
+            markers: {
+                visible: false
+            },
+            color: color
+        }],
+        categoryAxis: {
+            field: "Title",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                template: '#=  value.substring(0,3) #',
+                // visible: legend
+            },
+            crosshair: {
+                visible: false,
+            },
+            majorGridLines: {
+                visible: false,
+            },
+            majorTicks: {
+                visible: false,
+            },
+            visible: legend
+        },
+        valueAxis: {
+            visible: false,
+            crosshair: {
+                visible: false
+            },
+            majorGridLines: {
+                visible: true,
+                step: 100
+            },
+            majorTicks: {
+                visible: false,
+            },
+        },
+        tooltip: {
+            visible: true,
+            template: "#: category # = #= kendo.toString(value * 100, 'n2') # %"
+        }
+    };
+};
 
 avail.loadData = function () {
 
@@ -45,7 +113,8 @@ avail.loadData = function () {
             }
             if (project == "Fleet") {
                 avail.fleetMachAvailData(res.data.machineAvailability);
-                avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                // avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                avail.fleetMachAvail(res.data.machineAvailability);
                 avail.fleetGridAvailData(res.data.gridAvailability);
                 avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
             } else {
@@ -173,10 +242,14 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
             type: "column",
             field: "result",
         }];
+
+    var colors = colorField;
+
     if(id.indexOf("fleet") >= 0) {
         isStack = true;
         catLossSeries = dataseries;
-    }
+        colors = colorFieldProject;
+    }   
 
     var templateLossCat = ''
     if(measurement == "MWh") {
@@ -223,7 +296,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
             stack: isStack,
         },
         series: catLossSeries,
-        seriesColors: colorField,
+        seriesColors: colors,
         valueAxis: {
             labels: {
                 step: 2,
@@ -271,187 +344,48 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
     });
 }
 avail.fleetMachAvail = function (dataSource) {
-    console.log(dataSource);
-    $("#fleetChartMachAvail").replaceWith('<div id="fleetChartMachAvail"></div>');
-    $("#fleetChartMachAvail").kendoChart({
-        dataSource: {
-            data: dataSource,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: true,
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            }
-        },
-        chartArea: {
-            height: 185,
-            background: "transparent",
-            padding: 0,
-            margin: {
-                top: -10
-            }
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: false
-        },
-        series: [{
-            type: "column",
-            style: "smooth",
-            field: "result",
-            // width:10,
-            gap:15,
-            spacing: 5,
-            // opacity : 0.7,
-            // markers: {
-            //     visible: false,
-            // }
-        }],
-        seriesColors: colorFieldProject,
-        valueAxis: {
-            labels: {
-                // step: 2,
-                template: '#=  value * 100 #',
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-            max: 1,
-        },
-        categoryAxis: {
-            field: "_id.id2",
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: '#=  value.substring(0,3) #'
-            },
-            majorTickType: "none"
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:p1}",
-            // template : "#: series.name # for #: category # : #:  kendo.toString(value, 'n0') #",
-            sharedTemplate: kendo.template($("#templateAvailPercentage").html()),
-            background: "rgb(255,255,255, 0.9)",
-            shared: true,
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        },
+    $("#fleetChartMachAvail").html("");
+    $(".legend-machine-project").html("");
+
+    var length = dataSource.length;
+    var height = 160/length;
+    $.each(dataSource, function(i, val){
+
+        var chartProject = '<div class="col-md-12" id="chartMachine_'+i+'"></div>';
+        var legendProject = '<span style="padding-left:5px;padding-right:5px;"><i class="fa fa-square" style="color:'+colorFieldProject[i]+';font-size:10px;padding-right:5px;"></i>'+val.Project+'</span>';
+        var legend = false;
+
+        if (i === dataSource.length - 1){ 
+            legend = true;
+            height = 200/length;
+        }
+
+        $("#fleetChartMachAvail").append(chartProject);
+        $(".legend-machine-project").append(legendProject);
+        $('#chartMachine_'+i).kendoChart(avail.ChartLineCfg(val.Details, colorFieldProject[i],legend,height));
     });
 }
 
 avail.fleetGridAvail = function (dataSource) {
-    $("#fleetChartGridAvail").replaceWith('<div id="fleetChartGridAvail"></div>');
-    $("#fleetChartGridAvail").kendoChart({
-        dataSource: {
-            data: dataSource,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: true,
-            labels:{
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            }
-        },
-        chartArea: {
-            height: 185,
-            background: "transparent",
-            padding: 0,
-            margin: {
-                top: -10
-            }
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: false
-        },
-        series: [{
-            type: "column",
-            style: "smooth",
-            field: "result",
-            // width:10,
-            gap:15,
-            spacing: 5,
-            // opacity : 0.7,
-            // markers: {
-            //     visible: false,
-            // }
-        }],
-        seriesColors: colorFieldProject,
-        valueAxis: {
-            labels: {
-                // step: 2,
-                template: '#=  value * 100 #',
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-            max: 1,
-        },
-        categoryAxis: {
-            field: "_id.id2",
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: '#=  value.substring(0,3) #'
-            },
-            majorTickType: "none"
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:p1}",
-            // template : "#:  kendo.toString(value, 'n0') #",
-            sharedTemplate: kendo.template($("#templateAvailPercentage").html()),
-            background: "rgb(255,255,255, 0.9)",
-            shared: true,
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        },
+    $("#fleetChartGridAvail").html("");
+    $(".legend-grid-project").html("");
+
+    var length = dataSource.length;
+    var height = 160/length;
+    $.each(dataSource, function(i, val){
+
+        var chartProject = '<div class="col-md-12" id="chartGrid_'+i+'"></div>';
+        var legendProject = '<span style="padding-left:5px;padding-right:5px;"><i class="fa fa-square" style="color:'+colorFieldProject[i]+';font-size:10px;padding-right:5px;"></i>'+val.Project+'</span>';
+        var legend = false;
+
+        if (i === dataSource.length - 1){ 
+            legend = true;
+            height = 200/length;
+        }
+
+        $("#fleetChartGridAvail").append(chartProject);
+        $(".legend-grid-project").append(legendProject);
+        $('#chartGrid_'+i).kendoChart(avail.ChartLineCfg(val.Details, colorFieldProject[i],legend,height));
     });
 }
 
@@ -588,7 +522,7 @@ avail.DTLostEnergy = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195,
+            height: 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -685,7 +619,7 @@ avail.TopTurbineByLoss = function (dataSource) {
             }
         },
         chartArea: {
-            height: 205,
+            height: 190,
             background: "transparent",
             padding: 0,
             margin: {
@@ -1242,7 +1176,7 @@ avail.DTDuration = function (dataSource) {
             }
         },
         chartArea: {
-            height: 200,
+            height: 190,
             background: "transparent",
             padding: 0,
             margin: {
@@ -1355,7 +1289,7 @@ avail.DTLoss = function (dataSource) {
             }
         },
         chartArea: {
-            height: 200,
+            height: 190,
             background: "transparent",
             padding: 0,
             margin: {
@@ -1468,7 +1402,7 @@ avail.DTFrequency = function (dataSource) {
             }
         },
         chartArea: {
-            height: 200,
+            height: 190,
             background: "transparent",
             padding: 0,
             margin: {
@@ -2015,7 +1949,7 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
     });
 
     // avail.toDetailDTLETTable(param);
-    console.log(project);
+   
     if(project == 'Fleet'){
         avail.toDetailDTLETTable(param);
     }

@@ -21,6 +21,10 @@ dbm.InitMet = function() {
         field: "timestamp",
         operator: "lte",
         value: fa.dateEnd
+    }, {
+        field: "projectname",
+        operator: "eq",
+        value: fa.project
     }, ];
 
     $('#dataGridMet').html("");

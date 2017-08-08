@@ -78,6 +78,18 @@ dbr.defaultSelectedColumn = ko.observableArray([{
     "_id": "ai_intern_i2",
     "label": "Ai Intern I2",
     "source": "ScadaDataOEM"
+}, {
+    "_id": "ai_intern_i3",
+    "label": "Ai Intern I3",
+    "source": "ScadaDataOEM"
+}, {
+    "_id": "ai_intern_nacelledrill",
+    "label": "Ai Intern Nacelle Drill",
+    "source": "ScadaDataOEM"
+}, {
+    "_id": "ai_intern_nacellepos",
+    "label": "Ai Intern Nacelle Pos",
+    "source": "ScadaDataOEM"
 }, ]);
 
 dbr.ShowHideColumnScada = function(gridID, field, id, index) {
@@ -259,7 +271,7 @@ var Data = {
 dbr.setAvailableDate = function() {
     setTimeout(function(){
         var tabType = $(".panel-body").find(".nav-tabs").find("li.active").attr('id');
-        var tipeTab = "ScadaDataOEM";
+        var tipeTab = "MET";
         switch (tabType) {
             case "scadahfdTab" :
                 tipeTab = "ScadaDataHFD"
@@ -346,7 +358,13 @@ dbr.Custom = function(id) {
     if(!dbr.isCustomLoaded()) {
         dbr.isCustomLoaded(true);
         dbc.InitCustomGrid();
-        dbr.setAvailableDate();
+        app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            availDateAll = res.data;
+            dbr.setAvailableDate();
+        });
     } else {
         dbr.setAvailableDate();
         app.loading(false);
@@ -567,10 +585,15 @@ function DataBrowserExporttoExcel(functionName) {
         "period": fa.period,
     }
 
+    var columnList = dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn();
+    if (functionName == "ScadaHFDCustom") {
+        columnList = dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn();
+    }
+
     var param = {
         Project: fa.project,
         "Custom": {
-            "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
+            "ColumnList": columnList,
         },
         "misc": misc,
         filter: dbr.LastFilter,
@@ -578,8 +601,8 @@ function DataBrowserExporttoExcel(functionName) {
     };
 
     var urlName = viewModel.appName + "databrowser/genexceldata";
-    if(functionName === "genexcelcustom10minutes") {
-        urlName = viewModel.appName + "databrowser/" + functionName;
+    if(functionName.toLowerCase().indexOf("custom") >= 0) {
+        urlName = viewModel.appName + "databrowser/genexcelcustom10minutes";
     }
 
     app.ajaxPost(urlName, param, function(res) {

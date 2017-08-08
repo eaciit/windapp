@@ -110,7 +110,8 @@ lgd.start = function() {  // use a one-off timer
 };
 
 lgd.stop = function(){
-    clearTimeout(mapIndia);
+    clearInterval(mapIndia);
+    return false;
 };
 
 lgd.createDonutChart = function (param) {

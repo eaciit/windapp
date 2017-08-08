@@ -79,12 +79,12 @@ var ti = {
 			    valueAxis: [{
                     labels: {
                         format: "N2",
-                    }
+                    },
                 }],
                 xAxis: {
                     // majorUnit: 1,
                     title: {
-                        // text: "Wind Speed (m/s)",
+                        text: "Wind Speed (m/s)",
                         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         color: "#585555",
                         visible: true,
@@ -112,7 +112,7 @@ var ti = {
                 },
                 yAxis: {
                     title: {
-                        // text: "Generation (KW)",
+                        text: "Turbulence Intensity",
                         font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         color: "#585555"
                     },

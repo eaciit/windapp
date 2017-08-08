@@ -13,9 +13,9 @@ dbc.InitCustomGrid = function() {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
     var misc = {
+        "tipe": "ScadaOEM",
         "period": fa.period,
     }
-
     var param = {
         "Custom": {
             "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
@@ -56,13 +56,13 @@ dbc.InitCustomGrid = function() {
             field: val._id,
             title: val.label,
             type: val._id == "turbine" ? "string" : "number",
-            width: 120,
+            width: 90,
             headerAttributes: {
                 style: "text-align:center"
             },
             attributes: {
                 style: "text-align:center"
-            }
+            },
         };
 
         if (val._id == "timestamp") {
@@ -70,7 +70,7 @@ dbc.InitCustomGrid = function() {
                 field: val._id,
                 title: val.label,
                 type: "date",
-                width: 140,
+                width: 130,
                 template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
                 value: true
             }

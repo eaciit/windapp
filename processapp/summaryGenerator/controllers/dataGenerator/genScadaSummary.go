@@ -1245,6 +1245,17 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 			}
 		}
 
+		reffexpectedws := tk.M{}
+		csrexws, _ := ctx.NewQuery().From("ref_expectedwindspeed").
+			Cursor(nil)
+
+		arrtkm := []tk.M{}
+		_ = csrexws.Fetch(&arrtkm, 0, false)
+		csrexws.Close()
+		for _, _tkm := range arrtkm {
+			reffexpectedws.Set(_tkm.GetString("_id"), _tkm.GetFloat64("value"))
+		}
+
 		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
 
 		for _, v := range d.BaseController.ProjectList {
@@ -1360,7 +1371,11 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 					expwstimes = -0.125
 				}
 
-				mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * expwstimes)
+				mdl.ExpWindSpeed = reffexpectedws.GetFloat64(tk.Sprintf("%s_%d", project, iMonth))
+				if mdl.ExpWindSpeed == 0 {
+					mdl.ExpWindSpeed = mdl.AvgWindSpeed + (mdl.AvgWindSpeed * expwstimes)
+				}
+
 				mdl.DowntimeHours = imachinedowntime + iunknowntime + igriddowntime
 				mdl.LostEnergy = data.GetFloat64("totalenergylost") / 1000000 // Watt to GWatt
 				mdl.RevenueLoss = (data.GetFloat64("totalenergylost") * revenueTimes)
