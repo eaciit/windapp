@@ -54,43 +54,7 @@ dbr.selectedColumn = ko.observableArray([]);
 dbr.unselectedColumn = ko.observableArray([]);
 dbr.ColumnList = ko.observableArray([]);
 dbr.ColList = ko.observableArray([]);
-dbr.defaultSelectedColumn = ko.observableArray([{
-    "_id": "timestamp",
-    "label": "Time Stamp",
-    "source": "ScadaDataOEM"
-  },{
-    "_id": "turbine",
-    "label": "Turbine",
-    "source": "ScadaDataOEM"
-  },{
-    "_id": "ai_intern_r_pidangleout",
-    "label": "Ai Intern R Pid Angle Out",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_activpower",
-    "label": "Ai Intern Active Power",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_i1",
-    "label": "Ai Intern I1",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_i2",
-    "label": "Ai Intern I2",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_i3",
-    "label": "Ai Intern I3",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_nacelledrill",
-    "label": "Ai Intern Nacelle Drill",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_nacellepos",
-    "label": "Ai Intern Nacelle Pos",
-    "source": "ScadaDataOEM"
-}, ]);
+dbr.defaultSelectedColumn = ko.observableArray();
 
 dbr.ShowHideColumnScada = function(gridID, field, id, index) {
     if ($('#' + id).is(":checked")) {
@@ -670,6 +634,8 @@ $(document).ready(function() {
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
+        dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 30));
+        dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 30));
     }, 1000);
 
     $('#projectList').kendoDropDownList({
