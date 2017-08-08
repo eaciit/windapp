@@ -585,10 +585,15 @@ function DataBrowserExporttoExcel(functionName) {
         "period": fa.period,
     }
 
+    var columnList = dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn();
+    if (functionName == "ScadaHFDCustom") {
+        columnList = dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn();
+    }
+
     var param = {
         Project: fa.project,
         "Custom": {
-            "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
+            "ColumnList": columnList,
         },
         "misc": misc,
         filter: dbr.LastFilter,
