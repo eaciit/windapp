@@ -501,6 +501,8 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	xbudget := float64(1)
+
 	bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
 	csrBudget, e := DB().Connection.NewQuery().
 		From(new(ExpPValueModel).TableName()).
@@ -521,21 +523,32 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	projectList, _ := helper.GetProjectList()
 	dataItem := []tk.M{}
 	for project, val := range totalPower {
+
+		labelproject := ""
+		for _, _info := range projectList {
+			if strings.ToLower(_info.Value) == strings.ToLower(project) {
+				labelproject = _info.Name
+				break
+			}
+		}
+
 		data := tk.M{
 			"project":       project,
 			"production":    val.(float64),
 			"lostenergy":    totalPowerLost.GetFloat64(project),
 			"wtg":           totalTurbines.GetInt(project),
+			"labelproject":  labelproject,
 			"detail":        detailData[project],
 			"avgwindspeed":  resultMonthly[0].AvgWindSpeed,
 			"downtimehours": resultMonthly[0].DowntimeHours,
 			"plf":           resultMonthly[0].PLF,
 			"trueavail":     resultMonthly[0].TrueAvail,
-			"budget_p50":    resultBudget[0].P50NetGenMWH,
-			"budget_p75":    resultBudget[0].P75NetGenMWH,
-			"budget_p90":    resultBudget[0].P90NetGenMWH,
+			"budget_p50":    resultBudget[0].P50NetGenMWH * xbudget,
+			"budget_p75":    resultBudget[0].P75NetGenMWH * xbudget,
+			"budget_p90":    resultBudget[0].P90NetGenMWH * xbudget,
 		}
 		dataItem = append(dataItem, data)
 	}
