@@ -21,33 +21,54 @@ pg.isFirstDataCon = ko.observable(true);
 pg.isFirstVarience = ko.observable(true);
 pg.isFirstVarienceOver = ko.observable(true);
 
+
+pg.getAvailDate = function(){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var namaproject;
+        
+        var projectVal = $("#projectList").data("kendoDropDownList").value();
+        if( projectVal == undefined || projectVal == "") {
+            namaproject = "Tejuva";
+        }else{
+            namaproject= projectVal;
+        }
+
+        if(res.data[namaproject]["ScadaData"] != null) {
+            $('#availabledatestartscada').html(kendo.toString(moment.utc(new Date(res.data[namaproject]["ScadaData"][0])).format('DD-MMM-YYYY')));
+            $('#availabledateendscada').html(kendo.toString(moment.utc(new Date(res.data[namaproject]["ScadaData"][1])).format('DD-MMM-YYYY')));
+        }
+        if(res.data[namaproject]["ScadaDataHFD"] != null) {
+            $('#availabledatestartscadahfd').html(kendo.toString(moment.utc(new Date(res.data[namaproject]["ScadaDataHFD"][0])).format('DD-MMM-YYYY')));
+            $('#availabledateendscadahfd').html(kendo.toString(moment.utc(new Date(res.data[namaproject]["ScadaDataHFD"][1])).format('DD-MMM-YYYY')));
+        }
+        if(res.data[namaproject]["DGRData"] != null) {
+            $('#availabledatestartdgr').html(kendo.toString(moment.utc(res.data[namaproject]["DGRData"][0]).format('DD-MMM-YYYY')));
+            $('#availabledateendsdgr').html(kendo.toString(moment.utc(res.data[namaproject]["DGRData"][1]).format('DD-MMM-YYYY')));
+        }
+
+
+        var maxDateData = new Date(res.data[namaproject]["ScadaData"][1]);
+
+        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+        $('#dateStart').data('kendoDatePicker').value(startDate);
+        $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(res.data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+    });
+}
 pg.loadData = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         app.loading(true);
+        pg.getAvailDate();
         if (fa.project == "") {
             pg.type = "Project Name";
         } else {
             pg.type = "Turbine";
         }
-
-        var request = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if(res.data.ScadaData != null) {
-                $('#availabledatestartscada').html(kendo.toString(moment.utc(new Date(res.data.ScadaData[0])).format('DD-MMMM-YYYY')));
-                $('#availabledateendscada').html(kendo.toString(moment.utc(new Date(res.data.ScadaData[1])).format('DD-MMMM-YYYY')));
-            }
-            if(res.data.ScadaDataHFD != null) {
-                $('#availabledatestartscadahfd').html(kendo.toString(moment.utc(new Date(res.data.ScadaDataHFD[0])).format('DD-MMMM-YYYY')));
-                $('#availabledateendscadahfd').html(kendo.toString(moment.utc(new Date(res.data.ScadaDataHFD[1])).format('DD-MMMM-YYYY')));
-            }
-            if(res.data.DGRData != null) {
-                $('#availabledatestartdgr').html(kendo.toString(moment.utc(res.data.DGRData[0]).format('DD-MMMM-YYYY')));
-                $('#availabledateendsdgr').html(kendo.toString(moment.utc(res.data.DGRData[1]).format('DD-MMMM-YYYY')));
-            }
-        });
     }
 }
 
@@ -55,6 +76,7 @@ pg.DataCon = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         app.loading(true);
+        pg.getAvailDate();
         if(pg.isFirstDataCon() === true){
                 var param = {
                     period: fa.period,
@@ -161,6 +183,7 @@ $(function(){
 
     $('#projectList').kendoDropDownList({
         change: function () {  
+            pg.getAvailDate();
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
         }
