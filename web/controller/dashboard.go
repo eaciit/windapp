@@ -424,6 +424,9 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			"production": tk.M{"$sum": "$production"},
 			"lostenergy": tk.M{"$sum": "$lostenergy"},
 			"dateid":     tk.M{"$max": "$dateinfo.dateid"},
+			"mdownhours": tk.M{"$sum": "$machinedownhours"},
+			"gdownhours": tk.M{"$sum": "$griddownhours"},
+			"odownhours": tk.M{"$sum": "$otherdowntimehours"},
 		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
@@ -464,6 +467,10 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		if listturbine.Has(data.GetString("turbine")) {
 			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
 		}
+
+		downtimehours := val.GetFloat64("mdownhours") + val.GetFloat64("gdownhours") + val.GetFloat64("odownhours")
+		val.Set("downtimehours", downtimehours)
+
 		detail = append(detail, val)
 		detailData.Set(project, detail)
 
@@ -477,6 +484,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		} else {
 			totalPower.Set(project, val.GetFloat64("production"))
 		}
+
 		if totalPowerLost.Has(project) {
 			totalPowerLost.Set(project, totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
 		} else {
