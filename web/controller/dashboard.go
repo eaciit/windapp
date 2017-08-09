@@ -423,6 +423,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			"_id":        ids,
 			"production": tk.M{"$sum": "$production"},
 			"lostenergy": tk.M{"$sum": "$lostenergy"},
+			"dateid":     tk.M{"$max": "$dateinfo.dateid"},
 		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
@@ -450,6 +451,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 	listturbine := tk.M{}
 	tproject := ""
+	maxdate := time.Time{}
 	for _, val := range resultScada {
 		data := val["_id"].(tk.M)
 		project := data.GetString("project")
@@ -479,6 +481,11 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			totalPowerLost.Set(project, totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
 		} else {
 			totalPowerLost.Set(project, val.GetFloat64("lostenergy"))
+		}
+
+		mdateid := val.Get("dateid", time.Time{}).(time.Time)
+		if maxdate.UTC().Before(mdateid.UTC()) {
+			maxdate = mdateid
 		}
 	}
 
@@ -511,6 +518,13 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			dbox.Eq("monthno", bulan),
 		)).
 		Cursor(nil)
+
+	if tnow := getTimeNow(); int(tnow.Month()) == bulan {
+		maxdate = maxdate.AddDate(0, 0, 1)
+		tdays := maxdate.UTC().Sub(resultMonthly[0].DateInfo.DateId.UTC()).Hours() / 24
+		mdays := tk.ToFloat64(time.Date(maxdate.Year(), maxdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day(), 0, tk.RoundingAuto)
+		xbudget = tdays / mdays
+	}
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
