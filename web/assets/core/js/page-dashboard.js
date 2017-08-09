@@ -77,8 +77,10 @@ lgd.populateProject = function (data) {
 };
 
 lgd.LoadData = function () {
-    app.loading(true);
     lgd.stop();
+    app.loading(true);
+    sum.scadaLastUpdate();
+
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = { ProjectName: project, Date: maxdate };
 
