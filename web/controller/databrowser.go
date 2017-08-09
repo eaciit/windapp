@@ -30,7 +30,7 @@ func CreateDataBrowserController() *DataBrowserController {
 }
 
 var (
-	_amettower_label = []string{"V Hub WS 90m Avg", "V Hub WS 90m Std Dev", "V Ref WS 88m Avg", "V Ref WS 88m Std Dev",
+	/*_amettower_label = []string{"V Hub WS 90m Avg", "V Hub WS 90m Std Dev", "V Ref WS 88m Avg", "V Ref WS 88m Std Dev",
 		"V Tip WS 42m Avg", "V Tip WS 42m Std Dev", "D Hub WD 88m Avg", "D Hub WD 88m Std Dev", "D Ref WD 86m Avg",
 		"D Ref WD 86m Std Dev", "T Hub & H Hub Humid 85m Avg", "T Hub & H Hub Humid 85m Std Dev", "T Ref & H Ref Humid 85.5m Avg", "T Ref & H Ref Humid 85.5m Std Dev",
 		"T Hub & H Hub Temp 85.5m Avg", "T Hub & H Hub Temp 85.5m Std Dev", "T Ref & H Ref Temp 85.5 Avg", "T Ref & H Ref Temp 85.5 Std Dev", "Baro Air Pressure 85.5m Avg", "Baro Air Pressure 85.5m Std Dev",
@@ -40,7 +40,12 @@ var (
 		"vtipws42mstddev", "dhubwd88mavg", "dhubwd88mstddev", "drefwd86mavg", "drefwd86mstddev",
 		"thubhhubhumid855mavg", "thubhhubhumid855mstddev", "trefhrefhumid855mavg", "trefhrefhumid855mstddev", "thubhhubtemp855mavg",
 		"thubhhubtemp855mstddev", "trefhreftemp855mavg", "trefhreftemp855mstddev", "baroairpress855mavg", "baroairpress855mstddev",
-	}
+	}*/
+	_amettower_label = []string{"D Hub WD 88m Avg", "D Ref WD 86m Avg", "T Hub & H Hub Temp 85.5m Avg", "T Ref & H Ref Temp 85.5 Avg",
+		"V Hub WS 90m Avg", "V Hub WS 90m Std Dev", "V Ref WS 88m Avg", "V Ref WS 88m Std Dev", "V Tip WS 42m Avg", "V Tip WS 42m Std Dev"}
+
+	_amettower_field = []string{"dhubwd88mavg", "drefwd86mavg", "thubhhubtemp855mavg", "trefhreftemp855mavg",
+		"vhubws90mavg", "vhubws90mstddev", "vrefws88mavg", "vrefws88mstddev", "vtipws42mavg", "vtipws42mstddev"}
 )
 
 func GetCustomFieldList() []tk.M {
@@ -928,16 +933,29 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	typeExcel := strings.Split(p.Misc.GetString("tipe"), "Custom")[0]
 
 	istimestamp := false
-	arrscadaoem := []string{"_id", "timestamputc"}
+	arrscadaoem := []string{"_id"}
 	arrmettower := []string{}
 	headerList := []string{}
 	fieldList := []string{}
+	source := "ScadaDataHFD"
+	timestamp := "timestamp"
+	tablename := new(ScadaDataHFD).TableName()
+	ids := ""
+	switch typeExcel {
+	case "ScadaOEM":
+		tablename = new(ScadaDataOEM).TableName()
+		source = "ScadaDataOEM"
+		arrscadaoem = append(arrscadaoem, "timestamputc")
+		timestamp = "timestamputc"
+	}
+
 	if p.Custom.Has("ColumnList") {
 		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
 			_tkm, _ := tk.ToM(_val)
-			if _tkm.GetString("source") == "ScadaDataOEM" {
-				arrscadaoem = append(arrscadaoem, _tkm.GetString("_id"))
-				if _tkm.GetString("_id") == "timestamp" {
+			ids = strings.ToLower(_tkm.GetString("_id"))
+			if _tkm.GetString("source") == source {
+				arrscadaoem = append(arrscadaoem, ids)
+				if ids == "timestamp" {
 					istimestamp = true
 				}
 			} else if _tkm.GetString("source") == "MetTower" {
@@ -946,11 +964,6 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			headerList = append(headerList, _tkm.GetString("label"))
 			fieldList = append(fieldList, _tkm.GetString("_id"))
 		}
-	}
-	tablename := new(ScadaDataOEM).TableName()
-	switch typeExcel {
-	case "ScadaHFD":
-		tablename = new(ScadaDataHFD).TableName()
 	}
 
 	query := DB().Connection.NewQuery().
@@ -1000,8 +1013,11 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			results[i] = val
 		}
 		if istimestamp {
-			itime := val.Get("timestamp", time.Time{}).(time.Time)
-			val.Set("timestamp", itime.UTC())
+			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
+			if typeExcel == "ScadaHFD" {
+				arrmettowercond = append(arrmettowercond, itime)
+			}
+			val.Set("timestamp", itime)
 			results[i] = val
 		}
 	}
@@ -1038,7 +1054,7 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 
 	if len(tkmmet) > 0 {
 		for i, val := range results {
-			itime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().String()
+			itime := val.Get(timestamp, time.Time{}).(time.Time).UTC().String()
 			if tkmmet.Has(itime) {
 				for _key, _val := range tkmmet[itime].(tk.M) {
 					if _key != "timestamp" {
