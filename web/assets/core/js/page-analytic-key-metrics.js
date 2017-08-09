@@ -243,7 +243,7 @@ $(document).ready(function () {
 			dataValueField: 'value',
 			dataTextField: 'text',
 			suggest: true,
-			change: function () { km.setBreakDown() }
+			change: function () { km.setBreakDown(); di.getAvailDate(); }
 		});
 
 		$("#dateStart").change(function () { fa.DateChange(km.setBreakDown()) });

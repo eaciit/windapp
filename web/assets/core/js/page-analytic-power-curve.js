@@ -900,17 +900,26 @@ $(document).ready(function() {
         dataTextField: 'text',
         suggest: true,
         change: function () { 
+            
+            fa.disableRefreshButton(true);
             var project = $('#projectList').data("kendoDropDownList").value();
             var lastProject = page.currProject();
-            if(project != lastProject){
-                page.project(lastProject)
-                page.currProject(project);
-            }else{
-                page.project(project)
-                page.currProject(project);
-            }
 
-            fa.populateTurbine(project);
+            setTimeout(function(){
+
+                fa.populateTurbine(project);
+
+                di.getAvailDate();
+                if(project != lastProject){
+                    page.project(lastProject)
+                    page.currProject(project);
+                }else{
+                    page.project(project)
+                    page.currProject(project);
+                }
+
+               fa.disableRefreshButton(false);
+            },500);
          }
     });
 

@@ -253,6 +253,7 @@ $(function(){
 
     $('#projectList').kendoDropDownList({
         change: function () {  
+            di.getAvailDate();
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
         }

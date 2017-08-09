@@ -475,7 +475,8 @@ $(function () {
                 page.setBreakDown(); 
                 setTimeout(function(){
                    fa.setTurbine();
-                },400);
+                   di.getAvailDate();
+                },500);
             }
         });
 

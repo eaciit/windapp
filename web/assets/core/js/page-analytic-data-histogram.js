@@ -320,6 +320,7 @@ $(document).ready(function () {
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
             setTimeout(function() {
+                di.getAvailDate();
                 $('#turbineList').multiselect('select', fa.turbineList()[0].value);
             }, 100);
 		}
