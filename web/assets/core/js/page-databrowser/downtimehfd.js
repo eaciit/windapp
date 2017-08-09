@@ -123,11 +123,11 @@ dbdhfd.InitDEHFDgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Machine Down",
-                field: "DownMachine",
+                title: "Environment Down",
+                field: "DownEnvironment",
                 width: 80,
                 sortable: false,
-                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
                 headerAttributes: {
                     style: "text-align: center"
                 },
@@ -135,11 +135,11 @@ dbdhfd.InitDEHFDgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Environment Down",
-                field: "DownEnvironment",
+                title: "Machine Down",
+                field: "DownMachine",
                 width: 80,
                 sortable: false,
-                template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
                 headerAttributes: {
                     style: "text-align: center"
                 },

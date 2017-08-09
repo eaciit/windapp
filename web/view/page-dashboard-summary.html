@@ -446,7 +446,7 @@
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading"><span data-bind="text:sum.detailProdProjectTxt"></span>&nbsp;(<span data-bind="text:sum.detailSummary().wtg"></span> Turbines)&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdDateTxt"></strong></div>
+				<div class="panel-heading"><span data-bind="text:sum.detailSummary().labelproject"></span>&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdDateTxt"></strong></div>
 				<div class="panel-body">
 					<div class="col-md-12">
 						<div class="control-summary production-part left-border-org">
@@ -455,17 +455,17 @@
 		                            <label class="summary-header">Production (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
 		                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().production , 'n2')">0</label>
 	                        	</div>
-	                        	<div class="col-md-8" style="width: 350px;">
+	                        	<div class="col-md-8" style="width: 354px;">
 									<div class="col-md-4 border-right">
-			                            <label class="summary-header">P50 (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+			                            <label class="summary-header long-title">Longterm P50(MWh)</label><br />
 			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p50, 'n2')">0</label>
 		                        	</div>
 		                        	<div class="col-md-4">
-			                            <label class="summary-header">P75 (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+			                            <label class="summary-header long-title">Longterm P75(MWh)</label><br />
 			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p75, 'n2')">0</label>
 		                        	</div>
 		                        	<div class="col-md-4 border-left">
-			                            <label class="summary-header">P90 (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
+			                            <label class="summary-header long-title">Longterm P90(MWh)</label><br />
 			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p90, 'n2')">0</label>
 		                        	</div>
 		                        </div>

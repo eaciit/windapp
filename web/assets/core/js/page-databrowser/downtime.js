@@ -98,6 +98,14 @@ dbd.InitDEgrid = function() {
             input:true, 
         },
         columns: [{
+                title: "Turbine",
+                field: "Turbine",
+                attributes: {
+                    class: "align-center"
+                },
+                width: 90,
+                filterable: false
+            }, {
                 title: "Time Start",
                 field: "TimeStart",
                 template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
@@ -123,18 +131,6 @@ dbd.InitDEgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Machine Down",
-                field: "DownMachine",
-                width: 80,
-                sortable: false,
-                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-                headerAttributes: {
-                    style: "text-align: center"
-                },
-                attributes: {
-                    style: "text-align:center;"
-                }
-            }, {
                 title: "Environment Down",
                 field: "DownEnvironment",
                 width: 80,
@@ -147,13 +143,17 @@ dbd.InitDEgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Turbine",
-                field: "Turbine",
-                attributes: {
-                    class: "align-center"
+                title: "Machine Down",
+                field: "DownMachine",
+                width: 80,
+                sortable: false,
+                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                headerAttributes: {
+                    style: "text-align: center"
                 },
-                width: 90,
-                filterable: false
+                attributes: {
+                    style: "text-align:center;"
+                }
             }, {
                 title: "Alarm Description",
                 field: "AlarmDescription",

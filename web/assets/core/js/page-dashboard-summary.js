@@ -41,8 +41,8 @@ var turbines = [];
 var map;
 
 vm.dateAsOf(app.currentDateData);
-sum.loadData = function () {
 
+sum.scadaLastUpdate = function(){
     var project = $("#projectId").data("kendoDropDownList").value();
     for(var i=0;i<sum.periodList.length;i++) {
         sum.paramPeriod.push(sum.periodList[i].value);
@@ -53,7 +53,7 @@ sum.loadData = function () {
     var param = { ProjectName: project, Date: maxdate};
 
 
-    var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -67,8 +67,12 @@ sum.loadData = function () {
         }
         
     });
-
+}
+sum.loadData = function () {
     if (lgd.isSummary()) {
+        var project = $("#projectId").data("kendoDropDownList").value();
+        var param = { ProjectName: project, Date: maxdate};
+
         var getscadalastupdate = sum.getScadaLastUpdate();
         if (sum.getScadaLastUpdate().length > 0){
             sum.dataSource(getscadalastupdate[0]);
@@ -212,7 +216,7 @@ sum.loadData = function () {
             });
         }
 
-        $.when(sum.indiaMap(project),ajax1, ajax2, ajax3).done(function(){
+        $.when(sum.indiaMap(project),ajax2, ajax3).done(function(){
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({

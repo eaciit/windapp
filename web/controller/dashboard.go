@@ -423,6 +423,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			"_id":        ids,
 			"production": tk.M{"$sum": "$production"},
 			"lostenergy": tk.M{"$sum": "$lostenergy"},
+			"dateid":     tk.M{"$max": "$dateinfo.dateid"},
 		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
@@ -450,6 +451,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 	listturbine := tk.M{}
 	tproject := ""
+	maxdate := time.Time{}
 	for _, val := range resultScada {
 		data := val["_id"].(tk.M)
 		project := data.GetString("project")
@@ -480,6 +482,11 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		} else {
 			totalPowerLost.Set(project, val.GetFloat64("lostenergy"))
 		}
+
+		mdateid := val.Get("dateid", time.Time{}).(time.Time)
+		if maxdate.UTC().Before(mdateid.UTC()) {
+			maxdate = mdateid
+		}
 	}
 
 	csrMonthly, e := DB().Connection.NewQuery().
@@ -501,6 +508,8 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	xbudget := float64(1)
+
 	bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
 	csrBudget, e := DB().Connection.NewQuery().
 		From(new(ExpPValueModel).TableName()).
@@ -509,6 +518,13 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			dbox.Eq("monthno", bulan),
 		)).
 		Cursor(nil)
+
+	if tnow := getTimeNow(); int(tnow.Month()) == bulan {
+		maxdate = maxdate.AddDate(0, 0, 1)
+		tdays := maxdate.UTC().Sub(resultMonthly[0].DateInfo.DateId.UTC()).Hours() / 24
+		mdays := tk.ToFloat64(time.Date(maxdate.Year(), maxdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day(), 0, tk.RoundingAuto)
+		xbudget = tdays / mdays
+	}
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
@@ -521,21 +537,32 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	projectList, _ := helper.GetProjectList()
 	dataItem := []tk.M{}
 	for project, val := range totalPower {
+
+		labelproject := ""
+		for _, _info := range projectList {
+			if strings.ToLower(_info.Value) == strings.ToLower(project) {
+				labelproject = _info.Name
+				break
+			}
+		}
+
 		data := tk.M{
 			"project":       project,
 			"production":    val.(float64),
 			"lostenergy":    totalPowerLost.GetFloat64(project),
 			"wtg":           totalTurbines.GetInt(project),
+			"labelproject":  labelproject,
 			"detail":        detailData[project],
 			"avgwindspeed":  resultMonthly[0].AvgWindSpeed,
 			"downtimehours": resultMonthly[0].DowntimeHours,
 			"plf":           resultMonthly[0].PLF,
 			"trueavail":     resultMonthly[0].TrueAvail,
-			"budget_p50":    resultBudget[0].P50NetGenMWH,
-			"budget_p75":    resultBudget[0].P75NetGenMWH,
-			"budget_p90":    resultBudget[0].P90NetGenMWH,
+			"budget_p50":    resultBudget[0].P50NetGenMWH * xbudget,
+			"budget_p75":    resultBudget[0].P75NetGenMWH * xbudget,
+			"budget_p90":    resultBudget[0].P90NetGenMWH * xbudget,
 		}
 		dataItem = append(dataItem, data)
 	}

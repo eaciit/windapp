@@ -406,7 +406,7 @@
 	    font-weight: bold;
 	}
 	.production-part{
-		width: 484px;
+		width: 488px;
 		background: #eee;
 	}
 	.sum-production{
@@ -418,6 +418,10 @@
 	}
 	.border-left{
 		border-left: 2px solid #78909C;
+	}
+
+	.long-title{
+		padding: 5px 0 0 0 !important;
 	}
 
 /*	@media(max-width: 320){
