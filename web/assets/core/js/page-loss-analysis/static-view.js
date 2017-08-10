@@ -378,34 +378,37 @@ sv.getGridView = function(gData){
 }
 
 sv.StaticView = function(){
-    var valid = fa.LoadData();    
+    var valid = fa.LoadData();
+    app.loading(true);    
     if (valid) {
+        pg.setAvailableDate(false);
         if(pg.isFirstStaticView() === true){
-            app.loading(true);
-            var param = {
-                period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
-                turbine: fa.turbine(),
-                project: fa.project,
-            };
+            setTimeout(function(){
+                var dateStart = $('#dateStart').data('kendoDatePicker').value();
+                var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));  
 
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
+                var param = {
+                    period: fa.period,
+                    dateStart: dateStart,
+                    dateEnd: dateEnd,
+                    turbine: fa.turbine(),
+                    project: fa.project,
+                };
 
-                var gData = res.data.Data
-                sv.getChartView(gData);
-                sv.getGridView(gData);
+                toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getscadasummarylist", param, function (res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
 
-            });
-            $('#availabledatestart').html(pg.availabledatestartscada());
-            $('#availabledateend').html(pg.availabledateendscada());
+                    var gData = res.data.Data
+                    sv.getChartView(gData);
+                    sv.getGridView(gData);
+
+                });
+            },500);
         }else{
             sv.refreshView($('input[name=convertStatic]:checked').val());
-            $('#availabledatestart').html(pg.availabledatestartscada());
-            $('#availabledateend').html(pg.availabledateendscada());
+            app.loading(false);
         }
     }
 }
