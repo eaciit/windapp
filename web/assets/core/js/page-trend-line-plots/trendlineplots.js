@@ -40,9 +40,8 @@ tlp.deviationList = ko.observableArray([1,2,3,4,5]);
 tlp.isDeviation = ko.observable(false);
 tlp.compTempVal = ko.observable("2");
 
-tlp.initChart = function() {
-    app.loading(true);
 
+tlp.getAvailDate = function(){
     app.ajaxPost(viewModel.appName + "/trendlineplots/getscadaoemavaildate", {}, function(res) {
         if (!app.isFine(res)) {
             return;
@@ -55,20 +54,34 @@ tlp.initChart = function() {
             if (res.data.ScadaOemAvailDate.length > 0) {
                 var minDatetemp = new Date(res.data.ScadaOemAvailDate[0]);
                 var maxDatetemp = new Date(res.data.ScadaOemAvailDate[1]);
-                $('#availabledatestarttlp').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-                $('#availabledateendtlp').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+
+                $('#availabledatestarttlp').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMM-YYYY')));
+                $('#availabledateendtlp').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMM-YYYY')));
+
+                var startDate = new Date(Date.UTC(moment(maxDatetemp).get('year'), maxDatetemp.getMonth(), maxDatetemp.getDate() - 7, 0, 0, 0, 0));
+
+                $('#dateStart').data('kendoDatePicker').value(startDate);
+                $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(maxDatetemp).format('DD-MMM-YYYY')));
             }
         }
     });
+}
+
+tlp.initChart = function() {
+    app.loading(true);
+    
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
     var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
     // var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+
     var param = {
         period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
+        dateStart: dateStart,
+        dateEnd: dateEnd,
         turbine: fa.turbine(), // $("#turbineList").data("kendoMultiSelect").value(),
         project: fa.project,
         colname: colnameTemp,
@@ -287,12 +300,9 @@ tlp.showHideLegend = function(idx){
 }
 
 $(document).ready(function() {
-    setTimeout(function() {
-        if(fa.LoadData()) {
-            fa.checkTurbine();
-            tlp.initChart();
-        }
-    }, 300);
+
+    tlp.getAvailDate();
+
 
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
@@ -314,9 +324,17 @@ $(document).ready(function() {
 
     $('#projectList').kendoDropDownList({
 		change: function () {  
+            tlp.getAvailDate();
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
             fa.project = project;
 		}
 	});
+
+    setTimeout(function() {
+        if(fa.LoadData()) {
+            fa.checkTurbine();
+            tlp.initChart();
+        }
+    }, 300);
 });

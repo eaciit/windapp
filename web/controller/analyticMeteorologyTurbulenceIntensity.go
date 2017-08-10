@@ -111,6 +111,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	csrt.Close()
 
 	// tk.Printf("metTowers : %s \n", len(metTowers))
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	for _, m := range metTowers {
 		iDs := m.Get("_id").(tk.M)
@@ -171,7 +175,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 		var dts [][]float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
+		turbineData.Set("name", turbineName[turbineX])
 		turbineData.Set("type", "scatterLine")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")

@@ -63,7 +63,7 @@ pg.loadData = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         app.loading(true);
-        pg.getAvailDate();
+        
         if (fa.project == "") {
             pg.type = "Project Name";
         } else {
@@ -76,13 +76,16 @@ pg.DataCon = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         app.loading(true);
-        pg.getAvailDate();
         if(pg.isFirstDataCon() === true){
+
+                var dateStart = $('#dateStart').data('kendoDatePicker').value();
+                var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+
                 var param = {
                     period: fa.period,
                     Turbine: fa.turbine(),
-                    DateStart: fa.dateStart,
-                    DateEnd: fa.dateEnd,
+                    DateStart: dateStart,
+                    DateEnd: dateEnd,
                     Project: fa.project
                 };
 
@@ -170,6 +173,7 @@ vm.currentTitle('Data Consistency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Consistency', href: viewModel.appName + 'page/analyticdataconsistency' }]);
 
 $(function(){
+    pg.getAvailDate();
     setTimeout(function(){
         pg.loadData();
         pg.DataCon();
