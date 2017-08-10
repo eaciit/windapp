@@ -1586,11 +1586,11 @@ avail.DTLostEnergyDetail = function (dataSource) {
     }, 100);
 }
 
-avail.DTTopDetail = function (turbine, type) {
+avail.DTTopDetail = function (e, type) {
     app.loading(true);
     var project = $("#projectId").data("kendoDropDownList").value();
     var date = maxdate;
-    var param = { ProjectName: project, Date: date, Type: type, Turbine: turbine };
+    var param = { ProjectName: project, Date: date, Type: e.series.field+"_"+type, Turbine: e.category };
 
     var templateTooltip = "#: category # : #:  kendo.toString(value, 'n1') #"
     if (type == 'Times') {
@@ -2205,7 +2205,7 @@ avail.toDetailDTTop = function (e, type) {
     avail.isDetailDTTop(true);
 
     // get the data and push into the chart    
-    avail.DTTopDetail(e.category, type);
+    avail.DTTopDetail(e, type);
 }
 
 avail.backToDownTime = function () {

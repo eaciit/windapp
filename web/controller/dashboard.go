@@ -2598,10 +2598,17 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 			p.Turbine = key
 		}
 	}
+	tipe := strings.Split(p.Type, "_")
 
 	fromDate = p.Date.AddDate(0, -12, 0)
-	pipes = append(pipes, tk.M{"$match": tk.M{"turbine": p.Turbine, "startdate": tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()}}})
-	if p.Type == "Hours" {
+	pipes = append(pipes, tk.M{
+		"$match": tk.M{
+			"turbine":                p.Turbine,
+			"startdate":              tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()},
+			strings.ToLower(tipe[0]): true,
+		},
+	})
+	if tipe[1] == "Hours" {
 		pipes = append(pipes,
 			tk.M{
 				"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc"},
@@ -2609,7 +2616,7 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 				},
 			},
 		)
-	} else if p.Type == "Times" {
+	} else if tipe[1] == "Times" {
 		pipes = append(pipes,
 			tk.M{
 				"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc"},
@@ -2617,7 +2624,7 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 				},
 			},
 		)
-	} else if p.Type == "MWh" {
+	} else if tipe[1] == "MWh" {
 		pipes = append(pipes,
 			tk.M{
 				"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc"},
@@ -3542,10 +3549,12 @@ func (m *DashboardController) GetDownTimeTopDetailTable(k *knot.WebContext) inte
 			p.Turbine = key
 		}
 	}
+	tipe := strings.Split(p.Type, "_")
 
 	filter = append(filter, dbox.Eq("turbine", p.Turbine))
 	filter = append(filter, dbox.Gte("startdate", fromDate.UTC()))
 	filter = append(filter, dbox.Lte("startdate", p.Date.UTC()))
+	filter = append(filter, dbox.Eq(strings.ToLower(tipe[0]), true))
 
 	if p.ProjectName != "Fleet" {
 		filter = append(filter, dbox.Lte("projectname", p.ProjectName))
