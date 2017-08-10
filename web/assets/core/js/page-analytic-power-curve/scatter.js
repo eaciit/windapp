@@ -108,16 +108,18 @@ page.refreshChart = function() {
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
+
     var param = {
         period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
+        dateStart: dateStart,
+        dateEnd: dateEnd,
         turbine: fa.turbine,
         project: fa.project,
         scatterType: page.scatterType,
     };
-    
-    di.getAvailDate();
 
     toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurvescatter", param, function(res) {
         if (!app.isFine(res)) {
@@ -217,6 +219,7 @@ page.getPowerCurveScatter = function() {
 }
 
 $(document).ready(function() {
+    di.getAvailDate();
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
             page.LoadData();

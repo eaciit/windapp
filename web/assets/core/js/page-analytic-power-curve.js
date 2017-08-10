@@ -65,8 +65,8 @@ page.ExportPowerCurvePdf = function() {
       }).appendTo('body');
 
 
-      var dateStart = moment(fa.dateStart).format("DD MMM YYYY");
-      var dateEnd = moment(fa.dateEnd).format("DD MMM YYYY");
+      var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+      var dateEnd = moment($('#dateEnd').data('kendoDatePicker').value()).format("DD MMM YYYY");
 
       var options = chart.options;
 
@@ -169,15 +169,17 @@ var Data = {
         if(isValid) {
             page.deviationVal($("#deviationValue").val());
 
-            di.getAvailDate();
-
             var link = "analyticpowercurve/getlistpowercurvescada"
 
             app.loading(true);
+
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+
             var param = {
                 period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
+                dateStart: dateStart,
+                dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
                 turbine: fa.turbine(),
                 project: fa.project,
                 isClean: page.isClean,
@@ -369,10 +371,14 @@ var Data = {
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
 
         app.loading(true);
+
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
         var param = {
             period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
+            dateStart: dateStart,
+            dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: turbineList,
             project: fa.project,
             Color: kolor,
@@ -510,8 +516,12 @@ var Data = {
     InitCurveDetail: function(turbineid,turbinename) {
         app.loading(true);
         page.detailTitle(turbinename);
-        page.detailStartDate(fa.dateStart.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateStart.getUTCFullYear());
-        page.detailEndDate(fa.dateEnd.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateEnd.getUTCFullYear());
+
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+
+        page.detailStartDate(dateStart.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateStart.getUTCFullYear());
+        page.detailEndDate(dateEnd.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateEnd.getUTCFullYear());
 
         var colorDetail = [];
 
@@ -525,8 +535,8 @@ var Data = {
 
         var param = {
             period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
+            dateStart: dateStart,
+            dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: [turbineid],
             project: fa.project,
             Color: colorDetail
@@ -826,8 +836,10 @@ page.getSelectedFilter = function(){
 }
 
 $(document).ready(function() {
-
+    di.getAvailDate();
     page.getSelectedFilter();
+
+    
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {   
@@ -849,7 +861,6 @@ $(document).ready(function() {
         $('.multiselect-native-select').hide();
         page.currProject(fa.project);
         page.project(fa.project);
-
         Data.LoadData();
     }, 1000);
 
@@ -900,17 +911,26 @@ $(document).ready(function() {
         dataTextField: 'text',
         suggest: true,
         change: function () { 
+            
+            fa.disableRefreshButton(true);
             var project = $('#projectList').data("kendoDropDownList").value();
             var lastProject = page.currProject();
-            if(project != lastProject){
-                page.project(lastProject)
-                page.currProject(project);
-            }else{
-                page.project(project)
-                page.currProject(project);
-            }
 
-            fa.populateTurbine(project);
+            setTimeout(function(){
+
+                fa.populateTurbine(project);
+
+                di.getAvailDate();
+                if(project != lastProject){
+                    page.project(lastProject)
+                    page.currProject(project);
+                }else{
+                    page.project(project)
+                    page.currProject(project);
+                }
+
+               fa.disableRefreshButton(false);
+            },500);
          }
     });
 

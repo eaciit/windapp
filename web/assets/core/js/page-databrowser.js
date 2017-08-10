@@ -277,19 +277,20 @@ dbr.Scada = function(id) {
     if(!dbr.isScadaLoaded()) {
         dbr.isScadaLoaded(true);
         dbs.InitScadaGrid();
-        app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            availDateAll = res.data;
-            dbr.setAvailableDate();
-        });
     } else {
         dbr.setAvailableDate();
         app.loading(false);
     }
 }
-
+dbr.getAvailDate = function(){
+    app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        availDateAll = res.data;
+        dbr.setAvailableDate();
+    });
+}
 dbr.ScadaHFD = function(id) {
     fa.LoadData();
     app.loading(true);

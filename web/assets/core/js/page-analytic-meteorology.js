@@ -58,6 +58,49 @@ pm.isFirstTurbine = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
 
+
+pm.getAvailDate = function(){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var data = res.data;
+
+        var namaproject = $("#projectList").data("kendoDropDownList").value();
+        if(namaproject == "") {
+            namaproject = "Tejuva";
+        }
+
+        availDateList.availabledatestartscada = kendo.toString(moment.utc(data[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY'));
+        availDateList.availabledateendscada = kendo.toString(moment.utc(data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY'));
+
+        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+
+        availDateList.startScadaHFD = kendo.toString(moment.utc(data[namaproject]["ScadaDataHFD"][0]).format('DD-MMM-YYYY'));
+        availDateList.endScadaHFD = kendo.toString(moment.utc(data[namaproject]["ScadaDataHFD"][1]).format('DD-MMM-YYYY'));
+
+        availDateList.startScadaOEM = kendo.toString(moment.utc(data[namaproject]["ScadaDataOEM"][0]).format('DD-MMM-YYYY'));
+        availDateList.endScadaOEM = kendo.toString(moment.utc(data[namaproject]["ScadaDataOEM"][1]).format('DD-MMM-YYYY'));
+
+        availDateList.availabledatestartmet = kendo.toString(moment.utc(data[namaproject]["MET"][0]).format('DD-MMM-YYYY'));
+        availDateList.availabledateendmet = kendo.toString(moment.utc(data[namaproject]["MET"][1]).format('DD-MMM-YYYY'));
+
+
+        var startDate = kendo.toString(moment.utc(data[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY'));
+        var endDate = kendo.toString(moment.utc(data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY'));
+
+        var maxDateData = new Date(data[namaproject]["ScadaData"][1]);
+
+        var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+
+        $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+        $('#dateEnd').data('kendoDatePicker').value(endDate);  
+
+    })
+}
 pm.loadData = function () {
     setTimeout(function () {
         if (fa.project == "") {
@@ -67,27 +110,6 @@ pm.loadData = function () {
         }
 
     }, 100);
-    
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-
-        availDateList.availabledatestartscada = kendo.toString(moment.utc(res.data.ScadaData[0]).format('DD-MMMM-YYYY'));
-        availDateList.availabledateendscada = kendo.toString(moment.utc(res.data.ScadaData[1]).format('DD-MMMM-YYYY'));
-
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-
-        availDateList.startScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[0]).format('DD-MMMM-YYYY'));
-        availDateList.endScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[1]).format('DD-MMMM-YYYY'));
-
-        availDateList.startScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[0]).format('DD-MMMM-YYYY'));
-        availDateList.endScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[1]).format('DD-MMMM-YYYY'));
-
-        availDateList.availabledatestartmet = kendo.toString(moment.utc(res.data.MET[0]).format('DD-MMMM-YYYY'));
-        availDateList.availabledateendmet = kendo.toString(moment.utc(res.data.MET[1]).format('DD-MMMM-YYYY'));
-    })
 }
 
 pm.resetStatus= function(){
@@ -115,8 +137,7 @@ pm.hideFilter = function(){
     $(".control-label:contains('to')").hide();
 }
 $(function(){
-    pm.loadData();
-    aw.AverageWindSpeed();
+    pm.getAvailDate();
 
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
@@ -138,8 +159,13 @@ $(function(){
     });
 
     setTimeout(function () {
+        pm.loadData();
+        aw.AverageWindSpeed();
+
         $('#projectList').kendoDropDownList({
             change: function () {  
+                pm.resetStatus();
+                pm.getAvailDate();
                 var project = $('#projectList').data("kendoDropDownList").value();
                 fa.populateTurbine(project);
             }
@@ -155,5 +181,5 @@ $(function(){
             );
         });
         $("#nosection").data("kendoDropDownList").value(12);
-    }, 300);
+    }, 500);
 });

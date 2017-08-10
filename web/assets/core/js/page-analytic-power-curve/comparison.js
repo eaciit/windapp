@@ -105,6 +105,39 @@ var turbineval = [];
     });
 }*/
 
+pc.getAvailDate = function(){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var availDateAll = res.data;
+        var projectVal = $("#projectList1").data("kendoDropDownList").value();
+
+        var namaproject = "";
+
+        if( projectVal == undefined || projectVal == "") {
+            namaproject = "Tejuva";
+        }else{
+            namaproject= projectVal;
+        }
+
+        
+        var minDate  = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
+        var maxDate = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+
+        var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
+        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+        $('#dateStart').data('kendoDatePicker').value(startDate);
+        $('#dateEnd').data('kendoDatePicker').value(maxDate);
+        $('#dateStart2').data('kendoDatePicker').value(startDate);
+        $('#dateEnd2').data('kendoDatePicker').value(maxDate);
+
+        $('#availabledatestartscada').html(minDate);
+        $('#availabledateendscada').html(maxDate);
+    });
+}
 pc.populateTurbine = function (selected) {
     if (pc.rawturbine().length == 0) {
         pc.turbineList([{ value: "", text: "" }]);
@@ -358,15 +391,7 @@ pc.initChart = function() {
         } else if(p2DateStart - p2DateEnd > 25200000) {
             toolkit.showError("Invalid Date Range Selection for Filter 2");
         } else {
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                var minDatetemp = new Date(res.data.ScadaData[0]);
-                var maxDatetemp = new Date(res.data.ScadaData[1]);
-                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-            });
+            
             
             var link = "analyticpowercurve/getlistpowercurvecomparison"
 
@@ -532,6 +557,8 @@ pc.setProjectTurbine = function(projects, turbines, selected){
 };
 
 $(document).ready(function () {
+    pc.getAvailDate();
+    
     $('#btnRefresh').on('click', function() {
         setTimeout(function() {
             pc.initChart();
@@ -541,6 +568,7 @@ $(document).ready(function () {
     $('#projectList1').kendoDropDownList({
         change: function () { 
             var project = $('#projectList1').data("kendoDropDownList").value();
+            pc.getAvailDate();
             pc.populateTurbine(project);
          }
     });

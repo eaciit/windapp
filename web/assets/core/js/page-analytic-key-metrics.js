@@ -28,10 +28,13 @@ km.createChart = function (dataSource) {
 		var key1Val = $("#key1").data("kendoDropDownList").value();
 		var key2Val = $("#key2").data("kendoDropDownList").value();
 		var breakdownVal = $("#breakdownlist").data("kendoDropDownList").value();
+		var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+
 
 		var filters = [
-			{ field: "dateinfo.dateid", operator: "gte", value: fa.dateStart },
-			{ field: "dateinfo.dateid", operator: "lte", value: fa.dateEnd },
+			{ field: "dateinfo.dateid", operator: "gte", value: dateStart },
+			{ field: "dateinfo.dateid", operator: "lte", value: dateEnd },
 			{ field: "turbine", operator: "in", value: fa.turbine() },
 		];
 		/*var listOfMonths = [];
@@ -207,8 +210,6 @@ km.setBreakDown = function () {
 }
 
 km.getData = function () {
-	
-	di.getAvailDate();
 	// fa.getProjectInfo();
 	fa.LoadData();
 
@@ -219,6 +220,7 @@ km.getData = function () {
 }
 
 $(document).ready(function () {
+	di.getAvailDate();
 	$('#btnRefresh').on('click', function () {
 		fa.checkTurbine();
 		setTimeout(function () {
@@ -243,7 +245,7 @@ $(document).ready(function () {
 			dataValueField: 'value',
 			dataTextField: 'text',
 			suggest: true,
-			change: function () { km.setBreakDown() }
+			change: function () { km.setBreakDown(); di.getAvailDate(); }
 		});
 
 		$("#dateStart").change(function () { fa.DateChange(km.setBreakDown()) });

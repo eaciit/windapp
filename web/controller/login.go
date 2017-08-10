@@ -307,6 +307,11 @@ func getLastAvailDate() *Availdatedata {
 	datePeriod := new(Availdatedata)
 	xdp := reflect.ValueOf(datePeriod).Elem()
 	for _, d := range latestDataPeriods {
+
+		for i, tval := range d.Data {
+			d.Data[i] = tval.UTC()
+		}
+
 		f := xdp.FieldByName(d.Type)
 		if f.IsValid() {
 			if f.CanSet() {
@@ -342,6 +347,9 @@ func getLastAvailDateAll() toolkit.M {
 
 	result := toolkit.M{}
 	for _, val := range latestDataPeriods {
+		for i, tval := range val.Data {
+			val.Data[i] = tval.UTC()
+		}
 		if result.Has(val.ProjectName) {
 			currData, _ := toolkit.ToM(result[val.ProjectName])
 			currData.Set(val.Type, val.Data)

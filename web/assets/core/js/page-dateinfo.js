@@ -20,14 +20,23 @@ di.getAvailDate = function () {
 
         var namaproject;
         
-        if(fa.project == undefined || fa.project == "") {
+        var projectVal = $("#projectList").data("kendoDropDownList").value();
+        if( projectVal == undefined || projectVal == "") {
             namaproject = "Tejuva";
         }else{
-            namaproject=  fa.project;
+            namaproject= projectVal;
         }
 
-        di.minDatetemp(kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMMM-YYYY')));
-        di.maxDatetemp(kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMMM-YYYY')));
+        
+        di.minDatetemp(kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
+        di.maxDatetemp(kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+
+        var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
+
+        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+        $('#dateStart').data('kendoDatePicker').value(startDate);
+        $('#dateEnd').data('kendoDatePicker').value(di.maxDatetemp());
     })
 };
 

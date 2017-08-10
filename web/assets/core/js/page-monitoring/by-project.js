@@ -327,6 +327,12 @@ bp.PlotData = function(data) {
                 $('#statusturbine_'+ turbine).css('width',  70 +'px');
             }
 
+            if(val.isbordered != undefined && val.isbordered == true){
+                $('#statusturbinedefault_'+turbine).addClass("bordered");
+            }else{
+                $('#statusturbinedefault_'+turbine).removeClass("bordered");
+            }
+
             $('#statusturbinedefault_'+turbine).popover({
                 placement: 'bottom',
                 html: 'true',

@@ -6,12 +6,17 @@ var wa = viewModel.WindspeedAvailability;
 wa.WindSpeed = function(){
     var isValid = fa.LoadData();
     if(isValid) {
+        pg.setAvailableDate(false);
         if(pg.isFirstWindSpeed() === true){
             app.loading(true);
+
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+
             var param = {
                 period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
+                dateStart: dateStart,
+                dateEnd: dateEnd,
                 turbine: fa.turbine(),
                 project: fa.project
             };
@@ -135,12 +140,8 @@ wa.WindSpeed = function(){
                     }
                 });
             });
-            $('#availabledatestart').html(pg.availabledatestartscada2());
-            $('#availabledateend').html(pg.availabledateendscada2());
         }else{
             setTimeout(function(){
-                $('#availabledatestart').html(pg.availabledatestartscada2());
-                $('#availabledateend').html(pg.availabledateendscada2());
                 $("#windAvailabilityChart").data("kendoChart").refresh();
                 // app.loading(false);
             },200);

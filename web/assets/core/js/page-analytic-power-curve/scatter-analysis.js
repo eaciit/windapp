@@ -89,10 +89,14 @@ page.getPowerCurveScatter = function() {
     var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
     var greaterMarker = $("#greaterMarker").data("kendoDropDownList").value();
 
+
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
+
     var param = {
         period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
+        dateStart: dateStart,
+        dateEnd: dateEnd,
         turbine: turbine,
         project: fa.project,
         scatterType: page.scatterType,
@@ -104,8 +108,7 @@ page.getPowerCurveScatter = function() {
         greaterMarker: greaterMarker
     };
     
-    di.getAvailDate();
-
+    
     toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteranalysis", param, function(res) {
         if (!app.isFine(res)) {
             return;
@@ -244,6 +247,7 @@ page.createChart = function(dtSeries){
 }
 
 $(document).ready(function() {
+    di.getAvailDate();
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){

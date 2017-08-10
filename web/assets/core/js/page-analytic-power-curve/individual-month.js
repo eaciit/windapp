@@ -268,6 +268,7 @@ $(document).ready(function() {
         change: function () { 
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
+            di.getAvailDate();
          }
     });
 

@@ -12,13 +12,18 @@ var height = $(".content").width() * 0.125;
 av.Availability = function(){
     var valid = fa.LoadData();
     if (valid) {
+        pg.setAvailableDate(false);
         if(pg.isFirstAvailability() === true){
             app.loading(true);
+            
             av.breakDownVal = $("#breakdownlistavail").data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+            
             var param = {
                 period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
+                dateStart: dateStart,
+                dateEnd: dateEnd,
                 turbine: fa.turbine(),
                 project: fa.project,
                 breakDown: av.breakDownVal,
@@ -36,12 +41,8 @@ av.Availability = function(){
                     app.loading(false);
                 },200);
             });
-            $('#availabledatestart').html(pg.availabledatestartscada3());
-            $('#availabledateend').html(pg.availabledateendscada3());
         }else{
             setTimeout(function(){
-                $('#availabledatestart').html(pg.availabledatestartscada3());
-                $('#availabledateend').html(pg.availabledateendscada3());
                 $("#availabilityChart").data("kendoChart").refresh();
                 $("#productionChart").data("kendoChart").refresh();
                 // app.loading(false);

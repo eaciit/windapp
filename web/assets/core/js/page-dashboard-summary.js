@@ -1719,9 +1719,9 @@ sum.DetailProdByProject = function (e) {
             },
             columns: [
                 { title: "Turbine Name", field: "turbine", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Production<br>" + measurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" } },
-                { title: "Lost Energy<br>" + measurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" } },
-                { title: "Downtime<br>(Hours)", field: "downtime", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-right" } },
+                { title: "Production<br>" + measurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Lost Energy<br>" + measurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
             ],
             dataSource: {
                 data: dataSource.detail,

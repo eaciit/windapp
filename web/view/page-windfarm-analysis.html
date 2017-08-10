@@ -1,5 +1,5 @@
 <script>
-    var availableDate = {{.AvailableDate}};
+    // var availableDate = {{.AvailableDate}};
 
     var projects = {{.ProjectList}};
     var turbines = {{.TurbineList}};
@@ -21,13 +21,13 @@
                 <div class="col-md-12 col-sm-12 filter-content">
                     <div data-bind="visible: wfa.isProjectTab()">
                         <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true }"
+                        <select class="col-md-1 col-sm-1 project-list" id="projectList" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){wfa.getDataAvailableInfo();wfa.LoadData();}}"
                         style="width:150px">
                         </select>
                     </div>
                     <div data-bind="visible:wfa.isTurbine1Tab()">
                         <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true , change: function(){wfa.setTurbines('projectTurbine1List','turbine1List')}}"
+                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine1List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true , change: function(){ wfa.getDataAvailableInfo('projectTurbine1List');wfa.setTurbines('projectTurbine1List','turbine1List');wfa.Turbine1Analysis.LoadData()}}"
                             style="width:150px">
                         </select>
                         <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
@@ -36,7 +36,7 @@
                     </div>
                     <div data-bind="visible:wfa.isTurbine2Tab()">
                         <label class="col-md-1 col-sm-1 control-label label-filter">Project</label>
-                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){wfa.setTurbines('projectTurbine2List','turbine2List')} }"
+                        <select class="col-md-1 col-sm-4 project-list" id="projectTurbine2List" name="table" data-bind="kendoDropDownList: { data: wfa.ProjectList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){ wfa.getDataAvailableInfo('projectTurbine2List'); wfa.setTurbines('projectTurbine2List','turbine2List') ;wfa.Turbine2Analysis.LoadData(); }}"
                             style="width:150px">
                         </select>
                         <label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>

@@ -6,12 +6,17 @@ var le = viewModel.LostEnergy;
 le.LossEnergy = function(){
     var valid = fa.LoadData();
     if (valid) {
+        pg.setAvailableDate(false);
         if(pg.isFirstLostEnergy() === true){
             app.loading(true);
+
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+
             var paramdown = {
                 Period: fa.period,
-                DateStart: fa.dateStart,
-                DateEnd: fa.dateEnd,
+                DateStart: dateStart,
+                DateEnd: dateEnd,
                 Turbine: fa.turbine(),
                 Project: fa.project
             };
@@ -45,12 +50,8 @@ le.LossEnergy = function(){
                     pg.isFirstLostEnergy(false);
                 },300);
             });
-            $('#availabledatestart').html(pg.availabledatestartalarm());
-            $('#availabledateend').html(pg.availabledateendalarm());
         }else{
             setTimeout(function(){
-                $('#availabledatestart').html(pg.availabledatestartalarm());
-                $('#availabledateend').html(pg.availabledateendalarm());
                 $("#chartLCByTEL").data("kendoChart").refresh();
                 $("#chartDTLEbyType").data("kendoChart").refresh();
                 $("#chartLCByDuration").data("kendoChart").refresh();

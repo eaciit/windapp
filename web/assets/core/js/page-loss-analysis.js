@@ -42,39 +42,78 @@ pg.isFirstWarning = ko.observable(true);
 pg.isFirstComponentAlarm = ko.observable(true);
 pg.isFirstMTBF = ko.observable(true);
 
+var availDateAll;
 
-pg.getDataAvailableInfo =  function(){
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+pg.getDataAvailableInfo =  function(isFirstLoad){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
         if (!app.isFine(res)) {
             return;
         }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
 
-        pg.availabledatestartscada(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        pg.availabledateendscada(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
+        availDateAll = res.data;
 
-        pg.availabledatestartscada2(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        pg.availabledateendscada2(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-        pg.availabledatestartalarm(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
-        pg.availabledateendalarm(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
-
-        pg.availabledatestartscada3(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        pg.availabledateendscada3(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-
-        pg.availabledatestartalarm2(kendo.toString(moment.utc(res.data.Alarm[0]).format('DD-MMMM-YYYY')));
-        pg.availabledateendalarm2(kendo.toString(moment.utc(res.data.Alarm[1]).format('DD-MMMM-YYYY')));
-
-        pg.availabledatestartwarning(kendo.toString(moment.utc(res.data.Warning[0]).format('DD-MMMM-YYYY')));
-        pg.availabledateendwarning(kendo.toString(moment.utc(res.data.Warning[1]).format('DD-MMMM-YYYY')));
-
-        availDateListLoss.startScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[0]).format('DD-MMMM-YYYY'));
-        availDateListLoss.endScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[1]).format('DD-MMMM-YYYY'));
-
-        $('#availabledatestart').html(pg.availabledatestartscada());
-        $('#availabledateend').html(pg.availabledateendscada());
+        pg.setAvailableDate(true);
     })
+}
+
+pg.setAvailableDate = function(isFirstLoad) {
+    setTimeout(function(){
+        var tabType = $(".panel-body").find(".nav-tabs").find("li.active").attr('id');
+        var tipeTab = "ScadaData";
+        switch (tabType) {
+            case "staticViewTab" :
+                tipeTab = "ScadaData"
+                break;
+            case "Top10DowntimeTab" :
+                tipeTab = "Alarm"
+                break;
+            case "availabilityTab" :
+                tipeTab = "ScadaData"
+                break;
+            case "lostenergyTab" :
+                tipeTab = "Alarm"
+                break;
+            case "reliabilitykpiTab" :
+                tipeTab = "ScadaData"
+                break;
+            case "windspeedavailTab" :
+                tipeTab = "ScadaData"
+                break;
+            case "warningTab" :
+                tipeTab = "Warning"
+                break;
+            case "CompAlarmTab" :
+                tipeTab = "Alarm"
+                break;
+            case "mtbfTab" :
+                tipeTab = "ScadaDataOEM"
+                break;
+            default:
+                tipeTab = "ScadaData"
+                break;
+        }
+
+        var namaproject = $("#projectList").data("kendoDropDownList").value();
+        if(namaproject == "") {
+            namaproject = "Tejuva";
+        }
+
+        var startDate = kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][0]).format('DD-MMM-YYYY'));
+        var endDate = kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][1]).format('DD-MMM-YYYY'));
+
+        var maxDateData = new Date(availDateAll[namaproject][tipeTab][1]);
+
+        var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+        $('#availabledatestart').html(startDate);
+        $('#availabledateend').html(endDate);
+
+        if(isFirstLoad === true){
+            $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+            $('#dateEnd').data('kendoDatePicker').value(endDate);  
+        }
+
+    }, 300);
 }
 pg.backToDownTime = function () {
     pg.isDetailDTTop(false);
@@ -83,7 +122,6 @@ pg.backToDownTime = function () {
 
 pg.LoadData = function(){
     fa.LoadData();
-    pg.getDataAvailableInfo();
 }
 
 pg.Reliability = function(){
@@ -124,12 +162,11 @@ function replaceString(value) {
 }
 
 $(function(){
-    setTimeout(function(){
-        pg.LoadData();
-        sv.StaticView();
-    },200);
+
+    pg.getDataAvailableInfo(true);
 
     $('#btnRefresh').on('click', function () {
+        app.loading(true);
         fa.checkTurbine();
         pg.resetStatus();
         $('.nav').find('li.active').find('a').trigger( "click" );
@@ -155,7 +192,18 @@ $(function(){
         dataValueField: 'value',
         dataTextField: 'text',
         suggest: true,
-        change: function () { av.SetBreakDown() }
+        change: function () { 
+            // app.loading(true);
+            av.SetBreakDown();
+            pg.resetStatus();
+            pg.getDataAvailableInfo(true);
+
+            // setTimeout(function(){
+            //     fa.checkTurbine();
+            //     pg.resetStatus();
+            //     $('.nav').find('li.active').find('a').trigger( "click" );
+            // },1000)
+        }
     });
 
     $("#dateStart").change(function () { fa.DateChange(av.SetBreakDown()) });
@@ -209,6 +257,11 @@ $(function(){
         },300);
     });
 
+
+    setTimeout(function(){
+        pg.LoadData();
+        sv.StaticView();
+    },500);
     /*$(window).resize(function() {
         $("#chartCADuration").data("kendoChart").refresh();
     });*/
