@@ -391,7 +391,7 @@ pc.initChart = function() {
         } else if(p2DateStart - p2DateEnd > 25200000) {
             toolkit.showError("Invalid Date Range Selection for Filter 2");
         } else {
-            pc.getAvailDate();
+            
             
             var link = "analyticpowercurve/getlistpowercurvecomparison"
 
@@ -557,6 +557,8 @@ pc.setProjectTurbine = function(projects, turbines, selected){
 };
 
 $(document).ready(function () {
+    pc.getAvailDate();
+    
     $('#btnRefresh').on('click', function() {
         setTimeout(function() {
             pc.initChart();
