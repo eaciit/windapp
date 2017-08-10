@@ -53,13 +53,11 @@ var isFirst = true;
 var Data = {
     LoadData: function () {
         var isValid = fa.LoadData();
-
         if(isValid) {
             app.loading(true);
+
             var dateStart = $('#dateStart').data('kendoDatePicker').value();
-            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-            
-            di.getAvailDate();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
 
             var columnBreakdown = $('#columnsBreakdown').val();
             var rowBreakdown = $('#rowsBreakdown').val();
@@ -70,8 +68,8 @@ var Data = {
 
             var param = {
                 period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
+                dateStart: dateStart,
+                dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
                 turbine: fa.turbine(),
                 project: fa.project,
                 columnBreakDown: columnBreakdown,
@@ -81,16 +79,14 @@ var Data = {
                 keyC: keyC,
             };
 
-            setTimeout(function () {
-                toolkit.ajaxPost(viewModel.appName + "analytickpi/getscadasummarylist", param, function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    page.dataSource(res.data.Data);
-                    page.generateGrid();
-                });
-                // fa.getProjectInfo();
-            }, 200);
+            toolkit.ajaxPost(viewModel.appName + "analytickpi/getscadasummarylist", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                page.dataSource(res.data.Data);
+                page.generateGrid();
+            });
+
         }
         // app.loading(false);
     }
@@ -419,6 +415,7 @@ vm.currentTitle('KPI Table');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'KPI Table', href: viewModel.appName + 'page/analytickpi' }]);
 
 $(function () {
+    di.getAvailDate();
     page.columnsBreakdown('Daily');
     page.rowsBreakdown('Turbine');
 
