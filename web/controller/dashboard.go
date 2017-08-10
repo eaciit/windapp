@@ -2599,6 +2599,9 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 		}
 	}
 	tipe := strings.Split(p.Type, "_")
+	if len(tipe) < 2 {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	fromDate = p.Date.AddDate(0, -12, 0)
 	pipes = append(pipes, tk.M{
