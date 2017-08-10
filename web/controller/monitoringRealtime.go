@@ -727,7 +727,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-orange")
 			}
 
-			if _itkm.GetInt("DataComing") == 0 && _itkm.Get("isserverlate", true).(bool) {
+			if _itkm.GetInt("DataComing") == 0 {
 				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-grey")
 			}
 
