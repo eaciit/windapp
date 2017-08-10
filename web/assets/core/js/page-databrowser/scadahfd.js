@@ -62,13 +62,28 @@ dbsh.InitScadaHFDGrid= function() {
     if (dbsh.selectedColumn().length == 0) {
         gColumns = dbsh.defaultSelectedColumn();
     }
-
+    
+    var widthVal = 90;
+    var lowerLabel = "";
     $.each(gColumns, function(i, val) {
+        lowerLabel = val.label.toLowerCase();
+        if(lowerLabel.indexOf("direction") >= 0 ||
+            lowerLabel.indexOf("react") >= 0) {
+            widthVal = 100;
+        } else if(lowerLabel.indexOf("generator") >= 0 ||
+            lowerLabel.indexOf("frequency") >= 0 ||
+            lowerLabel.indexOf("ambient") >= 0 ||
+            lowerLabel.indexOf("pressure") >= 0 ||
+            lowerLabel.indexOf("gearbox") >= 0) {
+            widthVal = 110;
+        } else {
+            widthVal = 90;
+        }
         var col = {
             field: val._id,
             title: val.label,
             type: val._id == "turbine" ? "string" : "number",
-            width: 90,
+            width: widthVal,
             headerAttributes: {
                 style: "text-align:center"
             },
