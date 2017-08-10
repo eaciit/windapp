@@ -174,19 +174,19 @@ Temp Nacelle
 Temp GearBox HSS NDE
 Temp GearBox HSS DE
 Temp GearBox IMS DE
-Temp GearOilSump
+Temp Gear Oil Sump
 Temp GearBox IMS NDE
-Temp GeneratorBearing DE
-Temp GeneratorBearing NDE
-Temp MainBearing
-Temp YawBrake 1
-Temp YawBrake 2
+Temp Generator Bearing DE
+Temp Generator Bearing NDE
+Temp Main Bearing
+Temp Yaw Brake 1
+Temp Yaw Brake 2
 Temp G1L1
 Temp G1L2
 Temp G1L3
-Temp YawBrake 4
+Temp Yaw Brake 4
 Hydr System Pressure
-Temp BottomControlSection Low
+Temp Bottom Control Section Low
 Temp Conv1
 Temp Conv2
 Temp Conv3
@@ -195,15 +195,15 @@ I1
 I2
 I3
 Nacelle Drill
-PitchAkku V1
-PitchAkku V2
-PitchAkku V3
+Pitch Akku V1
+Pitch Akku V2
+Pitch Akku V3
 Pitch Conv Current1
 Pitch Conv Current2
 Pitch Conv Current3
-Pitch AngleSP Diff1
-Pitch AngleSP Diff2
-Pitch AngleSP Diff3
+Pitch Angle SP Diff1
+Pitch Angle SP Diff2
+Pitch Angle SP Diff3
 Rpm Diff
 U1
 U2
@@ -217,69 +217,69 @@ Wind Vane2
 Current Asym
 Wind Vane Diff
 Pitch Speed2
-Speed RPMDiff FR1 Rot CNT
+Speed RPM Diff FR1 Rot CNT
 Dr Tr Vib Value
-InLastErrorConv1
-InLastErrorConv2
-InLastErrorConv3
-AI TowerVibValueAxial
-DiffGenSpeedSPToAct
+In Last Error Conv1
+In Last Error Conv2
+In Last Error Conv3
+AI Tower Vib Value Axial
+Diff Gen Speed SP To Act
 Temp YawBrake 5
-SpeedGenerator Proximity
-SpeedDiff Encoder Proximity
+Speed Generator Proximity
+Speed Diff Encoder Proximity
 Temp CabinetTopBox Low
 Temp CabinetTopBox
-Temp BottomControlSection
-Temp BottomPowerSection
-Temp BottomPowerSection Low
+Temp Bottom Control Section
+Temp Bottom Power Section
+Temp Bottom Power Section Low
 Pitch1 Status High
 Pitch2 Status High
 Pitch3 Status High
-InPosition1 ch3
-InPosition2 ch3
-InPosition3 ch3
+In Position1 ch3
+In Position2 ch3
+In Position3 ch3
 Temp Brake Blade1
 Temp Brake Blade2
 Temp Brake Blade3
-Temp PitchMotor Blade1
-Temp PitchMotor Blade2
-Temp PitchMotor Blade3
+Temp Pitch Motor Blade1
+Temp Pitch Motor Blade2
+Temp Pitch Motor Blade3
 Temp Hub Additional1
 Temp Hub Additional2
 Temp Hub Additional3
 Pitch1 Status Low
 Pitch2 Status Low
 Pitch3 Status Low
-Battery VoltageBlade1 center
-Battery VoltageBlade2 center
-Battery VoltageBlade3 center
-Battery ChargingCur Blade1
-Battery ChargingCur Blade2
-Battery ChargingCur Blade3
-Battery DischargingCur Blade1
-Battery DischargingCur Blade2
-Battery DischargingCur Blade3
-PitchMotor BrakeVoltage Blade1
-PitchMotor BrakeVoltage Blade2
-PitchMotor BrakeVoltage Blade3
-PitchMotor BrakeCurrent Blade1
-PitchMotor BrakeCurrent Blade2
-PitchMotor BrakeCurrent Blade3
+Battery Voltage Blade1 center
+Battery Voltage Blade2 center
+Battery Voltage Blade3 center
+Battery Charging Cur Blade1
+Battery Charging Cur Blade2
+Battery Charging Cur Blade3
+Battery Discharging Cur Blade1
+Battery Discharging Cur Blade2
+Battery Discharging Cur Blade3
+Pitch Motor Brake Voltage Blade1
+Pitch Motor Brake Voltage Blade2
+Pitch Motor Brake Voltage Blade3
+Pitch Motor Brake Current Blade1
+Pitch Motor Brake Current Blade2
+Pitch Motor Brake Current Blade3
 Temp HubBox Blade1
 Temp HubBox Blade2
 Temp HubBox Blade3
 Temp Pitch1 HeatSink
 Temp Pitch2 HeatSink
 Temp Pitch3 HeatSink
-ErrorStackBlade1
-ErrorStackBlade2
-ErrorStackBlade3
-Temp BatteryBox Blade1
-Temp BatteryBox Blade2
-Temp BatteryBox Blade3
-DC LinkVoltage1
-DC LinkVoltage2
-DC LinkVoltage3
+Error Stack Blade1
+Error Stack Blade2
+Error Stack Blade3
+Temp Battery Box Blade1
+Temp Battery Box Blade2
+Temp Battery Box Blade3
+DC Link Voltage1
+DC Link Voltage2
+DC Link Voltage3
 Temp Yaw Motor1
 Temp Yaw Motor2
 Temp Yaw Motor3
@@ -287,23 +287,23 @@ Temp Yaw Motor4
 AO DFIG Power Setpiont
 AO DFIG Q Setpoint
 AI DFIG Torque actual
-AI DFIG SpeedGenerator Encoder
+AI DFIG Speed Generator Encoder
 DFIG DC Link Voltage actual
 DFIG MSC current
 DFIG Main voltage
 DFIG Main current
-DFIG active power actual
+DFIG Active power actual
 DFIG reactive power actual
 DFIG active power actual LSC
 DFIG LSC current
 DFIG Data log number
-Damper OscMagnitude
-Damper PassbandFullLoad
-AI YawBrake TempRise1
-AI YawBrake TempRise2
-AI YawBrake TempRise3
-AI YawBrake TempRise4
-NacelleDrill at NorthPosSensor`
+Damper Osc Magnitude
+Damper Pass band FullLoad
+AI Yaw Brake Temp Rise1
+AI Yaw Brake Temp Rise2
+AI Yaw Brake Temp Rise3
+AI Yaw Brake Temp Rise4
+Nacelle Drill at North Pos Sensor`
 
 	oldHeaderList := strings.Split(oldHeader, "\n")
 	newHeaderList := strings.Split(newHeader, "\n")
@@ -336,7 +336,7 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Pitch Angle", "Pitch Angle1", "Pitch Angle2", "Pitch Angle3", "Generator Speed", "Rotor Speed",
 		"Reactive Power", "Frequency Grid", "Ambient Temp", "Temp Nacelle", "Temp GearBox HSS NDE", "Temp GearBox HSS DE",
 		"Temp GearBox IMS DE", "Temp GearBox Oil Sump", "Temp GearBox IMS NDE", "Temp Generator Bearing DE", "Temp Generator Bearing NDE",
-		"Temp Main Bearing", "Temp G1L1", "Temp G1L2", "Temp G1L3", "Temp BottomControlSection", "Temp Conv1",
+		"Temp Main Bearing", "Temp G1L1", "Temp G1L2", "Temp G1L3", "Temp Bottom Control Section", "Temp Conv1",
 		"Temp Conv2", "Temp Conv3", "Pitch Accu V1", "Pitch Accu V2", "Pitch Accu V3", "Power Factor",
 		"Total Production Day"}
 

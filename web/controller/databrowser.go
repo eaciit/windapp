@@ -784,7 +784,8 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 		xFilter = append(filter, dbox.Gte("fast_windspeed_ms", 0))
 		xFilter = append(xFilter, dbox.Lte("fast_windspeed_ms", 25))
 	case "fast_activepower_kw":
-		xFilter = append(filter, dbox.Ne("fast_activepower_kw", -999999.0))
+		xFilter = append(filter, dbox.Gte("fast_activepower_kw", -200))
+		xFilter = append(xFilter, dbox.Lte("fast_activepower_kw", 3000))
 		xFilter = append(xFilter, dbox.Or(dbox.Eq("isnull", false), dbox.Eq("isnull", nil)))
 	default:
 		return 0
