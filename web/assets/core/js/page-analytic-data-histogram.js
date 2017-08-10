@@ -239,13 +239,14 @@ km.getData = function () {
     if(fa.LoadData()) {
         app.loading(true);
 
-        di.getAvailDate();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
 
         var paramFilter = {
             period: fa.period,
             Turbine: fa.turbine(),
-            DateStart: fa.dateStart,
-            DateEnd: fa.dateEnd,
+            DateStart: dateStart,
+            DateEnd: dateEnd,
             Project: fa.project
         };
 
@@ -304,6 +305,7 @@ km.SubmitValues = function () {
 
 
 $(document).ready(function () {
+    di.getAvailDate();
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         setTimeout(function () {
