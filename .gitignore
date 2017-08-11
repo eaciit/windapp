@@ -25,3 +25,4 @@ _testmain.go
 helper.go
 config/configurations.json
 processapp/conf/app.conf
+processapp/config/app.conf
