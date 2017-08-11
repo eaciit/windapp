@@ -26,6 +26,14 @@ page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
 page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
+
+// add by ams Aug 11, 2017
+page.deviationOpts = ko.observableArray([
+    { "value": 0, "text": "<" },
+    { "value": 1, "text": ">" },
+])
+page.deviationOpr = ko.observable(0);
+
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
@@ -167,6 +175,7 @@ var Data = {
         var isValid = fa.LoadData();
         page.getSelectedFilter();
         if(isValid) {
+            page.deviationOpr($("#deviationOpr").val());
             page.deviationVal($("#deviationValue").val());
 
             var link = "analyticpowercurve/getlistpowercurvescada"
@@ -185,6 +194,7 @@ var Data = {
                 isClean: page.isClean,
                 isDeviation: page.isDeviation,
                 DeviationVal: page.deviationVal,
+                DeviationOpr: page.deviationOpr,
                 ViewSession: page.viewSession
             };
 
@@ -793,7 +803,7 @@ page.resetFilter = function(){
     page.isDeviation(true);
     page.sScater(false);
     page.showDownTime(false);
-    page.deviationVal(20);
+    page.deviationVal("20");
     $('#isClean').prop('checked',true);
     $('#isDeviation').prop('checked',true);
     $('#sScater').prop('checked',false);
@@ -825,13 +835,18 @@ page.getSelectedFilter = function(){
     setTimeout(function(){
        $("#selectedFilter").empty();
         var deviationVal = $("#deviationValue").val();
+        var delim = "";
         $('input[name="filter"]:checked').each(function() {
             if(this.value == "Deviation"){
-                $("#selectedFilter").append(this.value + " < " + deviationVal + " % | ");
+                $("#selectedFilter").append(delim + this.value + " < " + deviationVal + " % ");
             }else{
-                $("#selectedFilter").append(this.value + " | ");
+                $("#selectedFilter").append(delim + this.value + " ");
             }
-        });        
+            delim = "| ";
+        });      
+        if(delim == "") {
+            $("#selectedFilter").append("No Filter Selected.");
+        }  
     },200);
 }
 
@@ -937,3 +952,4 @@ $(document).ready(function() {
     $('#showDownTime').attr("disabled", "disabled");
     Data.InitDownList();
 });
+page.deviationOpr.subscribe(Data.InitLinePowerCurve, this);

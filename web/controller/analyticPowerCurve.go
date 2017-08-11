@@ -277,6 +277,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
+	DeviationOpr := tk.ToInt(p.DeviationOpr, tk.RoundingAuto)
 	viewSession := p.ViewSession
 	isClean := p.IsClean
 
@@ -315,8 +316,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gt("power", 0))
 	filter = append(filter, dbox.Eq("available", 1))
 
-	if !IsDeviation {
-		filter = append(filter, dbox.Gte(colDeviation, dVal))
+	// modify by ams, 2017-08-11
+	if IsDeviation {
+		if DeviationOpr > 0 {
+			filter = append(filter, dbox.Gte(colDeviation, dVal))
+		} else {
+			filter = append(filter, dbox.Lte(colDeviation, dVal))
+		}
 	}
 	if isClean {
 		filter = append(filter, dbox.Eq("oktime", 600))

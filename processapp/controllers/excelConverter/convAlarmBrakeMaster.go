@@ -109,3 +109,115 @@ func (d *ConvAlarmBrakeMaster) Generate(base *BaseController) {
 
 	}
 }
+
+func (d *ConvAlarmBrakeMaster) GenerateForAmba(base *BaseController) {
+	folderName := "alarmbrakemaster"
+	funcName := "Converting Amba Alarm Brake Data"
+	count := 0
+	total := 0
+	if base != nil {
+		d.BaseController = base
+
+		ctx := d.BaseController.Ctx
+		dataSources, path := base.GetDataSource(folderName)
+		tk.Println("Converting Alarm Brake Data from Excel File..")
+		for _, source := range dataSources {
+			if strings.Contains(source.Name(), "AlarmBrake") {
+				tk.Println(path + "\\" + source.Name())
+				file, e := xlsx.OpenFile(path + "\\" + source.Name())
+				if e != nil {
+					ErrorHandler(e, funcName)
+					os.Exit(0)
+				}
+
+				for _, sheet := range file.Sheet {
+					errorLine := tk.M{}
+					for idx, row := range sheet.Rows {
+						// tk.Println("IDX = ", idx)
+						if idx > 0 {
+
+							alarmCode, _ := row.Cells[0].Int()
+							alarmDesc, _ := row.Cells[1].String()
+							sIsGrid, _ := row.Cells[2].String()
+							sIsEnvironment, _ := row.Cells[3].String()
+							sIsTurbineError, _ := row.Cells[4].String()
+							sIsWarning, _ := row.Cells[5].String()
+							sIsReduceAvailability, _ := row.Cells[6].String()
+
+							errorType := "Unknown"
+							isWarning := false
+							isReduceAvail := false
+							isGrid := false
+							isMachine := false
+							isEnvironment := false
+							isUnknown := true
+							brakeProgram := 1
+							if strings.Trim(sIsGrid, " ") == "YES" {
+								errorType = "Grid Downtime"
+								isUnknown = false
+								isGrid = true
+							}
+							if strings.Trim(sIsEnvironment, " ") == "YES" {
+								errorType = "Environment"
+								isUnknown = false
+								isEnvironment = true
+							}
+							if strings.Trim(sIsTurbineError, " ") == "YES" {
+								errorType = "Machine Downtime"
+								isUnknown = false
+								isMachine = true
+							}
+							if strings.Trim(sIsWarning, " ") == "YES" {
+								isWarning = true
+								brakeProgram = 0
+								isUnknown = false
+							}
+							if strings.Trim(sIsReduceAvailability, " ") == "YES" {
+								isReduceAvail = true
+							}
+
+							data := tk.M{}.
+								Set("project", "Amba").
+								Set("alarmindex", alarmCode).
+								Set("alarmtypename", errorType).
+								Set("alarmname", alarmDesc).
+								Set("category", errorType).
+								Set("brakeprogram", brakeProgram).
+								Set("reducesavailability", isReduceAvail).
+								Set("griderror", isGrid).
+								Set("machineerror", isMachine).
+								Set("environment", isEnvironment).
+								Set("unknown", isUnknown).
+								Set("iswarning", isWarning)
+							err := ctx.Connection.NewQuery().
+								SetConfig("multiexec", false).
+								From("AlarmBrake").Insert().
+								Exec(tk.M{
+									"data": data,
+								})
+
+							if err != nil {
+								tk.Println("Error saving real time data :", err.Error())
+								return
+							}
+
+							count++
+							if count == 1000 {
+								total += count
+								tk.Printf("count: %v \n", total)
+								count = 0
+							}
+						}
+					}
+					total += count
+					tk.Printf("count: %v \n", total)
+					tk.Printf("count line error: %v \n", len(errorLine))
+					if len(errorLine) > 0 {
+						WriteErrors(errorLine, source.Name())
+					}
+				}
+			}
+		}
+
+	}
+}

@@ -100,6 +100,13 @@
     padding: 5px;
     text-align: center;
 }
+.sel-deviation{
+    height: 25px;
+    max-width: 50px;
+    margin-left: 5px;
+    padding: 0 5px 0px 5px;
+    text-align: center;
+}
 .deviation-div{
     margin-top: 0px;
     margin-bottom: 5px;
