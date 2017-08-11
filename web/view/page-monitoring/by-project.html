@@ -44,12 +44,13 @@
                                 <thead>
                                     <tr>
                                         <th width="80">Turbine</th>
-                                        <th width="45" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
-                                        <th width="45" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
+                                        <th width="40" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
+                                        <th width="40" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Rotor RPM">Rtr.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Pitch Angle">P.A.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Temperature">Temp</i></th>
+                                        <th width="20" class="text-center"><i data-toggle="tooltip" title="Temp. Status"><i class="fa fa-bell"></i></i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
                                     </tr>
                                 </thead>
@@ -66,6 +67,7 @@
                                         <td align="right"><span data-bind="attr: { id: 'rotor_'+ Turbine }, text: (RotorRPM > -999999) ? kendo.toString(RotorRPM, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'pitch_'+ Turbine }, text: (PitchAngle > -999999) ? kendo.toString(PitchAngle, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'temperature_'+ Turbine ,class: TemperatureColor}, text: (Temperature > -999999) ? kendo.toString(Temperature, 'n2') : '-'">-</span></td>
+                                        <td align="right"><span><i data-html="true" data-bind="attr: { id: 'temperaturecolor_'+ Turbine}" data-toggle="tooltip" title="" class="bstooltip"></i></span></td>
                                         <td align="center"><span data-bind="attr: { id: 'alarmdesc_'+ Turbine }" data-toggle="tooltip" title="">-</span></td>
                                     </tr>
                                 </tbody>
@@ -75,10 +77,12 @@
 
                     <div class="col-md-12 notes">
                         <b>Notes :</b> &nbsp;&nbsp;&nbsp;
-                        <i class="fa fa-circle fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;
-                        <i class="fa fa-circle fa-red"></i>&nbsp;&nbsp;Turbine Down&nbsp;&nbsp;&nbsp;
-                        <i class="fa fa-circle fa-grey"></i>&nbsp;&nbsp;Data N/A&nbsp;&nbsp;&nbsp;
-                        <i class="fa fa-circle fa-orange"></i>&nbsp;&nbsp;Turbine with Alarm&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-red"></i>&nbsp;&nbsp;Turbine Down&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-grey bordered no-padding"></i>&nbsp;&nbsp;Data Delay&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-grey"></i>&nbsp;&nbsp;Data N/A&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-greenneon"></i>&nbsp;&nbsp;Curtailment of Power&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-mustard"></i>&nbsp;&nbsp;Waiting for Wind&nbsp;&nbsp;&nbsp;
                     </div>
                 </div>
             </div>

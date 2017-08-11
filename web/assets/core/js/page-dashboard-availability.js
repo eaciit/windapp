@@ -19,8 +19,84 @@ avail.detailDTTopTxt = ko.observable();
 avail.isDetailDTTop = ko.observable(false);
 avail.mdTypeList = ko.observableArray([]);
 avail.projectItem = ko.observableArray([]);
+avail.fleetMachAvailData = ko.observableArray([]);
+avail.fleetGridAvailData = ko.observableArray([]);
+avail.DTLostEnergyData = ko.observableArray([]);
+avail.LossCategoriesData = ko.observableArray([]);
+avail.LossCategoriesDataSeries = ko.observableArray([]);
+
+
+avail.ChartLineCfg = function(data, color, legend, height) {
+    return { 
+        dataSource: {
+            data: data,
+            sort: {
+                field: "OrderNo",
+                dir: "asc"
+            }
+        },
+        chartArea: {
+            background: "transparent",
+            height: height,
+        },
+        title: {
+            visible: false
+        },
+        legend: {
+            visible: false
+        },
+        seriesDefaults: {
+            type: "line"
+        },
+        series: [{
+            field: "Value",
+            name: "",
+            style: "smooth",
+            markers: {
+                visible: false
+            },
+            color: color
+        }],
+        categoryAxis: {
+            field: "Title",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                template: '#=  value.substring(0,3) #',
+                // visible: legend
+            },
+            crosshair: {
+                visible: false,
+            },
+            majorGridLines: {
+                visible: false,
+            },
+            majorTicks: {
+                visible: false,
+            },
+            visible: legend
+        },
+        valueAxis: {
+            visible: false,
+            crosshair: {
+                visible: false
+            },
+            majorGridLines: {
+                visible: true,
+                step: 100
+            },
+            majorTicks: {
+                visible: false,
+            },
+        },
+        tooltip: {
+            visible: true,
+            template: "#: category # = #= kendo.toString(value * 100, 'n2') # %"
+        }
+    };
+};
 
 avail.loadData = function () {
+
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = {};
 
@@ -36,7 +112,10 @@ avail.loadData = function () {
                 return;
             }
             if (project == "Fleet") {
-                avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                avail.fleetMachAvailData(res.data.machineAvailability);
+                // avail.fleetMachAvail(res.data.machineAvailability); /*"#fleetChartMachAvail"*/
+                avail.fleetMachAvail(res.data.machineAvailability);
+                avail.fleetGridAvailData(res.data.gridAvailability);
                 avail.fleetGridAvail(res.data.gridAvailability); /*"#fleetChartGridAvail"*/
             } else {
                 avail.projectMachAvail(res.data.machineAvailability); /*"#projectChartMachAvail"*/
@@ -49,9 +128,10 @@ avail.loadData = function () {
             }
             if (project == "Fleet") {
                 if (res.data.lostenergybytype != null) {
-                   avail.DTLEbyType(res.data.lostenergybytype[0]); /*"#chartDTLEbyType"*/
+                   // avail.DTLEbyType(res.data.lostenergybytype); /*"#chartDTLEbyType"*/
                 }
                 if (res.data.lostenergy != null) {
+                    avail.DTLostEnergyData(res.data.lostenergy);
                     avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
                 }
                 avail.DTTurbines();
@@ -75,10 +155,13 @@ avail.loadData = function () {
             if (!app.isFine(res)) {
                 return;
             }
+
             if (project == "Fleet") {
-                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh'); /*"#fleetChartTopLossCatEnergyLoss"*/
-                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours'); /*"#fleetChartTopLossCatDuration"*/
-                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times'); /*"#fleetChartTopLossCatFreq"*/
+                avail.LossCategoriesData(res.data);
+                avail.LossCategoriesDataSeries(res.data.dataseries);
+                avail.TLossCat('fleetChartTopLossCatEnergyLoss',true,res.data.lossCatLoss, 'MWh', res.data.dataseries); /*"#fleetChartTopLossCatEnergyLoss"*/
+                avail.TLossCat('fleetChartTopLossCatDuration',false,res.data.lossCatDuration, 'Hours', res.data.dataseries); /*"#fleetChartTopLossCatDuration"*/
+                avail.TLossCat('fleetChartTopLossCatFreq',false, res.data.lossCatFrequency , 'Times', res.data.dataseries); /*"#fleetChartTopLossCatFreq"*/
             } else {
                 avail.TLossCat('projectChartTopLossCatEnergyLoss',true, res.data.lossCatLoss, 'MWh'); /*#"projectChartTopLossCatEnergyLoss"*/
                 avail.TLossCat('projectChartTopLossCatDuration',false, res.data.lossCatDuration, 'Hours'); /*#"projectChartTopLossCatDuration"*/
@@ -120,9 +203,9 @@ avail.refreshChart = function () {
             if($("#chartDTLostEnergy").data("kendoChart") != undefined) {
                 $("#chartDTLostEnergy").data("kendoChart").refresh();
             }
-            if($("#chartDTLEbyType").data("kendoChart") != undefined) {
-                $("#chartDTLEbyType").data("kendoChart").refresh();
-            }
+            // if($("#chartDTLEbyType").data("kendoChart") != undefined) {
+            //     $("#chartDTLEbyType").data("kendoChart").refresh();
+            // }
         }else{
             if($("#projectChartMachAvail").data("kendoChart") != undefined) {
                 $("#projectChartMachAvail").data("kendoChart").refresh();
@@ -153,7 +236,21 @@ avail.refreshChart = function () {
 
 
 
-avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
+avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseries){
+    var isStack = false;
+    var catLossSeries = [{
+            type: "column",
+            field: "result",
+        }];
+
+    var colors = colorField;
+
+    if(id.indexOf("fleet") >= 0) {
+        isStack = true;
+        catLossSeries = dataseries;
+        colors = colorFieldProject;
+    }   
+
     var templateLossCat = ''
     if(measurement == "MWh") {
        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
@@ -163,7 +260,14 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
         templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
     }
 
+    var margin = 0;
+
+    if(dataseries != undefined){
+        margin = -10;
+    }
+
     $('#'+id).html("");
+    $("#"+id).replaceWith('<div id='+id+'></div>');
     $('#'+id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -180,16 +284,19 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
             }
         },
         chartArea: {
-            height: 160
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: margin
+            }
         },
         seriesDefaults: {
             type: "column",
+            stack: isStack,
         },
-        series: [{
-            type: "column",
-            field: "result",
-        }],
-        seriesColors: colorField,
+        series: catLossSeries,
+        seriesColors: colors,
         valueAxis: {
             labels: {
                 step: 2,
@@ -229,180 +336,103 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement){
                 width: "2px",
             },
         },
+        seriesClick: function (e) {
+            if(id == 'fleetChartTopLossCatEnergyLoss'){
+                avail.toDetailDTLELevel1(e, id);
+            }
+        }
     });
 }
 avail.fleetMachAvail = function (dataSource) {
-    $("#fleetChartMachAvail").kendoChart({
-        dataSource: {
-            data: dataSource,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: true,
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            }
-        },
-        chartArea: {
-            height: 195
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: true
-        },
-        series: [{
-            type: "column",
-            field: "result",
-            // opacity : 0.7,
-            stacked: false
-        }],
-        seriesColors: colorField,
-        valueAxis: {
-            labels: {
-                step: 2,
-                template: '#=  value * 100 #',
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            field: "_id.id2",
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: '#=  value.substring(0,3) #'
-            },
-            majorTickType: "none"
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:p1}",
-            // template : "#: series.name # for #: category # : #:  kendo.toString(value, 'n0') #",
-            sharedTemplate: kendo.template($("#templateAvailPercentage").html()),
-            background: "rgb(255,255,255, 0.9)",
-            shared: true,
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        },
+    $("#fleetChartMachAvail").html("");
+    $(".legend-machine-project").html("");
+
+    var length = dataSource.length;
+    var height = 160/length;
+    $.each(dataSource, function(i, val){
+
+        var chartProject = '<div class="col-md-12" id="chartMachine_'+i+'"></div>';
+        var legendProject = '<span style="padding-left:5px;padding-right:5px;"><i class="fa fa-square" style="color:'+colorFieldProject[i]+';font-size:10px;padding-right:5px;"></i>'+val.Project+'</span>';
+        var legend = false;
+
+        if (i === dataSource.length - 1){ 
+            legend = true;
+            height = 200/length;
+        }
+
+        $("#fleetChartMachAvail").append(chartProject);
+        $(".legend-machine-project").append(legendProject);
+        $('#chartMachine_'+i).kendoChart(avail.ChartLineCfg(val.Details, colorFieldProject[i],legend,height));
     });
 }
 
 avail.fleetGridAvail = function (dataSource) {
-    $("#fleetChartGridAvail").kendoChart({
-        dataSource: {
-            data: dataSource,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
-        },
-        theme: "flat",
-        title: {
-            text: ""
-        },
-        legend: {
-            position: "top",
-            visible: true,
-            labels:{
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            }
-        },
-        chartArea: {
-            height: 195
-        },
-        seriesDefaults: {
-            type: "column",
-            stack: true
-        },
-        series: [{
-            type: "column",
-            field: "result",
-            // opacity : 0.7,
-            stacked: false
-        }],
-        seriesColors: colorField,
-        valueAxis: {
-            labels: {
-                step: 2,
-                template: '#=  value * 100 #',
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-            },
-            line: {
-                visible: false
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            }
-        },
-        categoryAxis: {
-            field: "_id.id2",
-            majorGridLines: {
-                visible: false
-            },
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: '#=  value.substring(0,3) #'
-            },
-            majorTickType: "none"
-            /*labels:{
-                template: '#=  value.substring(0,3)+" "+value.substring((value.length-4),value.length) #'
-            },*/
-        },
-        tooltip: {
-            visible: true,
-            format: "{0:p1}",
-            // template : "#:  kendo.toString(value, 'n0') #",
-            sharedTemplate: kendo.template($("#templateAvailPercentage").html()),
-            background: "rgb(255,255,255, 0.9)",
-            shared: true,
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        },
+    $("#fleetChartGridAvail").html("");
+    $(".legend-grid-project").html("");
+
+    var length = dataSource.length;
+    var height = 160/length;
+    $.each(dataSource, function(i, val){
+
+        var chartProject = '<div class="col-md-12" id="chartGrid_'+i+'"></div>';
+        var legendProject = '<span style="padding-left:5px;padding-right:5px;"><i class="fa fa-square" style="color:'+colorFieldProject[i]+';font-size:10px;padding-right:5px;"></i>'+val.Project+'</span>';
+        var legend = false;
+
+        if (i === dataSource.length - 1){ 
+            legend = true;
+            height = 200/length;
+        }
+
+        $("#fleetChartGridAvail").append(chartProject);
+        $(".legend-grid-project").append(legendProject);
+        $('#chartGrid_'+i).kendoChart(avail.ChartLineCfg(val.Details, colorFieldProject[i],legend,height));
     });
 }
 
 avail.DTLEbyType = function (dataSource) {
+    var series = [];
+    var categories = [];
+    var dataLegends = [{id: "powerlost", name:"Power Lost"}, {id:"frequency",name:"Frequency"}, {id:"duration", name: "Duration"}];
+
+    $.each(dataSource, function(idx, datas){
+        $.each(datas.source, function(i, data){
+            if($.inArray(data._id.id1, categories) === -1) categories.push(data._id.id1);
+        });
+    });
+
+    categories = categories.sort();
+
+    $.each(dataSource, function(idx, datas){
+        $.each(dataLegends, function(key, legend){
+            var serie = {
+                name : legend.name, 
+                visibleInLegend: false
+            }
+            var value = [];
+            var idLegend = legend.id;
+            $.each(datas.source, function(i, data){
+                serie.stack = data._id.id3
+                
+                if(categories[i] == data._id.id1){
+                    value.push(data[idLegend]);
+                }else{
+                    value.push(0);
+                }
+
+            });
+            serie.data = value;
+            series.push(serie);
+        });
+    });
+
     $("#chartDTLEbyType").kendoChart({
-        dataSource: {
-            data: dataSource.source,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
-        },
         theme: "flat",
         title: {
             text: ""
         },
         legend: {
             position: "top",
-            visible: true,
+            visible: false,
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
@@ -414,36 +444,9 @@ avail.DTLEbyType = function (dataSource) {
             type: "column",
             stacked: true
         },
-        series: [{
-            type: "column",
-            field: "powerlost",
-            // opacity : 0.7,
-            stacked: true,
-            axis: "PowerLost"
-        },
-        {
-            name: function () {
-                return "Duration";
-            },
-            type: "line",
-            field: "duration",
-            axis: "Duration",
-            markers: {
-                visible: false
-            }
-        },
-        {
-            name: function () {
-                return "Frequency";
-            },
-            type: "line",
-            field: "frequency",
-            axis: "Frequency",
-            markers: {
-                visible: false
-            }
-        }],
-        seriesColors: colorField,
+        series: series, 
+        seriesColors: ["#e65100", "#ff9800", "#ffb74d", 
+                       "#00796b", "#4db6ac", "#80cbc4"],
         valueAxis: [{
             name: "PowerLost",
             labels: {
@@ -459,30 +462,23 @@ avail.DTLEbyType = function (dataSource) {
                 color: "#eee",
                 width: 0.8,
             },
-            // min: dataSource.minPowerLost,
-            // max: dataSource.maxPowerLost
         },
         {
             name: "Duration",
             title: { visible: false },
             visible: false,
-            // min: dataSource.minDuration,
-            // max: dataSource.maxDuration
         },
         {
             name: "Frequency",
             title: { visible: false },
             visible: false,
-            // min: dataSource.minFreq,
-            // max: dataSource.maxFreq
         }],
         categoryAxis: {
-            field: "_id.id2",
+            categories: categories,
             majorGridLines: {
                 visible: false
             },
             labels: {
-                rotation: -330,
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
@@ -500,23 +496,14 @@ avail.DTLEbyType = function (dataSource) {
                 width: "2px",
             },
         },
-        // seriesHover: function(e) {
-        //   console.log(e);
-        //   var positionX = e.originalEvent.clientX,
-        //       positionY = e.originalEvent.clientY,
-        //       value = e.value;
-        //   $("#chartDTLEbyTypeCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
-        // },
         seriesClick: function (e) {
             avail.toDetailDTLELevel1(e, "chartbytype");
         }
     });
-    // $("#chartDTLEbyType").mouseleave(function(e){
-    //    $("#chartDTLEbyTypeCustomTooltip").hide();
-    // })
 }
 
 avail.DTLostEnergy = function (dataSource) {
+    $("#chartDTLostEnergy").replaceWith('<div id="chartDTLostEnergy"></div>');
     $("#chartDTLostEnergy").kendoChart({
         dataSource: {
             data: dataSource,
@@ -535,7 +522,12 @@ avail.DTLostEnergy = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -547,7 +539,7 @@ avail.DTLostEnergy = function (dataSource) {
             // opacity : 0.7,
             stacked: false
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -627,7 +619,12 @@ avail.TopTurbineByLoss = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 190,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -747,7 +744,7 @@ avail.DTLostEnergyFleet = function (dataSource) {
             // opacity : 0.7,
             stacked: true
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -907,7 +904,12 @@ avail.projectMachAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -919,10 +921,10 @@ avail.projectMachAvail = function (dataSource) {
             // opacity : 0.7,
             stacked: true
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
-                step: 2,
+                // step: 2,
                 template: '#=  value * 100 #',
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
@@ -935,7 +937,8 @@ avail.projectMachAvail = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
-            }
+            },
+            max : 1,
         },
         categoryAxis: {
             field: "_id.id2",
@@ -987,7 +990,12 @@ avail.projectGridAvail = function (dataSource) {
             }
         },
         chartArea: {
-            height: 195
+            height: 185,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -999,10 +1007,10 @@ avail.projectGridAvail = function (dataSource) {
             // opacity : 0.7,
             stacked: true
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
-                step: 2,
+                // step: 2,
                 template: '#=  value * 100 #',
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 // format: "{0:p1}",
@@ -1015,7 +1023,8 @@ avail.projectGridAvail = function (dataSource) {
                 visible: true,
                 color: "#eee",
                 width: 0.8,
-            }
+            },
+            max : 1
         },
         categoryAxis: {
             field: "_id.id2",
@@ -1068,7 +1077,12 @@ avail.LossEnergyByType = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 180,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1111,7 +1125,7 @@ avail.LossEnergyByType = function (dataSource) {
             majorTickType: "none"
         },
         tooltip: {
-            visible: true,
+            visible: false,
             format: "{0:n1}",
             // template : "#: series.name # for #: category # : #:  kendo.toString(value, 'n0') #",
             sharedTemplate: kendo.template($("#templateDowntimeLostEnergy").html()),
@@ -1132,6 +1146,7 @@ avail.LossEnergyByType = function (dataSource) {
         //   $("#chartDTLostEnergyManehCustomTooltip").show().css('position', 'absolute').css("top", positionY).css("left", positionX).html(kendo.template($("#templateDowntimeLostEnergy").html())({ e:e }));             
         // },
         seriesClick: function (e) {
+            projectSelected = $("#projectId").data("kendoDropDownList").value();
             avail.toDetailLossEnergyLevel2(e, "chart")
         }
     });
@@ -1161,7 +1176,12 @@ avail.DTDuration = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 190,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1269,7 +1289,12 @@ avail.DTLoss = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 190,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1377,7 +1402,12 @@ avail.DTFrequency = function (dataSource) {
             }
         },
         chartArea: {
-            height: 160
+            height: 190,
+            background: "transparent",
+            padding: 0,
+            margin: {
+                top: -10
+            }
         },
         seriesDefaults: {
             type: "column",
@@ -1556,11 +1586,11 @@ avail.DTLostEnergyDetail = function (dataSource) {
     }, 100);
 }
 
-avail.DTTopDetail = function (turbine, type) {
+avail.DTTopDetail = function (e, type) {
     app.loading(true);
     var project = $("#projectId").data("kendoDropDownList").value();
     var date = maxdate;
-    var param = { ProjectName: project, Date: date, Type: type, Turbine: turbine };
+    var param = { ProjectName: project, Date: date, Type: e.series.field+"_"+type, Turbine: e.category };
 
     var templateTooltip = "#: category # : #:  kendo.toString(value, 'n1') #"
     if (type == 'Times') {
@@ -1740,8 +1770,8 @@ avail.DTTurbines = function () {
             }
 
             $("#dtturbines").append('<div class="btn-group" role="group">' +
-                '<button type="button" class="btn btn-sm ' + btn + '">' + turbine + '</button>' +
-                '<button type="button" class="btn btn-sm btn-warning">' + value + '</button>' +
+                '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
+                '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
                 '</div>');
             });
         }        
@@ -1772,12 +1802,15 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyByDown(lastDataChartLevel1);
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(tableRequest).done(function(){
-                setTimeout(function(){
-                    app.loading(false);
-                },50);
-            });
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(tableRequest).done(function(){
+            //     setTimeout(function(){
+            //         app.loading(false);
+            //     },50);
+            // });
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         } else if (source == "ddl") {
             projectSelected = $("#projectList").data("kendoDropDownList").value();
             /*set title label*/
@@ -1799,8 +1832,9 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
                 avail.DTLostEnergyByDown(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(chartRequest, tableRequest).done(function(){
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(chartRequest, tableRequest).done(function(){
+            $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
                 },50);
@@ -1831,9 +1865,10 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
             avail.DTLostEnergyByDown(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        var tableRequest = avail.toDetailDTLETTable(param);
+        // var tableRequest = avail.toDetailDTLETTable(param);
 
-        $.when(chartRequest, tableRequest).done(function(){
+        // $.when(chartRequest, tableRequest).done(function(){
+        $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -1912,7 +1947,12 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
 
         app.loading(false);
     });
-    avail.toDetailDTLETTable(param);
+
+    // avail.toDetailDTLETTable(param);
+   
+    if(project == 'Fleet'){
+        avail.toDetailDTLETTable(param);
+    }
 }
 
 avail.toDetailDTLELevel1 = function (e, source) {
@@ -1940,12 +1980,15 @@ avail.toDetailDTLELevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyFleet(lastDataChartLevel1);
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(tableRequest).done(function(){
-                setTimeout(function(){
-                    app.loading(false);
-                },50);
-            });
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(tableRequest).done(function(){
+            //     setTimeout(function(){
+            //         app.loading(false);
+            //     },50);
+            // });
+            setTimeout(function(){
+                app.loading(false);
+            },50);
         } else if (source == "ddl") {
             if (dtType == "") {
                 dtType = "All Types"
@@ -1969,8 +2012,9 @@ avail.toDetailDTLELevel1 = function (e, source) {
                 avail.DTLostEnergyFleet(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            var tableRequest = avail.toDetailDTLETTable(param);
-            $.when(chartRequest, tableRequest).done(function(){
+            // var tableRequest = avail.toDetailDTLETTable(param);
+            // $.when(chartRequest, tableRequest).done(function(){
+            $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
                 },50);
@@ -2001,9 +2045,10 @@ avail.toDetailDTLELevel1 = function (e, source) {
             avail.DTLostEnergyFleet(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        var tableRequest = avail.toDetailDTLETTable(param);
+        // var tableRequest = avail.toDetailDTLETTable(param);
 
-        $.when(chartRequest, tableRequest).done(function(){
+        // $.when(chartRequest, tableRequest).done(function(){
+        $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -2078,7 +2123,7 @@ avail.toDetailDTLELevel2 = function (e, source) {
     });
     var tableRequest = avail.toDetailDTLETTable(param);
 
-    $.when(chartRequest, tableRequest).done(function(){
+    $.when(chartRequest,tableRequest).done(function(){
         setTimeout(function(){
             app.loading(false);
         },50);
@@ -2160,7 +2205,7 @@ avail.toDetailDTTop = function (e, type) {
     avail.isDetailDTTop(true);
 
     // get the data and push into the chart    
-    avail.DTTopDetail(e.category, type);
+    avail.DTTopDetail(e, type);
 }
 
 avail.backToDownTime = function () {
@@ -2269,6 +2314,7 @@ avail.backToDownTimeChart = function () {
         if ($("#projectList").data("kendoDropDownList") != null) {
             $("#projectList").data("kendoDropDownList").value(projectSelected);
         }
+        $("#gridDTLostEnergyDetail").html("");
     } else {
         avail.LEFleetByDown(false);
         vm.isDashboard(true);

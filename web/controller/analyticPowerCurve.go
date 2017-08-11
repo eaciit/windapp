@@ -22,10 +22,11 @@ type AnalyticPowerCurveController struct {
 }
 
 var (
-	colorField = [...]string{"#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"}
+	colorField = [...]string{"#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548", "#383271", "#6a4795", "#bec554", "#ab5919", "#f5b1e1", "#7b3416", "#002fef", "#8d731b", "#1f8805", "#ff9900", "#9C27B0", "#6c7d8a", "#d73c1c", "#5be7a0", "#da02d4", "#afa56e", "#7e32cb", "#a2eaf7", "#9cb8f4", "#9E9E9E", "#065806", "#044082", "#18937d", "#2c787a", "#a57c0c", "#234341", "#1aae7a", "#7ac610", "#736f5f", "#4e741e", "#68349d", "#1df3b6", "#e02b09", "#d9cfab", "#6e4e52", "#f31880", "#7978ec", "#f5ace8", "#3db6ae", "#5e06b0", "#16d0b9", "#a25a5b", "#1e603a", "#4b0981", "#62975f", "#1c8f2f", "#b0c80c", "#642794", "#e2060d", "#2125f0"}
 	// colorField            = [...]string{"#cc2a35","#87c5da","#115b74","#e18876","#95204d","#c5a5ca","#7d277e","#ffd145","#145b9b","#dab5cb","#dab5cb","#007ca7", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#f35838", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"}
 	// colorField  		  = [...]string{"#87c5da","#cc2a35", "#d66b76", "#5d1b62", "#f1c175","#95204c","#8f4bc5","#7d287d","#00818e","#c8c8c8","#546698","#66c99a","#f3d752","#20adb8","#333d6b","#d077b1","#aab664","#01a278","#c1d41a","#807063","#ff5975","#01a3d4","#ca9d08","#026e51","#4c653f"}
-	colorFieldDegradation = [...]string{"#ffcf9e", "#a6e7df", "#ffc8c0", "#ffe2b8", "#d9f2ba", "#a4d8e7", "#ffc0db", "#fab3ae", "#efa5a2", "#cfc8dc", "#d6a0e0", "#a8e6cc", "#f5b9bd", "#e7d8b5", "#ffbbd5", "#e7a89d", "#edc7be", "#ffa9ef", "#adddd0", "#9fe0f7", "#fabcaf", "#ff99af", "#b9cada", "#ffc1c1", "#ffeec1", "#c6ddff", "#c9bbb5"}
+	// colorFieldDegradation = [...]string{"#ffcf9e", "#a6e7df", "#ffc8c0", "#ffe2b8", "#d9f2ba", "#a4d8e7", "#ffc0db", "#fab3ae", "#efa5a2", "#cfc8dc", "#d6a0e0", "#a8e6cc", "#f5b9bd", "#e7d8b5", "#ffbbd5", "#e7a89d", "#edc7be", "#ffa9ef", "#adddd0", "#9fe0f7", "#fabcaf", "#ff99af", "#b9cada", "#ffc1c1", "#ffeec1", "#c6ddff", "#c9bbb5"}
+	colorFieldDegradation = [...]string{"#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"}
 	downColor             = [...]string{"#000", "#444", "#666", "#888", "#aaa", "#ccc", "#eee"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
 )
@@ -276,6 +277,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
+	DeviationOpr := tk.ToInt(p.DeviationOpr, tk.RoundingAuto)
 	viewSession := p.ViewSession
 	isClean := p.IsClean
 
@@ -314,8 +316,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gt("power", 0))
 	filter = append(filter, dbox.Eq("available", 1))
 
-	if !IsDeviation {
-		filter = append(filter, dbox.Gte(colDeviation, dVal))
+	// modify by ams, 2017-08-11
+	if IsDeviation {
+		if DeviationOpr > 0 {
+			filter = append(filter, dbox.Gte(colDeviation, dVal))
+		} else {
+			filter = append(filter, dbox.Lte(colDeviation, dVal))
+		}
 	}
 	if isClean {
 		filter = append(filter, dbox.Eq("oktime", 600))
@@ -353,6 +360,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	sort.Strings(sortTurbines)
 
 	selArr := 1
+	turbineName := map[string]string{}
+	if p.Project != "" {
+		turbineName, _ = helper.GetTurbineNameList(p.Project)
+	}
 	for idx, turbineX := range sortTurbines {
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
@@ -363,14 +374,15 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 		var datas [][]float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
+		turbineData.Set("name", turbineName[turbineX])
+		turbineData.Set("turbineid", turbineX)
 		turbineData.Set("type", "scatterLine")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
 		turbineData.Set("markers", tk.M{"visible": false})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorField[selArr])
-		turbineData.Set("idxseries", idx)
+		turbineData.Set("idxseries", idx+1)
 
 		for _, val := range exist {
 			idD := val.Get("_id").(tk.M)
@@ -424,6 +436,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
 
+	//tk.Printf("Start : #%v\n", tStart)
+	//tk.Printf("End : #%v\n", tEnd)
+
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
@@ -446,6 +461,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
 	}
+
+	//tk.Printf("%#v\n", match)
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 
@@ -511,9 +528,17 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
+
+	//tk.Printf("Sort Turbines : %#v\n", sortTurbines)
+
 	selArr := 0
 	dataSeries = append(dataSeries, pcData)
 
+	turbineName := map[string]string{}
+	if p.Project != "" {
+		turbineName, _ = helper.GetTurbineNameList(p.Project)
+	}
+	//tk.Printf("Turbines : %#v\n", turbineName)
 	for _, turbineX := range sortTurbines {
 		selArr = 0
 		for _, monthX := range sortMonth {
@@ -529,8 +554,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			splitMonth = strings.Split(monthList.GetString(tk.ToString(monthX)), " ")
 			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
 
+			turbineXid := turbineName[turbineX]
 			monthData := tk.M{}
-			monthData.Set("name", turbineX)
+			monthData.Set("name", turbineXid)
+			monthData.Set("turbineid", turbineX)
 			monthData.Set("type", "scatterLine")
 			monthData.Set("style", "smooth")
 			monthData.Set("dashType", "solid")
@@ -757,14 +784,10 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		ScatterType string
 	}
 	type ScadaMini struct {
-		Power, AvgWindSpeed               float64
-		NacelleTemperature, WindDirection float64
+		Power, AvgWindSpeed, AvgBladeAngle   float64
+		NacelleTemperature, NacelleDeviation float64
 	}
 
-	type ScadaOEMMini struct {
-		AI_intern_WindSpeed, AI_intern_Pitchangle1   float64
-		AI_intern_Pitchangle2, AI_intern_Pitchangle3 float64
-	}
 	var (
 		list       []ScadaMini
 		dataSeries []tk.M
@@ -825,112 +848,70 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	tempDatas := []tk.M{}
 	deviationData := tk.M{}
 	deviationDatas := []tk.M{}
-	for _, val := range list {
-		datas = tk.M{}
-		tempData = tk.M{}
-		deviationData = tk.M{}
+	pitchData := tk.M{}
+	pitchDatas := []tk.M{}
+	turbineData := tk.M{}
+	seriesData := tk.M{}
 
-		// if val.Power > 0 {
-		datas.Set("WindSpeed", val.AvgWindSpeed)
-		datas.Set("Power", val.Power)
-		datas.Set("valueColor", colorField[1])
+	switch p.ScatterType {
+	case "temp":
+		for _, val := range list {
+			datas = tk.M{}
+			tempData = tk.M{}
 
-		arrDatas = append(arrDatas, datas)
-		// }
+			datas.Set("WindSpeed", val.AvgWindSpeed)
+			datas.Set("Power", val.Power)
+			datas.Set("valueColor", colorField[1])
 
-		if p.ScatterType != "pitch" { /*processing NON pitch data*/
-			switch p.ScatterType {
-			case "temp":
-				// if val.NacelleTemperature > 0 {
-				tempData.Set("WindSpeed", val.AvgWindSpeed)
-				tempData.Set("Temperature", val.NacelleTemperature)
-				tempData.Set("valueColor", colorField[2])
+			arrDatas = append(arrDatas, datas)
 
-				tempDatas = append(tempDatas, tempData)
-				// }
-			case "deviation":
-				deviationData.Set("WindSpeed", val.AvgWindSpeed)
-				deviationData.Set("Deviation", val.WindDirection)
-				deviationData.Set("valueColor", colorField[2])
+			tempData.Set("WindSpeed", val.AvgWindSpeed)
+			tempData.Set("Temperature", val.NacelleTemperature)
+			tempData.Set("valueColor", colorField[2])
 
-				deviationDatas = append(deviationDatas, deviationData)
-			}
+			tempDatas = append(tempDatas, tempData)
 		}
-	}
-	turbineData := setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, arrDatas)
-	dataSeries = append(dataSeries, turbineData)
+		seriesData = setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, tempDatas)
+	case "deviation":
+		for _, val := range list {
+			datas = tk.M{}
+			deviationData = tk.M{}
 
-	/*================== SCADA OEM PART ==================*/
-	if p.ScatterType == "pitch" {
-		var filterOEM []*dbox.Filter
-		filterOEM = []*dbox.Filter{}
-		filterOEM = append(filterOEM, dbox.Ne("_id", ""))
-		filterOEM = append(filterOEM, dbox.Gte("timestamp", tStart))
-		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
-		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
-		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
-		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
-		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
-		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
+			datas.Set("WindSpeed", val.AvgWindSpeed)
+			datas.Set("Power", val.Power)
+			datas.Set("valueColor", colorField[1])
 
-		csrOEM, e := DB().Connection.NewQuery().
-			From(new(ScadaDataOEM).TableName()).
-			Where(dbox.And(filterOEM...)).
-			Take(10000).
-			Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
+			arrDatas = append(arrDatas, datas)
+
+			deviationData.Set("WindSpeed", val.AvgWindSpeed)
+			deviationData.Set("Deviation", val.NacelleDeviation)
+			deviationData.Set("valueColor", colorField[2])
+
+			deviationDatas = append(deviationDatas, deviationData)
 		}
-		var _listOEM ScadaOEMMini
-		var listScadaOEM []ScadaOEMMini
-		for {
-			e = csrOEM.Fetch(&_listOEM, 1, false)
-			if e != nil {
-				break
-			}
-			listScadaOEM = append(listScadaOEM, _listOEM)
-		}
-		defer csrOEM.Close()
-
-		pitchData := tk.M{}
-		pitchDatas := []tk.M{}
-		count := 0.0
-		pitchAngle := 0.0
-		for _, val := range listScadaOEM { /*processing pitch data*/
+		seriesData = setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, deviationDatas)
+	case "pitch":
+		for _, val := range list {
+			datas = tk.M{}
 			pitchData = tk.M{}
-			pitchAngle = 0.0
-			if val.AI_intern_Pitchangle1 >= -10.0 && val.AI_intern_Pitchangle1 <= 120.0 {
-				pitchAngle = val.AI_intern_Pitchangle1
-				count++
-			} else if val.AI_intern_Pitchangle2 >= -10.0 && val.AI_intern_Pitchangle2 <= 120.0 {
-				pitchAngle += val.AI_intern_Pitchangle2
-				count++
-			} else if val.AI_intern_Pitchangle3 >= -10.0 && val.AI_intern_Pitchangle3 <= 120.0 {
-				pitchAngle += val.AI_intern_Pitchangle3
-				count++
-			}
-			pitchAngle /= count /*average pitch angle*/
 
-			if pitchAngle != 0.0 || count > 0 {
-				pitchData.Set("WindSpeed", val.AI_intern_WindSpeed)
-				pitchData.Set("Pitch", pitchAngle)
+			datas.Set("WindSpeed", val.AvgWindSpeed)
+			datas.Set("Power", val.Power)
+			datas.Set("valueColor", colorField[1])
+
+			arrDatas = append(arrDatas, datas)
+			if val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120 {
+				pitchData.Set("WindSpeed", val.AvgWindSpeed)
+				pitchData.Set("Pitch", val.AvgBladeAngle)
 				pitchData.Set("valueColor", colorField[2])
 				pitchDatas = append(pitchDatas, pitchData)
 			}
 		}
-		seriesData := setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, pitchDatas)
-		dataSeries = append(dataSeries, seriesData)
+		seriesData = setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, pitchDatas)
 	}
-	/*================== END OF SCADA OEM PART ==================*/
-	switch p.ScatterType {
-	case "temp":
-		/*set data series*/
-		seriesData := setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, tempDatas)
-		dataSeries = append(dataSeries, seriesData)
-	case "deviation":
-		seriesData := setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, deviationDatas)
-		dataSeries = append(dataSeries, seriesData)
-	}
+	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, arrDatas)
+	dataSeries = append(dataSeries, turbineData)
+	dataSeries = append(dataSeries, seriesData)
 
 	data := struct {
 		Data []tk.M
@@ -953,14 +934,11 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		ScatterType string
 	}
 	type ScadaMini struct {
-		Power    float64
-		RotorRPM float64
+		Power         float64
+		RotorRPM      float64
+		AvgBladeAngle float64
 	}
 
-	type ScadaOEMMini struct {
-		AI_intern_ActivPower, AI_intern_Pitchangle1  float64
-		AI_intern_Pitchangle2, AI_intern_Pitchangle3 float64
-	}
 	var (
 		list       []ScadaMini
 		dataSeries []tk.M
@@ -982,49 +960,74 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	maxAxisX := 0.0
 	minAxisY := 0.0
 	maxAxisY := 0.0
-	if p.ScatterType != "pitch" {
-		var filter []*dbox.Filter
-		filter = []*dbox.Filter{}
-		filter = append(filter, dbox.Ne("_id", ""))
-		filter = append(filter, dbox.Gte("timestamp", tStart))
-		filter = append(filter, dbox.Lte("timestamp", tEnd))
-		filter = append(filter, dbox.Eq("turbine", turbine))
-		filter = append(filter, dbox.Eq("projectname", project))
-		// filter = append(filter, dbox.Eq("oktime", 600))
-		filter = append(filter, dbox.Gt("power", 0))
-		filter = append(filter, dbox.Gt("avgwindspeed", 0))
-		filter = append(filter, dbox.Eq("available", 1))
 
-		csr, e := DB().Connection.NewQuery().
-			From(new(ScadaData).TableName()).
-			Where(dbox.And(filter...)).
-			Take(10000).
-			Cursor(nil)
+	var filter []*dbox.Filter
+	filter = []*dbox.Filter{}
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	filter = append(filter, dbox.Eq("turbine", turbine))
+	filter = append(filter, dbox.Eq("projectname", project))
+	// filter = append(filter, dbox.Eq("oktime", 600))
+	filter = append(filter, dbox.Gt("power", 0))
+	filter = append(filter, dbox.Gt("avgwindspeed", 0))
+	filter = append(filter, dbox.Eq("available", 1))
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Where(dbox.And(filter...)).
+		Take(10000).
+		Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	var _list ScadaMini
+	for {
+		e = csr.Fetch(&_list, 1, false)
 		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
+			break
 		}
-		var _list ScadaMini
-		for {
-			e = csr.Fetch(&_list, 1, false)
-			if e != nil {
-				break
+		list = append(list, _list)
+	}
+
+	defer csr.Close()
+
+	data := tk.M{}
+	datas := []tk.M{}
+	seriesData := tk.M{}
+	switch p.ScatterType {
+	case "rotor":
+		for _, val := range list {
+			data = tk.M{}
+			if val.RotorRPM < minAxisX {
+				minAxisX = val.RotorRPM
 			}
-			list = append(list, _list)
+			if val.RotorRPM > maxAxisX {
+				maxAxisX = val.RotorRPM
+			}
+			if val.Power < minAxisY {
+				minAxisY = val.Power
+			}
+			if val.Power > maxAxisY {
+				maxAxisY = val.Power
+			}
+
+			data.Set("Rotor", val.RotorRPM)
+			data.Set("Power", val.Power)
+			data.Set("valueColor", colorField[1])
+
+			datas = append(datas, data)
 		}
-
-		defer csr.Close()
-
-		rotorData := tk.M{}
-		rotorDatas := []tk.M{}
-		for _, val := range list { /*processing NON pitch data*/
-			rotorData = tk.M{}
-			switch p.ScatterType {
-			case "rotor":
-				if val.RotorRPM < minAxisX {
-					minAxisX = val.RotorRPM
+		seriesData = setScatterData("Rotor RPM", "Rotor", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
+	case "pitch":
+		for _, val := range list {
+			data = tk.M{}
+			if val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120 {
+				if val.AvgBladeAngle < minAxisX {
+					minAxisX = val.AvgBladeAngle
 				}
-				if val.RotorRPM > maxAxisX {
-					maxAxisX = val.RotorRPM
+				if val.AvgBladeAngle > maxAxisX {
+					maxAxisX = val.AvgBladeAngle
 				}
 				if val.Power < minAxisY {
 					minAxisY = val.Power
@@ -1032,98 +1035,18 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 				if val.Power > maxAxisY {
 					maxAxisY = val.Power
 				}
-
-				rotorData.Set("Rotor", val.RotorRPM)
-				rotorData.Set("Power", val.Power)
-				rotorData.Set("valueColor", colorField[1])
-
-				rotorDatas = append(rotorDatas, rotorData)
+				data.Set("Power", val.Power)
+				data.Set("Pitch", val.AvgBladeAngle)
+				data.Set("valueColor", colorField[1])
+				datas = append(datas, data)
 			}
 		}
-		switch p.ScatterType {
-		case "rotor":
-			/*set data series*/
-			seriesData := setScatterData("Rotor RPM", "Rotor", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, rotorDatas)
-			seriesData.Unset("name")
-			dataSeries = append(dataSeries, seriesData)
-		}
-	} else if p.ScatterType == "pitch" {
-		/*================== SCADA OEM PART ==================*/
-		var filterOEM []*dbox.Filter
-		filterOEM = []*dbox.Filter{}
-		filterOEM = append(filterOEM, dbox.Ne("_id", ""))
-		filterOEM = append(filterOEM, dbox.Gte("timestamp", tStart))
-		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
-		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
-		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
-		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
-		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
-		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
-
-		csrOEM, e := DB().Connection.NewQuery().
-			From(new(ScadaDataOEM).TableName()).
-			Where(dbox.And(filterOEM...)).
-			Take(10000).
-			Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		var _listOEM ScadaOEMMini
-		var listScadaOEM []ScadaOEMMini
-		for {
-			e = csrOEM.Fetch(&_listOEM, 1, false)
-			if e != nil {
-				break
-			}
-			listScadaOEM = append(listScadaOEM, _listOEM)
-		}
-		defer csrOEM.Close()
-
-		pitchData := tk.M{}
-		pitchDatas := []tk.M{}
-		count := 0.0
-		pitchAngle := 0.0
-		for _, val := range listScadaOEM { /*processing pitch data*/
-			pitchData = tk.M{}
-			pitchAngle = 0.0
-			if val.AI_intern_Pitchangle1 >= -10.0 && val.AI_intern_Pitchangle1 <= 120.0 {
-				pitchAngle = val.AI_intern_Pitchangle1
-				count++
-			} else if val.AI_intern_Pitchangle2 >= -10.0 && val.AI_intern_Pitchangle2 <= 120.0 {
-				pitchAngle += val.AI_intern_Pitchangle2
-				count++
-			} else if val.AI_intern_Pitchangle3 >= -10.0 && val.AI_intern_Pitchangle3 <= 120.0 {
-				pitchAngle += val.AI_intern_Pitchangle3
-				count++
-			}
-			pitchAngle /= count /*average pitch angle*/
-
-			if pitchAngle != 0.0 || count > 0 {
-				if pitchAngle < minAxisX {
-					minAxisX = pitchAngle
-				}
-				if pitchAngle > maxAxisX {
-					maxAxisX = pitchAngle
-				}
-				if val.AI_intern_ActivPower < minAxisY {
-					minAxisY = val.AI_intern_ActivPower
-				}
-				if val.AI_intern_ActivPower > maxAxisY {
-					maxAxisY = val.AI_intern_ActivPower
-				}
-				pitchData.Set("Power", val.AI_intern_ActivPower)
-				pitchData.Set("Pitch", pitchAngle)
-				pitchData.Set("valueColor", colorField[1])
-				pitchDatas = append(pitchDatas, pitchData)
-			}
-		}
-		seriesData := setScatterData("Pitch Angle", "Pitch", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, pitchDatas)
-		seriesData.Unset("name")
-		dataSeries = append(dataSeries, seriesData)
+		seriesData = setScatterData("Pitch Angle", "Pitch", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
 	}
-	/*================== END OF SCADA OEM PART ==================*/
+	seriesData.Unset("name")
+	dataSeries = append(dataSeries, seriesData)
 
-	data := struct {
+	result := struct {
 		Data     []tk.M
 		MinAxisX float64
 		MaxAxisX float64
@@ -1137,7 +1060,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		MaxAxisY: maxAxisY,
 	}
 
-	return helper.CreateResult(true, data, "success")
+	return helper.CreateResult(true, result, "success")
 }
 
 func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) interface{} {
@@ -1159,14 +1082,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 
 	type ScadaMini struct {
-		Power, AvgWindSpeed float64
-		WindDirection       float64
-	}
-
-	type ScadaOEMMini struct {
-		AI_intern_WindSpeed, AI_intern_Pitchangle1   float64
-		AI_intern_Pitchangle2, AI_intern_Pitchangle3 float64
-		AI_intern_ActivPower                         float64
+		Power, AvgWindSpeed             float64
+		NacelleDeviation, AvgBladeAngle float64
 	}
 
 	var (
@@ -1274,82 +1191,33 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	scatterData := tk.M{}
 	scatterDatas1 := []tk.M{}
 	scatterDatas2 := []tk.M{}
-	lessDev := tk.ToFloat64(p.LessValue, 2, tk.RoundingAuto) / 100.0
-	greatDev := tk.ToFloat64(p.GreaterValue, 2, tk.RoundingAuto) / 100.0
+	lessDev := tk.ToFloat64(p.LessValue, 2, tk.RoundingAuto)
+	greatDev := tk.ToFloat64(p.GreaterValue, 2, tk.RoundingAuto)
 
 	if p.ScatterType != "pitch" { /*processing data non pitch*/
 		for _, val := range list {
 			scatterData = tk.M{}
 			scatterData.Set("WindSpeed", val.AvgWindSpeed)
 			scatterData.Set("Power", val.Power)
-			switch p.ScatterType {
-			case "deviation":
-				if val.WindDirection < lessDev {
-					scatterDatas1 = append(scatterDatas1, scatterData)
-				}
-				if val.WindDirection > greatDev {
-					scatterDatas2 = append(scatterDatas2, scatterData)
-				}
+
+			if val.NacelleDeviation < lessDev {
+				scatterDatas1 = append(scatterDatas1, scatterData)
+			}
+			if val.NacelleDeviation > greatDev {
+				scatterDatas2 = append(scatterDatas2, scatterData)
 			}
 		}
 	} else {
-		/*================== SCADA OEM PART ==================*/
-		var filterOEM []*dbox.Filter
-		filterOEM = []*dbox.Filter{}
-		filterOEM = append(filterOEM, dbox.Ne("_id", ""))
-		filterOEM = append(filterOEM, dbox.Gte("timestamp", tStart))
-		filterOEM = append(filterOEM, dbox.Lte("timestamp", tEnd))
-		filterOEM = append(filterOEM, dbox.Eq("turbine", turbine))
-		filterOEM = append(filterOEM, dbox.Eq("projectname", project))
-		// filterOEM = append(filterOEM, dbox.Eq("mttr", 600.0))
-		filterOEM = append(filterOEM, dbox.Gt("ai_intern_activpower", 0.0))
-		filterOEM = append(filterOEM, dbox.Gt("ai_intern_windspeed", 0.0))
-
-		csrOEM, e := DB().Connection.NewQuery().
-			From(new(ScadaDataOEM).TableName()).
-			Where(dbox.And(filterOEM...)).
-			Take(10000).
-			Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		var _listOEM ScadaOEMMini
-		var listScadaOEM []ScadaOEMMini
-		for {
-			e = csrOEM.Fetch(&_listOEM, 1, false)
-			if e != nil {
-				break
-			}
-			listScadaOEM = append(listScadaOEM, _listOEM)
-		}
-		defer csrOEM.Close()
-
-		count := 0.0
-		pitchAngle := 0.0
-
-		for _, val := range listScadaOEM { /*processing pitch data*/
-			pitchAngle = 0.0
+		for _, val := range list { /*processing pitch data*/
 			scatterData = tk.M{}
-			scatterData.Set("WindSpeed", val.AI_intern_WindSpeed)
-			scatterData.Set("Power", val.AI_intern_ActivPower)
+			scatterData.Set("WindSpeed", val.AvgWindSpeed)
+			scatterData.Set("Power", val.Power)
 
-			if val.AI_intern_Pitchangle1 >= -10.0 && val.AI_intern_Pitchangle1 <= 120.0 {
-				pitchAngle = val.AI_intern_Pitchangle1
-				count++
-			} else if val.AI_intern_Pitchangle2 >= -10.0 && val.AI_intern_Pitchangle2 <= 120.0 {
-				pitchAngle += val.AI_intern_Pitchangle2
-				count++
-			} else if val.AI_intern_Pitchangle3 >= -10.0 && val.AI_intern_Pitchangle3 <= 120.0 {
-				pitchAngle += val.AI_intern_Pitchangle3
-				count++
-			}
-			pitchAngle /= count /*average pitch angle*/
-
-			if pitchAngle != 0.0 || count > 0 {
-				if pitchAngle < lessDev {
+			if val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120.0 {
+				if val.AvgBladeAngle < lessDev {
 					scatterDatas1 = append(scatterDatas1, scatterData)
 				}
-				if pitchAngle > greatDev {
+				if val.AvgBladeAngle > greatDev {
 					scatterDatas2 = append(scatterDatas2, scatterData)
 				}
 			}
@@ -1426,6 +1294,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		colDeviation = "deviationpct"
 	}
 
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	selArr := 0
 	for _, turbineX := range turbine {
 		var filter []*dbox.Filter
@@ -1457,7 +1330,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		defer csr.Close()
 
 		turbineData := tk.M{}
-		turbineData.Set("name", "Scatter-"+turbineX.(string))
+		turbineData.Set("name", "Scatter-"+turbineName[turbineX.(string)])
 		turbineData.Set("xField", "WindSpeed")
 		turbineData.Set("yField", "Power")
 		turbineData.Set("colorField", "valueColor")

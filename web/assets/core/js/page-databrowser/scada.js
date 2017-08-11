@@ -12,8 +12,12 @@ dbs.InitScadaGrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
-
-    var param = {};
+    var misc = {
+        "tipe": "scadaoem",
+        "needtotalturbine": true,
+        "period": fa.period,
+    }
+    var param = {"misc": misc};
 
     var filters = [{
         field: "timestamp",
@@ -46,7 +50,7 @@ dbs.InitScadaGrid = function() {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getscadaoemlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
                     data: param,
                     dataType: "json",
@@ -63,6 +67,8 @@ dbs.InitScadaGrid = function() {
                     app.loading(false);
                     dbr.oemvis(false);
                     app.isFine(res);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     
                     return res.data.Data
                 },
@@ -73,9 +79,9 @@ dbs.InitScadaGrid = function() {
 
                     $('#totalturbine').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                     $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
-                    $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
-                    $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
-                    $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
+                    $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MWh');
+                    $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
+                    $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n1') + ' m/s');
                     return res.data.Total;
                 }
             },

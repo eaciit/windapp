@@ -17,45 +17,64 @@ vm.breadcrumb([
     { title: 'Alarm Data', href: viewModel.appName + 'page/monitoringalarm' }]);
 var intervalTurbine = null;
 
+ma.UpdateProjectList = function(project) {
+    $('#projectList').data('kendoDropDownList').value(project);
+    $("#projectList").data("kendoDropDownList").trigger("change");
+}
+ma.UpdateTurbineList = function(turbineList) {
+    $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
+    $('#turbineList').multiselect('select', turbineList);
+}
 ma.CreateGrid = function(gridType) {
     app.loading(true);
+    $.when(fa.LoadData()).done(function () {
+        var COOKIES = {};
+        var cookieStr = document.cookie;
+        var param = {
+            period: fa.period,
+            dateStart: fa.dateStart,
+            dateEnd: fa.dateEnd,
+            turbine: [],
+            project: "",
+            tipe: gridType,
+        };
+        
+        if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
+            document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            cookieStr.split(/; /).forEach(function(keyValuePair) {
+                var cookieName = keyValuePair.replace(/=.*$/, "");
+                var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+                COOKIES[cookieName] = cookieValue;
+            });
+            param.turbine = [COOKIES["turbine"]];
+            param.project = COOKIES["projectname"];
 
-    fa.LoadData();
+            $.when(ma.UpdateProjectList(param.project)).done(function () {
+                setTimeout(function(){
+                    $.when(ma.UpdateTurbineList(param.turbine)).done(function () {
+                        ma.LoadDataAvail(param.project, gridType);
+                        ma.CreateGridAlarm(gridType, param);
+                    });
+                }, 700);
+            });
 
-    var COOKIES = {};
-    var cookieStr = document.cookie;
-    var turbine = [];
-    var project = "";
-    
-    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        turbine = [COOKIES["turbine"]];
-        project = COOKIES["project"];
-        $('#turbineList').multiselect('select', turbine);
-        $('#projectList').data('kendoDropDownList').value(project);
-    } else {
-        turbine = fa.turbine();
-        project = fa.project;
-    }
-
-    var param = {
-        period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
-        turbine: turbine,
-        project: project,
-        tipe: gridType,
-    };
-
+        } else {
+            param.turbine = fa.turbine();
+            param.project = fa.project;
+            ma.LoadDataAvail(param.project, gridType);
+            ma.CreateGridAlarm(gridType, param);
+        }
+    });
+}
+ma.CreateGridAlarm = function(gridType, param) {
     var gridName = "#alarmGrid"
+    var dt = new Date();
+    var time = dt.getHours() + "" + dt.getMinutes() + "" + dt.getSeconds();
+    var nameFile = "Monitoring Alarm Down_"+ moment(new Date()).format("Y-M-D")+"_"+time;
     if(gridType == "warning") {
         gridName = "#warningGrid"
+        nameFile = "Monitoring Alarm Warning";
     }
     $(gridName).html('');
     $(gridName).kendoGrid({
@@ -76,6 +95,9 @@ ma.CreateGrid = function(gridType) {
             },
             schema: {
                 data: function data(res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
                     var totalFreq = res.data.Total;
                     var totalHour = res.data.Duration;
 
@@ -103,6 +125,15 @@ ma.CreateGrid = function(gridType) {
                 { field: "TimeEnd", dir: "asc" }
             ],
         },
+        toolbar: ["excel"],
+        excel: {
+            fileName: nameFile+".xlsx",
+            filterable: true,
+            allPages: true
+        },
+        // pdf: {
+        //     fileName: nameFile+".pdf",
+        // },
         sortable: true,
         pageable: {
             refresh: true,
@@ -112,30 +143,45 @@ ma.CreateGrid = function(gridType) {
         columns: [{
             field: "Turbine",
             title: "Turbine",
-            width: 160
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90
         }, {
             field: "TimeStart",
             title: "Time Start",
             width: 170,
-            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY HH:mm:ss') #"
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStart).format('HH:mm:ss')#"
         }, {
             field: "TimeEnd",
             title: "Time End",
             width: 170,
-            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY')=='01-01-0001'?'Not yet finished':moment.utc(data.TimeEnd).format('DD-MMM-YYYY HH:mm:ss')) #"
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
         }, {
             field: "Duration",
             title: "Duration (hh:mm:ss)",
-             width: 180,
+             width: 120,
+             attributes: {
+                style: "text-align:center;"
+            },
             template: "#= time(data.Duration) #"
         }, {
             field: "AlarmCode",
             title: "Alarm Code",
-            width: 130,
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90,
         }, {
             field: "AlarmDesc",
             title: "Description",
-            width: 240
+            width: 330
         }]
     });
 };
@@ -152,14 +198,14 @@ ma.InitDateValue = function () {
 
     $('#dateStart').data('kendoDatePicker').value(lastStartDate);
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-
-    ma.LoadDataAvail()
 }
 
-ma.LoadDataAvail = function(){
-    fa.LoadData();
+ma.LoadDataAvail = function(projectname, gridType){
+    //fa.LoadData();
+
     var payload = {
-        project: fa.project
+        project: projectname,
+        tipe: gridType
     };
 
     toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataalarmavaildate", payload, function (res) {
@@ -201,7 +247,14 @@ ma.checkCompleteDate = function () {
 }
 
 ma.ToByProject = function(){
-    window.location = viewModel.appName + "page/monitoringbyproject";
+    setTimeout(function(){
+        app.loading(true);
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },1500);
 }
 
 $(document).ready(function(){
@@ -223,9 +276,9 @@ $(document).ready(function(){
     }, 300);
     
     $('#projectList').kendoDropDownList({
-		change: function () {  
-			var project = $('#projectList').data("kendoDropDownList").value();
-			fa.populateTurbine(project);
-		}
-	});
+        change: function () {  
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
+    });
 });

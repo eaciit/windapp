@@ -68,7 +68,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		ids = "$projectname"
 		breakdown = "Project"
 	}
-
+	// Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
+	// Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids,
 		"Production":       tk.M{"$sum": "$production"},
 		"MachineDownLoss":  tk.M{"$sum": "$machinedownloss"},
@@ -80,6 +81,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		"MachineDownHours": tk.M{"$sum": "$machinedownhours"},
 		"GridDownHours":    tk.M{"$sum": "$griddownhours"},
 		"OtherDownHours":   tk.M{"$sum": "$otherdowntimehours"},
+		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
+		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
 		"LossEnergy":       tk.M{"$sum": "$lostenergy"}}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -99,6 +102,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	// maxDate := data.Get("maxdate", time.Time{}).(time.Time)
+	// minDate := data.Get("mindate", time.Time{}).(time.Time).AddDate(0, 0, 1)
 	availability := getAvailabilityValue(tStart, tEnd, project, turbine, breakdown)
 
 	// for _, avail := range availability {
@@ -159,6 +164,10 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	}
 	/*======== END OF JMR PART ==================*/
 	LossAnalysisResult := []tk.M{}
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
 
 	for _, val := range resultScada {
 		id := val.GetString("_id")
@@ -173,7 +182,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		}
 
 		LossAnalysisResult = append(LossAnalysisResult, tk.M{
-			"Id":               val.GetString("_id"),
+			"Id":               turbineName[val.GetString("_id")],
 			"Production":       val.GetFloat64("Production") / 1000,
 			"LossEnergy":       val.GetFloat64("LossEnergy") / 1000,
 			"MachineDownHours": val.GetFloat64("MachineDownHours"),
@@ -181,6 +190,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 			"OtherDownHours":   val.GetFloat64("OtherDownHours"),
 			"EnergyyMD":        val.GetFloat64("MachineDownLoss") / 1000,
 			"EnergyyGD":        val.GetFloat64("GridDownLoss") / 1000,
+			"EnergyyOD":        val.GetFloat64("OtherDownLoss") / 1000,
 			// "ElectricLoss":     val.GetFloat64("ElectricalLosses") / 1000,
 			"ElectricLoss":     resultJMR[val.GetString("_id")],
 			"PCDeviation":      val.GetFloat64("PCDeviation") / 1000,
@@ -387,7 +397,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryChart(k *knot.WebContext
 	return helper.CreateResult(true, result, "success")
 }
 
-func (m *AnalyticLossAnalysisController) GetDowntimeTab(k *knot.WebContext) interface{} {
+func (m *AnalyticLossAnalysisController) GetDowntimeTabDuration(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := new(PayloadAnalytic)
@@ -398,18 +408,45 @@ func (m *AnalyticLossAnalysisController) GetDowntimeTab(k *knot.WebContext) inte
 
 	result := tk.M{}
 
-	// =============== DOWNTIME =============
 	duration, e := getDownTimeTopFiltered("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("duration", duration)
 
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetDowntimeTabFreq(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
+
 	frequency, e := getDownTimeTopFiltered("frequency", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("frequency", frequency)
+
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetDowntimeTabLoss(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
 
 	loss, e := getDownTimeTopFiltered("loss", p, k)
 	if e != nil {
@@ -629,7 +666,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			return result, e
 		}
 		match.Set("_id", tk.M{"$ne": ""})
-		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("reduceavailability", true)
 
 		if p.Project != "" {
 			match.Set("projectname", p.Project)
@@ -638,8 +675,12 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 		if len(p.Turbine) != 0 {
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
-
-		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		if topType != "frequency" {
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		} else {
+			match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		}
 		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.duration"}}})
@@ -704,12 +745,19 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 			downDone = append(downDone, field)
 
 			for _, done := range downDone {
-				match.Unset("detail." + done)
+				if topType != "frequency" {
+					match.Unset("detail." + done)
+				} else {
+					match.Unset(done)
+				}
 			}
 
-			loopMatch.Set("detail."+field, true)
-
-			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			if topType != "frequency" {
+				loopMatch.Set("detail."+field, true)
+				pipes = append(pipes, tk.M{"$unwind": "$detail"})
+			} else {
+				loopMatch.Set(field, true)
+			}
 			pipes = append(pipes, tk.M{"$match": loopMatch})
 			if topType == "duration" {
 				pipes = append(pipes,
@@ -761,6 +809,10 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 
 		resY := []tk.M{}
 
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return result, e
+		}
 		for _, t := range downCause {
 			title := tk.ToString(t)
 
@@ -788,7 +840,7 @@ func getDownTimeTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebConte
 
 		for _, turbine := range turbines {
 			resVal := tk.M{}
-			resVal.Set("_id", turbine)
+			resVal.Set("_id", turbineName[turbine])
 
 			for _, val := range resY {
 				valTurbine := val.Get("_id").(tk.M).GetString("id3")
@@ -844,7 +896,12 @@ func getTopComponentAlarm(Id string, topType string, p *PayloadAnalytic, k *knot
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
 
-		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		if topType == "frequency" {
+			match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		} else {
+			pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		}
+
 		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$" + Id, "result": tk.M{"$sum": "$detail.duration"}}})
@@ -907,16 +964,17 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 	}
 
 	group := tk.M{
-		"power":           tk.M{"$sum": "$power"},
-		"machinedowntime": tk.M{"$sum": "$machinedowntime"},
-		"griddowntime":    tk.M{"$sum": "$griddowntime"},
+		"power":           tk.M{"$sum": "$powerkw"},
+		"machinedowntime": tk.M{"$sum": "$machinedownhours"},
+		"griddowntime":    tk.M{"$sum": "$griddownhours"},
+		"unknowndowntime": tk.M{"$sum": "$griddownhours"},
 		"oktime":          tk.M{"$sum": "$oktime"},
-		"powerlost":       tk.M{"$sum": "$powerlost"},
-		"totaltimestamp":  tk.M{"$sum": 1},
-		"available":       tk.M{"$sum": "$available"},
-		"minutes":         tk.M{"$sum": "$minutes"},
-		"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
-		"mindate":         tk.M{"$min": "$dateinfo.dateid"},
+		"powerlost":       tk.M{"$sum": "$lostenergy"},
+		"totaltimestamp":  tk.M{"$sum": "$totalrows"},
+		// "available":       tk.M{"$sum": "$available"},
+		// "minutes":         tk.M{"$sum": "$minutes"},
+		"maxdate": tk.M{"$max": "$dateinfo.dateid"},
+		"mindate": tk.M{"$min": "$dateinfo.dateid"},
 	}
 
 	if project != "" {
@@ -940,7 +998,7 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id1": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
 
@@ -991,8 +1049,8 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 			}
 		}
 
-		minDate := val.Get("mindate").(time.Time)
-		maxDate := val.Get("maxdate").(time.Time)
+		minDate := val.Get("mindate", time.Time{}).(time.Time)
+		maxDate := val.Get("maxdate", time.Time{}).(time.Time)
 
 		// if breakDown == "Date" {
 		// 	id1 := id.Get("id1").(time.Time)
@@ -1000,33 +1058,42 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 		// 	hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), minDate.UTC(), maxDate.UTC())
 		// } else {
 
-		hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
+		// hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), minDate.UTC(), maxDate.UTC())
 		// }
 
-		okTime := val.GetFloat64("oktime")
-		power := val.GetFloat64("power") / 1000.0
+		hourValue = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+		okTime := val.GetFloat64("oktime") / 3600
+		power := val.GetFloat64("power")
 		energy := power / 6
-		mDownTime := val.GetFloat64("machinedowntime") / 3600.0
-		gDownTime := val.GetFloat64("griddowntime") / 3600.0
+		mDownTime := val.GetFloat64("machinedowntime")
+		gDownTime := val.GetFloat64("griddowntime")
+		uDownTime := val.GetFloat64("unknowndowntime")
 		sumTimeStamp := val.GetFloat64("totaltimestamp")
 		minutes := val.GetFloat64("minutes") / 60
 
-		machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+		// machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, okTime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+
+		in := tk.M{}.Set("noofturbine", totalTurbine).Set("oktime", okTime).Set("energy", energy/1000).
+			Set("totalhour", hourValue).Set("totalcapacity", plfDivider).Set("counttimestamp", sumTimeStamp).
+			Set("machinedowntime", mDownTime).Set("griddowntime", gDownTime).Set("otherdowntime", uDownTime)
+
+		calc := helper.CalcAvailabilityAndPLF(in)
 
 		res := tk.M{
 			key: tk.M{
-				"oktime":          okTime,
+				"oktime":          okTime * 3600,
 				"power":           power,
 				"energy":          energy,
 				"machinedowntime": mDownTime,
 				"griddowntime":    gDownTime,
 				"count":           sumTimeStamp,
 				"minutes":         minutes,
-				"machineavail":    machineAvail,
-				"gridavail":       gridAvail,
-				"dataavail":       dataAvail,
-				"totalavail":      trueAvail,
-				"plf":             plf,
+				"machineavail":    calc.GetFloat64("machineavailability"),
+				"gridavail":       calc.GetFloat64("gridavailability"),
+				"dataavail":       calc.GetFloat64("dataavailability"),
+				"totalavail":      calc.GetFloat64("totalavailability"),
+				"plf":             calc.GetFloat64("plf"),
 			},
 		}
 		result = append(result, res)
@@ -1224,11 +1291,16 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 			valuewindspeed[i] = value
 		}
 	}
+	turbineName, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	data := tk.M{
 		"categorywindspeed": categorywindspeed,
 		"valuewindspeed":    valuewindspeed,
 		"totaldata":         totalData,
+		"turbinename":       turbineName,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1315,11 +1387,16 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 			valueproduction[i] = value
 		}
 	}
+	turbineName, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	data := tk.M{
 		"categoryproduction": categoryproduction,
 		"valueproduction":    valueproduction,
 		"totaldata":          totalData,
+		"turbinename":        turbineName,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1465,4 +1542,34 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 	k.Config.OutputType = knot.OutputJson
 
 	return helper.CreateResult(true, k.Session("availdate", ""), "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetAvailDateAll(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	return helper.CreateResult(true, k.Session("availdateall", ""), "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetAvailDate_DRAFT(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	type AvailDatePayload struct {
+		Project string
+	}
+
+	p := AvailDatePayload{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	datePeriod := k.Session("availdate", "").(map[string]*Availdatedata)
+	if p.Project == "" {
+		p.Project = "All"
+	}
+	result := tk.M{}
+	result["availabledate"] = datePeriod[p.Project]
+	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
+	lastDateData = datePeriod[p.Project].ScadaData[1].UTC()
+	result["lastdate"] = lastDateData
+
+	return helper.CreateResult(true, result, "success")
 }

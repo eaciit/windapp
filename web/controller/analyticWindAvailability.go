@@ -87,12 +87,12 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 
 	totalEnergy := crowd.From(&results).Sum(func(x interface{}) interface{} {
 		dt := x.(tk.M)
-		return dt["energy"].(float64)
+		return dt.GetFloat64("energy")
 	}).Exec().Result.Sum
 
 	totalTime := crowd.From(&results).Sum(func(x interface{}) interface{} {
 		dt := x.(tk.M)
-		return dt["totalcount"].(int)
+		return dt.GetInt("totalcount")
 	}).Exec().Result.Sum
 
 	type DataReturn struct {
@@ -112,13 +112,13 @@ func (m *AnalyticWindAvailabilityController) GetData(k *knot.WebContext) interfa
 	timeAcumulative := 0
 
 	for _, d := range results {
-		windSpeed := d["_id"].(float64)
-		energy := d["energy"].(float64)
-		time := d["totalcount"].(int)
+		windSpeed := d.GetFloat64("_id")
+		energy := d.GetFloat64("energy")
+		time := d.GetInt("totalcount")
 
 		energyAcumulative = energyAcumulative + energy
 		timeAcumulative = timeAcumulative + time
-		totalAvail := tk.Div(d["totalavail"].(float64), float64(time)) * 100
+		totalAvail := tk.Div(d.GetFloat64("totalavail"), float64(time)) * 100
 		energyPros := tk.Div(energyAcumulative, totalEnergy) * 100
 		timePros := tk.Div(float64(timeAcumulative), float64(totalTime)) * 100
 

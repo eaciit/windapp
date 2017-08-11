@@ -3,9 +3,10 @@ package models
 import (
 	. "eaciit/wfdemo-git/library/helper"
 	"fmt"
+	"time"
+
 	"github.com/eaciit/orm"
 	"gopkg.in/mgo.v2/bson"
-	"time"
 )
 
 type ScadaHFD struct {
@@ -173,6 +174,29 @@ func (m *ScadaRealTime) RecordID() interface{} {
 
 func (m *ScadaRealTime) TableName() string {
 	return "ScadaRealTime"
+}
+
+type ScadaRealTimeNew struct {
+	orm.ModelBase `bson:"-",json:"-"`
+	Id            string
+	TimeStamp     time.Time
+	ProjectName   string
+	Tags          string
+	Turbine       string
+	Value         float64
+}
+
+func (m *ScadaRealTimeNew) New() *ScadaRealTimeNew {
+	m.Id = fmt.Sprintf("%s_%s_%s", m.ProjectName, m.Turbine, m.Tags)
+	return m
+}
+
+func (m *ScadaRealTimeNew) RecordID() interface{} {
+	return fmt.Sprintf("%s_%s_%s", m.ProjectName, m.Turbine, m.Tags)
+}
+
+func (m *ScadaRealTimeNew) TableName() string {
+	return "ScadaRealTimeNew"
 }
 
 type Scada10Min struct {
@@ -1462,6 +1486,7 @@ type TurbineStatus struct {
 	orm.ModelBase `bson:"-" json:"-"`
 	ID            string ` bson:"_id" , json:"_id" `
 	ProjectName   string
+	Turbine       string
 	TimeUpdate    time.Time
 	Status        int // 0 : down, 1 : up
 	AlarmCode     int

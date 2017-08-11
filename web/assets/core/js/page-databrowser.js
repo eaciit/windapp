@@ -47,36 +47,14 @@ dbr.gridColumnsScadaAnomaly = ko.observableArray([]);
 dbr.filterJMR = ko.observableArray([]);
 var turbineval = [];
 var availDateList = {};
-
+var availDateAll;
+dbr.LastFilter;
+dbr.LastSort;
 dbr.selectedColumn = ko.observableArray([]);
 dbr.unselectedColumn = ko.observableArray([]);
 dbr.ColumnList = ko.observableArray([]);
 dbr.ColList = ko.observableArray([]);
-dbr.defaultSelectedColumn = ko.observableArray([{
-    "_id": "timestamp",
-    "label": "Time Stamp",
-    "source": "ScadaDataOEM"
-  },{
-    "_id": "turbine",
-    "label": "Turbine",
-    "source": "ScadaDataOEM"
-  },{
-    "_id": "ai_intern_r_pidangleout",
-    "label": "Ai Intern R Pid Angle Out",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_activpower",
-    "label": "Ai Intern Active Power",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_i1",
-    "label": "Ai Intern I1",
-    "source": "ScadaDataOEM"
-}, {
-    "_id": "ai_intern_i2",
-    "label": "Ai Intern I2",
-    "source": "ScadaDataOEM"
-}, ]);
+dbr.defaultSelectedColumn = ko.observableArray();
 
 dbr.ShowHideColumnScada = function(gridID, field, id, index) {
     if ($('#' + id).is(":checked")) {
@@ -89,27 +67,12 @@ dbr.ShowHideColumnScada = function(gridID, field, id, index) {
 var Data = {
     LoadData: function() {
         setTimeout(function(){
-            // var idParent = $(".panel-body").find(".nav-tabs").find(".active")[0].id;
             $(".panel-body").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-            // switch (idParent) {
-            //     case 'mainTab':
-            //         $("#Main").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-            //         break;
-            //     case 'exceptionTab':
-            //         $("#Exception").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-            //         break;
-            // }
         }, 100)
     },
     InitDefault: function() {
-        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-        var lastEndDate = new Date(app.getDateMax(maxDateData));
+        // dbr.getAvailDate();
 
-        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-
-        
         Data.LoadData();
     },
     InitColumnList: function() {
@@ -254,253 +217,162 @@ var Data = {
     }
 };
 
-dbr.Scada = function() {
+dbr.setAvailableDate = function() {
+
+    setTimeout(function(){
+        var tabType = $(".panel-body").find(".nav-tabs").find("li.active").attr('id');
+        var tipeTab = "MET";
+        switch (tabType) {
+            case "scadahfdTab" :
+                tipeTab = "ScadaDataHFD"
+                break;
+            case "downtimeeventTab" :
+                tipeTab = "EventDown"
+                break;
+            case "customTab" :
+                tipeTab = "MET"
+                break;
+            case "eventTab" :
+                tipeTab = "EventRaw"
+                break;
+            case "metTab" :
+                tipeTab = "MET"
+                break;
+            case "jmrTab" :
+                tipeTab = "JMR"
+                break;
+            case "downtimeeventhfdTab" :
+                tipeTab = "EventDownHFD"
+                break;
+            default:
+                tipeTab = "ScadaDataOEM"
+                break;
+        }
+
+        var namaproject = $('#projectList').data("kendoDropDownList").value();
+
+        if(namaproject == "") {
+            namaproject = "Tejuva";
+        }
+
+        var startDate = kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][0]).format('DD-MMM-YYYY'));
+        var endDate = kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][1]).format('DD-MMM-YYYY'));
+
+        $('#availabledatestart').html(startDate);
+        $('#availabledateend').html(endDate);
+
+        var maxDateData = new Date(availDateAll[namaproject][tipeTab][1]);
+
+        if(moment(maxDateData).get('year') !== 1){
+            var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+            $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+            $('#dateEnd').data('kendoDatePicker').value(endDate);
+        }
+
+    }, 500);
+}
+
+dbr.Scada = function(id) {
     fa.LoadData();
     app.loading(true);
     if(!dbr.isScadaLoaded()) {
         dbr.isScadaLoaded(true);
         dbs.InitScadaGrid();
-        app.ajaxPost(viewModel.appName + "/databrowser/getscadadataoemavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.ScadaDataOEM != "undefined") {
-                if (res.data.ScadaDataOEM.length == 0) {
-                    res.data.ScadaDataOEM = [];
-                } else {
-                    if (res.data.ScadaDataOEM.length > 0) {
-                        var minDatetemp = new Date(res.data.ScadaDataOEM[0]);
-                        var maxDatetemp = new Date(res.data.ScadaDataOEM[1]);
-                        availDateList.availabledatestartscadadataoem = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                        availDateList.availabledateendscadadataoem = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                        $('#availabledatestart').html(availDateList.availabledatestartscadadataoem);
-                        $('#availabledateend').html(availDateList.availabledateendscadadataoem);
-                    }
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartscadadataoem);
-        $('#availabledateend').html(availDateList.availabledateendscadadataoem);
         app.loading(false);
     }
 }
+dbr.getAvailDate = function(){
+    app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        availDateAll = res.data;
+        dbr.setAvailableDate();
+    });
+}
 
-dbr.ScadaHFD = function() {
+dbr.ScadaHFD = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isScadaHFDLoaded()) {
         dbr.isScadaHFDLoaded(true);
         dbsh.InitScadaHFDGrid();
-        app.ajaxPost(viewModel.appName + "/databrowser/getscadadatahfdavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.ScadaDataHFD != "undefined"){
-                if (res.data.ScadaDataHFD.length == 0) {
-                    res.data.ScadaDataHFD = [];
-                } else {
-                    if (res.data.ScadaDataHFD.length > 0) {
-                        var minDatetemp = new Date(res.data.ScadaDataHFD[0]);
-                        var maxDatetemp = new Date(res.data.ScadaDataHFD[1]);
-                        availDateList.availabledatestartscadadatahfd = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                        availDateList.availabledateendscadadatahfd = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                        $('#availabledatestart').html(availDateList.availabledatestartscadadatahfd);
-                        $('#availabledateend').html(availDateList.availabledateendscadadatahfd);
-                    }
-                }   
-            }      
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartscadadatahfd);
-        $('#availabledateend').html(availDateList.availabledateendscadadatahfd);
         app.loading(false);
     }
 }
 
-dbr.Downtime = function() {
+dbr.Downtime = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isDowntimeEventLoaded()) {
         dbr.isDowntimeEventLoaded(true);
         dbd.InitDEgrid();
-        app.ajaxPost(viewModel.appName + "/databrowser/getdowntimeeventvaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.DowntimeEvent.length == 0) {
-                res.data.DowntimeEvent = [];
-            } else {
-                if (res.data.DowntimeEvent.length > 0) {
-                    var minDatetemp = new Date(res.data.DowntimeEvent[0]);
-                    var maxDatetemp = new Date(res.data.DowntimeEvent[1]);
-                    availDateList.availabledatestartDE = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendDE = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartDE);
-                    $('#availabledateend').html(availDateList.availabledateendDE);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartDE);
-        $('#availabledateend').html(availDateList.availabledateendDE);
         app.loading(false);
     }
 }
 
-dbr.Custom = function() {
+dbr.Custom = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isCustomLoaded()) {
         dbr.isCustomLoaded(true);
         dbc.InitCustomGrid();
-        app.ajaxPost(viewModel.appName + "/databrowser/getcustomavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            if (res.data.CustomDate.length == 0) {
-                res.data.CustomDate = [];
-            } else {
-                if (res.data.CustomDate.length > 0) {
-                    var arrDate = res.data.CustomDate.sort();
-                    var minDatetemp = new Date(arrDate[0]);
-                    var maxDatetemp = new Date(arrDate[3]);
-                    availDateList.availabledatestartCustom = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendCustom = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartCustom);
-                    $('#availabledateend').html(availDateList.availabledateendCustom);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartCustom);
-        $('#availabledateend').html(availDateList.availabledateendCustom);
         app.loading(false);
     }
 }
 
-dbr.Event = function() {
+dbr.Event = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isEventLoaded()) {
         dbr.isEventLoaded(true);
         dbe.InitEventGrid();
-        app.ajaxPost(viewModel.appName + "/databrowser/geteventavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data.EventDate.length == 0) {
-                res.data.EventDate = [];
-            } else {
-                if (res.data.EventDate.length > 0) {
-                    var minDatetemp = new Date(res.data.EventDate[0]);
-                    var maxDatetemp = new Date(res.data.EventDate[1]);
-                    availDateList.availabledatestarteventraw = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendeventraw = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestarteventraw);
-                    $('#availabledateend').html(availDateList.availabledateendeventraw);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestarteventraw);
-        $('#availabledateend').html(availDateList.availabledateendeventraw);
         app.loading(false);
     }
 }
 
-dbr.Met = function() {
+dbr.Met = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isMetLoaded()) {
         dbr.isMetLoaded(true);
         dbm.InitMet();
-        app.ajaxPost(viewModel.appName + "/databrowser/getmetavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //MET Tower Data
-            if (res.data.MET.length == 0) {
-                res.data.MET = [];
-            } else {
-                if (res.data.MET.length > 0) {
-                    var minDatetemp = new Date(res.data.MET[0]);
-                    var maxDatetemp = new Date(res.data.MET[1]);
-                    availDateList.availabledatestartmet = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendmet = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartmet);
-                    $('#availabledateend').html(availDateList.availabledateendmet);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartmet);
-        $('#availabledateend').html(availDateList.availabledateendmet);
         app.loading(false);
     }
 }
 
-dbr.JMR = function() {
+dbr.JMR = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isJMRLoaded()) {
         dbr.isJMRLoaded(true);
         dbj.InitGridJMR();
-        app.ajaxPost(viewModel.appName + "/databrowser/getjmravaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //JMR Data
-            if (res.data.JMR.length == 0) {
-                res.data.JMR = [];
-            } else {
-                if (res.data.JMR.length > 0) {
-                    var minDatetemp = new Date(res.data.JMR[0]);
-                    var maxDatetemp = new Date(res.data.JMR[1]);
-                    availDateList.availabledatestartjmr = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendjmr = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartjmr);
-                    $('#availabledateend').html(availDateList.availabledateendjmr);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartjmr);
-        $('#availabledateend').html(availDateList.availabledateendjmr);
         app.loading(false);
     }
 }
 
-dbr.DowntimeHFD = function() {
+dbr.DowntimeHFD = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isDowntimeeventhfdLoaded()) {
         dbr.isDowntimeeventhfdLoaded(true);
         dbdhfd.InitDEHFDgrid();
-        app.ajaxPost(viewModel.appName + "/databrowser/getdowntimeeventvaildatehfd", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            //Scada Data
-            if (res.data.DowntimeEvent.length == 0) {
-                res.data.DowntimeEvent = [];
-            } else {
-                if (res.data.DowntimeEvent.length > 0) {
-                    var minDatetemp = new Date(res.data.DowntimeEvent[0]);
-                    var maxDatetemp = new Date(res.data.DowntimeEvent[1]);
-                    availDateList.availabledatestartDEHFD = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendDEHFD = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartDEHFD);
-                    $('#availabledateend').html(availDateList.availabledateendDEHFD);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartDEHFD);
-        $('#availabledateend').html(availDateList.availabledateendDEHFD);
         app.loading(false);
     }
 }
@@ -511,28 +383,7 @@ dbr.ScadaException = function() {
     if(!dbr.isScadaExceptionTimeDurationLoaded()) {
         dbr.isScadaExceptionTimeDurationLoaded(true);
         dbt.InitGridExceptionTimeDuration();
-        app.ajaxPost(viewModel.appName + "/databrowser/getdurationavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //Duration Data
-            if (res.data.Duration.length == 0) {
-                res.data.Duration = [];
-            } else {
-                if (res.data.Duration.length > 0) {
-                    var minDatetemp = new Date(res.data.Duration[0]);
-                    var maxDatetemp = new Date(res.data.Duration[1]);
-                    availDateList.availabledatestartduration = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendduration = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartduration);
-                    $('#availabledateend').html(availDateList.availabledateendduration);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartduration);
-        $('#availabledateend').html(availDateList.availabledateendduration);
         app.loading(false);
     }
 }
@@ -543,28 +394,7 @@ dbr.ScadaAnomalies = function() {
     if(!dbr.isScadaAnomaliesLoaded()) {
         dbr.isScadaAnomaliesLoaded(true);
         dbsa.InitGridAnomalies();
-        app.ajaxPost(viewModel.appName + "/databrowser/getscadaanomalyavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //Scada Anomaly Data
-            if (res.data.ScadaAnomaly.length == 0) {
-                res.data.ScadaAnomaly = [];
-            } else {
-                if (res.data.ScadaAnomaly.length > 0) {
-                    var minDatetemp = new Date(res.data.ScadaAnomaly[0]);
-                    var maxDatetemp = new Date(res.data.ScadaAnomaly[1]);
-                    availDateList.availabledatestartscadaanomaly = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendscadaanomaly = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartscadaanomaly);
-                    $('#availabledateend').html(availDateList.availabledateendscadaanomaly);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartscadaanomaly);
-        $('#availabledateend').html(availDateList.availabledateendscadaanomaly);
         app.loading(false);
     }
 }
@@ -575,29 +405,7 @@ dbr.AlarmOverlapping = function() {
     if(!dbr.isAlarmOverlappingLoaded()) {
         dbr.isAlarmOverlappingLoaded(true);
         dbao.InitGridAlarmOverlapping();
-        app.ajaxPost(viewModel.appName + "/databrowser/getalarmoverlappingavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //AlarmOverlapping Data
-            if (res.data.AlarmOverlapping.length == 0) {
-                res.data.AlarmOverlapping = [];
-            } else {
-                if (res.data.AlarmOverlapping.length > 0) {
-                    var minDatetemp = new Date(res.data.AlarmOverlapping[0]);
-                    var maxDatetemp = new Date(res.data.AlarmOverlapping[1]);
-
-                    availDateList.availabledatestartalarmoverlapping = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendalarmoverlapping = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartalarmoverlapping);
-                    $('#availabledateend').html(availDateList.availabledateendalarmoverlapping);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartalarmoverlapping);
-        $('#availabledateend').html(availDateList.availabledateendalarmoverlapping);
         app.loading(false);
     }
 }
@@ -608,28 +416,7 @@ dbr.AlarmAnomalies = function() {
     if(!dbr.isAlarmAnomaliesLoaded()) {
         dbr.isAlarmAnomaliesLoaded(true);
         dbaa.InitGridAlarmAnomalies();
-        app.ajaxPost(viewModel.appName + "/databrowser/getalarmscadaanomalyavaildate", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-
-            //AlarmScadaAnomaly Data
-            if (res.data.AlarmScadaAnomaly.length == 0) {
-                res.data.AlarmScadaAnomaly = [];
-            } else {
-                if (res.data.AlarmScadaAnomaly.length > 0) {
-                    var minDatetemp = new Date(res.data.AlarmScadaAnomaly[0]);
-                    var maxDatetemp = new Date(res.data.AlarmScadaAnomaly[1]);
-                    availDateList.availabledatestartalarmscadaanomaly = kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY'));
-                    availDateList.availabledateendalarmscadaanomaly = kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY'));
-                    $('#availabledatestart').html(availDateList.availabledatestartalarmscadaanomaly);
-                    $('#availabledateend').html(availDateList.availabledateendalarmscadaanomaly);
-                }
-            }
-        });
     } else {
-        $('#availabledatestart').html(availDateList.availabledatestartalarmscadaanomaly);
-        $('#availabledateend').html(availDateList.availabledateendalarmscadaanomaly);
         app.loading(false);
     }
 }
@@ -739,20 +526,32 @@ function DataBrowserExporttoExcel(functionName) {
     dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
     dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 
-    // var turbine = [];
-    // if ($("#turbineList").data("kendoMultiSelect").value().indexOf("All Turbine") >= 0) {
-    //     turbine = turbineval;
-    // } else {
-    //     turbine = $("#turbineList").data("kendoMultiSelect").value();
-    // }
+    var misc = {
+        tipe: functionName,
+        "period": fa.period,
+    }
 
-    var Filter = {
-        DateStart: dateStart,
-        DateEnd: dateEnd,
-        Turbine: fa.turbine(),
+    var columnList = dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn();
+    if (functionName == "ScadaHFDCustom") {
+        columnList = dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn();
+    }
+
+    var param = {
+        Project: fa.project,
+        "Custom": {
+            "ColumnList": columnList,
+        },
+        "misc": misc,
+        filter: dbr.LastFilter,
+        sort: dbr.LastSort,
     };
 
-    app.ajaxPost(viewModel.appName + "databrowser/" + functionName, Filter, function(res) {
+    var urlName = viewModel.appName + "databrowser/genexceldata";
+    if(functionName.toLowerCase().indexOf("custom") >= 0) {
+        urlName = viewModel.appName + "databrowser/genexcelcustom10minutes";
+    }
+
+    app.ajaxPost(urlName, param, function(res) {
         if (!app.isFine(res)) {
             app.loading(false);
             return;
@@ -779,7 +578,7 @@ vm.breadcrumb([{
 
 $(document).ready(function() {
     // app.loading(true);
-
+    dbr.getAvailDate();
     $("#scadaExceptionbtn").click(function(){
         $("#scadaException").slideToggle("slow");
         $("#scadaException").css("display","inline-table");
@@ -817,10 +616,14 @@ $(document).ready(function() {
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
+        dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 30));
+        dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 30));
     }, 1000);
 
     $('#projectList').kendoDropDownList({
 		change: function () {  
+            dbr.ResetFlagLoaded();
+            dbr.getAvailDate();
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
 		}

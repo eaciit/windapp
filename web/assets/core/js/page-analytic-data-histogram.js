@@ -27,7 +27,7 @@ km.ExportKeyMetrics = function () {
     });
 }
 
-km.createChart = function () {
+km.createChart = function (turbinename) {
     $("#totalCountData").html('(Total Count Data: ' + km.dsTotaldataWS() + ')');
     var turbineData = '';
     if(fa.turbine().length == 0) {
@@ -35,7 +35,15 @@ km.createChart = function () {
     }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine().join(", ");
+        var turbineName;
+        for(var i=0; i<fa.turbine().length; i++) {
+            if(i==0) {
+                turbineName = turbinename[fa.turbine()[i]];
+            } else {
+                turbineName += ", " + turbinename[fa.turbine()[i]];
+            }
+        }
+        turbineData = turbineName;
     }
     $("#turbineListTitle").html('for ' + turbineData);
     $("#dh-chart").replaceWith('<div id="dh-chart"></div>');
@@ -118,7 +126,7 @@ km.createChart = function () {
 
 }
 
-km.createChartProduction = function (categoryproduction, valueproduction, totaldata) {
+km.createChartProduction = function (turbinename) {
     $("#totalCountProd").html('(Total Count Data: ' + km.dsTotaldataProduction() + ')');
     var turbineData = '';
     if(fa.turbine().length == 0) {
@@ -126,7 +134,15 @@ km.createChartProduction = function (categoryproduction, valueproduction, totald
     }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
         turbineData = 'All Turbines';
     } else {
-        turbineData = fa.turbine().join(", ");
+        var turbineName;
+        for(var i=0; i<fa.turbine().length; i++) {
+            if(i==0) {
+                turbineName = turbinename[fa.turbine()[i]];
+            } else {
+                turbineName += ", " + turbinename[fa.turbine()[i]];
+            }
+        }
+        turbineData = turbineName;
     }
     var _rotationlabel = 0
     if (km.BinValue() > 20) {
@@ -223,21 +239,14 @@ km.getData = function () {
     if(fa.LoadData()) {
         app.loading(true);
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var minDatetemp = new Date(res.data.ScadaData[0]);
-            var maxDatetemp = new Date(res.data.ScadaData[1]);
-            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-        })
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
 
         var paramFilter = {
             period: fa.period,
             Turbine: fa.turbine(),
-            DateStart: fa.dateStart,
-            DateEnd: fa.dateEnd,
+            DateStart: dateStart,
+            DateEnd: dateEnd,
             Project: fa.project
         };
 
@@ -257,7 +266,7 @@ km.getData = function () {
                 km.dsTotaldataWS(res.data.totaldata);
                 // km.dsValuewindSpeed.push(0);
                 // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
-                km.createChart();
+                km.createChart(res.data.turbinename);
             }
         });
 
@@ -278,7 +287,7 @@ km.getData = function () {
                 km.dsTotaldataProduction(res.data.totaldata);
                 // km.dsValueProduction.push(0);
                 // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
-                km.createChartProduction();
+                km.createChartProduction(res.data.turbinename);
             }
         });
 
@@ -296,6 +305,7 @@ km.SubmitValues = function () {
 
 
 $(document).ready(function () {
+    di.getAvailDate();
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         setTimeout(function () {
@@ -312,6 +322,7 @@ $(document).ready(function () {
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
             setTimeout(function() {
+                di.getAvailDate();
                 $('#turbineList').multiselect('select', fa.turbineList()[0].value);
             }, 100);
 		}

@@ -8,129 +8,7 @@ dbsh.selectedColumn = ko.observableArray([]);
 dbsh.unselectedColumn = ko.observableArray([]);
 dbsh.ColumnList = ko.observableArray([]);
 dbsh.ColList = ko.observableArray([]);
-
-dbsh.defaultSelectedColumn = ko.observableArray([
- {
-    "_id": "Fast_ActivePowerOutPWCSell_kW",
-    "label": "Fast ActivePowerOutPWCSell kW",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_ActivePower_kW",
-    "label": "Fast ActivePower kW",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_DrTrVibValue",
-    "label": "Fast DrTrVibValue",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_Frequency_Hz",
-    "label": "Fast Frequency Hz",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_GenSpeed_RPM",
-    "label": "Fast GenSpeed RPM",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_PitchAngle",
-    "label": "Fast PitchAngle",
-    "source": "ScadaDataHFD"
-  }, {
-    "_id": "Fast_PitchAngle1",
-    "label": "Fast PitchAngle1",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_PitchAngle2",
-    "label": "Fast PitchAngle2",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_PitchAngle3",
-    "label": "Fast PitchAngle3",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Fast_PitchSpeed1",
-    "label": "Fast PitchSpeed1",
-    "source": "ScadaDataHFD"
-  },  {
-    "_id": "Fast_RotorSpeed_RPM",
-    "label": "Fast RotorSpeed RPM",
-    "source": "ScadaDataHFD"
-  },  {
-    "_id": "Fast_WindSpeed_ms",
-    "label": "Fast WindSpeed ms",
-    "source": "ScadaDataHFD"
-  },  {
-    "_id": "Fast_YawAngle",
-    "label": "Fast YawAngle",
-    "source": "ScadaDataHFD"
-  },  {
-    "_id": "Fast_YawService",
-    "label": "Fast YawService",
-    "source": "ScadaDataHFD"
-  },  {
-    "_id": "Slow_NacelleDrill",
-    "label": "Slow NacelleDrill",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_NacellePos",
-    "label": "Slow NacellePos",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempG1L1",
-    "label": "Slow TempG1L1",
-    "source": "ScadaDataHFD"
-  }, {
-    "_id": "Slow_TempG1L2",
-    "label": "Slow TempG1L2",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempG1L3",
-    "label": "Slow TempG1L3",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempGearBoxHSSDE",
-    "label": "Slow TempGearBoxHSSDE",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempGearBoxHSSNDE",
-    "label": "Slow TempGearBoxHSSNDE",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempGearBoxIMSDE",
-    "label": "Slow TempGearBoxIMSDE",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempGearBoxIMSNDE",
-    "label": "Slow TempGearBoxIMSNDE",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempGearBoxOilSump",
-    "label": "Slow TempGearBoxOilSump",
-    "source": "ScadaDataHFD"
-  }, {
-    "_id": "Slow_TempGeneratorBearingDE",
-    "label": "Slow TempGeneratorBearingDE",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempGeneratorBearingNDE",
-    "label": "Slow TempGeneratorBearingNDE",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempHubBearing",
-    "label": "Slow TempHubBearing",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempNacelle",
-    "label": "Slow TempNacelle",
-    "source": "ScadaDataHFD"
-  },{
-    "_id": "Slow_TempOutdoor",
-    "label": "Slow TempOutdoor",
-    "source": "ScadaDataHFD"
-  }, {
-    "_id": "Slow_WindDirection",
-    "label": "Slow WindDirection",
-    "source": "ScadaDataHFD"
-  }]);
+dbsh.defaultSelectedColumn = ko.observableArray();
 
 dbsh.InitScadaHFDGrid= function() {
     dbr.hfdvis(true);
@@ -141,18 +19,23 @@ dbsh.InitScadaHFDGrid= function() {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
 
+    var misc = {
+        "tipe": "ScadaHFD",
+        "period": fa.period,
+    }
     var param = {
         "Custom": {
             "ColumnList": (dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn())
-        }
+        },
+        "misc": misc
     };
 
     var filters = [{
-        field: "TimeStamp",
+        field: "timestamp",
         operator: "gte",
         value: fa.dateStart
     }, {
-        field: "TimeStamp",
+        field: "timestamp",
         operator: "lte",
         value: fa.dateEnd
     }, {
@@ -169,32 +52,56 @@ dbsh.InitScadaHFDGrid= function() {
         })
     }
 
-    var columns = [
-            { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, locked: true, filterable: false },
-            { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
-    ];
+    // var columns = [
+    //         { title: "Time Stamp", field: "TimeStamp", template: "#= kendo.toString(moment.utc(TimeStamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #", width: 130, locked: true, filterable: false },
+    //         { title: "Turbine", field: "Turbine", attributes: { class: "align-center" }, width: 90, locked: true, filterable: false },
+    // ];
 
+    var columns = [];
     var gColumns = dbsh.selectedColumn();
     if (dbsh.selectedColumn().length == 0) {
         gColumns = dbsh.defaultSelectedColumn();
     }
-
+    
+    var widthVal = 90;
+    var lowerLabel = "";
     $.each(gColumns, function(i, val) {
+        lowerLabel = val.label.toLowerCase();
+        if(lowerLabel.indexOf("direction") >= 0 ||
+            lowerLabel.indexOf("react") >= 0) {
+            widthVal = 100;
+        } else if(lowerLabel.indexOf("generator") >= 0 ||
+            lowerLabel.indexOf("frequency") >= 0 ||
+            lowerLabel.indexOf("ambient") >= 0 ||
+            lowerLabel.indexOf("pressure") >= 0 ||
+            lowerLabel.indexOf("gearbox") >= 0) {
+            widthVal = 110;
+        } else {
+            widthVal = 90;
+        }
         var col = {
             field: val._id,
             title: val.label,
-            type: "number",
-            width: 120,
+            type: val._id == "turbine" ? "string" : "number",
+            width: widthVal,
             headerAttributes: {
                 style: "text-align:center"
             },
             attributes: {
                 style: "text-align:center"
             },
-            filterable: false,
-            template: "#=kendo.toString("+val._id+", 'n2')#"
         };
 
+        if (val._id == "timestamp") {
+            col = {
+                field: val._id,
+                title: val.label,
+                type: "date",
+                width: 130,
+                template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
+                value: true
+            }
+        }
         columns.push(col);
     });
 
@@ -207,7 +114,7 @@ dbsh.InitScadaHFDGrid= function() {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getscadahfdlist",
+                    url: viewModel.appName + "databrowser/getcustomlist",
                     type: "POST",
                     data: param,
                     dataType: "json",
@@ -222,6 +129,8 @@ dbsh.InitScadaHFDGrid= function() {
                 data: function(res) {
                     app.loading(false);
                     dbr.hfdvis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {
@@ -231,14 +140,17 @@ dbsh.InitScadaHFDGrid= function() {
                     }
                     $('#totalturbinehfd').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                     $('#totaldatahfd').html(kendo.toString(res.data.Total, 'n0'));
+                    $('#totalactivepowerhfd').html(kendo.toString(res.data.TotalActivePower / 1000, 'n0') + ' MWh');
+                    $('#totalprodhfd').html(kendo.toString(res.data.TotalEnergy / 1000, 'n0') + ' MWh');
+                    $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                     return res.data.Total;
                 },
             },
             sort: [{
-                field: 'TimeStamp',
+                field: 'timeStamp',
                 dir: 'asc'
             }, {
-                field: 'Turbine',
+                field: 'turbine',
                 dir: 'asc'
             }],
         },

@@ -415,12 +415,12 @@ func GetDaysNoByQuarter(year int, qtr int, lastDate time.Time) int {
 	totalDays := 0
 	lastMonth := qtr * 3
 	for i := 1; i <= lastMonth; i++ {
-		date, _ := time.Parse("2006-01-02", tk.Sprintf("%v-%v-%v", year, i, 1))
+		date, _ := time.Parse("2006-1-2", tk.Sprintf("%v-%v-%v", year, i, 1))
 		dateMonth := time.Date(date.Year(), date.Month(), 0, 0, 0, 0, 0, time.UTC)
 		if dateMonth.Month() != lastDate.Month() && dateMonth.Year() != lastDate.Year() {
 			totalDays += dateMonth.Day()
 		} else {
-			totalDays += lastDate.Day()
+			totalDays += tk.ToInt((lastDate.AddDate(0, 1, 0).Sub(time.Date(lastDate.Year(), lastDate.Month(), 1, 0, 0, 0, 0, lastDate.Location())).Hours() / 24), "RoundAuto")
 		}
 	}
 	// tk.Println(totalDays, lastMonth, year, qtr)
@@ -588,6 +588,59 @@ func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability
 
 	for _, val := range data {
 		brakeReducesAvailability[val.GetString("alarmname")] = val.Get("reducesavailability").(bool)
+	}
+	return
+}
+
+func PopulateTurbines(_db dbox.IConnection, project string) (tkturbines tk.M) {
+	tkturbines = tk.M{}
+
+	csr, e := _db.NewQuery().
+		Select("turbineid", "turbinename").
+		From("ref_turbine").
+		Where(dbox.Eq("project", project)).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+
+	defer csr.Close()
+
+	data := []tk.M{}
+	e = csr.Fetch(&data, 0, false)
+	for _, val := range data {
+		tkturbines.Set(val.GetString("turbineid"), val.GetString("turbinename"))
+	}
+	return
+}
+
+func PopulateTurbinesCapacity(_db dbox.IConnection, project string) (tkturbines tk.M) {
+	tkturbines = tk.M{}
+
+	query := _db.NewQuery().
+		Select("project", "turbineid", "capacitymw").
+		From("ref_turbine")
+
+	if project != "" && strings.ToLower(project) != "fleet" {
+		query.Where(dbox.Eq("project", project))
+	}
+	csr, e := query.Cursor(nil)
+
+	if e != nil {
+		return
+	}
+
+	defer csr.Close()
+
+	data := []tk.M{}
+	e = csr.Fetch(&data, 0, false)
+	for _, val := range data {
+		_id := val.GetString("turbineid")
+		if project == "" || strings.ToLower(project) == "fleet" {
+			_id = val.GetString("project")
+		}
+		tkturbines.Set(_id, val.GetFloat64("capacitymw"))
 	}
 	return
 }

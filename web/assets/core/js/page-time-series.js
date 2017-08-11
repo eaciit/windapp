@@ -263,7 +263,17 @@ pg.createStockChart = function(y){
             floating: false,
             align: 'center',
             verticalAlign: 'top',
-            labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            // labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            labelFormatter: function() {
+                
+                if(this.point.y == undefined){
+                     return '<span style="color:' + this.color + '"> ' + this.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+this.tooltipOptions.valueSuffix+'</n>';
+                }
+                else{
+                    return '<span style="color:'+ this.color +'"> ' + this.name + ' </span> : <span style="min-width:50px"><b> '+ kendo.toString(this.point.y,'n2')+' </b></span> <b>'+this.tooltipOptions.valueSuffix+'</b><br/>'
+                }
+               
+            },
             borderWidth: 0,
             marginTop: -70,
         },
@@ -478,6 +488,7 @@ pg.getDataStockChart = function(param){
         
         // console.log(cookieStr);
         if(cookieStr.indexOf("turbine=") >= 0) {
+
             document.cookie = "turbine=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             cookieStr.split(/; /).forEach(function(keyValuePair) {
                 var cookieName = keyValuePair.replace(/=.*$/, "");
@@ -486,14 +497,16 @@ pg.getDataStockChart = function(param){
             });
             turbine = COOKIES["turbine"];
             project = COOKIES["project"];
-            
-            console.log(project);
+        
+
             setTimeout(function(){
                 $('#projectList').data('kendoDropDownList').value(project);
                 var change = $("#projectList").data("kendoDropDownList").trigger("change");
                 setTimeout(function(){
                     $('#turbineList').data('kendoDropDownList').value(turbine);
                 },200);
+                fa.project = project;
+                fa.turbine = turbine;
             },500);
 
         } else {
@@ -529,7 +542,7 @@ pg.getDataStockChart = function(param){
             Turbine: turbine,
             DateStart: dateStart,
             DateEnd: dateEnd,
-            Project: fa.project,
+            Project: project,
             PageType: pg.pageType(),
             DataType: pg.dataType() ,
             TagList : pg.TagList(),
@@ -695,7 +708,16 @@ pg.createLiveChart = function(IsHour){
                     floating: false,
                     align: 'center',
                     verticalAlign: 'top',
-                    labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                    // labelFormat: '<span>{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+                    labelFormatter: function() {
+                        if(this.point.y == undefined){
+                             return '<span style="color:' + this.color + '"> ' + this.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+this.tooltipOptions.valueSuffix+'</n>';
+                        }
+                        else{
+                            return '<span style="color:'+ this.color +'"> ' + this.name + ' </span> : <span style="min-width:50px"><b> '+ kendo.toString(this.point.y,'n2')+' </b></span> <b>'+this.tooltipOptions.valueSuffix+'</b><br/>'
+                        }
+                       
+                    },
                     borderWidth: 0,
                     marginTop: -70,
                 },
@@ -936,7 +958,14 @@ pg.ZoomOut = function(){
 }
 
 pg.ToByProject = function(){
-    window.location = viewModel.appName + "page/monitoringbyproject";
+    setTimeout(function(){
+        app.loading(true);
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },1500);
 }
 
 

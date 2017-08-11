@@ -8,6 +8,7 @@ import (
 
 	"time"
 
+	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 )
@@ -75,6 +76,71 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func (m *DataAvailabilityController) GetCurrentDataAvailability(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		filter []*dbox.Filter
+		pipes  []tk.M
+	)
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
+	// tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Turbine
+	project := p.Project
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
+
+	if len(turbine) != 0 {
+		filter = append(filter, dbox.In("turbine", turbine...))
+	}
+
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine",
+		"totalrows": tk.M{"$sum": "$totalrows"}}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryDaily).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, 0, e.Error())
+	}
+	defer csr.Close()
+
+	resultScada := []tk.M{}
+	e = csr.Fetch(&resultScada, 0, false)
+	if e != nil {
+		helper.CreateResult(false, 0, e.Error())
+	}
+
+	rturbines := tEnd.UTC().Sub(tStart.UTC()).Hours() * 6
+	iturbine, totalrows := float64(0), float64(0)
+	for _, val := range resultScada {
+		iturbine += 1
+		totalrows += val.GetFloat64("totalrows")
+	}
+
+	return helper.CreateResult(true, tk.Div(totalrows, rturbines*iturbine), "success")
 }
 
 func getAvailCollection(project string, turbines []interface{}, collType string) tk.M {
@@ -150,10 +216,18 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 	if len(list) > 0 {
 		datas := []tk.M{}
+		turbineName := map[string]string{}
+		latestProject := ""
 
 		for _, dt := range list {
-			t := dt.GetString("turbine")
 			p := dt.GetString("project")
+			if latestProject != p {
+				turbineName, e = helper.GetTurbineNameList(p)
+				if e != nil {
+					return helper.CreateResult(false, nil, e.Error())
+				}
+			}
+			t := turbineName[dt.GetString("turbine")]
 			_ = p
 			pTo := dt.Get("periodTo").(time.Time)
 			pFrom := dt.Get("periodFrom").(time.Time)

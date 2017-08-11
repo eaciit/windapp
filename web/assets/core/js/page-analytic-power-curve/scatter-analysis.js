@@ -89,10 +89,14 @@ page.getPowerCurveScatter = function() {
     var lessMarker = $("#lessMarker").data("kendoDropDownList").value();
     var greaterMarker = $("#greaterMarker").data("kendoDropDownList").value();
 
+
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
+
     var param = {
         period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
+        dateStart: dateStart,
+        dateEnd: dateEnd,
         turbine: turbine,
         project: fa.project,
         scatterType: page.scatterType,
@@ -103,16 +107,8 @@ page.getPowerCurveScatter = function() {
         lessMarker: lessMarker, 
         greaterMarker: greaterMarker
     };
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    });
-
+    
+    
     toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteranalysis", param, function(res) {
         if (!app.isFine(res)) {
             return;
@@ -251,6 +247,7 @@ page.createChart = function(dtSeries){
 }
 
 $(document).ready(function() {
+    di.getAvailDate();
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){

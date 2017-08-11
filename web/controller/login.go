@@ -214,6 +214,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
+	r.SetSession("availdateall", getLastAvailDateAll())
 
 	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
@@ -291,7 +292,7 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 
 func getLastAvailDate() *Availdatedata {
 	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e := DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
 	if e != nil {
 		return nil
 	}
@@ -306,18 +307,119 @@ func getLastAvailDate() *Availdatedata {
 	datePeriod := new(Availdatedata)
 	xdp := reflect.ValueOf(datePeriod).Elem()
 	for _, d := range latestDataPeriods {
+
+		for i, tval := range d.Data {
+			d.Data[i] = tval.UTC()
+		}
+
 		f := xdp.FieldByName(d.Type)
 		if f.IsValid() {
 			if f.CanSet() {
-				// tmpTime := mapCheck[d.Type]
-				// log.Printf("> %v | %v \n", d.Data[0].String(), d.Data[1].String())
-				if d.Data[0].String() != d.Data[1].String() {
+				if f.Len() > 0 {
+					if f.Len() == 2 {
+						if (d.Data[0].Sub(f.Index(0).Interface().(time.Time)) < 0 && d.Data[0].Year() > 1) ||
+							f.Index(0).Interface().(time.Time).Year() == 1 {
+							f.Index(0).Set(reflect.ValueOf(d.Data[0]))
+						}
+						if d.Data[1].Sub(f.Index(1).Interface().(time.Time)) > 0 {
+							f.Index(1).Set(reflect.ValueOf(d.Data[1]))
+						}
+					}
+				} else {
 					f.Set(reflect.ValueOf(d.Data))
-					// log.Printf(">> %v | %v \n", d.Data[0].String(), d.Data[1].String())
 				}
 			}
 		}
 	}
 
 	return datePeriod
+}
+
+func getLastAvailDateAll() toolkit.M {
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	result := toolkit.M{}
+	for _, val := range latestDataPeriods {
+		for i, tval := range val.Data {
+			val.Data[i] = tval.UTC()
+		}
+		if result.Has(val.ProjectName) {
+			currData, _ := toolkit.ToM(result[val.ProjectName])
+			currData.Set(val.Type, val.Data)
+			result.Set(val.ProjectName, currData)
+		} else {
+			result.Set(val.ProjectName, toolkit.M{val.Type: val.Data})
+		}
+	}
+
+	return result
+}
+
+func getLastAvailDate_DRAFT() map[string]*Availdatedata {
+	//contoh akses data
+	// lastDateData = datePeriod["All"].ScadaData[1].UTC()
+	allProject := []string{"All"}
+	projectList, e := getProject()
+	if e != nil {
+		return nil
+	}
+	allProject = append(allProject, projectList...)
+
+	result := map[string]*Availdatedata{}
+
+	latestDataPeriodsList := make([]LatestDataPeriod, 0)
+	query := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName())
+	csr, e := query.Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriodsList, 0, false)
+	csr.Close()
+
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	for _, project := range allProject {
+		latestDataPeriods = make([]LatestDataPeriod, 0)
+		for _, latestDate := range latestDataPeriodsList {
+			if project != "All" {
+				if latestDate.ProjectName == project {
+					latestDataPeriods = append(latestDataPeriods, latestDate)
+				}
+			} else {
+				latestDataPeriods = append(latestDataPeriods, latestDate)
+			}
+		}
+		datePeriod := new(Availdatedata)
+		xdp := reflect.ValueOf(datePeriod).Elem()
+		for _, d := range latestDataPeriods {
+			f := xdp.FieldByName(d.Type)
+			if f.IsValid() {
+				if f.CanSet() {
+					if f.Len() > 0 {
+						if f.Len() == 2 {
+							if (d.Data[0].Sub(f.Index(0).Interface().(time.Time)) < 0 && d.Data[0].Year() > 1) ||
+								f.Index(0).Interface().(time.Time).Year() == 1 {
+								f.Index(0).Set(reflect.ValueOf(d.Data[0]))
+							}
+							if d.Data[1].Sub(f.Index(1).Interface().(time.Time)) > 0 {
+								f.Index(1).Set(reflect.ValueOf(d.Data[1]))
+							}
+						}
+					} else {
+						f.Set(reflect.ValueOf(d.Data))
+					}
+				}
+			}
+		}
+		result[project] = datePeriod
+	}
+
+	return result
 }

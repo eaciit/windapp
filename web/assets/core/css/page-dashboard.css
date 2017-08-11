@@ -95,7 +95,37 @@
 		margin-top: -10px;
 	}
 
+	.content-chart{
+		height: 195px;
+		margin-top: -10px
+	}
 
+	.content-chart-loss{
+		height: 195px;
+		margin-top: -30px	
+	}
+	.content-chart-custom{
+		height: 195px;
+		margin-top: -20px	
+	}
+	.content-chart-custom > .label-drilldown{
+		text-align: center;
+		padding: 0;
+		margin-top: -10px;
+		margin-bottom: 0px;
+		margin-left: 0px;
+	}
+
+	.content-chart-project{
+		height: 175px;
+		margin-top: 10px	
+	}
+	.content-chart-project > .label-drilldown{
+		text-align: center;
+		padding: 0;
+		margin-top: -25px;
+		margin-bottom: 0px;
+	}
 
 	#india-map{
 		height: 200px;
@@ -104,6 +134,7 @@
 	.table-summary{
 		margin-top: -20px;
 	}
+
 /*	.table-summary-body{
 		height:205px;
 	}*/
@@ -112,6 +143,7 @@
 		padding: 0;
 		margin-top: 0px;
 		margin-bottom: 0px;
+		margin-left: 45px;
 	}
 
 	.btn-back{
@@ -329,9 +361,67 @@
 	    padding-bottom: 0;
 	    border-radius: 0;
 	    height: 38px;
+	    margin-bottom: 15px;
+	}
+	.ph-availability-project{
+	    padding-bottom: 0;
+	    border-radius: 0;
+	    height: 38px;
+	    margin-bottom: -5px;
 	}
 	.margin-top-25{
 		margin-top: -25px;
+	}
+
+	.control-summary {
+	    /*border-radius: 3%;*/
+	    padding: 0px 0px 0px 0px;
+	    width: 120px;
+	    height: 50px;
+	    margin: 0px 10px 15px 0px;
+	    /*box-shadow: 5px 7px 5px #888888;*/
+	    overflow: hidden;
+	    text-align: center;
+	    border: 1px solid #dedeec;
+	}
+
+	.left-border-org {
+	    background-color: #ffffff;
+	    float: left;
+	    border: 1px solid #ff9933;
+	}
+
+	label.summary-header {
+	    padding: 5px 0px 0px 5px;
+	    font-size: 12px;
+	    color: #585555;
+	    text-align: center;
+	}
+	label.summary-number {
+	    padding: 0px 0px 5px 5px;
+	    font-size: 15px;
+	    color: #585555;
+	    text-align: center;
+	    margin-top: -5px;
+	    font-weight: bold;
+	}
+	.production-part{
+		width: 488px;
+		background: #eee;
+	}
+	.sum-production{
+		border-right: 2px solid #78909C;
+		max-width: 122px;
+	}
+	.border-right{
+		border-right: 2px solid #78909C;
+	}
+	.border-left{
+		border-left: 2px solid #78909C;
+	}
+
+	.long-title{
+		padding: 5px 0 0 0 !important;
 	}
 
 /*	@media(max-width: 320){

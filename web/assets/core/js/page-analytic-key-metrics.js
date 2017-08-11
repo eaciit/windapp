@@ -28,10 +28,13 @@ km.createChart = function (dataSource) {
 		var key1Val = $("#key1").data("kendoDropDownList").value();
 		var key2Val = $("#key2").data("kendoDropDownList").value();
 		var breakdownVal = $("#breakdownlist").data("kendoDropDownList").value();
+		var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+
 
 		var filters = [
-			{ field: "dateinfo.dateid", operator: "gte", value: fa.dateStart },
-			{ field: "dateinfo.dateid", operator: "lte", value: fa.dateEnd },
+			{ field: "dateinfo.dateid", operator: "gte", value: dateStart },
+			{ field: "dateinfo.dateid", operator: "lte", value: dateEnd },
 			{ field: "turbine", operator: "in", value: fa.turbine() },
 		];
 		/*var listOfMonths = [];
@@ -207,15 +210,6 @@ km.setBreakDown = function () {
 }
 
 km.getData = function () {
-	var request = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-		if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    });
 	// fa.getProjectInfo();
 	fa.LoadData();
 
@@ -226,6 +220,7 @@ km.getData = function () {
 }
 
 $(document).ready(function () {
+	di.getAvailDate();
 	$('#btnRefresh').on('click', function () {
 		fa.checkTurbine();
 		setTimeout(function () {
@@ -250,7 +245,7 @@ $(document).ready(function () {
 			dataValueField: 'value',
 			dataTextField: 'text',
 			suggest: true,
-			change: function () { km.setBreakDown() }
+			change: function () { km.setBreakDown(); di.getAvailDate(); }
 		});
 
 		$("#dateStart").change(function () { fa.DateChange(km.setBreakDown()) });

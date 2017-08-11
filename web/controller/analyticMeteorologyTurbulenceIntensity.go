@@ -44,10 +44,12 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	scadaHfds := make([]tk.M, 0)
 	metTowers := make([]tk.M, 0)
 
-	colors := []string{"#87c5da", "#cc2a35", "#d66b76", "#5d1b62", "#f1c175", "#95204c", "#8f4bc5", "#7d287d", "#00818e", "#c8c8c8", "#546698", "#66c99a", "#f3d752", "#20adb8", "#333d6b", "#d077b1", "#aab664", "#01a278", "#c1d41a", "#807063", "#ff5975", "#01a3d4", "#ca9d08", "#026e51", "#4c653f", "#007ca7"}
+	colors := []string{"#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548", "#383271", "#6a4795", "#bec554", "#ab5919", "#f5b1e1", "#7b3416", "#002fef", "#8d731b", "#1f8805", "#ff9900", "#9C27B0", "#6c7d8a", "#d73c1c", "#5be7a0", "#da02d4", "#afa56e", "#7e32cb", "#a2eaf7", "#9cb8f4", "#9E9E9E", "#065806", "#044082", "#18937d", "#2c787a", "#a57c0c", "#234341", "#1aae7a", "#7ac610", "#736f5f", "#4e741e", "#68349d", "#1df3b6", "#e02b09", "#d9cfab", "#6e4e52", "#f31880", "#7978ec", "#f5ace8", "#3db6ae", "#5e06b0", "#16d0b9", "#a25a5b", "#1e603a", "#4b0981", "#62975f", "#1c8f2f", "#b0c80c", "#642794", "#e2060d", "#2125f0"}
+	// colors := []string{"#87c5da", "#cc2a35", "#d66b76", "#5d1b62", "#f1c175", "#95204c", "#8f4bc5", "#7d287d", "#00818e", "#c8c8c8", "#546698", "#66c99a", "#f3d752", "#20adb8", "#333d6b", "#d077b1", "#aab664", "#01a278", "#c1d41a", "#807063", "#ff5975", "#01a3d4", "#ca9d08", "#026e51", "#4c653f", "#007ca7"}
 
 	if p.Project != "" {
 		query = append(query, tk.M{"projectname": tk.M{"$eq": p.Project}})
+		querymet = append(querymet, tk.M{"projectname": p.Project})
 	}
 
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
@@ -109,6 +111,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	csrt.Close()
 
 	// tk.Printf("metTowers : %s \n", len(metTowers))
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	for _, m := range metTowers {
 		iDs := m.Get("_id").(tk.M)
@@ -169,7 +175,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 
 		var dts [][]float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
+		turbineData.Set("name", turbineName[turbineX])
 		turbineData.Set("type", "scatterLine")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")

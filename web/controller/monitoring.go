@@ -215,7 +215,7 @@ func (m *MonitoringController) GetData(k *knot.WebContext) interface{} {
 	// get latest date update from ScadaDataHFD
 
 	latestDataPeriods := make([]LatestDataPeriod, 0)
-	csr, e = DB().Connection.NewQuery().From(NewLatestDataPeriod().TableName()).Cursor(nil)
+	csr, e = DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}

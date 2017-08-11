@@ -12,6 +12,14 @@ dbd.InitDEgrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
+
+    var misc = {
+        "tipe": "eventdown",
+        "needtotalturbine": true,
+        "period": fa.period,
+    }
+
+    var param = {"misc": misc}
     
     var filters = [{
         field: "timestart",
@@ -43,9 +51,9 @@ dbd.InitDEgrid = function() {
             filter: filters,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getdowntimeeventlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
-                    data: {},
+                    data: param,
                     dataType: "json",
                     contentType: "application/json; charset=utf-8"
                 },
@@ -59,6 +67,8 @@ dbd.InitDEgrid = function() {
                     app.loading(false);
                     dbr.downeventvis(false);
                     app.isFine(ress);
+                    dbr.LastFilter = ress.data.LastFilter;
+                    dbr.LastSort = ress.data.LastSort;
                     return ress.data.Data
                 },
                 total: function(res) {
@@ -88,6 +98,14 @@ dbd.InitDEgrid = function() {
             input:true, 
         },
         columns: [{
+                title: "Turbine",
+                field: "Turbine",
+                attributes: {
+                    class: "align-center"
+                },
+                width: 90,
+                filterable: false
+            }, {
                 title: "Time Start",
                 field: "TimeStart",
                 template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
@@ -113,18 +131,6 @@ dbd.InitDEgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Machine Down",
-                field: "DownMachine",
-                width: 80,
-                sortable: false,
-                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-                headerAttributes: {
-                    style: "text-align: center"
-                },
-                attributes: {
-                    style: "text-align:center;"
-                }
-            }, {
                 title: "Environment Down",
                 field: "DownEnvironment",
                 width: 80,
@@ -137,13 +143,17 @@ dbd.InitDEgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Turbine",
-                field: "Turbine",
-                attributes: {
-                    class: "align-center"
+                title: "Machine Down",
+                field: "DownMachine",
+                width: 80,
+                sortable: false,
+                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                headerAttributes: {
+                    style: "text-align: center"
                 },
-                width: 90,
-                filterable: false
+                attributes: {
+                    style: "text-align:center;"
+                }
             }, {
                 title: "Alarm Description",
                 field: "AlarmDescription",
@@ -158,8 +168,18 @@ dbd.InitDEgrid = function() {
                     class: "align-center"
                 },
                 filterable: false
+            }, {
+                title: "Reduce Availability",
+                field: "ReduceAvailability",
+                 template: '# if (ReduceAvailability == true ) { # Yes # } else {# No #}#',
+                width: 80,
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "text-align:center;"
+                }
             },
-
 
         ]
     });

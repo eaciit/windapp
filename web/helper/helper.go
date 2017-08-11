@@ -35,6 +35,7 @@ var (
 )
 
 type PayloadsDB struct {
+	Project   string
 	Turbine   []interface{}
 	DateStart time.Time
 	DateEnd   time.Time
@@ -43,15 +44,17 @@ type PayloadsDB struct {
 	Sort      []Sorting
 	Filter    *FilterJS `json:"filter"`
 	Misc      toolkit.M `json:"misc"`
+	Custom    toolkit.M `json:"custom"`
 }
 
 type Payloads struct {
-	Skip   int
-	Take   int
-	Sort   []Sorting
-	Filter *FilterJS `json:"filter"`
-	Misc   toolkit.M `json:"misc"`
-	Custom toolkit.M `json:"custom"`
+	Project string
+	Skip    int
+	Take    int
+	Sort    []Sorting
+	Filter  *FilterJS `json:"filter"`
+	Misc    toolkit.M `json:"misc"`
+	Custom  toolkit.M `json:"custom"`
 }
 
 type Sorting struct {
@@ -257,56 +260,56 @@ func HandleError(err error, optionalArgs ...interface{}) bool {
 }
 
 func CheckEnergyComparison(newdata toolkit.Ms, key1 string, key2 string) toolkit.Ms {
-	countData1 := 0
-	countData2 := 0
+	// countData1 := 0
+	// countData2 := 0
 	result := toolkit.Ms{}
-	measurement := ""
-	for _, data := range newdata {
-		if data.GetFloat64(key1) < data.GetFloat64(key2) {
-			countData1++
-		} else {
-			countData2++
-		}
-	}
+	measurement := "MWh"
+	// for _, data := range newdata {
+	// 	if data.GetFloat64(key1) < data.GetFloat64(key2) {
+	// 		countData1++
+	// 	} else {
+	// 		countData2++
+	// 	}
+	// }
 
-	kunciData := ""
-	if countData1 > countData2 {
-		kunciData = key1
-	} else {
-		kunciData = key2
-	}
+	// kunciData := ""
+	// if countData1 > countData2 {
+	// 	kunciData = key1
+	// } else {
+	// 	kunciData = key2
+	// }
 
-	countSatuan := toolkit.M{}
+	// countSatuan := toolkit.M{}
 
-	for _, data := range newdata {
-		cekVal := data.GetFloat64(kunciData) / 1000000
-		energyType := "GWh"
-		if cekVal < 1 {
-			cekVal = data.GetFloat64(kunciData) / 1000
-			energyType = "MWh"
-			if cekVal < 1 {
-				cekVal = data.GetFloat64(kunciData)
-				energyType = "kWh"
-			}
-		}
-		if countSatuan.Has(energyType) {
-			countSatuan.Set(energyType, countSatuan.GetInt(energyType)+1)
-		} else {
-			countSatuan.Set(energyType, 1)
-		}
-	}
+	// for _, data := range newdata {
+	// 	cekVal := data.GetFloat64(kunciData) / 1000000
+	// 	energyType := "MWh"
+	// 	if cekVal < 1 {
+	// 		cekVal = data.GetFloat64(kunciData) / 1000
+	// 		energyType = "MWh"
+	// 		if cekVal < 1 {
+	// 			cekVal = data.GetFloat64(kunciData)
+	// 			energyType = "kWh"
+	// 		}
+	// 	}
+	// 	if countSatuan.Has(energyType) {
+	// 		countSatuan.Set(energyType, countSatuan.GetInt(energyType)+1)
+	// 	} else {
+	// 		countSatuan.Set(energyType, 1)
+	// 	}
+	// }
 
-	pembagi := 0.00
-	if (countSatuan.GetInt("GWh") > countSatuan.GetInt("MWh")) && (countSatuan.GetInt("GWh") > countSatuan.GetInt("kWh")) {
-		pembagi = 1000000
-		measurement = "GWh"
-	} else if (countSatuan.GetInt("MWh") > countSatuan.GetInt("GWh")) && (countSatuan.GetInt("MWh") > countSatuan.GetInt("kWh")) {
-		pembagi = 1000
-		measurement = "MWh"
-	} else {
-		pembagi = 1
-		measurement = "kWh"
-	}
+	pembagi := 1000.0
+	// if (countSatuan.GetInt("GWh") > countSatuan.GetInt("MWh")) && (countSatuan.GetInt("GWh") > countSatuan.GetInt("kWh")) {
+	// 	pembagi = 1000000
+	// 	measurement = "GWh"
+	// } else if (countSatuan.GetInt("MWh") > countSatuan.GetInt("GWh")) && (countSatuan.GetInt("MWh") > countSatuan.GetInt("kWh")) {
+	// 	pembagi = 1000
+	// 	measurement = "MWh"
+	// } else {
+	// 	pembagi = 1
+	// 	measurement = "kWh"
+	// }
 
 	for _, data := range newdata {
 		data.Set(key1, data.GetFloat64(key1)/pembagi)
@@ -339,6 +342,9 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 		}
 	}
 	sessionid := WC.Session("sessionid", "")
+	if toolkit.ToString(sessionid) == "" {
+		sessionid = "baypass session"
+	}
 
 	// log.Printf(">> %v \n", sessionid)
 
@@ -726,6 +732,28 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 	return
 }
 
+func GetTurbineNameList(project string) (turbineName map[string]string, err error) {
+	query := DBRealtime().NewQuery().From("ref_turbine")
+	if project != "" && project != "Fleet" {
+		query = query.Where(dbox.Eq("project", project))
+	}
+	csrTurbine, err := query.Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csrTurbine.Close()
+	turbineList := []toolkit.M{}
+	err = csrTurbine.Fetch(&turbineList, 0, false)
+	if err != nil {
+		return
+	}
+	turbineName = map[string]string{}
+	for _, val := range turbineList {
+		turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
+	}
+	return
+}
+
 func GetProjectTurbineList(projects []interface{}) (result map[string]toolkit.M, sortedKey []string, e error) {
 	var filter []*dbox.Filter
 	result = map[string]toolkit.M{}
@@ -809,6 +837,49 @@ func GetAvailAndPLF(totalTurbine float64, okTime float64, energy float64, machin
 	machineAvail = (totalMinutes - machineDownTime) / divider * 100
 	gridAvail = (totalMinutes - gridDownTime) / divider * 100
 	dataAvail = (countTimeStamp * 10 / 60) / divider * 100
+	return
+}
+
+//=============================
+//Revision Of GetAvailAndPLF @asp:20170725
+//=============================
+//	Input : noofturbine, oktime, energy, counttimestamp, totalhour, totalcapacity,
+//			machinedowntime, griddowntime, otherdowntime
+//
+//	counttimestamp -> count total data that available (*every data in 10 mins conv)
+//	oktime, totalhour -> in hour
+//	machinedowntime, griddowntime, otherdowntime -> in hour
+//	totalcapacity -> in MWatt
+//  energy -> in MWh
+//
+//	Output : totalavailability, plf, machineavailability, gridavailability, dataavailability
+//=============================
+func CalcAvailabilityAndPLF(in toolkit.M) (res toolkit.M) {
+	res = toolkit.M{}
+	totalhour := in.GetFloat64("totalhour")
+	divider := in.GetFloat64("noofturbine") * totalhour
+
+	plf := toolkit.Div(in.GetFloat64("energy"), (totalhour*in.GetFloat64("totalcapacity"))) * 100
+	if plf <= 0 {
+		plf = 0
+	}
+	res.Set("plf", plf)
+
+	totalavailability := toolkit.Div(in.GetFloat64("oktime"), divider) * 100
+	res.Set("totalavailability", totalavailability)
+
+	gdown, mdown, odown := in.GetFloat64("griddowntime"), in.GetFloat64("machinedowntime"), in.GetFloat64("otherdowntime")
+	mdowndivider := divider - gdown - odown
+
+	machineavailability := toolkit.Div(mdowndivider-mdown, mdowndivider) * 100
+	res.Set("machineavailability", machineavailability)
+
+	gridavailability := toolkit.Div(divider-gdown, divider) * 100
+	res.Set("gridavailability", gridavailability)
+
+	dataavailability := toolkit.Div(in.GetFloat64("counttimestamp")/6, divider) * 100
+	res.Set("dataavailability", dataavailability)
+
 	return
 }
 

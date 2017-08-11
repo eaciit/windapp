@@ -12,6 +12,7 @@ import (
 
 type App struct {
 	Server *knot.Server
+	Reff   toolkit.M
 }
 
 var (
@@ -78,6 +79,7 @@ type PayloadAnalyticPC struct {
 	IsClean      bool
 	IsDeviation  bool
 	DeviationVal string
+	DeviationOpr string // add by ams, 2017-08-11
 	IsAverage    bool
 	Color        []interface{}
 	ColorDeg     []interface{}

@@ -9,11 +9,15 @@ ca.Component = function(){
     var valid = fa.LoadData();
     if (valid) {
         app.loading(true);
+        pg.setAvailableDate(false);
         if(pg.isFirstComponentAlarm() === true){
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+
             var param = {
                 period: fa.period,
-                dateStart: moment(Date.UTC((fa.dateStart).getFullYear(), (fa.dateStart).getMonth(), (fa.dateStart).getDate(), 0, 0, 0)).toISOString(),
-                dateEnd: moment(Date.UTC((fa.dateEnd).getFullYear(), (fa.dateEnd).getMonth(), (fa.dateEnd).getDate(), 0, 0, 0)).toISOString(),
+                dateStart: dateStart,
+                dateEnd: dateEnd,
                 turbine: fa.turbine(),
                 project: fa.project,
             }
@@ -47,12 +51,8 @@ ca.Component = function(){
                     pg.isFirstComponentAlarm(false);
                 },300);
             }); 
-            $('#availabledatestart').html(pg.availabledatestartalarm());
-            $('#availabledateend').html(pg.availabledateendalarm());
         }else{
             setTimeout(function(){
-                $('#availabledatestart').html(pg.availabledatestartalarm());
-                $('#availabledateend').html(pg.availabledateendalarm());
                 $("#chartCADuration").data("kendoChart").refresh();
                 $("#chartCAFrequency").data("kendoChart").refresh();
                 $("#chartCATurbineLoss").data("kendoChart").refresh();

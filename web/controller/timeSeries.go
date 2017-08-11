@@ -3,7 +3,6 @@ package controller
 import (
 	"bufio"
 	. "eaciit/wfdemo-git/library/core"
-	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
@@ -15,6 +14,7 @@ import (
 
 	"sort"
 
+	"path/filepath"
 	"strings"
 
 	"github.com/eaciit/dbox"
@@ -146,7 +146,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				currStar := current.Get("starttime").(time.Time)
 				currEnd := current.Get("endtime").(time.Time)
 
-				hfds, empty, e := GetHFDData(projectName, turbine, currStar, currEnd, tags, secTags)
+				hfds, empty, e := GetHFDDataRev(projectName, turbine, currStar, currEnd, tags, secTags)
 
 				breaks = append(breaks, empty...)
 
@@ -271,7 +271,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			e = csr.Fetch(&list, 0, false)
 
 		} else {
-			list = getDataLive(projectName, turbine, tStart, p.TagList)
+			list = getDataLiveNew(projectName, turbine, tStart, p.TagList)
 		}
 
 		for _, tag := range tags {
@@ -429,8 +429,9 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 	if tStart.Year() != 1 {
 		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
 	}
-	rconn := lh.GetConnRealtime()
-	defer rconn.Close()
+	// rconn := lh.GetConnRealtime()
+	// defer rconn.Close()
+	rconn := DBRealtime()
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
 		Where(dbox.And(filter...)).
@@ -491,6 +492,61 @@ func getDataLive(project string, turbine string, tStart time.Time, tags []string
 		}
 		csr.Close()
 
+		result = append(result, tk.M{"_id": tstamp})
+
+		for tag, mp := range tmpRes {
+			result[0].Set(tag, mp)
+		}
+
+	}
+	return
+}
+
+func getDataLiveNew(project string, turbine string, tStart time.Time, tags []string) (result []tk.M) {
+	filter := []*dbox.Filter{}
+	tmpRes := map[string]interface{}{}
+
+	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.Eq("turbine", turbine))
+	// filter = append(filter, dbox.In("tags", []interface{}{"ActivePower_kW", "WindSpeed_ms"}))
+
+	if tStart.Year() != 1 {
+		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
+	}
+	rconn := DBRealtime()
+
+	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
+		Where(dbox.And(filter...)).
+		Order("-timestamp").
+		Cursor(nil)
+
+	defer csr.Close()
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	listtag := tk.M{}.Set("power", "ActivePower_kW").Set("windspeed", "WindSpeed_ms").Set("rotorrpm", "RotorSpeed_RPM").Set("pitchangle", "PitchAngle")
+	tstamp := time.Time{}
+	if csr.Count() > 0 {
+		for {
+			data := tk.M{}
+			err = csr.Fetch(&data, 1, false)
+			if err != nil {
+				break
+			}
+			itime := data.Get("timestamp", time.Time{}).(time.Time)
+			if tstamp.IsZero() || tstamp.Before(itime) {
+				tstamp = itime
+			}
+
+			for _, xTag := range tags {
+				if listtag.GetString(xTag) == data.GetString("tags") {
+					tmpRes[xTag] = data.GetFloat64("value")
+				}
+			}
+		}
+		csr.Close()
 		result = append(result, tk.M{"_id": tstamp})
 
 		for tag, mp := range tmpRes {
@@ -606,9 +662,13 @@ func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time
 		separator := string(os.PathSeparator)
 
 		folder := strings.ToLower(project) + separator + f1 + separator + f2 + separator + f3
-		file := prefix + startStr + ".csv"
+		file1 := prefix + startStr + ".csv"
+		file2 := turbine + "_" + startStr + ".csv"
 
-		path := helper.GetHFDFolder() + folder + separator + file
+		path := helper.GetHFDFolder() + folder + separator + file1
+		if _, _err := os.Stat(path); os.IsNotExist(_err) {
+			path = helper.GetHFDFolder() + folder + separator + file2
+		}
 
 		// log.Printf("%v | %v | %v \n", tStart.UTC().String(), newTime.String(), path)
 
@@ -698,11 +758,110 @@ func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time
 	return
 }
 
+func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
+
+	dhfd, draw, allkey := make(map[time.Time]tk.M, 0), make(map[time.Time]tk.M, 0), make(map[time.Time]int, 0)
+
+	match := tk.M{}
+	pipes := []tk.M{}
+
+	match.Set("timestamp", tk.M{"$gte": tStart.UTC(), "$lt": tEnd.UTC()})
+	match.Set("projectname", project)
+	match.Set("turbine", turbine)
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		Select("timestamp", "fast_windspeed_ms", "fast_activepower_kw", "slow_winddirection",
+			"slow_nacellepos", "fast_rotorspeed_rpm", "fast_genspeed_rpm", "fast_pitchangle").
+		From(new(ScadaDataHFD).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csr.Close()
+
+	if e == nil {
+		fname := map[string]string{"windspeed": "fast_windspeed_ms", "power": "fast_activepower_kw", "winddirection": "slow_winddirection",
+			"nacellepos": "slow_nacellepos", "rotorrpm": "fast_rotorspeed_rpm", "genrpm": "fast_genspeed_rpm", "pitchangle": "fast_pitchangle"}
+		for {
+			dt, dts := tk.M{}, tk.M{}
+			err := csr.Fetch(&dt, 1, false)
+			if err != nil {
+				break
+			}
+
+			dtime := dt.Get("timestamp", time.Time{}).(time.Time).UTC()
+			dts.Set("timestamp", dtime)
+
+			for _, tag := range tags {
+				val := dt.GetFloat64(fname[tag])
+				mc := mapField[tag]
+
+				if val == float64(-99999.00) || val == float64(-999999.00) || val == float64(-9999999.00) {
+					dts.Set(mc.SecField, nil)
+				} else {
+					dts.Set(mc.SecField, val)
+				}
+			}
+
+			dhfd[dtime] = dts
+			allkey[dtime] = 1
+		}
+	}
+
+	tStart, tEnd = tStart.UTC(), tEnd.UTC()
+	tstart10m, tend10m := getNext10Min(tStart), getNext10Min(tEnd)
+
+	for {
+		f1 := tstart10m.Format("20060102")
+		f2 := tstart10m.Format("15")
+		f3 := tstart10m.Format("1504")
+
+		_fpath := filepath.Join(helper.GetHFDFolder(), strings.ToLower(project), f1, f2, f3, tk.Sprintf("%s.csv", turbine))
+		// tk.Println(">>> ", _fpath)
+		tmpresult, _ := ReadHFDFile(_fpath, secTags)
+
+		for _, res := range tmpresult {
+			dts := tk.M{}
+			if _val, _cond := draw[res.Timestamp]; _cond {
+				dts = _val
+			}
+			dts.Set("timestamp", res.Timestamp)
+			dts.Set(res.Tag, res.Value)
+
+			draw[res.Timestamp] = dts
+			allkey[res.Timestamp] = 1
+		}
+
+		if tstart10m.After(tend10m) {
+			break
+		}
+
+		tstart10m = tstart10m.Add(10 * time.Minute)
+	}
+
+	arrkey := []time.Time{}
+	for ktime, _ := range allkey {
+		arrkey = append(arrkey, ktime)
+	}
+
+	sort.Sort(ByTime(arrkey))
+
+	for _, key := range arrkey {
+		if rval, rcond := draw[key]; rcond {
+			result = append(result, rval)
+		} else if hval, hcond := dhfd[key]; hcond {
+			result = append(result, hval)
+		}
+	}
+
+	return
+}
+
 func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 	fr, e := os.Open(path)
 	defer fr.Close()
 	if e != nil {
-		fr.Close()
 		return
 	}
 
@@ -715,6 +874,11 @@ func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 		}
 
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", record[0])
+		second := tk.ToInt(timestamp.Format("5"), tk.RoundingAuto)
+		if second%5 != 0 {
+			continue
+		}
+
 		turbine := record[1]
 		tag := record[2]
 		for _, tg := range tags {
@@ -731,4 +895,18 @@ func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 	}
 
 	return
+}
+
+type ByTime []time.Time
+
+func (b ByTime) Len() int {
+	return len(b)
+}
+
+func (b ByTime) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
+}
+
+func (b ByTime) Less(i, j int) bool {
+	return b[i].Before(b[j])
 }

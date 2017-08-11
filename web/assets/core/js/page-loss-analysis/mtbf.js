@@ -7,13 +7,10 @@ var mt = {
 		if(isValid) {
 			app.loading(true);
 		    pg.showFilter();
+		    pg.setAvailableDate(false);
 		    if(pg.isFirstMTBF() === true){
 		        mt.Refreshchartmt();
-		        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
-				$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
 		    }else{
-		        $('#availabledatestart').html('Data Available from: <strong>' + availDateListLoss.startScadaOEM + '</strong> until: ');
-				$('#availabledateend').html('<strong>' + availDateListLoss.endScadaOEM + '</strong>');
 		        setTimeout(function(){
 		            $("#chartTI").data("kendoChart").refresh();
 		            app.loading(false);
@@ -24,11 +21,15 @@ var mt = {
 	
 	Refreshchartmt: function() {
 		app.loading(true);
+
+		var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+
 		var param = {
             period: fa.period,
             Turbine: fa.turbine(),
-            DateStart: fa.dateStart,
-            DateEnd: fa.dateEnd,
+            DateStart: dateStart,
+            DateEnd: dateEnd,
             Project: fa.project
         };
 
@@ -108,7 +109,6 @@ var mt = {
 	                headerAttributes: {
 	                    style: "text-align: center"
 	                },
-	                format: "{0:n2}",
 	                width: 120,
 	            },{
 	                field: "totdowntime",

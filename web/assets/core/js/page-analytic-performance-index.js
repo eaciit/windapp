@@ -22,15 +22,6 @@ var Data = {
         // fa.getProjectInfo();
     },
     InitGrid : function(){
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var minDatetemp = new Date(res.data.ScadaData[0]);
-            var maxDatetemp = new Date(res.data.ScadaData[1]);
-            $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-            $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-        })
 
         var maxDateData = new Date(app.getUTCDate(app.currentDateData));
         var maxDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate(), 0, 0, 0, 0));
@@ -55,10 +46,13 @@ var Data = {
             hideYTD = true;
         }
 
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
+
         var param = {
             period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
+            dateStart: dateStart,
+            dateEnd: dateEnd,
             turbine: fa.turbine(),
             project: fa.project
         };
@@ -254,6 +248,8 @@ var Data = {
  
 
 $(function(){
+    di.getAvailDate();
+
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         Data.LoadData();
@@ -261,6 +257,7 @@ $(function(){
 
     $('#projectList').kendoDropDownList({
         change: function () {  
+            di.getAvailDate();
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
         }

@@ -536,9 +536,13 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		}
 	}
 	//=============
-
+	turbineName := map[string]string{}
 	for row, column := range result {
 		tmpRes := tk.M{}
+		if p.Project != "" {
+			turbineName, _ = helper.GetTurbineNameList(p.Project)
+			row = turbineName[row]
+		}
 		tmpRes.Set("Row", row)
 
 		tmpCol := []tk.M{}

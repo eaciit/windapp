@@ -12,6 +12,14 @@ dbdhfd.InitDEHFDgrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
+
+    var misc = {
+        "tipe": "eventdownhfd",
+        "needtotalturbine": true,
+        "period": fa.period,
+    }
+
+    var param = {"misc": misc}
     
     var filters = [{
         field: "timestart",
@@ -43,9 +51,9 @@ dbdhfd.InitDEHFDgrid = function() {
             filter: filters,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getdowntimeeventlisthfd",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
-                    data: {},
+                    data: param,
                     dataType: "json",
                     contentType: "application/json; charset=utf-8"
                 },
@@ -59,6 +67,8 @@ dbdhfd.InitDEHFDgrid = function() {
                     app.loading(false);
                     dbr.downeventhfdvis(false);
                     app.isFine(ress);
+                    dbr.LastFilter = ress.data.LastFilter;
+                    dbr.LastSort = ress.data.LastSort;
                     return ress.data.Data
                 },
                 total: function(res) {
@@ -113,11 +123,11 @@ dbdhfd.InitDEHFDgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Machine Down",
-                field: "DownMachine",
+                title: "Environment Down",
+                field: "DownEnvironment",
                 width: 80,
                 sortable: false,
-                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
                 headerAttributes: {
                     style: "text-align: center"
                 },
@@ -125,11 +135,11 @@ dbdhfd.InitDEHFDgrid = function() {
                     style: "text-align:center;"
                 }
             }, {
-                title: "Environment Down",
-                field: "DownEnvironment",
+                title: "Machine Down",
+                field: "DownMachine",
                 width: 80,
                 sortable: false,
-                template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
+                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
                 headerAttributes: {
                     style: "text-align: center"
                 },

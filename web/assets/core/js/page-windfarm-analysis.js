@@ -35,6 +35,46 @@ wfa.Keys = [
 	{ value: "GridAvail", text: "Grid Availability (%)", type: "line", color: "#2E9598", divider: 1 },		
 ];
 
+
+wfa.getDataAvailableInfo =  function(id){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var availDateAll = res.data;
+
+        var namaproject,projectVal ;
+
+        if(id == null){
+            projectVal = $("#projectList").data("kendoDropDownList").value();
+        }else{
+            projectVal = $("#"+id).data("kendoDropDownList").value();
+        }
+       
+
+        if( projectVal == undefined || projectVal == "") {
+            namaproject = "Tejuva";
+        }else{
+            namaproject= projectVal;
+        }
+
+        
+        var minDatetemp = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
+        var maxDatetemp = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+
+        var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
+
+        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+        $('#availabledatestartscada').html(minDatetemp);
+        $('#availabledateendscada').html(maxDatetemp);
+
+        // $('#availabledatestartscada').data('kendoDatePicker').value(startDate);
+        // $('#availabledateendscada').data('kendoDatePicker').value(maxDatetemp);
+    })
+}
+
 wfa.GetChartConfig = function(data, dataKey) {
 	var ret = wfa.ChartLineCfg(data, dataKey);
 	switch(dataKey.type) {
@@ -265,6 +305,7 @@ wfa.GetKeyValues = function(objValue) {
 
 wfa.LoadData = function() {
     app.loading(true);
+    wfa.getDataAvailableInfo();
 	if($('#turbine1List').data('kendoMultiSelect').value().length == 0)
 		$('#turbine1List').data('kendoMultiSelect').value(["All Turbines"]);
 	if($('#turbine2List').data('kendoMultiSelect').value().length == 0)
@@ -290,11 +331,6 @@ wfa.LoadData = function() {
         $("#total-capacity-info").html('<i class="fa fa-tachometer tooltipster tooltipstered" aria-hidden="true" title="Total Capacity"></i>&nbsp;' + res.data.TotalCapacity + "MW");
 
     });
-
-    var minDatetemp = new Date(availableDate.ScadaData[0]);
-    var maxDatetemp = new Date(availableDate.ScadaData[1]);
-    $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-    $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 
     $.when(wfa.ProjectAnalysis.LoadData()).done(function(){
         setTimeout(function(){
@@ -361,6 +397,7 @@ wfa.setTurbines = function (id,elemid) {
     wfa.TurbineList(datavalue);
     $("#"+elemid).data('kendoMultiSelect').setDataSource(new kendo.data.DataSource({ data: wfa.TurbineList() }));
     $("#"+elemid).data('kendoMultiSelect').value(["All Turbines"]);
+
 }
 wfa.resetStatus = function(){
     wfa.isProjectLoaded(false);
@@ -371,9 +408,11 @@ wfa.showFilter = function(project, turbine1, turbine2, id){
     wfa.isProjectTab(project);
     wfa.isTurbine1Tab(turbine1);
     wfa.isTurbine2Tab(turbine2);
+
     switch (id) {
         case "tProjectAnalysis":
             if(!wfa.isProjectLoaded()) {
+                wfa.getDataAvailableInfo();
                 app.loading(true);
                 wfa.isProjectLoaded(true);
                 wfa.LoadData();
@@ -381,6 +420,7 @@ wfa.showFilter = function(project, turbine1, turbine2, id){
             break;
         case "tTurbine1Analysis":
             if(!wfa.isTurbine1Loaded()) {
+                wfa.getDataAvailableInfo('projectTurbine1List');
                 app.loading(true);
                 wfa.isTurbine1Loaded(true);
                 wfa.Turbine1Analysis.LoadData();
@@ -388,9 +428,10 @@ wfa.showFilter = function(project, turbine1, turbine2, id){
             break;
         case "tTurbine2Analysis":
             if(!wfa.isTurbine2Loaded()) {
+                wfa.getDataAvailableInfo('projectTurbine2List');
                 app.loading(true);
                 wfa.isTurbine2Loaded(true);
-                wfa.Turbine2Analysis.LoadData()
+                wfa.Turbine2Analysis.LoadData();
             }
             break;
         default :
@@ -521,6 +562,7 @@ $(function(){
 
     wfa.setTurbines('projectTurbine1List','turbine1List');
     wfa.setTurbines('projectTurbine2List','turbine2List');
+
 
 	wfa.LoadData();
 

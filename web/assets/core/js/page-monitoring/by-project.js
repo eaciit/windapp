@@ -40,7 +40,7 @@ bp.dataFeeders = ko.observableArray();
 bp.newFeeders = ko.observableArray([]);
 bp.oldFeeders = ko.observableArray([]);
 bp.fullscreen = ko.observable(false);
-
+bp.currentTempLocation = ko.observable();
 // var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
 var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
 
@@ -83,6 +83,7 @@ bp.CheckWeather = function() {
             $('#project_img_weather').attr('src', 'http://openweathermap.org/img/w/'+ data.weather[0].icon +'.png');
             $('#project_weather').text(data.weather[0].description);
             $('#project_temperature').text(data.main.temp);
+            bp.currentTempLocation(data.main.temp);
         },
         error:function(){
             // do nothing
@@ -90,28 +91,10 @@ bp.CheckWeather = function() {
     });
 };
 
-bp.GetData = function(data) {
-    // app.loading(true);
-    // bp.feeders([]);
-    var COOKIES = {};
-    var cookieStr = document.cookie;
-    var project = "";
-
-    if(cookieStr.indexOf("project=") >= 0) {
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        project = COOKIES["project"];
-        $('#projectList').data('kendoDropDownList').value(project);
-    } else {
-        project = $('#projectList').data('kendoDropDownList').value();
-    }
-
+bp.GetDataProject = function(project) {
     var param = {
-        Project: project
+        Project: project,
+        LocationTemp: parseFloat($('#project_temperature').text())
     };
     var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
         if(!app.isFine(res)) {
@@ -198,16 +181,42 @@ bp.GetData = function(data) {
         $.when(bp.PlotData(res.data)).done(function(){
             setTimeout(function(){
                  app.loading(false);
-            },200)
-        })
+            },200);
+        });
     });
-    bp.CheckWeather();
+}
+
+bp.GetData = function(data) {
+    // app.loading(true);
+    // bp.feeders([]);
+    var COOKIES = {};
+    var cookieStr = document.cookie;
+    var project = "";
+
+    if(cookieStr.indexOf("project=") >= 0) {
+        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        cookieStr.split(/; /).forEach(function(keyValuePair) {
+            var cookieName = keyValuePair.replace(/=.*$/, "");
+            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
+            COOKIES[cookieName] = cookieValue;
+        });
+        project = COOKIES["project"];
+        $('#projectList').data('kendoDropDownList').value(project);
+    } else {
+        project = $('#projectList').data('kendoDropDownList').value();
+    }
+    
+    $.when(bp.CheckWeather()).done(function(){
+        setTimeout(function(){
+             bp.GetDataProject(project);
+        }, 200);
+    });
 };
 
 bp.PlotData = function(data) {
     var allData = data.Detail
     var oldData = (bp.oldFeeders().length == 0 ? allData : bp.oldFeeders());
-    var lastUpdate = moment.utc(data.TimeStamp);
+    var lastUpdate = moment.utc(data.TimeMax);
 
     $('#project_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
     $('#project_turbine_active').text(24);
@@ -272,12 +281,22 @@ bp.PlotData = function(data) {
                 if(kendo.toString(val.Temperature, 'n2')!=kendo.toString(oldVal.Temperature, 'n2')) {
                     $('#temperature_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');  
                 }
-                
                 window.setTimeout(function(){ 
                     $('#temperature_'+ turbine).css('background-color', 'transparent'); 
                 }, 750);
             }
 
+            var colorTemperature = val.TemperatureColor;
+            $('#temperature_'+ turbine).attr('class', colorTemperature);
+            
+            $('#temperaturecolor_'+ turbine).addClass(val.BulletColor);
+
+            if (val.TemperatureInfo != "" && val.TemperatureInfo != undefined) {
+                $('#temperaturecolor_'+ turbine).attr('data-original-title', val.TemperatureInfo);
+            } else {
+                $('#temperaturecolor_'+ turbine).attr('data-original-title', "");
+            }
+            
             /* TURBINE STATUS PART */
             if(val.AlarmDesc!="") {
                 $('#alarmdesc_'+ turbine).text(val.AlarmCode);
@@ -287,31 +306,31 @@ bp.PlotData = function(data) {
                 $('#alarmdesc_'+ turbine).attr('data-original-title', "This turbine already UP");
             }
 
-            var colorStatus = "lbl bg-green";
-            var defaultColorStatus = "bg-default-green";
-
-            if(val.Status==0) {
-                colorStatus = "lbl bg-red"; // faa-flash animated
-                defaultColorStatus = "bg-default-red";
-            } else if(val.Status === 1 && val.IsWarning === true) {
-                colorStatus = "lbl bg-orange";
-                defaultColorStatus = "bg-default-orange";
-            }
-            if(val.DataComing==0) {
-                colorStatus = "lbl bg-grey";
-                defaultColorStatus = "bg-default-grey";
-            }
+            var colorStatus = val.ColorStatus;
+            var defaultColorStatus = val.DefaultColorStatus;
 
             var comparison = 0;
             $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
-            if((val.ActivePower / val.Capacity) >= 0){
+            var tes = val.ActivePower / val.Capacity;
+            
+            if((val.ActivePower / val.Capacity) > 0){
                 comparison = (val.ActivePower / val.Capacity) * 70;
-                
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
                 $('#statusturbine_'+ turbine).css('width', comparison + 'px');
             }else{
                 comparison = 0;
                 $('#statusturbine_'+ turbine).attr('class', 'lbl');
+            }
+
+            if(colorStatus=="lbl bg-red"){
+                $('#statusturbine_'+ turbine).attr('class', colorStatus);
+                $('#statusturbine_'+ turbine).css('width',  70 +'px');
+            }
+
+            if(val.isbordered != undefined && val.isbordered == true){
+                $('#statusturbinedefault_'+turbine).addClass("bordered");
+            }else{
+                $('#statusturbinedefault_'+turbine).removeClass("bordered");
             }
 
             $('#statusturbinedefault_'+turbine).popover({
@@ -348,32 +367,37 @@ bp.PlotData = function(data) {
 };
 
 bp.ToIndividualTurbine = function(turbine) {
-    setTimeout(function(){
-        var oldDateObj = new Date();
-        var newDateObj = moment(oldDateObj).add(3, 'm');
-        var project =  $('#projectList').data('kendoDropDownList').value();
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    app.loading(true);
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    var project =  $('#projectList').data('kendoDropDownList').value();
+    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
         window.location = viewModel.appName + "page/monitoringbyturbine";
-    },300);
+    } else {
+        app.loading(false);
+    }
 }
 
 bp.ToAlarm = function(turbine) {
-
-
-    var set = setTimeout(function(){
-        var oldDateObj = new Date();
-        var newDateObj = moment(oldDateObj).add(3, 'm');
-        document.cookie = "project="+bp.project.split("(")[0].trim()+";expires="+ newDateObj;
-        document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-    },300);
-
-    $.when(set).done(function(){
-         window.location = viewModel.appName + "page/monitoringalarm";
-     });
+    app.loading(true);
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    var project =  $('#projectList').data('kendoDropDownList').value();
+    
+    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+        window.location = viewModel.appName + "page/monitoringalarm";
+    } else {
+        app.loading(false);
+    }
 }
 
-
+bp.resetFeeders = function(){
+    bp.oldFeeders([])
+}
 
 $(function() {
     app.loading(true);
@@ -387,8 +411,9 @@ $(function() {
         suggest: true,
         change: function () { 
             setTimeout(function(){
-                bp.oldFeeders([])
-                bp.GetData();
+                $.when(bp.resetFeeders()).done(function(){
+                     bp.GetData();
+                });
             },1500);
             
          }
@@ -414,12 +439,24 @@ $(function() {
         $("#restore-screen").hide();  
     });
 
+    $('.bstooltip').mouseenter(function(){
+        var that = $(this)
+        that.tooltip('show');
+        setTimeout(function(){
+            that.tooltip('hide');
+        }, 7000);
+    });
+
+    $('.bstooltip').mouseleave(function(){
+        $(this).tooltip('hide');
+    });
+
     $(document).on("click", ".popover .close" , function(){
         $(this).parents(".popover").popover('hide');
     });
 
     setTimeout(function() {
         bp.GetData()
-        setInterval(bp.GetData, 4000);
+        setInterval(bp.GetData, 5000);
     }, 600);
 });

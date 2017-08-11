@@ -1,24 +1,27 @@
 package models
 
 import (
-	"github.com/eaciit/orm"
-	"gopkg.in/mgo.v2/bson"
+	"fmt"
 	"time"
+
+	"github.com/eaciit/orm"
 )
 
 type LatestDataPeriod struct {
 	orm.ModelBase `bson:"-",json:"-"`
-	Id            bson.ObjectId ` bson:"_id" , json:"_id" `
+	Id            string ` bson:"_id" , json:"_id" `
 	ProjectName   string
 	Type          string
 	Data          []time.Time
 }
 
-func NewLatestDataPeriod() *LatestDataPeriod {
-	m := new(LatestDataPeriod)
-	m.Id = bson.NewObjectId()
-
+func (m *LatestDataPeriod) New() *LatestDataPeriod {
+	m.Id = fmt.Sprintf("%s_%s", m.ProjectName, m.Type)
 	return m
+}
+
+func (m *LatestDataPeriod) RecordID() interface{} {
+	return fmt.Sprintf("%s_%s", m.ProjectName, m.Type)
 }
 
 func (m *LatestDataPeriod) TableName() string {

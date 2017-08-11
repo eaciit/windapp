@@ -11,7 +11,7 @@ import (
 type MetTower struct {
 	orm.ModelBase `bson:"-",json:"-"`
 	ID            bson.ObjectId ` bson:"_id" , json:"_id" `
-	Project       string
+	ProjectName   string
 	Line          int
 	TimeStamp     time.Time
 	DateInfo      DateInfo

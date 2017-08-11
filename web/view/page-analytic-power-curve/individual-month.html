@@ -12,15 +12,12 @@
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
+						<span class="tools pull-right">
+							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i>
+	                  	</span>
 					</div>
 					<div class="panel-body">
-						<!-- <a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportIndividualMonthPdf">
-							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-						</a> -->
-						<div class="date-info">
-                            Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
-                        </div>
-                        
+						{{template "_dateinfo.html"}}
                         <div class="col-md-12 list">
 							<div class="col-md-12 col-xs-12">
 								<div id="legend-list" class="col-md-12 col-sm-12 pl15">

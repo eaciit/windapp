@@ -1,0 +1,77 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+    vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-dataentry-turbine.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+    #filter-analytic{
+        margin-bottom: -25px;
+    }
+</style>
+
+<div class="row">
+    {{template "_filter-analytic.html"}}
+    <div class="col-md-12 col-sm-12 ez panel-content no-filter">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-heading">
+                    Turbine Master&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>
+                </div>
+                <div class="panel-body">
+                    <div class="col-md-8 col-md-offset-2">
+                        <div class="clearfix">&nbsp;</div>
+                        <div id="gridDataEntryTurbine"></div>
+                        <div class="clearfix">&nbsp;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Form Modal -->
+<div class="modal fade modal-fade-in-scale-up" id="modalForm" aria-hidden="true" aria-labelledby="modalTitle" role="dialog" tabindex="-1" style="margin-top:20px">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Edit Data</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-input row">
+                    <input type="hidden" id="id" name="id" data-bind="value: page.CurrentData().ID" />
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Model Name</label>
+                        <div class="control-input col-md-5">
+                            <input type="text" name="model" id="model" class="input-sm form-control" placeholder="Type model name" data-bind="value: page.CurrentData().Model" required data-required-msg="Model name required!" />
+                            <span class="k-invalid-msg" data-for="model"></span>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Avg. Wind Speed (m/s)</label>
+                        <div class="control-input col-md-3">
+                            <input type="text" name="windspeed" id="windspeed" class="input-sm form-control input-number align-right" placeholder="Type avg. wind speed" data-bind="value: page.CurrentData().WindSpeed" required data-required-msg="Avg. wind speed value required!" />
+                            <span class="k-invalid-msg" data-for="windspeed"></span>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-4">Standard Power Value (KW)</label>
+                        <div class="control-input col-md-3">
+                            <input type="text" name="power1" id="power1" class="input-sm form-control input-number align-right" placeholder="Type standard power value" data-bind="value: page.CurrentData().Power1" required data-required-msg="Power value required!" />
+                            <span class="k-invalid-msg" data-for="power1"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-default margin-0" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="Data.Save()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>
+<!-- End Form Modal --> 

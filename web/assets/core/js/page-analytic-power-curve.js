@@ -26,22 +26,32 @@ page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
 page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
+
+// add by ams Aug 11, 2017
+page.deviationOpts = ko.observableArray([
+    { "value": 0, "text": "<" },
+    { "value": 1, "text": ">" },
+])
+page.deviationOpr = ko.observable(0);
+
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+var lastParam;
+var lastParamDetail;
 
 page.backToMain = function() {
     page.isMain(true);
     page.isDetail(false);
 }
-page.toDetail = function(selected) {
+page.toDetail = function(turbineid,turbinename) {
     var isValid = fa.LoadData();
     if (isValid) {
         page.isMain(false);
         page.isDetail(true);
-        Data.InitCurveDetail(selected);
+        Data.InitCurveDetail(turbineid,turbinename);
     }
 }
 page.populateTurbine = function() {
@@ -65,6 +75,9 @@ page.ExportPowerCurvePdf = function() {
       }).appendTo('body');
 
 
+      var dateStart = moment(lastParam.dateStart).format("DD MMM YYYY");
+      var dateEnd = moment(lastParam.dateEnd).format("DD MMM YYYY");
+
       var options = chart.options;
 
       var exportOptions ={
@@ -73,6 +86,7 @@ page.ExportPowerCurvePdf = function() {
               visible: true
             },
             title:{
+                text: "Power Curve | " + dateStart + " until " + dateEnd + " | " + lastParam.project,
                 visible: true,
             },
             chartArea: {
@@ -103,7 +117,9 @@ page.ExportPowerCurveDetailPdf = function() {
           }).appendTo('body');
 
 
-          var options = chart.options;
+        var options = chart.options;
+        var dateStart = moment(lastParamDetail.dateStart).format("DD MMM YYYY");
+        var dateEnd = moment(lastParamDetail.dateEnd).format("DD MMM YYYY");
 
           var exportOptions ={
                 // Custom settings for export
@@ -111,6 +127,7 @@ page.ExportPowerCurveDetailPdf = function() {
                   visible: true
                 },
                 title:{
+                    text: "Power Curve Detail | " + dateStart + " until " + dateEnd + " | " + lastParamDetail.project,
                     visible: true,
                 },
                 chartArea: {
@@ -161,33 +178,31 @@ var Data = {
     },
     InitLinePowerCurve: function() {
         var isValid = fa.LoadData();
+        page.getSelectedFilter();
         if(isValid) {
+            page.deviationOpr($("#deviationOpr").val());
             page.deviationVal($("#deviationValue").val());
-
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                var minDatetemp = new Date(res.data.ScadaData[0]);
-                var maxDatetemp = new Date(res.data.ScadaData[1]);
-                $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-                $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-            })
 
             var link = "analyticpowercurve/getlistpowercurvescada"
 
             app.loading(true);
+
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+
             var param = {
                 period: fa.period,
-                dateStart: fa.dateStart,
-                dateEnd: fa.dateEnd,
+                dateStart: dateStart,
+                dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
                 turbine: fa.turbine(),
                 project: fa.project,
                 isClean: page.isClean,
                 isDeviation: page.isDeviation,
                 DeviationVal: page.deviationVal,
+                DeviationOpr: page.deviationOpr,
                 ViewSession: page.viewSession
             };
+            lastParam = param;
 
             toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
                 if (!app.isFine(res)) {
@@ -332,6 +347,8 @@ var Data = {
                     Data.InitRightTurbineList();
                     $('#showDownTime').attr('checked', false);
                     $('#showDownTime').attr("disabled", "disabled");
+                    $('#downtime-list').hide();
+                    page.showDownTime(false);
                 }
                 if (page.sScater()) {
                     Data.getPowerCurve();
@@ -346,7 +363,7 @@ var Data = {
         var turbineList = [];
         var kolor = [];
         // var kolorDeg = [];
-        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
+        var dataTurbine = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'turbineid');
 
         var len = $('input[id*=chk-][type=checkbox]:checked').length;
 
@@ -354,7 +371,7 @@ var Data = {
             var chk = $('input[id*=chk-][type=checkbox]:checked')[a].name;
             turbineList.push(chk);
             var even = _.find(dataTurbine, function(nm) {
-                return nm.name == chk
+                return nm.turbineid == chk
             });
             kolor.push(even.color);
             var indOf = 0;
@@ -370,10 +387,14 @@ var Data = {
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
 
         app.loading(true);
+
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
         var param = {
             period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
+            dateStart: dateStart,
+            dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: turbineList,
             project: fa.project,
             Color: kolor,
@@ -383,6 +404,8 @@ var Data = {
             IsDownTime: page.showDownTime(),
             ViewSession: page.viewSession()
         };
+        lastParam = param;
+
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
             if (!app.isFine(res)) {
                 return;
@@ -507,32 +530,37 @@ var Data = {
             page.ShowHideAfterInitChart();
         });
     },
-    InitCurveDetail: function(selected) {
+    InitCurveDetail: function(turbineid,turbinename) {
         app.loading(true);
-        page.detailTitle(selected);
-        page.detailStartDate(fa.dateStart.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateStart.getUTCFullYear());
-        page.detailEndDate(fa.dateEnd.getUTCDate() + "-" + fa.dateStart.getMonthNameShort() + "-" + fa.dateEnd.getUTCFullYear());
+        page.detailTitle(turbinename);
+
+        var dateStart = lastParam.dateStart;
+        var dateEnd = lastParam.dateEnd;
+
+        page.detailStartDate(dateStart.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateStart.getUTCFullYear());
+        page.detailEndDate(dateEnd.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateEnd.getUTCFullYear());
 
         var colorDetail = [];
 
-        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
+        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'turbineid');
         var colD = _.find(dtTurbines, function(num) {
-            return num.name == selected;
+            return num.turbineid == turbineid;
         }).color;
         if (colD != undefined) {
             colorDetail.push(colD);
         }
 
         var param = {
-            period: fa.period,
-            dateStart: fa.dateStart,
-            dateEnd: fa.dateEnd,
-            turbine: [selected],
-            project: fa.project,
+            period: lastParam.period,
+            dateStart: dateStart,
+            dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
+            turbine: [turbineid],
+            project: lastParam.project,
             Color: colorDetail
         };
+        lastParamDetail = param;
 
-        var dataTurbineDetail
+        var dataTurbineDetail;
 
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdetails", param, function(res) {
             if (!app.isFine(res)) {
@@ -550,7 +578,7 @@ var Data = {
                 theme: "flat",
                 renderAs: "canvas",
                 title: {
-                    text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                    // text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                     visible: false,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
@@ -657,8 +685,8 @@ var Data = {
             if(val.name != "Power Curve"){
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
-                '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.name + '\')" type="button">' + val.name + '</button>' +
+                '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + val.idxseries + '" hidden>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + '</button>' +
                 '</div>');
             }
         });
@@ -783,7 +811,7 @@ page.resetFilter = function(){
     page.isDeviation(true);
     page.sScater(false);
     page.showDownTime(false);
-    page.deviationVal(20);
+    page.deviationVal("20");
     $('#isClean').prop('checked',true);
     $('#isDeviation').prop('checked',true);
     $('#sScater').prop('checked',false);
@@ -810,24 +838,40 @@ page.HideforScatter = function() {
     }
 }
 
-$(document).ready(function() {
+page.getSelectedFilter = function(){
 
+    setTimeout(function(){
+       $("#selectedFilter").empty();
+        var deviationVal = $("#deviationValue").val();
+        var delim = "";
+        $('input[name="filter"]:checked').each(function() {
+            if(this.value == "Deviation"){
+                $("#selectedFilter").append(delim + this.value + " < " + deviationVal + " % ");
+            }else{
+                $("#selectedFilter").append(delim + this.value + " ");
+            }
+            delim = "| ";
+        });      
+        if(delim == "") {
+            $("#selectedFilter").append("No Filter Selected.");
+        }  
+    },200);
+}
+
+$(document).ready(function() {
+    di.getAvailDate();
+    page.getSelectedFilter();
+
+    
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
-        setTimeout(function() {
+        setTimeout(function() {   
+            $("#selectedFilter").empty();
+            page.getSelectedFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
             var isValid = fa.LoadData();
             if(isValid) {
                 app.loading(true);
-
-                // if(page.project() == page.currProject()){
-                //     if (page.sScater() && $("#turbineList").val().length > 3) {
-                //         swal('Warning', 'You can only select 3 turbines !', 'warning');
-                //         return
-                //     }
-                // }else{
-                //     page.resetFilter();
-                // }
                 page.resetFilter();
                 Data.InitLinePowerCurve();
             }
@@ -840,7 +884,6 @@ $(document).ready(function() {
         $('.multiselect-native-select').hide();
         page.currProject(fa.project);
         page.project(fa.project);
-
         Data.LoadData();
     }, 1000);
 
@@ -856,7 +899,7 @@ $(document).ready(function() {
     $('#isClean').on('click', function() {
         var isClean = $('#isClean').prop('checked');
         page.isClean(isClean);
-
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -864,6 +907,7 @@ $(document).ready(function() {
         var isDeviation = $('#isDeviation').prop('checked');
         page.isDeviation(isDeviation);
 
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -871,6 +915,7 @@ $(document).ready(function() {
         var sScater = $('#sScater').prop('checked');
         page.sScater(sScater);
 
+        page.getSelectedFilter();
         page.HideforScatter();
         Data.InitLinePowerCurve();
     });
@@ -879,6 +924,7 @@ $(document).ready(function() {
         var isShow = $('#showDownTime').prop('checked');
         page.showDownTime(isShow);
 
+        page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
 
@@ -888,20 +934,30 @@ $(document).ready(function() {
         dataTextField: 'text',
         suggest: true,
         change: function () { 
+            
+            fa.disableRefreshButton(true);
             var project = $('#projectList').data("kendoDropDownList").value();
             var lastProject = page.currProject();
-            if(project != lastProject){
-                page.project(lastProject)
-                page.currProject(project);
-            }else{
-                page.project(project)
-                page.currProject(project);
-            }
 
-            fa.populateTurbine(project);
+            setTimeout(function(){
+
+                fa.populateTurbine(project);
+
+                di.getAvailDate();
+                if(project != lastProject){
+                    page.project(lastProject)
+                    page.currProject(project);
+                }else{
+                    page.project(project)
+                    page.currProject(project);
+                }
+
+               fa.disableRefreshButton(false);
+            },500);
          }
     });
 
     $('#showDownTime').attr("disabled", "disabled");
     Data.InitDownList();
 });
+page.deviationOpr.subscribe(Data.InitLinePowerCurve, this);

@@ -6,7 +6,13 @@ var dbm = viewModel.DatabrowserMet;
 dbm.InitMet = function() {
     dbr.mettowervis(true);
 
-    var param = {};
+    var misc = {
+        "tipe": "met",
+        "needtotalturbine": false,
+        "period": fa.period,
+    }
+
+    var param = {"misc": misc}
     var filters = [{
         field: "timestamp",
         operator: "gte",
@@ -15,6 +21,10 @@ dbm.InitMet = function() {
         field: "timestamp",
         operator: "lte",
         value: fa.dateEnd
+    }, {
+        field: "projectname",
+        operator: "eq",
+        value: fa.project
     }, ];
 
     $('#dataGridMet').html("");
@@ -26,7 +36,7 @@ dbm.InitMet = function() {
             serverFiltering: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "databrowser/getmetlist",
+                    url: viewModel.appName + "databrowser/getdatabrowserlist",
                     type: "POST",
                     data: param,
                     dataType: "json",
@@ -851,6 +861,8 @@ dbm.InitMet = function() {
                     }
                     app.loading(false);
                     dbr.mettowervis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {

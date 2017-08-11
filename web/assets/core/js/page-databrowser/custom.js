@@ -12,11 +12,15 @@ dbc.InitCustomGrid = function() {
     // } else {
     //     turbine = $("#turbineList").data("kendoMultiSelect").value();
     // }
-
+    var misc = {
+        "tipe": "ScadaOEM",
+        "period": fa.period,
+    }
     var param = {
         "Custom": {
             "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
-        }
+        },
+        "misc": misc
     };
 
     var filters = [{
@@ -47,18 +51,33 @@ dbc.InitCustomGrid = function() {
         gColumns = dbr.defaultSelectedColumn();
     }
 
+    var widthVal = 90;
+    var lowerLabel = "";
     $.each(gColumns, function(i, val) {
+        lowerLabel = val.label.toLowerCase();
+        if(lowerLabel.indexOf("direction") >= 0 ||
+            lowerLabel.indexOf("react") >= 0) {
+            widthVal = 100;
+        } else if(lowerLabel.indexOf("generator") >= 0 ||
+            lowerLabel.indexOf("frequency") >= 0 ||
+            lowerLabel.indexOf("ambient") >= 0 ||
+            lowerLabel.indexOf("pressure") >= 0 ||
+            lowerLabel.indexOf("gearbox") >= 0) {
+            widthVal = 110;
+        } else {
+            widthVal = 90;
+        }
         var col = {
             field: val._id,
             title: val.label,
             type: val._id == "turbine" ? "string" : "number",
-            width: 120,
+            width: widthVal,
             headerAttributes: {
                 style: "text-align:center"
             },
             attributes: {
                 style: "text-align:center"
-            }
+            },
         };
 
         if (val._id == "timestamp") {
@@ -66,7 +85,7 @@ dbc.InitCustomGrid = function() {
                 field: val._id,
                 title: val.label,
                 type: "date",
-                width: 140,
+                width: 130,
                 template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
                 value: true
             }
@@ -98,6 +117,8 @@ dbc.InitCustomGrid = function() {
                 data: function(res) {
                     app.loading(false);
                     dbr.customvis(false);
+                    dbr.LastFilter = res.data.LastFilter;
+                    dbr.LastSort = res.data.LastSort;
                     return res.data.Data
                 },
                 total: function(res) {

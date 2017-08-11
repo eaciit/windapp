@@ -59,6 +59,8 @@ tc.TurbineCorrelation = function(){
             var dataSource;
             var columns;
             var heat;
+            var turbineName;
+            var judul;
              toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getwindcorrelation", param, function (res) {
                 if (!app.isFine(res)) {
                     app.loading(false);
@@ -67,21 +69,24 @@ tc.TurbineCorrelation = function(){
                 dataSource = res.data.Data;
                 columns = res.data.Column;
                 heat = res.data.Heat;
+                turbineName = res.data.TurbineName;
 
                 tc.datas(dataSource);
                 tc.newData(heat);
                 tc.Column(columns);
-
-
 
                 var schemaModel = {};
                 var columnArray = [];
 
                 $.each(columns, function (index, da) {
                     schemaModel[da] = {type: (da == "Turbine" ? "string" : "int")};
+                    judul = da
+                    if(da != "Turbine" && da != "MetTower") {
+                        judul = turbineName[da];
+                    }
 
                     var column = {
-                        title: da,
+                        title: judul,
                         field: da,
                         locked: (da == "Turbine" ? true : false),
                         headerAttributes: {

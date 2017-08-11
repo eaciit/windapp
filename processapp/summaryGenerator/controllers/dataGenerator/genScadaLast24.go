@@ -8,7 +8,6 @@ import (
 	_ "fmt"
 	"log"
 	"os"
-	"strconv"
 	_ "strings"
 	"time"
 
@@ -34,30 +33,37 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
 
-		budgetMonths := []float64{
-			5911.8744,
-			6023.419200000001,
-			7027.3224,
-			8588.9496,
-			14389.2792,
-			16954.8096,
-			15727.8168,
-			12046.8384,
-			9704.3976,
-			5688.784799999999,
-			3569.4336,
-			5911.8744}
+		projectList, _ := helper.GetProjectList()
 
-		projectList := []ProjectOut{}
-		projectList = append(projectList, ProjectOut{})
-		projects, _ := helper.GetProjectList()
-		projectList = append(projectList, projects...)
+		inprojectactive := func(str string) bool {
+			for _, v := range projectList {
+				if v.Value == str {
+					return true
+				}
+			}
+			return false
+		}
 
-		for _, proj := range projectList {
+		mapbudget := map[string]float64{}
+		csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+			Cursor(nil)
+
+		budgets := make([]ExpPValueModel, 0)
+		_ = csrBudget.Fetch(&budgets, 0, false)
+		csrBudget.Close()
+
+		for _, budget := range budgets {
+			mapbudget[tk.Sprintf("%s_%d", budget.ProjectName, budget.MonthNo)] = budget.P75NetGenMWH
+			if inprojectactive(budget.ProjectName) {
+				mapbudget[tk.Sprintf("fleet_%d", budget.MonthNo)] = budget.P75NetGenMWH
+			}
+		}
+
+		for _, proj := range d.BaseController.ProjectList {
 			projectName := proj.Value
 			turbineList := []TurbineOut{}
 
-			if projectName != "" {
+			if projectName != "Fleet" {
 				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			} else {
 				turbineList, _ = helper.GetTurbineList(nil)
@@ -65,11 +71,9 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 			totalTurbine := len(turbineList)
 
-			filter := []*dbox.Filter{}
-
-			filter = append(filter, dbox.Gte("power", -200))
-			if projectName != "" {
-				filter = append(filter, dbox.Eq("projectname", projectName))
+			filter := dbox.Eq("available", 1)
+			if projectName != "Fleet" {
+				filter = dbox.And(dbox.Eq("projectname", projectName), filter)
 			}
 
 			/*for _, v := range filter {
@@ -78,44 +82,45 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 			csr, e := ctx.NewQuery().
 				From(new(ScadaData).TableName()).
-				Where(dbox.And(filter...)).
+				Where(filter).
 				Aggr(dbox.AggrMax, "$timestamp", "timestamp").
 				Aggr(dbox.AggrMax, "$dateinfo.dateid", "dateid").
 				Group("").
 				Cursor(nil)
-			defer csr.Close()
 
 			if e != nil {
 				log.Printf("Error: %v \n", e.Error())
 			} else {
 				datas := []tk.M{}
 				e = csr.Fetch(&datas, 0, false)
+				csr.Close()
 
 				tk.Printf(">> %#v \n", datas)
 
 				if len(datas) > 0 {
-					dateId := datas[0]["dateid"].(time.Time).UTC()
+					dateId := datas[0].Get("dateid", time.Time{}).(time.Time).UTC()
 					dtInfo := GetDateInfo(dateId)
-					maxTimeStamp := datas[0]["timestamp"].(time.Time).UTC()
-					//startTime := maxTimeStamp.Add(-24 * time.Hour)
+					maxTimeStamp := datas[0].Get("timestamp", time.Time{}).(time.Time).UTC()
+
 					var budgetCurrMonthDaily float64
 
-					if len(budgetMonths)-1 >= int(dateId.Month()) {
-						budgetCurrMonths := budgetMonths[int(dateId.Month())] * 1000.0
+					_id := tk.Sprintf("%s_%d", projectName, dateId.Month())
+					if val, cond := mapbudget[_id]; cond {
+						budgetCurrMonths := val * 1000.0
 						noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
 						budgetCurrMonthDaily = tk.Div(budgetCurrMonths, noOfDay)
 					}
 
 					mdl := new(ScadaLastUpdate).New()
 
-					if projectName != "" {
+					if projectName != "Fleet" {
 						mdl.ID = "SCADALASTUPDATE_" + strings.ToUpper(projectName)
 						mdl.ProjectName = projectName
 						mdl.NoOfProjects = 1
 					} else {
 						mdl.ID = "SCADALASTUPDATE_FLEET"
 						mdl.ProjectName = "Fleet"
-						mdl.NoOfProjects = len(projectList)
+						mdl.NoOfProjects = len(d.BaseController.ProjectList) - 1
 					}
 
 					for _, t := range turbineList {
@@ -128,21 +133,24 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					mdl.NoOfTurbines = totalTurbine
 
 					items := make([]LastData24Hours, 0)
+					cdatehour := dateId.UTC().Add(-1 * time.Hour)
 					for i := 0; i < 24; i++ {
-						year := strconv.Itoa(dateId.Year())
-						month := dateId.Month().String()
-						day := strconv.Itoa(dateId.Day())
-						strTime := year + "-" + month + "-" + day + " " + strconv.Itoa(i) + ":00:00"
-						timeHr, _ := time.Parse("2006-January-2 15:04:05", strTime)
+						cdatehour = cdatehour.Add(1 * time.Hour)
 
-						timeHrStart := timeHr.Add(-1 * time.Hour)
+						// year := strconv.Itoa(dateId.Year())
+						// month := dateId.Month().String()
+						// day := strconv.Itoa(dateId.Day())
+						// strTime := year + "-" + month + "-" + day + " " + strconv.Itoa(i) + ":00:00"
+						// timeHr, _ := time.Parse("2006-January-2 15:04:05", strTime)
+
+						// timeHrStart := timeHr.Add(-1 * time.Hour)
 
 						filterSub := []*dbox.Filter{}
-						filterSub = append(filterSub, dbox.Gt("timestamp", timeHrStart))
-						filterSub = append(filterSub, dbox.Lte("timestamp", timeHr))
-						filterSub = append(filterSub, dbox.Gte("power", -200))
+						filterSub = append(filterSub, dbox.Gt("timestamp", cdatehour.Add(time.Hour*-1)))
+						filterSub = append(filterSub, dbox.Lte("timestamp", cdatehour))
+						filterSub = append(filterSub, dbox.Eq("available", 1))
 
-						if projectName != "" {
+						if projectName != "Fleet" {
 							filterSub = append(filterSub, dbox.Eq("projectname", projectName))
 						}
 
@@ -186,7 +194,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 								windspeed = iwindspeed.(float64)
 							}
 							last.Hour = i
-							last.TimeHour = timeHr
+							last.TimeHour = cdatehour
 							last.AvgWindSpeed = windspeed
 							last.PowerKw = power
 							last.EnergyKwh = power / 6
@@ -196,7 +204,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 							last.GridAvail = gridAvail
 						} else {
 							last.Hour = i
-							last.TimeHour = timeHr
+							last.TimeHour = cdatehour
 							last.AvgWindSpeed = 0.0
 							last.PowerKw = 0.0
 							last.EnergyKwh = 0.0
@@ -211,9 +219,9 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 					match := tk.M{}
 
-					match.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("power", tk.M{}.Set("$gte", -200))
+					match.Set("dateinfo.monthid", tk.M{}.Set("$eq", dtInfo.MonthId)).Set("available", tk.M{}.Set("$eq", 1))
 
-					if projectName != "" {
+					if projectName != "Fleet" {
 						match.Set("projectname", projectName)
 					}
 

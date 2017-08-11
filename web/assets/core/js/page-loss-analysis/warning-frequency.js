@@ -7,12 +7,17 @@ wf.Warning = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         app.loading(true);
+        pg.setAvailableDate(false);
+
         if(pg.isFirstWarning() === true){
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+
             var param = {
                 period: fa.period,
                 Turbine: fa.turbine(),
-                DateStart: fa.dateStart,
-                DateEnd: fa.dateEnd,
+                DateStart: dateStart,
+                DateEnd: dateEnd,
                 Project: fa.project
             };
 
@@ -32,13 +37,9 @@ wf.Warning = function(){
                     },200);
                 }
             });
-            $('#availabledatestart').html(pg.availabledatestartwarning());
-            $('#availabledateend').html(pg.availabledateendwarning());
         }else{
             setTimeout(function(){
                 $("#warningGrid").data("kendoGrid").refresh();
-                $('#availabledatestart').html(pg.availabledatestartwarning());
-                $('#availabledateend').html(pg.availabledateendwarning());
                 app.loading(false);
             },200);
             

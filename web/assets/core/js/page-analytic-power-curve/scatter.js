@@ -23,9 +23,12 @@ page.ExportIndividualMonthPdf = function() {
 
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
-    { "value": "temp", "text": "Temperature Analysis" },
+    { "value": "temp", "text": "Nacelle Temperature" },
     { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
+    { "value": "ambient", "text": "Ambient Temperature" },
+    // { "value": "mainbearing", "text": "Temp Main Bearing" },
+    // { "value": "gearbox", "text": "Temp  Gearbox HSS De" },
 ]);
 
 vm.currentMenu('Scatter');
@@ -105,23 +108,18 @@ page.refreshChart = function() {
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
+
     var param = {
         period: fa.period,
-        dateStart: fa.dateStart,
-        dateEnd: fa.dateEnd,
+        dateStart: dateStart,
+        dateEnd: dateEnd,
         turbine: fa.turbine,
         project: fa.project,
         scatterType: page.scatterType,
     };
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var minDatetemp = new Date(res.data.ScadaData[0]);
-        var maxDatetemp = new Date(res.data.ScadaData[1]);
-        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
-        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-    });
 
     toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurvescatter", param, function(res) {
         if (!app.isFine(res)) {
@@ -221,6 +219,7 @@ page.getPowerCurveScatter = function() {
 }
 
 $(document).ready(function() {
+    di.getAvailDate();
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
             page.LoadData();

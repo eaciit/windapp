@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
-	"log"
 	"os"
 	"sync"
 
@@ -37,21 +36,21 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	availOEM := ev.scadaOEMSummary()
 	e := ev.Ctx.Insert(availOEM)
 	if e != nil {
-		log.Printf("e: ", e.Error())
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	// HFD
 	availHFD := ev.scadaHFDSummary()
 	e = ev.Ctx.Insert(availHFD)
 	if e != nil {
-		log.Printf("e: ", e.Error())
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	// HFD
 	availMet := ev.metTowerSummary()
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
-		log.Printf("e: ", e.Error())
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	// mtx.Unlock()
@@ -69,7 +68,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 
 	ctx, e := PrepareConnection()
 	if e != nil {
-		log.Printf("e: %v \n", e.Error())
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
 
@@ -90,10 +89,11 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
-	for turbine, _ := range ev.BaseController.RefTurbines {
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
 
-		go func(t string) {
+		go func(t string, projectName string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
 
@@ -117,7 +117,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 				if e != nil {
 					csr, e = ctx.NewQuery().From(new(ScadaDataOEM).TableName()).
 						Command("pipe", pipes).Cursor(nil)
-					log.Printf("e: %v \n", e.Error())
+					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
 					break
 				}
@@ -135,7 +135,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 				countError++
 				e = csr.Fetch(&list, 0, false)
 				if e != nil {
-					log.Printf("e: %v \n", e.Error())
+					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
 					break
 				}
@@ -224,13 +224,13 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 			// }
 
 			details = append(details, detail...)
-			log.Printf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds())
+			ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 			mtx.Unlock()
 			// defer wg.Done()
 
 			csr.Close()
 			wg.Done()
-		}(turbine)
+		}(turbine, value.GetString("project"))
 
 		countx++
 
@@ -255,7 +255,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 	ctx, e := PrepareConnection()
 	if e != nil {
-		log.Printf("e: %v \n", e.Error())
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
 
@@ -276,10 +276,11 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
-	for turbine, _ := range ev.BaseController.RefTurbines {
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
 
-		go func(t string) {
+		go func(t string, projectName string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
 
@@ -304,7 +305,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 				if e != nil {
 					csr, e = ctx.NewQuery().From(new(ScadaDataHFD).TableName()).
 						Command("pipe", pipes).Cursor(nil)
-					log.Printf("e: %v \n", e.Error())
+					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
 					break
 				}
@@ -322,7 +323,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 				countError++
 				e = csr.Fetch(&list, 0, false)
 				if e != nil {
-					log.Printf("e: %v \n", e.Error())
+					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
 					break
 				}
@@ -412,13 +413,13 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 			// }
 
 			details = append(details, detail...)
-			log.Printf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds())
+			ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 			mtx.Unlock()
 			// defer wg.Done()
 
 			csr.Close()
 			wg.Done()
-		}(turbine)
+		}(turbine, value.GetString("project"))
 
 		countx++
 
@@ -443,7 +444,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 
 	ctx, e := PrepareConnection()
 	if e != nil {
-		log.Printf("e: %v \n", e.Error())
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
 
@@ -464,10 +465,11 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
-	for turbine, _ := range ev.BaseController.RefTurbines {
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
 		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
 
-		go func(t string) {
+		go func(t string, projectName string) {
 			detail := []DataAvailabilityDetail{}
 			start := time.Now()
 
@@ -491,7 +493,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 				if e != nil {
 					csr, e = ctx.NewQuery().From(new(MetTower).TableName()).
 						Command("pipe", pipes).Cursor(nil)
-					log.Printf("e: %v \n", e.Error())
+					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
 					break
 				}
@@ -509,7 +511,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 				countError++
 				e = csr.Fetch(&list, 0, false)
 				if e != nil {
-					log.Printf("e: %v \n", e.Error())
+					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
 					break
 				}
@@ -598,13 +600,13 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 			// }
 
 			details = append(details, detail...)
-			log.Printf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds())
+			ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 			mtx.Unlock()
 			// defer wg.Done()
 
 			csr.Close()
 			wg.Done()
-		}(turbine)
+		}(turbine, value.GetString("project"))
 
 		countx++
 

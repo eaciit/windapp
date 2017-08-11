@@ -505,9 +505,9 @@ it.ShowData = function() {
     var turbine = "";
     var project = "";
     
-    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("project=") >= 0) {
+    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
         
-        document.cookie = "project=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
         cookieStr.split(/; /).forEach(function(keyValuePair) {
             var cookieName = keyValuePair.replace(/=.*$/, "");
@@ -515,7 +515,7 @@ it.ShowData = function() {
             COOKIES[cookieName] = cookieValue;
         });
         turbine = COOKIES["turbine"];
-        project = COOKIES["project"];
+        project = COOKIES["projectname"];
 
         setTimeout(function(){
             $('#projectList').data('kendoDropDownList').value(project);
@@ -619,6 +619,8 @@ it.showWindspeedColumnChart = function(){
     });
 
 }
+
+
 it.showWindspeedLiveChart = function(){
 
     Highcharts.setOptions({
@@ -647,7 +649,17 @@ it.showWindspeedLiveChart = function(){
             enabled: true,
             verticalAlign: 'top',
             layout: "horizontal",
-            labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
+            labelFormatter: function() {
+                
+                if(this.point.y == undefined){
+                     return '<span style="color:' + this.color + '"> ' + this.name + ' </span> : <span style="min-width:50px"><b>  -  </b> '+this.tooltipOptions.valueSuffix+'</n>';
+                }
+                else{
+                    return '<span style="color:'+ this.color +'"> ' + this.name + ' </span> : <span style="min-width:50px"><b> '+ kendo.toString(this.point.y,'n2')+' </b></span> <b>'+this.tooltipOptions.valueSuffix+'</b><br/>'
+                }
+               
+            },
+            // labelFormat: '<span style="color:{color}">{name}</span> : <span style="min-width:50px"><b>{point.y:.2f} </b></span> <b>{tooltipOptions.valueSuffix}</b><br/>',
         },
         rangeSelector: {
             enabled:false,
@@ -851,6 +863,7 @@ it.showWindRoseChart = function(){
 
 it.ToTimeSeriesHfd = function() {
     setTimeout(function(){
+        app.loading(true);
         var turbine = $("#turbine").val();
         var oldDateObj = new Date();
         var newDateObj = moment(oldDateObj).add(3, 'm');
@@ -858,11 +871,19 @@ it.ToTimeSeriesHfd = function() {
         document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
         document.cookie = "turbine="+turbine+"; expires="+ newDateObj;
         window.location = viewModel.appName + "page/timeserieshfd";
-    },300);
+    },1500);
 }
 
 it.ToByProject = function(){
-    window.location = viewModel.appName + "page/monitoringbyproject";
+     setTimeout(function(){
+        app.loading(true);
+        var oldDateObj = new Date();
+        var newDateObj = moment(oldDateObj).add(3, 'm');
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    },1500);
+    
 }
 
 it.changeRotation = function(){

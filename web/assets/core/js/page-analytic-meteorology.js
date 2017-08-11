@@ -46,7 +46,8 @@ pm.valueCategory = ko.observableArray([
 ]);
 
 // var color = ["#87c5da","#cc2a35", "#d66b76", "#5d1b62", "#f1c175","#95204c","#8f4bc5","#7d287d","#00818e","#c8c8c8","#546698","#66c99a","#f3d752","#20adb8","#333d6b","#d077b1","#aab664","#01a278","#c1d41a","#807063","#ff5975","#01a3d4","#ca9d08","#026e51","#4c653f","#007ca7"];
-var color = ["#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"]
+// var color = ["#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"]
+var color = ["#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548", "#383271", "#6a4795", "#bec554", "#ab5919", "#f5b1e1", "#7b3416", "#002fef", "#8d731b", "#1f8805", "#ff9900", "#9C27B0", "#6c7d8a", "#d73c1c", "#5be7a0", "#da02d4", "#afa56e", "#7e32cb", "#a2eaf7", "#9cb8f4", "#9E9E9E", "#065806", "#044082", "#18937d", "#2c787a", "#a57c0c", "#234341", "#1aae7a", "#7ac610", "#736f5f", "#4e741e", "#68349d", "#1df3b6", "#e02b09", "#d9cfab", "#6e4e52", "#f31880", "#7978ec", "#f5ace8", "#3db6ae", "#5e06b0", "#16d0b9", "#a25a5b", "#1e603a", "#4b0981", "#62975f", "#1c8f2f", "#b0c80c", "#642794", "#e2060d", "#2125f0"]
 pm.isMet = ko.observable(false);
 pm.isFirstAverage = ko.observable(true);
 pm.isFirstWindRose = ko.observable(true);
@@ -57,6 +58,49 @@ pm.isFirstTurbine = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
 
+
+pm.getAvailDate = function(){
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var data = res.data;
+
+        var namaproject = $("#projectList").data("kendoDropDownList").value();
+        if(namaproject == "") {
+            namaproject = "Tejuva";
+        }
+
+        availDateList.availabledatestartscada = kendo.toString(moment.utc(data[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY'));
+        availDateList.availabledateendscada = kendo.toString(moment.utc(data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY'));
+
+        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+
+        availDateList.startScadaHFD = kendo.toString(moment.utc(data[namaproject]["ScadaDataHFD"][0]).format('DD-MMM-YYYY'));
+        availDateList.endScadaHFD = kendo.toString(moment.utc(data[namaproject]["ScadaDataHFD"][1]).format('DD-MMM-YYYY'));
+
+        availDateList.startScadaOEM = kendo.toString(moment.utc(data[namaproject]["ScadaDataOEM"][0]).format('DD-MMM-YYYY'));
+        availDateList.endScadaOEM = kendo.toString(moment.utc(data[namaproject]["ScadaDataOEM"][1]).format('DD-MMM-YYYY'));
+
+        availDateList.availabledatestartmet = kendo.toString(moment.utc(data[namaproject]["MET"][0]).format('DD-MMM-YYYY'));
+        availDateList.availabledateendmet = kendo.toString(moment.utc(data[namaproject]["MET"][1]).format('DD-MMM-YYYY'));
+
+
+        var startDate = kendo.toString(moment.utc(data[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY'));
+        var endDate = kendo.toString(moment.utc(data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY'));
+
+        var maxDateData = new Date(data[namaproject]["ScadaData"][1]);
+
+        var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+
+        $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+        $('#dateEnd').data('kendoDatePicker').value(endDate);  
+
+    })
+}
 pm.loadData = function () {
     setTimeout(function () {
         if (fa.project == "") {
@@ -66,27 +110,6 @@ pm.loadData = function () {
         }
 
     }, 100);
-    
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-
-        availDateList.availabledatestartscada = kendo.toString(moment.utc(res.data.ScadaData[0]).format('DD-MMMM-YYYY'));
-        availDateList.availabledateendscada = kendo.toString(moment.utc(res.data.ScadaData[1]).format('DD-MMMM-YYYY'));
-
-        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
-
-        availDateList.startScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[0]).format('DD-MMMM-YYYY'));
-        availDateList.endScadaHFD = kendo.toString(moment.utc(res.data.ScadaDataHFD[1]).format('DD-MMMM-YYYY'));
-
-        availDateList.startScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[0]).format('DD-MMMM-YYYY'));
-        availDateList.endScadaOEM = kendo.toString(moment.utc(res.data.ScadaDataOEM[1]).format('DD-MMMM-YYYY'));
-
-        availDateList.availabledatestartmet = kendo.toString(moment.utc(res.data.MET[0]).format('DD-MMMM-YYYY'));
-        availDateList.availabledateendmet = kendo.toString(moment.utc(res.data.MET[1]).format('DD-MMMM-YYYY'));
-    })
 }
 
 pm.resetStatus= function(){
@@ -114,8 +137,7 @@ pm.hideFilter = function(){
     $(".control-label:contains('to')").hide();
 }
 $(function(){
-    pm.loadData();
-    aw.AverageWindSpeed();
+    pm.getAvailDate();
 
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
@@ -137,8 +159,13 @@ $(function(){
     });
 
     setTimeout(function () {
+        pm.loadData();
+        aw.AverageWindSpeed();
+
         $('#projectList').kendoDropDownList({
             change: function () {  
+                pm.resetStatus();
+                pm.getAvailDate();
                 var project = $('#projectList').data("kendoDropDownList").value();
                 fa.populateTurbine(project);
             }
@@ -154,5 +181,5 @@ $(function(){
             );
         });
         $("#nosection").data("kendoDropDownList").value(12);
-    }, 300);
+    }, 500);
 });
