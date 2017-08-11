@@ -26,11 +26,21 @@ page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
 page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
+
+// add by ams Aug 11, 2017
+page.deviationOpts = ko.observableArray([
+    { "value": 0, "text": "<" },
+    { "value": 1, "text": ">" },
+])
+page.deviationOpr = ko.observable(0);
+
 page.viewSession = ko.observable("");
 page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+var lastParam;
+var lastParamDetail;
 
 page.backToMain = function() {
     page.isMain(true);
@@ -65,8 +75,8 @@ page.ExportPowerCurvePdf = function() {
       }).appendTo('body');
 
 
-      var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
-      var dateEnd = moment($('#dateEnd').data('kendoDatePicker').value()).format("DD MMM YYYY");
+      var dateStart = moment(lastParam.dateStart).format("DD MMM YYYY");
+      var dateEnd = moment(lastParam.dateEnd).format("DD MMM YYYY");
 
       var options = chart.options;
 
@@ -76,7 +86,7 @@ page.ExportPowerCurvePdf = function() {
               visible: true
             },
             title:{
-                text: "Power Curve : " + dateStart + " until " + dateEnd,
+                text: "Power Curve | " + dateStart + " until " + dateEnd + " | " + lastParam.project,
                 visible: true,
             },
             chartArea: {
@@ -107,7 +117,9 @@ page.ExportPowerCurveDetailPdf = function() {
           }).appendTo('body');
 
 
-          var options = chart.options;
+        var options = chart.options;
+        var dateStart = moment(lastParamDetail.dateStart).format("DD MMM YYYY");
+        var dateEnd = moment(lastParamDetail.dateEnd).format("DD MMM YYYY");
 
           var exportOptions ={
                 // Custom settings for export
@@ -115,6 +127,7 @@ page.ExportPowerCurveDetailPdf = function() {
                   visible: true
                 },
                 title:{
+                    text: "Power Curve Detail | " + dateStart + " until " + dateEnd + " | " + lastParamDetail.project,
                     visible: true,
                 },
                 chartArea: {
@@ -167,6 +180,7 @@ var Data = {
         var isValid = fa.LoadData();
         page.getSelectedFilter();
         if(isValid) {
+            page.deviationOpr($("#deviationOpr").val());
             page.deviationVal($("#deviationValue").val());
 
             var link = "analyticpowercurve/getlistpowercurvescada"
@@ -185,8 +199,10 @@ var Data = {
                 isClean: page.isClean,
                 isDeviation: page.isDeviation,
                 DeviationVal: page.deviationVal,
+                DeviationOpr: page.deviationOpr,
                 ViewSession: page.viewSession
             };
+            lastParam = param;
 
             toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
                 if (!app.isFine(res)) {
@@ -388,6 +404,7 @@ var Data = {
             IsDownTime: page.showDownTime(),
             ViewSession: page.viewSession()
         };
+        lastParam = param;
 
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
             if (!app.isFine(res)) {
@@ -517,8 +534,8 @@ var Data = {
         app.loading(true);
         page.detailTitle(turbinename);
 
-        var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+        var dateStart = lastParam.dateStart;
+        var dateEnd = lastParam.dateEnd;
 
         page.detailStartDate(dateStart.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateStart.getUTCFullYear());
         page.detailEndDate(dateEnd.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateEnd.getUTCFullYear());
@@ -534,15 +551,16 @@ var Data = {
         }
 
         var param = {
-            period: fa.period,
+            period: lastParam.period,
             dateStart: dateStart,
             dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: [turbineid],
-            project: fa.project,
+            project: lastParam.project,
             Color: colorDetail
         };
+        lastParamDetail = param;
 
-        var dataTurbineDetail
+        var dataTurbineDetail;
 
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdetails", param, function(res) {
             if (!app.isFine(res)) {
@@ -560,7 +578,7 @@ var Data = {
                 theme: "flat",
                 renderAs: "canvas",
                 title: {
-                    text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                    // text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                     visible: false,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
@@ -793,7 +811,7 @@ page.resetFilter = function(){
     page.isDeviation(true);
     page.sScater(false);
     page.showDownTime(false);
-    page.deviationVal(20);
+    page.deviationVal("20");
     $('#isClean').prop('checked',true);
     $('#isDeviation').prop('checked',true);
     $('#sScater').prop('checked',false);
@@ -825,13 +843,18 @@ page.getSelectedFilter = function(){
     setTimeout(function(){
        $("#selectedFilter").empty();
         var deviationVal = $("#deviationValue").val();
+        var delim = "";
         $('input[name="filter"]:checked').each(function() {
             if(this.value == "Deviation"){
-                $("#selectedFilter").append(this.value + " < " + deviationVal + " % | ");
+                $("#selectedFilter").append(delim + this.value + " < " + deviationVal + " % ");
             }else{
-                $("#selectedFilter").append(this.value + " | ");
+                $("#selectedFilter").append(delim + this.value + " ");
             }
-        });        
+            delim = "| ";
+        });      
+        if(delim == "") {
+            $("#selectedFilter").append("No Filter Selected.");
+        }  
     },200);
 }
 
@@ -937,3 +960,4 @@ $(document).ready(function() {
     $('#showDownTime').attr("disabled", "disabled");
     Data.InitDownList();
 });
+page.deviationOpr.subscribe(Data.InitLinePowerCurve, this);

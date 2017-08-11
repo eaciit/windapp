@@ -190,6 +190,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 			"OtherDownHours":   val.GetFloat64("OtherDownHours"),
 			"EnergyyMD":        val.GetFloat64("MachineDownLoss") / 1000,
 			"EnergyyGD":        val.GetFloat64("GridDownLoss") / 1000,
+			"EnergyyOD":        val.GetFloat64("OtherDownLoss") / 1000,
 			// "ElectricLoss":     val.GetFloat64("ElectricalLosses") / 1000,
 			"ElectricLoss":     resultJMR[val.GetString("_id")],
 			"PCDeviation":      val.GetFloat64("PCDeviation") / 1000,

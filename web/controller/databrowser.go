@@ -538,6 +538,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	case "ScadaHFD":
 		obj1 := ScadaDataHFD{}
 		val1 = reflect.Indirect(reflect.ValueOf(obj1))
+		filter = append(filter, dbox.Eq("isnull", false))
 	}
 
 	istimestamp := false
