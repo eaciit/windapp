@@ -1288,6 +1288,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		colDeviation = "deviationpct"
 	}
 
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	selArr := 0
 	for _, turbineX := range turbine {
 		var filter []*dbox.Filter
@@ -1319,7 +1324,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		defer csr.Close()
 
 		turbineData := tk.M{}
-		turbineData.Set("name", "Scatter-"+turbineX.(string))
+		turbineData.Set("name", "Scatter-"+turbineName[turbineX.(string)])
 		turbineData.Set("xField", "WindSpeed")
 		turbineData.Set("yField", "Power")
 		turbineData.Set("colorField", "valueColor")

@@ -31,6 +31,8 @@ page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+var lastParam;
+var lastParamDetail;
 
 page.backToMain = function() {
     page.isMain(true);
@@ -65,8 +67,8 @@ page.ExportPowerCurvePdf = function() {
       }).appendTo('body');
 
 
-      var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
-      var dateEnd = moment($('#dateEnd').data('kendoDatePicker').value()).format("DD MMM YYYY");
+      var dateStart = moment(lastParam.dateStart).format("DD MMM YYYY");
+      var dateEnd = moment(lastParam.dateEnd).format("DD MMM YYYY");
 
       var options = chart.options;
 
@@ -76,7 +78,7 @@ page.ExportPowerCurvePdf = function() {
               visible: true
             },
             title:{
-                text: "Power Curve : " + dateStart + " until " + dateEnd,
+                text: "Power Curve : " + dateStart + " until " + dateEnd + "(" + lastParam.project + ")",
                 visible: true,
             },
             chartArea: {
@@ -187,6 +189,7 @@ var Data = {
                 DeviationVal: page.deviationVal,
                 ViewSession: page.viewSession
             };
+            lastParam = param;
 
             toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
                 if (!app.isFine(res)) {
@@ -388,6 +391,7 @@ var Data = {
             IsDownTime: page.showDownTime(),
             ViewSession: page.viewSession()
         };
+        lastParam = param;
 
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
             if (!app.isFine(res)) {
@@ -541,6 +545,7 @@ var Data = {
             project: fa.project,
             Color: colorDetail
         };
+        lastParamDetail = param;
 
         var dataTurbineDetail
 
