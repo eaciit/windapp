@@ -78,7 +78,7 @@ page.ExportPowerCurvePdf = function() {
               visible: true
             },
             title:{
-                text: "Power Curve : " + dateStart + " until " + dateEnd + "(" + lastParam.project + ")",
+                text: "Power Curve | " + dateStart + " until " + dateEnd + " | " + lastParam.project,
                 visible: true,
             },
             chartArea: {
@@ -109,7 +109,9 @@ page.ExportPowerCurveDetailPdf = function() {
           }).appendTo('body');
 
 
-          var options = chart.options;
+        var options = chart.options;
+        var dateStart = moment(lastParamDetail.dateStart).format("DD MMM YYYY");
+        var dateEnd = moment(lastParamDetail.dateEnd).format("DD MMM YYYY");
 
           var exportOptions ={
                 // Custom settings for export
@@ -117,6 +119,7 @@ page.ExportPowerCurveDetailPdf = function() {
                   visible: true
                 },
                 title:{
+                    text: "Power Curve Detail | " + dateStart + " until " + dateEnd + " | " + lastParamDetail.project,
                     visible: true,
                 },
                 chartArea: {
@@ -521,8 +524,8 @@ var Data = {
         app.loading(true);
         page.detailTitle(turbinename);
 
-        var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+        var dateStart = lastParam.dateStart;
+        var dateEnd = lastParam.dateEnd;
 
         page.detailStartDate(dateStart.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateStart.getUTCFullYear());
         page.detailEndDate(dateEnd.getUTCDate() + "-" + dateStart.getMonthNameShort() + "-" + dateEnd.getUTCFullYear());
@@ -538,16 +541,16 @@ var Data = {
         }
 
         var param = {
-            period: fa.period,
+            period: lastParam.period,
             dateStart: dateStart,
             dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: [turbineid],
-            project: fa.project,
+            project: lastParam.project,
             Color: colorDetail
         };
         lastParamDetail = param;
 
-        var dataTurbineDetail
+        var dataTurbineDetail;
 
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdetails", param, function(res) {
             if (!app.isFine(res)) {
@@ -565,7 +568,7 @@ var Data = {
                 theme: "flat",
                 renderAs: "canvas",
                 title: {
-                    text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                    // text: "Detail Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
                     visible: false,
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
