@@ -67,27 +67,12 @@ dbr.ShowHideColumnScada = function(gridID, field, id, index) {
 var Data = {
     LoadData: function() {
         setTimeout(function(){
-            // var idParent = $(".panel-body").find(".nav-tabs").find(".active")[0].id;
             $(".panel-body").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-            // switch (idParent) {
-            //     case 'mainTab':
-            //         $("#Main").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-            //         break;
-            //     case 'exceptionTab':
-            //         $("#Exception").find(".nav-tabs").find("li.active").find('a').trigger( "click" );
-            //         break;
-            // }
         }, 100)
     },
     InitDefault: function() {
-        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-        var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-        var lastEndDate = new Date(app.getDateMax(maxDateData));
+        // dbr.getAvailDate();
 
-        $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-        $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-
-        
         Data.LoadData();
     },
     InitColumnList: function() {
@@ -233,6 +218,7 @@ var Data = {
 };
 
 dbr.setAvailableDate = function() {
+
     setTimeout(function(){
         var tabType = $(".panel-body").find(".nav-tabs").find("li.active").attr('id');
         var tipeTab = "MET";
@@ -262,13 +248,29 @@ dbr.setAvailableDate = function() {
                 tipeTab = "ScadaDataOEM"
                 break;
         }
-        var namaproject = fa.project;
+
+        var namaproject = $('#projectList').data("kendoDropDownList").value();
+
         if(namaproject == "") {
             namaproject = "Tejuva";
         }
-        $('#availabledatestart').html(kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][0]).format('DD-MMMM-YYYY')));
-        $('#availabledateend').html(kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][1]).format('DD-MMMM-YYYY')));
-    }, 300);
+
+        var startDate = kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][0]).format('DD-MMM-YYYY'));
+        var endDate = kendo.toString(moment.utc(availDateAll[namaproject][tipeTab][1]).format('DD-MMM-YYYY'));
+
+        $('#availabledatestart').html(startDate);
+        $('#availabledateend').html(endDate);
+
+        var maxDateData = new Date(availDateAll[namaproject][tipeTab][1]);
+
+        if(moment(maxDateData).get('year') !== 1){
+            var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+            $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+            $('#dateEnd').data('kendoDatePicker').value(endDate);
+        }
+
+    }, 500);
 }
 
 dbr.Scada = function(id) {
@@ -278,7 +280,6 @@ dbr.Scada = function(id) {
         dbr.isScadaLoaded(true);
         dbs.InitScadaGrid();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -291,15 +292,15 @@ dbr.getAvailDate = function(){
         dbr.setAvailableDate();
     });
 }
+
 dbr.ScadaHFD = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isScadaHFDLoaded()) {
         dbr.isScadaHFDLoaded(true);
         dbsh.InitScadaHFDGrid();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -307,12 +308,11 @@ dbr.ScadaHFD = function(id) {
 dbr.Downtime = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isDowntimeEventLoaded()) {
         dbr.isDowntimeEventLoaded(true);
         dbd.InitDEgrid();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -320,18 +320,11 @@ dbr.Downtime = function(id) {
 dbr.Custom = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isCustomLoaded()) {
         dbr.isCustomLoaded(true);
         dbc.InitCustomGrid();
-        app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            availDateAll = res.data;
-            dbr.setAvailableDate();
-        });
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -339,12 +332,11 @@ dbr.Custom = function(id) {
 dbr.Event = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isEventLoaded()) {
         dbr.isEventLoaded(true);
         dbe.InitEventGrid();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -352,12 +344,11 @@ dbr.Event = function(id) {
 dbr.Met = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isMetLoaded()) {
         dbr.isMetLoaded(true);
         dbm.InitMet();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -365,12 +356,11 @@ dbr.Met = function(id) {
 dbr.JMR = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isJMRLoaded()) {
         dbr.isJMRLoaded(true);
         dbj.InitGridJMR();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -378,12 +368,11 @@ dbr.JMR = function(id) {
 dbr.DowntimeHFD = function(id) {
     fa.LoadData();
     app.loading(true);
+    dbr.setAvailableDate();
     if(!dbr.isDowntimeeventhfdLoaded()) {
         dbr.isDowntimeeventhfdLoaded(true);
         dbdhfd.InitDEHFDgrid();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -394,9 +383,7 @@ dbr.ScadaException = function() {
     if(!dbr.isScadaExceptionTimeDurationLoaded()) {
         dbr.isScadaExceptionTimeDurationLoaded(true);
         dbt.InitGridExceptionTimeDuration();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -407,9 +394,7 @@ dbr.ScadaAnomalies = function() {
     if(!dbr.isScadaAnomaliesLoaded()) {
         dbr.isScadaAnomaliesLoaded(true);
         dbsa.InitGridAnomalies();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -420,9 +405,7 @@ dbr.AlarmOverlapping = function() {
     if(!dbr.isAlarmOverlappingLoaded()) {
         dbr.isAlarmOverlappingLoaded(true);
         dbao.InitGridAlarmOverlapping();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -433,9 +416,7 @@ dbr.AlarmAnomalies = function() {
     if(!dbr.isAlarmAnomaliesLoaded()) {
         dbr.isAlarmAnomaliesLoaded(true);
         dbaa.InitGridAlarmAnomalies();
-        dbr.setAvailableDate();
     } else {
-        dbr.setAvailableDate();
         app.loading(false);
     }
 }
@@ -597,7 +578,7 @@ vm.breadcrumb([{
 
 $(document).ready(function() {
     // app.loading(true);
-
+    dbr.getAvailDate();
     $("#scadaExceptionbtn").click(function(){
         $("#scadaException").slideToggle("slow");
         $("#scadaException").css("display","inline-table");
@@ -641,6 +622,8 @@ $(document).ready(function() {
 
     $('#projectList').kendoDropDownList({
 		change: function () {  
+            dbr.ResetFlagLoaded();
+            dbr.getAvailDate();
 			var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
 		}
