@@ -18,9 +18,6 @@
 				<div class="small-screen">&nbsp;</div>
 				<label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
 				<select id="turbineList" multiple="multiple"  class="col-md-1 col-sm-1 turbine-list pull-left"></select>&nbsp;
-				<!-- <select class="col-md-1 col-sm-1 turbine-list" id="turbineList" name="table" data-bind="kendoMultiSelect: { data: fa.turbineList, dataValueField: 'value', dataTextField: 'text', change: function() {fa.checkTurbine()}, suggest: true }"
-					style="width:120px">
-                </select>&nbsp; -->
                 <div class="input-group" style="display: inline-flex;">
 					<div class="new-line">&nbsp;</div>
 					<label class="control-label col-md-1 col-sm-1 label-filter">Period</label>&nbsp;
@@ -37,7 +34,11 @@
 	                </span>
 	            </div>
 				<div class="search-btn-line">&nbsp;</div>
-				<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+				<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh">
+					<i class="fa fa-refresh"></i>
+					&nbsp;Refresh &nbsp;
+					<i data-bind="visible: fa.infoFiltersChanged() == true" id= "filterTooltip" class="fa fa-exclamation-circle faa-tada animated tooltipster filter-changed" aria-hidden="true" style="color: #d91e18;margin-left: 5px;"></i>
+				</button>
 				<span class="incomplete-icon" data-bind="visible: fa.infoPeriodIcon() == true"><i class="fa fa-bell tooltipster tooltipstered faa-tada animated" title="Incomplete period data range" aria-hidden="true"></i></span>
 			</div>
 		</div>

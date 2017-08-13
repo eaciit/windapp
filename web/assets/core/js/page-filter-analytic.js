@@ -23,6 +23,27 @@ fa.rawproject = ko.observableArray([]);
 fa.period = ko.observable();
 fa.infoPeriodRange = ko.observable();
 fa.infoPeriodIcon = ko.observable(false);
+fa.infoFiltersChanged = ko.observable(false);
+fa.textFilterChanged = ko.observable("<strong>Filters have been changed !</strong><br>Previousfilter : <br>- Tejuva <br>- All Turbines <br>- Custom | 24 Apr 2017 - 30 Apr 2017");
+fa.previousFilter = ko.observable(
+    {
+        "project":"",
+        "turbine":[],
+        "period":"",
+        "startDate":"",
+        "endDate":""
+    }
+);
+fa.currentFilter = ko.observable(
+    {
+        "project":"",
+        "turbine":[],
+        "period":"",
+        "startDate":"",
+        "endDate":""
+    }
+);
+
 
 var lastPeriod = "";
 var turbineval = [];
@@ -246,6 +267,7 @@ fa.showHidePeriod = function (callback) {
     var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
     var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
 
+
     if (period == "custom") {
         $(".show_hide").show();
         $('#dateStart').data('kendoDatePicker').setOptions({
@@ -265,8 +287,8 @@ fa.showHidePeriod = function (callback) {
         //     $('#dateStart').data('kendoDatePicker').value(startYearDate);
         //     $('#dateEnd').data('kendoDatePicker').value(endYearDate);
         // }
-        $('#dateStart').data('kendoDatePicker').value(startMonthDate);
-        $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
+        $('#dateStart').data('kendoDatePicker').value(fa.currentFilter().startDate !== "" ?fa.currentFilter().startDate : startMonthDate);
+        $('#dateEnd').data('kendoDatePicker').value(fa.currentFilter().endMonthDate !== "" ?fa.currentFilter().endDate : endMonthDate);
     } else {
         var today = new Date();
         if (period == "monthly") {
@@ -400,12 +422,21 @@ fa.InitDefaultValue = function () {
             dropRight: false,
             onDropdownHide: function(event) {
                 fa.checkTurbine();
-            }
+                fa.currentFilter().turbine = this.$select.val();
+                fa.checkFilter();
+            },
         });
         $("#turbineList").multiselect("dataprovider",fa.turbineList());
         fa.checkTurbine();
+        fa.setPreviousFilter();
+
+        var prevFilter = fa.previousFilter();
+        
+        $.each(prevFilter, function(key,val){
+            fa.currentFilter()[key] = val
+        }); 
+
     },200);
-    // console.log(">>>>: "+$("#turbineList").val());
 }
 
 fa.GetBreakDown = function () {
@@ -540,6 +571,72 @@ fa.setProjectTurbine = function(projects, turbines, selected){
     fa.rawturbine(turbines);
 	fa.populateProject(selected);
 };
+
+fa.setPreviousFilter = function(){
+    fa.infoFiltersChanged(false);
+    fa.previousFilter({
+        project: $("#projectList").data("kendoDropDownList").value(), 
+        turbine: $("#turbineList").val(), 
+        period: $('#periodList').data('kendoDropDownList').value(), 
+        startDate: kendo.toString(new Date($('#dateStart').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
+        endDate:  kendo.toString(new Date($('#dateEnd').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
+    });
+}
+
+fa.checkFilter = function(){
+    fa.infoFiltersChanged(false);
+
+    $.each(fa.currentFilter(), function(key, val){
+        if(key == "turbine"){
+            var diff = [];
+            if(fa.previousFilter().turbine.length > fa.currentFilter().turbine.length){
+                $.grep(fa.previousFilter().turbine, function(el) {
+                        if ($.inArray(el, fa.currentFilter().turbine) == -1) diff.push(el);
+                });  
+            }else{
+                $.grep(fa.currentFilter().turbine, function(el) {
+                        if ($.inArray(el, fa.previousFilter().turbine) == -1) diff.push(el);
+                }); 
+            }
+
+            if(diff.length > 0){
+                fa.infoFiltersChanged(true);
+            }
+        }else{
+            if(fa.previousFilter()[key] !== val){
+                fa.infoFiltersChanged(true);
+            }
+        }
+    });
+    fa.setTextFilterChanged();
+
+}
+
+fa.setTextFilterChanged = function(){
+
+    var textTurbine = "";
+    var data = fa.previousFilter();
+    if(data.turbine.length <= 4){
+        textTurbine = data.turbine;
+    }else{
+        textTurbine = data.turbine.length == fa.turbineList().length ? "All Turbines" :  data.turbine.length+" Turbines Selected";
+    }
+
+    $(".filter-changed").tooltipster('destroy');
+
+    $("#filterTooltip").tooltipster({
+        theme: 'tooltipster-val',
+        animation: 'grow',
+        delay: 0,
+        offsetY: -5,
+        touchDevices: false,
+        trigger: 'hover',
+        position: "bottom",
+        content: "<strong>Filters have been changed !</strong><br>Previous filter : <br>- "+data.project+" <br>- "+textTurbine+" <br>- "+data.period+" | "+data.startDate+ " - "+data.endDate +"",
+        multiple: false,
+        contentAsHTML : true,
+    });
+}
 
 $(document).ready(function () {
     app.loading(true);
