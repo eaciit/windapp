@@ -868,6 +868,11 @@ label {
 
 .bread-info {
     margin-top: 11px;
+    margin-bottom: -30px;
+    margin-right: 5px;
+}
+.complete-bread-info {
+    margin-top: 0px;
     margin-bottom: -20px;
     margin-right: 5px;
 }

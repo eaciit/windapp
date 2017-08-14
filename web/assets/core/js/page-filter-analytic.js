@@ -590,7 +590,7 @@ fa.resetFilter = function(){
 
     setTimeout(function(){
         $("#projectList").data("kendoDropDownList").value(data.project); 
-        
+
         $("#turbineList").val("");
         $("#turbineList").multiselect("select",data.turbine);
         $("#turbineList").multiselect("refresh");
@@ -659,6 +659,28 @@ fa.setTextFilterChanged = function(){
     });
 }
 
+
+fa.getDataAvailability = function(){
+
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+    var param = {
+        period: fa.period,
+        dateStart: new Date(moment(dateStart).format('YYYY-MM-DD')),
+        dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
+        turbine: fa.turbine(),
+        project: fa.project,
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "dataavailability/getcurrentdataavailability", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        vm.projectName(param.project);
+        vm.dataAvailability(kendo.toString((res.data * 100), 'n2') + " % DA");
+    })
+}
 $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();

@@ -86,7 +86,7 @@ var Data = {
                 page.dataSource(res.data.Data);
                 page.generateGrid();
             });
-
+            fa.getDataAvailability();
         }
         // app.loading(false);
     }
