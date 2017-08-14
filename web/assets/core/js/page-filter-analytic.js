@@ -605,7 +605,6 @@ fa.resetFilter = function(){
 
 fa.checkFilter = function(){
     fa.infoFiltersChanged(false);
-
     $.each(fa.currentFilter(), function(key, val){
         if(key == "turbine"){
             var diff = [];
@@ -628,7 +627,15 @@ fa.checkFilter = function(){
             }
         }
     });
-    fa.setTextFilterChanged();
+
+    if(fa.infoFiltersChanged() == true){
+         fa.setTextFilterChanged();
+    }else{
+        if($("#btnRefresh").hasClass("tooltipstered") == true){
+            $(".filter-changed").tooltipster('destroy');
+        }
+    }
+   
 
 }
 
@@ -642,9 +649,13 @@ fa.setTextFilterChanged = function(){
         textTurbine = data.turbine.length == fa.turbineList().length ? "All Turbines" :  data.turbine.length+" Turbines Selected";
     }
 
-    $(".filter-changed").tooltipster('destroy');
+    if($("#btnRefresh").hasClass("tooltipstered") == true){
+        $(".filter-changed").tooltipster('destroy');
+    }
+    
+    $("#btnRefresh").addClass("flash-button");
 
-    $("#filterTooltip").tooltipster({
+    $("#btnRefresh").tooltipster({
         theme: 'tooltipster-val',
         animation: 'grow',
         delay: 0,
@@ -678,7 +689,7 @@ fa.getDataAvailability = function(){
         }
 
         vm.projectName(param.project);
-        vm.dataAvailability(kendo.toString((res.data * 100), 'n2') + " % DA");
+        vm.dataAvailability(kendo.toString((res.data * 100), 'n2') + " %");
     })
 }
 $(document).ready(function () {
