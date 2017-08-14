@@ -582,6 +582,26 @@ fa.setPreviousFilter = function(){
         endDate:  kendo.toString(new Date($('#dateEnd').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
     });
 }
+fa.resetFilter = function(){
+    fa.infoFiltersChanged(false);
+
+    var data = fa.previousFilter();
+    fa.populateTurbine(data.project);
+
+    setTimeout(function(){
+        $("#projectList").data("kendoDropDownList").value(data.project); 
+        
+        $("#turbineList").val("");
+        $("#turbineList").multiselect("select",data.turbine);
+        $("#turbineList").multiselect("refresh");
+
+        $('#periodList').data('kendoDropDownList').value(data.period);
+        $('#dateStart').data('kendoDatePicker').value(data.startDate);
+        $('#dateEnd').data('kendoDatePicker').value(data.endDate);
+
+        $("#filterTooltip").tooltipster('hide');
+    },500);
+}
 
 fa.checkFilter = function(){
     fa.infoFiltersChanged(false);
@@ -631,8 +651,9 @@ fa.setTextFilterChanged = function(){
         offsetY: -5,
         touchDevices: false,
         trigger: 'hover',
+        interactive : true,
         position: "bottom",
-        content: "<strong>Filters have been changed !</strong><br>Previous filter : <br>- "+data.project+" <br>- "+textTurbine+" <br>- "+data.period+" | "+data.startDate+ " - "+data.endDate +"",
+        content: "<strong>Filters have been changed !</strong><br>Previous filter : <br>- "+data.project+" <br>- "+textTurbine+" <br>- "+data.period+" | "+data.startDate+ " - "+data.endDate +"<br><span class='pull-right btn btn-danger btn-xs' onClick='fa.resetFilter()'><i class='fa fa-times'></i> Reset</span>",
         multiple: false,
         contentAsHTML : true,
     });

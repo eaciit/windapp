@@ -68,7 +68,7 @@ var Data = {
 
             var param = {
                 period: fa.period,
-                dateStart: dateStart,
+                dateStart: new Date(moment(dateStart).format('YYYY-MM-DD')),
                 dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
                 turbine: fa.turbine(),
                 project: fa.project,
