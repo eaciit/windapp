@@ -217,7 +217,7 @@ var Data = {
     }
 };
 
-dbr.setAvailableDate = function() {
+dbr.setAvailableDate = function(isFirst) {
 
     setTimeout(function(){
         var tabType = $(".panel-body").find(".nav-tabs").find("li.active").attr('id');
@@ -264,10 +264,12 @@ dbr.setAvailableDate = function() {
         var maxDateData = new Date(availDateAll[namaproject][tipeTab][1]);
 
         if(moment(maxDateData).get('year') !== 1){
-            var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+            if(isFirst === true){
+                var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
 
-            $('#dateStart').data('kendoDatePicker').value(startDatepicker);
-            $('#dateEnd').data('kendoDatePicker').value(endDate);
+                $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+                $('#dateEnd').data('kendoDatePicker').value(endDate);
+            }
         }
 
     }, 500);
@@ -289,14 +291,14 @@ dbr.getAvailDate = function(){
             return;
         }
         availDateAll = res.data;
-        dbr.setAvailableDate();
+        dbr.setAvailableDate(true);
     });
 }
 
 dbr.ScadaHFD = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(dbr.isScadaHFDLoaded());
     if(!dbr.isScadaHFDLoaded()) {
         dbr.isScadaHFDLoaded(true);
         dbsh.InitScadaHFDGrid();
@@ -308,7 +310,7 @@ dbr.ScadaHFD = function(id) {
 dbr.Downtime = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(dbr.isDowntimeEventLoaded());
     if(!dbr.isDowntimeEventLoaded()) {
         dbr.isDowntimeEventLoaded(true);
         dbd.InitDEgrid();
@@ -320,7 +322,7 @@ dbr.Downtime = function(id) {
 dbr.Custom = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(dbr.isCustomLoaded());
     if(!dbr.isCustomLoaded()) {
         dbr.isCustomLoaded(true);
         dbc.InitCustomGrid();
@@ -332,7 +334,7 @@ dbr.Custom = function(id) {
 dbr.Event = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(dbr.isEventLoaded());
     if(!dbr.isEventLoaded()) {
         dbr.isEventLoaded(true);
         dbe.InitEventGrid();
@@ -344,7 +346,7 @@ dbr.Event = function(id) {
 dbr.Met = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(br.isMetLoaded());
     if(!dbr.isMetLoaded()) {
         dbr.isMetLoaded(true);
         dbm.InitMet();
@@ -356,7 +358,7 @@ dbr.Met = function(id) {
 dbr.JMR = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(dbr.isJMRLoaded());
     if(!dbr.isJMRLoaded()) {
         dbr.isJMRLoaded(true);
         dbj.InitGridJMR();
@@ -368,7 +370,7 @@ dbr.JMR = function(id) {
 dbr.DowntimeHFD = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate();
+    dbr.setAvailableDate(dbr.isDowntimeeventhfdLoaded());
     if(!dbr.isDowntimeeventhfdLoaded()) {
         dbr.isDowntimeeventhfdLoaded(true);
         dbdhfd.InitDEHFDgrid();
