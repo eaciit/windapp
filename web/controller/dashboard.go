@@ -3688,6 +3688,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	group.Set("maxlossenergy", tk.M{"$max": "$lostenergy"})
 	group.Set("gridavail", tk.M{"$avg": "$gridavail"})
 	group.Set("totalavail", tk.M{"$avg": "$totalavail"})
+	group.Set("totalrows", tk.M{"$sum": "$totalrows"})
 	group.Set("maxDate", tk.M{"$max": "$dateinfo.dateid"})
 	group.Set("minDate", tk.M{"$min": "$dateinfo.dateid"})
 
@@ -3804,6 +3805,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			result[idx].Set("maxcapacity", maxCapacity)
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, totalHours))
+			result[idx].Set("dataavail", tk.Div(result[idx].GetFloat64("totalrows")/6, totalHours))
 		} else {
 
 			if lastProject != dt.GetString("_id") {
@@ -3822,6 +3824,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
 
 			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, (totalHours*totalTurbine.GetFloat64(result[idx].GetString("name")))))
+			result[idx].Set("dataavail", tk.Div(result[idx].GetFloat64("totalrows")/6, (totalHours*totalTurbine.GetFloat64(result[idx].GetString("name")))))
 			// ---- lowestplf
 			// tk.Printfn("%v : maxCapacity := %v * %v", dt.GetString("_id"), turbineMW, totalHours)
 			matchesTurbine := tmp
