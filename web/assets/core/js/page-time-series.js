@@ -970,6 +970,7 @@ pg.ToByProject = function(){
 
 
 $(document).ready(function () {
+    di.getAvailDate();
     newyAxis = yAxis;
     if(pg.pageType() === "HFD"){
         $("#periodList").closest(".k-widget").hide();
