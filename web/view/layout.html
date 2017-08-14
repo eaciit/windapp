@@ -17,11 +17,15 @@
         <div class="breadcrumb pull-right" data-bind="{visible : (vm.isDashboard() == true && lgd.projectName() !== 'Fleet') }">
           <span class="dashboard-date-info">Data as of : <strong data-bind="text: kendo.toString(moment(vm.dateAsOf()).utc().format('DD MMM YYYY HH:mm'))"></strong></span>
         </div>
-        <div class="pull-right bread-info" data-bind="{visible : (vm.isDashboard() != true) }">
+        <div data-bind="{visible : (vm.isDashboard() != true), attr : { class: (vm.projectName() == '') ? 'pull-right bread-info' : 'pull-right complete-bread-info'}}">
           <span>You are here &nbsp;&nbsp;:&nbsp;&nbsp;<span> 
             <strong>
               <ol class="breadcrumb pull-right" data-bind="template:{name:'breadcrumbTemplate', foreach:vm.breadcrumb}"></ol>
             </strong>
+          <br>
+         <!--  <div class="pull-right"><strong><span class="projectName-info" data-bind="text:vm.projectName()" >&nbsp;</span></strong> &nbsp;&nbsp;<span data-toggle="tooltip" title="" class="badge bg-blue tooltipster tooltipstered" data-original-title="Data Availability" data-bind="text:vm.dataAvailability()" ></span></div>
+        </div> -->
+         <div class="pull-right"><strong><span>Data Availability</span> : </strong> &nbsp;&nbsp;<span data-toggle="tooltip" title="" class="badge bg-blue tooltipster tooltipstered" data-original-title="Data Availability" data-bind="text:vm.dataAvailability()" ></span></div>
         </div>
       </section>
 

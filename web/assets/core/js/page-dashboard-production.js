@@ -64,6 +64,7 @@ prod.gridProduction = function (project, enddate) {
                     { field: "production", aggregate: "sum" },
                     { field: "plf", aggregate: "average" },
                     { field: "totalavail", aggregate: "average" },
+                    { field: "dataavail", aggregate: "average" },
                 ]
             /*,
             sort: [
@@ -90,6 +91,7 @@ prod.gridProduction = function (project, enddate) {
                 { title: "Lowest PLF<br>(%)", width:100,field: "lowestplf", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
                 // { title: "Max. Lost Energy to Effeciency", field: "lostenergy",headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-right" },template: "#= kendo.toString(lostenergy, 'n2') #"},
                 { title: "Max. Lost Energy due to Downtime<br>(KWh)", width:100,field: "maxlossenergy", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Data Availability<br>(%)", width:100,footerTemplate: "<div style='text-align:center'>#=kendo.toString(average*100, 'n2')#%</div>", field: "dataavail", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" }, template: "#= kendo.toString(dataavail*100, 'n2') #%" },
             ],
         });
         setTimeout(function () {

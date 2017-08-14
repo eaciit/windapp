@@ -57,6 +57,7 @@ func (m *DataAvailabilityController) GetDataAvailability(k *knot.WebContext) int
 
 	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_OEM"))
 	result = append(result, getAvailCollection(project, turbine, "SCADA_DATA_HFD"))
+	// result = append(result, getAvailDaily(project, turbine, "SCADA_DATA_HFD"))
 	result = append(result, getAvailCollection(project, turbine, "MET_TOWER"))
 
 	for {
@@ -143,6 +144,59 @@ func (m *DataAvailabilityController) GetCurrentDataAvailability(k *knot.WebConte
 	return helper.CreateResult(true, tk.Div(totalrows, rturbines*iturbine), "success")
 }
 
+// func getAvailDaily(project string, turbines []interface{}, collType string) tk.M {
+// 	pipes := []tk.M{}
+// 	query := []tk.M{}
+// 	dailyData := []tk.M{}
+// 	if project != "" {
+// 		query = append(query, tk.M{"projectname": project})
+// 	}
+
+// 	if len(turbines) > 0 {
+// 		query = append(query, tk.M{"turbine": tk.M{"$in": turbines}})
+// 	}
+
+// 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+// 	pipes = append(pipes, tk.M{"$group": tk.M{
+// 		"_id":     "$dateinfo.dateid",
+// 		"avail":   tk.M{"$avg": "$scadaavail"}
+// 	}})
+// 	pipes = append(pipes, tk.M{"$project": tk.M{
+// 		"dateinfo":    1,
+// 		"projectname": 1,
+// 		"turbine":     1,
+// 		"scadaavail":  1,
+// 	}})
+
+// 	pipes = append(pipes, tk.M{"$sort": tk.M{"dateinfo.dateid": 1}})
+
+// 	csr, e := DB().Connection.NewQuery().
+// 		From(new(ScadaSummaryDaily).TableName()).
+// 		Command("pipe", pipes).
+// 		Cursor(nil)
+
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+// 	defer csr.Close()
+
+// 	e = csr.Fetch(&dailyData, 0, false)
+// 	if e != nil {
+// 		return helper.CreateResult(false, nil, e.Error())
+// 	}
+
+// 	if len(dailyData) > 0 {
+// 		minDate := dailyData[0].Get("_id", time.Time{}).(time.Time)
+// 		maxDate := dailyData[len(dailyData)-1].Get("_id", time.Time{}).(time.Time)
+// 		totalDuration := maxDate.Sub(minDate).Hours()
+// 		isAvail := true
+
+// 		for _, val := range dailyData {
+
+// 		}
+// 	}
+// }
+
 func getAvailCollection(project string, turbines []interface{}, collType string) tk.M {
 	var (
 		pipes          []tk.M
@@ -215,6 +269,8 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 	name := ""
 
 	if len(list) > 0 {
+		totalPercent := 0.0
+		diffPercent := 0.0
 		datas := []tk.M{}
 		turbineName := map[string]string{}
 		latestProject := ""
@@ -270,6 +326,16 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 					}
 				}
 			}
+			totalPercent = 0.0
+			for idx, val := range turbineDetails {
+				totalPercent += val.GetFloat64("floatval")
+				if idx == len(turbineDetails)-1 {
+					if totalPercent > 100 {
+						diffPercent = totalPercent - 100.0
+						turbineDetails[idx].Set("value", tk.ToString(val.GetFloat64("floatval")-diffPercent)+"%")
+					}
+				}
+			}
 
 			turbine := tk.M{"TurbineName": t}
 			turbine.Set("details", turbineDetails)
@@ -300,6 +366,16 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		}
 
 		if collType != "MET_TOWER" {
+			totalPercent = 0.0
+			for idx, val := range datas {
+				totalPercent += val.GetFloat64("floatval")
+				if idx == len(datas)-1 {
+					if totalPercent > 100 {
+						diffPercent = totalPercent - 100.0
+						datas[idx].Set("value", tk.ToString(val.GetFloat64("floatval")-diffPercent)+"%")
+					}
+				}
+			}
 			return tk.M{"Category": name, "Turbine": res, "Data": datas}
 		} else {
 			return tk.M{"Category": name, "Turbine": []tk.M{}, "Data": datas}
@@ -322,9 +398,10 @@ func setDataColumn(start time.Time, end time.Time, avail bool, durationInDay flo
 	percentage := durationInDay / totalDurationDays * 100
 
 	res = tk.M{
-		"tooltip": start.Format("2 Jan 2006") + " until " + end.Format("2 Jan 2006"),
-		"class":   class,
-		"value":   tk.ToString(percentage) + "%",
+		"tooltip":  start.Format("2 Jan 2006") + " until " + end.Format("2 Jan 2006"),
+		"class":    class,
+		"value":    tk.ToString(percentage) + "%",
+		"floatval": tk.ToFloat64(percentage, 6, tk.RoundingAuto),
 	}
 
 	return res

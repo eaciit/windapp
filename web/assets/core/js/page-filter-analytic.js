@@ -582,10 +582,29 @@ fa.setPreviousFilter = function(){
         endDate:  kendo.toString(new Date($('#dateEnd').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
     });
 }
+fa.resetFilter = function(){
+    fa.infoFiltersChanged(false);
+
+    var data = fa.previousFilter();
+    fa.populateTurbine(data.project);
+
+    setTimeout(function(){
+        $("#projectList").data("kendoDropDownList").value(data.project); 
+
+        $("#turbineList").val("");
+        $("#turbineList").multiselect("select",data.turbine);
+        $("#turbineList").multiselect("refresh");
+
+        $('#periodList').data('kendoDropDownList').value(data.period);
+        $('#dateStart').data('kendoDatePicker').value(data.startDate);
+        $('#dateEnd').data('kendoDatePicker').value(data.endDate);
+
+        $("#filterTooltip").tooltipster('hide');
+    },500);
+}
 
 fa.checkFilter = function(){
     fa.infoFiltersChanged(false);
-
     $.each(fa.currentFilter(), function(key, val){
         if(key == "turbine"){
             var diff = [];
@@ -608,7 +627,15 @@ fa.checkFilter = function(){
             }
         }
     });
-    fa.setTextFilterChanged();
+
+    if(fa.infoFiltersChanged() == true){
+         fa.setTextFilterChanged();
+    }else{
+        if($("#btnRefresh").hasClass("tooltipstered") == true){
+            $(".filter-changed").tooltipster('destroy');
+        }
+    }
+   
 
 }
 
@@ -622,22 +649,49 @@ fa.setTextFilterChanged = function(){
         textTurbine = data.turbine.length == fa.turbineList().length ? "All Turbines" :  data.turbine.length+" Turbines Selected";
     }
 
-    $(".filter-changed").tooltipster('destroy');
+    if($("#btnRefresh").hasClass("tooltipstered") == true){
+        $(".filter-changed").tooltipster('destroy');
+    }
+    
+    $("#btnRefresh").addClass("flash-button");
 
-    $("#filterTooltip").tooltipster({
+    $("#btnRefresh").tooltipster({
         theme: 'tooltipster-val',
         animation: 'grow',
         delay: 0,
         offsetY: -5,
         touchDevices: false,
         trigger: 'hover',
+        interactive : true,
         position: "bottom",
-        content: "<strong>Filters have been changed !</strong><br>Previous filter : <br>- "+data.project+" <br>- "+textTurbine+" <br>- "+data.period+" | "+data.startDate+ " - "+data.endDate +"",
+        content: "<strong>Filters have been changed !</strong><br>Previous filter : <br>- "+data.project+" <br>- "+textTurbine+" <br>- "+data.period+" | "+data.startDate+ " - "+data.endDate +"<br><span class='pull-right btn btn-danger btn-xs' onClick='fa.resetFilter()'><i class='fa fa-times'></i> Reset</span>",
         multiple: false,
         contentAsHTML : true,
     });
 }
 
+
+fa.getDataAvailability = function(){
+
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+    var param = {
+        period: fa.period,
+        dateStart: new Date(moment(dateStart).format('YYYY-MM-DD')),
+        dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
+        turbine: fa.turbine(),
+        project: fa.project,
+    };
+
+    toolkit.ajaxPost(viewModel.appName + "dataavailability/getcurrentdataavailability", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        vm.projectName(param.project);
+        vm.dataAvailability(kendo.toString((res.data * 100), 'n2') + " %");
+    })
+}
 $(document).ready(function () {
     app.loading(true);
     fa.showHidePeriod();

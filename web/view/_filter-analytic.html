@@ -34,10 +34,10 @@
 	                </span>
 	            </div>
 				<div class="search-btn-line">&nbsp;</div>
-				<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh">
+				<button type="button" id="btnRefresh" data-bind="css: fa.infoFiltersChanged() == true ? 'flash-button' : 'no-flash'" class="btn btn-sm btn-primary btn-filter-refresh filter-changed" aria-hidden="true" >
 					<i class="fa fa-refresh"></i>
 					&nbsp;Refresh &nbsp;
-					<i data-bind="visible: fa.infoFiltersChanged() == true" id= "filterTooltip" class="fa fa-exclamation-circle faa-tada animated tooltipster filter-changed" aria-hidden="true" style="color: #d91e18;margin-left: 5px;"></i>
+<!-- 					<i data-bind="visible: fa.infoFiltersChanged() == true" id= "filterTooltip" class="fa fa-exclamation-circle faa-tada animated tooltipster filter-changed" aria-hidden="true" style="color: #d91e18;margin-left: 5px;"></i> -->
 				</button>
 				<span class="incomplete-icon" data-bind="visible: fa.infoPeriodIcon() == true"><i class="fa fa-bell tooltipster tooltipstered faa-tada animated" title="Incomplete period data range" aria-hidden="true"></i></span>
 			</div>
