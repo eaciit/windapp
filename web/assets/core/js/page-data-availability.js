@@ -34,7 +34,7 @@ page.getData = function(){
         project: fa.project,
     };
 
-    toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
+    var dataAvailReq = toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
         if (!app.isFine(res)) {
                 return;
             }
@@ -46,6 +46,43 @@ page.getData = function(){
 		page.widthColumn((90 / colspan) + "%");
 		page.createView();
     });
+
+    $.when(dataAvailReq).done(function(){
+    	setTimeout(function(){
+    		app.prepareTooltipster();
+    		app.loading(false);
+    	}, 100);
+    });
+}
+
+page.monthDetail = function(month) {
+	var param = {
+        period: month,
+        breakdown: "daily",
+        turbine: fa.turbine(),
+        project: fa.project,
+    };
+
+    var dataAvailReq = toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
+        if (!app.isFine(res)) {
+                return;
+            }
+
+  //       page.dataAvail(res.data.Data);
+
+  //       page.categoryHeader(res.data.Month);
+		// colspan = page.categoryHeader().length;
+		// page.widthColumn((90 / colspan) + "%");
+		// page.createView();
+		// console.log(res);
+    });
+
+    // $.when(dataAvailReq).done(function(){
+    // 	setTimeout(function(){
+    // 		app.prepareTooltipster();
+    // 		app.loading(false);
+    // 	}, 100);
+    // });
 }
 
 page.createView = function(){
@@ -54,7 +91,10 @@ page.createView = function(){
 	$("#tableHeader").append('<td width="10%" class="border-right" colspan="2">&nbsp;</td>');
 
 	$.each(page.categoryHeader(), function(id, ress){
-		var tdHeader = ' <td width="'+page.widthColumn()+'" class="border-right"><strong>'+ress+'</strong></td>';
+		var month = ress.split(" ")[0].slice(0, 3);
+		var tdHeader = ' <td width="'+page.widthColumn()+'" class="text-month label label-primary clickable" onclick="page.monthDetail(\'' + ress + '\')" ><strong>'+
+		month+'</strong></td>';
+
 		$("#tableHeader").append(tdHeader);
 	});
 
@@ -116,12 +156,13 @@ $(function () {
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
 		fa.checkTurbine();
-        $.when(page.getData()).done(function(){
-        	setTimeout(function(){
-        		app.prepareTooltipster();
-        		app.loading(false);
-        	},1000);	
-        });
+		page.getData();
+        // $.when(page.getData()).done(function(){
+        // 	setTimeout(function(){
+        // 		app.prepareTooltipster();
+        // 		app.loading(false);
+        // 	},1000);	
+        // });
     });
 
 	page.hideFilter();
@@ -130,10 +171,10 @@ $(function () {
 		page.getData();
 	},200);
 	
-    setTimeout(function() {
-		app.prepareTooltipster();
-        app.loading(false);    
-    }, 500);
+  //   setTimeout(function() {
+		// app.prepareTooltipster();
+  //       app.loading(false);    
+  //   }, 500);
 
 	$('#projectList').kendoDropDownList({
 		change: function () {  
