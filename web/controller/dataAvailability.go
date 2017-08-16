@@ -157,31 +157,31 @@ func (m *DataAvailabilityController) GetCurrentDataAvailability(k *knot.WebConte
 	return helper.CreateResult(true, tk.Div(totalrows, rturbines*iturbine), "success")
 }
 
-func setOpacity(scadaAvail float64) string {
+func setOpacity(scadaAvail float64) float64 {
 	switch {
 	case scadaAvail >= 0.0 && scadaAvail <= 0.1:
-		return "100%"
+		return 1
 	case scadaAvail > 0.1 && scadaAvail <= 0.2:
-		return "90%"
+		return 0.9
 	case scadaAvail > 0.2 && scadaAvail <= 0.3:
-		return "80%"
+		return 0.8
 	case scadaAvail > 0.3 && scadaAvail <= 0.4:
-		return "70%"
+		return 0.7
 	case scadaAvail > 0.4 && scadaAvail <= 0.5:
-		return "60%"
+		return 0.6
 	case scadaAvail > 0.5 && scadaAvail <= 0.6:
-		return "60%"
+		return 0.6
 	case scadaAvail > 0.6 && scadaAvail <= 0.7:
-		return "70%"
+		return 0.7
 	case scadaAvail > 0.7 && scadaAvail <= 0.8:
-		return "80%"
+		return 0.8
 	case scadaAvail > 0.8 && scadaAvail <= 0.9:
-		return "90%"
+		return 0.9
 	case scadaAvail > 0.9 && scadaAvail <= 1.0:
-		return "100%"
+		return 1
 	}
 
-	return "100%"
+	return 1
 }
 
 func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.M {
@@ -240,7 +240,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 		percentage := 0.0
 		kelas := "progress-bar progress-bar-success"
 		for idx := 1; idx <= totalDay; idx++ {
-			percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto)
+			percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100
 			if dataPerDay.Has(tk.ToString(idx)) {
 				if dataPerDay.GetFloat64(tk.ToString(idx)) < 0.5 {
 					kelas = "progress-bar progress-bar-red"
@@ -260,7 +260,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 					"class":    "progress-bar progress-bar-red",
 					"value":    tk.ToString(percentage) + "%",
 					"floatval": percentage,
-					"opacity":  "100%",
+					"opacity":  1,
 				})
 			}
 		}
@@ -332,7 +332,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 					turbineDetails = []tk.M{}
 				}
 				for idx := 1; idx <= totalDay; idx++ {
-					percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto)
+					percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100
 					if dataPerTurbine.Has(tk.ToString(idx) + "_" + turbine) {
 						if dataPerTurbine.GetFloat64(tk.ToString(idx)+"_"+turbine) < 0.5 {
 							kelas = "progress-bar progress-bar-red"
@@ -352,7 +352,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 							"class":    "progress-bar progress-bar-red",
 							"value":    tk.ToString(percentage) + "%",
 							"floatval": percentage,
-							"opacity":  "100%",
+							"opacity":  1,
 						})
 					}
 				}

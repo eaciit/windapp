@@ -133,14 +133,14 @@ page.createViewDaily = function(){
 				var progressDataDetails = "";
 
 				$.each(res.details, function(idx, result){
-					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
+					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+';opacity:'+result.opacity+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
 					
 				});
 
 				var details = '<tr class="collapse details row'+key+'">'+
 					'<td></td>'+
 					'<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
-					'<td colspan='+colspan+'>'+
+					'<td colspan='+colspanDay+'>'+
 							'<div class="progress">'+progressDataDetails+'</div>'+
 					'</td>'+
 				'</tr>';

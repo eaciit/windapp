@@ -28,9 +28,12 @@ table .collapse.in {
 }
 
 .progress-bar {
-    height: 70%;
+    height: 100%;
 }
 
 .clickable{
 	cursor: pointer;
+}
+.progress {
+    height: 15px;
 }
