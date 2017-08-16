@@ -113,7 +113,7 @@ page.createViewDaily = function(){
 		var progressData = "";
 		if (value!=null){
 			$.each(value.Data, function(i, val){
-				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
+				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+';opacity:'+val.opacity+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
 				
 			});
 
