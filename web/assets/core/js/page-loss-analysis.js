@@ -122,6 +122,11 @@ pg.backToDownTime = function () {
 
 pg.LoadData = function(){
     fa.LoadData();
+    $.when(fa.LoadData()).done(function(){
+        setTimeout(function(){
+            fa.getDataAvailability();
+        }, 300);
+    });
 }
 
 pg.Reliability = function(){
@@ -167,6 +172,7 @@ $(function(){
 
     $('#btnRefresh').on('click', function () {
         app.loading(true);
+        pg.LoadData();
         fa.checkTurbine();
         pg.resetStatus();
         $('.nav').find('li.active').find('a').trigger( "click" );
