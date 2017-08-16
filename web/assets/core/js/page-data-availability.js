@@ -70,15 +70,24 @@ page.monthDetail = function(month) {
 
     var dataAvailReq = toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
         if (!app.isFine(res)) {
-                return;
-            }
+            return;
+        }
 
-        dataAvailDay= res.data.Data;
-
-        categoryHeaderDay = res.data.Month;
-		colspanDay = categoryHeaderDay.length;
-		widthColumnDay = (90 / colspanDay) + "%";
-		page.createViewDaily();
+        if(res.data.Data[0].Data != undefined || res.data.Data[0].Data != null) {
+        	dataAvailDay= res.data.Data;
+	        categoryHeaderDay = res.data.Month;
+			colspanDay = categoryHeaderDay.length;
+			widthColumnDay = (90 / colspanDay) + "%";
+			page.createViewDaily();
+        } else {
+        	swal({
+	            title: "Warning",
+	            type: "warning",
+	            text: "Data is not available for "+ month,
+	        }, function () {
+	            app.loading(false);
+	        });
+        }
     });
 
     $.when(dataAvailReq).done(function(){
@@ -92,7 +101,7 @@ page.monthDetail = function(month) {
 page.createViewDaily = function(){
 	$("#tableContent").html("");
 	$("#tableHeader").html("");
-	$("#tableHeader").append('<td width="10%" class="border-right" colspan="2">&nbsp;</td>');
+	$("#tableHeader").append('<td width="10%" class="border-right clickable" colspan="2" onclick="page.createView()"><a role="tab" data-toggle="tab" class="btn-back"><i class="fa fa-reply" aria-hidden="true"></i> Back </a></td>');
 
 	$.each(categoryHeaderDay, function(id, ress){
 		var tdHeader = ' <td width="'+widthColumnDay+'" class="text-month" ><strong>'+ress+'</strong></td>';
