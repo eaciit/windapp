@@ -587,6 +587,138 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, dataItem, "success")
 }
 
+func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := tk.M{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
+	matches := tk.M{"dateinfo.monthdesc": p.GetString("date"), "available": 1}
+	if p.GetString("project") != "Fleet" {
+		matches.Set("projectname", p.GetString("project"))
+	}
+	fields := tk.M{"$sum": "$power"}
+
+	pipe := []tk.M{{"$match": matches},
+		{"$group": tk.M{"_id": ids, "production": fields}},
+		{"$sort": tk.M{"projectname": 1}}}
+
+	csrScada, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipe).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrScada.Close()
+
+	resultScada := []tk.M{}
+	e = csrScada.Fetch(&resultScada, 0, false)
+
+	matches.Unset("dateinfo.monthdesc")
+	matches.Unset("available")
+
+	matches.Set("startdateinfo.monthdesc", p.GetString("date"))
+	fields = tk.M{"$sum": "$powerlost"}
+
+	pipe = []tk.M{{"$match": matches}, {"$group": tk.M{"_id": ids, "totalpowerlost": fields,
+		"totalduration": tk.M{"$sum": "$duration"}}}}
+	csrAlarm, e := DB().Connection.NewQuery().
+		From(new(Alarm).TableName()).
+		Command("pipe", pipe).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrAlarm.Close()
+
+	resultAlarm := []tk.M{}
+	e = csrAlarm.Fetch(&resultAlarm, 0, false)
+
+	dataPowerLost := tk.M{}
+	dataDuration := tk.M{}
+	for _, val := range resultAlarm {
+		data := val["_id"].(tk.M)
+		dataPowerLost.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalpowerlost"))
+		dataDuration.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalduration"))
+	}
+	totalPower := tk.M{}
+	totalPowerLost := tk.M{}
+	totalTurbines := tk.M{}
+	detailData := tk.M{}
+	detail := []tk.M{}
+
+	listturbine := tk.M{}
+	tproject := ""
+	for _, val := range resultScada {
+		data := val["_id"].(tk.M)
+		project := data.GetString("project")
+		if tproject != project {
+			tproject = project
+			listturbine = PopulateTurbines(DB().Connection, tproject)
+		}
+
+		_id := project + "_" + data.GetString("turbine")
+		if dataPowerLost.Has(_id) {
+			val.Set("lostenergy", dataPowerLost.GetFloat64(_id))
+			val.Set("downtime", dataDuration.GetFloat64(_id))
+		}
+		val.Unset("_id")
+		val.Set("production", val.GetFloat64("production")/6)
+		val.Set("turbine", data.GetString("turbine"))
+		if listturbine.Has(data.GetString("turbine")) {
+			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
+		}
+		detail = append(detail, val)
+		detailData.Set(project, detail)
+
+		if totalPower.Has(project) {
+			totalPower.Set(data.GetString("project"), totalPower.GetFloat64(project)+val.GetFloat64("production"))
+		} else {
+			totalPower.Set(data.GetString("project"), val.GetFloat64("production"))
+		}
+		if totalPowerLost.Has(project) {
+			totalPowerLost.Set(data.GetString("project"), totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
+		} else {
+			totalPowerLost.Set(data.GetString("project"), val.GetFloat64("lostenergy"))
+		}
+		if totalTurbines.Has(project) {
+			totalTurbines.Set(data.GetString("project"), totalTurbines.GetInt(project)+1)
+		} else {
+			totalTurbines.Set(data.GetString("project"), 1)
+		}
+	}
+
+	dataItem := []tk.M{}
+	for project, val := range totalPower {
+		data := tk.M{
+			"project":    project,
+			"production": val.(float64),
+			"lostenergy": totalPowerLost.GetFloat64(project),
+			"wtg":        totalTurbines.GetInt(project),
+			"detail":     detailData[project],
+		}
+		dataItem = append(dataItem, data)
+	}
+	dataItemTemp := dataItem
+	dataItem = []tk.M{}
+	for _, val := range dataItemTemp {
+		newdata := helper.EnergyMeasurement(val, "production", "lostenergy")
+		val = newdata[0]
+		newdetail := helper.EnergyMeasurement(val["detail"].([]tk.M), "production", "lostenergy")
+		val.Set("detail", newdetail)
+		dataItem = append(dataItem, val)
+	}
+
+	return helper.CreateResult(true, dataItem, "success")
+}
+
 func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
