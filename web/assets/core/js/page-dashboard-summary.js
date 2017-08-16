@@ -130,7 +130,8 @@ sum.loadData = function () {
                 sum.dataSourceScadaAvailability(res.data["Availability"]);
                 sum.PLF('chartPLFFleet',res.data["Data"]);
                 sum.ProdCurLast('chartCurrLastFleet',res.data["Data"]);
-                sum.ProdMonthFleet('chartProdMonthFleet',res.data["Availability"]);
+                sum.ProdMonth('chartProdMonthFleet',res.data["Data"]);
+                // sum.ProdMonthFleet('chartProdMonthFleet',res.data["Availability"]);
                 var availDatas = res.data["Availability"];
                 var projectCount = 0;
                 for(var key in availDatas){
@@ -201,7 +202,7 @@ sum.loadData = function () {
             }
         });
 
-        var ajax3
+        var ajax3, lostEnergyReq;
 
         if (project=="Fleet") {
             param = { ProjectName: project, Date: maxdate, PeriodList: sum.paramPeriod};
@@ -214,9 +215,18 @@ sum.loadData = function () {
                 sum.dataSourceWindDistribution(res.data.Data[sum.periodSelected()]);
                 sum.windDistData(res.data.Data);
             });
+
+            lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", { ProjectName: project, Date: maxdate}, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                if (project == "Fleet") {
+                    avail.DTTurbines();
+                } 
+            });
         }
 
-        $.when(sum.indiaMap(project),ajax2, ajax3).done(function(){
+        $.when(sum.indiaMap(project),ajax2, ajax3,lostEnergyReq).done(function(){
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({
@@ -399,7 +409,7 @@ sum.LostEnergy = function (dataSource) {
             visible: false,
         },
         chartArea: {
-            height: 185,
+            height: 175,
             background: "transparent",
             padding: 0,
         },
@@ -776,12 +786,14 @@ sum.ProdMonth = function (id, dataSource) {
                 }
             }
         },
-        series: [{
-            name: "Budget",
-            field: "Budget",
-            // opacity : 0.7,
-            color: "#21c4af",
-        }, {
+        series: [
+        // {
+        //     name: "Budget",
+        //     field: "Budget",
+        //     // opacity : 0.7,
+        //     color: "#21c4af",
+        // }, 
+        {
             name: "Production",
             field: "Production",
             // opacity : 0.7,
@@ -1347,12 +1359,14 @@ sum.CumProduction = function (dataSource) {
                 visible: false,
             }
         },
-        series: [{
+        series: [
+        {
             name: "Budget",
             field: "CumBudget",
             // opacity : 0.5,
             color: "#21c4af",
-        }, {
+        }, 
+        {
             name: "Production",
             field: "CumProduction",
             // opacity : 0.5,
@@ -1415,7 +1429,7 @@ sum.DetailProd = function (e) {
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = { 'project': project, 'date': bulan };
 
-    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod_old", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -1458,7 +1472,7 @@ sum.DetailProd = function (e) {
             }],
             seriesColors: colorField,
             seriesClick: function (e) {
-                sum.DetailProdByProject(e, bulan, dataSource);
+                sum.DetailProdByProject(e);
             },
             valueAxis: {
                 // majorUnit : 2000,
@@ -1534,7 +1548,7 @@ sum.DetailProd = function (e) {
             }],
             // seriesColors: colorField[1],
             seriesClick: function (e) {
-                sum.DetailProdByProject(e, bulan, dataSource);
+                sum.DetailProdByProject(e);
             },
             valueAxis: {
                 // majorUnit : 2000,
@@ -1599,17 +1613,18 @@ sum.DetailProd = function (e) {
 }
 
 sum.DetailProdByProject = function (e) {
+    console.log(e);
     app.loading(true);
     vm.isDashboard(false);
     lgd.isSummary(false);
     sum.isDetailProd(false);
     sum.isDetailProdByProject(true);
 
-    var project = e.series.name;
-    var param = { 'project': project, 'date': e.category };
+    // var project = e.series.name;
+    var param = { 'project': e.category, 'date': sum.detailProdTxt() };
 
-    sum.detailProdProjectTxt(project);
-    sum.detailProdDateTxt(e.category);
+    sum.detailProdProjectTxt(e.category);
+    sum.detailProdDateTxt(sum.detailProdTxt());
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
         
