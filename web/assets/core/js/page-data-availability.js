@@ -60,6 +60,7 @@ page.getData = function(){
 }
 
 page.monthDetail = function(month) {
+	app.loading(true);
 	var param = {
         period: month,
         breakdown: "daily",
@@ -108,13 +109,37 @@ page.createViewDaily = function(){
 			});
 
 			var icon = "";
-			var master = '<tr data-toggle="collapse" data-target=".row'+key+'">'+
+			if(value.Turbine.length > 0){
+				icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
+			}
+			var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
 							'<td>'+icon+'</td>'+
 							'<td class="border-right"><strong>'+value.Category+'</strong></span></td>'+
 							'<td colspan='+colspanDay+'>'+
 									'<div class="progress">'+progressData+'</div>'+
 							'</td>'+
 						'</tr>';
+			
+			$.each(value.Turbine, function(index, res){
+				var progressDataDetails = "";
+
+				$.each(res.details, function(idx, result){
+					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
+					
+				});
+
+				var details = '<tr class="collapse details row'+key+'">'+
+					'<td></td>'+
+					'<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
+					'<td colspan='+colspan+'>'+
+							'<div class="progress">'+progressDataDetails+'</div>'+
+					'</td>'+
+				'</tr>';
+
+				master += details;
+
+			});
+
 			$("#tableContent").append(master);
 		}
 

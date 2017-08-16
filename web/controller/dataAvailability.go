@@ -209,7 +209,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 	}
 	timeParse = timeParse.AddDate(0, 1, -1)
 
-	pipes = append(pipes, tk.M{"$sort": tk.M{"dateinfo.dateid": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryDaily).TableName()).
@@ -225,6 +225,8 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 	if e != nil {
 		return nil
 	}
+
+	result := tk.M{}
 
 	if len(dailyData) > 0 {
 		totalDay := timeParse.Day()
@@ -262,10 +264,109 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 				})
 			}
 		}
-		return tk.M{"Category": "Data Availability", "Turbine": []tk.M{}, "Data": datas}
+		result = tk.M{"Category": "Data Availability", "Turbine": []tk.M{}, "Data": datas}
+
+		dailyTurbine := []tk.M{}
+		pipes = []tk.M{}
+		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+		pipes = append(pipes, tk.M{"$group": tk.M{
+			"_id":        tk.M{"tanggal": "$dateinfo.dateid", "turbine": "$turbine"},
+			"scadaavail": tk.M{"$avg": "$scadaavail"},
+		}})
+
+		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.turbine": 1, "_id.tanggal": 1}})
+
+		csrTurbine, e := DB().Connection.NewQuery().
+			From(new(ScadaSummaryDaily).TableName()).
+			Command("pipe", pipes).
+			Cursor(nil)
+
+		if e != nil {
+			return nil
+		}
+		defer csrTurbine.Close()
+
+		e = csrTurbine.Fetch(&dailyTurbine, 0, false)
+		if e != nil {
+			return nil
+		}
+
+		if len(dailyTurbine) > 0 {
+			dataPerTurbine := tk.M{}
+			timeConv = time.Time{}
+			turbineList := []string{}
+			lastTurbine := ""
+			ids := tk.M{}
+			for _, val := range dailyTurbine {
+				ids, _ = tk.ToM(val.Get("_id"))
+				if lastTurbine != ids.GetString("turbine") {
+					lastTurbine = ids.GetString("turbine")
+					turbineList = append(turbineList, lastTurbine)
+				}
+				if tk.TypeName(ids.Get("tanggal")) == "string" {
+					timeConv, e = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(ids.GetString("tanggal")))
+					if e != nil {
+						tk.Println(e.Error())
+					}
+				} else {
+					timeConv = ids.Get("tanggal", time.Time{}).(time.Time)
+				}
+				dataPerTurbine.Set(tk.ToString(timeConv.Day())+"_"+ids.GetString("turbine"), val.GetFloat64("scadaavail"))
+			}
+			turbineDetails := []tk.M{}
+			turbineDatas := []tk.M{}
+			turbineItem := tk.M{}
+			percentage := 0.0
+			kelas := "progress-bar progress-bar-success"
+			turbineName, e := helper.GetTurbineNameList(project)
+			if e != nil {
+				tk.Println(e.Error())
+			}
+			_turbine := ""
+			lastTurbine = ""
+
+			for _, turbine := range turbineList {
+				_turbine = turbineName[turbine]
+				if lastTurbine != turbine {
+					lastTurbine = turbine
+					turbineDetails = []tk.M{}
+				}
+				for idx := 1; idx <= totalDay; idx++ {
+					percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto)
+					if dataPerTurbine.Has(tk.ToString(idx) + "_" + turbine) {
+						if dataPerTurbine.GetFloat64(tk.ToString(idx)+"_"+turbine) < 0.5 {
+							kelas = "progress-bar progress-bar-red"
+						} else {
+							kelas = "progress-bar progress-bar-success"
+						}
+						turbineDetails = append(turbineDetails, tk.M{
+							"tooltip":  "Day " + tk.ToString(idx),
+							"class":    kelas,
+							"value":    tk.ToString(percentage) + "%",
+							"floatval": percentage,
+							"opacity":  setOpacity(dataPerTurbine.GetFloat64(tk.ToString(idx) + "_" + turbine)),
+						})
+					} else {
+						turbineDetails = append(turbineDetails, tk.M{
+							"tooltip":  "Day " + tk.ToString(idx),
+							"class":    "progress-bar progress-bar-red",
+							"value":    tk.ToString(percentage) + "%",
+							"floatval": percentage,
+							"opacity":  "100%",
+						})
+					}
+				}
+				turbineItem = tk.M{
+					"TurbineName": _turbine,
+					"details":     turbineDetails,
+				}
+				turbineDatas = append(turbineDatas, turbineItem)
+			}
+			result.Set("Turbine", turbineDatas)
+		}
 	}
 
-	return nil
+	return result
 }
 
 func getAvailCollection(project string, turbines []interface{}, collType string) tk.M {
