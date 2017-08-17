@@ -468,6 +468,105 @@ func getAvgWsForLostEnergy(project, turbine string, topcorrel []string, oemavgws
 	return
 }
 
+func (d *UpdateScadaOemMinutes) UpdateDeviation(base *BaseController) {
+	d.BaseController = base
+	sProjectName := "Tejuva"
+	funcName := "Update Deviation Data"
+	if base != nil {
+		d.BaseController = base
+
+		conn, e := PrepareConnection()
+		if e != nil {
+			ErrorHandler(e, funcName)
+			os.Exit(0)
+		}
+		defer conn.Close()
+
+		tk.Println("Update Deviation Data")
+		var wg sync.WaitGroup
+
+		// #faisal
+		// get latest scadadata from scadadata and put condition to get the scadadataoem based on latest scadadata
+		// put some match condition here
+		// tk.Println(d.BaseController.RefTurbines)
+		for turbine, _ := range d.BaseController.RefTurbines {
+			filter := []*dbox.Filter{}
+			filter = append(filter, dbox.Eq("projectname", sProjectName))
+			filter = append(filter, dbox.Eq("turbine", turbine))
+
+			csr, e := conn.NewQuery().From(new(ScadaData).TableName()).
+				Where(filter...).
+				Order("timestamp").
+				Cursor(nil)
+			ErrorHandler(e, funcName)
+
+			defer csr.Close()
+
+			counter := 0
+			isDone := false
+			countPerProcess := 1000
+			countData := csr.Count()
+
+			tk.Printf("\nDeviation for %v | %v \n", turbine, countData)
+
+			for !isDone && countData > 0 {
+				scadas := []*ScadaData{}
+				e = csr.Fetch(&scadas, countPerProcess, false)
+
+				if len(scadas) < countPerProcess {
+					isDone = true
+				}
+
+				wg.Add(1)
+				go func(datas []*ScadaData, endIndex int) {
+					tk.Printf("Starting process %v data\n", endIndex)
+					defer wg.Done()
+
+					lenDatas := len(datas)
+					if lenDatas == 0 {
+						tk.Println("Data is 0 return process")
+						return
+					}
+
+					logStart := time.Now()
+
+					for _, data := range datas {
+
+						// mtxOem.Lock()
+						// defer mtxOem.Unlock()
+
+						denpower := data.DenPower
+						power := data.Power
+						deviation := denpower - power
+						deviationpct := math.Abs(tk.Div(deviation, denpower))
+
+						// tk.Printf("%v %v %v %v %v\n", data.ID, denpower, power, deviation, deviationpct)
+
+						e := d.Ctx.Connection.NewQuery().Update().From(new(ScadaData).TableName()).
+							Where(dbox.Eq("_id", data.ID)).
+							Exec(tk.M{}.Set("data", tk.M{}.
+								Set("denpcdeviation", deviation).
+								Set("dendeviationpct", deviationpct)))
+
+						if e != nil {
+							tk.Printf("Update fail: %s", e.Error())
+						}
+					}
+
+					logDuration := time.Now().Sub(logStart)
+
+					tk.Printf("End processing for %v data about %v sec(s)\n", endIndex, logDuration.Seconds())
+				}(scadas, ((counter + 1) * countPerProcess))
+
+				counter++
+				if counter%10 == 0 || isDone {
+					wg.Wait()
+				}
+			}
+		}
+	}
+}
+
 /* First Logic
 func (u *UpdateScadaOemMinutes) getAvgWsForLostEnergy(project, turbine string, oemavgws float64, itime time.Time) (iavgws float64) {
 	iavgws = 0
