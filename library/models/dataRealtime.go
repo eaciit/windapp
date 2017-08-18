@@ -1533,20 +1533,25 @@ func (m *AlarmRawHFD) TableName() string {
 }
 
 type AlarmHFD struct {
-	orm.ModelBase `bson:"-" json:"-"`
-	ID            bson.ObjectId ` bson:"_id" json:"_id" `
-	ProjectName   string
-	Turbine       string
-	TimeStart     time.Time
-	TimeEnd       time.Time
-	DateInfoStart DateInfo
-	DateInfoEnd   DateInfo
-	Duration      float64
-	AlarmCode     int
-	AlarmDesc     string
-	BrakeProgram  int
-	BrakeType     string
-	Finish        int
+	orm.ModelBase      `bson:"-" json:"-"`
+	ID                 bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName        string
+	Turbine            string
+	TimeStart          time.Time
+	TimeEnd            time.Time
+	DateInfoStart      DateInfo
+	DateInfoEnd        DateInfo
+	Duration           float64
+	AlarmCode          int
+	AlarmDesc          string
+	BrakeProgram       int
+	BrakeType          string
+	Finish             int
+	BDGroup            string //grid, machine
+	LastUpdated        time.Time
+	TurbineState       int
+	IsDeleted          bool
+	ReduceAvailability bool
 }
 
 func (m *AlarmHFD) New() *AlarmHFD {

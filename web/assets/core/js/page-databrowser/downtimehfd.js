@@ -98,67 +98,24 @@ dbdhfd.InitDEHFDgrid = function() {
             input:true, 
         },
         columns: [{
-                title: "Time Start",
-                field: "TimeStart",
-                template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-                width: 100,
-                filterable: false
-            },
-
-            {
-                title: "Time End",
-                field: "TimeEnd",
-                template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-                width: 100
-            }, {
-                title: "Grid Down",
-                field: "DownGrid",
-                width: 80,
-                sortable: false,
-                template: '# if (DownGrid == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-                headerAttributes: {
-                    style: "text-align: center"
-                },
-                attributes: {
-                    style: "text-align:center;"
-                }
-            }, {
-                title: "Environment Down",
-                field: "DownEnvironment",
-                width: 80,
-                sortable: false,
-                template: '# if (DownEnvironment == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-                headerAttributes: {
-                    style: "text-align: center"
-                },
-                attributes: {
-                    style: "text-align:center;"
-                }
-            }, {
-                title: "Machine Down",
-                field: "DownMachine",
-                width: 80,
-                sortable: false,
-                template: '# if (DownMachine == true ) { # <img src="../res/img/red-dot.png" /> # } else {# #}#',
-                headerAttributes: {
-                    style: "text-align: center"
-                },
-                attributes: {
-                    style: "text-align:center;"
-                }
-            }, {
                 title: "Turbine",
                 field: "Turbine",
                 attributes: {
                     class: "align-center"
                 },
-                width: 90,
+                width: 70,
                 filterable: false
             }, {
-                title: "Alarm Description",
-                field: "AlarmDescription",
+                title: "Time Start",
+                field: "TimeStart",
+                template: "#= kendo.toString(moment.utc(TimeStart).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
                 width: 100,
                 filterable: false
+            }, {
+                title: "Time End",
+                field: "TimeEnd",
+                template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
+                width: 100
             }, {
                 title: "Duration (hh:mm:ss)",
                 field: "Duration",
@@ -168,9 +125,33 @@ dbdhfd.InitDEHFDgrid = function() {
                     class: "align-center"
                 },
                 filterable: false
+            }, {
+                title: "Break Down Group",
+                field: "BDGroup",
+                width: 100,
+                sortable: false,
+            }, {
+                title: "Turbine State",
+                field: "TurbineState",
+                width: 70,
+                attributes: {
+                    class: "align-center"
+                },
+                filterable: false
+            }, {
+                title: "Alarm Code",
+                field: "AlarmCode",
+                width: 70,
+                 attributes: {
+                    class: "align-center"
+                },
+                filterable: false
+            }, {
+                title: "Alarm Description",
+                field: "AlarmDesc",
+                width: 100,
+                filterable: false
             },
-
-
         ]
     });
     $('#DEHFDgrid').data("kendoGrid").refresh();
