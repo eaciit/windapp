@@ -348,7 +348,7 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 }
 
 func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine tk.M,
-	_itkm *tk.M, tempCondition []tk.M, currentTimeIndia time.Time) {
+	_itkm *tk.M, tempCondition []tk.M) {
 	var redCount, orangeCount, greenCount int
 	timeString := ""
 	keys := ""
@@ -578,7 +578,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		}}, false)
 		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
 		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
-		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{tk.M{"status": false}, tk.M{"projectname": project}}}, true)
 		reapetedAlarm = GetRepeatedAlarm(project, t0)
 
 		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
@@ -638,7 +637,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			if _iTurbine != "" {
 				if pageType == "monitoring" {
 					temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
-						&_itkm, tempCondition, lastUpdateIndia)
+						&_itkm, tempCondition)
 				}
 				alldata = append(alldata, _itkm)
 			}
@@ -797,7 +796,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
 			temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
-				&_itkm, tempCondition, lastUpdateIndia)
+				&_itkm, tempCondition)
 		}
 		alldata = append(alldata, _itkm)
 	}
