@@ -133,6 +133,7 @@ lgd.createDonutChart = function (param) {
 vm.currentMenu('Dashboard');
 vm.currentTitle('Dashboard');
 vm.isDashboard(true);
+vm.isShowDataAvailability(false);
 vm.breadcrumb([{ title: 'Dashboard', href: viewModel.appName + 'page/landing' }, { title: 'Home', href: '#' }]);
 
 $(function () {
