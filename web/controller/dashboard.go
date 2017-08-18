@@ -1478,7 +1478,7 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 	var fromDate time.Time
 	match := tk.M{}
 
-	if p.DateStr == "" && topType != "project" {
+	if p.DateStr == "" || (p.DateStr != "" && topType == "project") {
 		fromDate = p.Date.AddDate(0, -12, 0)
 		if topType != "project" {
 			match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
