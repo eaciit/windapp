@@ -551,9 +551,12 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	tempCondition := []tk.M{}
 	curtailmentTurbine, waitingForWsTurbine, temperatureData, tempNormalData := tk.M{}, tk.M{}, tk.M{}, tk.M{}
+	reapetedAlarm := tk.M{}
+
 	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
 	indiaTime := time.Now().In(indiaLoc)
 	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
+
 	if pageType == "monitoring" {
 		csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
 			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
@@ -575,11 +578,15 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		}}, false)
 		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
 		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
+		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{tk.M{"status": false}, tk.M{"projectname": project}}}, true)
+		reapetedAlarm = GetRepeatedAlarm(project, t0)
+
 		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
 			tk.M{"status": false},
 			tk.M{"projectname": project},
 			tk.M{"timeend": tk.M{"$gte": lastUpdateIndia.Add(time.Hour * time.Duration(-4))}},
 		}}, true)
+
 	}
 
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
@@ -648,6 +655,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("AlarmDesc", "").
 					Set("Status", 1).
 					Set("IsWarning", false).
+					Set("IsReapeatedAlarm", false).
 					Set("AlarmUpdate", time.Time{}).
 					Set("Capacity", turbineMp.GetFloat64("capacity")).
 					Set("ColorStatus", "lbl bg-green").
@@ -673,6 +681,10 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					if _idt.Status == 0 && _itkm.GetInt("DataComing") == 1 {
 						turbinedown += 1
 					}
+				}
+
+				if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
+					_itkm.Set("IsReapeatedAlarm", true)
 				}
 			} else if pageType == "dashboard" {
 				_itkm = tk.M{}.
@@ -818,6 +830,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			Set("IsWarning", false).
 			Set("AlarmUpdate", time.Time{}).
 			Set("DataComing", 0).
+			Set("isbordered", false).
+			Set("IsReapeatedAlarm", false).
 			Set("IconStatus", "fa fa-circle fa-project-info fa-grey").
 			Set("ActivePowerColor", "defaultcolor").
 			Set("TemperatureColor", "defaultcolor").
@@ -1188,6 +1202,50 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 
 	for _, result := range results {
 		res[result.Turbine] = result
+	}
+
+	return
+}
+
+func GetRepeatedAlarm(project string, t0 time.Time) (res tk.M) {
+	res = tk.M{}
+	tscond := time.Date(t0.Year(), t0.Month(), t0.Day(), 0, 0, 0, 0, t0.Location())
+	tecond := tscond.AddDate(0, 0, 1)
+
+	f_orcond := []tk.M{tk.M{"timestart": tk.M{"$gte": tscond}},
+		tk.M{"$and": []tk.M{tk.M{"timeend": tk.M{"$gte": tscond}},
+			tk.M{"timeend": tk.M{"$lt": tecond}}}},
+		tk.M{"finish": 0},
+	}
+
+	filtercond := tk.M{"$and": []tk.M{tk.M{"isdeleted": false},
+		tk.M{"$or": f_orcond},
+		tk.M{"projectname": project}}}
+
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": filtercond})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1}})
+
+	rconn := DBRealtime()
+
+	csr, err := rconn.NewQuery().From("AlarmHFD").
+		Command("pipe", pipes).Cursor(nil)
+
+	if err != nil {
+		return
+	}
+
+	results := make([]tk.M, 0)
+	err = csr.Fetch(&results, 0, false)
+	if err != nil {
+		return
+	}
+	csr.Close()
+
+	for _, result := range results {
+		turb := result.GetString("turbine")
+		icount := res.GetFloat64(turb) + 1
+		res.Set(turb, icount)
 	}
 
 	return
