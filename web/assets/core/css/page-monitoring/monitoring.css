@@ -11,6 +11,11 @@
 .bordered{
       border: 3px solid #2b9a3c;
 }
+
+.bordered-red{
+      border: 3px solid #db1e1e;
+}
+
 .onTop{
     z-index: 10;
 }
@@ -361,6 +366,9 @@ h4.content-heading {
 }
 .fa-green {
   color: #31B445;
+}
+.fa-white {
+  color: #ffffff;
 }
 .fa-red {
   color: #db1e1e;
