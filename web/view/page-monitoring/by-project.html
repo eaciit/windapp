@@ -43,7 +43,7 @@
                             <table class="table table-striped table-monitoring">
                                 <thead>
                                     <tr>
-                                        <th width="80">Turbine</th>
+                                        <th width="85">Turbine</th>
                                         <th width="40" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
                                         <th width="40" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
@@ -60,7 +60,13 @@
                                     </tr>
                                     <tr data-bind="visible:isHeader == false">
                                        <!--  <td class="link-detail"><span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></span></td> -->
-                                       <td class="link-detail"><span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-bind="text:Name"></a></span></span></td>
+                                       <td class="link-detail">
+                                            <spam data-bind="attr: { id: 'linkDetail_'+ Turbine}">
+                                                <span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}">
+                                                    <span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-bind="text:Name"></a></span>
+                                                </span>
+                                            </span>
+                                        </td>
                                         <td align="right"><span data-bind="attr: { class: ActivePowerColor, id: 'power_'+ Turbine }, text: (ActivePower > -999999) ? kendo.toString(ActivePower, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'wind_'+ Turbine, class: WindSpeedColor},text: (WindSpeed > -999999) ? kendo.toString(WindSpeed, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'dir_'+ Turbine}, text: (NacellePosition > -999999) ? kendo.toString(NacellePosition, 'n2') : '-'">-</span></td>
@@ -83,6 +89,7 @@
                         <i class="fa fa-square fa-grey"></i>&nbsp;&nbsp;Data N/A&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-square fa-greenneon"></i>&nbsp;&nbsp;Curtailment of Power&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-square fa-mustard"></i>&nbsp;&nbsp;Waiting for Wind&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-white bordered-red no-padding"></i>&nbsp;&nbsp;Down ≥ 3 times&nbsp;&nbsp;&nbsp;
                     </div>
                 </div>
             </div>

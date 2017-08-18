@@ -334,6 +334,12 @@ bp.PlotData = function(data) {
                 $('#statusturbinedefault_'+turbine).removeClass("bordered");
             }
 
+            if(val.IsReapeatedAlarm == true){
+                $('#linkDetail_'+turbine).addClass("reapeat-alarm");
+            }else{
+                $('#linkDetail_'+turbine).removeClass("reapeat-alarm");
+            }
+
             $('#statusturbinedefault_'+turbine).popover({
                 placement: 'bottom',
                 html: 'true',
