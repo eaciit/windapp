@@ -402,9 +402,26 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 
 	if _itkm.GetString("BulletColor") == "fa fa-circle txt-green" {
 		if tempNormalData.Has(turbine) {
-			if currentTimeIndia.Sub(tempNormalData.Get(turbine, time.Time{}).(time.Time)) < time.Hour*4 {
-				_itkm.Set("BulletColor", "fa fa-circle txt-blink")
+			tkItem := tk.M{}
+			dataNormal, _ := tk.ToM(tempNormalData.Get(turbine))
+			items := dataNormal.Get("items", []interface{}{}).([]interface{})
+			for _, item := range items {
+				tkItem, _ = tk.ToM(item)
+				if tk.TypeName(tkItem.Get("timeend")) == "string" {
+					timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timeend")))
+					if err != nil {
+						tk.Println(err.Error())
+					}
+					timestart = timestart.UTC()
+				} else {
+					timestart = tkItem.Get("timeend", time.Time{}).(time.Time).UTC()
+				}
+				value = tkItem.GetFloat64("value")
+
+				timeString = timestart.Format("02 Jan 06 15:04:05")
+				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f &deg;C<br />(%s)", value, timeString)
 			}
+			_itkm.Set("BulletColor", "fa fa-circle txt-blink")
 		}
 	}
 
@@ -444,7 +461,15 @@ func getDataPerTurbine(tablename string, filter tk.M, isNormal bool) (result tk.
 		pipes = append(pipes, tk.M{"$match": filter})
 	}
 	if isNormal {
-		pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "timemax": tk.M{"$max": "$timeend"}}})
+		pipes = append(pipes, tk.M{"$group": tk.M{
+			"_id":     "$turbine",
+			"timemax": tk.M{"$max": "$timeend"},
+			"items": tk.M{"$push": tk.M{
+				"tags":    "$tags",
+				"timeend": "$timeend",
+				"value":   "$value",
+			}},
+		}})
 	}
 
 	csrData, err := query.Command("pipe", pipes).Cursor(nil)
@@ -459,14 +484,8 @@ func getDataPerTurbine(tablename string, filter tk.M, isNormal bool) (result tk.
 	csrData.Close()
 
 	result = tk.M{}
-	if isNormal {
-		for _, val := range data {
-			result[val.GetString("_id")] = val.Get("timemax", time.Time{}).(time.Time)
-		}
-	} else {
-		for _, val := range data {
-			result[val.GetString("_id")] = val
-		}
+	for _, val := range data {
+		result[val.GetString("_id")] = val
 	}
 
 	return
@@ -532,6 +551,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	tempCondition := []tk.M{}
 	curtailmentTurbine, waitingForWsTurbine, temperatureData, tempNormalData := tk.M{}, tk.M{}, tk.M{}, tk.M{}
+	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
+	indiaTime := time.Now().In(indiaLoc)
+	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
 	if pageType == "monitoring" {
 		csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
 			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
@@ -546,15 +568,19 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		}
 		csrTemp.Close()
 
-		curtailmentTurbine = getDataPerTurbine("_curtailmentduration", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"show": true}, tk.M{"projectname": project}}}, false)
+		curtailmentTurbine = getDataPerTurbine("_curtailmentduration", tk.M{"$and": []tk.M{
+			tk.M{"status": true},
+			tk.M{"show": true},
+			tk.M{"projectname": project},
+		}}, false)
 		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
 		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
-		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{tk.M{"status": false}, tk.M{"projectname": project}}}, true)
+		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+			tk.M{"status": false},
+			tk.M{"projectname": project},
+			tk.M{"timeend": tk.M{"$gte": lastUpdateIndia.Add(time.Hour * time.Duration(-4))}},
+		}}, true)
 	}
-
-	indiaLoc, _ := time.LoadLocation("Asia/Kolkata")
-	indiaTime := lastUpdate.In(indiaLoc)
-	lastUpdateIndia := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
 
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
 
@@ -807,6 +833,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 		alldata = append(alldata, _itkm)
 	}
+
+	indiaTime = lastUpdate.In(indiaLoc)
+	lastUpdateIndia = time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
 
 	if pageType == "monitoring" {
 		turbineactive := len(_result) - turbinedown - turbnotavail
