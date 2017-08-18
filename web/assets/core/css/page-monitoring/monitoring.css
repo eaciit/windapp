@@ -923,7 +923,12 @@ h4.content-heading {
     background-color: #455a64;
     border: 2px solid #555555;
 }
-
+.reapeat-alarm{
+    border: 2px solid #db1e1e;
+    padding-bottom: 3px;
+    padding-left: 2px;
+    padding-right: 2px;
+}
 *:fullscreen
 *:-ms-fullscreen,
 *:-webkit-full-screen,
