@@ -396,15 +396,15 @@ func CreateResultX(success bool, data interface{}, message string, r *knot.WebCo
 	if toolkit.ToString(sessionid) == "" {
 		// if !success && data == nil && !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
 		if !strings.Contains(WC.Request.URL.String(), "login/processlogin") {
-			dataX := struct {
-				Data []toolkit.M
-			}{
-				Data: []toolkit.M{},
-			}
+			// dataX := struct {
+			// 	Data []toolkit.M
+			// }{
+			// 	Data: []toolkit.M{},
+			// }
 
-			data = dataX
-			success = false
-			message = "Your session has expired, please login"
+			// data = dataX
+			// success = false
+			// message = "Your session has expired, please login"
 		}
 	} else {
 		if !success && data == nil {
