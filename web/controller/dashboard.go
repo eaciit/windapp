@@ -928,6 +928,9 @@ func (m *DashboardController) GetDowntimeTop(k *knot.WebContext) interface{} {
 			result.Set("duration", getTurbineDownTimeTop("duration", p))
 			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
 		}
+		if p.Type == "project" {
+			result.Set(p.Type, getTurbineDownTimeTop(p.Type, p))
+		}
 		result.Set("loss", getTurbineDownTimeTop("loss", p))
 	}
 	return helper.CreateResult(true, result, "success")
@@ -1493,6 +1496,8 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": 1}}})
 		} else if topType == "loss" {
 			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
+		} else if topType == "project" {
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$projectname", "result": tk.M{"$sum": "$detail.powerlost"}}})
 		}
 
 		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
@@ -1528,8 +1533,9 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 			turbines = append(turbines, turbine.Get("_id").(string))                   /*untuk turbine list*/
 			turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result")) /*untuk total list tiap turbine*/
 		}
-
-		match.Set("turbine", tk.M{"$in": turbines})
+		if topType != "project" {
+			match.Set("turbine", tk.M{"$in": turbines})
+		}
 
 		downCause := tk.M{}
 		// downCause.Set("aebok", "AEBOK")
@@ -1579,6 +1585,14 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 				pipes = append(pipes,
 					tk.M{
 						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
+							"result": tk.M{"$sum": "$detail.powerlost"},
+						},
+					},
+				)
+			} else if topType == "project" {
+				pipes = append(pipes,
+					tk.M{
+						"$group": tk.M{"_id": tk.M{"id3": "$projectname", "id4": title},
 							"result": tk.M{"$sum": "$detail.powerlost"},
 						},
 					},
@@ -1640,7 +1654,11 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 		turbineName, _ := helper.GetTurbineNameList(project)
 		for _, turbine := range turbines {
 			resVal := tk.M{}
-			resVal.Set("_id", turbineName[turbine])
+			if topType != "project" {
+				resVal.Set("_id", turbineName[turbine])
+			} else {
+				resVal.Set("_id", turbine)
+			}
 
 			for _, val := range resY {
 				valTurbine := val.Get("_id").(tk.M).GetString("id3")
