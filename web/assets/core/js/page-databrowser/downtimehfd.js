@@ -22,6 +22,10 @@ dbdhfd.InitDEHFDgrid = function() {
     var param = {"misc": misc}
     
     var filters = [{
+        field: "isdeleted",
+        operator: "eq",
+        value: false
+    },{
         field: "timestart",
         operator: "gte",
         value: fa.dateStart
@@ -126,30 +130,40 @@ dbdhfd.InitDEHFDgrid = function() {
                 },
                 filterable: false
             }, {
-                title: "Break Down Group",
+                title: "BreakDown Group",
                 field: "BDGroup",
-                width: 100,
+                width: 90,
                 sortable: false,
-            }, {
-                title: "Turbine State",
-                field: "TurbineState",
-                width: 70,
-                attributes: {
-                    class: "align-center"
-                },
+            }, 
+            // {
+            //     title: "Turbine State",
+            //     field: "TurbineState",
+            //     width: 70,
+            //     attributes: {
+            //         class: "align-center"
+            //     },
+            //     filterable: false
+            // }, {
+            //     title: "Alarm Code",
+            //     field: "AlarmCode",
+            //     width: 70,
+            //      attributes: {
+            //         class: "align-center"
+            //     },
+            //     filterable: false
+            // }, 
+            {
+                title: "Alarm Description",
+                field: "AlarmDesc",
+                width: 190,
                 filterable: false
-            }, {
-                title: "Alarm Code",
-                field: "AlarmCode",
+            },{
+                title: "Reduce Availability",
+                field: "ReduceAvailability",
                 width: 70,
                  attributes: {
                     class: "align-center"
                 },
-                filterable: false
-            }, {
-                title: "Alarm Description",
-                field: "AlarmDesc",
-                width: 100,
                 filterable: false
             },
         ]
