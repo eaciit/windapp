@@ -55,6 +55,25 @@ dbr.unselectedColumn = ko.observableArray([]);
 dbr.ColumnList = ko.observableArray([]);
 dbr.ColList = ko.observableArray([]);
 dbr.defaultSelectedColumn = ko.observableArray();
+dbr.columnMustHaveHFD = [{
+    _id: "timestamp",
+    label: "TimeStamp",
+    source: "ScadaDataHFD",
+}, {
+    _id: "turbine",
+    label: "Turbine",
+    source: "ScadaDataHFD",
+}];
+
+dbr.columnMustHaveOEM = [{
+    _id: "timestamp",
+    label: "TimeStamp",
+    source: "ScadaDataOEM",
+}, {
+    _id: "turbine",
+    label: "Turbine",
+    source: "ScadaDataOEM",
+}];
 
 dbr.ShowHideColumnScada = function(gridID, field, id, index) {
     if ($('#' + id).is(":checked")) {
@@ -532,10 +551,9 @@ function DataBrowserExporttoExcel(functionName) {
         tipe: functionName,
         "period": fa.period,
     }
-
-    var columnList = dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn();
+    var columnList = dbr.columnMustHaveOEM.concat(dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn());
     if (functionName == "ScadaHFDCustom") {
-        columnList = dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn();
+        columnList = dbr.columnMustHaveHFD.concat(dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn());
     }
 
     var param = {
@@ -614,12 +632,12 @@ $(document).ready(function() {
     });
 
     setTimeout(function() {
+        dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
+        dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
         fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
-        dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 30));
-        dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 30));
     }, 1000);
 
     $('#projectList').kendoDropDownList({
