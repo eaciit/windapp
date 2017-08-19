@@ -330,7 +330,14 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Slow_TempGearBoxIMSDE", "Slow_TempGearBoxOilSump", "Slow_TempGearBoxIMSNDE", "Slow_TempGeneratorBearingDE", "Slow_TempGeneratorBearingNDE",
 		"Slow_TempHubBearing", "Slow_TempG1L1", "Slow_TempG1L2", "Slow_TempG1L3", "Slow_TempBottomControlSection", "Slow_TempConv1",
 		"Slow_TempConv2", "Slow_TempConv3", "Fast_PitchAccuV1", "Fast_PitchAccuV2", "Fast_PitchAccuV3", "Fast_PowerFactor",
-		"Fast_Total_Prod_Day_kWh"}
+		"Fast_Total_Prod_Day_kWh",
+		"Fast_ActivePower_kW_Count", "Fast_WindSpeed_ms_Count", "Slow_NacellePos_Count", "Slow_WindDirection_Count",
+		"Fast_PitchAngle_Count", "Fast_PitchAngle1_Count", "Fast_PitchAngle2_Count", "Fast_PitchAngle3_Count", "Fast_GenSpeed_RPM_Count", "Fast_RotorSpeed_RPM_Count",
+		"Fast_ReactivePower_kVAr_Count", "Fast_Frequency_Hz_Count", "Slow_TempOutdoor_Count", "Slow_TempNacelle_Count", "Slow_TempGearBoxHSSNDE_Count", "Slow_TempGearBoxHSSDE_Count",
+		"Slow_TempGearBoxIMSDE_Count", "Slow_TempGearBoxOilSump_Count", "Slow_TempGearBoxIMSNDE_Count", "Slow_TempGeneratorBearingDE_Count", "Slow_TempGeneratorBearingNDE_Count",
+		"Slow_TempHubBearing_Count", "Slow_TempG1L1_Count", "Slow_TempG1L2_Count", "Slow_TempG1L3_Count", "Slow_TempBottomControlSection_Count", "Slow_TempConv1_Count",
+		"Slow_TempConv2_Count", "Slow_TempConv3_Count", "Fast_PitchAccuV1_Count", "Fast_PitchAccuV2_Count", "Fast_PitchAccuV3_Count", "Fast_PowerFactor_Count",
+		"Fast_Total_Prod_Day_kWh_Count"}
 
 	headerResult = []string{"TimeStamp", "Turbine", "Active Power", "Wind Speed", "Nacelle Pos", "Wind Direction",
 		"Pitch Angle", "Pitch Angle1", "Pitch Angle2", "Pitch Angle3", "Generator Speed", "Rotor Speed",
@@ -338,7 +345,14 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Temp GearBox IMS DE", "Temp GearBox Oil Sump", "Temp GearBox IMS NDE", "Temp Generator Bearing DE", "Temp Generator Bearing NDE",
 		"Temp Main Bearing", "Temp G1L1", "Temp G1L2", "Temp G1L3", "Temp Bottom Control Section", "Temp Conv1",
 		"Temp Conv2", "Temp Conv3", "Pitch Accu V1", "Pitch Accu V2", "Pitch Accu V3", "Power Factor",
-		"Total Production Day"}
+		"Total Production Day",
+		"Active Power Count", "Wind Speed Count", "Nacelle Pos Count", "Wind Direction Count",
+		"Pitch Angle Count", "Pitch Angle1 Count", "Pitch Angle2 Count", "Pitch Angle3 Count", "Generator Speed Count", "Rotor Speed Count",
+		"Reactive Power Count", "Frequency Grid Count", "Ambient Temp Count", "Temp Nacelle Count", "Temp GearBox HSS NDE Count", "Temp GearBox HSS DE Count",
+		"Temp GearBox IMS DE Count", "Temp GearBox Oil Sump Count", "Temp GearBox IMS NDE Count", "Temp Generator Bearing DE Count", "Temp Generator Bearing NDE Count",
+		"Temp Main Bearing Count", "Temp G1L1 Count", "Temp G1L2 Count", "Temp G1L3 Count", "Temp Bottom Control Section Count", "Temp Conv1 Count",
+		"Temp Conv2 Count", "Temp Conv3 Count", "Pitch Accu V1 Count", "Pitch Accu V2 Count", "Pitch Accu V3 Count", "Power Factor Count",
+		"Total Production Day Count"}
 
 	return
 }

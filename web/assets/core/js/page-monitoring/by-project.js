@@ -7,6 +7,7 @@ var bp = viewModel.ByProject;
 
 vm.currentMenu('By Project');
 vm.currentTitle('By Project');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'By Project', href: viewModel.appName + 'page/monitoringbyproject' }]);
@@ -333,6 +334,12 @@ bp.PlotData = function(data) {
                 $('#statusturbinedefault_'+turbine).removeClass("bordered");
             }
 
+            if(val.IsReapeatedAlarm == true){
+                $('#linkDetail_'+turbine).addClass("reapeat-alarm");
+            }else{
+                $('#linkDetail_'+turbine).removeClass("reapeat-alarm");
+            }
+
             $('#statusturbinedefault_'+turbine).popover({
                 placement: 'bottom',
                 html: 'true',
@@ -399,6 +406,29 @@ bp.resetFeeders = function(){
     bp.oldFeeders([])
 }
 
+bp.setFullScreen = function(){
+    if ((document.fullScreenElement && document.fullScreenElement !== null) || (!document.mozFullScreen && !document.webkitIsFullScreen)) {
+        bp.fullscreen(true);
+        if (document.documentElement.requestFullScreen) {
+            document.documentElement.requestFullScreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullScreen) {
+            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    } else {
+
+        bp.fullscreen(false);
+        if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+        }
+    }
+}
+
 $(function() {
     app.loading(true);
 
@@ -420,7 +450,7 @@ $(function() {
     });
 
     $("#max-screen").click(function(){
-        bp.fullscreen(true);
+        bp.setFullScreen();
         $("html").addClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 80);
         $(".multicol").height($(window).innerHeight() - 80 - 25);
@@ -430,7 +460,7 @@ $(function() {
     });
 
     $("#restore-screen").click(function(){
-        bp.fullscreen(false);
+        bp.setFullScreen();
         $("html").removeClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);
