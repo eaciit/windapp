@@ -161,7 +161,8 @@ dbdhfd.InitDEHFDgrid = function() {
                 title: "Reduce Availability",
                 field: "ReduceAvailability",
                 width: 70,
-                 attributes: {
+                template: '# if (ReduceAvailability == true ) { # Yes # } else {# No #}#',
+                attributes: {
                     class: "align-center"
                 },
                 filterable: false
