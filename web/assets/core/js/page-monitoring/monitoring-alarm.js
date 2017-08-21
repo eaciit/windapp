@@ -12,6 +12,7 @@ ma.maxDateRet = new Date();
 
 vm.currentMenu('Alarm Data');
 vm.currentTitle('Alarm Data');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Alarm Data', href: viewModel.appName + 'page/monitoringalarm' }]);
@@ -76,6 +77,104 @@ ma.CreateGridAlarm = function(gridType, param) {
         gridName = "#warningGrid"
         nameFile = "Monitoring Alarm Warning";
     }
+
+    if(gridType == "alarmraw"){
+        gridName = "#alarmRawGrid"
+        nameFile = "Monitoring Alarm Raw";
+    }
+
+    var url = viewModel.appName + "monitoringrealtime/getdataalarm";
+
+    var columns = [{
+            field: "Turbine",
+            title: "Turbine",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90
+        }, {
+            field: "TimeStart",
+            title: "Time Start",
+            width: 170,
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStart).format('HH:mm:ss')#"
+        }, {
+            field: "TimeEnd",
+            title: "Time End",
+            width: 170,
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
+        }, {
+            field: "Duration",
+            title: "Duration (hh:mm:ss)",
+             width: 120,
+             attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= time(data.Duration) #"
+        }, {
+            field: "AlarmCode",
+            title: "Alarm Code",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90,
+        }, {
+            field: "AlarmDesc",
+            title: "Description",
+            width: 330
+        }];
+
+    if(gridType == "alarmraw"){
+        columns = [{
+            field: "ProjectName",
+            title: "Project Name",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 100
+        }, {
+            field: "Turbine",
+            title: "Turbine",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 120
+        }, {
+            field: "Timestamp",
+            title: "Timestamp",
+            width: 170,
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= time(data.Timestamp)#"
+        }, {
+            field: "Tag",
+            title: "Tag",
+             width: 120,
+             attributes: {
+                style: "text-align:center;"
+            },
+        }, {
+            field: "Value",
+            title: "Value",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 120,
+            template: "#= kendo.toString(data.Timestamp,'n2') #"
+        }, {
+            field: "Note",
+            title: "Note",
+            width: 250
+        }];
+    }
+
+
     $(gridName).html('');
     $(gridName).kendoGrid({
         dataSource: {
@@ -83,7 +182,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             serverSorting: true,
             transport: {
                 read: {
-                    url: viewModel.appName + "monitoringrealtime/getdataalarm",
+                    url: url,
                     type: "POST",
                     data: param,
                     dataType: "json",
@@ -140,49 +239,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             pageSizes: true,
             buttonCount: 5
         },
-        columns: [{
-            field: "Turbine",
-            title: "Turbine",
-            attributes: {
-                style: "text-align:center;"
-            },
-            width: 90
-        }, {
-            field: "TimeStart",
-            title: "Time Start",
-            width: 170,
-            attributes: {
-                style: "text-align:center;"
-            },
-            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStart).format('HH:mm:ss')#"
-        }, {
-            field: "TimeEnd",
-            title: "Time End",
-            width: 170,
-            attributes: {
-                style: "text-align:center;"
-            },
-            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
-        }, {
-            field: "Duration",
-            title: "Duration (hh:mm:ss)",
-             width: 120,
-             attributes: {
-                style: "text-align:center;"
-            },
-            template: "#= time(data.Duration) #"
-        }, {
-            field: "AlarmCode",
-            title: "Alarm Code",
-            attributes: {
-                style: "text-align:center;"
-            },
-            width: 90,
-        }, {
-            field: "AlarmDesc",
-            title: "Description",
-            width: 330
-        }]
+        columns: columns
     });
 };
 
