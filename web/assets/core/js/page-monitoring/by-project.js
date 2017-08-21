@@ -44,7 +44,7 @@ bp.fullscreen = ko.observable(false);
 bp.currentTempLocation = ko.observable();
 
 var audioElement = document.createElement('audio');
-    audioElement.setAttribute('src', 'http://www.soundjay.com/misc/sounds/bell-ringing-01.mp3');
+    audioElement.setAttribute('src', "../res/alarm/alarm.mp3");
     
     audioElement.addEventListener('ended', function() {
         this.play();
