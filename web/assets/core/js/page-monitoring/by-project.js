@@ -224,6 +224,7 @@ bp.GetData = function(data) {
 
 bp.PlotData = function(data) {
     audioElement.currentTime = 0;
+    audioElement.pause();
     var allData = data.Detail
     var oldData = (bp.oldFeeders().length == 0 ? allData : bp.oldFeeders());
     var lastUpdate = moment.utc(data.TimeMax);
