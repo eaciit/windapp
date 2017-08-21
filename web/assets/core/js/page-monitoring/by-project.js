@@ -42,6 +42,14 @@ bp.newFeeders = ko.observableArray([]);
 bp.oldFeeders = ko.observableArray([]);
 bp.fullscreen = ko.observable(false);
 bp.currentTempLocation = ko.observable();
+
+var audioElement = document.createElement('audio');
+    audioElement.setAttribute('src', 'http://www.soundjay.com/misc/sounds/bell-ringing-01.mp3');
+    
+    audioElement.addEventListener('ended', function() {
+        this.play();
+    }, false);
+
 // var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
 var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
 
@@ -215,6 +223,7 @@ bp.GetData = function(data) {
 };
 
 bp.PlotData = function(data) {
+    audioElement.currentTime = 0;
     var allData = data.Detail
     var oldData = (bp.oldFeeders().length == 0 ? allData : bp.oldFeeders());
     var lastUpdate = moment.utc(data.TimeMax);
@@ -240,6 +249,12 @@ bp.PlotData = function(data) {
                 window.setTimeout(function(){ 
                     $('#power_'+ turbine).css('background-color', 'transparent');
                 }, 750);
+
+                if($('#statusturbine_'+ turbine).attr('class') == "lbl bg-green" && val.ColorStatus == "lbl bg-red"){
+                    audioElement.play();
+                }else{
+                    audioElement.pause();
+                }
                 
             }
             if(val.WindSpeed > -999999) {
