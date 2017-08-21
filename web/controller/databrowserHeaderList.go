@@ -5,9 +5,7 @@ import (
 )
 
 func GetScadaOEMHeader() (headerResult []string, fieldResult []string) {
-	oldHeader := `TimeStamp
-Turbine
-AI intern ActivPower
+	oldHeader := `AI intern ActivPower
 AI intern WindSpeed
 AI intern NacellePos
 AI intern WindDirection
@@ -155,9 +153,7 @@ AI YawBrake TempRise3
 AI YawBrake TempRise4
 AI intern NacelleDrill at NorthPosSensor`
 
-	newHeader := `TimeStamp
-Turbine
-Active Power
+	newHeader := `Active Power
 Wind Speed
 Nacelle Pos
 Wind Direction
@@ -324,7 +320,7 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 	// 	"TempConv2", "TempConv3", "PitchAccuV1", "PitchAccuV2", "PitchAccuV3", "PowerFactor",
 	// 	"Total_Prod_Day_kWh"}
 
-	fieldResult = []string{"TimeStamp", "Turbine", "Fast_ActivePower_kW", "Fast_WindSpeed_ms", "Slow_NacellePos", "Slow_WindDirection",
+	fieldResult = []string{"Fast_ActivePower_kW", "Fast_WindSpeed_ms", "Slow_NacellePos", "Slow_WindDirection",
 		"Fast_PitchAngle", "Fast_PitchAngle1", "Fast_PitchAngle2", "Fast_PitchAngle3", "Fast_GenSpeed_RPM", "Fast_RotorSpeed_RPM",
 		"Fast_ReactivePower_kVAr", "Fast_Frequency_Hz", "Slow_TempOutdoor", "Slow_TempNacelle", "Slow_TempGearBoxHSSNDE", "Slow_TempGearBoxHSSDE",
 		"Slow_TempGearBoxIMSDE", "Slow_TempGearBoxOilSump", "Slow_TempGearBoxIMSNDE", "Slow_TempGeneratorBearingDE", "Slow_TempGeneratorBearingNDE",
@@ -339,7 +335,7 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Slow_TempConv2_Count", "Slow_TempConv3_Count", "Fast_PitchAccuV1_Count", "Fast_PitchAccuV2_Count", "Fast_PitchAccuV3_Count", "Fast_PowerFactor_Count",
 		"Fast_Total_Prod_Day_kWh_Count"}
 
-	headerResult = []string{"TimeStamp", "Turbine", "Active Power", "Wind Speed", "Nacelle Pos", "Wind Direction",
+	headerResult = []string{"Active Power", "Wind Speed", "Nacelle Pos", "Wind Direction",
 		"Pitch Angle", "Pitch Angle1", "Pitch Angle2", "Pitch Angle3", "Generator Speed", "Rotor Speed",
 		"Reactive Power", "Frequency Grid", "Ambient Temp", "Temp Nacelle", "Temp GearBox HSS NDE", "Temp GearBox HSS DE",
 		"Temp GearBox IMS DE", "Temp GearBox Oil Sump", "Temp GearBox IMS NDE", "Temp Generator Bearing DE", "Temp Generator Bearing NDE",
