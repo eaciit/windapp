@@ -73,6 +73,9 @@ ma.CreateGridAlarm = function(gridType, param) {
     var dt = new Date();
     var time = dt.getHours() + "" + dt.getMinutes() + "" + dt.getSeconds();
     var nameFile = "Monitoring Alarm Down_"+ moment(new Date()).format("Y-M-D")+"_"+time;
+    var defaultsort = [ { field: "TimeStart", dir: "desc" }, { field: "TimeEnd", dir: "asc" } ]
+    var url = viewModel.appName + "monitoringrealtime/getdataalarm";
+
     if(gridType == "warning") {
         gridName = "#warningGrid"
         nameFile = "Monitoring Alarm Warning";
@@ -81,9 +84,9 @@ ma.CreateGridAlarm = function(gridType, param) {
     if(gridType == "alarmraw"){
         gridName = "#alarmRawGrid"
         nameFile = "Monitoring Alarm Raw";
+        url = viewModel.appName + "monitoringrealtime/getdataalarmrawhfd";
+        defaultsort = [ { field: "TimeStamp", dir: "desc" } ]
     }
-
-    var url = viewModel.appName + "monitoringrealtime/getdataalarm";
 
     var columns = [{
             field: "Turbine",
@@ -131,13 +134,6 @@ ma.CreateGridAlarm = function(gridType, param) {
 
     if(gridType == "alarmraw"){
         columns = [{
-            field: "ProjectName",
-            title: "Project Name",
-            attributes: {
-                style: "text-align:center;"
-            },
-            width: 100
-        }, {
             field: "Turbine",
             title: "Turbine",
             attributes: {
@@ -145,13 +141,13 @@ ma.CreateGridAlarm = function(gridType, param) {
             },
             width: 120
         }, {
-            field: "Timestamp",
+            field: "TimeStamp",
             title: "Timestamp",
             width: 170,
             attributes: {
                 style: "text-align:center;"
             },
-            template: "#= time(data.Timestamp)#"
+            template: "#= moment.utc(data.TimeStamp).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStamp).format('HH:mm:ss')#"
         }, {
             field: "Tag",
             title: "Tag",
@@ -166,9 +162,9 @@ ma.CreateGridAlarm = function(gridType, param) {
                 style: "text-align:center;"
             },
             width: 120,
-            template: "#= kendo.toString(data.Timestamp,'n2') #"
+            // template: "#= kendo.toString(data.Timestamp,'n2') #"
         }, {
-            field: "Note",
+            field: "AddInfo",
             title: "Note",
             width: 250
         }];
@@ -219,10 +215,7 @@ ma.CreateGridAlarm = function(gridType, param) {
                 }
             },
             pageSize: 10,
-            sort: [
-                { field: "TimeStart", dir: "desc" },
-                { field: "TimeEnd", dir: "asc" }
-            ],
+            sort: defaultsort,
         },
         toolbar: ["excel"],
         excel: {
@@ -319,8 +312,10 @@ $(document).ready(function(){
         fa.checkTurbine();
         if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Down") {
             ma.CreateGrid("alarm");
-        } else {
+        } else if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Warning") {
             ma.CreateGrid("warning");
+        }else{
+            ma.CreateGrid("alarmraw");
         }
     });
 

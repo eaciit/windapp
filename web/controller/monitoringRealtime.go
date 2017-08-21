@@ -989,6 +989,112 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	return helper.CreateResultX(true, retData, "success", k)
 }
 
+func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+
+	type MyPayloads struct {
+		Turbine   []interface{}
+		DateStart time.Time
+		DateEnd   time.Time
+		Skip      int
+		Take      int
+		Sort      []Sorting
+		Project   string
+		Period    string
+		Tipe      string
+	}
+
+	type Sorting struct {
+		Field string
+		Dir   string
+	}
+
+	p := new(MyPayloads)
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResultX(false, nil, e.Error(), k)
+	}
+
+	tablename := new(AlarmRawHFD).TableName()
+
+	dfilter := []*dbox.Filter{}
+	dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
+	dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
+	if len(p.Turbine) > 0 {
+		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
+	}
+
+	rconn := DBRealtime()
+	csr, err := rconn.NewQuery().From(tablename).
+		// Aggr(dbox.AggrSum, "$duration", "duration").
+		Aggr(dbox.AggrSum, 1, "countdata").
+		Group("projectname").
+		Where(dbox.And(dfilter...)).Cursor(nil)
+
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+	defer csr.Close()
+
+	tkmgroup := tk.M{}
+	_ = csr.Fetch(&tkmgroup, 1, false)
+
+	totalData := tkmgroup.GetInt("countdata")
+	totalDuration := tkmgroup.GetInt("duration")
+
+	query := rconn.NewQuery().From(tablename).
+		Where(dbox.And(dfilter...)).
+		// Order("-timestart").
+		Skip(p.Skip).Take(p.Take)
+
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+			}
+		}
+		query = query.Order(arrsort...)
+	} else {
+		query = query.Order("-timestamp")
+	}
+	csr, err = query.Cursor(nil)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+	defer csr.Close()
+
+	results := make([]AlarmRawHFD, 0)
+	err = csr.Fetch(&results, 0, false)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+	for idx, val := range results {
+		results[idx].Turbine = turbineName[val.Turbine]
+	}
+
+	retData := tk.M{}.Set("Data", results).
+		Set("Total", totalData).
+		Set("Duration", totalDuration).
+		Set("mindate", tStart.UTC()).
+		Set("maxdate", tEnd.UTC())
+
+	return helper.CreateResultX(true, retData, "success", k)
+}
+
 func (c *MonitoringRealtimeController) GetDataAlarmAvailDate(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true

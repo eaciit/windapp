@@ -1508,23 +1508,25 @@ func (m *TurbineStatus) TableName() string {
 
 type AlarmRawHFD struct {
 	orm.ModelBase `bson:"-" json:"-"`
-	ID            bson.ObjectId ` bson:"_id" json:"_id" `
+	ID            string ` bson:"_id" json:"_id" `
 	ProjectName   string
 	Turbine       string
-	Time          time.Time
+	TimeStamp     time.Time
 	DateInfo      DateInfo
-	AlarmCode     int
-	AlarmDesc     string
-	BrakeProgram  int
-	BrakeType     string
+	Tag           string
+	Value         float64
+	AddInfo       string
 }
 
 func (m *AlarmRawHFD) New() *AlarmRawHFD {
-	m.ID = bson.NewObjectId()
+	m.ID = fmt.Sprintf("%s_%s_%s_%s_%.2f", m.ProjectName, m.Turbine, m.TimeStamp.UTC().Format("20060102150405"), m.Tag, m.Value)
 	return m
 }
 
 func (m *AlarmRawHFD) RecordID() interface{} {
+	if m.ID == "" {
+		m.ID = fmt.Sprintf("%s_%s_%s_%s_%.2f", m.ProjectName, m.Turbine, m.TimeStamp.UTC().Format("20060102150405"), m.Tag, m.Value)
+	}
 	return m.ID
 }
 
