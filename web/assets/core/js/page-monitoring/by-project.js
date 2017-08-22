@@ -328,7 +328,7 @@ bp.PlotData = function(data) {
 
             var comparison = 0;
             $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
-            var tes = val.ActivePower / val.Capacity;
+            
             
             if((val.ActivePower / val.Capacity) > 0){
                 comparison = (val.ActivePower / val.Capacity) * 70;
