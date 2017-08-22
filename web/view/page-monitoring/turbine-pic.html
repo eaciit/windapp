@@ -826,7 +826,7 @@
   <!-- PITCH SYSTEM PART -->
   <circle class="cls-67" cx="123.01" cy="8.47" r="4"/>
   <polyline class="cls-68" points="117.01 175.12 95.3 8.49 119.03 8.49"/>
-  <text class="cls-69" transform="translate(130.95 14.57)">PITCH SYSTEM</text>
+  <text class="cls-69" data-bind="text:it.pitch_angle()" transform="translate(130.95 14.57)"></text>
   <text class="table-header" transform="translate(131.82 38.85)">Blade</text>
    <text class="table-header" transform="translate(170.82 38.85)">Pitch Agl</text>
   <text class="table-header" transform="translate(225.82 38.85)">Volt Batt</text>
@@ -882,8 +882,7 @@
   <text data-bind="text:'Driven: '+it.temp_gear_driven()" class="cls-70" transform="translate(11.12 404.84)"></text>
   <text data-bind="text:'Non Driven: '+it.temp_gear_non_driven()" class="cls-70" transform="translate(11.12 421.84)"></text>
   <!-- <text data-bind="text:'Inter Driven: '+it.temp_gear_inter_driven()" class="cls-70" transform="translate(11.12 438.84)"></text> -->
-<!--   <text data-bind="text:'Inter Non Driven: '+it.temp_gear_inter_non_driven()" class="cls-70" transform="translate(11.12 455.84)"></text>
-  <text data-bind="text:'Oil: '+it.temp_gear_oil()" class="cls-70" transform="translate(11.12 472.84)"></text> -->
+<!-- <text data-bind="text:'Oil: '+it.temp_gear_oil()" class="cls-70" transform="translate(11.12 472.84)"></text> -->
   <text data-bind="text:'Inter Non Driven: '+it.temp_gear_inter_non_driven()" class="cls-70" transform="translate(11.12 438.84)"></text>
   <text data-bind="text:'Oil: '+it.temp_gear_oil()" class="cls-70" transform="translate(11.12 455.84)"></text>
 </svg>

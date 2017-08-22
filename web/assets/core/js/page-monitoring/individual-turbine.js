@@ -178,6 +178,7 @@ it.windspeed_avg = ko.observable('');
 it.wind_dir = ko.observable('');
 it.nacel_dir = ko.observable('');
 it.gen_rpm = ko.observable('');
+it.pitch_angle = ko.observable('');
 it.blade_angle1 = ko.observable('');
 it.blade_angle2 = ko.observable('');
 it.blade_angle3 = ko.observable('');
@@ -283,6 +284,10 @@ it.PlotData = function(data) {
     if(data["Blade Angle 3"] != -999999)
         it.blade_angle3(data["Blade Angle 3"].toFixed(2));
     else it.blade_angle3('N/A');
+
+    if(data["Pitch Angle"] != -999999)
+        it.pitch_angle("PITCH SYSTEM ("+data["Pitch Angle"].toFixed(2)+")");
+    else it.pitch_angle('PITCH SYSTEM');
 
     /*VOLT BATTERY BLADE PART*/
     if(data["Volt. Battery - blade 1"] != -999999)
