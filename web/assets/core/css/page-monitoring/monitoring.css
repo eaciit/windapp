@@ -8,6 +8,18 @@
     to   { background: default; }
 }
 
+.icon-turbine {
+  float:left;
+  width:50%;
+  text-align: left;
+  padding-left: 25px;
+}
+.value-turbine{
+  float:right;
+  width:50%;
+  text-align: right;
+  padding-right: 15px;
+}
 .bordered{
       border: 3px solid #2b9a3c;
 }
