@@ -230,7 +230,15 @@ var Data = {
                 });
                 var grid1 = $('#columnListHFD').data('kendoGrid');
                 var grid2 = $('#selectedListHFD').data('kendoGrid');
-                dbr.gridMoveTo(grid2, grid1, false);
+
+                var dataSource = grid2.dataSource;
+                var recordsOnCurrentView = dataSource.view().length;
+                
+                if(recordsOnCurrentView == 30){
+                    app.showError("Max. 30 Columns")
+                }else{
+                    dbr.gridMoveTo(grid1, grid2, false);
+                }
             },
         });
     }
@@ -591,6 +599,7 @@ dbr.exportToExcel = function(idGrid){
 
 vm.currentMenu('Data Browser');
 vm.currentTitle('Data Browser');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([{
     title: 'Data Browser',
     href: viewModel.appName + 'page/databrowser'
