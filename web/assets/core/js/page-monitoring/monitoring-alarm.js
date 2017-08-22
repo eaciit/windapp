@@ -12,6 +12,7 @@ ma.maxDateRet = new Date();
 
 vm.currentMenu('Alarm Data');
 vm.currentTitle('Alarm Data');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Alarm Data', href: viewModel.appName + 'page/monitoringalarm' }]);
@@ -72,75 +73,22 @@ ma.CreateGridAlarm = function(gridType, param) {
     var dt = new Date();
     var time = dt.getHours() + "" + dt.getMinutes() + "" + dt.getSeconds();
     var nameFile = "Monitoring Alarm Down_"+ moment(new Date()).format("Y-M-D")+"_"+time;
+    var defaultsort = [ { field: "TimeStart", dir: "desc" }, { field: "TimeEnd", dir: "asc" } ]
+    var url = viewModel.appName + "monitoringrealtime/getdataalarm";
+
     if(gridType == "warning") {
         gridName = "#warningGrid"
         nameFile = "Monitoring Alarm Warning";
     }
-    $(gridName).html('');
-    $(gridName).kendoGrid({
-        dataSource: {
-            serverPaging: true,
-            serverSorting: true,
-            transport: {
-                read: {
-                    url: viewModel.appName + "monitoringrealtime/getdataalarm",
-                    type: "POST",
-                    data: param,
-                    dataType: "json",
-                    contentType: "application/json; charset=utf-8",
-                },
-                parameterMap: function(options) {
-                    return JSON.stringify(options);
-                }
-            },
-            schema: {
-                data: function data(res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    var totalFreq = res.data.Total;
-                    var totalHour = res.data.Duration;
 
-                    ma.minDateRet = new Date(res.data.mindate);
-                    ma.maxDateRet = new Date(res.data.maxdate);
+    if(gridType == "alarmraw"){
+        gridName = "#alarmRawGrid"
+        nameFile = "Monitoring Alarm Raw";
+        url = viewModel.appName + "monitoringrealtime/getdataalarmrawhfd";
+        defaultsort = [ { field: "TimeStamp", dir: "desc" } ]
+    }
 
-                    ma.checkCompleteDate()
-
-                    $('#alarm_duration').text((totalHour/3600).toFixed(2));
-                    $('#alarm_frequency').text(totalFreq);
-
-                    setTimeout(function(){
-                        app.loading(false);
-                    }, 300)
-                    
-                    return res.data.Data;
-                },
-                total: function data(res) {
-                    return res.data.Total;
-                }
-            },
-            pageSize: 10,
-            sort: [
-                { field: "TimeStart", dir: "desc" },
-                { field: "TimeEnd", dir: "asc" }
-            ],
-        },
-        toolbar: ["excel"],
-        excel: {
-            fileName: nameFile+".xlsx",
-            filterable: true,
-            allPages: true
-        },
-        // pdf: {
-        //     fileName: nameFile+".pdf",
-        // },
-        sortable: true,
-        pageable: {
-            refresh: true,
-            pageSizes: true,
-            buttonCount: 5
-        },
-        columns: [{
+    var columns = [{
             field: "Turbine",
             title: "Turbine",
             attributes: {
@@ -182,7 +130,109 @@ ma.CreateGridAlarm = function(gridType, param) {
             field: "AlarmDesc",
             title: "Description",
             width: 330
-        }]
+        }];
+
+    if(gridType == "alarmraw"){
+        columns = [{
+            field: "Turbine",
+            title: "Turbine",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 120
+        }, {
+            field: "TimeStamp",
+            title: "Timestamp",
+            width: 170,
+            attributes: {
+                style: "text-align:center;"
+            },
+            template: "#= moment.utc(data.TimeStamp).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStamp).format('HH:mm:ss')#"
+        }, {
+            field: "Tag",
+            title: "Tag",
+             width: 120,
+             attributes: {
+                style: "text-align:center;"
+            },
+        }, {
+            field: "Value",
+            title: "Value",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 120,
+            // template: "#= kendo.toString(data.Timestamp,'n2') #"
+        }, {
+            field: "AddInfo",
+            title: "Note",
+            width: 250
+        }];
+    }
+
+
+    $(gridName).html('');
+    $(gridName).kendoGrid({
+        dataSource: {
+            serverPaging: true,
+            serverSorting: true,
+            transport: {
+                read: {
+                    url: url,
+                    type: "POST",
+                    data: param,
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                },
+                parameterMap: function(options) {
+                    return JSON.stringify(options);
+                }
+            },
+            schema: {
+                data: function data(res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
+                    var totalFreq = res.data.Total;
+                    var totalHour = res.data.Duration;
+
+                    ma.minDateRet = new Date(res.data.mindate);
+                    ma.maxDateRet = new Date(res.data.maxdate);
+
+                    ma.checkCompleteDate()
+
+                    $('#alarm_duration').text((totalHour/3600).toFixed(2));
+                    $('#alarm_frequency').text(totalFreq);
+
+                    setTimeout(function(){
+                        app.loading(false);
+                    }, 300)
+                    
+                    return res.data.Data;
+                },
+                total: function data(res) {
+                    return res.data.Total;
+                }
+            },
+            pageSize: 10,
+            sort: defaultsort,
+        },
+        toolbar: ["excel"],
+        excel: {
+            fileName: nameFile+".xlsx",
+            filterable: true,
+            allPages: true
+        },
+        // pdf: {
+        //     fileName: nameFile+".pdf",
+        // },
+        sortable: true,
+        pageable: {
+            refresh: true,
+            pageSizes: true,
+            buttonCount: 5
+        },
+        columns: columns
     });
 };
 
@@ -262,8 +312,10 @@ $(document).ready(function(){
         fa.checkTurbine();
         if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Down") {
             ma.CreateGrid("alarm");
-        } else {
+        } else if($('.nav').find('li.active').find('a.tab-custom').text() == "Alarm Warning") {
             ma.CreateGrid("warning");
+        }else{
+            ma.CreateGrid("alarmraw");
         }
     });
 

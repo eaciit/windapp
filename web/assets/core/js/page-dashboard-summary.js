@@ -204,6 +204,8 @@ sum.loadData = function () {
             if (res.data != null ){
                 sum.isDetailProd(false);
                 sum.isDetailProdByProject(false);
+                sum.isDetailLostEnergy(false);
+                sum.isDetailLostEnergyLevel2(false);
             }
         });
 
