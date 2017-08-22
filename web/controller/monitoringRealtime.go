@@ -645,7 +645,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			Set("PowerGeneration", 0).
 			Set("AvgWindSpeed", 0).
 			Set("PLF", 0).
-			Set("Capacity", projectCapacity[_project]).
+			Set("Capacity", projectCapacity[_project]/1000).
 			Set("TurbineActive", 0).
 			Set("TurbineDown", 0).
 			Set("TurbineNotAvail", 0).
