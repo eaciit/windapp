@@ -1181,7 +1181,19 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	lastUpdateIndia = time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
 
 	if pageType == "monitoring" {
+		if turbnotavail > len(_result) {
+			turbnotavail = len(_result)
+		}
+
+		if turbinedown > len(_result) {
+			turbinedown = len(_result)
+		}
+
 		turbineactive := len(_result) - turbinedown - turbnotavail
+		if turbineactive < 0 {
+			turbineactive = 0
+		}
+
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
