@@ -1,21 +1,14 @@
 package main
 
 import (
-	"archive/tar"
-	"compress/gzip"
-	"fmt"
+	lh "eaciit/wfdemo-git/library/helper"
+	"flag"
 	tk "github.com/eaciit/toolkit"
-	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
-)
-
-var (
-	wd = func() string {
-		d, _ := os.Getwd()
-		return d + "/"
-	}()
+	"runtime"
+	"time"
 )
 
 const (
@@ -24,81 +17,94 @@ const (
 	sWarning = "WARNING"
 )
 
-func gzipit(source, target string) error {
-	reader, err := os.Open(source)
-	if err != nil {
-		return err
-	}
+var (
+	wd = func() string {
+		d, _ := os.Getwd()
+		return d
+	}()
 
-	filename := filepath.Base(source)
-	target = filepath.Join(target, fmt.Sprintf("%s.gz", filename))
-	writer, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-	defer writer.Close()
-
-	archiver := gzip.NewWriter(writer)
-	archiver.Name = filename
-	defer archiver.Close()
-
-	_, err = io.Copy(archiver, reader)
-	return err
-}
-
-func tarit(source, target string) error {
-	filename := filepath.Base(source)
-	target = filepath.Join(target, fmt.Sprintf("%s.tar", filename))
-	tarfile, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-	defer tarfile.Close()
-
-	tarball := tar.NewWriter(tarfile)
-	defer tarball.Close()
-
-	info, err := os.Stat(source)
-	if err != nil {
-		return nil
-	}
-
-	var baseDir string
-	if info.IsDir() {
-		baseDir = filepath.Base(source)
-	}
-
-	return filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		header, err := tar.FileInfoHeader(info, info.Name())
-		if err != nil {
-			return err
-		}
-
-		if baseDir != "" {
-			header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, source))
-		}
-
-		if err := tarball.WriteHeader(header); err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		_, err = io.Copy(tarball, file)
-		return err
-	})
-}
+	Log *tk.LogEngine
+)
 
 func main() {
-	tk.Println("compress")
+	var tipe string
+	flag.StringVar(&tipe, "tipe", "data", "to determine whether compressing data folder or rawdata folder")
+	flag.Parse()
+
+	Log, _ := tk.NewLog(false, true, wd, "compress_%s", "20060102")
+	t0 := time.Now()
+	config := lh.ReadConfig()
+	dataPath := ""
+	destDataPath := ""
+	if tipe == "data" {
+		dataPath = config["datapath"]
+		destDataPath = config["destdatapath"]
+		Log.AddLog(tk.Sprintf("starting compressing file on %s folder\n", "data"), sInfo)
+	} else {
+		dataPath = config["rawdatapath"]
+		destDataPath = config["destrawdatapath"]
+		Log.AddLog(tk.Sprintf("starting compressing file on %s folder\n", "rawdata"), sInfo)
+	}
+	if _, err := os.Stat(destDataPath); os.IsNotExist(err) {
+		os.Mkdir(destDataPath, 0777) /*jika folder destinasi belum ada maka dibuat*/
+	}
+	platform := runtime.GOOS
+	sourcePathLevel1 := ""
+	sourcePathLevel2 := ""
+	destPathLevel1 := ""
+	destPathLevel2 := ""
+	dirLevel1, e := ioutil.ReadDir(dataPath) /*list nama folder per project*/
+	deletedList := []string{}
+	compressedList := []string{}
+	extension := ""
+	if e != nil {
+		Log.AddLog(e.Error(), sError)
+	}
+	for _, f := range dirLevel1 {
+		sourcePathLevel1 = filepath.Join(dataPath, f.Name())
+		destPathLevel1 = filepath.Join(destDataPath, f.Name())
+		if _, err := os.Stat(destPathLevel1); os.IsNotExist(err) {
+			os.Mkdir(destPathLevel1, 0777) /*jika destinasi belum ada folder project maka dibuat*/
+		}
+		dirLevel2, e := ioutil.ReadDir(sourcePathLevel1) /*list nama folder per hari*/
+		if e != nil {
+			Log.AddLog(e.Error(), sError)
+		}
+		for _, f2 := range dirLevel2 {
+			sourcePathLevel2 = filepath.Join(sourcePathLevel1, f2.Name())
+			destPathLevel2 = filepath.Join(destPathLevel1, f2.Name())
+			if platform == "windows" {
+				extension = ".zip"
+				destPathLevel2 += extension
+				e = tk.ZipCompress(sourcePathLevel2, destPathLevel2)
+			} else {
+				extension = ".tar.gz"
+				destPathLevel2 += extension
+				e = tk.TarCompress(sourcePathLevel2, destPathLevel2)
+			}
+			if e != nil {
+				Log.AddLog(e.Error(), sError)
+			}
+			Log.AddLog(tk.Sprintf("%s%s created", filepath.Join(f.Name(), f2.Name()), extension), sInfo)
+			deletedList = append(deletedList, sourcePathLevel2)
+			compressedList = append(compressedList, destPathLevel2)
+		}
+	}
+	for idx, delPath := range deletedList {
+		_, err := os.Stat(compressedList[idx])
+		if err == nil {
+			/*jika file compress sudah ada maka delete folder source*/
+			e = os.RemoveAll(delPath)
+			if e != nil {
+				Log.AddLog(e.Error(), sError)
+			}
+			if idx == len(deletedList)-1 {
+				Log.AddLog(tk.Sprintf("folder %s deleted\n", delPath), sInfo)
+			} else {
+				Log.AddLog(tk.Sprintf("folder %s deleted", delPath), sInfo)
+			}
+		}
+	}
+	Log.AddLog(tk.Sprintf("finish compressing file in %s minutes\n=======================================================================",
+		tk.ToString(time.Since(t0).Minutes())), sInfo)
 }
