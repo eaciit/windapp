@@ -1508,23 +1508,26 @@ func (m *TurbineStatus) TableName() string {
 
 type AlarmRawHFD struct {
 	orm.ModelBase `bson:"-" json:"-"`
-	ID            bson.ObjectId ` bson:"_id" json:"_id" `
+	ID            string ` bson:"_id" json:"_id" `
 	ProjectName   string
 	Turbine       string
-	Time          time.Time
+	TimeStamp     time.Time
 	DateInfo      DateInfo
-	AlarmCode     int
-	AlarmDesc     string
-	BrakeProgram  int
-	BrakeType     string
+	Tag           string
+	Value         float64
+	AddInfo       string
+	Description   string
 }
 
 func (m *AlarmRawHFD) New() *AlarmRawHFD {
-	m.ID = bson.NewObjectId()
+	m.ID = fmt.Sprintf("%s_%s_%s_%s_%.2f", m.ProjectName, m.Turbine, m.TimeStamp.UTC().Format("20060102150405"), m.Tag, m.Value)
 	return m
 }
 
 func (m *AlarmRawHFD) RecordID() interface{} {
+	if m.ID == "" {
+		m.ID = fmt.Sprintf("%s_%s_%s_%s_%.2f", m.ProjectName, m.Turbine, m.TimeStamp.UTC().Format("20060102150405"), m.Tag, m.Value)
+	}
 	return m.ID
 }
 
@@ -1533,20 +1536,25 @@ func (m *AlarmRawHFD) TableName() string {
 }
 
 type AlarmHFD struct {
-	orm.ModelBase `bson:"-" json:"-"`
-	ID            bson.ObjectId ` bson:"_id" json:"_id" `
-	ProjectName   string
-	Turbine       string
-	TimeStart     time.Time
-	TimeEnd       time.Time
-	DateInfoStart DateInfo
-	DateInfoEnd   DateInfo
-	Duration      float64
-	AlarmCode     int
-	AlarmDesc     string
-	BrakeProgram  int
-	BrakeType     string
-	Finish        int
+	orm.ModelBase      `bson:"-" json:"-"`
+	ID                 bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName        string
+	Turbine            string
+	TimeStart          time.Time
+	TimeEnd            time.Time
+	DateInfoStart      DateInfo
+	DateInfoEnd        DateInfo
+	Duration           float64
+	AlarmCode          int
+	AlarmDesc          string
+	BrakeProgram       int
+	BrakeType          string
+	Finish             int
+	BDGroup            string //grid, machine
+	LastUpdated        time.Time
+	TurbineState       int
+	IsDeleted          bool
+	ReduceAvailability bool
 }
 
 func (m *AlarmHFD) New() *AlarmHFD {

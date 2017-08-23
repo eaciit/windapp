@@ -55,6 +55,25 @@ dbr.unselectedColumn = ko.observableArray([]);
 dbr.ColumnList = ko.observableArray([]);
 dbr.ColList = ko.observableArray([]);
 dbr.defaultSelectedColumn = ko.observableArray();
+dbr.columnMustHaveHFD = [{
+    _id: "timestamp",
+    label: "TimeStamp",
+    source: "ScadaDataHFD",
+}, {
+    _id: "turbine",
+    label: "Turbine",
+    source: "ScadaDataHFD",
+}];
+
+dbr.columnMustHaveOEM = [{
+    _id: "timestamp",
+    label: "TimeStamp",
+    source: "ScadaDataOEM",
+}, {
+    _id: "turbine",
+    label: "Turbine",
+    source: "ScadaDataOEM",
+}];
 
 dbr.ShowHideColumnScada = function(gridID, field, id, index) {
     if ($('#' + id).is(":checked")) {
@@ -211,7 +230,15 @@ var Data = {
                 });
                 var grid1 = $('#columnListHFD').data('kendoGrid');
                 var grid2 = $('#selectedListHFD').data('kendoGrid');
-                dbr.gridMoveTo(grid2, grid1, false);
+
+                var dataSource = grid2.dataSource;
+                var recordsOnCurrentView = dataSource.view().length;
+                
+                if(recordsOnCurrentView == 30){
+                    app.showError("Max. 30 Columns")
+                }else{
+                    dbr.gridMoveTo(grid1, grid2, false);
+                }
             },
         });
     }
@@ -532,10 +559,9 @@ function DataBrowserExporttoExcel(functionName) {
         tipe: functionName,
         "period": fa.period,
     }
-
-    var columnList = dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn();
+    var columnList = dbr.columnMustHaveOEM.concat(dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn());
     if (functionName == "ScadaHFDCustom") {
-        columnList = dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn();
+        columnList = dbr.columnMustHaveHFD.concat(dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn());
     }
 
     var param = {
@@ -573,6 +599,7 @@ dbr.exportToExcel = function(idGrid){
 
 vm.currentMenu('Data Browser');
 vm.currentTitle('Data Browser');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([{
     title: 'Data Browser',
     href: viewModel.appName + 'page/databrowser'
@@ -614,12 +641,12 @@ $(document).ready(function() {
     });
 
     setTimeout(function() {
+        dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
+        dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
         fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
-        dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 30));
-        dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 30));
     }, 1000);
 
     $('#projectList').kendoDropDownList({

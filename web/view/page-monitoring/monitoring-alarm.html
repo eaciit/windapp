@@ -32,6 +32,7 @@
                         <ul class="nav nav-tabs" role="tablist">
                             <li id="alarmTab" role="presentation" class="active"><a href="#alarm" aria-controls="alarm" role="tab" onclick="ma.CreateGrid('alarm')" data-toggle="tab" class="tab-custom">Alarm Down</a></li>
                             <li id="warningTab" role="presentation"><a href="#warning" aria-controls="warning" role="tab" data-toggle="tab" onclick="ma.CreateGrid('warning')" class="tab-custom">Alarm Warning</a></li>
+                            <li id="alarmrawTab" role="presentation"><a href="#alarmraw" aria-controls="alarmraw" role="tab" data-toggle="tab" onclick="ma.CreateGrid('alarmraw')" class="tab-custom">Alarm Raw</a></li>
                         </ul>
                         <div class="tab-content">
                             <div role="tabpanel" class="tab-pane active" id="alarm">
@@ -42,6 +43,11 @@
                             <div role="tabpanel" class="tab-pane" id="warning">
                                 <div>
                                     <div id="warningGrid"></div>
+                                </div>
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="alarmraw">
+                                <div>
+                                    <div id="alarmRawGrid"></div>
                                 </div>
                             </div>
                         </div>

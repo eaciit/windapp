@@ -7,6 +7,9 @@ var sum = viewModel.summary;
 sum.isDetailProd = ko.observable(false);
 sum.isDetailProdByProject = ko.observable(false);
 
+sum.isDetailLostEnergy = ko.observable(false);
+sum.isDetailLostEnergyLevel2 = ko.observable(false);
+
 sum.detailProdTxt = ko.observable('');
 sum.detailProdMsTxt = ko.observable('');
 sum.detailProdProjectTxt = ko.observable('');
@@ -28,6 +31,8 @@ sum.availSeries = ko.observable([]);
 sum.periodSelected = ko.observable('currentmonth');
 sum.detailSummary = ko.observableArray([]);
 sum.getScadaLastUpdate = ko.observableArray([]);
+sum.detailProjectName = ko.observable();
+
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
     {"text": "Current Month", "value": "currentmonth"}
@@ -199,6 +204,8 @@ sum.loadData = function () {
             if (res.data != null ){
                 sum.isDetailProd(false);
                 sum.isDetailProdByProject(false);
+                sum.isDetailLostEnergy(false);
+                sum.isDetailLostEnergyLevel2(false);
             }
         });
 
@@ -425,6 +432,9 @@ sum.LostEnergy = function (dataSource) {
             // opacity : 0.7,
         }],
         seriesColors: colorField,
+        seriesClick: function (e) {
+            sum.DetailLostEnergy(e);
+        },
         valueAxis: {
             // labels: {
             //     step : 2,
@@ -1426,6 +1436,7 @@ sum.DetailProd = function (e) {
     lgd.isSummary(false);
     sum.isDetailProd(true);
     sum.isDetailProdByProject(false);
+    sum.isDetailLostEnergy(false);
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = { 'project': project, 'date': bulan };
 
@@ -1613,11 +1624,11 @@ sum.DetailProd = function (e) {
 }
 
 sum.DetailProdByProject = function (e) {
-    console.log(e);
     app.loading(true);
     vm.isDashboard(false);
     lgd.isSummary(false);
     sum.isDetailProd(false);
+    sum.isDetailLostEnergy(false);
     sum.isDetailProdByProject(true);
 
     // var project = e.series.name;
@@ -1753,18 +1764,241 @@ sum.DetailProdByProject = function (e) {
 
     });
 
-    
 
 }
 
+sum.DetailLostEnergy = function(e){
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isDetailProd(false);
+    sum.isDetailProdByProject(false);
+    sum.isDetailLostEnergy(true);
+    sum.detailProdTxt(e.category);
+
+    var project = $("#projectId").data("kendoDropDownList").value();
+
+    var param = { ProjectName: project, Date: maxdate, DateStr : e.category,Type: "project"};
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimetop", param, function (res) {
+
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var dataSource = res.data.project;
+
+        $("#chartDetailLost").kendoChart({
+            dataSource: {
+                data: dataSource,
+                sort: [
+                    { "field": "Total", "dir": "desc" }
+                ],
+            },
+            theme: "flat",
+            title: {
+                text: ""
+            },
+            legend: {
+                position: "top",
+                visible: true,
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
+            },
+            chartArea: {
+                height: 190,
+                background: "transparent",
+                padding: 0,
+                margin: {
+                    top: -10
+                }
+            },
+            seriesDefaults: {
+                type: "column",
+                stack: true,
+            },
+            series: [
+            {
+                field: "GridDown",
+                name: "Grid Down"
+            }, 
+            {
+                field: "MachineDown",
+                name: "Machine Down"
+            }, 
+            {
+                field: "Unknown",
+                name: "Unknown"
+            }],
+            seriesColors: colorField,
+            valueAxis: {
+                //majorUnit: 100,
+                title: {
+                    text: "MWh",
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    visible: false, 
+                },
+                labels: {
+                    step: 2,
+                    template: "#: kendo.toString(value/1000, 'n0') #",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                line: {
+                    visible: false
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                }
+            },
+            categoryAxis: {
+                field: "_id",
+                majorGridLines: {
+                    visible: false
+                },
+                labels: {
+                    rotation: -330,
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                majorTickType: "none"
+            },
+            tooltip: {
+                visible: true,
+                format: "{0:n1}",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                template: "#: category #: #: kendo.toString(value/1000, 'n1') # MWh",
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+
+            },
+            seriesClick: function (e) {
+                sum.DetailLostEnergyLevel2(e);
+            },
+            dataBound : function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },200);
+            }
+        });
+    });
+
+    // $("#chartDetailLost").data("kendoChart").refresh();
+
+}
+sum.DetailLostEnergyLevel2 = function(e){
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isDetailProd(false);
+    sum.isDetailProdByProject(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailLostEnergyLevel2(true);
+    sum.detailProjectName(e.category);
+
+    var param = { ProjectName: e.category, DateStr: sum.detailProdTxt(), Type: "", IsDetail:true};
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimefleetbydown", param, function (res) {
+
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var dataSource = res.data.lostenergy;
+
+        $("#chartDetailLostLevel2").kendoChart({
+            dataSource: {
+                data: dataSource,
+                group: [{ field: "type" }],
+                // sort: { field: "_id.id1", dir: 'asc' }
+            },
+            theme: "flat",
+            title: {
+                text: ""
+            },
+            legend: {
+                position: "top",
+                visible: true,
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
+            },
+            chartArea: {
+                height: 160
+            },
+            seriesDefaults: {
+                type: "column"
+            },
+            series: [{
+                type: "column",
+                field: "result",
+                // opacity : 0.7
+            }],
+            seriesColors: colorField,
+            valueAxis: {
+                labels: {
+                    step: 2,
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                line: {
+                    visible: false
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                }
+            },
+            categoryAxis: {
+                categories: [lastParam.DateStr],
+                majorGridLines: {
+                    visible: false
+                },
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                majorTickType: "none"
+            },
+            tooltip: {
+                visible: true,
+                format: "{0:n1}",
+                template: "#: series.name # : #:  kendo.toString(value, 'n1') # MWh",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            },
+            dataBound: function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },200);
+            }
+        });
+    });
+}
 sum.backToDashboard = function () {
     lgd.start();
     vm.isDashboard(true);
     lgd.isSummary(true);
     sum.isDetailProd(false);
     sum.isDetailProdByProject(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailLostEnergyLevel2(false);
 }
 sum.toDetailProduction = function () {
     sum.isDetailProd(true);
     sum.isDetailProdByProject(false);
+}
+
+sum.backToLostEnegery = function(){
+    sum.isDetailLostEnergy(true);
+    sum.isDetailLostEnergyLevel2(false);
 }
