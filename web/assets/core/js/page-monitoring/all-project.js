@@ -15,6 +15,7 @@ vm.breadcrumb([
 
 
 page.DataDetails = ko.observableArray([]);
+page.OldData = ko.observableArray([]);
 page.TimeMax = ko.observable("");
 
 
@@ -27,17 +28,40 @@ page.getData = function(){
             return;
         }
         
-        page.DataDetails(res.data.Detail);
-        page.generateView(res.data.Detail);
+        if(page.OldData().length == 0){
+             page.DataDetails(res.data.Detail);
+             page.OldData(res.data.Detail);
+        }else{
+             page.DataDetails(res.data.Detail);
+        }
+       
+        page.generateView();
         page.TimeMax(moment.utc(res.data.TimeMax).format("DD MMM YYYY HH:mm:ss"));
 
         app.loading(false);
     });
 }
 
-page.generateView = function(datasource){
-    
-    $.each(datasource, function(idx, val){
+page.generateView = function(){
+    var datasource = page.DataDetails();
+   
+
+    var setView = $.each(datasource, function(idx, val){
+         var oldData = page.OldData()[idx];
+
+        for(var key in val){
+            var id = '#'+key+'_'+ val.Project
+            if(oldData.hasOwnProperty(key) && (oldData.Project == val.Project)){
+                if(val[key] != oldData[key] ) {
+                    // $(id).css('background-color', 'rgba(255, 216, 0, 0.7)'); 
+                    $(id).animate( { backgroundColor: 'rgba(255, 216, 0, 0.7)' }, 500).animate( { backgroundColor: 'transparent' }, 500); 
+                }
+
+            }
+        }
+
+
+       
 
         var comparison = 0;
         var defaultColorStatus = "bg-default-green"
@@ -53,6 +77,10 @@ page.generateView = function(datasource){
             comparison = 0;
             $('#statusproject_'+ val.Project).attr('class', 'lbl');
         }
+    });
+
+    $.when(setView).done(function(){
+        page.OldData(datasource);
     });
 }
 
