@@ -453,7 +453,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 	dataRealtimeValue := 0.0
 	tags := ""
-	tstamp := time.Time{}
+	tstamp, plastUpdate := time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
 	for {
@@ -473,6 +473,10 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		}
 
 		tstamp = _tdata.Get("timestamp", time.Time{}).(time.Time)
+
+		if tstamp.After(plastUpdate) {
+			plastUpdate = tstamp
+		}
 
 		if tstamp.After(lastUpdate) {
 			lastUpdate = tstamp
@@ -548,6 +552,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				projectData.Set("TurbineDown", turbinedown)
 				projectData.Set("TurbineNotAvail", turbnotavail)
 				projectData.Set("WaitingForWind", waitingForWsProject[lastProject])
+				projectData.Set("LastUpdated", plastUpdate)
 
 				allDataProject = append(allDataProject, projectData)
 
@@ -558,6 +563,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				CountWS = 0.0
 				projectData = tk.M{}
 				alldata = []tk.M{}
+				plastUpdate = time.Time{}
 			}
 			lastProject = currProject
 		}
@@ -619,6 +625,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		projectData.Set("TurbineDown", turbinedown)
 		projectData.Set("TurbineNotAvail", turbnotavail)
 		projectData.Set("WaitingForWind", waitingForWsProject[lastProject])
+		projectData.Set("LastUpdated", plastUpdate)
 
 		allDataProject = append(allDataProject, projectData)
 	}
@@ -649,7 +656,8 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			Set("TurbineActive", 0).
 			Set("TurbineDown", 0).
 			Set("TurbineNotAvail", 0).
-			Set("WaitingForWind", 0)
+			Set("WaitingForWind", 0).
+			Set("LastUpdated", time.Time{})
 
 		allDataProject = append(allDataProject, _itkm)
 	}
@@ -1182,6 +1190,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 		rtkm.Set("PLF", tk.Div(PowerGen, (totalCapacity*1000))*100)
+		rtkm.Set("TurbineWaitingWS", len(waitingForWsTurbine))
 		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
 		rtkm.Set("TurbineNotAvail", turbnotavail)
