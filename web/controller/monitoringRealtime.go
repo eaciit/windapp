@@ -1343,8 +1343,12 @@ func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) in
 		return helper.CreateResultX(false, nil, e.Error(), k)
 	}
 
-	tablename := new(AlarmRawHFD).TableName()
+	rconn := DBRealtime()
 
+	reffturbinestate := getReffTurbineState(p.Project, rconn)
+	reffalarmbrake := getReffAlarmBrake(p.Project, rconn)
+
+	tablename := new(AlarmRawHFD).TableName()
 	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
 	dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
@@ -1352,7 +1356,6 @@ func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) in
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	rconn := DBRealtime()
 	csr, err := rconn.NewQuery().From(tablename).
 		// Aggr(dbox.AggrSum, "$duration", "duration").
 		Aggr(dbox.AggrSum, 1, "countdata").
@@ -1404,8 +1407,15 @@ func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) in
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
+
 	for idx, val := range results {
 		results[idx].Turbine = turbineName[val.Turbine]
+		key := tk.ToString(tk.ToInt(results[idx].Value, tk.RoundingAuto))
+		if results[idx].Tag == "TurbineState" {
+			results[idx].Description = reffturbinestate.GetString(key)
+		} else {
+			results[idx].Description = reffalarmbrake.GetString(key)
+		}
 	}
 
 	retData := tk.M{}.Set("Data", results).
@@ -1826,6 +1836,56 @@ func getTimeNow() (tNow time.Time) {
 
 	tNow = time.Date(_Now.Year(), _Now.Month(), _Now.Day(), _Now.Hour(), _Now.Minute(), _Now.Second(), _Now.Nanosecond(), time.UTC)
 	// tNow = tNow.Add(-10 * time.Minute)
+	return
+}
+
+func getReffTurbineState(project string, rconn dbox.IConnection) (tkm tk.M) {
+	tkm = tk.M{}
+	csr, err := rconn.NewQuery().
+		Select("turbinestate", "description").
+		From("ref_turbinestate").
+		Where(dbox.Eq("projectname", project)).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	for {
+		result := tk.M{}
+		err = csr.Fetch(&result, 1, false)
+		if err != nil {
+			break
+		}
+
+		tkm.Set(tk.ToString(result.GetInt("turbinestate")), result.GetString("description"))
+	}
+
+	return
+}
+
+func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
+	tkm = tk.M{}
+	csr, err := rconn.NewQuery().
+		Select("alarmindex", "alarmname").
+		From("AlarmBrake").
+		Where(dbox.Eq("project", project)).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	for {
+		result := tk.M{}
+		err = csr.Fetch(&result, 1, false)
+		if err != nil {
+			break
+		}
+
+		tkm.Set(tk.ToString(result.GetInt("alarmindex")), result.GetString("alarmname"))
+	}
+
 	return
 }
 
