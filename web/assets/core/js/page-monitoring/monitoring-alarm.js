@@ -55,7 +55,12 @@ ma.CreateGrid = function(gridType) {
                 setTimeout(function(){
                     $.when(ma.UpdateTurbineList(param.turbine)).done(function () {
                         ma.LoadDataAvail(param.project, gridType);
-                        ma.CreateGridAlarm(gridType, param);
+                        if(cookieStr.indexOf("tabActive=") >= 0){
+                            $("#alarmrawTab a:first-child").trigger('click'); 
+                        }else{
+                            ma.CreateGridAlarm(gridType, param);
+                        }
+                        
                     });
                 }, 700);
             });
