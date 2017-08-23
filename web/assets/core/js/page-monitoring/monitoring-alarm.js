@@ -139,11 +139,11 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
-            width: 120
+            width: 70
         }, {
             field: "TimeStamp",
             title: "Timestamp",
-            width: 170,
+            width: 120,
             attributes: {
                 style: "text-align:center;"
             },
@@ -151,7 +151,7 @@ ma.CreateGridAlarm = function(gridType, param) {
         }, {
             field: "Tag",
             title: "Tag",
-             width: 120,
+             width: 70,
              attributes: {
                 style: "text-align:center;"
             },
@@ -161,8 +161,12 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
-            width: 120,
+            width: 70,
             // template: "#= kendo.toString(data.Timestamp,'n2') #"
+        }, {
+            field: "Description",
+            title: "Description",
+            width: 200
         }, {
             field: "AddInfo",
             title: "Note",
