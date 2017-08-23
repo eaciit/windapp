@@ -7,6 +7,7 @@ var it = viewModel.IndividualTurbine;
 
 vm.currentMenu('Individual Turbine');
 vm.currentTitle('Individual Turbine');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Individual Turbine', href: viewModel.appName + 'page/monitoringindividualturbine' }]);
@@ -889,6 +890,25 @@ it.ToByProject = function(){
         window.location = viewModel.appName + "page/monitoringbyproject";
     },1500);
     
+}
+
+it.ToAlarm = function() {
+    app.loading(true);
+    var turbine = $("#turbine").val();
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    var project =  $('#projectList').data('kendoDropDownList').value();
+    
+    document.cookie = "tabActive=alarmRaw;expires="+ newDateObj;
+    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+
+
+    if(document.cookie.indexOf("tabActive=") >= 0 && document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+        window.location = viewModel.appName + "page/monitoringalarm";
+    } else {
+        app.loading(false);
+    }
 }
 
 it.changeRotation = function(){
