@@ -56,9 +56,11 @@ ma.CreateGrid = function(gridType) {
                     $.when(ma.UpdateTurbineList(param.turbine)).done(function () {
                         ma.LoadDataAvail(param.project, gridType);
                         if(cookieStr.indexOf("tabActive=") >= 0){
-                            $("#alarmrawTab a:first-child").trigger('click'); 
-                        }else{
-                            ma.CreateGridAlarm(gridType, param);
+                            if(COOKIES["tabActive"] == "alarmRaw" ){
+                                $("#alarmrawTab a:first-child").trigger('click'); 
+                            }else{
+                                ma.CreateGridAlarm(gridType, param);
+                            }
                         }
                         
                     });
