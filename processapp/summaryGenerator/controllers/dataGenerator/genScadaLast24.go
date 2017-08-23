@@ -179,19 +179,19 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 							ipower := data["totalpower"]
 							power := 0.0
 							if ipower != nil {
-								power = ipower.(float64)
+								power = tk.ToFloat64(ipower, 6, tk.RoundingAuto)
 							}
 
 							ipotentialpower := data["denpower"]
 							potentialpower := 0.0
 							if ipotentialpower != nil {
-								potentialpower = ipotentialpower.(float64)
+								potentialpower = tk.ToFloat64(ipotentialpower, 6, tk.RoundingAuto)
 							}
 
 							iwindspeed := data["avgwindspeed"]
 							windspeed := 0.0
 							if iwindspeed != nil {
-								windspeed = iwindspeed.(float64)
+								windspeed = tk.ToFloat64(iwindspeed, 6, tk.RoundingAuto)
 							}
 							last.Hour = i
 							last.TimeHour = cdatehour
