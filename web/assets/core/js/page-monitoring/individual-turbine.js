@@ -192,6 +192,9 @@ it.cur_pitch_motor3 = ko.observable('');
 it.pitch_motor_temp1 = ko.observable('');
 it.pitch_motor_temp2 = ko.observable('');
 it.pitch_motor_temp3 = ko.observable('');
+it.pitch_conv_tempblade1 = ko.observableArray('');
+it.pitch_conv_tempblade2 = ko.observableArray('');
+it.pitch_conv_tempblade3 = ko.observableArray('');
 it.phase_volt1 = ko.observable('');
 it.phase_volt2 = ko.observable('');
 it.phase_volt3 = ko.observable('');
@@ -312,7 +315,20 @@ it.PlotData = function(data) {
         it.cur_pitch_motor3(data["Current 3 Pitch Motor"].toFixed(2));
     else it.cur_pitch_motor3('N/A');
 
-    /*PITCH MOTOR TEMPERATURE PART*/
+    /*PITCH CONV INTERNAL TEMPERATURE PART*/
+    if(data["Pitch Conv Internal Temp Blade1"] != -999999)
+        it.pitch_conv_tempblade1(data["Pitch Conv Internal Temp Blade1"].toFixed(2));
+    else it.pitch_conv_tempblade1('N/A');
+
+    if(data["Pitch Conv Internal Temp Blade2"] != -999999)
+        it.pitch_conv_tempblade2(data["Pitch Conv Internal Temp Blade2"].toFixed(2));
+    else it.pitch_conv_tempblade2('N/A');
+    
+    if(data["Pitch Conv Internal Temp Blade3"] != -999999)
+        it.pitch_conv_tempblade3(data["Pitch Conv Internal Temp Blade3"].toFixed(2));
+    else it.pitch_conv_tempblade3('N/A');
+
+        /*PITCH MOTOR TEMPERATURE PART*/
     if(data["Pitch motor temperature - Blade 1"] != -999999)
         it.pitch_motor_temp1(data["Pitch motor temperature - Blade 1"].toFixed(2));
     else it.pitch_motor_temp1('N/A');
@@ -322,6 +338,7 @@ it.PlotData = function(data) {
     if(data["Pitch motor temperature - Blade 3"] != -999999)
         it.pitch_motor_temp3(data["Pitch motor temperature - Blade 3"].toFixed(2));
     else it.pitch_motor_temp3('N/A');
+
 
     /*PHASE VOLTAGE PART*/
     if(data["Phase 1 voltage"] != -999999)
@@ -802,9 +819,10 @@ it.showWindRoseChart = function(){
             $("#windRoseChart").kendoChart({
                 theme: "flat",
                 chartArea: {
-                    height: 200,
-                    width: 300,
+                    height: 215,
+                    width: 200,
                     margin: 0,
+                    marginLeft: -30,
                     padding: 0,
                 },
                 dataSource: {

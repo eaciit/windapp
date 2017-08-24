@@ -29,100 +29,118 @@
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore mb-5">
                 <div class="panel-body">
-                    <div class="col-md-5 border-right-grey">
-                        <div class="col-md-12 onTop">
-                              <div class="col-md-12 pull-left"><a onclick="it.ToTimeSeriesHfd()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Analysis</a> &nbsp; | <a onclick="it.ToAlarm ()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Alarm Raw</a></div>
-                        </div>
-                        <div class="col-md-9 live-chart-div">
-                            <div id="container"></div>
-                            <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
-                        </div>
-                        <div class="col-md-3 border-left-grey text-center value-div">
-                            <strong><span>Wind Speed (m/s)</span></strong> <br><h4> <strong><span data-bind="text:it.windspeed_avg()"></span></strong></h4>
-                            <hr class="borderGrey">
-                            <strong><span>Power (kW)</span></strong><br><h4><strong><span data-bind="text:it.power()"></span></strong></h4>
-                        </div>
-                        <div class="col-md-4">
-                            <h5><strong>Electrical System</strong></h5>
-                            <div class="col-md-12">
-                                <table class="table table-condensed text-center">
-                                    <thead> 
-                                        <tr>
-                                            <th style="width: 10px">#</th>
-                                            <th>Phase Voltage</th>
-                                            <!-- <th>Phase Current</th> -->
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td><span class="text-center" data-bind="text: it.phase_volt1()"></span></td>
-                                            <!-- <td><span class="text-center" data-bind="text: it.phase_cur1()"></span></td> -->
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td><span class="text-center" data-bind="text: it.phase_volt2()"></span></td>
-                                            <!-- <td><span class="text-center" data-bind="text: it.phase_cur2()"></span></td> -->
-                                        </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td><span class="text-center" data-bind="text: it.phase_volt3()"></span></td>
-                                            <!-- <td><span class="text-center" data-bind="text: it.phase_cur3()"></span></td> -->
-                                        </tr>
-                                    </tbody>
-                                </table>
+                    <div class="col-md-8">
+                        <div class="col-md-8">
+                            <div class="col-md-12 onTop">
+                                  <div class="col-md-12 pull-left"><a onclick="it.ToTimeSeriesHfd()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Analysis</a> &nbsp; | &nbsp;<a onclick="it.ToAlarm ()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Alarm Raw</a></div>
+                            </div>
+                            <div class="col-md-9 live-chart-div">
+                                <div id="container"></div>
+                                <div class="col-md-12 text-center" id="dateInfo">&nbsp;</div>
+                            </div>
+                            <div class="col-md-3 border-left-grey text-center value-div">
+                                <strong><span>Wind Speed (m/s)</span></strong> <br><h4> <strong><span data-bind="text:it.windspeed_avg()"></span></strong></h4>
+                                <hr class="borderGrey">
+                                <strong><span>Power (kW)</span></strong><br><h4><strong><span data-bind="text:it.power()"></span></strong></h4>
+                            </div>
+                            <div class="col-md-4">
+                                <h5><strong>Electrical System</strong></h5>
+                                <div class="col-md-12">
+                                    <table class="table table-condensed text-center">
+                                        <thead> 
+                                            <tr>
+                                                <th style="width: 10px">#</th>
+                                                <th>Phase Voltage</th>
+                                                <!-- <th>Phase Current</th> -->
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>1</td>
+                                                <td><span class="text-center" data-bind="text: it.phase_volt1()"></span></td>
+                                                <!-- <td><span class="text-center" data-bind="text: it.phase_cur1()"></span></td> -->
+                                            </tr>
+                                            <tr>
+                                                <td>2</td>
+                                                <td><span class="text-center" data-bind="text: it.phase_volt2()"></span></td>
+                                                <!-- <td><span class="text-center" data-bind="text: it.phase_cur2()"></span></td> -->
+                                            </tr>
+                                            <tr>
+                                                <td>3</td>
+                                                <td><span class="text-center" data-bind="text: it.phase_volt3()"></span></td>
+                                                <!-- <td><span class="text-center" data-bind="text: it.phase_cur3()"></span></td> -->
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-4 value-group">
+                                 <div class="clearfix">&nbsp;</div>
+                                 <strong><span>Production</span></strong><strong><span class="pull-right" data-bind="text: it.production()"></span></strong>
+                                 <hr class="borderGrey">
+                                 <strong><span >Cos Phi</span></strong><strong><span class="pull-right" data-bind="text: it.cos_phi()"></span></strong>
+                                 <hr class="borderGrey">
+                                 <strong><span>Pwr Reactive</span></strong><strong><span class="pull-right" data-bind="text: it.power_react()"></span></strong>
+                                 <hr class="borderGrey">
+                                 <strong><span>Freq. Grid</span></strong><strong><span class="pull-right" data-bind="text: it.freq_grid()"></span></strong>
+                            </div>
+                            <div class="col-md-4 text-center" style="margin-top: 30px;">
+                                <h5><strong>Drive train<small><br><i> (Vibrations) </i></small></strong></h5>
+                                <span class="btn btn-default btn-circle btn-xl" data-bind="text: it.drive_train_vibra()"></span>
                             </div>
                         </div>
-                        <div class="col-md-4 value-group">
-                             <div class="clearfix">&nbsp;</div>
-                             <strong><span>Production</span></strong><strong><span class="pull-right" data-bind="text: it.production()"></span></strong>
-                             <hr class="borderGrey">
-                             <strong><span >Cos Phi</span></strong><strong><span class="pull-right" data-bind="text: it.cos_phi()"></span></strong>
-                             <hr class="borderGrey">
-                             <strong><span>Pwr Reactive</span></strong><strong><span class="pull-right" data-bind="text: it.power_react()"></span></strong>
-                             <hr class="borderGrey">
-                             <strong><span>Freq. Grid</span></strong><strong><span class="pull-right" data-bind="text: it.freq_grid()"></span></strong>
+                        <div class="col-md-4 border-left-grey">
+                            <div class="col-md-12 text-center">
+                                <span><strong>Last 24 Hours</strong></span>
+                                <div id="windRoseChart" style="margin-left:25px"></div>
+                            </div>
+                            <div class="clearfix">&nbsp;</div>
+                            <div class="col-md-12 text-center">
+                                <div class="col-md-6 border-right-grey">
+                                    <span class="text-center">Nacelle Pos.</span> <br><h4> <strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></h4>
+                                    <hr class="borderGrey">
+                                    <span class="text-center">Wind Dir.</span> <br><h4><strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="text-center">Rotor RPM</span> <br><h4> <strong><span data-bind="text:it.rotor_rpm()"></span></strong></h4>
+                                    <hr class="borderGrey">
+                                    <span class="text-center">Generator RPM</span> <br><h4><strong><span data-bind="text:it.gen_rpm()"></span></strong></h4>
+                                </div>
+                            </div>
+                            <div class="clearfix">&nbsp;</div>
                         </div>
                         <div class="col-md-12">
-                            <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong>&nbsp;<span class="badge bg-light-blue" data-bind="text: it.drive_train_vibra()"></span></h5>
-                        </div>
-                        <div class="col-md-12">
+                            <hr class="borderGrey">
                             <h5><strong>Critical Temperature & Pressure</strong></h5>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <strong><span>Gen. 1 phase 1 coil</span></strong><strong><span class="pull-right"  data-bind="text: it.temp_gen_coil1()"></span></strong>
                                  <hr class="borderGrey">
                                 <strong><span >Gen. 1 phase 2 coil</span></strong><strong><span class="pull-right" data-bind="text: it.temp_gen_coil2()"></span></strong>
                                  <hr class="borderGrey">
                                 <strong><span>Gen. 1 phase 3 coil</span></strong><strong><span class="pull-right" data-bind="text: it.temp_gen_coil3()"></span></strong>
                             </div>
-                            <div class="col-md-6 border-left-grey">
+                            <div class="col-md-3 border-left-grey">
                                  <span><strong>Gen. bearing  : </strong></span>
                                   <hr class="borderGrey">
                                  <span>Drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_driven()"></span></strong>
                                  <hr class="borderGrey">
                                  <span >Non-drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_non_driven()"></span></strong>
                              </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 margintop30">
-                        <div class="col-md-12 text-center">
-                            <span><strong>Last 24 Hours</strong></span>
-                           <div id="windRoseChart"></div>
-                        </div>
-                        <div class="clearfix">&nbsp;</div>
-                        <div class="col-md-12 text-center">
-                            <div class="col-md-6 border-right-grey">
-                                <span class="text-center">Nacelle Pos.</span> <br><h4> <strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.nacel_dir()+45}"></i> &nbsp; <span data-bind="text:it.nacel_dir()"></span></strong></h4>
-                                <hr class="borderGrey">
-                                <span class="text-center">Wind Dir.</span> <br><h4><strong><i class="fa fa-location-arrow rotation" data-bind="attr: {rotationval: it.wind_dir()+45}"></i> &nbsp; <span data-bind="text:it.wind_dir()"></span></strong></h4>
+                             <div class="col-md-3 border-left-grey">
+                                <strong><span>Trafo Windings 1</span></strong><strong><span class="pull-right">N/A</span></strong>
+                                 <hr class="borderGrey">
+                                <strong><span >Trafo Windings 2</span></strong><strong><span class="pull-right">N/A</span></strong>
+                                 <hr class="borderGrey">
+                                <strong><span>Trafo Windings 3</span></strong><strong><span class="pull-right">N/A</span></strong>
                             </div>
-                            <div class="col-md-6">
-                                <span class="text-center">Rotor RPM</span> <br><h4> <strong><span data-bind="text:it.rotor_rpm()"></span></strong></h4>
-                                <hr class="borderGrey">
-                                <span class="text-center">Generator RPM</span> <br><h4><strong><span data-bind="text:it.gen_rpm()"></span></strong></h4>
+                            <div class="col-md-3 border-left-grey">
+                                <strong><span>Temp Sling Ring</span></strong><strong><span class="pull-right">N/A</span></strong>
+                                 <hr class="borderGrey">
+                                <strong><span >Hydr. Press</span></strong><strong><span class="pull-right">N/A</span></strong>
+                                 <hr class="borderGrey">
+                                <strong><span>Hydr. Temp</span></strong><strong><span class="pull-right">N/A</span></strong>
                             </div>
                         </div>
-                        <div class="clearfix">&nbsp;</div>
                     </div>
                     <div class="col-md-4 turbine-pic-part border-left-grey">
                         <div class="col-md-12 marginbottom20">
