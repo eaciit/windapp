@@ -220,6 +220,15 @@ it.temp_ambient = ko.observable('');
 it.temp_main_bear = ko.observable('');
 it.temp_gear_oil = ko.observable('');
 it.drive_train_vibra = ko.observable('');
+it.transformer_winding_temp1 = ko.observable('');
+it.transformer_winding_temp2 = ko.observable('');
+it.transformer_winding_temp3 = ko.observable('');
+it.transformerWindingTemp1 = ko.observable('');
+it.transformerWindingTemp2 = ko.observable('');
+it.transformerWindingTemp3 = ko.observable('');
+it.temp_slip_ring = ko.observable('');
+it.hydraulic_pressure = ko.observable('');
+it.hydraulic_temp = ko.observable('');
 
 it.isFirst = ko.observable(true);
 
@@ -436,6 +445,32 @@ it.PlotData = function(data) {
     if(data["Temp. generator bearing non-driven End"] != -999999)
         it.temp_gen_bearing_non_driven(data["Temp. generator bearing non-driven End"].toFixed(2));
     else it.temp_gen_bearing_non_driven('N/A');
+
+
+
+    /*TEMP WINDING PART*/
+    if(data["Transformer Winding Temp1"] != -999999)
+        it.transformer_winding_temp1(data["Transformer Winding Temp1"].toFixed(2));
+    else it.transformer_winding_temp1('N/A');
+    if(data["Transformer Winding Temp2"] != -999999)
+        it.transformer_winding_temp2(data["Transformer Winding Temp2"].toFixed(2));
+    else it.transformer_winding_temp2('N/A');
+    if(data["Transformer Winding Temp3"] != -999999)
+        it.transformer_winding_temp3(data["Transformer Winding Temp3"].toFixed(2));
+    else it.transformer_winding_temp3('N/A');
+    if(data["Temp Slip Ring"] != -999999)
+        it.temp_slip_ring(data["Temp Slip Ring"].toFixed(2));
+    else it.temp_slip_ring('N/A');
+    if(data["Hydraulic Pressure"] != -999999)
+        it.hydraulic_pressure(data["Hydraulic Pressure"].toFixed(2));
+    else it.hydraulic_pressure('N/A');
+    if(data["Hydraulic Temp"] != -999999)
+        it.hydraulic_temp(data["Hydraulic Temp"].toFixed(2));
+    else it.hydraulic_temp('N/A');
+
+
+
+
 
     /*TEMP GEARBOX PART*/
     if(data["Temp. Gearbox driven end"] != -999999)
