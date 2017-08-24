@@ -829,7 +829,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	totalCapacity := 0.0
 
 	pipes := []tk.M{}
-	pipes = append(pipes, tk.M{"$match": []tk.M{tk.M{"project": project}}})
+	pipes = append(pipes, tk.M{"$match": tk.M{"project": project}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbineid": 1, "feeder": 1, "turbinename": 1, "latitude": 1, "longitude": 1, "capacitymw": 1}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
 
@@ -873,13 +873,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	// defer rconn.Close()
 	rconn := DBRealtime()
 
-	pipes = []tk.M{}
-	pipes = append(pipes, tk.M{"$match": []tk.M{tk.M{"projectname": project}}})
-
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
-		// Where(dbox.Eq("projectname", project)).
-		Command("pipe", pipes).
+		Where(dbox.Eq("projectname", project)).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
