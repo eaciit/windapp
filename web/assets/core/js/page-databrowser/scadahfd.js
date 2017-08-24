@@ -83,7 +83,7 @@ dbsh.InitScadaHFDGrid= function() {
         var col = {
             field: val._id,
             title: val.label,
-            type: val._id == "turbine" ? "string" : "number",
+            type: (val._id == "turbine") || (val._id == "statedescription") ? "string" : "number",
             width: widthVal,
             headerAttributes: {
                 style: "text-align:center"

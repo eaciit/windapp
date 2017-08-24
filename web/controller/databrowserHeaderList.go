@@ -333,7 +333,7 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Slow_TempGearBoxIMSDE_Count", "Slow_TempGearBoxOilSump_Count", "Slow_TempGearBoxIMSNDE_Count", "Slow_TempGeneratorBearingDE_Count", "Slow_TempGeneratorBearingNDE_Count",
 		"Slow_TempHubBearing_Count", "Slow_TempG1L1_Count", "Slow_TempG1L2_Count", "Slow_TempG1L3_Count", "Slow_TempBottomControlSection_Count", "Slow_TempConv1_Count",
 		"Slow_TempConv2_Count", "Slow_TempConv3_Count", "Fast_PitchAccuV1_Count", "Fast_PitchAccuV2_Count", "Fast_PitchAccuV3_Count", "Fast_PowerFactor_Count",
-		"Fast_Total_Prod_Day_kWh_Count"}
+		"Fast_Total_Prod_Day_kWh_Count", "turbinestate", "statedescription"}
 
 	headerResult = []string{"Active Power", "Wind Speed", "Nacelle Pos", "Wind Direction",
 		"Pitch Angle", "Pitch Angle1", "Pitch Angle2", "Pitch Angle3", "Generator Speed", "Rotor Speed",
@@ -348,7 +348,7 @@ func GetScadaHFDHeader() (headerResult []string, fieldResult []string) {
 		"Temp GearBox IMS DE Count", "Temp GearBox Oil Sump Count", "Temp GearBox IMS NDE Count", "Temp Generator Bearing DE Count", "Temp Generator Bearing NDE Count",
 		"Temp Main Bearing Count", "Temp G1L1 Count", "Temp G1L2 Count", "Temp G1L3 Count", "Temp Bottom Control Section Count", "Temp Conv1 Count",
 		"Temp Conv2 Count", "Temp Conv3 Count", "Pitch Accu V1 Count", "Pitch Accu V2 Count", "Pitch Accu V3 Count", "Power Factor Count",
-		"Total Production Day Count"}
+		"Total Production Day Count", "TurbineState", "TurbineState Desc"}
 
 	return
 }
