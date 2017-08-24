@@ -91,6 +91,23 @@ type MiniScadaHFD struct {
 	Turbine            string
 }
 
+type AlarmPayloads struct {
+	Turbine   []interface{}
+	DateStart time.Time
+	DateEnd   time.Time
+	Skip      int
+	Take      int
+	Sort      []AlarmSorting
+	Project   string
+	Period    string
+	Tipe      string
+}
+
+type AlarmSorting struct {
+	Field string
+	Dir   string
+}
+
 func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -1217,28 +1234,48 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	return
 }
 
+func alarmQuery(tablename, tipe string, p *AlarmPayloads, dfilter []*dbox.Filter, aggr map[string]interface{}) (result []tk.M, err error) {
+	result = make([]tk.M, 0)
+	rconn := DBRealtime()
+	query := rconn.NewQuery().From(tablename).
+		Where(dbox.And(dfilter...))
+
+	if tipe == "group" {
+		for alias, field := range aggr {
+			query = query.Aggr(dbox.AggrSum, field, alias)
+		}
+		query = query.Group("projectname")
+	} else {
+		query = query.Skip(p.Skip).Take(p.Take)
+		if len(p.Sort) > 0 {
+			var arrsort []string
+			for _, val := range p.Sort {
+				if val.Dir == "desc" {
+					arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+				} else {
+					arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+				}
+			}
+			query = query.Order(arrsort...)
+		}
+	}
+	csr, err := query.Cursor(nil)
+
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	err = csr.Fetch(&result, 0, false)
+
+	return
+}
+
 func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	type MyPayloads struct {
-		Turbine   []interface{}
-		DateStart time.Time
-		DateEnd   time.Time
-		Skip      int
-		Take      int
-		Sort      []Sorting
-		Project   string
-		Period    string
-		Tipe      string
-	}
-
-	type Sorting struct {
-		Field string
-		Dir   string
-	}
-
-	p := new(MyPayloads)
+	p := new(AlarmPayloads)
 	err := k.GetPayload(&p)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
@@ -1248,196 +1285,68 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	if e != nil {
 		return helper.CreateResultX(false, nil, e.Error(), k)
 	}
+	rconn := DBRealtime()
 
 	project := p.Project
-	tablename := "AlarmHFD"
-	if p.Tipe == "warning" {
-		tablename = "AlarmWarning"
-	}
-
-	dfilter := []*dbox.Filter{dbox.Eq("isdeleted", false)}
+	tablename := new(AlarmHFD).TableName()
+	reffturbinestate := tk.M{}
+	reffalarmbrake := tk.M{}
+	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
 		dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
 		dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)))
-	dfilter = append(dfilter, orFilter)
 	if len(p.Turbine) > 0 {
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
-
-	// rconn := lh.GetConnRealtime()
-	// defer rconn.Close()
-	rconn := DBRealtime()
-
-	csr, err := rconn.NewQuery().From(tablename).
-		Aggr(dbox.AggrSum, "$duration", "duration").
-		Aggr(dbox.AggrSum, 1, "countdata").
-		Group("projectname").
-		Where(dbox.And(dfilter...)).Cursor(nil)
-
+	aggr := map[string]interface{}{}
+	aggr["countdata"] = 1
+	switch p.Tipe {
+	case "warning":
+		tablename = "AlarmWarning"
+		dfilter = append(dfilter, dbox.Eq("isdeleted", false))
+		dfilter = append(dfilter, orFilter)
+		aggr["duration"] = "$duration"
+	case "alarmraw":
+		tablename = new(AlarmRawHFD).TableName()
+		reffturbinestate = getReffTurbineState(p.Project, rconn)
+		reffalarmbrake = getReffAlarmBrake(p.Project, rconn)
+		dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
+	case "alarm":
+		dfilter = append(dfilter, dbox.Eq("isdeleted", false))
+		dfilter = append(dfilter, orFilter)
+		aggr["duration"] = "$duration"
+	}
+	tkmgroup := tk.M{}
+	resultGroup, err := alarmQuery(tablename, "group", p, dfilter, aggr)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
-	defer csr.Close()
-
-	tkmgroup := tk.M{}
-	_ = csr.Fetch(&tkmgroup, 1, false)
+	if len(resultGroup) > 0 {
+		tkmgroup = resultGroup[0]
+	}
 
 	totalData := tkmgroup.GetInt("countdata")
 	totalDuration := tkmgroup.GetInt("duration")
-	query := rconn.NewQuery().From(tablename).
-		Where(dbox.And(dfilter...)).
-		// Order("-timestart").
-		Skip(p.Skip).Take(p.Take)
 
-	if len(p.Sort) > 0 {
-		var arrsort []string
-		for _, val := range p.Sort {
-			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
-			} else {
-				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
-			}
-		}
-		query = query.Order(arrsort...)
-	}
-	csr, err = query.Cursor(nil)
+	results, err := alarmQuery(tablename, "grid", p, dfilter, aggr)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
-	defer csr.Close()
-
-	results := make([]AlarmHFD, 0)
-	err = csr.Fetch(&results, 0, false)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	// tStart, tEnd = tStart.UTC(), tEnd.UTC()
-
-	// rStart := time.Date(tStart.Y, month, day, hour, min, sec, nsec, loc)
 
 	turbineName, err := helper.GetTurbineNameList(project)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	for idx, val := range results {
-		results[idx].Turbine = turbineName[val.Turbine]
-	}
-
-	retData := tk.M{}.Set("Data", results).
-		Set("Total", totalData).
-		Set("Duration", totalDuration).
-		Set("mindate", tStart.UTC()).
-		Set("maxdate", tEnd.UTC())
-
-	return helper.CreateResultX(true, retData, "success", k)
-}
-
-func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-	k.Config.NoLog = true
-
-	type MyPayloads struct {
-		Turbine   []interface{}
-		DateStart time.Time
-		DateEnd   time.Time
-		Skip      int
-		Take      int
-		Sort      []Sorting
-		Project   string
-		Period    string
-		Tipe      string
-	}
-
-	type Sorting struct {
-		Field string
-		Dir   string
-	}
-
-	p := new(MyPayloads)
-	err := k.GetPayload(&p)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
-	if e != nil {
-		return helper.CreateResultX(false, nil, e.Error(), k)
-	}
-
-	rconn := DBRealtime()
-
-	reffturbinestate := getReffTurbineState(p.Project, rconn)
-	reffalarmbrake := getReffAlarmBrake(p.Project, rconn)
-
-	tablename := new(AlarmRawHFD).TableName()
-	dfilter := []*dbox.Filter{}
-	dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
-	dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
-	if len(p.Turbine) > 0 {
-		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
-	}
-
-	csr, err := rconn.NewQuery().From(tablename).
-		// Aggr(dbox.AggrSum, "$duration", "duration").
-		Aggr(dbox.AggrSum, 1, "countdata").
-		Group("projectname").
-		Where(dbox.And(dfilter...)).Cursor(nil)
-
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-	defer csr.Close()
-
-	tkmgroup := tk.M{}
-	_ = csr.Fetch(&tkmgroup, 1, false)
-
-	totalData := tkmgroup.GetInt("countdata")
-	totalDuration := tkmgroup.GetInt("duration")
-
-	query := rconn.NewQuery().From(tablename).
-		Where(dbox.And(dfilter...)).
-		// Order("-timestart").
-		Skip(p.Skip).Take(p.Take)
-
-	if len(p.Sort) > 0 {
-		var arrsort []string
-		for _, val := range p.Sort {
-			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+		results[idx].Set("turbine", turbineName[val.GetString("turbine")])
+		if p.Tipe == "alarmraw" {
+			key := tk.ToString(tk.ToInt(results[idx].GetFloat64("value"), tk.RoundingAuto))
+			if results[idx].GetString("tag") == "TurbineState" {
+				results[idx].Set("description", reffturbinestate.GetString(key))
 			} else {
-				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+				results[idx].Set("description", reffalarmbrake.GetString(key))
 			}
-		}
-		query = query.Order(arrsort...)
-	} else {
-		query = query.Order("-timestamp")
-	}
-	csr, err = query.Cursor(nil)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-	defer csr.Close()
-
-	results := make([]AlarmRawHFD, 0)
-	err = csr.Fetch(&results, 0, false)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	turbineName, err := helper.GetTurbineNameList(p.Project)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	for idx, val := range results {
-		results[idx].Turbine = turbineName[val.Turbine]
-		key := tk.ToString(tk.ToInt(results[idx].Value, tk.RoundingAuto))
-		if results[idx].Tag == "TurbineState" {
-			results[idx].Description = reffturbinestate.GetString(key)
-		} else {
-			results[idx].Description = reffalarmbrake.GetString(key)
 		}
 	}
 
