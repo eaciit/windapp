@@ -1516,6 +1516,7 @@ type AlarmRawHFD struct {
 	Tag           string
 	Value         float64
 	AddInfo       string
+	Description   string
 }
 
 func (m *AlarmRawHFD) New() *AlarmRawHFD {

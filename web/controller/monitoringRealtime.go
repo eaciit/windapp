@@ -41,23 +41,23 @@ var (
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
 		"Vane 2 wind direction": "", "Nacelle Direction": "NacellePos",
 		"Rotor RPM": "RotorSpeed_RPM", "Generator RPM": "GenSpeed_RPM",
-		"DFIG speed generator encoder": "", "Blade Angle 1": "PitchAngle1",
+		"DFIG speed generator encoder": "", "Pitch Angle": "PitchAngle1", "Blade Angle 1": "PitchAngle1",
 		"Blade Angle 2": "PitchAngle2", "Blade Angle 3": "PitchAngle3",
 		"Volt. Battery - blade 1": "PitchAccuV1", "Volt. Battery - blade 2": "PitchAccuV2",
 		"Volt. Battery - blade 3": "PitchAccuV3", "Current 1 Pitch Motor": "PitchConvCurrent1",
 		"Current 2 Pitch Motor": "PitchConvCurrent2", "Current 3 Pitch Motor": "PitchConvCurrent3",
 		"Pitch motor temperature - Blade 1": "TempConv1", "Pitch motor temperature - Blade 2": "TempConv2",
-		"Pitch motor temperature - Blade 3": "TempConv3", "Phase 1 voltage": "VoltageL1",
-		"Phase 2 voltage": "VoltageL2", "Phase 3 voltage": "VoltageL3", "Phase 1 current": "CurrentL1",
+		"Pitch motor temperature - Blade 3": "TempConv3", "Phase 1 voltage": "GridPPVPhaseAB",
+		"Phase 2 voltage": "GridPPVPhaseBC", "Phase 3 voltage": "GridPPVPhaseCA", "Phase 1 current": "CurrentL1",
 		"Phase 2 current": "CurrentL2", "Phase 3 current": "CurrentL3", "Power": "ActivePower_kW",
-		"Power Reactive": "ReactivePower_kVAr", "Freq. Grid": "Frequency_Hz", "Production": "Total_Prod_Day_kWh",
+		"Power Reactive": "ReactivePower_kVAr", "Freq. Grid": "GridFrequencyHz", "Production": "Total_Prod_Day_kWh",
 		"Cos Phi": "PowerFactor", "DFIG active power": "", "DFIG reactive power": "", "DFIG mains Frequency": "",
 		"DFIG main voltage": "", "DFIG main current": "", "DFIG DC link voltage": "",
 		"Rotor R current": "", "Roter Y current": "", "Roter B current": "",
 		"Temp. generator 1 phase 1 coil": "TempG1L1", "Temp. generator 1 phase 2 coil": "TempG1L2", "Temp. generator 1 phase 3 coil": "TempG1L3",
 		"Temp. generator bearing driven End": "TempGeneratorBearingDE", "Temp. generator bearing non-driven End": "TempGeneratorBearingNDE",
-		"Temp. Gearbox driven end": "TempGearBoxHSSDE", "Temp. Gearbox non-driven end": "TempGearBoxHSSNDE", "Temp. Gearbox inter. driven end": "TempGearBoxIMSDE",
-		"Temp. Gearbox inter. non-driven end": "TempGearBoxIMSNDE", "Pressure Gear box oil": "",
+		"Temp. Gearbox driven end": "TempShaftBearing1", "Temp. Gearbox non-driven end": "TempShaftBearing3", "Temp. Gearbox inter. driven end": "TempGearBoxIMSDE",
+		"Temp. Gearbox inter. non-driven end": "TempShaftBearing2", "Pressure Gear box oil": "",
 		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
 		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
 		"Tower vibration": "", "Grid-side choke temperature": "TempGridChoke", "Generator-side choke temperature": "TempGeneratorChoke",
@@ -453,7 +453,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 	dataRealtimeValue := 0.0
 	tags := ""
-	tstamp := time.Time{}
+	tstamp, plastUpdate := time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
 	for {
@@ -473,6 +473,10 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		}
 
 		tstamp = _tdata.Get("timestamp", time.Time{}).(time.Time)
+
+		if tstamp.After(plastUpdate) {
+			plastUpdate = tstamp
+		}
 
 		if tstamp.After(lastUpdate) {
 			lastUpdate = tstamp
@@ -543,11 +547,12 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				projectData.Set("PowerGeneration", PowerGen)
 				projectData.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 				projectData.Set("PLF", tk.Div(PowerGen, (projectCapacity[lastProject]))*100)
-				projectData.Set("Capacity", projectCapacity[lastProject])
+				projectData.Set("Capacity", projectCapacity[lastProject]/1000)
 				projectData.Set("TurbineActive", turbineactive)
 				projectData.Set("TurbineDown", turbinedown)
 				projectData.Set("TurbineNotAvail", turbnotavail)
 				projectData.Set("WaitingForWind", waitingForWsProject[lastProject])
+				projectData.Set("LastUpdated", plastUpdate)
 
 				allDataProject = append(allDataProject, projectData)
 
@@ -558,6 +563,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				CountWS = 0.0
 				projectData = tk.M{}
 				alldata = []tk.M{}
+				plastUpdate = time.Time{}
 			}
 			lastProject = currProject
 		}
@@ -614,11 +620,12 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		projectData.Set("PowerGeneration", PowerGen)
 		projectData.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 		projectData.Set("PLF", tk.Div(PowerGen, (projectCapacity[lastProject]))*100)
-		projectData.Set("Capacity", projectCapacity[lastProject])
+		projectData.Set("Capacity", projectCapacity[lastProject]/1000)
 		projectData.Set("TurbineActive", turbineactive)
 		projectData.Set("TurbineDown", turbinedown)
 		projectData.Set("TurbineNotAvail", turbnotavail)
 		projectData.Set("WaitingForWind", waitingForWsProject[lastProject])
+		projectData.Set("LastUpdated", plastUpdate)
 
 		allDataProject = append(allDataProject, projectData)
 	}
@@ -645,11 +652,12 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			Set("PowerGeneration", 0).
 			Set("AvgWindSpeed", 0).
 			Set("PLF", 0).
-			Set("Capacity", projectCapacity[_project]).
+			Set("Capacity", projectCapacity[_project]/1000).
 			Set("TurbineActive", 0).
 			Set("TurbineDown", 0).
 			Set("TurbineNotAvail", 0).
-			Set("WaitingForWind", 0)
+			Set("WaitingForWind", 0).
+			Set("LastUpdated", time.Time{})
 
 		allDataProject = append(allDataProject, _itkm)
 	}
@@ -1173,7 +1181,19 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	lastUpdateIndia = time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), indiaTime.Hour(), indiaTime.Minute(), indiaTime.Second(), indiaTime.Nanosecond(), time.UTC)
 
 	if pageType == "monitoring" {
+		if turbnotavail > len(_result) {
+			turbnotavail = len(_result)
+		}
+
+		if turbinedown > len(_result) {
+			turbinedown = len(_result)
+		}
+
 		turbineactive := len(_result) - turbinedown - turbnotavail
+		if turbineactive < 0 {
+			turbineactive = 0
+		}
+
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
@@ -1182,6 +1202,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("PowerGeneration", PowerGen)
 		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
 		rtkm.Set("PLF", tk.Div(PowerGen, (totalCapacity*1000))*100)
+		rtkm.Set("TurbineWaitingWS", len(waitingForWsTurbine))
 		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
 		rtkm.Set("TurbineNotAvail", turbnotavail)
@@ -1343,8 +1364,12 @@ func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) in
 		return helper.CreateResultX(false, nil, e.Error(), k)
 	}
 
-	tablename := new(AlarmRawHFD).TableName()
+	rconn := DBRealtime()
 
+	reffturbinestate := getReffTurbineState(p.Project, rconn)
+	reffalarmbrake := getReffAlarmBrake(p.Project, rconn)
+
+	tablename := new(AlarmRawHFD).TableName()
 	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
 	dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
@@ -1352,7 +1377,6 @@ func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) in
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
 
-	rconn := DBRealtime()
 	csr, err := rconn.NewQuery().From(tablename).
 		// Aggr(dbox.AggrSum, "$duration", "duration").
 		Aggr(dbox.AggrSum, 1, "countdata").
@@ -1404,8 +1428,15 @@ func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) in
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
+
 	for idx, val := range results {
 		results[idx].Turbine = turbineName[val.Turbine]
+		key := tk.ToString(tk.ToInt(results[idx].Value, tk.RoundingAuto))
+		if results[idx].Tag == "TurbineState" {
+			results[idx].Description = reffturbinestate.GetString(key)
+		} else {
+			results[idx].Description = reffalarmbrake.GetString(key)
+		}
 	}
 
 	retData := tk.M{}.Set("Data", results).
@@ -1826,6 +1857,56 @@ func getTimeNow() (tNow time.Time) {
 
 	tNow = time.Date(_Now.Year(), _Now.Month(), _Now.Day(), _Now.Hour(), _Now.Minute(), _Now.Second(), _Now.Nanosecond(), time.UTC)
 	// tNow = tNow.Add(-10 * time.Minute)
+	return
+}
+
+func getReffTurbineState(project string, rconn dbox.IConnection) (tkm tk.M) {
+	tkm = tk.M{}
+	csr, err := rconn.NewQuery().
+		Select("turbinestate", "description").
+		From("ref_turbinestate").
+		Where(dbox.Eq("projectname", project)).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	for {
+		result := tk.M{}
+		err = csr.Fetch(&result, 1, false)
+		if err != nil {
+			break
+		}
+
+		tkm.Set(tk.ToString(result.GetInt("turbinestate")), result.GetString("description"))
+	}
+
+	return
+}
+
+func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
+	tkm = tk.M{}
+	csr, err := rconn.NewQuery().
+		Select("alarmindex", "alarmname").
+		From("AlarmBrake").
+		Where(dbox.Eq("project", project)).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	for {
+		result := tk.M{}
+		err = csr.Fetch(&result, 1, false)
+		if err != nil {
+			break
+		}
+
+		tkm.Set(tk.ToString(result.GetInt("alarmindex")), result.GetString("alarmname"))
+	}
+
 	return
 }
 

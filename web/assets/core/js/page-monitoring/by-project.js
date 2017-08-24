@@ -328,7 +328,7 @@ bp.PlotData = function(data) {
 
             var comparison = 0;
             $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
-            var tes = val.ActivePower / val.Capacity;
+            
             
             if((val.ActivePower / val.Capacity) > 0){
                 comparison = (val.ActivePower / val.Capacity) * 70;
@@ -411,6 +411,8 @@ bp.ToAlarm = function(turbine) {
     
     document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
     document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    document.cookie = "tabActive=default;expires="+ newDateObj;
+
     if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
         window.location = viewModel.appName + "page/monitoringalarm";
     } else {
