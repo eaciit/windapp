@@ -97,9 +97,9 @@ lgd.LoadData = function () {
     }
 
     setTimeout(function () {
-        sum.loadData();
         prod.loadData();
         avail.loadData();
+        sum.loadData();
     }, 600);
 }
 
@@ -133,6 +133,7 @@ lgd.createDonutChart = function (param) {
 vm.currentMenu('Dashboard');
 vm.currentTitle('Dashboard');
 vm.isDashboard(true);
+vm.isShowDataAvailability(false);
 vm.breadcrumb([{ title: 'Dashboard', href: viewModel.appName + 'page/landing' }, { title: 'Home', href: '#' }]);
 
 $(function () {
@@ -141,6 +142,8 @@ $(function () {
             $("#chartProduction thead [data-field='category']").html("");
         }
     });
+
+    console.log("First call!");
 
     $("#tabSummary").on("click", function () {
         // intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 4000);
@@ -171,9 +174,9 @@ $(function () {
 
     $('input[name="periodTypeAvail"]').on('change', function () {
         lgd.periodTypeAvailChange();
-    });
+    });    
 
-    
+    console.log("Second call!");
 
     setTimeout(function(){
         lgd.isSummary(true);
@@ -186,4 +189,14 @@ $(function () {
 
     },500);
 
+    console.log("End call!");
+
+});
+
+// temporary to fired summary number left side map
+$(document).ready(function() {
+    setTimeout(function(){
+        sum.loadData();
+        console.log("Data call then!");
+    },5000);
 });

@@ -31,7 +31,7 @@
                 <div class="panel-body">
                     <div class="col-md-5 border-right-grey">
                         <div class="col-md-12 onTop">
-                              <div class="col-md-12 pull-left"><a onclick="it.ToTimeSeriesHfd()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Analysis</a></div>
+                              <div class="col-md-12 pull-left"><a onclick="it.ToTimeSeriesHfd()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Analysis</a> &nbsp; | <a onclick="it.ToAlarm ()" style="cursor: pointer;"><i class="fa fa-arrow-right"></i> Go to Alarm Raw</a></div>
                         </div>
                         <div class="col-md-9 live-chart-div">
                             <div id="container"></div>
@@ -42,7 +42,7 @@
                             <hr class="borderGrey">
                             <strong><span>Power (kW)</span></strong><br><h4><strong><span data-bind="text:it.power()"></span></strong></h4>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <h5><strong>Electrical System</strong></h5>
                             <div class="col-md-12">
                                 <table class="table table-condensed text-center">
@@ -50,30 +50,30 @@
                                         <tr>
                                             <th style="width: 10px">#</th>
                                             <th>Phase Voltage</th>
-                                            <th>Phase Current</th>
+                                            <!-- <th>Phase Current</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td>1</td>
                                             <td><span class="text-center" data-bind="text: it.phase_volt1()"></span></td>
-                                            <td><span class="text-center" data-bind="text: it.phase_cur1()"></span></td>
+                                            <!-- <td><span class="text-center" data-bind="text: it.phase_cur1()"></span></td> -->
                                         </tr>
                                         <tr>
                                             <td>2</td>
                                             <td><span class="text-center" data-bind="text: it.phase_volt2()"></span></td>
-                                            <td><span class="text-center" data-bind="text: it.phase_cur2()"></span></td>
+                                            <!-- <td><span class="text-center" data-bind="text: it.phase_cur2()"></span></td> -->
                                         </tr>
                                         <tr>
                                             <td>3</td>
                                             <td><span class="text-center" data-bind="text: it.phase_volt3()"></span></td>
-                                            <td><span class="text-center" data-bind="text: it.phase_cur3()"></span></td>
+                                            <!-- <td><span class="text-center" data-bind="text: it.phase_cur3()"></span></td> -->
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div class="col-md-6 border-left-grey value-group">
+                        <div class="col-md-4 value-group">
                              <div class="clearfix">&nbsp;</div>
                              <strong><span>Production</span></strong><strong><span class="pull-right" data-bind="text: it.production()"></span></strong>
                              <hr class="borderGrey">

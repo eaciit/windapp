@@ -18,7 +18,7 @@ dbc.InitCustomGrid = function() {
     }
     var param = {
         "Custom": {
-            "ColumnList": (dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn())
+            "ColumnList": dbr.columnMustHaveOEM.concat((dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn()))
         },
         "misc": misc
     };
@@ -46,9 +46,9 @@ dbc.InitCustomGrid = function() {
     }
 
     var columns = [];
-    var gColumns = dbr.selectedColumn();
+    var gColumns = dbr.columnMustHaveOEM.concat(dbr.selectedColumn());
     if (dbr.selectedColumn().length == 0) {
-        gColumns = dbr.defaultSelectedColumn();
+        gColumns = dbr.columnMustHaveOEM.concat(dbr.defaultSelectedColumn());
     }
 
     var widthVal = 90;
@@ -78,6 +78,7 @@ dbc.InitCustomGrid = function() {
             attributes: {
                 style: "text-align:center"
             },
+            locked: (val._id == "turbine" ? true : false),
         };
 
         if (val._id == "timestamp") {
@@ -87,7 +88,8 @@ dbc.InitCustomGrid = function() {
                 type: "date",
                 width: 130,
                 template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-                value: true
+                value: true,
+                locked: true,
             }
         }
         columns.push(col);
@@ -174,6 +176,8 @@ dbc.InitCustomGrid = function() {
         $('#customGrid').data("kendoGrid").hideColumn(val.field);
     });
 
+    $('#customGrid').data("kendoGrid").showColumn("timestamp");
+    $('#customGrid').data("kendoGrid").showColumn("turbine");
     if (dbr.selectedColumn() == "") {
         $.each(dbr.defaultSelectedColumn(), function(idx, data) {
             $('#customGrid').data("kendoGrid").showColumn(data._id);

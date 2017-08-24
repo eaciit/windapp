@@ -7,6 +7,7 @@ var it = viewModel.IndividualTurbine;
 
 vm.currentMenu('Individual Turbine');
 vm.currentTitle('Individual Turbine');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'Individual Turbine', href: viewModel.appName + 'page/monitoringindividualturbine' }]);
@@ -178,6 +179,7 @@ it.windspeed_avg = ko.observable('');
 it.wind_dir = ko.observable('');
 it.nacel_dir = ko.observable('');
 it.gen_rpm = ko.observable('');
+it.pitch_angle = ko.observable('');
 it.blade_angle1 = ko.observable('');
 it.blade_angle2 = ko.observable('');
 it.blade_angle3 = ko.observable('');
@@ -283,6 +285,10 @@ it.PlotData = function(data) {
     if(data["Blade Angle 3"] != -999999)
         it.blade_angle3(data["Blade Angle 3"].toFixed(2));
     else it.blade_angle3('N/A');
+
+    if(data["Pitch Angle"] != -999999)
+        it.pitch_angle("PITCH SYSTEM ("+data["Pitch Angle"].toFixed(2)+")");
+    else it.pitch_angle('PITCH SYSTEM');
 
     /*VOLT BATTERY BLADE PART*/
     if(data["Volt. Battery - blade 1"] != -999999)
@@ -884,6 +890,25 @@ it.ToByProject = function(){
         window.location = viewModel.appName + "page/monitoringbyproject";
     },1500);
     
+}
+
+it.ToAlarm = function() {
+    app.loading(true);
+    var turbine = $("#turbine").val();
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    var project =  $('#projectList').data('kendoDropDownList').value();
+    
+    document.cookie = "tabActive=alarmRaw;expires="+ newDateObj;
+    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+
+
+    if(document.cookie.indexOf("tabActive=") >= 0 && document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+        window.location = viewModel.appName + "page/monitoringalarm";
+    } else {
+        app.loading(false);
+    }
 }
 
 it.changeRotation = function(){

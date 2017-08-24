@@ -1,0 +1,184 @@
+/* set coloring scheme */
+.fa-green {
+  color: #31B445;
+}
+.fa-red {
+  color: #db1e1e;
+}
+.fa-yellow {
+  color: #f2d115;
+}
+.fa-grey {
+  color: #7f7f7f;
+}
+.fa-orange {
+  color: #EA6020;
+}
+.fa-mustard {
+  color: #ff8700;
+}
+.fa-greenneon{
+  color: #00ff04;
+}
+.txt-green {
+  color: #31B445;
+}
+.txt-red {
+  color: #db1e1e;
+}
+.txt-yellow {
+  color: #f2d115;
+}
+.txt-grey {
+  color: #7f7f7f;
+}
+.txt-orange {
+  color: #EA6020;
+}
+.bg-green {
+  background-color:#31B445;
+}
+.bg-red {
+  background-color:#db1e1e;
+}
+.bg-grey {
+  background-color:#7f7f7f;
+}
+.bg-orange {
+  background-color:#EA6020;
+}
+.bg-greenneon{
+  background-color: #00ff04;
+}
+
+.bg-default-green{
+    background-color: #A5D6A7;
+}
+.bg-default-greenneon{
+    background-color: #b3e4b4;
+}
+.bg-default-red{
+    background-color: #F8BBD0;
+}
+.bg-default-orange{
+    background-color: #FFCC80;
+}
+.bg-default-grey{
+    background-color: #B0BEC5;
+}
+.bg-default-mustard{
+    background-color: #ffcc80;
+}
+
+/* layout scheme */
+/*.span-saved-views {
+    font-size:12px;
+}
+
+.dropable{
+    border: 0px solid #eee;
+    min-height: 250px;
+    width: 100%;
+    font-size: 4em; 
+    text-align: center; 
+    color: #eee;
+    border-collapse: collapse;
+}
+
+.cusmon-wrapper { padding: 0; }
+.cusmon-projects {
+	min-height: 290px;
+}
+.cusmon-project-item {
+    margin-bottom: 20px;
+}
+.cusmon-project-row {
+    background: #f7f7f7;
+}
+.cusmon-project-row.w-forecast div {
+    height: 56px;
+}
+.cusmon-project-row div {
+    padding: 6px 4px 8px 4px;
+    background: #f7f7f7;
+    border: 0px solid #FFFFFF;
+}
+.cusmon-project-row .temp-forecast { font-size: 12px; right: 5px; top: 3px; }
+.cusmon-project-row .img-temp-forecast { left: 0px; bottom: 0px; }
+.cusmon-project-row .wd-forecast { font-size: 10px; margin-top: -2px; }
+.cusmon-project-row .img-wd-forecast { left: 4px; bottom: 8px; }
+.cusmon-project-row .ws-forecast { font-size: 12px; font-weight: 500; right: 6px; top: 3px; }
+.cusmon-turbines {
+    position: relative;
+    margin-left: 0px;
+}
+.cusmon-projects .cusmon-project-left {
+	background: #00cdc9 url(../../img/bg-grad.jpg) left top repeat-x;
+	height: 280px;
+	padding: 0;
+}
+.cusmon-title {
+    margin: 0 1px;
+    padding: 5px;
+    background: #ECF0F5;
+    color: #000;
+    font-size: 12px;
+    cursor: move;
+    border-bottom: 0px solid #A9BBC0;
+}
+.cusmon-title.no-move { cursor: inherit; }
+.cusmon-turbines .cusmon-name {
+    color: #000;
+    font-size: 1.5vmin;
+    position: absolute;
+    top: 3px;
+    left: 12.5%;
+}
+.cusmon-turbines .col-xs-2, .cusmon-turbines .col-xs-4 {
+    margin: 0;
+    background: #F0F3F4;
+    border: 2px solid #fff;
+    display: table-cell;
+}
+.cusmon-turbines .cusmon-feed {
+    background: #ECF0F5;
+    color: #1A1C6F;
+    font-weight: 500;
+    min-height: 24px;
+}
+.cusmon-turbines .cusmon-feed .cusmon-name { left: 25%; color: #1A1C6F; width: 75%; right: 0; left: 0; margin: auto; }
+.cusmon-turbines .progress {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    margin: 0;
+}
+.cusmon-turbines .progress .progress-bar { 
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.cusmon-turbines .progress .progress-bar.active {
+    background: #31B445;
+}
+.cusmon-turbines .progress .progress-bar.down {
+    background: #DB1E1E;
+}
+.cusmon-turbines .progress .progress-bar.waitingwind {
+    background: #FF8700;
+}
+.cusmon-turbines .progress .progress-bar.datadelay {
+    border: 1px solid #31B445;
+}
+.cusmon-turbines .progress .progress-bar.curtailment {
+    background: #00FF04;
+}
+
+.pos-relative {
+    position: relative;
+}
+.pos-absolute {
+    position: absolute;
+}*/

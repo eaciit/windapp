@@ -203,11 +203,11 @@ label.summary-number {
     text-align: center;
 }
 .grid-custom-db-new.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-wrap.k-auto-scrollable>table>thead>tr {
-    height: 20px !important;
+    height: 90px !important;
 }
 
 .grid-custom-db-new.k-grid.k-widget.k-grid-lockedcolumns>.k-grid-header>.k-grid-header-locked>table>thead>tr {
-    height: 90px;
+    height: 90px!important;
 }
 .lbl-period{
     padding-left: 0px;

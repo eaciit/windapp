@@ -6,13 +6,17 @@ vm.currentTitle('Data Availability');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Availability', href: viewModel.appName + 'page/dataavailability' }]);
 
 page.isExpanded = ko.observable();
-page.categoryHeader = ko.observableArray(["Jan", "Feb", "Mar", "Apr","May","Jun","Jul"]);
+page.categoryHeader = ko.observableArray();
+var categoryHeaderDay;
 
-var colspan = page.categoryHeader().length;
+var colspan;
+var colspanDay;
 
-page.widthColumn = ko.observable((90 / colspan) + "%");
+page.widthColumn = ko.observable();
+var widthColumnDay;
 
-page.dataAvail = ko.observableArray(); 
+page.dataAvail = ko.observableArray();
+var dataAvailDay;
 
 
 page.hideFilter = function(){
@@ -34,7 +38,7 @@ page.getData = function(){
         project: fa.project,
     };
 
-    toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
+    var dataAvailReq = toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
         if (!app.isFine(res)) {
                 return;
             }
@@ -46,6 +50,117 @@ page.getData = function(){
 		page.widthColumn((90 / colspan) + "%");
 		page.createView();
     });
+
+    $.when(dataAvailReq).done(function(){
+    	setTimeout(function(){
+    		app.prepareTooltipster();
+    		app.loading(false);
+    	}, 100);
+    });
+}
+
+page.monthDetail = function(month) {
+	app.loading(true);
+	var param = {
+        period: month,
+        breakdown: "daily",
+        turbine: fa.turbine(),
+        project: fa.project,
+    };
+
+    var dataAvailReq = toolkit.ajaxPost(viewModel.appName + "dataavailability/getdataavailability", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        if(res.data.Data[0].Data != undefined || res.data.Data[0].Data != null) {
+        	dataAvailDay= res.data.Data;
+	        categoryHeaderDay = res.data.Month;
+			colspanDay = categoryHeaderDay.length;
+			widthColumnDay = (90 / colspanDay) + "%";
+			page.createViewDaily();
+        } else {
+        	swal({
+	            title: "Warning",
+	            type: "warning",
+	            text: "Data is not available for "+ month,
+	        }, function () {
+	            app.loading(false);
+	        });
+        }
+    });
+
+    $.when(dataAvailReq).done(function(){
+    	setTimeout(function(){
+    		app.prepareTooltipster();
+    		app.loading(false);
+    	}, 100);
+    });
+}
+
+page.createViewDaily = function(){
+	$("#tableContent").html("");
+	$("#tableHeader").html("");
+	$("#tableHeader").append('<td width="10%" class="border-right clickable" colspan="2" onclick="page.createView()"><a role="tab" data-toggle="tab" class="btn-back"><i class="fa fa-reply" aria-hidden="true"></i> Back </a></td>');
+
+	$.each(categoryHeaderDay, function(id, ress){
+		var tdHeader = ' <td width="'+widthColumnDay+'" class="text-month" ><strong>'+ress+'</strong></td>';
+
+		$("#tableHeader").append(tdHeader);
+	});
+
+	$.each(dataAvailDay, function(key, value){
+		var progressData = "";
+		if (value!=null){
+			$.each(value.Data, function(i, val){
+				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+';opacity:'+val.opacity+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
+				
+			});
+
+			var icon = "";
+			if(value.Turbine.length > 0){
+				icon = '<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-down" style="display:none;"></i>';
+			}
+			var master = '<tr class="clickable" data-toggle="collapse" data-target=".row'+key+'">'+
+							'<td>'+icon+'</td>'+
+							'<td class="border-right"><strong>'+value.Category+'</strong></span></td>'+
+							'<td colspan='+colspanDay+'>'+
+									'<div class="progress">'+progressData+'</div>'+
+							'</td>'+
+						'</tr>';
+			
+			$.each(value.Turbine, function(index, res){
+				var progressDataDetails = "";
+
+				$.each(res.details, function(idx, result){
+					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+';opacity:'+result.opacity+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
+					
+				});
+
+				var details = '<tr class="collapse details row'+key+'">'+
+					'<td></td>'+
+					'<td class="border-right" style="padding-left:30px">'+res.TurbineName+'</span></td>'+
+					'<td colspan='+colspanDay+'>'+
+							'<div class="progress">'+progressDataDetails+'</div>'+
+					'</td>'+
+				'</tr>';
+
+				master += details;
+
+			});
+
+			$("#tableContent").append(master);
+		}
+
+		
+	});
+
+	$('.collapse').on('shown.bs.collapse', function(){
+		$(this).parent().find(".fa-chevron-right").removeClass("fa-chevron-right").addClass("fa-chevron-down");
+	}).on('hidden.bs.collapse', function(){
+		$(this).parent().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-right");
+	});
+
 }
 
 page.createView = function(){
@@ -54,7 +169,10 @@ page.createView = function(){
 	$("#tableHeader").append('<td width="10%" class="border-right" colspan="2">&nbsp;</td>');
 
 	$.each(page.categoryHeader(), function(id, ress){
-		var tdHeader = ' <td width="'+page.widthColumn()+'" class="border-right"><strong>'+ress+'</strong></td>';
+		var month = ress.split(" ")[0].slice(0, 3);
+		var tdHeader = ' <td width="'+page.widthColumn()+'" class="text-month label label-primary clickable" onclick="page.monthDetail(\'' + ress + '\')" ><strong>'+
+		month+'</strong></td>';
+
 		$("#tableHeader").append(tdHeader);
 	});
 
@@ -116,12 +234,7 @@ $(function () {
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
 		fa.checkTurbine();
-        $.when(page.getData()).done(function(){
-        	setTimeout(function(){
-        		app.prepareTooltipster();
-        		app.loading(false);
-        	},1000);	
-        });
+		page.getData();
     });
 
 	page.hideFilter();
@@ -129,11 +242,6 @@ $(function () {
 		fa.LoadData();
 		page.getData();
 	},200);
-	
-    setTimeout(function() {
-		app.prepareTooltipster();
-        app.loading(false);    
-    }, 500);
 
 	$('#projectList').kendoDropDownList({
 		change: function () {  

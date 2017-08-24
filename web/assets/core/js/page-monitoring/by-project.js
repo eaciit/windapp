@@ -7,6 +7,7 @@ var bp = viewModel.ByProject;
 
 vm.currentMenu('By Project');
 vm.currentTitle('By Project');
+vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
     { title: 'By Project', href: viewModel.appName + 'page/monitoringbyproject' }]);
@@ -41,6 +42,14 @@ bp.newFeeders = ko.observableArray([]);
 bp.oldFeeders = ko.observableArray([]);
 bp.fullscreen = ko.observable(false);
 bp.currentTempLocation = ko.observable();
+
+var audioElement = document.createElement('audio');
+    audioElement.setAttribute('src', "../res/alarm/alarm.mp3");
+    
+    audioElement.addEventListener('ended', function() {
+        this.play();
+    }, false);
+
 // var color = ["#4e6f90","#750c41","#009688","#1aa3a3","#de9c2b","#506642","#ee8d7d","#578897","#3f51b5","#5cbdaa"];
 var color = ["#046293","#af1923","#66418c","#a8480c","#14717b","#4c792d","#880e4f","#9e7c21","#ac2258"]
 
@@ -214,6 +223,8 @@ bp.GetData = function(data) {
 };
 
 bp.PlotData = function(data) {
+    audioElement.currentTime = 0;
+    audioElement.pause();
     var allData = data.Detail
     var oldData = (bp.oldFeeders().length == 0 ? allData : bp.oldFeeders());
     var lastUpdate = moment.utc(data.TimeMax);
@@ -239,6 +250,12 @@ bp.PlotData = function(data) {
                 window.setTimeout(function(){ 
                     $('#power_'+ turbine).css('background-color', 'transparent');
                 }, 750);
+
+                if($('#statusturbine_'+ turbine).attr('class') == "lbl bg-green" && val.ColorStatus == "lbl bg-red"){
+                    audioElement.play();
+                }else{
+                    audioElement.pause();
+                }
                 
             }
             if(val.WindSpeed > -999999) {
@@ -311,7 +328,7 @@ bp.PlotData = function(data) {
 
             var comparison = 0;
             $('#statusturbinedefault_'+ turbine).addClass(defaultColorStatus);
-            var tes = val.ActivePower / val.Capacity;
+            
             
             if((val.ActivePower / val.Capacity) > 0){
                 comparison = (val.ActivePower / val.Capacity) * 70;
@@ -331,6 +348,12 @@ bp.PlotData = function(data) {
                 $('#statusturbinedefault_'+turbine).addClass("bordered");
             }else{
                 $('#statusturbinedefault_'+turbine).removeClass("bordered");
+            }
+
+            if(val.IsReapeatedAlarm == true){
+                $('#linkDetail_'+turbine).addClass("reapeat-alarm");
+            }else{
+                $('#linkDetail_'+turbine).removeClass("reapeat-alarm");
             }
 
             $('#statusturbinedefault_'+turbine).popover({
@@ -388,6 +411,8 @@ bp.ToAlarm = function(turbine) {
     
     document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
     document.cookie = "turbine="+turbine+";expires="+ newDateObj;
+    document.cookie = "tabActive=default;expires="+ newDateObj;
+
     if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
         window.location = viewModel.appName + "page/monitoringalarm";
     } else {
@@ -397,6 +422,29 @@ bp.ToAlarm = function(turbine) {
 
 bp.resetFeeders = function(){
     bp.oldFeeders([])
+}
+
+bp.setFullScreen = function(){
+    if ((document.fullScreenElement && document.fullScreenElement !== null) || (!document.mozFullScreen && !document.webkitIsFullScreen)) {
+        bp.fullscreen(true);
+        if (document.documentElement.requestFullScreen) {
+            document.documentElement.requestFullScreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullScreen) {
+            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    } else {
+
+        bp.fullscreen(false);
+        if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+        }
+    }
 }
 
 $(function() {
@@ -420,7 +468,7 @@ $(function() {
     });
 
     $("#max-screen").click(function(){
-        bp.fullscreen(true);
+        bp.setFullScreen();
         $("html").addClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 80);
         $(".multicol").height($(window).innerHeight() - 80 - 25);
@@ -430,7 +478,7 @@ $(function() {
     });
 
     $("#restore-screen").click(function(){
-        bp.fullscreen(false);
+        bp.setFullScreen();
         $("html").removeClass("maximize-mode");
         $(".multicol-div").height($(window).innerHeight() - 150);
         $(".multicol").height($(window).innerHeight() - 150 - 25);

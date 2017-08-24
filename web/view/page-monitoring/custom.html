@@ -1,7 +1,11 @@
 <script>
     app.currentDateData = '{{.CurrentDateData}}';
     vm.menu({{.Menus}});
+
+    var projectList = {{.ProjectList}};
+    var turbineList = {{.TurbineList}};
 </script>
+<script src="{{BaseUrl}}res/jquery.rotate/jQueryRotate.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-monitoring/custom.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/custom.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
@@ -10,63 +14,207 @@
     .span-saved-views {
         font-size:12px;
     }
+
     .dropable{
-        border: 2px solid #eee;
+        border: 0px solid #eee;
         min-height: 250px;
-        margin:10px; padding:10px;
         width: 100%;
-        padding: 1px; 
-        font-size: 4em; text-align: center; 
+        font-size: 4em; 
+        text-align: center; 
         color: #eee;
-        vertical-align: middle;
+        border-collapse: collapse;
+    }
+    
+    .cusmon-wrapper {}
+    .cusmon-projects {
+    }
+    .cusmon-project-item {
+        /*border: 1px solid #a0a0a0;*/
+        margin-bottom: 20px;
+    }
+    .cusmon-project-row {
+        background: #f7f7f7;
+    }
+    .cusmon-project-row.w-forecast div {
+        height: 56px;
+    }
+    .cusmon-project-row div {
+        padding: 6px 4px 8px 4px;
+        background: #f7f7f7;
+        border: 1px solid #FFFFFF;
+    }
+    .cusmon-project-row .temp-forecast { font-size: 12px; right: 5px; top: 3px; }
+    .cusmon-project-row .img-temp-forecast { left: 0px; bottom: 0px; }
+    .cusmon-project-row .wd-forecast { font-size: 10px; margin-top: -2px; }
+    .cusmon-project-row .img-wd-forecast { left: 4px; bottom: 8px; }
+    .cusmon-project-row .ws-forecast { font-size: 12px; font-weight: 500; right: 6px; top: 3px; }
+    .cusmon-turbines {
+        position: relative;
+        margin-left: 0px;
+    }
+    .cusmon-title {
+        margin: 0 1px;
+        padding: 5px;
+        background: #ECF0F5;
+        color: #000;
+        font-size: 12px;
+        cursor: move;
+        border-bottom: 0px solid #A9BBC0;
+    }
+    .cusmon-title.no-move { cursor: inherit; }
+    .cusmon-turbines .cusmon-name {
+        color: #000;
+        font-size: 1.5vmin;
+        position: absolute;
+        top: 3px;
+        left: 12.5%;
+    }
+    .cusmon-turbines .col-xs-2, .cusmon-turbines .col-xs-4 {
+        margin: 0;
+        background: #F0F3F4;
+        border: 2px solid #fff;/*#7F7F7F;*/
+        display: table-cell;
+    }
+    .cusmon-turbines .cusmon-feed {
+        background: #ECF0F5;
+        color: #1A1C6F;
+        font-weight: 500;
+        min-height: 24px;
+    }
+    .cusmon-turbines .cusmon-feed .cusmon-name { left: 25%; color: #1A1C6F; width: 75%; right: 0; left: 0; margin: auto; }
+    .cusmon-turbines .progress {
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+        margin: 0;
+    }
+    .cusmon-turbines .progress .progress-bar { 
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+    .cusmon-turbines .progress .progress-bar.active {
+        background: #31B445;
+    }
+    .cusmon-turbines .progress .progress-bar.down {
+        background: #DB1E1E;
+    }
+    .cusmon-turbines .progress .progress-bar.waitingwind {
+        background: #FF8700;
+    }
+    .cusmon-turbines .progress .progress-bar.datadelay {
+        border: 1px solid #31B445;
+    }
+    .cusmon-turbines .progress .progress-bar.curtailment {
+        background: #00FF04;
     }
 
-    #sortable { margin-left:-10px;list-style-type: none; margin: 0; padding: 0; margin-top: 10px;}
-
+    .pos-relative {
+        position: relative;
+    }
+    .pos-absolute {
+        position: absolute;
+    }
 </style>
+
+<script type="text/html" id="turbine-template">
+    <div data-bind="css: { 'no-padding': true, 'cusmon-feed': (!t.IsTurbine), 'col-xs-4': (!t.IsTurbine), 'col-xs-2': t.IsTurbine }">
+        <span class="cusmon-name" data-bind="text: t.Name"></span>
+        <div class="progress" data-bind="visible: t.IsTurbine, attr: { 'data-id': t.Id }">
+          <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+</script>
+
 <div class="row">
     <div class="col-md-12 col-sm-12 ez panel-content" id="panel-content-comparison">
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore">
-                <div class="panel-heading">
+                
+                <!-- temporary hide it, no t.necIsTurbinessary -->
+                <div class="panel-heading hidden">
                     <div class="pull-right div-saved-views">
                         <span class="span-saved-views"><b>Saved Views <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Saved views by the user, maximum 3 views for each user"></i></b></span>&nbsp;
                         <select class="form-control input-sm" id="savedViews"></select>
                         <button type="button" class="btn btn-sm btn-primary btn-filter-refresh" id="btnSaveView">Save</button>
                     </div>
-                    
+                    <br class="clear" />
                 </div>
-                <div class="panel-body">
-                    <div class="col-sm-12 text-center" style="margin-left: -10px;">
-                        <div id="sortable">
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">1</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">2</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">3</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">4</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">5</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">6</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">7</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">8</div>
-                            </div>
-                            <div class="ui-state-default col-md-4">
-                                <div class="dropable">9</div>
+
+                <div class="panel-body cusmon-wrapper">
+
+                    <div class="cusmon-projects" data-bind="foreach: bpc.projectList">
+                        <div class="col-md-2 col-xs-6">
+                            <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }">
+                                <h4 class="cusmon-title no-move" data-bind="text: Name"></h4>
+                                
+                                <div class="cusmon-project-row">
+                                    <div class="col-md-6 col-xs-4 text-left">Active Power <small>(Mw)</small></div>
+                                    <div class="col-md-6 col-xs-8 text-right">
+                                        <span class="power" data-bind="attr: { 'data-id': ProjectId }">0</span>
+                                        /
+                                        <span class="maxcap" data-bind="text: parseFloat(TotalMaxCapacity).toFixed(1)">0</span>
+                                    </div>
+                                </div>
+                                <br class="clear" />
+                                
+                                <div class="cusmon-project-row w-forecast">
+                                    <div class="col-md-6 col-xs-6 text-center pos-relative">
+                                        <span class="temp-forecast pos-absolute">0</span>
+                                        <img src="" class="img-temp-forecast pos-absolute" width="50px" />
+                                    </div>
+                                    <div class="col-md-6 col-xs-6 text-center pos-relative">
+                                        <img src="{{BaseUrl}}res/img/compass.png" class="img-wd-forecast pos-absolute" width="40px" />
+                                        <span class="wd-forecast hidden">0</span>
+                                        <span class="ws-forecast pos-absolute">0</span>
+                                    </div>
+                                </div>
+                                <br class="clear" />
+
+                                <div class="cusmon-project-row">
+                                    <div class="col-md-6 col-xs-4 text-left">Wind Speed <small>(m/s)</small></div>
+                                    <div class="col-md-6 col-xs-8 text-right">
+                                        <span class="ws" data-bind="attr: { 'data-id': ProjectId }">0</span>
+                                    </div>
+                                </div>
+                                <br class="clear" />
+
+                                <div class="cusmon-project-row">
+                                    <div class="col-md-3 col-xs-3 text-center">
+                                        <span class="t-up" data-bind="attr: { 'data-id': ProjectId }">0</span><br />
+                                        <i class="fa fa-circle fa-green"></i>
+                                    </div>
+                                    <div class="col-md-3 col-xs-3 text-center">
+                                        <span class="t-down" data-bind="attr: { 'data-id': ProjectId }">0</span><br />
+                                        <i class="fa fa-circle fa-red"></i>
+                                    </div>
+                                    <div class="col-md-3 col-xs-3 text-center">
+                                        <span class="t-wait" data-bind="attr: { 'data-id': ProjectId }">0</span><br />
+                                        <i class="fa fa-circle fa-mustard"></i>
+                                    </div>
+                                    <div class="col-md-3 col-xs-3 text-center">
+                                        <span class="t-na" data-bind="attr: { 'data-id': ProjectId }">0</span><br />
+                                        <i class="fa fa-circle fa-grey"></i>
+                                    </div>
+                                </div>
+                                <br class="clear" />
+                                
+                            </div>    
+                        </div>
+                    </div>
+                    <br class="clear" />
+
+                    <div id="sortable" data-bind="foreach: bpc.projectList">
+
+                        <div class="ui-state-default col-md-3 col-xs-6">
+                            <div class="dropable"> 
+                                <h4 class="cusmon-title" data-bind="text: Name"></h4>     
+                                <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' }"></div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -74,6 +222,52 @@
     </div>
 </div>
 <script>
-    bpc.projectList({{.ProjectList}});
-    // page.rawturbine({{.TurbineList}});
+    if(turbineList.length > 0) {
+        var newFeeds = [];
+        var feeds = [];
+        var currFeed = '';
+
+        // getting unique feeder by project
+        $.each(_.sortBy(turbineList, function(o){ return o.ProjectId + ':' + o.Feeder; }), function(idx, t){
+            if(currFeed!=t.Feeder) {
+                feeds.push(t);
+                currFeed = t.Feeder;
+            }
+        });
+
+        // adding feeder as turbine for viewing purpose
+        $.each(feeds, function(idx, dt){
+            newFeeds.push({
+                Project: dt.Project,
+                Id: dt.Feeder,
+                Name: dt.Feeder,
+                Feeder: "NONE",
+                Capacity: dt.Capacity,
+                IsTurbine: false,
+            });
+            var turbineByFeed = _.filter(turbineList, function(o){
+                return (o.Feeder==dt.Feeder);
+            });
+            if(turbineByFeed.length > 0) {
+                $.each(turbineByFeed, function(idx, dt){
+                    newFeeds.push({
+                        Project: dt.Project,
+                        Id: dt.Value,
+                        Name: dt.Turbine,
+                        Feeder: dt.Feeder,
+                        Capacity: dt.Capacity,
+                        IsTurbine: true,
+                    });
+                });
+            }
+        });
+    }
+    //console.log(newFeeds);
+
+    // set all references data
+    bpc.projectList(projectList);
+    bpc.turbineList(turbineList);
+    bpc.feederList(newFeeds);
+
+    //console.log(_.filter(bpc.feederList(), function(o){ return (o.Project=='Amba'); }));
 </script>
