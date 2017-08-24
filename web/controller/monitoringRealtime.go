@@ -5,6 +5,7 @@ import (
 	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"log"
+	"math"
 
 	"eaciit/wfdemo-git/web/helper"
 
@@ -927,6 +928,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	tstamp, servertstamp := time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
+	ictempout, istempout := float64(0), float64(0)
 	for {
 		_tdata = tk.M{}
 		err = csr.Fetch(&_tdata, 1, false)
@@ -1116,11 +1118,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("WindSpeedColor", "defaultcolor")
 			}
 			if dataRealtimeValue > -999999 && tags == "TempOutdoor" {
-				if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
-					_itkm.Set("TemperatureColor", "txt-red")
-				} else {
-					_itkm.Set("TemperatureColor", "txt-grey")
-				}
+				ictempout += 1
+				istempout += dataRealtimeValue
+				// if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
+				// 	_itkm.Set("TemperatureColor", "txt-red")
+				// } else {
+				// 	_itkm.Set("TemperatureColor", "txt-grey")
+				// }
 			}
 		}
 	}
@@ -1131,6 +1135,20 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				&_itkm, tempCondition)
 		}
 		alldata = append(alldata, _itkm)
+	}
+
+	//improve it with get from reff
+	treshtempout := float64(4)
+	if project == "Amba" {
+		treshtempout = 2
+	}
+	avgouttemp := tk.Div(istempout, ictempout)
+	for i, data := range alldata {
+		data.Set("TemperatureColor", "txt-grey")
+		if idiff := math.Abs(avgouttemp - data.GetFloat64("TempOutdoor")); idiff > treshtempout {
+			data.Set("TemperatureColor", "txt-red")
+		}
+		alldata[i] = data
 	}
 
 	isInDetail := func(_turbine string) bool {
@@ -1196,6 +1214,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			turbineactive = 0
 		}
 
+		rtkm.Set("ProjectName", project)
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
@@ -1208,6 +1227,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
 		rtkm.Set("TurbineNotAvail", turbnotavail)
+		rtkm.Set("AvgTempOutdoor", avgouttemp)
 	} else if pageType == "dashboard" {
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TurbineDown", turbinedown)
