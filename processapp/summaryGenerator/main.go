@@ -81,7 +81,10 @@ func main() {
 
 		// not dependent Generate
 		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
-		// new(EventReduceAvailability).ConvertEventReduceAvailability(base)
+		new(EventReduceAvailability).ConvertEventReduceAvailability(base)
+
+		// // custom function temporary running
+		// new(UpdateScadaOemMinutes).UpdateDeviation(base)
 
 		/* data that need to copy:
 

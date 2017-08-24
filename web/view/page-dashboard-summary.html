@@ -202,6 +202,7 @@
                   </span>
 				</div>
 				<div class="panel-body content-chart">
+					<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 					<!-- <div id="chartDTLostEnergyCustomTooltip"></div> -->
 					<div id="chartLostEnergy"></div>
 				</div>
@@ -290,7 +291,6 @@
 					</div>
 				</div>
 			</div>
-
 			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 				<div class="panel ez no-padding hardcore plf-div">
 					<div class="panel-heading">
@@ -352,6 +352,14 @@
 						<div id="chartWindDistributionCustomTooltip"></div>
 						<div id="chartWindDistribution"></div>
 					</div>
+				</div>
+			</div>
+			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Turbines currently down (Hrs) - Last 24 Hours
+					</div>
+					<div class="panel-body content-chart" id="dtturbines" style="overflow-y: auto;"></div>
 				</div>
 			</div>
 		</div>
@@ -438,7 +446,7 @@
 		<div class="col-md-12 col-sm-12">
 			<ul class="nav nav-pills nav-replace-title" role="tablist">
 				<li role="presentation" class="active">
-					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:sum.backToDashboard()"><i class="fa fa-reply" aria-hidden="true"></i> Back</a>
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:sum.toDetailProduction()"><i class="fa fa-reply" aria-hidden="true"></i> Back</a>
 				</li>
 			</ul>
 		</div>
@@ -500,6 +508,55 @@
 						<div id="gridDetailProdByProject"></div>
 					</div>
 
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div data-bind="visible:sum.isDetailLostEnergy()">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:sum.backToDashboard()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Detail Lost Energy&nbsp;&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdTxt"></span></strong></div>
+				<div class="panel-body">
+					<div class="col-md-12">
+						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
+						<div id="chartDetailLost"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div data-bind="visible:sum.isDetailLostEnergyLevel2">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:sum.backToLostEnegery()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Detail Lost Energy&nbsp;&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdTxt"></span>&nbsp;&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp; <span data-bind="text:sum.detailProjectName()"></span></strong></div>
+				<div class="panel-body">
+					<div class="col-md-12">
+						<div id="chartDetailLostLevel2"></div>
+					</div>
 				</div>
 			</div>
 		</div>

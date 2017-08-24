@@ -25,8 +25,8 @@ if (pageType == "OEM") {
     pg.tags = ko.observableArray([
         {text: "Wind Speed" , value:"windspeed"},
         {text: "Power" , value:"power"},
-        // {text: "Wind Direction" , value:"winddirection"},
-        // {text: "Nacelle Direction" , value:"nacellepos"},
+        {text: "Wind Direction" , value:"winddirection"},
+        {text: "Nacelle Direction" , value:"nacellepos"},
         {text: "Rotor RPM" , value:"rotorrpm"},
         {text: "Pitch Angle" , value:"pitchangle"},        
     ]);
@@ -448,7 +448,8 @@ pg.options = function(){
         $("#selectTagsDiv").html('<select id="TagList"></select>');
         $('#TagList').kendoMultiSelect({
             dataSource: pg.tags(), 
-            value: pg.TagList() , 
+            value: pg.TagList() ,
+            maxSelectedItems : 4,
             dataValueField : 'value', 
             dataTextField: 'text',
             suggest: true, 
@@ -457,6 +458,8 @@ pg.options = function(){
             change: function(e) {
                 if (this.value().length == 0) {
                     this.value("windspeed")
+                } else if (this.value().length > 4) { 
+
                 }
             }
         })
@@ -970,6 +973,7 @@ pg.ToByProject = function(){
 
 
 $(document).ready(function () {
+    di.getAvailDate();
     newyAxis = yAxis;
     if(pg.pageType() === "HFD"){
         $("#periodList").closest(".k-widget").hide();

@@ -23,9 +23,10 @@ dbsh.InitScadaHFDGrid= function() {
         "tipe": "ScadaHFD",
         "period": fa.period,
     }
+
     var param = {
         "Custom": {
-            "ColumnList": (dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn())
+            "ColumnList": dbr.columnMustHaveHFD.concat((dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn()))
         },
         "misc": misc
     };
@@ -58,9 +59,9 @@ dbsh.InitScadaHFDGrid= function() {
     // ];
 
     var columns = [];
-    var gColumns = dbsh.selectedColumn();
+    var gColumns = dbr.columnMustHaveHFD.concat(dbsh.selectedColumn());
     if (dbsh.selectedColumn().length == 0) {
-        gColumns = dbsh.defaultSelectedColumn();
+        gColumns = dbr.columnMustHaveHFD.concat(dbsh.defaultSelectedColumn());
     }
     
     var widthVal = 90;
@@ -82,7 +83,7 @@ dbsh.InitScadaHFDGrid= function() {
         var col = {
             field: val._id,
             title: val.label,
-            type: val._id == "turbine" ? "string" : "number",
+            type: (val._id == "turbine") || (val._id == "statedescription") ? "string" : "number",
             width: widthVal,
             headerAttributes: {
                 style: "text-align:center"
@@ -90,6 +91,7 @@ dbsh.InitScadaHFDGrid= function() {
             attributes: {
                 style: "text-align:center"
             },
+            locked: (val._id == "turbine" ? true : false),
         };
 
         if (val._id == "timestamp") {
@@ -99,7 +101,8 @@ dbsh.InitScadaHFDGrid= function() {
                 type: "date",
                 width: 130,
                 template: "#= kendo.toString(moment.utc(timestamp).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-                value: true
+                value: true,
+                locked: true,
             }
         }
         columns.push(col);
@@ -185,6 +188,8 @@ dbsh.InitScadaHFDGrid= function() {
         $('#scadahfdGrid').data("kendoGrid").hideColumn(val.field);
     });
 
+    $('#scadahfdGrid').data("kendoGrid").showColumn("timestamp");
+    $('#scadahfdGrid').data("kendoGrid").showColumn("turbine");
     if (dbsh.selectedColumn() == "") {
         $.each(dbsh.defaultSelectedColumn(), function(idx, data) {
             $('#scadahfdGrid').data("kendoGrid").showColumn(data._id);

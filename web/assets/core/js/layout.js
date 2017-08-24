@@ -5,9 +5,12 @@ var vm = viewModel;
 vm.currentMenu = ko.observable('Dashboard');
 vm.currentTitle = ko.observable('Dashboard');
 vm.isDashboard = ko.observable(false);
+vm.isShowDataAvailability = ko.observable(true);
 vm.dateAsOf = ko.observable();
 vm.menu = ko.observableArray([]); /*lek arep ngupdate lewat menu 'Operational / Menu Access 'yo*/
 vm.breadcrumb = ko.observableArray([{ title: 'Windfarm', href: '#' }, { title: 'Dashboard', href: '#' }]);
+vm.projectName = ko.observable("");
+vm.dataAvailability = ko.observable("");
 
 vm.getMenuList = function () {
     var isFine = function (res) {

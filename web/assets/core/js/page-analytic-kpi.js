@@ -68,7 +68,7 @@ var Data = {
 
             var param = {
                 period: fa.period,
-                dateStart: dateStart,
+                dateStart: new Date(moment(dateStart).format('YYYY-MM-DD')),
                 dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
                 turbine: fa.turbine(),
                 project: fa.project,
@@ -86,7 +86,7 @@ var Data = {
                 page.dataSource(res.data.Data);
                 page.generateGrid();
             });
-
+            fa.getDataAvailability();
         }
         // app.loading(false);
     }
@@ -443,6 +443,7 @@ $(function () {
 
     $('#btnRefresh').on('click', function () {
         // page.columnsBreakdownList = fa.GetBreakDown();
+        fa.setPreviousFilter();
         fa.checkTurbine();
         Data.LoadData();
     });
@@ -459,7 +460,14 @@ $(function () {
         dataValueField: 'value',
         dataTextField: 'text',
         suggest: true,
-        change: function () { fa.showHidePeriod(page.setBreakDown()) }
+        change: function () { 
+            if(isFirst !== true){
+                fa.currentFilter().period = this._old;
+                fa.checkFilter();
+            }
+            fa.showHidePeriod(page.setBreakDown());
+            // fa.checkFilter();
+        }
     });
 
     setTimeout(function () {
@@ -469,16 +477,27 @@ $(function () {
             dataTextField: 'text',
             suggest: true,
             change: function () { 
+                fa.currentFilter().project = this._old;
                 page.setBreakDown(); 
                 setTimeout(function(){
                    fa.setTurbine();
                    di.getAvailDate();
+                   fa.checkFilter();
                 },500);
             }
         });
 
-        $("#dateStart").change(function () { fa.DateChange(page.setBreakDown()) });
-        $("#dateEnd").change(function () { fa.DateChange(page.setBreakDown()) });
+        $("#dateStart").change(function () { 
+            fa.DateChange(page.setBreakDown());
+            fa.currentFilter().startDate = this.value;
+            fa.checkFilter(); 
+
+        });
+        $("#dateEnd").change(function () { 
+            fa.DateChange(page.setBreakDown()); 
+            fa.currentFilter().endDate = this.value;
+            fa.checkFilter(); 
+        });
 
     }, 1500);
 });

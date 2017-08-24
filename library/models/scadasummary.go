@@ -167,6 +167,7 @@ type ScadaSummaryByProjectItem struct {
 	DowntimeHours float64
 	MachineAvail  float64
 	TrueAvail     float64
+	DataAvail     float64
 }
 
 func (m *ScadaSummaryByProject) New() *ScadaSummaryByProject {

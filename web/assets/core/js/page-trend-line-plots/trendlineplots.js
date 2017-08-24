@@ -19,26 +19,26 @@ tlp.turbineList = ko.observableArray([]);
 
 tlp.turbine = ko.observableArray([]);
 tlp.compTemp = ko.observableArray([
-    { "value": 2, "text": "Ambient Temp", "colname": "temp_outdoor" },
-    { "value": 5, "text": "Temp_GearBox_IMS_NDE", "colname": "temp_gearbox_ims_nde" }, 
-    { "value": 5, "text": "Temp_GearBox_HSS_NDE", "colname": "temp_gearbox_hss_nde"  },
-    { "value": 5, "text": "Temp_G1L1", "colname": "temp_g1l1"  },
-    { "value": 5, "text": "Temp_G1L2", "colname": "temp_g1l2"  },
-    { "value": 5, "text": "Temp_G1L3", "colname": "temp_g1l3"  },
-    { "value": 5, "text": "Temp_GearBox_HSS_DE", "colname": "temp_gearbox_hss_de"  },
-    { "value": 5, "text": "Temp_GearOilSump", "colname": "temp_gearoilsump"  },
-    { "value": 5, "text": "Temp_GeneratorBearing_DE", "colname": "temp_generatorbearing_de"  },
-    { "value": 5, "text": "Temp_GeneratorBearing_NDE", "colname": "temp_generatorbearing_nde"  },
-    { "value": 5, "text": "Temp_MainBearing", "colname": "temp_mainbearing"  },
-    { "value": 5, "text": "Temp_GearBox_IMS_DE", "colname": "temp_gearbox_ims_de"  },
-    { "value": 5, "text": "Converter-1,2 temp", "colname": ""  },
-    { "value": 5, "text": "Nacelle Temp", "colname": "temp_nacelle"  },
+    { "value": 1, "text": "Ambient Temp", "colname": "temp_outdoor" },
+    // { "value": 2, "text": "Temp_GearBox_IMS_NDE", "colname": "temp_gearbox_ims_nde" }, 
+    // { "value": 3, "text": "Temp_GearBox_HSS_NDE", "colname": "temp_gearbox_hss_nde"  },
+    // { "value": 4, "text": "Temp_G1L1", "colname": "temp_g1l1"  },
+    // { "value": 5, "text": "Temp_G1L2", "colname": "temp_g1l2"  },
+    // { "value": 6, "text": "Temp_G1L3", "colname": "temp_g1l3"  },
+    // { "value": 7, "text": "Temp_GearBox_HSS_DE", "colname": "temp_gearbox_hss_de"  },
+    // { "value": 8, "text": "Temp_GearOilSump", "colname": "temp_gearoilsump"  },
+    { "value": 9, "text": "Temp_GeneratorBearing_DE", "colname": "temp_generatorbearing_de"  },
+    { "value": 10, "text": "Temp_GeneratorBearing_NDE", "colname": "temp_generatorbearing_nde"  },
+    // { "value": 11, "text": "Temp_MainBearing", "colname": "temp_mainbearing"  },
+    // { "value": 12, "text": "Temp_GearBox_IMS_DE", "colname": "temp_gearbox_ims_de"  },
+    // { "value": 13, "text": "Converter-1,2 temp", "colname": ""  },
+    { "value": 14, "text": "Nacelle Temp", "colname": "temp_nacelle"  },
 ]);
 
 tlp.deviation= ko.observable(2);
 tlp.deviationList = ko.observableArray([1,2,3,4,5]);
 tlp.isDeviation = ko.observable(false);
-tlp.compTempVal = ko.observable("2");
+tlp.compTempVal = ko.observable(1);
 
 
 tlp.getAvailDate = function(){

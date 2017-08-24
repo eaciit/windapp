@@ -198,35 +198,42 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 	needTotalTurbine := p.Misc["needtotalturbine"].(bool)
 	tablename := new(ScadaDataOEM).TableName()
 	var reflectVal reflect.Value
+	var database dbox.IConnection
 
 	switch tipe {
 	case "scadaoem":
 		obj := ScadaDataOEM{}
 		tablename = obj.TableName()
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
+		database = DB().Connection
 	case "scadahfd":
 		obj := ScadaDataHFD{}
 		tablename = obj.TableName()
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
+		database = DB().Connection
 	case "met":
 		obj := MetTower{}
 		tablename = obj.TableName()
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
+		database = DB().Connection
 	case "eventraw":
 		obj := EventRaw{}
 		tablename = obj.TableName()
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
+		database = DB().Connection
 	case "eventdown":
 		obj := EventDown{}
 		tablename = obj.TableName()
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
+		database = DB().Connection
 	case "eventdownhfd":
-		obj := EventDownHFD{}
+		obj := AlarmHFD{}
 		tablename = obj.TableName()
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
+		database = DBRealtime()
 	}
 
-	query := DB().Connection.NewQuery().From(tablename).Skip(p.Skip).Take(p.Take)
+	query := database.NewQuery().From(tablename).Skip(p.Skip).Take(p.Take)
 	query.Where(dbox.And(filter...))
 
 	if len(p.Sort) > 0 {
@@ -253,7 +260,7 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	queryC := DB().Connection.NewQuery().From(tablename).Where(dbox.And(filter...))
+	queryC := database.NewQuery().From(tablename).Where(dbox.And(filter...))
 	ccount, e := queryC.Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -270,7 +277,8 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 	totalDuration := 0.0
 	if needTotalTurbine {
 		aggrData := []tk.M{}
-		queryAggr := DB().Connection.NewQuery().From(tablename)
+		queryAggr := database.NewQuery().From(tablename)
+
 		switch tipe {
 		case "scadaoem":
 			queryAggr = queryAggr.Aggr(dbox.AggrSum, "$power", "TotalPower").
@@ -841,6 +849,7 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 	tablename := ""
 	fieldList := []string{}
 	separator := "_"
+	var database dbox.IConnection
 
 	switch typeExcel {
 	// case "ScadaOem":
@@ -853,22 +862,32 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 		header = []string{"Turbine", "TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Alarm Description", "Duration", "Reduce Availability"}
 		tablename = new(EventDown).TableName()
 		separator = ""
+		database = DB().Connection
 	case "EventRaw":
 		header = []string{"TimeStamp", "Project Name", "Turbine", "Event Type", "Alarm Description", "Turbine Status", "Brake Type", "Brake Program", "Alarm Id", "Alarm Toggle"}
 		tablename = new(EventRaw).TableName()
 		separator = ""
+		database = DB().Connection
 	case "MetTower":
 		header = []string{"TimeStamp", "WindDirNo", "VHubWS90mAvg", "VHubWS90mMax", "VHubWS90mMin", "VHubWS90mStdDev", "VHubWS90mCount", "VRefWS88mAvg", "VRefWS88mMax", "VRefWS88mMin", "VRefWS88mStdDev", "VRefWS88mCount", "VTipWS42mAvg", "VTipWS42mMax", "VTipWS42mMin", "VTipWS42mStdDev", "VTipWS42mCount", "DHubWD88mAvg", "DHubWD88mMax", "DHubWD88mMin", "DHubWD88mStdDev", "DHubWD88mCount", "DRefWD86mAvg", "DRefWD86mMax", "DRefWD86mMin", "DRefWD86mStdDev", "DRefWD86mCount", "THubHHubHumid855mAvg", "THubHHubHumid855mMax", "THubHHubHumid855mMin", "THubHHubHumid855mStdDev", "THubHHubHumid855mCount", "TRefHRefHumid855mAvg", "TRefHRefHumid855mMax", "TRefHRefHumid855mMin", "TRefHRefHumid855mStdDev", "TRefHRefHumid855mCount", "THubHHubTemp855mAvg", "THubHHubTemp855mMax", "THubHHubTemp855mMin", "THubHHubTemp855mStdDev", "THubHHubTemp855mCount", "TRefHRefTemp855mAvg", "TRefHRefTemp855mMax", "TRefHRefTemp855mMin", "TRefHRefTemp855mStdDev", "TRefHRefTemp855mCount", "BaroAirPress855mAvg", "BaroAirPress855mMax", "BaroAirPress855mMin", "BaroAirPress855mStdDev", "BaroAirPress855mCount", "YawAngleVoltageAvg", "YawAngleVoltageMax", "YawAngleVoltageMin", "YawAngleVoltageStdDev", "YawAngleVoltageCount", "OtherSensorVoltageAI1Avg", "OtherSensorVoltageAI1Max", "OtherSensorVoltageAI1Min", "OtherSensorVoltageAI1StdDev", "OtherSensorVoltageAI1Count", "OtherSensorVoltageAI2Avg", "OtherSensorVoltageAI2Max", "OtherSensorVoltageAI2Min", "OtherSensorVoltageAI2StdDev", "OtherSensorVoltageAI2Count", "OtherSensorVoltageAI3Avg", "OtherSensorVoltageAI3Max", "OtherSensorVoltageAI3Min", "OtherSensorVoltageAI3StdDev", "OtherSensorVoltageAI3Count", "OtherSensorVoltageAI4Avg", "OtherSensorVoltageAI4Max", "OtherSensorVoltageAI4Min", "OtherSensorVoltageAI4StdDev", "OtherSensorVoltageAI4Count", "GenRPMCurrentAvg", "GenRPMCurrentMax", "GenRPMCurrentMin", "GenRPMCurrentStdDev", "GenRPMCurrentCount", "WS_SCSCurrentAvg", "WS_SCSCurrentMax", "WS_SCSCurrentMin", "WS_SCSCurrentStdDev", "WS_SCSCurrentCount", "RainStatusCount", "RainStatusSum", "OtherSensor2StatusIO1Avg", "OtherSensor2StatusIO1Max", "OtherSensor2StatusIO1Min", "OtherSensor2StatusIO1StdDev", "OtherSensor2StatusIO1Count", "OtherSensor2StatusIO2Avg", "OtherSensor2StatusIO2Max", "OtherSensor2StatusIO2Min", "OtherSensor2StatusIO2StdDev", "OtherSensor2StatusIO2Count", "OtherSensor2StatusIO3Avg", "OtherSensor2StatusIO3Max", "OtherSensor2StatusIO3Min", "OtherSensor2StatusIO3StdDev", "OtherSensor2StatusIO3Count", "OtherSensor2StatusIO4Avg", "OtherSensor2StatusIO4Max", "OtherSensor2StatusIO4Min", "OtherSensor2StatusIO4StdDev", "OtherSensor2StatusIO4Count", "OtherSensor2StatusIO5Avg", "OtherSensor2StatusIO5Max", "OtherSensor2StatusIO5Min", "OtherSensor2StatusIO5StdDev", "OtherSensor2StatusIO5Count", "A1Avg", "A1Max", "A1Min", "A1StdDev", "A1Count", "A2Avg", "A2Max", "A2Min", "A2StdDev", "A2Count", "A3Avg", "A3Max", "A3Min", "A3StdDev", "A3Count", "A4Avg", "A4Max", "A4Min", "A4StdDev", "A4Count", "A5Avg", "A5Max", "A5Min", "A5StdDev", "A5Count", "A6Avg", "A6Max", "A6Min", "A6StdDev", "A6Count", "A7Avg", "A7Max", "A7Min", "A7StdDev", "A7Count", "A8Avg", "A8Max", "A8Min", "A8StdDev", "A8Count", "A9Avg", "A9Max", "A9Min", "A9StdDev", "A9Count", "A10Avg", "A10Max", "A10Min", "A10StdDev", "A10Count", "AC1Avg", "AC1Max", "AC1Min", "AC1StdDev", "AC1Count", "AC2Avg", "AC2Max", "AC2Min", "AC2StdDev", "AC2Count", "C1Avg", "C1Max", "C1Min", "C1StdDev", "C1Count", "C2Avg", "C2Max", "C2Min", "C2StdDev", "C2Count", "C3Avg", "C3Max", "C3Min", "C3StdDev", "C3Count", "D1Avg", "D1Max", "D1Min", "D1StdDev", "M1_1Avg", "M1_1Max", "M1_1Min", "M1_1StdDev", "M1_1Count", "M1_2Avg", "M1_2Max", "M1_2Min", "M1_2StdDev", "M1_2Count", "M1_3Avg", "M1_3Max", "M1_3Min", "M1_3StdDev", "M1_3Count", "M1_4Avg", "M1_4Max", "M1_4Min", "M1_4StdDev", "M1_4Count", "M1_5Avg", "M1_5Max", "M1_5Min", "M1_5StdDev", "M1_5Count", "M2_1Avg", "M2_1Max", "M2_1Min", "M2_1StdDev", "M2_1Count", "M2_2Avg", "M2_2Max", "M2_2Min", "M2_2StdDev", "M2_2Count", "M2_3Avg", "M2_3Max", "M2_3Min", "M2_3StdDev", "M2_3Count", "M2_4Avg", "M2_4Max", "M2_4Min", "M2_4StdDev", "M2_4Count", "M2_5Avg", "M2_5Max", "M2_5Min", "M2_5StdDev", "M2_5Count", "M2_6Avg", "M2_6Max", "M2_6Min", "M2_6StdDev", "M2_6Count", "M2_7Avg", "M2_7Max", "M2_7Min", "M2_7StdDev", "M2_7Count", "M2_8Avg", "M2_8Max", "M2_8Min", "M2_8StdDev", "M2_8Count", "VAvg", "VMax", "VMin", "IAvg", "IMax", "IMin", "T", "Addr", "WindDirDesc", "WSCategoryNo", "WSCategoryDesc"}
 		tablename = new(MetTower).TableName()
 		separator = ""
 		p.Project = ""
+		database = DB().Connection
 	case "DowntimeEventHFD":
-		header = []string{"TimeStart", "TimeEnd", "Down Grid", "Down Environment", "Down Machine", "Turbine", "Alarm Description", "Duration"}
-		tablename = new(EventDownHFD).TableName()
+		header = []string{"Turbine", "Time Start", "Time End", "Duration", "Break Down Group", "Turbine State", "Alarm Code", "Alarm Description"}
+		tablename = new(AlarmHFD).TableName()
 		separator = ""
+		database = DBRealtime()
 	}
 
 	for _, val := range header {
+		switch val {
+		case "Break Down Group":
+			val = "bdgroup"
+		case "Alarm Description":
+			val = "alarmdesc"
+		}
 		fieldList = append(fieldList, strings.ToLower(strings.Replace(strings.TrimSuffix(val, " "), " ", separator, -69)))
 	}
 
@@ -879,7 +898,7 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 		tk.Println(err)
 	}
 
-	query := DB().Connection.NewQuery().From(tablename).Where(dbox.And(filter...))
+	query := database.NewQuery().From(tablename).Where(dbox.And(filter...))
 	if len(p.Sort) > 0 {
 		var arrsort []string
 		for _, val := range p.Sort {

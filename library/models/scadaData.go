@@ -9,8 +9,8 @@ import (
 )
 
 type ScadaData struct {
-	orm.ModelBase             `bson:"-",json:"-"`
-	ID                        bson.ObjectId ` bson:"_id" , json:"_id" `
+	orm.ModelBase             `bson:"-" json:"-"`
+	ID                        bson.ObjectId ` bson:"_id" json:"_id" `
 	DateInfo                  DateInfo
 	TimeStamp                 time.Time
 	Turbine                   string

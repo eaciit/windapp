@@ -1127,6 +1127,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				// Aggr(dbox.AggrAvr, "$avgwindspeed", "avgwindspeed").
 				Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
 				Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
+				Aggr(dbox.AggrSum, "$totalrows", "rows10min").
 				Group(group).
 				Cursor(nil)
 			defer csr.Close()
@@ -1155,6 +1156,8 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				igriddowntime := data.GetFloat64("totalgriddowntime")
 				iunknowntime := data.GetFloat64("totalunknowntime")
 
+				icount10min := data.GetFloat64("rows10min")
+
 				maxDate := data.Get("max", time.Time{}).(time.Time)
 				minDate := data.Get("min", time.Time{}).(time.Time)
 				totalhour := maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
@@ -1180,7 +1183,8 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 
 				in := tk.M{}.Set("noofturbine", noofturbine).Set("oktime", oktime).Set("energy", energy).
 					Set("totalhour", totalhour).Set("totalcapacity", capacity).
-					Set("machinedowntime", imachinedowntime).Set("griddowntime", igriddowntime).Set("otherdowntime", iunknowntime)
+					Set("machinedowntime", imachinedowntime).Set("griddowntime", igriddowntime).Set("otherdowntime", iunknowntime).
+					Set("counttimestamp", icount10min)
 
 				res := helper.CalcAvailabilityAndPLF(in)
 
@@ -1194,6 +1198,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				item.TrueAvail = res.GetFloat64("totalavailability") / 100
 				item.LostEnergy = data.GetFloat64("totalenergylost")
 				item.DowntimeHours = imachinedowntime + igriddowntime + iunknowntime
+				item.DataAvail = res.GetFloat64("dataavailability")
 
 				items = append(items, item)
 			}

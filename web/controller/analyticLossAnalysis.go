@@ -83,6 +83,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		"OtherDownHours":   tk.M{"$sum": "$otherdowntimehours"},
 		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
 		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
+		"scadaavail":       tk.M{"$avg": "$scadaavail"},
 		"LossEnergy":       tk.M{"$sum": "$lostenergy"}}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -169,6 +170,8 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		helper.CreateResult(false, nil, e.Error())
 	}
 
+	scadaavail := ""
+
 	for _, val := range resultScada {
 		id := val.GetString("_id")
 		var oktime, totalavail float64
@@ -180,9 +183,12 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 				break
 			}
 		}
+		scadaavail = tk.ToString(val.GetFloat64("scadaavail") * 100)
+		scadaavail = " (" + strings.Split(scadaavail, ".")[0] + "." + strings.Split(scadaavail, ".")[1][0:2] + "%)"
 
 		LossAnalysisResult = append(LossAnalysisResult, tk.M{
-			"Id":               turbineName[val.GetString("_id")],
+			"Id": turbineName[val.GetString("_id")] +
+				scadaavail,
 			"Production":       val.GetFloat64("Production") / 1000,
 			"LossEnergy":       val.GetFloat64("LossEnergy") / 1000,
 			"MachineDownHours": val.GetFloat64("MachineDownHours"),
