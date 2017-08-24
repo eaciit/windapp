@@ -41,7 +41,7 @@ var (
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
 		"Vane 2 wind direction": "", "Nacelle Direction": "NacellePos",
 		"Rotor RPM": "RotorSpeed_RPM", "Generator RPM": "GenSpeed_RPM",
-		"DFIG speed generator encoder": "", "Pitch Angle": "PitchAngle1", "Blade Angle 1": "PitchAngle1",
+		"DFIG speed generator encoder": "", "Pitch Angle": "PitchAngle", "Blade Angle 1": "PitchAngle1",
 		"Blade Angle 2": "PitchAngle2", "Blade Angle 3": "PitchAngle3",
 		"Volt. Battery - blade 1": "PitchAccuV1", "Volt. Battery - blade 2": "PitchAccuV2",
 		"Volt. Battery - blade 3": "PitchAccuV3", "Current 1 Pitch Motor": "PitchConvCurrent1",
@@ -63,6 +63,15 @@ var (
 		"Tower vibration": "", "Grid-side choke temperature": "TempGridChoke", "Generator-side choke temperature": "TempGeneratorChoke",
 		"Temperature inside converter cabinet 2": "TempConvCabinet2", "Pitch Conv Internal Temp Blade1": "PitchConvInternalTempBlade1",
 		"Pitch Conv Internal Temp Blade2": "PitchConvInternalTempBlade2", "Pitch Conv Internal Temp Blade3": "PitchConvInternalTempBlade3",
+		"Grid Power Factor": "GridPowerFactor", "Total Power Act From CoD": "TotalPowerActFromCoD", "Raw Windspeed": "RawWindspeed",
+		"Temp Slip Ring": "TempSlipRing", "Stator Current": "StatorCurrent", "Rectifier Current": "RectifierCurrent", "Grid Current": "GridCurrent",
+		"Rotor Current": "RotorCurrent", "Rectifier Active Power": "RectifierActivePower", "Stator Power": "StatorPower",
+		"Busbar Voltage": "BusbarVoltage", "Temp Rectifier Rotor": "TempRectifierRotor", "Temp Rectifier Grid": "TempRectifierGrid",
+		"Power Limit Scada": "PowerLimitScada", "Power Limit Temp": "PowerLimitTemp", "Hydraulic Pressure": "HydraulicPressure",
+		"Hydraulic Temp": "HydraulicTemp", "Parameter Max Power": "ParameterMaxPower", "Current Year Prod": "CurrentYearProd",
+		"Grid Voltage": "GridVoltage", "Ref Radiator Temp1": "RefRadiatorTemp1", "Ref Radiator Temp2": "RefRadiatorTemp2",
+		"Temp Ref Cooling Unit": "TempRefCoolingUnit", "Transformer Winding Temp1": "TransformerWindingTemp1", "PLC Prog Version": "PLCProgVersion",
+		"Transformer Winding Temp2": "TransformerWindingTemp2", "Transformer Winding Temp3": "TransformerWindingTemp3",
 	}
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 )
