@@ -827,10 +827,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	turbineMap := map[string]tk.M{}
 	totalCapacity := 0.0
 
-	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder", "turbinename", "latitude", "longitude", "capacitymw").
-		From("ref_turbine").
-		Where(dbox.Eq("project", project)).
-		Order("turbinename").
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": []tk.M{tk.M{"project": project}}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbineid": 1, "feeder": 1, "turbinename": 1, "latitude": 1, "longitude": 1, "capacitymw": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
+
+	csrt, err := DB().Connection.NewQuery().From("ref_turbine").
+		Command("pipe", pipes).
 		Cursor(nil)
 
 	if err != nil {
@@ -853,8 +856,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		totalCapacity += _tkm.GetFloat64("capacitymw")
 	}
 
-	// arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
-	// 	"PitchAngle", "RotorRPM"}
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
 		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
@@ -871,9 +872,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	// defer rconn.Close()
 	rconn := DBRealtime()
 
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$match": []tk.M{tk.M{"projectname": project}}})
+
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
-		Where(dbox.Eq("projectname", project)).
+		// Where(dbox.Eq("projectname", project)).
+		Command("pipe", pipes).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
