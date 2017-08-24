@@ -1171,7 +1171,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	avgouttemp := tk.Div(istempout, ictempout)
 	for i, data := range alldata {
 		data.Set("TemperatureColor", "txt-grey")
-		if idiff := math.Abs(avgouttemp - data.GetFloat64("TempOutdoor")); idiff > treshtempout {
+		if idiff := math.Abs(avgouttemp - data.GetFloat64("Temperature")); idiff > treshtempout {
 			data.Set("TemperatureColor", "txt-red")
 		}
 		alldata[i] = data
