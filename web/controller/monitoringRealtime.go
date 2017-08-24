@@ -61,7 +61,8 @@ var (
 		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
 		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
 		"Tower vibration": "", "Grid-side choke temperature": "TempGridChoke", "Generator-side choke temperature": "TempGeneratorChoke",
-		"Temperature inside converter cabinet 2": "TempConvCabinet2",
+		"Temperature inside converter cabinet 2": "TempConvCabinet2", "Pitch Conv Internal Temp Blade1": "PitchConvInternalTempBlade1",
+		"Pitch Conv Internal Temp Blade2": "PitchConvInternalTempBlade2", "Pitch Conv Internal Temp Blade3": "PitchConvInternalTempBlade3",
 	}
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 )

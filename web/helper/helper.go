@@ -684,6 +684,9 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 
 	for _, val := range data {
 		result = append(result, md.ProjectOut{
+			ProjectId:         val.ProjectId,
+			NoOfTurbine:       val.TotalTurbine,
+			TotalMaxCapacity:  val.TotalPower,
 			Name:              fmt.Sprintf("%v (%v | %v MW)", val.ProjectId, val.TotalTurbine, val.TotalPower),
 			Value:             val.ProjectId,
 			Coords:            []float64{val.Latitude, val.Longitude},
@@ -707,8 +710,8 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 		NewQuery().
 		From(new(md.TurbineMaster).TableName()).
 		Where(filter...).
-		// Order("project, turbineid").
-		Order("turbinename").
+		Order("feeder, turbinename").
+		// Order("turbinename").
 		Cursor(nil)
 
 	if e != nil {
@@ -725,6 +728,7 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 			Turbine:  val.TurbineName,
 			Value:    val.TurbineId,
 			Capacity: val.CapacityMW,
+			Feeder:   val.Feeder,
 			Coords:   []float64{val.Latitude, val.Longitude},
 		})
 	}
