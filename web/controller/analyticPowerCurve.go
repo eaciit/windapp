@@ -773,6 +773,30 @@ func setScatterData(name, xField, yField, color, yAxis string, marker tk.M, data
 	}
 }
 
+func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+	resWSvsPower = []tk.M{}
+	resWSvsTipe = []tk.M{}
+	dataWSvsPower := tk.M{}
+	dataWSvsTipe := tk.M{}
+	for _, val := range list {
+		dataWSvsPower = tk.M{}
+		dataWSvsTipe = tk.M{}
+
+		dataWSvsPower.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
+		dataWSvsPower.Set("Power", val.GetFloat64("power"))
+		dataWSvsPower.Set("valueColor", colorField[1])
+
+		resWSvsPower = append(resWSvsPower, dataWSvsPower)
+
+		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
+		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+		dataWSvsTipe.Set("valueColor", colorField[2])
+
+		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+	}
+	return
+}
+
 func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -788,11 +812,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		Power, AvgWindSpeed, AvgBladeAngle   float64
 		NacelleTemperature, NacelleDeviation float64
 	}
-
-	var (
-		list       []ScadaMini
-		dataSeries []tk.M
-	)
+	list := []tk.M{}
+	var dataSeries []tk.M
 
 	p := new(PayloadScatter)
 	e := k.GetPayload(&p)
@@ -825,6 +846,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	filter = append(filter, dbox.Eq("available", 1))
 
 	csr, e := DB().Connection.NewQuery().
+		Select("power", "avgwindspeed", "avgbladeangle", "nacelletemperature", "nacelledeviation", "ambienttemperature").
 		From(new(ScadaData).TableName()).
 		Where(dbox.And(filter...)).
 		Take(10000).
@@ -832,8 +854,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	var _list ScadaMini
+	_list := tk.M{}
 	for {
+		_list = tk.M{}
 		e = csr.Fetch(&_list, 1, false)
 		if e != nil {
 			break
@@ -843,74 +866,26 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 	defer csr.Close()
 
-	datas := tk.M{}
-	arrDatas := []tk.M{}
-	tempData := tk.M{}
-	tempDatas := []tk.M{}
-	deviationData := tk.M{}
-	deviationDatas := []tk.M{}
-	pitchData := tk.M{}
-	pitchDatas := []tk.M{}
 	turbineData := tk.M{}
 	seriesData := tk.M{}
+	resWSvsPower := []tk.M{}
+	resWSvsTipe := []tk.M{}
 
 	switch p.ScatterType {
 	case "temp":
-		for _, val := range list {
-			datas = tk.M{}
-			tempData = tk.M{}
-
-			datas.Set("WindSpeed", val.AvgWindSpeed)
-			datas.Set("Power", val.Power)
-			datas.Set("valueColor", colorField[1])
-
-			arrDatas = append(arrDatas, datas)
-
-			tempData.Set("WindSpeed", val.AvgWindSpeed)
-			tempData.Set("Temperature", val.NacelleTemperature)
-			tempData.Set("valueColor", colorField[2])
-
-			tempDatas = append(tempDatas, tempData)
-		}
-		seriesData = setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, tempDatas)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "Temperature", "nacelletemperature")
+		seriesData = setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "deviation":
-		for _, val := range list {
-			datas = tk.M{}
-			deviationData = tk.M{}
-
-			datas.Set("WindSpeed", val.AvgWindSpeed)
-			datas.Set("Power", val.Power)
-			datas.Set("valueColor", colorField[1])
-
-			arrDatas = append(arrDatas, datas)
-
-			deviationData.Set("WindSpeed", val.AvgWindSpeed)
-			deviationData.Set("Deviation", val.NacelleDeviation)
-			deviationData.Set("valueColor", colorField[2])
-
-			deviationDatas = append(deviationDatas, deviationData)
-		}
-		seriesData = setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, deviationDatas)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "Deviation", "nacelledeviation")
+		seriesData = setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "pitch":
-		for _, val := range list {
-			datas = tk.M{}
-			pitchData = tk.M{}
-
-			datas.Set("WindSpeed", val.AvgWindSpeed)
-			datas.Set("Power", val.Power)
-			datas.Set("valueColor", colorField[1])
-
-			arrDatas = append(arrDatas, datas)
-			if val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120 {
-				pitchData.Set("WindSpeed", val.AvgWindSpeed)
-				pitchData.Set("Pitch", val.AvgBladeAngle)
-				pitchData.Set("valueColor", colorField[2])
-				pitchDatas = append(pitchDatas, pitchData)
-			}
-		}
-		seriesData = setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, pitchDatas)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "Pitch", "avgbladeangle")
+		seriesData = setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
+	case "ambient":
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "Ambient", "ambienttemperature")
+		seriesData = setScatterData("Ambient", "WindSpeed", "Ambient", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
 	}
-	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, arrDatas)
+	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
 	dataSeries = append(dataSeries, seriesData)
 
