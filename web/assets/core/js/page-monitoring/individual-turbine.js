@@ -192,6 +192,9 @@ it.cur_pitch_motor3 = ko.observable('');
 it.pitch_motor_temp1 = ko.observable('');
 it.pitch_motor_temp2 = ko.observable('');
 it.pitch_motor_temp3 = ko.observable('');
+it.pitch_conv_tempblade1 = ko.observableArray('');
+it.pitch_conv_tempblade2 = ko.observableArray('');
+it.pitch_conv_tempblade3 = ko.observableArray('');
 it.phase_volt1 = ko.observable('');
 it.phase_volt2 = ko.observable('');
 it.phase_volt3 = ko.observable('');
@@ -217,6 +220,15 @@ it.temp_ambient = ko.observable('');
 it.temp_main_bear = ko.observable('');
 it.temp_gear_oil = ko.observable('');
 it.drive_train_vibra = ko.observable('');
+it.transformer_winding_temp1 = ko.observable('');
+it.transformer_winding_temp2 = ko.observable('');
+it.transformer_winding_temp3 = ko.observable('');
+it.transformerWindingTemp1 = ko.observable('');
+it.transformerWindingTemp2 = ko.observable('');
+it.transformerWindingTemp3 = ko.observable('');
+it.temp_slip_ring = ko.observable('');
+it.hydraulic_pressure = ko.observable('');
+it.hydraulic_temp = ko.observable('');
 
 it.isFirst = ko.observable(true);
 
@@ -312,7 +324,20 @@ it.PlotData = function(data) {
         it.cur_pitch_motor3(data["Current 3 Pitch Motor"].toFixed(2));
     else it.cur_pitch_motor3('N/A');
 
-    /*PITCH MOTOR TEMPERATURE PART*/
+    /*PITCH CONV INTERNAL TEMPERATURE PART*/
+    if(data["Pitch Conv Internal Temp Blade1"] != -999999)
+        it.pitch_conv_tempblade1(data["Pitch Conv Internal Temp Blade1"].toFixed(2));
+    else it.pitch_conv_tempblade1('N/A');
+
+    if(data["Pitch Conv Internal Temp Blade2"] != -999999)
+        it.pitch_conv_tempblade2(data["Pitch Conv Internal Temp Blade2"].toFixed(2));
+    else it.pitch_conv_tempblade2('N/A');
+    
+    if(data["Pitch Conv Internal Temp Blade3"] != -999999)
+        it.pitch_conv_tempblade3(data["Pitch Conv Internal Temp Blade3"].toFixed(2));
+    else it.pitch_conv_tempblade3('N/A');
+
+        /*PITCH MOTOR TEMPERATURE PART*/
     if(data["Pitch motor temperature - Blade 1"] != -999999)
         it.pitch_motor_temp1(data["Pitch motor temperature - Blade 1"].toFixed(2));
     else it.pitch_motor_temp1('N/A');
@@ -322,6 +347,7 @@ it.PlotData = function(data) {
     if(data["Pitch motor temperature - Blade 3"] != -999999)
         it.pitch_motor_temp3(data["Pitch motor temperature - Blade 3"].toFixed(2));
     else it.pitch_motor_temp3('N/A');
+
 
     /*PHASE VOLTAGE PART*/
     if(data["Phase 1 voltage"] != -999999)
@@ -419,6 +445,32 @@ it.PlotData = function(data) {
     if(data["Temp. generator bearing non-driven End"] != -999999)
         it.temp_gen_bearing_non_driven(data["Temp. generator bearing non-driven End"].toFixed(2));
     else it.temp_gen_bearing_non_driven('N/A');
+
+
+
+    /*TEMP WINDING PART*/
+    if(data["Transformer Winding Temp1"] != -999999)
+        it.transformer_winding_temp1(data["Transformer Winding Temp1"].toFixed(2));
+    else it.transformer_winding_temp1('N/A');
+    if(data["Transformer Winding Temp2"] != -999999)
+        it.transformer_winding_temp2(data["Transformer Winding Temp2"].toFixed(2));
+    else it.transformer_winding_temp2('N/A');
+    if(data["Transformer Winding Temp3"] != -999999)
+        it.transformer_winding_temp3(data["Transformer Winding Temp3"].toFixed(2));
+    else it.transformer_winding_temp3('N/A');
+    if(data["Temp Slip Ring"] != -999999)
+        it.temp_slip_ring(data["Temp Slip Ring"].toFixed(2));
+    else it.temp_slip_ring('N/A');
+    if(data["Hydraulic Pressure"] != -999999)
+        it.hydraulic_pressure(data["Hydraulic Pressure"].toFixed(2));
+    else it.hydraulic_pressure('N/A');
+    if(data["Hydraulic Temp"] != -999999)
+        it.hydraulic_temp(data["Hydraulic Temp"].toFixed(2));
+    else it.hydraulic_temp('N/A');
+
+
+
+
 
     /*TEMP GEARBOX PART*/
     if(data["Temp. Gearbox driven end"] != -999999)
@@ -802,9 +854,10 @@ it.showWindRoseChart = function(){
             $("#windRoseChart").kendoChart({
                 theme: "flat",
                 chartArea: {
-                    height: 200,
-                    width: 300,
+                    height: 215,
+                    width: 200,
                     margin: 0,
+                    marginLeft: -30,
                     padding: 0,
                 },
                 dataSource: {
