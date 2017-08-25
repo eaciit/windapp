@@ -357,27 +357,11 @@ pc.showHidePeriod2 = function (callback) {
 
 
 pc.InitDefaultValue = function () {
-    setTimeout(function(){
-        pc.getAvailDate()
-    },500);
-    // $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
-    // $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    pc.getAvailDate();
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
 
     $("#periodList2").data("kendoDropDownList").value("custom");
-    $("#periodList2").data("kendoDropDownList").trigger("change");
-
-    // var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    // var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0, 0));
-    // var lastEndDate = new Date(app.getDateMax(maxDateData));
-    // // var dateEnd2 = new Date(Date.UTC(moment(lastStartDate).get('year'), lastStartDate.getMonth(), lastStartDate.getDate()-30, 0, 0, 0, 0));
-    // // var dateStart2 =new Date(Date.UTC(moment(dateEnd2).get('year'), dateEnd2.getMonth(), dateEnd2.getDate()-30, 0, 0, 0, 0));
-
-    // $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-    // $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-    // $('#dateEnd2').data('kendoDatePicker').value(lastEndDate);
-    // $('#dateStart2').data('kendoDatePicker').value(lastStartDate);
 }
 pc.initChart = function() {
         var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
