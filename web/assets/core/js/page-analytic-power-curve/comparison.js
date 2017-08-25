@@ -129,6 +129,9 @@ pc.getAvailDate = function(){
         var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
         var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
 
+        $("#periodList").data("kendoDropDownList").value("custom");
+        $("#periodList").data("kendoDropDownList").value("custom");
+
         $('#dateStart').data('kendoDatePicker').value(startDate);
         $('#dateEnd').data('kendoDatePicker').value(maxDate);
         $('#dateStart2').data('kendoDatePicker').value(startDate);
@@ -171,7 +174,7 @@ pc.populateTurbine = function (selected) {
 
     setTimeout(function () {
         $('#turbineList1').data('kendoDropDownList').select(0);
-        $('#turbineList2').data('kendoDropDownList').select(0);
+        $('#turbineList2').data('kendoDropDownList').select(1);
     }, 50);
 };
 
@@ -354,24 +357,11 @@ pc.showHidePeriod2 = function (callback) {
 
 
 pc.InitDefaultValue = function () {
-    // $("#projectList1").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
-    // $("#projectList2").data("kendoDropDownList").value("Tejuva (24 | 50.4 MWh)")
+    pc.getAvailDate();
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
 
     $("#periodList2").data("kendoDropDownList").value("custom");
-    $("#periodList2").data("kendoDropDownList").trigger("change");
-
-    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-30, 0, 0, 0, 0));
-    var lastEndDate = new Date(app.getDateMax(maxDateData));
-    // var dateEnd2 = new Date(Date.UTC(moment(lastStartDate).get('year'), lastStartDate.getMonth(), lastStartDate.getDate()-30, 0, 0, 0, 0));
-    // var dateStart2 =new Date(Date.UTC(moment(dateEnd2).get('year'), dateEnd2.getMonth(), dateEnd2.getDate()-30, 0, 0, 0, 0));
-
-    $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
-    $('#dateStart').data('kendoDatePicker').value(lastStartDate);
-    $('#dateEnd2').data('kendoDatePicker').value(lastEndDate);
-    $('#dateStart2').data('kendoDatePicker').value(lastStartDate);
 }
 pc.initChart = function() {
         var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -557,7 +547,6 @@ pc.setProjectTurbine = function(projects, turbines, selected){
 };
 
 $(document).ready(function () {
-    pc.getAvailDate();
     
     $('#btnRefresh').on('click', function() {
         setTimeout(function() {
@@ -577,5 +566,5 @@ $(document).ready(function () {
     pc.InitDefaultValue();
     setTimeout(function() {
         pc.initChart();
-    }, 200);
+    }, 500);
 });

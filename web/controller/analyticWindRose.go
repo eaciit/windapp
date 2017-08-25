@@ -721,7 +721,9 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		turbine = append(turbine, bufferTurbine...)
 	}
 	sort.Strings(turbine)
-	turbine = append([]string{"Met Tower"}, turbine...)
+	if p.Project == "Tejuva" {
+		turbine = append([]string{"Met Tower"}, turbine...)
+	}
 
 	data := []MiniScada{}
 	_data := MiniScada{}

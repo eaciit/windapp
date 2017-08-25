@@ -77,23 +77,6 @@ var (
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 )
 
-const (
-	GenWindError        = 145
-	GenWindWarning      = 120
-	GenBearingError     = 95
-	GenBearingWarning   = 90
-	GearboxOilError     = 85
-	GearboxOilWarning   = 80
-	MainBearingError    = 95
-	MainBearingWarning  = 90
-	GenChokeError       = 145
-	GenChokeWarning     = 120
-	LineChokeError      = 145
-	LineChokeWarning    = 120
-	ConvCabinet2Error   = 65
-	ConvCabinet2Warning = 60
-)
-
 type MiniScadaHFD struct {
 	Slow_Nacellepos    float64
 	Fast_Windspeed_Ms  float64
