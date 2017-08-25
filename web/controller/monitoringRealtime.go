@@ -5,6 +5,7 @@ import (
 	lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"log"
+	"math"
 
 	"eaciit/wfdemo-git/web/helper"
 
@@ -41,7 +42,7 @@ var (
 		"Wind Direction": "WindDirection", "Vane 1 wind direction": "",
 		"Vane 2 wind direction": "", "Nacelle Direction": "NacellePos",
 		"Rotor RPM": "RotorSpeed_RPM", "Generator RPM": "GenSpeed_RPM",
-		"DFIG speed generator encoder": "", "Pitch Angle": "PitchAngle1", "Blade Angle 1": "PitchAngle1",
+		"DFIG speed generator encoder": "", "Pitch Angle": "PitchAngle", "Blade Angle 1": "PitchAngle1",
 		"Blade Angle 2": "PitchAngle2", "Blade Angle 3": "PitchAngle3",
 		"Volt. Battery - blade 1": "PitchAccuV1", "Volt. Battery - blade 2": "PitchAccuV2",
 		"Volt. Battery - blade 3": "PitchAccuV3", "Current 1 Pitch Motor": "PitchConvCurrent1",
@@ -61,7 +62,17 @@ var (
 		"Temp. Gear box oil": "TempGearBoxOilSump", "Temp. Nacelle": "TempNacelle", "Temp. Ambient": "TempOutdoor",
 		"Temp. Main bearing": "TempHubBearing", "Damper Oscillation mag.": "", "Drive train vibration": "DrTrVibValue",
 		"Tower vibration": "", "Grid-side choke temperature": "TempGridChoke", "Generator-side choke temperature": "TempGeneratorChoke",
-		"Temperature inside converter cabinet 2": "TempConvCabinet2",
+		"Temperature inside converter cabinet 2": "TempConvCabinet2", "Pitch Conv Internal Temp Blade1": "PitchConvInternalTempBlade1",
+		"Pitch Conv Internal Temp Blade2": "PitchConvInternalTempBlade2", "Pitch Conv Internal Temp Blade3": "PitchConvInternalTempBlade3",
+		"Grid Power Factor": "GridPowerFactor", "Total Power Act From CoD": "TotalPowerActFromCoD", "Raw Windspeed": "RawWindspeed",
+		"Temp Slip Ring": "TempSlipRing", "Stator Current": "StatorCurrent", "Rectifier Current": "RectifierCurrent", "Grid Current": "GridCurrent",
+		"Rotor Current": "RotorCurrent", "Rectifier Active Power": "RectifierActivePower", "Stator Power": "StatorPower",
+		"Busbar Voltage": "BusbarVoltage", "Temp Rectifier Rotor": "TempRectifierRotor", "Temp Rectifier Grid": "TempRectifierGrid",
+		"Power Limit Scada": "PowerLimitScada", "Power Limit Temp": "PowerLimitTemp", "Hydraulic Pressure": "HydraulicPressure",
+		"Hydraulic Temp": "HydraulicTemp", "Parameter Max Power": "ParameterMaxPower", "Current Year Prod": "CurrentYearProd",
+		"Grid Voltage": "GridVoltage", "Ref Radiator Temp1": "RefRadiatorTemp1", "Ref Radiator Temp2": "RefRadiatorTemp2",
+		"Temp Ref Cooling Unit": "TempRefCoolingUnit", "Transformer Winding Temp1": "TransformerWindingTemp1", "PLC Prog Version": "PLCProgVersion",
+		"Transformer Winding Temp2": "TransformerWindingTemp2", "Transformer Winding Temp3": "TransformerWindingTemp3",
 	}
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 )
@@ -88,6 +99,23 @@ type MiniScadaHFD struct {
 	Fast_Windspeed_Ms  float64
 	Slow_Winddirection float64
 	Turbine            string
+}
+
+type AlarmPayloads struct {
+	Turbine   []interface{}
+	DateStart time.Time
+	DateEnd   time.Time
+	Skip      int
+	Take      int
+	Sort      []AlarmSorting
+	Project   string
+	Period    string
+	Tipe      string
+}
+
+type AlarmSorting struct {
+	Field string
+	Dir   string
 }
 
 func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext) interface{} {
@@ -827,10 +855,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	turbineMap := map[string]tk.M{}
 	totalCapacity := 0.0
 
-	csrt, err := DB().Connection.NewQuery().Select("turbineid", "feeder", "turbinename", "latitude", "longitude", "capacitymw").
-		From("ref_turbine").
-		Where(dbox.Eq("project", project)).
-		Order("turbinename").
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"project": project}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbineid": 1, "feeder": 1, "turbinename": 1, "latitude": 1, "longitude": 1, "capacitymw": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
+
+	csrt, err := DB().Connection.NewQuery().From("ref_turbine").
+		Command("pipe", pipes).
 		Cursor(nil)
 
 	if err != nil {
@@ -853,8 +884,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		totalCapacity += _tkm.GetFloat64("capacitymw")
 	}
 
-	// arrfield := []string{"ActivePower", "WindSpeed", "WindDirection", "NacellePosition", "Temperature",
-	// 	"PitchAngle", "RotorRPM"}
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
 		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
@@ -925,6 +954,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	tstamp, servertstamp := time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
+	ictempout, istempout := float64(0), float64(0)
 	for {
 		_tdata = tk.M{}
 		err = csr.Fetch(&_tdata, 1, false)
@@ -1114,11 +1144,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("WindSpeedColor", "defaultcolor")
 			}
 			if dataRealtimeValue > -999999 && tags == "TempOutdoor" {
-				if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
-					_itkm.Set("TemperatureColor", "txt-red")
-				} else {
-					_itkm.Set("TemperatureColor", "txt-grey")
-				}
+				ictempout += 1
+				istempout += dataRealtimeValue
+				// if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
+				// 	_itkm.Set("TemperatureColor", "txt-red")
+				// } else {
+				// 	_itkm.Set("TemperatureColor", "txt-grey")
+				// }
 			}
 		}
 	}
@@ -1129,6 +1161,20 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				&_itkm, tempCondition)
 		}
 		alldata = append(alldata, _itkm)
+	}
+
+	//improve it with get from reff
+	treshtempout := float64(4)
+	if project == "Amba" {
+		treshtempout = 2
+	}
+	avgouttemp := tk.Div(istempout, ictempout)
+	for i, data := range alldata {
+		data.Set("TemperatureColor", "txt-grey")
+		if idiff := math.Abs(avgouttemp - data.GetFloat64("Temperature")); idiff > treshtempout {
+			data.Set("TemperatureColor", "txt-red")
+		}
+		alldata[i] = data
 	}
 
 	isInDetail := func(_turbine string) bool {
@@ -1194,6 +1240,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			turbineactive = 0
 		}
 
+		rtkm.Set("ProjectName", project)
 		rtkm.Set("ListOfTurbine", allturbine)
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TimeNow", t0)
@@ -1206,6 +1253,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
 		rtkm.Set("TurbineNotAvail", turbnotavail)
+		rtkm.Set("AvgTempOutdoor", avgouttemp)
 	} else if pageType == "dashboard" {
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TurbineDown", turbinedown)
@@ -1215,28 +1263,48 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	return
 }
 
+func alarmQuery(tablename, tipe string, p *AlarmPayloads, dfilter []*dbox.Filter, aggr map[string]interface{}) (result []tk.M, err error) {
+	result = make([]tk.M, 0)
+	rconn := DBRealtime()
+	query := rconn.NewQuery().From(tablename).
+		Where(dbox.And(dfilter...))
+
+	if tipe == "group" {
+		for alias, field := range aggr {
+			query = query.Aggr(dbox.AggrSum, field, alias)
+		}
+		query = query.Group("projectname")
+	} else {
+		query = query.Skip(p.Skip).Take(p.Take)
+		if len(p.Sort) > 0 {
+			var arrsort []string
+			for _, val := range p.Sort {
+				if val.Dir == "desc" {
+					arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+				} else {
+					arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+				}
+			}
+			query = query.Order(arrsort...)
+		}
+	}
+	csr, err := query.Cursor(nil)
+
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	err = csr.Fetch(&result, 0, false)
+
+	return
+}
+
 func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
-	type MyPayloads struct {
-		Turbine   []interface{}
-		DateStart time.Time
-		DateEnd   time.Time
-		Skip      int
-		Take      int
-		Sort      []Sorting
-		Project   string
-		Period    string
-		Tipe      string
-	}
-
-	type Sorting struct {
-		Field string
-		Dir   string
-	}
-
-	p := new(MyPayloads)
+	p := new(AlarmPayloads)
 	err := k.GetPayload(&p)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
@@ -1246,196 +1314,68 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	if e != nil {
 		return helper.CreateResultX(false, nil, e.Error(), k)
 	}
+	rconn := DBRealtime()
 
 	project := p.Project
-	tablename := "AlarmHFD"
-	if p.Tipe == "warning" {
-		tablename = "AlarmWarning"
-	}
-
-	dfilter := []*dbox.Filter{dbox.Eq("isdeleted", false)}
+	tablename := new(AlarmHFD).TableName()
+	reffturbinestate := tk.M{}
+	reffalarmbrake := tk.M{}
+	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
 		dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
 		dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)))
-	dfilter = append(dfilter, orFilter)
 	if len(p.Turbine) > 0 {
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
-
-	// rconn := lh.GetConnRealtime()
-	// defer rconn.Close()
-	rconn := DBRealtime()
-
-	csr, err := rconn.NewQuery().From(tablename).
-		Aggr(dbox.AggrSum, "$duration", "duration").
-		Aggr(dbox.AggrSum, 1, "countdata").
-		Group("projectname").
-		Where(dbox.And(dfilter...)).Cursor(nil)
-
+	aggr := map[string]interface{}{}
+	aggr["countdata"] = 1
+	switch p.Tipe {
+	case "warning":
+		tablename = "AlarmWarning"
+		dfilter = append(dfilter, dbox.Eq("isdeleted", false))
+		dfilter = append(dfilter, orFilter)
+		aggr["duration"] = "$duration"
+	case "alarmraw":
+		tablename = new(AlarmRawHFD).TableName()
+		reffturbinestate = getReffTurbineState(p.Project, rconn)
+		reffalarmbrake = getReffAlarmBrake(p.Project, rconn)
+		dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
+	case "alarm":
+		dfilter = append(dfilter, dbox.Eq("isdeleted", false))
+		dfilter = append(dfilter, orFilter)
+		aggr["duration"] = "$duration"
+	}
+	tkmgroup := tk.M{}
+	resultGroup, err := alarmQuery(tablename, "group", p, dfilter, aggr)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
-	defer csr.Close()
-
-	tkmgroup := tk.M{}
-	_ = csr.Fetch(&tkmgroup, 1, false)
+	if len(resultGroup) > 0 {
+		tkmgroup = resultGroup[0]
+	}
 
 	totalData := tkmgroup.GetInt("countdata")
 	totalDuration := tkmgroup.GetInt("duration")
-	query := rconn.NewQuery().From(tablename).
-		Where(dbox.And(dfilter...)).
-		// Order("-timestart").
-		Skip(p.Skip).Take(p.Take)
 
-	if len(p.Sort) > 0 {
-		var arrsort []string
-		for _, val := range p.Sort {
-			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
-			} else {
-				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
-			}
-		}
-		query = query.Order(arrsort...)
-	}
-	csr, err = query.Cursor(nil)
+	results, err := alarmQuery(tablename, "grid", p, dfilter, aggr)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
-	defer csr.Close()
-
-	results := make([]AlarmHFD, 0)
-	err = csr.Fetch(&results, 0, false)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	// tStart, tEnd = tStart.UTC(), tEnd.UTC()
-
-	// rStart := time.Date(tStart.Y, month, day, hour, min, sec, nsec, loc)
 
 	turbineName, err := helper.GetTurbineNameList(project)
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	for idx, val := range results {
-		results[idx].Turbine = turbineName[val.Turbine]
-	}
-
-	retData := tk.M{}.Set("Data", results).
-		Set("Total", totalData).
-		Set("Duration", totalDuration).
-		Set("mindate", tStart.UTC()).
-		Set("maxdate", tEnd.UTC())
-
-	return helper.CreateResultX(true, retData, "success", k)
-}
-
-func (c *MonitoringRealtimeController) GetDataAlarmRawHFD(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-	k.Config.NoLog = true
-
-	type MyPayloads struct {
-		Turbine   []interface{}
-		DateStart time.Time
-		DateEnd   time.Time
-		Skip      int
-		Take      int
-		Sort      []Sorting
-		Project   string
-		Period    string
-		Tipe      string
-	}
-
-	type Sorting struct {
-		Field string
-		Dir   string
-	}
-
-	p := new(MyPayloads)
-	err := k.GetPayload(&p)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
-	if e != nil {
-		return helper.CreateResultX(false, nil, e.Error(), k)
-	}
-
-	rconn := DBRealtime()
-
-	reffturbinestate := getReffTurbineState(p.Project, rconn)
-	reffalarmbrake := getReffAlarmBrake(p.Project, rconn)
-
-	tablename := new(AlarmRawHFD).TableName()
-	dfilter := []*dbox.Filter{}
-	dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
-	dfilter = append(dfilter, dbox.And(dbox.Gte("timestamp", tStart), dbox.Lte("timestamp", tEnd)))
-	if len(p.Turbine) > 0 {
-		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
-	}
-
-	csr, err := rconn.NewQuery().From(tablename).
-		// Aggr(dbox.AggrSum, "$duration", "duration").
-		Aggr(dbox.AggrSum, 1, "countdata").
-		Group("projectname").
-		Where(dbox.And(dfilter...)).Cursor(nil)
-
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-	defer csr.Close()
-
-	tkmgroup := tk.M{}
-	_ = csr.Fetch(&tkmgroup, 1, false)
-
-	totalData := tkmgroup.GetInt("countdata")
-	totalDuration := tkmgroup.GetInt("duration")
-
-	query := rconn.NewQuery().From(tablename).
-		Where(dbox.And(dfilter...)).
-		// Order("-timestart").
-		Skip(p.Skip).Take(p.Take)
-
-	if len(p.Sort) > 0 {
-		var arrsort []string
-		for _, val := range p.Sort {
-			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+		results[idx].Set("turbine", turbineName[val.GetString("turbine")])
+		if p.Tipe == "alarmraw" {
+			key := tk.ToString(tk.ToInt(results[idx].GetFloat64("value"), tk.RoundingAuto))
+			if results[idx].GetString("tag") == "TurbineState" {
+				results[idx].Set("description", reffturbinestate.GetString(key))
 			} else {
-				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+				results[idx].Set("description", reffalarmbrake.GetString(key))
 			}
-		}
-		query = query.Order(arrsort...)
-	} else {
-		query = query.Order("-timestamp")
-	}
-	csr, err = query.Cursor(nil)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-	defer csr.Close()
-
-	results := make([]AlarmRawHFD, 0)
-	err = csr.Fetch(&results, 0, false)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	turbineName, err := helper.GetTurbineNameList(p.Project)
-	if err != nil {
-		return helper.CreateResultX(false, nil, err.Error(), k)
-	}
-
-	for idx, val := range results {
-		results[idx].Turbine = turbineName[val.Turbine]
-		key := tk.ToString(tk.ToInt(results[idx].Value, tk.RoundingAuto))
-		if results[idx].Tag == "TurbineState" {
-			results[idx].Description = reffturbinestate.GetString(key)
-		} else {
-			results[idx].Description = reffalarmbrake.GetString(key)
 		}
 	}
 

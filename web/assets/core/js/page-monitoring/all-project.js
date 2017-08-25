@@ -58,10 +58,7 @@ page.generateView = function(){
                 }
 
             }
-        }
-
-
-       
+        }       
 
         var comparison = 0;
         var defaultColorStatus = "bg-default-green"
@@ -69,10 +66,20 @@ page.generateView = function(){
         $('#statusprojectdefault_'+ val.Project).addClass(defaultColorStatus);
         
         
-        if((val.PowerGeneration / val.Capacity) > 0){
-            comparison = (val.ActivePower / val.Capacity) * 70;
+        // if((val.PowerGeneration / val.Capacity) > 0){
+        //     comparison = (val.ActivePower / val.Capacity) * 70;
+        //     $('#statusproject_'+ val.Project).attr('class', colorStatus);
+        //     $('#statusproject_'+ val.Project).css('width', comparison + 'px');
+        // }else{
+        //     comparison = 0;
+        //     $('#statusproject_'+ val.Project).attr('class', 'lbl');
+        // }
+
+        if(((val.PowerGeneration/1000) / val.Capacity) > 0){
+            comparison = ((val.PowerGeneration/1000) / val.Capacity) * 100;
+            console.log(comparison);
             $('#statusproject_'+ val.Project).attr('class', colorStatus);
-            $('#statusproject_'+ val.Project).css('width', comparison + 'px');
+            $('#statusproject_'+ val.Project).css('width', comparison + '%');
         }else{
             comparison = 0;
             $('#statusproject_'+ val.Project).attr('class', 'lbl');
