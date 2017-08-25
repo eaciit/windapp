@@ -121,12 +121,14 @@
 
 <script type="text/html" id="turbine-template">
     <div data-bind="css: { 'no-padding': true, 'cusmon-feed': (!t.IsTurbine), 'col-xs-4': (!t.IsTurbine), 'col-xs-2': t.IsTurbine }">
-        <span class="cusmon-name" data-bind="text: t.Name"></span>
+        <a href="#" class="cusmon-name" data-bind="click: bpc.OpenTurbineCollaboration(t)"><span data-bind="text: t.Name"></span></a>
         <div class="progress" data-bind="visible: t.IsTurbine, attr: { 'data-id': t.Id }">
           <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 </script>
+
+{{template "turbine-collaboration.html"}}
 
 <div class="row">
     <div class="col-md-12 col-sm-12 ez panel-content" id="panel-content-comparison">
@@ -221,6 +223,7 @@
         </div>
     </div>
 </div>
+
 <script>
     if(turbineList.length > 0) {
         var newFeeds = [];

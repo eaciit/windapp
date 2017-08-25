@@ -118,6 +118,21 @@ bpc.refresh = function() {
 	setInterval(bpc.getData, 3000);
 }
 
+// turbine collaboration open
+bpc.OpenTurbineCollaboration = function(dt) {
+	return function(dt) {
+		if(dt.IsTurbine) {
+			TbCol.TurbineId(dt.Id);
+			TbCol.TurbineName(dt.Name);
+			TbCol.UserId('');
+			TbCol.UserName('');
+			TbCol.Project(dt.Project);
+			TbCol.Feeder(dt.Feeder);
+			TbCol.OpenForm();
+		}
+	}
+};
+
 // init page
 $(function() {
 	$('#savedViews').kendoDropDownList({

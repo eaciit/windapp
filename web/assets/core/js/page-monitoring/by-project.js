@@ -384,6 +384,7 @@ bp.PlotData = function(data) {
         $('#project_generation').text(data.PowerGeneration.toFixed(2));
         $('#project_wind_speed').text(data.AvgWindSpeed.toFixed(2));
         $('#project_plf').text((data.PLF).toFixed(2));
+        $('#avg_tempout').text((data.AvgTempOutdoor).toFixed(2));
         bp.oldFeeders(allData);
     }, 1000);
     

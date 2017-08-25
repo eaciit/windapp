@@ -91,79 +91,78 @@ ma.CreateGridAlarm = function(gridType, param) {
     if(gridType == "alarmraw"){
         gridName = "#alarmRawGrid"
         nameFile = "Monitoring Alarm Raw";
-        url = viewModel.appName + "monitoringrealtime/getdataalarmrawhfd";
         defaultsort = [ { field: "TimeStamp", dir: "desc" } ]
     }
 
     var columns = [{
-            field: "Turbine",
+            field: "turbine",
             title: "Turbine",
             attributes: {
                 style: "text-align:center;"
             },
             width: 90
         }, {
-            field: "TimeStart",
+            field: "timestart",
             title: "Time Start",
             width: 170,
             attributes: {
                 style: "text-align:center;"
             },
-            template: "#= moment.utc(data.TimeStart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStart).format('HH:mm:ss')#"
+            template: "#= moment.utc(data.timestart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.timestart).format('HH:mm:ss')#"
         }, {
-            field: "TimeEnd",
+            field: "timeend",
             title: "Time End",
             width: 170,
             attributes: {
                 style: "text-align:center;"
             },
-            template: "#= (moment.utc(data.TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.TimeEnd).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeEnd).format('HH:mm:ss')))#"
+            template: "#= (moment.utc(data.timeend).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.timeend).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.timeend).format('HH:mm:ss')))#"
         }, {
-            field: "Duration",
+            field: "duration",
             title: "Duration (hh:mm:ss)",
              width: 120,
              attributes: {
                 style: "text-align:center;"
             },
-            template: "#= time(data.Duration) #"
+            template: "#= time(data.duration) #"
         }, {
-            field: "AlarmCode",
+            field: "alarmcode",
             title: "Alarm Code",
             attributes: {
                 style: "text-align:center;"
             },
             width: 90,
         }, {
-            field: "AlarmDesc",
+            field: "alarmdesc",
             title: "Description",
             width: 330
         }];
 
     if(gridType == "alarmraw"){
         columns = [{
-            field: "Turbine",
+            field: "turbine",
             title: "Turbine",
             attributes: {
                 style: "text-align:center;"
             },
             width: 70
         }, {
-            field: "TimeStamp",
+            field: "timestamp",
             title: "Timestamp",
             width: 120,
             attributes: {
                 style: "text-align:center;"
             },
-            template: "#= moment.utc(data.TimeStamp).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.TimeStamp).format('HH:mm:ss')#"
+            template: "#= moment.utc(data.timestamp).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.timestamp).format('HH:mm:ss')#"
         }, {
-            field: "Tag",
+            field: "tag",
             title: "Tag",
              width: 70,
              attributes: {
                 style: "text-align:center;"
             },
         }, {
-            field: "Value",
+            field: "value",
             title: "Value",
             attributes: {
                 style: "text-align:center;"
@@ -171,11 +170,11 @@ ma.CreateGridAlarm = function(gridType, param) {
             width: 70,
             // template: "#= kendo.toString(data.Timestamp,'n2') #"
         }, {
-            field: "Description",
+            field: "description",
             title: "Description",
             width: 200
         }, {
-            field: "AddInfo",
+            field: "addinfo",
             title: "Note",
             width: 250
         }];
