@@ -15,7 +15,7 @@ type PageController struct {
 }
 
 var (
-	DefaultIncludes = []string{"_head.html", "_menu.html", "_loader.html", "_script_template.html","_dateinfo.html"}
+	DefaultIncludes = []string{"_head.html", "_menu.html", "_loader.html", "_script_template.html", "_dateinfo.html"}
 )
 
 func CreatePageController(AppName string) *PageController {
@@ -392,6 +392,7 @@ func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/custom.html"
+	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 	return w.GetParams(r, true)
 }
 func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
