@@ -808,10 +808,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		Project     string
 		ScatterType string
 	}
-	type ScadaMini struct {
-		Power, AvgWindSpeed, AvgBladeAngle   float64
-		NacelleTemperature, NacelleDeviation float64
-	}
+
 	list := []tk.M{}
 	var dataSeries []tk.M
 
