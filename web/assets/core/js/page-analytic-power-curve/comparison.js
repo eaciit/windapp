@@ -174,7 +174,7 @@ pc.populateTurbine = function (selected) {
 
     setTimeout(function () {
         $('#turbineList1').data('kendoDropDownList').select(0);
-        $('#turbineList2').data('kendoDropDownList').select(0);
+        $('#turbineList2').data('kendoDropDownList').select(1);
     }, 50);
 };
 

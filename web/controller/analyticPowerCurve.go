@@ -686,10 +686,15 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
+	turbineName, e := helper.GetTurbineNameList(p.PC1Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	var datas [][]float64
 	turbineData := tk.M{}
 	// turbineData.Set("name", PC1turbine)
-	turbineData.Set("name", "Turbine 1")
+	turbineData.Set("name", turbineName[p.PC1Turbine])
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
@@ -731,7 +736,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	var datasC2 [][]float64
 	turbineData = tk.M{}
 	// turbineData.Set("name", PC2turbine)
-	turbineData.Set("name", "Turbine 2")
+	turbineData.Set("name", turbineName[p.PC2Turbine])
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
