@@ -5,12 +5,12 @@ viewModel.AllProject = new Object();
 var page = viewModel.AllProject;
 
 
-vm.currentMenu('By Project');
-vm.currentTitle('By Project');
+vm.currentMenu('Overall');
+vm.currentTitle('Overall');
 vm.isShowDataAvailability(false);
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
-    { title: 'Summary By Project', href: viewModel.appName + 'page/monitoringallproject' }]);
+    { title: 'Overall', href: viewModel.appName + 'page/monitoringallproject' }]);
 
 
 
