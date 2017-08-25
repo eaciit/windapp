@@ -3,11 +3,11 @@
 viewModel.ByProjectCustom = new Object();
 var bpc = viewModel.ByProjectCustom;
 
-vm.currentMenu('By Project');
-vm.currentTitle('By Project');
+vm.currentMenu('All Farms');
+vm.currentTitle('All Farms');
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
-    { title: 'By Project', href: viewModel.appName + 'page/monitoringbyproject' },
+    { title: 'All Farms', href: viewModel.appName + 'page/monitoringbyprojectcustom' },
 ]);
 
 bpc.projectList = ko.observableArray(projectList);
@@ -117,6 +117,21 @@ bpc.plotData = function(project, data) {
 bpc.refresh = function() {
 	setInterval(bpc.getData, 3000);
 }
+
+// turbine collaboration open
+bpc.OpenTurbineCollaboration = function(dt) {
+	return function(dt) {
+		if(dt.IsTurbine) {
+			TbCol.TurbineId(dt.Id);
+			TbCol.TurbineName(dt.Name);
+			TbCol.UserId('');
+			TbCol.UserName('');
+			TbCol.Project(dt.Project);
+			TbCol.Feeder(dt.Feeder);
+			TbCol.OpenForm();
+		}
+	}
+};
 
 // init page
 $(function() {

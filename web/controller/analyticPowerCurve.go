@@ -539,8 +539,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		turbineName, _ = helper.GetTurbineNameList(p.Project)
 	}
 	//tk.Printf("Turbines : %#v\n", turbineName)
+	turbineXid := ""
 	for _, turbineX := range sortTurbines {
 		selArr = 0
+		turbineXid = turbineName[turbineX]
 		for _, monthX := range sortMonth {
 			monthExist := crowd.From(&list).Where(func(x interface{}) interface{} {
 				y := x.(tk.M)
@@ -554,7 +556,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			splitMonth = strings.Split(monthList.GetString(tk.ToString(monthX)), " ")
 			simpleMonth = splitMonth[0][0:3] + " " + splitMonth[1][2:4] /*it will be jan 16, feb 16, and so on*/
 
-			turbineXid := turbineName[turbineX]
 			monthData := tk.M{}
 			monthData.Set("name", turbineXid)
 			monthData.Set("turbineid", turbineX)
@@ -581,7 +582,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			dataSeries = append(dataSeries, monthData)
 		}
 		turbineData := tk.M{
-			"Name": turbineX, /*for chart name*/
+			"Name": turbineXid, /*for chart name*/
 			"Data": dataSeries,
 		}
 		results = append(results, turbineData)

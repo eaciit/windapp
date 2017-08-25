@@ -7,8 +7,8 @@ import (
 )
 
 type TurbineModel struct {
-	orm.ModelBase  `bson:"-",json:"-"`
-	Id             string ` bson:"_id" , json:"_id" `
+	orm.ModelBase  `bson:"-" json:"-"`
+	Id             string ` bson:"_id" json:"_id" `
 	TurbineId      string
 	TurbineName    string
 	Feeder         string
