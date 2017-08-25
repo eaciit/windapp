@@ -3,11 +3,11 @@
 viewModel.ByProjectCustom = new Object();
 var bpc = viewModel.ByProjectCustom;
 
-vm.currentMenu('By Project');
-vm.currentTitle('By Project');
+vm.currentMenu('All Farms');
+vm.currentTitle('All Farms');
 vm.breadcrumb([
     { title: "Monitoring", href: '#' }, 
-    { title: 'By Project', href: viewModel.appName + 'page/monitoringbyproject' },
+    { title: 'All Farms', href: viewModel.appName + 'page/monitoringbyprojectcustom' },
 ]);
 
 bpc.projectList = ko.observableArray(projectList);
