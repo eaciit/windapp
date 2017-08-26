@@ -1590,7 +1590,7 @@ func GetTurbineStatus(project string, turbine string) (res map[string]TurbineSta
 
 func GetRepeatedAlarm(project string, t0 time.Time) (res tk.M) {
 	res = tk.M{}
-	tscond := time.Date(t0.Year(), t0.Month(), t0.Day(), 0, 0, 0, 0, t0.Location())
+	tscond := time.Date(t0.Year(), t0.Month(), t0.Day(), 0, 0, 0, 0, time.UTC)
 	tecond := tscond.AddDate(0, 0, 1)
 
 	f_orcond := []tk.M{tk.M{"timestart": tk.M{"$gte": tscond}},
