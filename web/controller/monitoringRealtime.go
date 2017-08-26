@@ -1597,6 +1597,7 @@ func GetRepeatedAlarm(project string, t0 time.Time) (res tk.M) {
 		tk.M{"$and": []tk.M{tk.M{"timeend": tk.M{"$gte": tscond}},
 			tk.M{"timeend": tk.M{"$lt": tecond}}}},
 		tk.M{"finish": 0},
+		tk.M{"turbinestate": tk.M{"$ne": -998}},
 	}
 
 	filtercond := tk.M{"$and": []tk.M{tk.M{"isdeleted": false},
