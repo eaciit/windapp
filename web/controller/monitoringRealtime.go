@@ -1596,13 +1596,12 @@ func GetRepeatedAlarm(project string, t0 time.Time) (res tk.M) {
 	f_orcond := []tk.M{tk.M{"timestart": tk.M{"$gte": tscond}},
 		tk.M{"$and": []tk.M{tk.M{"timeend": tk.M{"$gte": tscond}},
 			tk.M{"timeend": tk.M{"$lt": tecond}}}},
-		tk.M{"finish": 0},
-		tk.M{"turbinestate": tk.M{"$ne": -998}},
-	}
+		tk.M{"finish": 0}}
 
 	filtercond := tk.M{"$and": []tk.M{tk.M{"isdeleted": false},
 		tk.M{"$or": f_orcond},
-		tk.M{"projectname": project}}}
+		tk.M{"projectname": project},
+		tk.M{"turbinestate": tk.M{"$ne": -998}}}}
 
 	pipes := []tk.M{}
 	pipes = append(pipes, tk.M{"$match": filtercond})
