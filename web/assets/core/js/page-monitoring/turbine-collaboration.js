@@ -11,6 +11,7 @@ TbCol.UserId = ko.observable('');
 TbCol.UserName = ko.observable('');
 TbCol.Project = ko.observable('');
 TbCol.Feeder = ko.observable('');
+TbCol.Status = ko.observable('');
 
 // variabel to set current data if any edit feature
 TbCol.CurrentData = ko.observable({

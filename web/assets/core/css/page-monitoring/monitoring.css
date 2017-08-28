@@ -8,6 +8,10 @@
     to   { background: default; }
 }
 
+.table > thead > tr > th{
+  vertical-align: middle;
+}
+
 .icon-turbine {
   float:left;
   width:50%;
