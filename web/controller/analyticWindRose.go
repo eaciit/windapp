@@ -46,6 +46,13 @@ var calibrateTime, _ = time.Parse("01022006_150405", "12012016_000000")
 	"#72aaff", "#795548",
 }*/
 
+type DataItemsResultComp struct {
+	DirectionNo   int
+	DirectionDesc int
+	Hours         float64
+	Contribution  float64
+}
+
 func (m *AnalyticWindRoseController) GetWSData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -618,6 +625,58 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 
 }
 
+func setDataPerTurbine(dataDirNoDesc map[string]float64, tkMaxVal *toolkit.M,
+	dataCount float64, categories []string, divider int) (results []DataItemsResultComp) {
+	maxValKey := ""
+	splitDirNoDesc := []string{}
+	diRes := DataItemsResultComp{}
+	dirCatList := []string{}
+	dirContribute := map[string]float64{}
+	dirHours := map[string]float64{}
+	results = []DataItemsResultComp{}
+	for dirNoDesc, sumFreq := range dataDirNoDesc {
+		splitDirNoDesc = strings.Split(dirNoDesc, "_")
+		diRes = DataItemsResultComp{}
+		diRes.DirectionNo = toolkit.ToInt(splitDirNoDesc[1], toolkit.RoundingAuto)
+		diRes.DirectionDesc = toolkit.ToInt(splitDirNoDesc[2], toolkit.RoundingAuto)
+		diRes.Hours = toolkit.Div(sumFreq, 6.0)
+		diRes.Contribution = toolkit.RoundingAuto64(toolkit.Div(sumFreq, dataCount)*100.0, 2)
+
+		maxValKey = splitDirNoDesc[0] + "_" + toolkit.ToString(diRes.DirectionNo)
+		if !tkMaxVal.Has(maxValKey) {
+			tkMaxVal.Set(maxValKey, diRes.Contribution)
+		} else {
+			tkMaxVal.Set(maxValKey, tkMaxVal.GetFloat64(maxValKey)+diRes.Contribution)
+		}
+
+		dirCatList = append(dirCatList, toolkit.ToString(diRes.DirectionDesc))
+		dirContribute[toolkit.ToString(diRes.DirectionDesc)] = diRes.Contribution
+		dirHours[toolkit.ToString(diRes.DirectionDesc)] = diRes.Hours
+	}
+	firstData := DataItemsResultComp{}
+	for idx, dirCat := range categories {
+		dataRes := DataItemsResultComp{}
+		if !toolkit.HasMember(dirCatList, dirCat) { /*if empty*/
+			dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+			dataRes.DirectionNo = dataRes.DirectionDesc / divider
+			dataRes.Contribution = 0.0
+			dataRes.Hours = 0.0
+			results = append(results, dataRes)
+		} else {
+			dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
+			dataRes.DirectionNo = dataRes.DirectionDesc / divider
+			dataRes.Contribution = dirContribute[dirCat]
+			dataRes.Hours = dirHours[dirCat]
+			results = append(results, dataRes)
+		}
+		if idx == 0 {
+			firstData = dataRes
+		}
+	}
+	results = append(results, firstData)
+	return
+}
+
 func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	WindRoseResult = []toolkit.M{}
@@ -631,36 +690,6 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		DateStart time.Time
 		DateEnd   time.Time
 		BreakDown string
-	}
-	type MiniMetTower struct {
-		DHubWD88mAvg float64
-		VHubWS90mAvg float64
-		TimeStamp    time.Time
-	}
-
-	type MiniScada struct {
-		NacelDirection float64
-		AvgWindSpeed   float64
-		WindDirection  float64
-		Turbine        string
-	}
-
-	type DataItemsComp struct {
-		DirectionNo   int
-		DirectionDesc int
-		Frequency     int
-	}
-
-	type DataItemsResultComp struct {
-		DirectionNo   int
-		DirectionDesc int
-		Hours         float64
-		Contribution  float64
-	}
-
-	type DataItemsGroupComp struct {
-		DirectionNo   int
-		DirectionDesc int
 	}
 
 	p := new(PayloadWindRose)
@@ -698,6 +727,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 	}
 
 	turbine := []string{}
+	turbineInt := []interface{}{}
 	if len(p.Turbine) == 0 {
 		pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": query}})
 		pipes = append(pipes, toolkit.M{"$group": toolkit.M{"_id": "$turbine"}})
@@ -721,19 +751,66 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		turbine = append(turbine, bufferTurbine...)
 	}
 	sort.Strings(turbine)
+	for _, val := range turbine {
+		turbineInt = append(turbineInt, val)
+	}
+	queryT := []*dbox.Filter{}
+	queryT = append(queryT, dbox.Gte("dateinfo.dateid", tStart))
+	queryT = append(queryT, dbox.Lte("dateinfo.dateid", tEnd))
+	queryT = append(queryT, dbox.Eq("available", 1))
+	if p.Project != "" {
+		queryT = append(queryT, dbox.Eq("projectname", p.Project))
+	}
+	queryT = append(queryT, dbox.In("turbine", turbineInt...))
 	if p.Project == "Tejuva" {
 		turbine = append([]string{"Met Tower"}, turbine...)
 	}
 
-	data := []MiniScada{}
-	_data := MiniScada{}
+	_data := toolkit.M{}
+	dataDirNoDesc := map[string]float64{}
+	dataPerTurbine := toolkit.M{}
 	selArr := 0
 	calibratedWindDir := 0.0
+	_turbine := ""
+	groupKey := ""
+	lastTurbine := ""
+	dataCount := 0.0
 
 	turbineName, e := helper.GetTurbineNameList(p.Project)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	csrData, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
+		Select("naceldirection", "winddirection", "turbine").
+		Where(dbox.And(queryT...)).
+		Order("turbine").
+		Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	for {
+		e = csrData.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		_turbine = _data.GetString("turbine")
+		if lastTurbine != _turbine {
+			dataPerTurbine.Set(lastTurbine, setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider))
+			dataDirNoDesc = map[string]float64{}
+			lastTurbine = _turbine
+			dataCount = 0.0
+		}
+		dataCount++
+		calibratedWindDir = _data.GetFloat64("winddirection")
+		dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
+		groupKey = _turbine + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+		dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+	}
+	if lastTurbine != "" {
+		dataPerTurbine.Set(lastTurbine, setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider))
+	}
+	csrData.Close()
+
 	for _, turbineVal := range turbine {
 		coId++
 		turbineData := toolkit.M{}
@@ -748,114 +825,10 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		turbineData.Set("xField", "DirectionDesc")
 		turbineData.Set("yField", "Contribution")
 		selArr++
-		// dataDir := []float64{}
 
 		if turbineVal != "Met Tower" {
-			pipes = []toolkit.M{}
-			data = []MiniScada{}
-			queryT := query
-			queryT = append(queryT, toolkit.M{"turbine": turbineVal})
-			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryT}})
-			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"naceldirection": 1, "avgwindspeed": 1, "winddirection": 1}})
-			csr, _ := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-				Command("pipe", pipes).Cursor(nil)
-
-			for {
-				e = csr.Fetch(&_data, 1, false)
-				if e != nil {
-					break
-				}
-				data = append(data, _data)
-			}
-			csr.Close()
-
-			if toolkit.SliceLen(data) > 0 {
-				totalDuration := float64(len(data)) /* Tot data * 2 for get total minutes*/
-				datas := c.From(&data).Apply(func(x interface{}) interface{} {
-					dt := x.(MiniScada)
-					var di DataItemsComp
-
-					calibratedWindDir = dt.WindDirection //+ 300
-					dirNo, dirDesc := getDirection(dt.NacelDirection+calibratedWindDir, section)
-
-					di.DirectionNo = dirNo
-					di.DirectionDesc = dirDesc
-					di.Frequency = 1
-
-					return di
-				}).Exec().Group(func(x interface{}) interface{} {
-					dt := x.(DataItemsComp)
-
-					var dig DataItemsGroupComp
-					dig.DirectionNo = dt.DirectionNo
-					dig.DirectionDesc = dt.DirectionDesc
-
-					return dig
-				}, nil).Exec()
-
-				dts := datas.Apply(func(x interface{}) interface{} {
-					kv := x.(c.KV)
-					vv := kv.Key.(DataItemsGroupComp)
-					vs := kv.Value.([]DataItemsComp)
-
-					sumFreq := c.From(&vs).Sum(func(x interface{}) interface{} {
-						dt := x.(DataItemsComp)
-						return dt.Frequency
-					}).Exec().Result.Sum
-
-					var di DataItemsResultComp
-
-					di.DirectionNo = vv.DirectionNo
-					di.DirectionDesc = vv.DirectionDesc
-					di.Hours = toolkit.Div(sumFreq, 6.0)
-					di.Contribution = toolkit.RoundingAuto64(toolkit.Div(sumFreq, totalDuration)*100.0, 2)
-
-					key := turbineVal + "_" + toolkit.ToString(di.DirectionNo)
-
-					if !tkMaxVal.Has(key) {
-						tkMaxVal.Set(key, di.Contribution)
-					} else {
-						tkMaxVal.Set(key, tkMaxVal.GetFloat64(key)+di.Contribution)
-					}
-
-					return di
-				}).Exec()
-
-				result := dts.Result.Data().([]DataItemsResultComp)
-				dirCatList := []string{}
-				dirContribute := map[string]float64{}
-				dirHours := map[string]float64{}
-				for _, dataRes := range result {
-					dirCatList = append(dirCatList, toolkit.ToString(dataRes.DirectionDesc))
-					dirContribute[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Contribution
-					dirHours[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Hours
-				}
-				results := []DataItemsResultComp{}
-				firstData := DataItemsResultComp{}
-				for idx, dirCat := range categories {
-					dataRes := DataItemsResultComp{}
-					if !toolkit.HasMember(dirCatList, dirCat) { /*if empty*/
-						dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						dataRes.DirectionNo = dataRes.DirectionDesc / divider
-						dataRes.Contribution = 0.0
-						dataRes.Hours = 0.0
-						results = append(results, dataRes)
-						// dataDir = append(dataDir, 0.0)
-					} else {
-						dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						dataRes.DirectionNo = dataRes.DirectionDesc / divider
-						dataRes.Contribution = dirContribute[dirCat]
-						dataRes.Hours = dirHours[dirCat]
-						results = append(results, dataRes)
-						// dataDir = append(dataDir, dirContribute[dirCat])
-					}
-					if idx == 0 {
-						firstData = dataRes
-					}
-				}
-				// turbineData.Set("data", dataDir)
-				results = append(results, firstData)
-				turbineData.Set("data", results)
+			if dataPerTurbine.Has(turbineVal) {
+				turbineData.Set("data", dataPerTurbine[turbineVal].([]DataItemsResultComp))
 				WindRoseResult = append(WindRoseResult, turbineData)
 			} else {
 				results := []DataItemsResultComp{}
@@ -870,124 +843,44 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 					if idx == 0 {
 						firstData = emptyRes
 					}
-					// dataDir = append(dataDir, 0.0)
 				}
-				// turbineData.Set("data", dataDir)
 				results = append(results, firstData)
 				turbineData.Set("data", results)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			}
 		} else {
-			pipes = []toolkit.M{}
-			queryT := []toolkit.M{}
-			dataMetTower := []MiniMetTower{}
-			_dataMetTower := MiniMetTower{}
-			queryT = append(queryT, toolkit.M{"_id": toolkit.M{"$ne": nil}})
-			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$gte": tStart}})
-			queryT = append(queryT, toolkit.M{"dateinfo.dateid": toolkit.M{"$lte": tEnd}})
-			if p.Project != "" {
-				queryT = append(queryT, toolkit.M{"projectname": p.Project})
+			queryMet := []*dbox.Filter{}
+			_dataMetTower := toolkit.M{}
+
+			for _, filter := range queryT {
+				if filter.Field != "available" && filter.Field != "turbine" {
+					queryMet = append(queryMet, filter)
+				}
 			}
 
-			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryT}})
-			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"vhubws90mavg": 1, "dhubwd88mavg": 1}})
 			csrMet, _ := DB().Connection.NewQuery().From(new(MetTower).TableName()).
-				Command("pipe", pipes).Cursor(nil)
-
+				Select("dhubwd88mavg").
+				Where(dbox.And(queryMet...)).Cursor(nil)
+			dataCount = 0.0
+			dataDirNoDesc = map[string]float64{}
+			dataMetTower := toolkit.M{}
 			for {
 				e = csrMet.Fetch(&_dataMetTower, 1, false)
 				if e != nil {
 					break
 				}
-				dataMetTower = append(dataMetTower, _dataMetTower)
+				dataCount++
+				calibratedWindDir = _dataMetTower.GetFloat64("dhubwd88mavg") + 300
+				dirNo, dirDesc := getDirection(calibratedWindDir, section)
+				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 			}
+			dataMetTower.Set(turbineVal, setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider))
+
 			csrMet.Close()
 
-			if toolkit.SliceLen(dataMetTower) > 0 {
-				totalDuration := float64(len(dataMetTower)) // * 10.0 /* Tot data * 2 for get total minutes*/
-				datas := c.From(&dataMetTower).Apply(func(x interface{}) interface{} {
-					dt := x.(MiniMetTower)
-					var di DataItemsComp
-					calibratedWindDir = dt.DHubWD88mAvg + 300
-					dirNo, dirDesc := getDirection(calibratedWindDir, section)
-
-					di.DirectionNo = dirNo
-					di.DirectionDesc = dirDesc
-					di.Frequency = 1
-
-					return di
-				}).Exec().Group(func(x interface{}) interface{} {
-					dt := x.(DataItemsComp)
-
-					var dig DataItemsGroupComp
-					dig.DirectionNo = dt.DirectionNo
-					dig.DirectionDesc = dt.DirectionDesc
-
-					return dig
-				}, nil).Exec()
-
-				dts := datas.Apply(func(x interface{}) interface{} {
-					kv := x.(c.KV)
-					vv := kv.Key.(DataItemsGroupComp)
-					vs := kv.Value.([]DataItemsComp)
-
-					sumFreq := c.From(&vs).Sum(func(x interface{}) interface{} {
-						dt := x.(DataItemsComp)
-						return dt.Frequency
-					}).Exec().Result.Sum
-
-					var di DataItemsResultComp
-
-					di.DirectionNo = vv.DirectionNo
-					di.DirectionDesc = vv.DirectionDesc
-					di.Hours = toolkit.Div(sumFreq, 6.0)
-					di.Contribution = toolkit.RoundingAuto64(toolkit.Div(sumFreq, totalDuration)*100.0, 2)
-
-					key := turbineVal + "_" + toolkit.ToString(di.DirectionNo)
-					if !tkMaxVal.Has(key) {
-						tkMaxVal.Set(key, di.Contribution)
-					} else {
-						tkMaxVal.Set(key, tkMaxVal.GetFloat64(key)+di.Contribution)
-					}
-
-					return di
-				}).Exec()
-
-				result := dts.Result.Data().([]DataItemsResultComp)
-				dirCatList := []string{}
-				dirContribute := map[string]float64{}
-				dirHours := map[string]float64{}
-				for _, dataRes := range result {
-					dirCatList = append(dirCatList, toolkit.ToString(dataRes.DirectionDesc))
-					dirContribute[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Contribution
-					dirHours[toolkit.ToString(dataRes.DirectionDesc)] = dataRes.Hours
-				}
-				results := []DataItemsResultComp{}
-				firstData := DataItemsResultComp{}
-				for idx, dirCat := range categories {
-					dataRes := DataItemsResultComp{}
-					if !toolkit.HasMember(dirCatList, dirCat) {
-						dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						dataRes.DirectionNo = dataRes.DirectionDesc / divider
-						dataRes.Contribution = 0.0
-						dataRes.Hours = 0.0
-						results = append(results, dataRes)
-						// dataDir = append(dataDir, 0.0)
-					} else {
-						dataRes.DirectionDesc = toolkit.ToInt(dirCat, toolkit.RoundingAuto)
-						dataRes.DirectionNo = dataRes.DirectionDesc / divider
-						dataRes.Contribution = dirContribute[dirCat]
-						dataRes.Hours = dirHours[dirCat]
-						results = append(results, dataRes)
-						// dataDir = append(dataDir, dirContribute[dirCat])
-					}
-					if idx == 0 {
-						firstData = dataRes
-					}
-				}
-				// turbineData.Set("data", dataDir)
-				results = append(results, firstData)
-				turbineData.Set("data", results)
+			if csrMet.Count() > 0 {
+				turbineData.Set("data", dataMetTower[turbineVal].([]DataItemsResultComp))
 				WindRoseResult = append(WindRoseResult, turbineData)
 			} else {
 				results := []DataItemsResultComp{}
@@ -1002,9 +895,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 					if idx == 0 {
 						firstData = emptyRes
 					}
-					// dataDir = append(dataDir, 0.0)
 				}
-				// turbineData.Set("data", dataDir)
 				results = append(results, firstData)
 				turbineData.Set("data", results)
 				WindRoseResult = append(WindRoseResult, turbineData)
