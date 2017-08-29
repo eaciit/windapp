@@ -388,7 +388,10 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		tk.Println(err.Error())
 	}
 
+	// set database to realtime data db
 	rconn := DBRealtime()
+
+	// getting realtime data
 	realtimeData := []tk.M{}
 	pipes := []tk.M{}
 	filter := tk.M{}.Set("projectname", tk.M{}.Set("$ne", ""))
@@ -405,8 +408,6 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		},
 	})
 
-	// tk.Printf("Pipes : #%v\n", pipes)
-
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).Command("pipe", pipes).Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
@@ -416,6 +417,39 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	err = csr.Fetch(&realtimeData, 0, false)
 	if err != nil {
 		tk.Println(err.Error())
+	}
+
+	downtimeData := []tk.M{}
+	pipes = []tk.M{}
+	filter = tk.M{}.Set("$and", []tk.M{
+		tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
+		tk.M{}.Set("status", tk.M{}.Set("$eq", 0)),
+	})
+	pipes = append(pipes, tk.M{"$match": filter})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":   "$projectname",
+		"count": tk.M{"$sum": 1},
+	}})
+	pipes = append(pipes, tk.M{
+		"$sort": tk.M{
+			"_id.projectname": 1,
+		},
+	})
+
+	csrDown, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).Command("pipe", pipes).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	defer csrDown.Close()
+
+	err = csrDown.Fetch(&downtimeData, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	dataDowns := map[string]int{}
+	for _, dt := range downtimeData {
+		dataDowns[dt.GetString("projectname")] = dt.GetInt("count")
 	}
 
 	// get no of turbine waiting for wind status
@@ -471,10 +505,14 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		projects = append(projects, projectId)
 
-		turbineAvail := 0
-		turbineDown := 0
+		turbineDown, okDown := dataDowns[projectId]
+		if !okDown {
+			turbineDown = 0
+		}
 		turbineNA := 0
 		waitingForWind := waitingForWsProject[projectId]
+
+		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
 
 		activePower := 0.0
 		avgWs := 0.0
