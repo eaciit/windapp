@@ -3,12 +3,12 @@
 viewModel.ByProjectCustom = new Object();
 var bpc = viewModel.ByProjectCustom;
 
-vm.currentMenu('All Farms');
-vm.currentTitle('All Farms');
-vm.breadcrumb([
-    { title: "Monitoring", href: '#' }, 
-    { title: 'All Farms', href: viewModel.appName + 'page/monitoringbyprojectcustom' },
-]);
+// vm.currentMenu('All Farms');
+// vm.currentTitle('All Farms');
+// vm.breadcrumb([
+//     { title: "Monitoring", href: '#' }, 
+//     { title: 'All Farms', href: viewModel.appName + 'page/monitoringbyprojectcustom' },
+// ]);
 
 bpc.projectList = ko.observableArray(projectList);
 bpc.feederList = ko.observableArray([]);
@@ -106,7 +106,13 @@ bpc.plotData = function(project, data) {
 				currPct = (dt.ActivePower/dt.Capacity)*100;
 			}
 			var $elmupdate = $elmdetail.find('.progress-bar[role="progressbar"]');
-			$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
+
+			if(defaultColorStatus != "bg-default-green"){
+				$elmupdate.prop('style', 'width: 100%');
+			}else{
+				$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
+			}
+
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.addClass(defaultColorStatus);
 		});
@@ -128,6 +134,7 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.UserName('');
 			TbCol.Project(dt.Project);
 			TbCol.Feeder(dt.Feeder);
+			TbCol.Status(dt.Status);
 			TbCol.OpenForm();
 		}
 	}

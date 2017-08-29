@@ -1155,7 +1155,8 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
 	orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
 		dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
-		dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)))
+		dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)),
+		dbox.Eq("timeend", time.Time{}))
 	if len(p.Turbine) > 0 {
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}

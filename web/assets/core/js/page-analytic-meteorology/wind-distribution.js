@@ -75,7 +75,7 @@ wd.ChartWindDistributon =  function () {
                     turbine.push(res.data.Data[i].Turbine);
                 }
             }
-
+            wd.turbineList([]);
             $.each(turbine, function (i, val) {
                 var data = {
                     color: color[i],
@@ -174,7 +174,7 @@ wd.showHideAllLegend = function (e) {
 
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
-        $.each(wd.turbine(), function (i, val) {
+        $.each(wd.turbineList(), function (i, val) {
             if($("#windDistribution").data("kendoChart").options.series[i] != undefined){
                 $("#windDistribution").data("kendoChart").options.series[i].visible = true;
             }
@@ -182,7 +182,7 @@ wd.showHideAllLegend = function (e) {
         /*$('#labelShowHide b').text('Untick All Turbines');*/
         $('#labelShowHide b').text('Select All');
     } else {
-        $.each(wd.turbine(), function (i, val) {
+        $.each(wd.turbineList(), function (i, val) {
             if($("#windDistribution").data("kendoChart").options.series[i] != undefined){
                 $("#windDistribution").data("kendoChart").options.series[i].visible = false;
             }  
