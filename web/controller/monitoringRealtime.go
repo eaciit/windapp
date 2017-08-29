@@ -419,11 +419,12 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		tk.Println(err.Error())
 	}
 
+	// getting total of turbine down
 	downtimeData := []tk.M{}
 	pipes = []tk.M{}
 	filter = tk.M{}.Set("$and", []tk.M{
 		tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
-		tk.M{}.Set("status", tk.M{}.Set("$eq", 0)),
+		tk.M{}.Set("status", tk.M{}.Set("$eq", 0).Set("$exists", true)),
 	})
 	pipes = append(pipes, tk.M{"$match": filter})
 	pipes = append(pipes, tk.M{"$group": tk.M{
@@ -452,6 +453,44 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		dataDowns[dt.GetString("projectname")] = dt.GetInt("count")
 	}
 
+	// getting production data for previous day
+	prodDataPrev := []tk.M{}
+	pipes = []tk.M{}
+	dateNow := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+	timeFilter, _ := time.Parse("2006-01-02", dateNow)
+	filter = tk.M{}.Set("$and", []tk.M{
+		tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
+		tk.M{}.Set("dateinfo.dateid", timeFilter),
+	})
+	pipes = append(pipes, tk.M{"$match": filter})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":        "$projectname",
+		"production": tk.M{"$sum": "$production"},
+		"lostenergy": tk.M{"$sum": "$lostenergy"},
+	}})
+	pipes = append(pipes, tk.M{
+		"$sort": tk.M{
+			"_id": 1,
+		},
+	})
+
+	csrProd, err := rconn.NewQuery().From(new(ScadaSummaryDaily).TableName()).Command("pipe", pipes).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	defer csrProd.Close()
+
+	err = csrProd.Fetch(&prodDataPrev, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	dataProdPrevs := map[string]tk.M{}
+	for _, dt := range prodDataPrev {
+		item := tk.M{}.Set("production", dt.GetFloat64("production")).Set("lostenergy", dt.GetFloat64("lostenergy"))
+		dataProdPrevs[dt.GetString("projectname")] = item
+	}
+
 	// get no of turbine waiting for wind status
 	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
 		"$and": []tk.M{
@@ -462,7 +501,6 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	for key := range waitingForWs {
 		waitingForWsProject[strings.Split(key, "_")[0]]++
 	}
-	// tk.Printf("Data Realtime : #%v\n", realtimeData)
 
 	// make a model for data detail from the realtime data
 	for _, dt := range realtimeData {
@@ -538,6 +576,13 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			plf = tk.Div(tk.Div(activePower, 1000.0), maxCap) * 100
 		}
 
+		prevGen := 0.0
+		prevLost := 0.0
+		if dtProdPrev, prodPrevOk := dataProdPrevs[projectId]; prodPrevOk {
+			prevGen = dtProdPrev.GetFloat64("production")
+			prevLost = dtProdPrev.GetFloat64("lostenergy")
+		}
+
 		detail := tk.M{
 			"Project":         projectId,
 			"Capacity":        maxCap,
@@ -552,8 +597,8 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			"WaitingForWind":  waitingForWind,
 			"TodayGen":        todayGen,
 			"TodayLost":       0.0,
-			"PrevDayGen":      0.0,
-			"PrevDayLost":     0.0,
+			"PrevDayGen":      prevGen,
+			"PrevDayLost":     prevLost,
 		}
 		details = append(details, detail)
 	}
