@@ -90,9 +90,3 @@ page.generateView = function(){
         page.OldData(datasource);
     });
 }
-
-$(function() {
-    app.loading(true);
-    page.getData();
-    setInterval(page.getData, 5000);
-});

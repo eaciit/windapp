@@ -488,8 +488,45 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	dataProdPrevs := map[string]tk.M{}
 	for _, dt := range prodDataPrev {
 		item := tk.M{}.Set("production", dt.GetFloat64("production")).Set("lostenergy", dt.GetFloat64("lostenergy"))
-		dataProdPrevs[dt.GetString("projectname")] = item
+		dataProdPrevs[dt.GetString("_id")] = item
 	}
+
+	// getting lost energy for today
+	// lostToday := []tk.M{}
+	// pipes = []tk.M{}
+	// dateNow = time.Now().Format("2006-01-02")
+	// timeFilter, _ = time.Parse("2006-01-02", dateNow)
+	// unwind := tk.M
+	// filter = tk.M{}.Set("$and", []tk.M{
+	// 	tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
+	// 	tk.M{}.Set("dateinfo.dateid", timeFilter),
+	// })
+	// pipes = append(pipes, tk.M{"$match": filter})
+	// pipes = append(pipes, tk.M{"$group": tk.M{
+	// 	"_id":       "$projectname",
+	// 	"powerlost": tk.M{"$sum": "$powerlost"},
+	// }})
+	// pipes = append(pipes, tk.M{
+	// 	"$sort": tk.M{
+	// 		"_id": 1,
+	// 	},
+	// })
+
+	// csrLost, err := rconn.NewQuery().From(new(Alarm).TableName()).Command("pipe", pipes).Cursor(nil)
+	// if err != nil {
+	// 	tk.Println(err.Error())
+	// }
+	// defer csrLost.Close()
+
+	// err = csrLost.Fetch(&lostToday, 0, false)
+	// if err != nil {
+	// 	tk.Println(err.Error())
+	// }
+
+	// todayLosses := map[string]tk.M{}
+	// for _, dt := range lostToday {
+	// 	todayLosses[dt.GetString("_id")] = dt.GetFloat64("powerlost")
+	// }
 
 	// get no of turbine waiting for wind status
 	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
@@ -533,7 +570,6 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			makeDetailProject[project] = mdp
 		}
 	}
-	// tk.Printf("#v\n", makeDetailProject)
 
 	// set data projects & initiate detail data for each projects
 	for _, p := range dataProjects {
@@ -803,7 +839,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
 
 	lastUpdate := time.Time{}
-	// PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
+	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown, turbnotavail := 0, 0
 	t0 := getTimeNow()
 
@@ -992,10 +1028,10 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if _ifloat != defaultValue && isexist {
 			switch afield {
 			case "ActivePower":
-				//PowerGen += _ifloat
+				PowerGen += _ifloat
 			case "WindSpeed":
-				//AvgWindSpeed += _ifloat
-				//CountWS += 1
+				AvgWindSpeed += _ifloat
+				CountWS += 1
 			}
 
 			_itkm.Set(afield, _ifloat)
@@ -1160,9 +1196,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("TimeNow", t0)
 		rtkm.Set("TimeStamp", lastUpdateIndia)
 		rtkm.Set("TimeMax", timemax)
-		//rtkm.Set("PowerGeneration", PowerGen)
-		//rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
-		//rtkm.Set("PLF", tk.Div(PowerGen, (totalCapacity*1000))*100)
+		rtkm.Set("PowerGeneration", PowerGen)
+		rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
+		rtkm.Set("PLF", tk.Div(PowerGen, (totalCapacity*1000))*100)
 		rtkm.Set("TurbineWaitingWS", len(waitingForWsTurbine))
 		rtkm.Set("TurbineActive", turbineactive)
 		rtkm.Set("TurbineDown", turbinedown)
