@@ -44,6 +44,7 @@ wd.InitRightTurbineList= function () {
     }
 
     $("#right-turbine-list").html("");
+
     $.each(wd.turbineList(), function (idx, val) {
         $("#right-turbine-list").append('<div class="btn-group">' +
             '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="wd.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
@@ -76,7 +77,10 @@ wd.ChartWindDistributon =  function () {
                 }
             }
             wd.turbineList([]);
-            $.each(turbine, function (i, val) {
+
+            var sortTurbineList = turbine.sort();
+            
+            $.each(sortTurbineList, function (i, val) {
                 var data = {
                     color: color[i],
                     turbine: val
@@ -84,6 +88,8 @@ wd.ChartWindDistributon =  function () {
 
                 wd.turbineList.push(data);
             });
+
+
         }
 
         $('#windDistribution').html("");
