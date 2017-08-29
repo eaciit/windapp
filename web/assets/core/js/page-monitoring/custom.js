@@ -151,12 +151,6 @@ $(function() {
 
 	$( "#sortable" ).sortable();
     $( "#sortable" ).disableSelection();
-
-    // load get weather first then load the data
-    $.when(bpc.getWeather()).done(function(){
-    	bpc.getData();	
-    });
-
     // refresh the data every second
-    bpc.refresh();
+    // bpc.refresh();
 });
