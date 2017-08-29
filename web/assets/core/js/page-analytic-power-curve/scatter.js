@@ -226,14 +226,13 @@ page.getPowerCurveScatter = function() {
 }
 
 $(document).ready(function() {
-    di.getAvailDate();
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
             page.LoadData();
         }, 300);
     });
 
-    setTimeout(function(){
+    $.when(di.getAvailDate()).done(function() {
         page.LoadData();
-    }, 300);
+    });
 });
