@@ -433,7 +433,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	}})
 	pipes = append(pipes, tk.M{
 		"$sort": tk.M{
-			"_id.projectname": 1,
+			"_id": 1,
 		},
 	})
 
@@ -450,7 +450,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 	dataDowns := map[string]int{}
 	for _, dt := range downtimeData {
-		dataDowns[dt.GetString("projectname")] = dt.GetInt("count")
+		dataDowns[dt.GetString("_id")] = dt.GetInt("count")
 	}
 
 	// getting production data for previous day
@@ -492,41 +492,79 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	}
 
 	// getting lost energy for today
-	// lostToday := []tk.M{}
-	// pipes = []tk.M{}
-	// dateNow = time.Now().Format("2006-01-02")
-	// timeFilter, _ = time.Parse("2006-01-02", dateNow)
-	// unwind := tk.M
-	// filter = tk.M{}.Set("$and", []tk.M{
-	// 	tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
-	// 	tk.M{}.Set("dateinfo.dateid", timeFilter),
-	// })
-	// pipes = append(pipes, tk.M{"$match": filter})
-	// pipes = append(pipes, tk.M{"$group": tk.M{
-	// 	"_id":       "$projectname",
-	// 	"powerlost": tk.M{"$sum": "$powerlost"},
-	// }})
-	// pipes = append(pipes, tk.M{
-	// 	"$sort": tk.M{
-	// 		"_id": 1,
-	// 	},
-	// })
+	lostToday := []tk.M{}
+	pipes = []tk.M{}
+	dateNow = time.Now().Format("2006-01-02")
+	timeFilter, _ = time.Parse("2006-01-02", dateNow)
+	unwind := tk.M{}.Set("$unwind", "$detail")
+	filter = tk.M{}.Set("$and", []tk.M{
+		tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
+		tk.M{}.Set("detail.detaildateinfo.dateid", timeFilter),
+	})
 
-	// csrLost, err := rconn.NewQuery().From(new(Alarm).TableName()).Command("pipe", pipes).Cursor(nil)
-	// if err != nil {
-	// 	tk.Println(err.Error())
-	// }
-	// defer csrLost.Close()
+	pipes = append(pipes, unwind)
+	pipes = append(pipes, tk.M{"$match": filter})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":       "$projectname",
+		"powerlost": tk.M{"$sum": "$detail.powerlost"},
+	}})
+	pipes = append(pipes, tk.M{
+		"$sort": tk.M{
+			"_id": 1,
+		},
+	})
 
-	// err = csrLost.Fetch(&lostToday, 0, false)
-	// if err != nil {
-	// 	tk.Println(err.Error())
-	// }
+	csrLost, err := rconn.NewQuery().From(new(Alarm).TableName()).Command("pipe", pipes).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	defer csrLost.Close()
 
-	// todayLosses := map[string]tk.M{}
-	// for _, dt := range lostToday {
-	// 	todayLosses[dt.GetString("_id")] = dt.GetFloat64("powerlost")
-	// }
+	err = csrLost.Fetch(&lostToday, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	todayLosses := map[string]float64{}
+	for _, dt := range lostToday {
+		todayLosses[dt.GetString("_id")] = dt.GetFloat64("powerlost")
+	}
+
+	// getting lost energy for today
+	notAvails := []tk.M{}
+	pipes = []tk.M{}
+	timeFilter = time.Now().Add(-3 * time.Minute)
+	filter = tk.M{}.Set("$and", []tk.M{
+		tk.M{}.Set("timeupdate", tk.M{}.Set("$lt", timeFilter)),
+	})
+
+	pipes = append(pipes, unwind)
+	pipes = append(pipes, tk.M{"$match": filter})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":   "$projectname",
+		"count": tk.M{"$sum": 1},
+	}})
+	pipes = append(pipes, tk.M{
+		"$sort": tk.M{
+			"_id": 1,
+		},
+	})
+
+	csrNa, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).Command("pipe", pipes).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	defer csrNa.Close()
+
+	err = csrNa.Fetch(&notAvails, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	dataNa := map[string]int{}
+	for _, dt := range notAvails {
+		dataNa[dt.GetString("_id")] = dt.GetInt("count")
+	}
 
 	// get no of turbine waiting for wind status
 	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
@@ -579,15 +617,6 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		projects = append(projects, projectId)
 
-		turbineDown, okDown := dataDowns[projectId]
-		if !okDown {
-			turbineDown = 0
-		}
-		turbineNA := 0
-		waitingForWind := waitingForWsProject[projectId]
-
-		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
-
 		activePower := 0.0
 		avgWs := 0.0
 		plf := 0.0
@@ -608,6 +637,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				lastUpdate = dtProj.Get("lastupdated").(time.Time)
 			}
 		}
+
 		if maxCap > 0 {
 			plf = tk.Div(tk.Div(activePower, 1000.0), maxCap) * 100
 		}
@@ -617,6 +647,32 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		if dtProdPrev, prodPrevOk := dataProdPrevs[projectId]; prodPrevOk {
 			prevGen = dtProdPrev.GetFloat64("production")
 			prevLost = dtProdPrev.GetFloat64("lostenergy")
+		}
+
+		todayLost, todayLostOk := todayLosses[projectId]
+		if !todayLostOk {
+			todayLost = 0.0
+		}
+
+		turbineDown, okDown := dataDowns[projectId]
+		if !okDown {
+			turbineDown = 0
+		}
+		turbineNA, naOk := dataNa[projectId]
+		if !naOk {
+			turbineNA = totalTurbine
+		}
+		waitingForWind := waitingForWsProject[projectId]
+
+		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
+
+		isActive, isWaitingWind, isDown, isNa := true, false, false, false
+		if turbineDown > 0 {
+			isDown = true
+		} else if waitingForWind > 0 {
+			isWaitingWind = true
+		} else if turbineNA == totalTurbine {
+			isNa = true
 		}
 
 		detail := tk.M{
@@ -632,9 +688,13 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			"TurbineNotAvail": turbineNA,
 			"WaitingForWind":  waitingForWind,
 			"TodayGen":        todayGen,
-			"TodayLost":       0.0,
+			"TodayLost":       todayLost,
 			"PrevDayGen":      prevGen,
 			"PrevDayLost":     prevLost,
+			"IsAvailable":     isActive,
+			"IsNotAvailable":  isNa,
+			"IsDown":          isDown,
+			"IsWaitingWind":   isWaitingWind,
 		}
 		details = append(details, detail)
 	}

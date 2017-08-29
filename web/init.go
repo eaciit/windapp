@@ -32,6 +32,7 @@ func init() {
 
 	app.Static("res", filepath.Join(controller.AppBasePath, AppName, "assets"))
 	app.Static("image", filepath.Join(controller.AppBasePath, AppName, "assets", "img"))
+
 	app.Register(controller.CreatePageController(AppName))
 	app.Register(controller.CreateLoginController())
 	app.Register(controller.CreateDataBrowserController())
@@ -81,6 +82,8 @@ func init() {
 
 	app.Register(controller.CreateMonitoringRealtimeController())
 	app.Register(controller.CreateMonitoringCustomController())
+
+	app.Register(controller.CreateTurbineCollaborationController())
 
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")
