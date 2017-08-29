@@ -96,6 +96,9 @@ page.setAxis = function(name, title) {
             case "pitch":
                 result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176);
                 break;
+            case "ambient":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176) + "C";
+                break;
         }
     }
     return result
@@ -141,6 +144,10 @@ page.getPowerCurveScatter = function() {
                 break;
             case "pitch":
                 var axis = page.setAxis("pitchAxis", "Angle (Degree)");
+                yAxes.push(axis);
+                break;
+            case "ambient":
+                var axis = page.setAxis("ambientAxis", "Temperature (Celcius)");
                 yAxes.push(axis);
                 break;
         }
@@ -219,14 +226,13 @@ page.getPowerCurveScatter = function() {
 }
 
 $(document).ready(function() {
-    di.getAvailDate();
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
             page.LoadData();
         }, 300);
     });
 
-    setTimeout(function(){
+    $.when(di.getAvailDate()).done(function() {
         page.LoadData();
-    }, 300);
+    });
 });
