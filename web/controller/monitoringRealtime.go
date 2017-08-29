@@ -1533,6 +1533,7 @@ func GetRepeatedAlarm(project string, t0 time.Time) (res tk.M) {
 	filtercond := tk.M{"$and": []tk.M{tk.M{"isdeleted": false},
 		tk.M{"$or": f_orcond},
 		tk.M{"projectname": project},
+		tk.M{"reduceavailability": true},
 		tk.M{"turbinestate": tk.M{"$ne": -998}}}}
 
 	pipes := []tk.M{}
