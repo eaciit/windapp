@@ -51,7 +51,7 @@
                                     <td class="text-center"><span data-bind="text:kendo.toString(TodayLost , 'n2'), attr: { id: 'TodayLost_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayGen , 'n2'), attr: { id: 'PrevDayGen_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayLost , 'n2'), attr: { id: 'PrevDayLost_'+ Project }">-</span></td>
-                                    <td class="text-center"><span data-bind="text:moment.utc(LastUpdated).format('DD MMM YYYY HH:mm:ss')"></span></td> 
+                                    <td class="text-center"><span data-bind="text: LastUpdated == '0001-01-01 00:00:00' ? '-' : moment.utc(LastUpdated).format('DD MMM YYYY HH:mm:ss')"></span></td> 
                                 </tr>
                             </tbody>
                         </table>
