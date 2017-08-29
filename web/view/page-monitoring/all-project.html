@@ -47,14 +47,10 @@
                                     <td class="text-right"><span data-bind="text:kendo.toString((PowerGeneration/1000) , 'n2'), attr: { id: 'PowerGeneration_'+ Project }"></span> / <span data-bind="text:kendo.toString(Capacity , 'n2'), attr: { id: 'Capacity_'+ Project }"></span></td>
                                     <td class="text-right"><span data-bind="text:kendo.toString(AvgWindSpeed , 'n2'), attr: { id: 'AvgWindSpeed_'+ Project }"></span></td>
                                     <td class="text-right"><span data-bind="text:kendo.toString(PLF , 'n2'), attr: { id: 'PLF_'+ Project }"></span></td>
-<!--                                     <td class="text-center"><span data-bind="text:kendo.toString(TodayGen , 'n2'), attr: { id: 'TodayGen_'+ Project }">-</span></td>
+                                    <td class="text-center"><span data-bind="text:kendo.toString(TodayGen , 'n2'), attr: { id: 'TodayGen_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(TodayLost , 'n2'), attr: { id: 'TodayLost_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayGen , 'n2'), attr: { id: 'PrevDayGen_'+ Project }">-</span></td>
-                                    <td class="text-center"><span data-bind="text:kendo.toString(PrevDayLost , 'n2'), attr: { id: 'PrevDayLost_'+ Project }">-</span></td> -->
-                                    <td class="text-center"><span>-</span></td>
-                                    <td class="text-center"><span>-</span></td>
-                                    <td class="text-center"><span>-</span></td>
-                                    <td class="text-center"><span>-</span></td>
+                                    <td class="text-center"><span data-bind="text:kendo.toString(PrevDayLost , 'n2'), attr: { id: 'PrevDayLost_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:moment.utc(LastUpdated).format('DD MMM YYYY HH:mm:ss')"></span></td> 
                                 </tr>
                             </tbody>
