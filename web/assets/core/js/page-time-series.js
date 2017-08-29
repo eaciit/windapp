@@ -15,7 +15,7 @@ if (pageType == "OEM") {
     pg.tags = ko.observableArray([
         {text: "Wind Speed" , value:"windspeed"},        
         {text: "Power" , value:"power"},
-        {text: "Production" , value:"production"}
+        {text: "Production" , value:"production"}, 
     ]);
 } else if (pageType == "HFD"){
     vm.currentMenu('Analysis');
@@ -449,20 +449,27 @@ pg.options = function(){
         $('#TagList').kendoMultiSelect({
             dataSource: pg.tags(), 
             value: pg.TagList() ,
-            maxSelectedItems : 4,
             dataValueField : 'value', 
             dataTextField: 'text',
             suggest: true, 
-            maxSelectedItems: maxSelectedItems, 
+            maxSelectedItems: maxSelectedItems,
             minSelectedItems: 1,
             change: function(e) {
+
+                var amountOfSelectedItems = this.dataItems().length;
+                var maxSelectedItems = e.sender.options.maxSelectedItems;
+               
                 if (this.value().length == 0) {
                     this.value("windspeed")
-                } else if (this.value().length > 4) { 
-
                 }
+                if (amountOfSelectedItems >= maxSelectedItems){
+                     app.showError("Max. 4 Tags");
+                }
+
             }
-        })
+        });
+        var multiselect= $("#TagList").data("kendoMultiSelect");
+        multiselect.ul.addClass('hide-selected');
     }).modal('show');
 }
 

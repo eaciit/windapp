@@ -388,6 +388,13 @@ func (w *PageController) MonitoringAllProject(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/all-project.html"
 	return w.GetParams(r, true)
 }
+func (w *PageController) MonitoringSummary(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-monitoring/summary.html"
+	r.Config.IncludeFiles = []string{"page-monitoring/all-project.html","page-monitoring/custom.html","page-monitoring/turbine-collaboration.html"}
+	return w.GetParams(r, true)
+}
 func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile

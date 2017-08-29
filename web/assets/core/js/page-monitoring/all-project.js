@@ -5,12 +5,12 @@ viewModel.AllProject = new Object();
 var page = viewModel.AllProject;
 
 
-vm.currentMenu('Overall');
-vm.currentTitle('Overall');
-vm.isShowDataAvailability(false);
-vm.breadcrumb([
-    { title: "Monitoring", href: '#' }, 
-    { title: 'Overall', href: viewModel.appName + 'page/monitoringallproject' }]);
+// vm.currentMenu('Overall');
+// vm.currentTitle('Overall');
+// vm.isShowDataAvailability(false);
+// vm.breadcrumb([
+//     { title: "Monitoring", href: '#' }, 
+//     { title: 'Overall', href: viewModel.appName + 'page/monitoringallproject' }]);
 
 
 
@@ -77,7 +77,7 @@ page.generateView = function(){
 
         if(((val.PowerGeneration/1000) / val.Capacity) > 0){
             comparison = ((val.PowerGeneration/1000) / val.Capacity) * 100;
-            console.log(comparison);
+            // console.log(comparison);
             $('#statusproject_'+ val.Project).attr('class', colorStatus);
             $('#statusproject_'+ val.Project).css('width', comparison + '%');
         }else{

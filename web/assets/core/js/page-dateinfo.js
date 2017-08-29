@@ -11,7 +11,7 @@ di.maxDatetemp = ko.observable([]);
 
 di.getAvailDate = function () {
 
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
+    var reqDate = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -38,5 +38,6 @@ di.getAvailDate = function () {
         $('#dateStart').data('kendoDatePicker').value(startDate);
         $('#dateEnd').data('kendoDatePicker').value(di.maxDatetemp());
     })
+    return reqDate;
 };
 

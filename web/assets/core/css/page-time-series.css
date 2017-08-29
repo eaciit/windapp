@@ -6,6 +6,10 @@
 		margin-top: 0px;
 	}
 
+	.hide-selected > li.k-state-selected {
+        display: none;
+    }
+
 	.btn-zoom{
 		width: 30px !important;
 	    height: 22px !important;
