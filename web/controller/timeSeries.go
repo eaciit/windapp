@@ -229,12 +229,12 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				"rotorrpm":                    tk.M{"$avg": "$fast_rotorspeed_rpm"},
 				"genrpm":                      tk.M{"$avg": "$fast_genspeed_rpm"},
 				"pitchangle":                  tk.M{"$avg": "$fast_pitchangle"},
-				"PitchCabinetTempBlade1":      tk.M{"$avg": "$PitchCabinetTempBlade1"},
-				"PitchCabinetTempBlade2":      tk.M{"$avg": "$PitchCabinetTempBlade2"},
-				"PitchCabinetTempBlade3":      tk.M{"$avg": "$PitchCabinetTempBlade3"},
-				"PitchConvInternalTempBlade1": tk.M{"$avg": "$PitchConvInternalTempBlade1"},
-				"PitchConvInternalTempBlade2": tk.M{"$avg": "$PitchConvInternalTempBlade2"},
-				"PitchConvInternalTempBlade3": tk.M{"$avg": "$PitchConvInternalTempBlade3"},
+				"PitchCabinetTempBlade1":      tk.M{"$avg": "$pitchcabinettempblade1"},
+				"PitchCabinetTempBlade2":      tk.M{"$avg": "$pitchcabinettempblade2"},
+				"PitchCabinetTempBlade3":      tk.M{"$avg": "$pitchcabinettempblade3"},
+				"PitchConvInternalTempBlade1": tk.M{"$avg": "$pitchconvinternaltempblade1"},
+				"PitchConvInternalTempBlade2": tk.M{"$avg": "$pitchconvinternaltempblade2"},
+				"PitchConvInternalTempBlade3": tk.M{"$avg": "$pitchconvinternaltempblade3"},
 			}
 		} else if pageType == "OEM" {
 			collName = new(ScadaDataOEM).TableName()
