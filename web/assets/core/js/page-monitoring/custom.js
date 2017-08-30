@@ -100,7 +100,9 @@ bpc.plotData = function(project, data) {
 			var $elmdetail = $('.progress[data-id="'+ dt.Turbine +'"]');
 			var currPct = 0;
 			var power = dt.ActivePower;
+
 			var defaultColorStatus = dt.DefaultColorStatus;
+
 
 			if(dt.ActivePower > 0 && dt.Capacity > 0) {
 				currPct = (dt.ActivePower/dt.Capacity)*100;
@@ -114,7 +116,8 @@ bpc.plotData = function(project, data) {
 			}
 
 			$elmupdate.prop('aria-valuenow', currPct);
-			$elmupdate.addClass(defaultColorStatus);
+			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
+			
 		});
 	}
 }
