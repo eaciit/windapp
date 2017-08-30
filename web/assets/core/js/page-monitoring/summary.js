@@ -37,6 +37,6 @@ summary.LoadAllFarms = function(){
 }
 
 $(function() {
-	summary.LoadOverAll();
+	summary.LoadAllFarms();
 });
 
