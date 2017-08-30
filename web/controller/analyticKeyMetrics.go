@@ -124,6 +124,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	// if !strings.Contains(breakDown, "turbine") {
 	totalTurbine := tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
 	// }
+	isExpPValue := false
 
 	for i, key := range keys {
 		list = []tk.M{}
@@ -141,6 +142,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
+			isExpPValue = true
 		} else {
 			p.Misc.Set("knot_data", k)
 			filter, e := p.ParseFilter()
@@ -149,20 +151,18 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			}
 			fb := DB().Connection.Fb()
 
-			filter = append(filter, dbox.Eq("available", 1))
+			// filter = append(filter, dbox.Eq("available", 1))
 
 			fb.AddFilter(dbox.And(filter...))
 			matches, e := fb.Build()
 
 			group := tk.M{
-				"power":           tk.M{"$sum": "$power"},
-				"energy":          tk.M{"$sum": "$energy"},
-				"machinedowntime": tk.M{"$sum": "$machinedowntime"},
-				"griddowntime":    tk.M{"$sum": "$griddowntime"},
+				"powerkw":         tk.M{"$sum": "$powerkw"},
+				"machinedowntime": tk.M{"$sum": "$machinedownhours"},
+				"griddowntime":    tk.M{"$sum": "$griddownhours"},
+				"otherdowntime":   tk.M{"$sum": "$otherdowntimehours"},
 				"oktime":          tk.M{"$sum": "$oktime"},
-				"totaltime":       tk.M{"$sum": "$totaltime"},
-				"minutes":         tk.M{"$sum": "$minutes"},
-				"countdata":       tk.M{"$sum": 1},
+				"counttimestamp":  tk.M{"$sum": "$totalrows"},
 				"maxdate":         tk.M{"$max": "$dateinfo.dateid"},
 				"mindate":         tk.M{"$min": "$dateinfo.dateid"},
 			}
@@ -175,7 +175,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			pipes := []tk.M{{"$match": matches}, {"$group": group}, {"$sort": tk.M{"_id.id1": 1}}}
 
 			csr, e := DB().Connection.NewQuery().
-				From(new(ScadaData).TableName()).
+				From(new(ScadaSummaryDaily).TableName()).
 				Command("pipe", pipes).
 				Cursor(nil)
 
@@ -227,45 +227,46 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		var values float64
 		categories = []string{}
 		for listCount, val := range list {
-			var hourValue, minutes float64
-			id := val.Get("_id").(tk.M)
-			if strings.Contains(breakDown, "dateid") {
+			var hourValue float64
+			if !isExpPValue {
+				id := val.Get("_id").(tk.M)
+				if strings.Contains(breakDown, "dateid") {
 
-				id1 := id.Get("id1").(time.Time)
-				// hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+					id1 := id.Get("id1").(time.Time)
+					// hourValue, minutes = getHourMinute(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 
-				hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time))
+					hourValue = helper.GetHourValue(id1.UTC(), id1.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time))
 
-			} else {
-				// hourValue, minutes = getHourMinute(tStart.UTC(), tEnd.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
+				} else {
+					// hourValue, minutes = getHourMinute(tStart.UTC(), tEnd.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time), val.GetFloat64("minutes"))
 
-				hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time))
+					hourValue = helper.GetHourValue(tStart.UTC(), tEnd.UTC(), val.Get("mindate").(time.Time), val.Get("maxdate").(time.Time))
+				}
 			}
 
-			oktime := val.GetFloat64("oktime")
-			energy := val.GetFloat64("energy") / 1000
-			mDownTime := (val.GetFloat64("machinedowntime") / 3600.0)
-			gDownTime := (val.GetFloat64("griddowntime") / 3600.0)
-			sumTimeStamp := val.GetFloat64("countdata")
-			minutes = val.GetFloat64("minutes") / 60
+			val.Set("totalhour", hourValue)
+			val.Set("noofturbine", totalTurbine)
+			val.Set("energy", val.GetFloat64("powerkw")/6/1000)
+			val.Set("totalcapacity", plfDivider)
 
-			machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+			// machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
+			availPLF := helper.CalcAvailabilityAndPLF(val)
 
 			// log.Printf("%v | %v | %v | %v | %v | %v | %v | %v \n", totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes)
 
 			switch key {
 			case "Machine Availability":
-				values = machineAvail //tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
+				values = availPLF.GetFloat64("machineavailability") //tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Grid Availability":
-				values = gridAvail //tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
+				values = availPLF.GetFloat64("gridavailability") //tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 			case "Total Availability":
-				values = trueAvail //tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
+				values = availPLF.GetFloat64("totalavailability") //tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
 			case "Data Availability":
-				values = dataAvail //tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
+				values = availPLF.GetFloat64("dataavailability") //tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
 			case "Actual PLF":
-				values = plf //tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
+				values = availPLF.GetFloat64("plf") //tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
 			case "Actual Production":
-				values = val.GetFloat64("energy") / 1000 /*MWh*/
+				values = val.GetFloat64("powerkw") / 6 / 1000 /*MWh*/
 			case "P50 Generation":
 				values += checkPValue(monthDay, val.GetFloat64("p50netgenmwh"), val.GetInt("monthno"))
 			case "P50 PLF":
@@ -301,7 +302,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				}
 			}
 
-			if tk.HasMember(keyList, key) {
+			if isExpPValue {
 				if strings.Contains(breakDown, "dateid") {
 					datas = []float64{}
 

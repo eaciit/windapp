@@ -933,13 +933,13 @@ $(document).ready(function() {
         dataValueField: 'value',
         dataTextField: 'text',
         suggest: true,
-        change: function () { 
-            
-            fa.disableRefreshButton(true);
-            var project = $('#projectList').data("kendoDropDownList").value();
-            var lastProject = page.currProject();
-
+        change: function () {
             setTimeout(function(){
+                fa.currentFilter().project = this._old;
+                fa.checkFilter();
+                fa.disableRefreshButton(true);
+                var project = $('#projectList').data("kendoDropDownList").value();
+                var lastProject = page.currProject();
 
                 fa.populateTurbine(project);
 

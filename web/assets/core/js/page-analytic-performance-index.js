@@ -256,10 +256,14 @@ $(function(){
     });
 
     $('#projectList').kendoDropDownList({
-        change: function () {  
-            di.getAvailDate();
-            var project = $('#projectList').data("kendoDropDownList").value();
-            fa.populateTurbine(project);
+        change: function () { 
+            setTimeout(function(){
+                fa.currentFilter().project = this._old;
+                fa.checkFilter();
+                di.getAvailDate();
+                var project = $('#projectList').data("kendoDropDownList").value();
+                fa.populateTurbine(project);
+            },500); 
         }
     });
 

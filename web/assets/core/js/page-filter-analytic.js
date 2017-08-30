@@ -602,10 +602,11 @@ fa.resetFilter = function(){
         $("#turbineList").multiselect("refresh");
 
         $('#periodList').data('kendoDropDownList').value(data.period);
+        fa.showHidePeriod();
         $('#dateStart').data('kendoDatePicker').value(data.startDate);
         $('#dateEnd').data('kendoDatePicker').value(data.endDate);
 
-        $("#filterTooltip").tooltipster('hide');
+        $(".filter-changed").tooltipster('destroy');
     },500);
 }
 

@@ -11,19 +11,19 @@
 	<div class="col-md-12" style="padding-left: 10px;">
 		<ul class="nav nav-pills nav-replace-title" role="tablist">
 			<div class="inline-tab">&nbsp;</div>
-			<li role="presentation" class="active tab-summary" onclick="summary.LoadOverAll()">
-				<a role="tab" data-toggle="tab" href="#Overall">Overall</a>
+			<li role="presentation" class="tab-summary active">
+				<a role="tab" data-toggle="tab" href="#Overall" onclick="summary.SelectMode('overall')">Overall</a>
 			</li>
 			<li role="presentation" class="tab-production">
-				<a role="tab" data-toggle="tab" href="#AllFarms" onclick="summary.LoadAllFarms()">All Farms</a>
+				<a role="tab" data-toggle="tab" href="#AllFarms" onclick="summary.SelectMode('allfarms')">All Farms</a>
 			</li>
 			<div class="clearfix"></div>
 			<div class="tab-content">
 			 	<div role="tabpanel" class="tab-pane active" id="Overall">
-					{{template "custom.html"}}
+					{{template "all-project.html"}}
 			 	</div>
 			 	<div role="tabpanel" class="tab-pane" id="AllFarms">
-			 		{{template "all-project.html"}}
+			 		{{template "custom.html"}}
 			 	</div>
 			</div>
 		</ul>
