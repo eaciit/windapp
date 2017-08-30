@@ -13,30 +13,41 @@ vm.breadcrumb([
 summary.isFirstOverAll = ko.observable(true);
 summary.isFirstAllFarms = ko.observable(true);
 
+var $overAllInterval = false, $allFarmsInterval = false, $intervalTime = 2500;
 
-summary.LoadOverAll = function(){
-	if(summary.isFirstOverAll() == true){
-		app.loading(true);
-	    $.when(bpc.getWeather()).done(function(){
+summary.LoadAllFarms = function(){
+	//if(summary.isFirstAllFarms() == true){
+		$.when(bpc.getWeather()).done(function(){
 	    	bpc.getData();	
-	    	summary.isFirstOverAll(false);
-	    	app.loading(false);
-	    	bpc.refresh();
+	    	summary.isFirstAllFarms(false);	
+	    	$allFarmsInterval = bpc.refresh();
 	    });
-	}
+	//}
 	
 }
 
-summary.LoadAllFarms = function(){
-	if(summary.isFirstAllFarms() == true){
+summary.LoadOverAll = function(){
+	//if(summary.isFirstOverAll() == true){
 		app.loading(true);
 		page.getData();
-    	summary.isFirstAllFarms(false);
-    	setInterval(page.getData, 5000);
+    	summary.isFirstOverAll(false);
+    	$overAllInterval = setInterval(page.getData, $intervalTime);
+	//}
+}
+
+summary.SelectMode = function(type) {
+	if(type	== 'overall') {
+		clearInterval($allFarmsInterval);
+		$allFarmsInterval = false;
+		summary.LoadOverAll();
+	} else {
+		clearInterval($overAllInterval)
+		$overAllInterval = false;
+		summary.LoadAllFarms();
 	}
 }
 
 $(function() {
-	summary.LoadAllFarms();
+	summary.SelectMode('overall');
 });
 

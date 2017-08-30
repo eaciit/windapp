@@ -474,7 +474,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		},
 	})
 
-	csrProd, err := rconn.NewQuery().From(new(ScadaSummaryDaily).TableName()).Command("pipe", pipes).Cursor(nil)
+	csrProd, err := DB().Connection.NewQuery().From(new(ScadaSummaryDaily).TableName()).Command("pipe", pipes).Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
 	}
@@ -535,10 +535,9 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	pipes = []tk.M{}
 	timeFilter = time.Now().Add(-3 * time.Minute)
 	filter = tk.M{}.Set("$and", []tk.M{
+		tk.M{}.Set("projectname", tk.M{}.Set("$ne", "")),
 		tk.M{}.Set("timeupdate", tk.M{}.Set("$lt", timeFilter)),
 	})
-
-	pipes = append(pipes, unwind)
 	pipes = append(pipes, tk.M{"$match": filter})
 	pipes = append(pipes, tk.M{"$group": tk.M{
 		"_id":   "$projectname",
@@ -549,6 +548,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			"_id": 1,
 		},
 	})
+	//tk.Printf("Pipes: #%v\n", pipes)
 
 	csrNa, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).Command("pipe", pipes).Cursor(nil)
 	if err != nil {
@@ -560,11 +560,13 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	if err != nil {
 		tk.Println(err.Error())
 	}
+	//tk.Printf("DtNA: #%v\n", notAvails)
 
 	dataNa := map[string]int{}
 	for _, dt := range notAvails {
 		dataNa[dt.GetString("_id")] = dt.GetInt("count")
 	}
+	//tk.Printf("#%v\n", dataNa)
 
 	// get no of turbine waiting for wind status
 	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
@@ -660,7 +662,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		}
 		turbineNA, naOk := dataNa[projectId]
 		if !naOk {
-			turbineNA = totalTurbine
+			turbineNA = 0.0
 		}
 		waitingForWind := waitingForWsProject[projectId]
 
@@ -680,17 +682,17 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			"Capacity":        maxCap,
 			"NoOfTurbine":     totalTurbine,
 			"AvgWindSpeed":    avgWs,
-			"LastUpdated":     lastUpdate.Format("2006-01-02 15:04:05"),
+			"LastUpdated":     lastUpdate,
 			"PowerGeneration": activePower,
 			"PLF":             plf,
 			"TurbineActive":   turbineAvail,
 			"TurbineDown":     turbineDown,
 			"TurbineNotAvail": turbineNA,
 			"WaitingForWind":  waitingForWind,
-			"TodayGen":        todayGen,
-			"TodayLost":       todayLost,
-			"PrevDayGen":      prevGen,
-			"PrevDayLost":     prevLost,
+			"TodayGen":        tk.Div(todayGen, 1000.0),  // convert to mwh
+			"TodayLost":       tk.Div(todayLost, 1000.0), // convert to mwh
+			"PrevDayGen":      tk.Div(prevGen, 1000.0),   // convert to mwh
+			"PrevDayLost":     tk.Div(prevLost, 1000.0),  // convert to mwh
 			"IsAvailable":     isActive,
 			"IsNotAvailable":  isNa,
 			"IsDown":          isDown,

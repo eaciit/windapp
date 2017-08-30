@@ -124,7 +124,7 @@ bpc.plotData = function(project, data) {
 
 // getting data every interval time
 bpc.refresh = function() {
-	setInterval(bpc.getData, 3000);
+	return setInterval(bpc.getData, $intervalTime);
 }
 
 // turbine collaboration open
@@ -154,6 +154,7 @@ $(function() {
 
 	$( "#sortable" ).sortable();
     $( "#sortable" ).disableSelection();
+
     // refresh the data every second
     // bpc.refresh();
 });
