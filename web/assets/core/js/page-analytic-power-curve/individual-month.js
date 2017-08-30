@@ -266,6 +266,8 @@ $(document).ready(function() {
         dataTextField: 'text',
         suggest: true,
         change: function () { 
+            fa.currentFilter().project = this._old;
+            fa.checkFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
             di.getAvailDate();

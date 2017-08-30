@@ -100,7 +100,9 @@ bpc.plotData = function(project, data) {
 			var $elmdetail = $('.progress[data-id="'+ dt.Turbine +'"]');
 			var currPct = 0;
 			var power = dt.ActivePower;
+
 			var defaultColorStatus = dt.DefaultColorStatus;
+
 
 			if(dt.ActivePower > 0 && dt.Capacity > 0) {
 				currPct = (dt.ActivePower/dt.Capacity)*100;
@@ -114,14 +116,15 @@ bpc.plotData = function(project, data) {
 			}
 
 			$elmupdate.prop('aria-valuenow', currPct);
-			$elmupdate.addClass(defaultColorStatus);
+			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
+			
 		});
 	}
 }
 
 // getting data every interval time
 bpc.refresh = function() {
-	setInterval(bpc.getData, 3000);
+	return setInterval(bpc.getData, $intervalTime);
 }
 
 // turbine collaboration open
@@ -151,6 +154,7 @@ $(function() {
 
 	$( "#sortable" ).sortable();
     $( "#sortable" ).disableSelection();
+
     // refresh the data every second
     // bpc.refresh();
 });

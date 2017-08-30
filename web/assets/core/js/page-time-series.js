@@ -28,10 +28,15 @@ if (pageType == "OEM") {
         {text: "Wind Direction" , value:"winddirection"},
         {text: "Nacelle Direction" , value:"nacellepos"},
         {text: "Rotor RPM" , value:"rotorrpm"},
-        {text: "Pitch Angle" , value:"pitchangle"},        
+        {text: "Pitch Angle" , value:"pitchangle"},
+        {text: "Pitch Cabinet Temp Blade 1" , value:"PitchCabinetTempBlade1"},
+        {text: "Pitch Cabinet Temp Blade 2" , value:"PitchCabinetTempBlade2"},
+        {text: "Pitch Cabinet Temp Blade 3" , value:"PitchCabinetTempBlade3"},
+        {text: "Pitch Conv Internal Temp Blade 1" , value:"PitchConvInternalTempBlade1"},
+        {text: "Pitch Conv Internal Temp Blade 2" , value:"PitchConvInternalTempBlade2"},
+        {text: "Pitch Conv Internal Temp Blade 3" , value:"PitchConvInternalTempBlade3"},        
     ]);
 }
-
 
 pg.availabledatestartscada = ko.observable();
 pg.availabledateendscada = ko.observable();

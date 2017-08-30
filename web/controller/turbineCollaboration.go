@@ -81,10 +81,11 @@ func (m *TurbineCollaborationController) Save(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	date := time.Time{}
-	createdBy := ""
-	createdByName := ""
-	createdIp := ""
+	date, _ := time.Parse("2006-01-02 15:04:05", p.Date)
+
+	createdBy := ""     //tUser.LoginID
+	createdByName := "" //tUser.FullName
+	createdIp := ""     //tUser.Email
 	createdLoc := ""
 
 	mdl := new(TurbineCollaborationModel)
