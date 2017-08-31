@@ -10,12 +10,12 @@
                 <h4 class="modal-title">Add Note for Turbine: <span data-bind="text: TbCol.TurbineName()"></span> &nbsp; <i class="fa fa-circle fa-green"></i></h4>
             </div>
             <div class="modal-body">
-                <div class="form-input row">
+                <div class="form-input row" id="form-turbine-collaboration">
                     <input type="hidden" id="id" name="id" data-bind="value: TbCol.CurrentData().Id" />
                     <input type="hidden" id="turbineid" name="turbineid" data-bind="value: TbCol.TurbineId()" />
                     <input type="hidden" id="project" name="project" data-bind="value: TbCol.Project()" />
                     <input type="hidden" id="feeder" name="feeder" data-bind="value: TbCol.Feeder()" />
-                    <div class="form-group col-md-12">
+                    <div class="form-group col-mud-12">
                         <label class="control-label col-md-3">Turbine</label>
                         <div class="control-input col-md-3">
                             <input type="text" name="turbinename" id="turbinename" readonly="readonly" class="input-sm form-control" placeholder="Type turbine name" data-bind="value: TbCol.TurbineName" required data-required-msg="Turbine required!" />
@@ -30,7 +30,7 @@
                     <div class="form-group col-md-12">
                         <label class="control-label col-md-3">Date</label>
                         <div class="control-input col-md-3">
-                            <input class="col-md-1 col-sm-1 filter-date-start" type="text" id="date" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" />
+                            <input class="col-md-1 col-sm-1 filter-date-start" type="text" id="date" data-bind="kendoDatePicker:{value:TbCol.CurrentData().Date,format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" />
                         </div>
                     </div>
 <!--                     <div class="form-group col-md-12">

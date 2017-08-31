@@ -20,7 +20,7 @@ TbCol.CurrentData = ko.observable({
 	TurbineName: '',
 	Project: '',
 	Feeder: '',
-	Date: '',
+	Date: new Date(),
 	Time: '',
 	UserId: '',
 	UserName: '',
@@ -39,5 +39,24 @@ TbCol.CloseForm = function() {
 	$('#mdlTbColab').modal('hide');
 };
 TbCol.Save = function() {
+    var param = {
+    		TurbineId : TbCol.TurbineId(),
+			TurbineName : TbCol.TurbineName(),
+			Feeder : TbCol.Feeder(),
+			Project : TbCol.Project(),
+			Date : TbCol.CurrentData().Date,
+			Status : '',
+			Remark : TbCol.CurrentData().Remark,
+    }
 
-};
+    toolkit.ajaxPost(viewModel.appName + 'turbinecollaboration/save', param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        swal({ title: "Saved", type: "success" });
+       	TbCol.CloseForm();
+    }, function (err) {
+        toolkit.showError(err.responseText);
+    });
+	
+}
