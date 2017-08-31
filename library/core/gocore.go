@@ -62,6 +62,11 @@ func InitialSetDatabase() error {
 		return err
 	}
 
+	if err := SetSession(conn_ostro); err != nil {
+		toolkit.Printf("Error set session mgo: %s \n", err.Error())
+		return err
+	}
+
 	conn_reatime, err := PrepareConnection(CONF_DB_REALTIME)
 	if err != nil {
 		return err
