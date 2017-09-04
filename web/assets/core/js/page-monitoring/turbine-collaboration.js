@@ -39,12 +39,13 @@ TbCol.CloseForm = function() {
 	$('#mdlTbColab').modal('hide');
 };
 TbCol.Save = function() {
+	app.loading(true);
     var param = {
     		TurbineId : TbCol.TurbineId(),
 			TurbineName : TbCol.TurbineName(),
 			Feeder : TbCol.Feeder(),
 			Project : TbCol.Project(),
-			Date : TbCol.CurrentData().Date,
+			Date : $("#date").data("kendoDateTimePicker").value(),
 			Status : '',
 			Remark : TbCol.CurrentData().Remark,
     }
@@ -55,6 +56,7 @@ TbCol.Save = function() {
         }
         swal({ title: "Saved", type: "success" });
        	TbCol.CloseForm();
+       	app.loading(false);
     }, function (err) {
         toolkit.showError(err.responseText);
     });
