@@ -81,7 +81,7 @@ func (m *TurbineCollaborationController) Save(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	date, _ := time.Parse("2006-01-02 15:04:05", p.Date)
+	date, _ := time.Parse("2006-01-02T15:04:05Z", p.Date)
 
 	createdBy := ""     //tUser.LoginID
 	createdByName := "" //tUser.FullName
