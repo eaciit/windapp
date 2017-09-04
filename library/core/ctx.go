@@ -8,6 +8,8 @@ import (
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	"github.com/eaciit/orm"
 	"github.com/eaciit/toolkit"
+	"gopkg.in/mgo.v2"
+	"time"
 )
 
 var _ctx *orm.DataContext
@@ -16,6 +18,7 @@ var _db *orm.DataContext
 var _conn dbox.IConnection
 var _connrealtime dbox.IConnection
 var _dbErr error
+var _session *mgo.Session
 
 func ctx() *orm.DataContext {
 	var _conn dbox.IConnection
@@ -130,4 +133,43 @@ func SetDbRealTime(conn dbox.IConnection) error {
 
 func DBRealtime() dbox.IConnection {
 	return _connrealtime
+}
+
+func SetSession(conn dbox.IConnection) (e error) {
+	CloseSession()
+
+	dboxInfo := conn.Info()
+	mgoInfo := new(mgo.DialInfo)
+	mgoInfo.Addrs = []string{dboxInfo.Host}
+	mgoInfo.Database = dboxInfo.Database
+	mgoInfo.Username = dboxInfo.UserName
+	mgoInfo.Password = dboxInfo.Password
+	if dboxInfo.Settings == nil {
+		dboxInfo.Settings = toolkit.M{}
+	}
+	poollimit := dboxInfo.Settings.GetInt("poollimit")
+	if poollimit > 0 {
+		mgoInfo.PoolLimit = poollimit
+	}
+	timeout := dboxInfo.Settings.GetInt("timeout")
+	if timeout > 0 {
+		mgoInfo.Timeout = time.Duration(timeout) * time.Second
+	}
+	_session, e = mgo.DialWithInfo(mgoInfo)
+	if e != nil {
+		return
+	}
+	_session.SetMode(mgo.Monotonic, true)
+
+	return
+}
+
+func DBSession() *mgo.Session {
+	return _session
+}
+
+func CloseSession() {
+	if _session != nil {
+		_session.Close()
+	}
 }

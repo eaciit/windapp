@@ -14,6 +14,39 @@ bpc.projectList = ko.observableArray(projectList);
 bpc.feederList = ko.observableArray([]);
 bpc.turbineList = ko.observableArray([]);
 
+ko.bindingHandlers.singleOrDoubleClick = {
+    init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+        var singleHandler   = valueAccessor().click,
+            doubleHandler   = valueAccessor().dblclick,
+            delay           = valueAccessor().delay || 200,
+            clicks          = 0;
+
+        $(element).click(function(event) {
+            clicks++;
+            if (clicks === 1) {
+                setTimeout(function() {
+                    if( clicks === 1 ) {
+                        // Call the single click handler - passing viewModel as this 'this' object
+                        // you may want to pass 'this' explicitly
+                        if (singleHandler !== undefined) { 
+                            singleHandler.call(viewModel, bindingContext.$data, event); 
+                        }
+                    } else {
+                        // Call the double click handler - passing viewModel as this 'this' object
+                        // you may want to pass 'this' explicitly
+                        if (doubleHandler !== undefined) { 
+                            doubleHandler.call(viewModel, bindingContext.$data, event); 
+                        }
+                    }
+                    clicks = 0;
+                }, delay);
+            }
+        });
+    }
+};
+
+
+
 // get the weather forecast
 bpc.getWeather = function() {
     var surl = 'http://api.openweathermap.org/data/2.5/weather';
@@ -142,6 +175,23 @@ bpc.OpenTurbineCollaboration = function(dt) {
 		}
 	}
 };
+
+bpc.ToIndividualTurbine = function(data) {
+	return function(data) {
+		if(data.IsTurbine) {
+		    app.loading(true);
+		    var oldDateObj = new Date();
+		    var newDateObj = moment(oldDateObj).add(3, 'm');
+		    document.cookie = "projectname="+data.Project.split("(")[0].trim()+";expires="+ newDateObj;
+		    document.cookie = "turbine="+data.Id+";expires="+ newDateObj;
+		    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+		        window.location = viewModel.appName + "page/monitoringbyturbine";
+		    } else {
+		        app.loading(false);
+		    }
+		}
+	}
+}
 
 // init page
 $(function() {
