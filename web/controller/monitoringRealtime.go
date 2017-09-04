@@ -1669,21 +1669,26 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	// rconn := lh.GetConnRealtime()
 	// defer rconn.Close()
 	rconn := DBRealtime()
-
-	_Query := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		Aggr(dbox.AggrMax, "$timestamp", "timestamp")
+	pipes := []tk.M{}
+	groups := tk.M{
+		"timestamp": tk.M{"$sum": "$timestamp"},
+	}
+	match := []tk.M{}
 
 	if turbine != "" {
-		_Query = _Query.Group("turbine").
-			Where(dbox.And(dbox.Eq("turbine", turbine), dbox.Eq("projectname", project)))
+		groups.Set("_id", "turbine")
+		match = append(match, tk.M{"turbine": turbine})
+		match = append(match, tk.M{"projectname": project})
 	} else {
-		_Query = _Query.Group("projectname")
+		groups.Set("_id", "projectname")
 		if project != "" {
-			_Query = _Query.Where(dbox.Eq("projectname", project))
+			match = append(match, tk.M{"projectname": project})
 		}
 	}
+	pipes = append(pipes, tk.M{"$and": match})
 
-	csr, err := _Query.Cursor(nil)
+	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
+		Command("pipe", pipes).Cursor(nil)
 
 	if err != nil {
 		return
