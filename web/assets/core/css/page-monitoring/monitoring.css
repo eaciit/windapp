@@ -831,9 +831,9 @@ h4.content-heading {
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   position: relative;
-  -webkit-box-shadow: inset 2px 4px 2px -3px rgba(0,0,0,0.50);
+/*  -webkit-box-shadow: inset 2px 4px 2px -3px rgba(0,0,0,0.50);
   -moz-box-shadow: inset 2px 4px 2px -3px rgba(0,0,0,0.50);
-  box-shadow: inset 2px 4px 2px -3px rgba(0,0,0,0.50);
+  box-shadow: inset 2px 4px 2px -3px rgba(0,0,0,0.50);*/
 }
 
 .lbl{

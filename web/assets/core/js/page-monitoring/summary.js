@@ -16,26 +16,24 @@ summary.isFirstAllFarms = ko.observable(true);
 var $overAllInterval = false, $allFarmsInterval = false, $intervalTime = 2500;
 
 summary.LoadAllFarms = function(){
-	//if(summary.isFirstAllFarms() == true){
-		$.when(bpc.getWeather()).done(function(){
-	    	bpc.getData();	
-	    	summary.isFirstAllFarms(false);	
-	    	$allFarmsInterval = bpc.refresh();
-	    });
-	//}
+	// app.loading(true);
+	$.when(bpc.getWeather()).done(function(){
+    	bpc.getData();	
+    	summary.isFirstAllFarms(false);	
+    	$allFarmsInterval = bpc.refresh();
+    });
 	
 }
 
 summary.LoadOverAll = function(){
-	//if(summary.isFirstOverAll() == true){
-		app.loading(true);
-		page.getData();
-    	summary.isFirstOverAll(false);
-    	$overAllInterval = setInterval(page.getData, $intervalTime);
-	//}
+	app.loading(true);
+	page.getData();
+	summary.isFirstOverAll(false);
+	$overAllInterval = setInterval(page.getData, $intervalTime);
 }
 
 summary.SelectMode = function(type) {
+	summary.abortAll(requests);
 	if(type	== 'overall') {
 		clearInterval($allFarmsInterval);
 		$allFarmsInterval = false;
@@ -45,6 +43,13 @@ summary.SelectMode = function(type) {
 		$overAllInterval = false;
 		summary.LoadAllFarms();
 	}
+}
+
+summary.abortAll = function(requests) {
+     var length = requests.length;
+     while(length--) {
+         requests[length].abort && requests[length].abort();  // the if is for the first case mostly, where array is still empty, so no abort method exists.
+     }
 }
 
 $(function() {

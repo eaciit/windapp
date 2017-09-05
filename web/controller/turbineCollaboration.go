@@ -44,7 +44,7 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(TurbineCollaborationModel).TableName()).
-		Where(dbox.And(dbox.Eq("turbineid", turbine), dbox.Eq("projectid", project), dbox.Eq("date", time.Now()))).
+		Where(dbox.And(dbox.Eq("turbineid", turbine), dbox.Eq("projectid", project))).
 		Order("-date").Take(take).
 		Cursor(nil)
 	defer csr.Close()

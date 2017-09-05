@@ -33,11 +33,59 @@ TbCol.ShowModal = function(mode) {
 	$('#mdlTbColab').modal(mode);
 };
 TbCol.OpenForm = function() {
-	$('#mdlTbColab').modal('show');
+	setTimeout(function(){
+		// TbCol.GenerateGrid(TbCol.TurbineId(),TbCol.Project());
+		$('#mdlTbColab').modal('show');
+	},200);
+
 };
 TbCol.CloseForm = function() {
 	$('#mdlTbColab').modal('hide');
 };
+
+TbCol.GenerateGrid = function(turbine, project){
+	app.loading(true);
+	var param = {
+		Project : project,
+		Turbine : turbine,
+		Take : null,
+	}
+	toolkit.ajaxPost(viewModel.appName + 'turbinecollaboration/getlatest', param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        console.log(res);
+        $("#gridHistory").html("");
+		$("#gridHistory").kendoGrid({
+	        dataSource: {
+                data: res.data,
+                pageSize: 10,
+	            schema: {
+	                data: function(res) {
+	                    return res.data
+	                },
+	            },
+            },
+	        filterable: false,
+	        sortable: true,
+	        pageable: true,
+	        columns: [{
+	                field: "Remark",
+	                title: "Remark",
+	                headerAttributes: { style: 'text-align: center;' },
+	            }, {
+	                field: "Date",
+	                title: "Timestamp",
+	                template: "#= kendo.toString(new Date(Date), 'dd-MMM-yyyy HH:mm') #",
+	            }
+	        ],
+	        dataBound: function(){
+	        	app.loading(false);
+	        }
+	    });
+	});
+}
 TbCol.Save = function() {
 	app.loading(true);
     var param = {
