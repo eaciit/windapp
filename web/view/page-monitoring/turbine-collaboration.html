@@ -15,29 +15,32 @@
                     <input type="hidden" id="turbineid" name="turbineid" data-bind="value: TbCol.TurbineId()" />
                     <input type="hidden" id="project" name="project" data-bind="value: TbCol.Project()" />
                     <input type="hidden" id="feeder" name="feeder" data-bind="value: TbCol.Feeder()" />
-                    <div class="form-group col-mud-12">
-                        <label class="control-label col-md-3">Turbine</label>
-                        <div class="control-input col-md-3">
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-2">Turbine</label>
+                        <div class="control-input col-md-2">
                             <input type="text" name="turbinename" id="turbinename" readonly="readonly" class="input-sm form-control" placeholder="Type turbine name" data-bind="value: TbCol.TurbineName" required data-required-msg="Turbine required!" />
                             <span class="k-invalid-msg" data-for="turbinename"></span>
                         </div>
-                        <div class="control-input col-md-3">
+                        <div class="control-input col-md-2">
                             <input type="text" name="feeder" id="feeder" readonly="readonly" class="input-sm form-control" placeholder="Type feeder name" data-bind="value: TbCol.Feeder" required data-required-msg="Feeder required!" />
                             <span class="k-invalid-msg" data-for="feeder"></span>
                         </div>
-                    </div>
-                    <div class="clearfix">&nbsp;</div>
-                     <div class="clearfix">&nbsp;</div>
-                    <div class="form-group col-md-12">
-                        <label class="control-label col-md-3">Date</label>
                         <div class="control-input col-md-4">
                             <input class="input-sm form-control" type="text" id="date" data-bind="kendoDateTimePicker: { value: TbCol.CurrentData().Date, format:'dd-MMM-yyyy h:mm',min: new Date(2013, 01, 01), max: new Date() }"/>
                         </div>
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <div class="form-group col-md-12">
-                        <label class="control-label col-md-3">Remark</label>
-                        <div class="control-input col-md-6">
+                        <label class="control-label col-md-2">Status</label>
+                        <div class="control-input col-md-4">
+                            <input type="text" name="status" id="status" class="input-sm form-control" placeholder="Type status" data-bind="value: TbCol.CurrentData().Status" required data-required-msg="Status required!" />
+                            <span class="k-invalid-msg" data-for="status"></span>
+                        </div>
+                    </div>
+                    <div class="clearfix">&nbsp;</div>
+                    <div class="form-group col-md-12">
+                        <label class="control-label col-md-2">Remark</label>
+                        <div class="control-input col-md-10">
                             <textarea class="input-sm form-control" id="remark" name="remark" data-bind="value: TbCol.CurrentData().Remark" rows="3" placeholder="Type remark"></textarea>
                             <span class="k-invalid-msg" data-for="remark"></span>
                         </div>
