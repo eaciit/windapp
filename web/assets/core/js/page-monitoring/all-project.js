@@ -17,12 +17,42 @@ var page = viewModel.AllProject;
 page.DataDetails = ko.observableArray([]);
 page.OldData = ko.observableArray([]);
 page.TimeMax = ko.observable("");
+page.projectList = ko.observableArray(projectList);
+var requests = [];
+
+// get the weather forecast
+page.getDirection = function() {
+    var surl = 'http://api.openweathermap.org/data/2.5/weather';
+    var requests = [];
+    if(projectList.length > 0) {
+        $.each(projectList, function(idx, p){
+            var param = { "q": p.City, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };    
+            var $elm = $("#detail-"+ p.ProjectId);
+            requests.push($.ajax({
+                type: "GET",
+                url: surl,
+                data: param,
+                dataType: "jsonp",
+                success:function(data){
+                    var winddeg = parseFloat(data.wind.deg);
+                    $elm.find('.fa-location-arrow').rotate({
+                        angle: 0,
+                        animateTo: winddeg - 45,
+                    });
+                },
+                error:function(){
+                    // do nothing
+                }  
+            }));    
+        });
+    }
+};
 
 
 page.getData = function(){
     var param = {Project: "", LocationTemp: 0};
 
-    toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
+    requests.push(toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
         if(!app.isFine(res)) {
             app.loading(false);
             return;
@@ -38,14 +68,14 @@ page.getData = function(){
         page.generateView();
         page.TimeMax(moment.utc(res.data.TimeMax).format("DD MMM YYYY HH:mm:ss"));
 
+        page.getDirection();
+
         app.loading(false);
-    });
+    }));
 }
 
 page.generateView = function(){
     var datasource = page.DataDetails();
-   
-
     var setView = $.each(datasource, function(idx, val){
          var oldData = page.OldData()[idx];
 
@@ -53,7 +83,6 @@ page.generateView = function(){
             var id = '#'+key+'_'+ val.Project
             if(oldData.hasOwnProperty(key) && (oldData.Project == val.Project)){
                 if(val[key] != oldData[key] ) {
-                    // $(id).css('background-color', 'rgba(255, 216, 0, 0.7)'); 
                     $(id).animate( { backgroundColor: 'rgba(255, 216, 0, 0.7)' }, 500).animate( { backgroundColor: 'transparent' }, 500); 
                 }
 
@@ -64,16 +93,6 @@ page.generateView = function(){
         var defaultColorStatus = "bg-default-green"
         var colorStatus = "lbl bg-green"
         $('#statusprojectdefault_'+ val.Project).addClass(defaultColorStatus);
-        
-        
-        // if((val.PowerGeneration / val.Capacity) > 0){
-        //     comparison = (val.ActivePower / val.Capacity) * 70;
-        //     $('#statusproject_'+ val.Project).attr('class', colorStatus);
-        //     $('#statusproject_'+ val.Project).css('width', comparison + 'px');
-        // }else{
-        //     comparison = 0;
-        //     $('#statusproject_'+ val.Project).attr('class', 'lbl');
-        // }
 
         if(((val.PowerGeneration/1000) / val.Capacity) > 0){
             comparison = ((val.PowerGeneration/1000) / val.Capacity) * 100;
@@ -89,4 +108,17 @@ page.generateView = function(){
     $.when(setView).done(function(){
         page.OldData(datasource);
     });
+}
+
+page.ToByProject = function(project) {
+    app.loading(true);
+    var oldDateObj = new Date();
+    var newDateObj = moment(oldDateObj).add(3, 'm');
+    document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
+    console.log(document.cookie);
+    if(document.cookie.indexOf("project=") >= 0) {
+        window.location = viewModel.appName + "page/monitoringbyproject";
+    } else {
+        app.loading(false);
+    }
 }

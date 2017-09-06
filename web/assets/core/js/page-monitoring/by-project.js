@@ -378,6 +378,7 @@ bp.PlotData = function(data) {
     $('#project_turbine_down').text(data.TurbineDown);
     $('#project_turbine_active').text(data.TurbineActive);
     $('#project_turbine_na').text(data.TurbineNotAvail);
+    $('#pproject_waiting_wind').text(data.TurbineWaitingWS);
 
     window.setTimeout(function(){ 
         $('#project_generation').text(data.PowerGeneration.toFixed(2));

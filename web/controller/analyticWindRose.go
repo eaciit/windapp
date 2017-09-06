@@ -378,18 +378,22 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	session := DBSession().Clone()
-	defer session.Close()
 
 	pipes = []toolkit.M{}
 	pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": query}})
 	pipes = append(pipes, toolkit.M{"$project": toolkit.M{"naceldirection": 1, "winddirection": 1, "avgwindspeed": 1, "turbine": 1}})
 	pipes = append(pipes, toolkit.M{"$sort": toolkit.M{"turbine": 1}})
-	iter := session.DB(DB().Connection.Info().Database).
-		C(new(ScadaData).TableName()).
-		Pipe(pipes).Iter()
+	csrData, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
+		Command("pipe", pipes).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	for iter.Next(&_data) {
+	for {
+		e = csrData.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
 		_turbine = _data.Turbine
 		if lastTurbine != _turbine {
 			dataPerTurbine.Set(lastTurbine, setDataWS(dataDirNoDesc, &tkMaxVal, dataCount, divider))
@@ -408,9 +412,8 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	if lastTurbine != "" {
 		dataPerTurbine.Set(lastTurbine, setDataWS(dataDirNoDesc, &tkMaxVal, dataCount, divider))
 	}
-	if e := iter.Close(); e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
+	csrData.Close()
+
 	for _, turbineVal := range turbine {
 		coId++
 		groupdata := toolkit.M{}
@@ -450,14 +453,20 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			pipes = []toolkit.M{}
 			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryMet}})
 			pipes = append(pipes, toolkit.M{"$project": toolkit.M{"dhubwd88mavg": 1, "vhubws90mavg": 1, "timestamp": 1}})
-			iter := session.DB(DB().Connection.Info().Database).
-				C(new(MetTower).TableName()).
-				Pipe(pipes).Iter()
+			csrMet, e := DB().Connection.NewQuery().From(new(MetTower).TableName()).
+				Command("pipe", pipes).Cursor(nil)
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
 			dataCount = 0.0
 			dataDirNoDesc = map[string]float64{}
 			dataMetTower := toolkit.M{}
 
-			for iter.Next(&_dataMetTower) {
+			for {
+				e = csrMet.Fetch(&_dataMetTower, 1, false)
+				if e != nil {
+					break
+				}
 				dataCount++
 				if _dataMetTower.TimeStamp.UTC().Before(calibrateTime.UTC()) {
 					calibratedWindDir = _dataMetTower.DHubWD88mAvg + 300
@@ -471,9 +480,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 			}
 			dataMetTower.Set(turbineVal, setDataWS(dataDirNoDesc, &tkMaxVal, dataCount, divider))
-			if e := iter.Close(); e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
+			csrMet.Close()
 
 			if dataCount > 0 {
 				results := dataMetTower[turbineVal].([]DataItemsResult)
@@ -629,8 +636,6 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		direction += divider
 	}
 
-	coId := 0
-
 	query := []toolkit.M{}
 	pipes := []toolkit.M{}
 	query = append(query, toolkit.M{"_id": toolkit.M{"$ne": nil}})
@@ -684,51 +689,20 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 
 	_data := toolkit.M{}
 	dataDirNoDesc := map[string]float64{}
-	dataPerTurbine := toolkit.M{}
 	selArr := 0
 	calibratedWindDir := 0.0
-	_turbine := ""
 	groupKey := ""
-	lastTurbine := ""
 	dataCount := 0.0
 
 	turbineName, e := helper.GetTurbineNameList(p.Project)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	csrData, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
-		Select("naceldirection", "winddirection", "turbine").
-		Where(dbox.And(queryT...)).
-		Order("turbine").
-		Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	for {
-		e = csrData.Fetch(&_data, 1, false)
-		if e != nil {
-			break
-		}
-		_turbine = _data.GetString("turbine")
-		if lastTurbine != _turbine {
-			dataPerTurbine.Set(lastTurbine, setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider))
-			dataDirNoDesc = map[string]float64{}
-			lastTurbine = _turbine
-			dataCount = 0.0
-		}
-		dataCount++
-		calibratedWindDir = _data.GetFloat64("winddirection")
-		dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
-		groupKey = _turbine + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
-		dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
-	}
-	if lastTurbine != "" {
-		dataPerTurbine.Set(lastTurbine, setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider))
-	}
-	csrData.Close()
+
+	query = append(query, toolkit.M{"turbine": ""})
+	lastQueryIdx := len(query) - 1
 
 	for _, turbineVal := range turbine {
-		coId++
 		turbineData := toolkit.M{}
 		namaTurbine := turbineVal
 		if turbineVal != "Met Tower" {
@@ -743,8 +717,35 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 		selArr++
 
 		if turbineVal != "Met Tower" {
-			if dataPerTurbine.Has(turbineVal) {
-				turbineData.Set("data", dataPerTurbine[turbineVal].([]DataItemsResultComp))
+			query[lastQueryIdx] = toolkit.M{"turbine": turbineVal}
+			pipes = []toolkit.M{
+				toolkit.M{"$match": toolkit.M{"$and": query}},
+				toolkit.M{"$project": toolkit.M{"naceldirection": 1, "winddirection": 1, "turbine": 1}},
+			}
+			csrData, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
+				Command("pipe", pipes).Cursor(nil)
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
+			dataCount = 0
+			dataDirNoDesc = map[string]float64{}
+		loopFetchData:
+			for {
+				e = csrData.Fetch(&_data, 1, false)
+				if e != nil {
+					break loopFetchData
+				}
+				dataCount++
+				calibratedWindDir = _data.GetFloat64("winddirection")
+				dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
+				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+			}
+			hasil := setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider)
+			csrData.Close()
+
+			if dataCount > 0 {
+				turbineData.Set("data", hasil)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			} else {
 				results := []DataItemsResultComp{}
@@ -779,7 +780,6 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				Where(dbox.And(queryMet...)).Cursor(nil)
 			dataCount = 0.0
 			dataDirNoDesc = map[string]float64{}
-			dataMetTower := toolkit.M{}
 			for {
 				e = csrMet.Fetch(&_dataMetTower, 1, false)
 				if e != nil {
@@ -791,12 +791,11 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
 				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 			}
-			dataMetTower.Set(turbineVal, setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider))
-
+			hasil := setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider)
 			csrMet.Close()
 
 			if csrMet.Count() > 0 {
-				turbineData.Set("data", dataMetTower[turbineVal].([]DataItemsResultComp))
+				turbineData.Set("data", hasil)
 				WindRoseResult = append(WindRoseResult, turbineData)
 			} else {
 				results := []DataItemsResultComp{}

@@ -14,6 +14,8 @@ bpc.projectList = ko.observableArray(projectList);
 bpc.feederList = ko.observableArray([]);
 bpc.turbineList = ko.observableArray([]);
 
+var requests = [];
+
 ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var singleHandler   = valueAccessor().click,
@@ -85,7 +87,6 @@ bpc.getWeather = function() {
 	
 // get the data for all projects
 bpc.getData = function() {
-	var requests = [];
 	if(projectList.length > 0) {
 		$.each(projectList, function(idx, p){
 			// param to get the data
@@ -160,10 +161,12 @@ bpc.refresh = function() {
 	return setInterval(bpc.getData, $intervalTime);
 }
 
+
 // turbine collaboration open
 bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
 		if(dt.IsTurbine) {
+			TbCol.ResetData();
 			TbCol.TurbineId(dt.Id);
 			TbCol.TurbineName(dt.Name);
 			TbCol.UserId('');
@@ -171,10 +174,26 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.Project(dt.Project);
 			TbCol.Feeder(dt.Feeder);
 			TbCol.Status(dt.Status);
+			TbCol.IsTurbine(true);
+			TbCol.OpenForm();
+		}else{
+			TbCol.ResetData();
+			TbCol.ProjectFeeder(dt.Project)
+			TbCol.Feeder(dt.Name);
+			TbCol.IsTurbine(false);
 			TbCol.OpenForm();
 		}
 	}
 };
+
+bpc.OpenModal = function(data){
+	TbCol.ResetData();
+	if(data.isProject){
+		TbCol.Project(data.Project);
+		TbCol.IsTurbine(false);
+		TbCol.OpenForm();
+	}
+}
 
 bpc.ToIndividualTurbine = function(data) {
 	return function(data) {

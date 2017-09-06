@@ -15,12 +15,12 @@
                         <table class="table table-striped table-condensed table-bordered table-project-summary">
                             <thead>
                                 <tr>
-                                    <th rowspan="2" width="10%" class="text-center">Project</th>
-                                    <th rowspan="2" width="16%" colspan="4" class="text-center"><span>Turbine Status</span></th>
-                                    <th rowspan="2" width="8%" class="text-center"><span>Power / Capacity <br>(Mw)</span></th>
-                                    <th rowspan="2" width="8%" class="text-center"><span>Avg. Wind Speed <br>(m/s)</span></th>
-                                    <th rowspan="2" width="5%" class="text-center"><span>PLF <br>(%)</span></th>
+                                    <th rowspan="2" colspan="2" width="8%" class="text-center">Project</th>
+                                    <th rowspan="2" width="8%" class="text-center"><span>Power / Capacity (Mw)</span></th>
+                                    <th rowspan="2" width="8%" class="text-center"><span>Avg. Wind Speed (m/s)</span></th>
+                                    <th rowspan="2" width="3%" class="text-center"><span>PLF (%)</span></th>
                                     <th colspan="4" width="24%" class="text-center"><span>Generation (Mwh)</span></th>
+                                    <th width="16%" colspan="4" class="text-center"><span>Turbine Status</span></th>
                                     <th rowspan="2" width="8%" class="text-center"><span>Last Updated</span></th>
                                 </tr>
                                 <tr>
@@ -28,29 +28,37 @@
                                     <th width="6%" class="text-center">Lost Today</th>
                                     <th width="6%" class="text-center">Gen. Yesterday</th>
                                     <th width="6%" class="text-center">Lost Yesterday</th>
+                                    <th width="2%" class="text-center"><i class="fa fa-circle fa-green" data-toggle="tooltip" data-placement="top" title="Available"></i></th>
+                                    <th width="2%" class="text-center"><i class="fa fa-circle fa-mustard" data-toggle="tooltip" data-placement="top" title="Waiting For Wind"></i></th>
+                                    <th width="2%" class="text-center"><i class="fa fa-circle fa-red" data-toggle="tooltip" data-placement="top" title="Turbine Down"></i></th>
+                                    <th width="2%" class="text-center"><i class="fa fa-circle fa-grey" data-toggle="tooltip" data-placement="top" title="Not Available"></i></th>
                                 </tr>
                             </thead>
                             <tbody data-bind="foreach:page.DataDetails">
                                 <tr>
-                                    <td>
-                                        <div class="link-detail">
-                                            <h4 data-bind="text: Project"></h4>
+                                    <td width="2%"><strong><span data-bind="text: Project"></span></strong></td>
+<!--                                     <td width="6" class="text-center"><span data-bind="text:kendo.toString((PowerGeneration/1000) , 'n2'), attr: { id: 'PowerGeneration_'+ Project }"></span> / <span data-bind="text:kendo.toString(Capacity , 'n2'), attr: { id: 'Capacity_'+ Project }"></span></td> -->
+                                    <td width="6%">
+                                        <div class="link-detail" data-bind="click:function(){page.ToByProject(Project)}" data-toggle="tooltip" data-placement="top" title="Click to Monitoring By Project" >
                                             <span class="progress-custom-blind" data-bind="attr: { id: 'statusprojectdefault_'+ Project}">
                                                 <span data-bind="attr: { id: 'statusproject_'+ Project}"></span>
                                             </span>
                                         </div>
                                     </td>
-                                    <td class="text-center"><a href="#" data-toggle="tooltip" data-placement="top" title="Available"><span data-bind="text:TurbineActive, attr: { id: 'TurbineActive_'+ Project }"></span><br /><i class="fa fa-circle fa-green"></i></a></td>
-                                    <td class="text-center"><a href="#" data-toggle="tooltip" data-placement="top" title="Waiting For Wind"><span data-bind="text:WaitingForWind, attr: { id: 'WaitingForWind_'+ Project }" class="text-right"></span><br /><i class="fa fa-circle fa-mustard "></i></a></td>
-                                    <td class="text-center"><a href="#" data-toggle="tooltip" data-placement="top" title="Turbine Down"><span data-bind="text:TurbineDown, attr: { id: 'TurbineDown_'+ Project }" class="text-right"></span><br /><i class="fa fa-circle fa-red "></i></a></td>
-                                     <td class="text-center"><a href="#" data-toggle="tooltip" data-placement="top" title="Not Available"><span data-bind="text:TurbineNotAvail, attr: { id: 'TurbineNotAvail_'+ Project }" class="text-right"></span><br /><i class="fa fa-circle fa-grey "></i></a></td>
-                                    <td class="text-right"><span data-bind="text:kendo.toString((PowerGeneration/1000) , 'n2'), attr: { id: 'PowerGeneration_'+ Project }"></span> / <span data-bind="text:kendo.toString(Capacity , 'n2'), attr: { id: 'Capacity_'+ Project }"></span></td>
-                                    <td class="text-right"><span data-bind="text:kendo.toString(AvgWindSpeed , 'n2'), attr: { id: 'AvgWindSpeed_'+ Project }"></span></td>
-                                    <td class="text-right"><span data-bind="text:kendo.toString(PLF , 'n2'), attr: { id: 'PLF_'+ Project }"></span></td>
+                                    <td class="text-center"><span data-bind="text:kendo.toString((PowerGeneration/1000) , 'n2'), attr: { id: 'PowerGeneration_'+ Project }"></span> / <span data-bind="text:kendo.toString(Capacity , 'n2'), attr: { id: 'Capacity_'+ Project }"></span></td>
+                                    <td class="text-center" data-bind="attr: { 'id': 'detail-' + Project }">
+                                        <!-- <i class="fa fa-location-arrow rotation"></i> &nbsp; -->
+                                        <span data-bind="text:kendo.toString(AvgWindSpeed , 'n2'), attr: { id: 'AvgWindSpeed_'+ Project }"></span>
+                                    </td>
+                                    <td class="text-center"><span data-bind="text:kendo.toString(PLF , 'n2'), attr: { id: 'PLF_'+ Project }"></span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(TodayGen , 'n2'), attr: { id: 'TodayGen_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(TodayLost , 'n2'), attr: { id: 'TodayLost_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayGen , 'n2'), attr: { id: 'PrevDayGen_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayLost , 'n2'), attr: { id: 'PrevDayLost_'+ Project }">-</span></td>
+                                    <td class="text-center"><span data-bind="text:TurbineActive, attr: { id: 'TurbineActive_'+ Project }"></span></td>
+                                    <td class="text-center"><span data-bind="text:WaitingForWind, attr: { id: 'WaitingForWind_'+ Project }" class="text-right"></span></td>
+                                    <td class="text-center"><span data-bind="text:TurbineDown, attr: { id: 'TurbineDown_'+ Project }" class="text-right"></span></td>
+                                     <td class="text-center"><span data-bind="text:TurbineNotAvail, attr: { id: 'TurbineNotAvail_'+ Project }" class="text-right"></span></td>
                                     <td class="text-center"><span data-bind="text: LastUpdated == '0001-01-01 00:00:00' ? '-' : moment.utc(LastUpdated).format('DD MMM YYYY HH:mm:ss')"></span></td> 
                                 </tr>
                             </tbody>
