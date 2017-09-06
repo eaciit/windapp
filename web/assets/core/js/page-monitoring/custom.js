@@ -178,6 +178,7 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.OpenForm();
 		}else{
 			TbCol.ResetData();
+			TbCol.ProjectFeeder(dt.Project)
 			TbCol.Feeder(dt.Name);
 			TbCol.IsTurbine(false);
 			TbCol.OpenForm();

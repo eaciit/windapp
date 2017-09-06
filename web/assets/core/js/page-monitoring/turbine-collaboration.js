@@ -12,6 +12,7 @@ TbCol.UserName = ko.observable('');
 TbCol.Project = ko.observable('');
 TbCol.Feeder = ko.observable('');
 TbCol.Status = ko.observable('');
+TbCol.ProjectFeeder = ko.observable('');
 TbCol.IsTurbine = ko.observable(true);
 
 // variabel to set current data if any edit feature
@@ -104,7 +105,7 @@ TbCol.Save = function() {
     		TurbineId : TbCol.TurbineId(),
 			TurbineName : TbCol.TurbineName(),
 			Feeder : TbCol.Feeder(),
-			Project : TbCol.Project(),
+			Project : (TbCol.Project() == '' ? TbCol.ProjectFeeder() : TbCol.Project) ,
 			Date : $("#date").data("kendoDateTimePicker").value(),
 			Status : TbCol.Status(),
 			Remark : TbCol.CurrentData().Remark,
