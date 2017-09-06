@@ -166,6 +166,7 @@ bpc.refresh = function() {
 bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
 		if(dt.IsTurbine) {
+			TbCol.ResetData();
 			TbCol.TurbineId(dt.Id);
 			TbCol.TurbineName(dt.Name);
 			TbCol.UserId('');
@@ -173,10 +174,25 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.Project(dt.Project);
 			TbCol.Feeder(dt.Feeder);
 			TbCol.Status(dt.Status);
+			TbCol.IsTurbine(true);
+			TbCol.OpenForm();
+		}else{
+			TbCol.ResetData();
+			TbCol.Feeder(dt.Name);
+			TbCol.IsTurbine(false);
 			TbCol.OpenForm();
 		}
 	}
 };
+
+bpc.OpenModal = function(data){
+	TbCol.ResetData();
+	if(data.isProject){
+		TbCol.Project(data.Project);
+		TbCol.IsTurbine(false);
+		TbCol.OpenForm();
+	}
+}
 
 bpc.ToIndividualTurbine = function(data) {
 	return function(data) {

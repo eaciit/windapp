@@ -12,6 +12,7 @@ TbCol.UserName = ko.observable('');
 TbCol.Project = ko.observable('');
 TbCol.Feeder = ko.observable('');
 TbCol.Status = ko.observable('');
+TbCol.IsTurbine = ko.observable(true);
 
 // variabel to set current data if any edit feature
 TbCol.CurrentData = ko.observable({
@@ -26,6 +27,7 @@ TbCol.CurrentData = ko.observable({
 	UserName: '',
 	Status: '',
 	Remark: '',
+	IsTurbine: true,
 });
 
 // events for turbine collaboration page
@@ -43,6 +45,17 @@ TbCol.CloseForm = function() {
 	$('#mdlTbColab').modal('hide');
 };
 
+
+TbCol.ResetData = function(){
+	TbCol.TurbineId('');
+	TbCol.TurbineName('');
+	TbCol.UserId('');
+	TbCol.UserName('');
+	TbCol.Project('');
+	TbCol.Feeder('');
+	TbCol.Status('');
+	TbCol.IsTurbine(true);
+}
 TbCol.GenerateGrid = function(turbine, project){
 	app.loading(true);
 	var param = {
@@ -55,7 +68,6 @@ TbCol.GenerateGrid = function(turbine, project){
             return;
         }
 
-        console.log(res);
         $("#gridHistory").html("");
 		$("#gridHistory").kendoGrid({
 	        dataSource: {
@@ -94,7 +106,7 @@ TbCol.Save = function() {
 			Feeder : TbCol.Feeder(),
 			Project : TbCol.Project(),
 			Date : $("#date").data("kendoDateTimePicker").value(),
-			Status : '',
+			Status : TbCol.Status(),
 			Remark : TbCol.CurrentData().Remark,
     }
 

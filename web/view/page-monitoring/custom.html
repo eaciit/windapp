@@ -65,8 +65,8 @@
                                     <div class="col-md-6 col-xs-8 text-right">
                                         <strong>
                                             <span class="t-up fa-green" data-bind="attr: { 'data-id': ProjectId }">0</span> / 
-                                            <span class="t-down fa-red" data-bind="attr: { 'data-id': ProjectId }">0</span> /
                                             <span class="t-wait fa-mustard" data-bind="attr: { 'data-id': ProjectId }">0</span> / 
+                                            <span class="t-down fa-red" data-bind="attr: { 'data-id': ProjectId }">0</span> /
                                             <span class="t-na fa-grey" data-bind="attr: { 'data-id': ProjectId }">0</span>
                                         </strong>
                                     </div>
@@ -97,7 +97,7 @@
 
                         <div class="ui-state-default col-md-3 col-xs-6">
                             <div class="dropable"> 
-                                <h4 class="cusmon-title" data-bind="text: Name"></h4>     
+                                <h4 class="cusmon-title" data-bind="text: Name, singleOrDoubleClick: {click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}}"></h4>     
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' }"></div>
                             </div>
                         </div>

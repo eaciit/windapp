@@ -7,7 +7,9 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
-                <h4 class="modal-title">Add Note for Turbine: <span data-bind="text: TbCol.TurbineName()"></span> &nbsp; <i class="fa fa-circle fa-green"></i></h4>
+                <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == true">Add Note for Turbine: <span data-bind="text: TbCol.TurbineName()"></span> &nbsp; <i class="fa fa-circle fa-green"></i></h4>
+                <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == false && TbCol.Feeder() !== ''">Add Note for Feeder: <span data-bind="text: TbCol.Feeder()"></span> &nbsp;</h4>
+                <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == false && TbCol.Project() !== ''">Add Note for Project: <span data-bind="text: TbCol.Project()"></span> &nbsp;</h4>
             </div>
             <div class="modal-body">
                 <div class="form-input row" id="form-turbine-collaboration">
@@ -16,13 +18,17 @@
                     <input type="hidden" id="project" name="project" data-bind="value: TbCol.Project()" />
                     <input type="hidden" id="feeder" name="feeder" data-bind="value: TbCol.Feeder()" />
                     <div class="form-group col-md-12">
-                        <label class="control-label col-md-2">Turbine</label>
-                        <div class="control-input col-md-2">
+                        <label class="control-label col-md-2" data-bind="text: TbCol.IsTurbine() == true ? 'Turbine' : (TbCol.Feeder() == '' ? 'Project' : 'Feeder')"></label>
+                        <div class="control-input col-md-2" data-bind="visible:TbCol.IsTurbine() == true">
                             <input type="text" name="turbinename" id="turbinename" readonly="readonly" class="input-sm form-control" placeholder="Type turbine name" data-bind="value: TbCol.TurbineName" required data-required-msg="Turbine required!" />
                             <span class="k-invalid-msg" data-for="turbinename"></span>
                         </div>
-                        <div class="control-input col-md-2">
+                        <div class="control-input col-md-2" data-bind="visible:TbCol.IsTurbine() == true">
                             <input type="text" name="feeder" id="feeder" readonly="readonly" class="input-sm form-control" placeholder="Type feeder name" data-bind="value: TbCol.Feeder" required data-required-msg="Feeder required!" />
+                            <span class="k-invalid-msg" data-for="feeder"></span>
+                        </div>
+                        <div class="control-input col-md-2" data-bind="visible:TbCol.IsTurbine() == false">
+                            <input type="text" name="feeder" id="feeder" readonly="readonly" class="input-sm form-control" placeholder="Type feeder name" data-bind="value: TbCol.Feeder() == '' ? TbCol.Project : TbCol.Feeder" required data-required-msg="Field required!" />
                             <span class="k-invalid-msg" data-for="feeder"></span>
                         </div>
                         <div class="control-input col-md-4">
@@ -33,7 +39,7 @@
                     <div class="form-group col-md-12">
                         <label class="control-label col-md-2">Status</label>
                         <div class="control-input col-md-4">
-                            <input type="text" name="status" id="status" class="input-sm form-control" placeholder="Type status" data-bind="value: TbCol.CurrentData().Status" required data-required-msg="Status required!" />
+                            <input type="text" name="status" id="status" class="input-sm form-control" placeholder="Type status" data-bind="value: TbCol.Status" required data-required-msg="Status required!" />
                             <span class="k-invalid-msg" data-for="status"></span>
                         </div>
                     </div>
