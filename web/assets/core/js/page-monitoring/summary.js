@@ -16,7 +16,6 @@ summary.isFirstAllFarms = ko.observable(true);
 var $overAllInterval = false, $allFarmsInterval = false, $intervalTime = 2500;
 
 summary.LoadAllFarms = function(){
-	// app.loading(true);
 	$.when(bpc.getWeather()).done(function(){
     	bpc.getData();	
     	summary.isFirstAllFarms(false);	

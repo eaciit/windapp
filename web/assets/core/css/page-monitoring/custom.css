@@ -93,13 +93,14 @@
 }
 .cusmon-project-row {
     background: #f7f7f7;
+    font-weight: bold;
 }
 .cusmon-project-row.w-forecast div {
     height: 56px;
 }
 .cusmon-project-row div {
     padding: 6px 4px 8px 4px;
-    background: #f7f7f7;
+    background: #ecf0f5;
     border: 1px solid #FFFFFF;
 }
 .cusmon-project-row .temp-forecast { font-size: 12px; right: 5px; top: 3px; }
@@ -109,14 +110,25 @@
 .cusmon-project-row .ws-forecast { font-size: 12px; font-weight: 500; right: 6px; top: 3px; }
 .cusmon-turbines {
     position: relative;
-    margin-left: 0px;
+    margin-left: 1px;
+    margin-right: 1px;
 }
-.cusmon-title {
+/*.cusmon-title {
     margin: 0 1px;
     padding: 5px;
     background: #ECF0F5;
     color: #000;
     font-size: 12px;
+    cursor: move;
+    border-bottom: 0px solid #A9BBC0;
+}*/
+.cusmon-title {
+    margin: 0 1px;
+    padding: 5px;
+    background: #337ab7;
+    font-size: 12px;
+    color: #fff;
+    font-weight: bold;
     cursor: move;
     border-bottom: 0px solid #A9BBC0;
 }
@@ -130,15 +142,18 @@
 }
 .cusmon-turbines .col-xs-2, .cusmon-turbines .col-xs-4 {
     margin: 0;
-    background: #F0F3F4;
-    border: 2px solid #fff;/*#7F7F7F;*/
+    background: #ecf0f5;
+    border: 1px solid #337ab7;/*#7F7F7F;*/
     display: table-cell;
+    height: 25px;
 }
 .cusmon-turbines .cusmon-feed {
-    background: #ECF0F5;
-    color: #1A1C6F;
+    background: #e0e0e0;
+    color: #585555;
     font-weight: 500;
-    min-height: 24px;
+    min-height: 22px;
+    border: 1px solid #337ab7;
+    height: 25px;
 }
 .cusmon-turbines .cusmon-feed .cusmon-name { left: 25%; color: #1A1C6F; width: 75%; right: 0; left: 0; margin: auto; }
 .cusmon-turbines .progress {
@@ -147,6 +162,7 @@
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
     margin: 0;
+    height: 23px;
 }
 .cusmon-turbines .progress .progress-bar { 
     border-top-right-radius: 0;
@@ -221,7 +237,7 @@ ul#date_timeview.k-list.k-reset{
 
 .cusmon-wrapper { padding: 0; }
 .cusmon-projects {
-	min-height: 290px;
+    min-height: 290px;
 }
 .cusmon-project-item {
     margin-bottom: 20px;
@@ -247,9 +263,9 @@ ul#date_timeview.k-list.k-reset{
     margin-left: 0px;
 }
 .cusmon-projects .cusmon-project-left {
-	background: #00cdc9 url(../../img/bg-grad.jpg) left top repeat-x;
-	height: 280px;
-	padding: 0;
+    background: #00cdc9 url(../../img/bg-grad.jpg) left top repeat-x;
+    height: 280px;
+    padding: 0;
 }
 .cusmon-title {
     margin: 0 1px;
