@@ -900,6 +900,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
 
+	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
+		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
+
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown, turbnotavail := 0, 0
@@ -963,7 +966,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	dataRealtimeValue := 0.0
 	tags := ""
-	tstamp, servertstamp := time.Time{}, time.Time{}
+	tstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
 	ictempout, istempout := float64(0), float64(0)
@@ -1013,9 +1016,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				}
 				alldata = append(alldata, _itkm)
 			}
+
 			_iContinue = false
 			_iTurbine = _tTurbine
 			turbineMp := turbineMap[_tTurbine]
+			iststamp = servertstamp
 
 			if pageType == "monitoring" {
 				_itkm = tk.M{}.
@@ -1086,20 +1091,31 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		// _iContinue = true
 
 		afield, isexist := arrfield[tags]
+		_, isfast := fasttags[tags]
+
 		_ifloat := dataRealtimeValue
+
 		if _ifloat != defaultValue && isexist {
-			switch afield {
-			case "ActivePower":
-				PowerGen += _ifloat
-			case "WindSpeed":
-				AvgWindSpeed += _ifloat
-				CountWS += 1
+			if time.Now().UTC().Sub(servertstamp.UTC()).Minutes() >= 60 && isfast {
+				_ifloat = defaultValue
+			} else {
+				switch afield {
+				case "ActivePower":
+					PowerGen += _ifloat
+				case "WindSpeed":
+					AvgWindSpeed += _ifloat
+					CountWS += 1
+				case "Temperature":
+					ictempout += 1
+					istempout += _ifloat
+				}
 			}
 
 			_itkm.Set(afield, _ifloat)
+		}
 
+		if _itkm.Get("isserverlate", true).(bool) {
 			_itkm.Set("isserverlate", true)
-			iststamp := _itkm.Get("servertimestamp", time.Time{}).(time.Time).UTC()
 			if servertstamp.UTC().After(iststamp.UTC()) {
 				iststamp = servertstamp
 				_itkm.Set("servertimestamp", servertstamp)
@@ -1155,15 +1171,15 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			} else {
 				_itkm.Set("WindSpeedColor", "defaultcolor")
 			}
-			if dataRealtimeValue > -999999 && tags == "TempOutdoor" {
-				ictempout += 1
-				istempout += dataRealtimeValue
-				// if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
-				// 	_itkm.Set("TemperatureColor", "txt-red")
-				// } else {
-				// 	_itkm.Set("TemperatureColor", "txt-grey")
-				// }
-			}
+			// if dataRealtimeValue > -999999 && tags == "TempOutdoor" {
+			// 	ictempout += 1
+			// 	istempout += dataRealtimeValue
+			// 	// if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
+			// 	// 	_itkm.Set("TemperatureColor", "txt-red")
+			// 	// } else {
+			// 	// 	_itkm.Set("TemperatureColor", "txt-grey")
+			// 	// }
+			// }
 		}
 	}
 	csr.Close()
