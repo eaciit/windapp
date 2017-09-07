@@ -94,7 +94,7 @@ page.generateView = function(){
         var colorStatus = "lbl bg-green"
 
         // adding condition for project na
-        var isgrey = (TurbineActive==0 && WaitingForWind==0 && TurbineDown==0);
+        var isgrey = (val.TurbineActive==0 && val.WaitingForWind==0 && val.TurbineDown==0);
         if(isgrey) {
             defaultColorStatus = "bg-default-grey";
             colorStatus = "lbl bg-grey";
