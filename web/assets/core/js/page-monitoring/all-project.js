@@ -99,6 +99,16 @@ page.generateView = function(){
             defaultColorStatus = "bg-default-grey";
             colorStatus = "lbl bg-grey";
         }
+        var isred = (val.TurbineDown>0);
+        if(isred) {
+            defaultColorStatus = "bg-default-red";
+            colorStatus = "lbl bg-red";
+        }
+        var ismustard = (val.WaitingForWind>0);
+        if(ismustard) {
+            defaultColorStatus = "bg-default-mustard";
+            colorStatus = "lbl bg-mustard";
+        }
 
         $('#statusprojectdefault_'+ val.Project).addClass(defaultColorStatus);
 
