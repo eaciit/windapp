@@ -97,7 +97,7 @@
 
                         <div class="ui-state-default col-md-3 col-xs-6">
                             <div class="dropable"> 
-                                <h4 class="cusmon-title" data-bind="text: Name, singleOrDoubleClick: {click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}}"></h4>     
+                                <h4 class="cusmon-title" data-bind="text: Name, click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}"></h4>     
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' }"></div>
                             </div>
                         </div>

@@ -7,7 +7,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
-                <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == true">Add Note for Turbine: <span data-bind="text: TbCol.TurbineName()"></span> &nbsp; <i class="fa fa-circle fa-green"></i></h4>
+                <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == true">Add Note for Turbine: <span data-bind="text: TbCol.TurbineName()"></span> &nbsp; <i class="fa fa-circle" data-bind="css:TbCol.IconStatus()"></i></h4>
                 <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == false && TbCol.Feeder() !== ''">Add Note for Feeder: <span data-bind="text: TbCol.Feeder()"></span> &nbsp;</h4>
                 <h4 class="modal-title" data-bind="visible:TbCol.IsTurbine() == false && TbCol.Project() !== ''">Add Note for Project: <span data-bind="text: TbCol.Project()"></span> &nbsp;</h4>
             </div>

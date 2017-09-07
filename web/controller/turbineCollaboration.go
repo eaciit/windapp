@@ -29,6 +29,7 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 
 	payload := struct {
 		Take    int
+		Feeder  string
 		Turbine string
 		Project string
 	}{}
@@ -40,6 +41,7 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 
 	turbine := payload.Turbine
 	project := payload.Project
+	feeder := payload.Feeder
 	take := payload.Take
 	tNow := time.Now()
 	timestamp := time.Date(tNow.Year(), tNow.Month(), tNow.Day(), 0, 0, 0, 0, time.UTC)
@@ -50,6 +52,7 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 			dbox.And(
 				dbox.Eq("turbineid", turbine),
 				dbox.Eq("projectid", project),
+				dbox.Eq("projectid", feeder),
 				dbox.Gte("date", timestamp),
 			),
 		).
@@ -61,8 +64,8 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	turbColls := []TurbineCollaborationModel{}
-	e = csr.Fetch(&turbColls, 0, false)
+	turbColls := TurbineCollaborationModel{}
+	e = csr.Fetch(&turbColls, 1, false)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
