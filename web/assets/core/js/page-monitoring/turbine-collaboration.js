@@ -36,14 +36,14 @@ TbCol.CurrentData = ko.observable({
 TbCol.ShowModal = function(mode) {
 	$('#mdlTbColab').modal(mode);
 };
-TbCol.OpenForm = function() {
-	setTimeout(function(){
-		// TbCol.GenerateGrid(TbCol.TurbineId(),TbCol.Project());
+TbCol.OpenForm = function() {		
+	summary.abortAll(requests);
+	$.when(TbCol.GenerateGrid(TbCol.TurbineId(),TbCol.Project(),TbCol.Feeder())).done(function(){
 		$('#mdlTbColab').modal('show');
-	},200);
-
+	});
 };
 TbCol.CloseForm = function() {
+	$allFarmsInterval = bpc.refresh();
 	$('#mdlTbColab').modal('hide');
 };
 
@@ -59,46 +59,32 @@ TbCol.ResetData = function(){
 	TbCol.IsTurbine(true);
 	TbCol.IconStatus('');
 }
-TbCol.GenerateGrid = function(turbine, project){
+TbCol.GenerateGrid = function(turbine, project,feeder){
 	app.loading(true);
 	var param = {
 		Project : project,
 		Turbine : turbine,
-		Take : null,
+		Feeder : feeder,
+		Take : 1,
 	}
 	toolkit.ajaxPost(viewModel.appName + 'turbinecollaboration/getlatest', param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
+        var results = res.data;
 
-        $("#gridHistory").html("");
-		$("#gridHistory").kendoGrid({
-	        dataSource: {
-                data: res.data,
-                pageSize: 10,
-	            schema: {
-	                data: function(res) {
-	                    return res.data
-	                },
-	            },
-            },
-	        filterable: false,
-	        sortable: true,
-	        pageable: true,
-	        columns: [{
-	                field: "Remark",
-	                title: "Remark",
-	                headerAttributes: { style: 'text-align: center;' },
-	            }, {
-	                field: "Date",
-	                title: "Timestamp",
-	                template: "#= kendo.toString(new Date(Date), 'dd-MMM-yyyy HH:mm') #",
-	            }
-	        ],
-	        dataBound: function(){
-	        	app.loading(false);
-	        }
-	    });
+        if(results !== null){
+        	$.each(TbCol.CurrentData(), function(key, val){
+				TbCol.CurrentData()[key] = results[key] == undefined ? '' : results[key];
+			});
+
+			// $("#date").data("kendoDateTimePicker").value(results.Date);
+			$("#status").val(results.Status);
+			$("#remark").val(results.Remark);
+
+        }
+
+        app.loading(false);   
 	});
 }
 TbCol.Save = function() {
@@ -109,7 +95,7 @@ TbCol.Save = function() {
 			Feeder : TbCol.Feeder(),
 			Project : (TbCol.Project() == '' ? TbCol.ProjectFeeder() : TbCol.Project()) ,
 			Date : $("#date").data("kendoDateTimePicker").value(),
-			Status : TbCol.Status(),
+			Status :TbCol.CurrentData().Status,
 			Remark : TbCol.CurrentData().Remark,
     }
 

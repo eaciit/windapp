@@ -52,7 +52,7 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 			dbox.And(
 				dbox.Eq("turbineid", turbine),
 				dbox.Eq("projectid", project),
-				dbox.Eq("projectid", feeder),
+				dbox.Eq("feeder", feeder),
 				dbox.Gte("date", timestamp),
 			),
 		).
