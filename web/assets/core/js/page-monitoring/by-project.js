@@ -378,7 +378,7 @@ bp.PlotData = function(data) {
     $('#project_turbine_down').text(data.TurbineDown);
     $('#project_turbine_active').text(data.TurbineActive);
     $('#project_turbine_na').text(data.TurbineNotAvail);
-    $('#pproject_waiting_wind').text(data.TurbineWaitingWS);
+    $('#project_waiting_wind').text(data.TurbineWaitingWS);
 
     window.setTimeout(function(){ 
         $('#project_generation').text(data.PowerGeneration.toFixed(2));
@@ -397,7 +397,10 @@ bp.ToIndividualTurbine = function(turbine) {
     var project =  $('#projectList').data('kendoDropDownList').value();
     document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
     document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+    document.cookie = "isFromByProject=true;expires="+ newDateObj;
+    document.cookie = "isFromSummary=false;expires="+ newDateObj;
+
+    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0 && document.cookie.indexOf("isFromByProject=") >= 0 && document.cookie.indexOf("isFromSummary=") >= 0) {
         window.location = viewModel.appName + "page/monitoringbyturbine";
     } else {
         app.loading(false);

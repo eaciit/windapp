@@ -97,7 +97,7 @@ bpc.getData = function() {
 
 		    // add to queue getting data for all projects
 		    requests.push(
-		    	toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
+		    	toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdatafarm", param, function (res) {
 					bpc.plotData(param.Project, res);
 			    })
 		    );
@@ -167,6 +167,9 @@ bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
 		if(dt.IsTurbine) {
 			TbCol.ResetData();
+			var classString = $("div").find("[data-id='"+dt.Id+"']").children().attr('class').split(' ')[1];
+			var classIcon = 'txt'+ classString.substr(10);
+			
 			TbCol.TurbineId(dt.Id);
 			TbCol.TurbineName(dt.Name);
 			TbCol.UserId('');
@@ -176,6 +179,7 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.Status(dt.Status);
 			TbCol.IsTurbine(true);
 			TbCol.OpenForm();
+			TbCol.IconStatus(classIcon);
 		}else{
 			TbCol.ResetData();
 			TbCol.ProjectFeeder(dt.Project)
@@ -203,7 +207,9 @@ bpc.ToIndividualTurbine = function(data) {
 		    var newDateObj = moment(oldDateObj).add(3, 'm');
 		    document.cookie = "projectname="+data.Project.split("(")[0].trim()+";expires="+ newDateObj;
 		    document.cookie = "turbine="+data.Id+";expires="+ newDateObj;
-		    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+		    document.cookie = "isFromSummary=true;expires="+ newDateObj;
+		    document.cookie = "isFromByProject=false;expires="+ newDateObj;
+		    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0 && document.cookie.indexOf("isFromSummary=") >= 0 && document.cookie.indexOf("isFromByProject=") >= 0) {
 		        window.location = viewModel.appName + "page/monitoringbyturbine";
 		    } else {
 		        app.loading(false);
