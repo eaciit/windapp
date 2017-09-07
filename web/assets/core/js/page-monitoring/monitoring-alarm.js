@@ -19,12 +19,20 @@ vm.breadcrumb([
 var intervalTurbine = null;
 
 ma.UpdateProjectList = function(project) {
-    $('#projectList').data('kendoDropDownList').value(project);
-    $("#projectList").data("kendoDropDownList").trigger("change");
+    setTimeout(function(){
+        $('#projectList').data('kendoDropDownList').value(project);
+        $("#projectList").data("kendoDropDownList").trigger("change");
+    },1000)
 }
 ma.UpdateTurbineList = function(turbineList) {
-    $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
-    $('#turbineList').multiselect('select', turbineList);
+    if(turbineList.length == 0){
+         console.log("lalalla");
+         $("#turbineList").multiselect('selectAll', false).multiselect("refresh");
+    }else{
+        $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
+        $('#turbineList').multiselect('select', turbineList); 
+    }
+
 }
 ma.CreateGrid = function(gridType) {
     app.loading(true);
@@ -48,12 +56,14 @@ ma.CreateGrid = function(gridType) {
                 var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
                 COOKIES[cookieName] = cookieValue;
             });
-            param.turbine = [COOKIES["turbine"]];
+            param.turbine = COOKIES["turbine"] == [] ? [] : [COOKIES["turbine"]];
             param.project = COOKIES["projectname"];
 
             $.when(ma.UpdateProjectList(param.project)).done(function () {
                 setTimeout(function(){
-                    $.when(ma.UpdateTurbineList(param.turbine)).done(function () {
+                    ma.UpdateTurbineList(param.turbine);
+
+                    setTimeout(function() {
                         ma.LoadDataAvail(param.project, gridType);
                         if(cookieStr.indexOf("tabActive=") >= 0){
                             if(COOKIES["tabActive"] == "alarmRaw" ){
@@ -62,9 +72,9 @@ ma.CreateGrid = function(gridType) {
                                 ma.CreateGridAlarm(gridType, param);
                             }
                         }
-                        
-                    });
-                }, 700);
+                    },500);
+
+                }, 1500);
             });
 
         } else {
