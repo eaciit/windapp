@@ -397,7 +397,10 @@ bp.ToIndividualTurbine = function(turbine) {
     var project =  $('#projectList').data('kendoDropDownList').value();
     document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
     document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
+    document.cookie = "isFromByProject=true;expires="+ newDateObj;
+    document.cookie = "isFromSummary=false;expires="+ newDateObj;
+
+    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0 && document.cookie.indexOf("isFromByProject=") >= 0 && document.cookie.indexOf("isFromSummary=") >= 0) {
         window.location = viewModel.appName + "page/monitoringbyturbine";
     } else {
         app.loading(false);

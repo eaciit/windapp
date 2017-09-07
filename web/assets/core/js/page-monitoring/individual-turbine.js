@@ -20,6 +20,8 @@ it.projectList = ko.observableArray([]);
 it.project = ko.observable();
 it.turbineList = ko.observableArray([{}]);
 it.allTurbineList = ko.observableArray([{}]);
+it.isFromSummary = ko.observable(false);
+it.isFromByProject = ko.observable(false);
 
 it.populateProject = function (data) {
     if (data.length == 0) {
@@ -562,7 +564,7 @@ it.ShowData = function() {
     var cookieStr = document.cookie;
     var turbine = "";
     var project = "";
-    
+
     if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
         
         document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
@@ -574,6 +576,14 @@ it.ShowData = function() {
         });
         turbine = COOKIES["turbine"];
         project = COOKIES["projectname"];
+
+        if(COOKIES["isFromSummary"] !== undefined && COOKIES["isFromSummary"] == "true"){
+            it.isFromSummary(true);
+        }
+
+        if(COOKIES["isFromByProject"] !== undefined && COOKIES["isFromByProject"] == "true"){
+            it.isFromByProject(true);
+       }
 
         setTimeout(function(){
             $('#projectList').data('kendoDropDownList').value(project);
@@ -944,6 +954,22 @@ it.ToByProject = function(){
     },1500);
     
 }
+
+it.ToSummary = function(){
+    window.location = viewModel.appName + "page/monitoringsummary";
+}
+
+
+it.backToProject = function(){
+    if(it.isFromSummary()){
+        it.ToSummary();
+    }
+
+    if(it.isFromByProject()){
+        it.ToByProject();
+    }
+}
+
 
 it.ToAlarm = function() {
     app.loading(true);

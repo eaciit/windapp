@@ -105,7 +105,7 @@ TbCol.Save = function() {
     		TurbineId : TbCol.TurbineId(),
 			TurbineName : TbCol.TurbineName(),
 			Feeder : TbCol.Feeder(),
-			Project : (TbCol.Project() == '' ? TbCol.ProjectFeeder() : TbCol.Project) ,
+			Project : (TbCol.Project() == '' ? TbCol.ProjectFeeder() : TbCol.Project()) ,
 			Date : $("#date").data("kendoDateTimePicker").value(),
 			Status : TbCol.Status(),
 			Remark : TbCol.CurrentData().Remark,
