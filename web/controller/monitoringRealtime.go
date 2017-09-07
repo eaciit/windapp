@@ -875,11 +875,15 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	arrturbinestatus := GetTurbineStatus(project, "")
 
 	rconn := DBRealtime()
-
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"projectname": project}},
+		tk.M{"$sort": tk.M{"turbine": 1, "timestamp": -1}},
+	}
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
-		Where(dbox.Eq("projectname", project)).
-		Order("turbine", "-timestamp").Cursor(nil)
+		Command("pipe", pipes).Cursor(nil)
+	// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
+	// Where(dbox.Eq("projectname", project)).
+	// Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
 	}

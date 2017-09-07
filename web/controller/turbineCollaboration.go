@@ -41,7 +41,7 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 
 	turbine := payload.Turbine
 	project := payload.Project
-	feeder := payload.Feeders
+	feeder := payload.Feeder
 	take := payload.Take
 	tNow := time.Now()
 	timestamp := time.Date(tNow.Year(), tNow.Month(), tNow.Day(), 0, 0, 0, 0, time.UTC)
