@@ -780,13 +780,20 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		tk.Println(err.Error())
 	}
 	arrturbinestatus := GetTurbineStatus("", "")
+	// get no of turbine waiting for wind status
+	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
+		"$and": []tk.M{
+			tk.M{"status": true},
+		}}, false)
 
+	waitingForWsProject := map[string]int{}
 	dataNa := map[string]int{}
 	dataDowns := map[string]int{}
 	_tTurbine := ""
 	_tProject := ""
 	isDataComing := false
 	var tstamp time.Time
+	keys := ""
 	for _, dt := range lastUpdateRealtime {
 		ids, _ := tk.ToM(dt.Get("_id"))
 		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
@@ -798,25 +805,16 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			isDataComing = false
 			dataNa[_tProject] = dataNa[_tProject] + 1
 		}
+		keys = _tProject + "_" + _tTurbine
 
 		if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
 			if _idt.Status == 0 && isDataComing {
 				dataDowns[_tProject] = dataDowns[_tProject] + 1
+			} else if waitingForWs.Has(keys) && isDataComing {
+				waitingForWsProject[_tProject]++
 			}
 		}
 		dataNa[dt.GetString("_id")] = dt.GetInt("count")
-	}
-	//tk.Printf("#%v\n", dataNa)
-
-	// get no of turbine waiting for wind status
-	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
-		"$and": []tk.M{
-			tk.M{"status": true},
-		}}, false)
-
-	waitingForWsProject := map[string]int{}
-	for key := range waitingForWs {
-		waitingForWsProject[strings.Split(key, "_")[0]]++
 	}
 
 	// make a model for data detail from the realtime data
