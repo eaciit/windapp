@@ -1217,7 +1217,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			turbinedown = len(_result)
 		}
 
-		turbineactive := len(_result) - turbinedown - turbnotavail
+		turbineactive := len(_result) - turbinedown - turbnotavail - len(waitingForWsTurbine)
 		if turbineactive < 0 {
 			turbineactive = 0
 		}
