@@ -14,6 +14,7 @@ TbCol.Feeder = ko.observable('');
 TbCol.Status = ko.observable('');
 TbCol.ProjectFeeder = ko.observable('');
 TbCol.IsTurbine = ko.observable(true);
+TbCol.IconStatus = ko.observable('');
 
 // variabel to set current data if any edit feature
 TbCol.CurrentData = ko.observable({
@@ -56,6 +57,7 @@ TbCol.ResetData = function(){
 	TbCol.Feeder('');
 	TbCol.Status('');
 	TbCol.IsTurbine(true);
+	TbCol.IconStatus('');
 }
 TbCol.GenerateGrid = function(turbine, project){
 	app.loading(true);

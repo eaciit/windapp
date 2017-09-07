@@ -167,6 +167,9 @@ bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
 		if(dt.IsTurbine) {
 			TbCol.ResetData();
+			var classString = $("div").find("[data-id='"+dt.Id+"']").children().attr('class').split(' ')[1];
+			var classIcon = 'txt'+ classString.substr(10);
+			
 			TbCol.TurbineId(dt.Id);
 			TbCol.TurbineName(dt.Name);
 			TbCol.UserId('');
@@ -176,6 +179,7 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.Status(dt.Status);
 			TbCol.IsTurbine(true);
 			TbCol.OpenForm();
+			TbCol.IconStatus(classIcon);
 		}else{
 			TbCol.ResetData();
 			TbCol.ProjectFeeder(dt.Project)
