@@ -235,7 +235,11 @@ bp.PlotData = function(data) {
 
     $.each(allData, function(idx, val){
         var turbine = val.Turbine;
-        var oldTurbine = oldData[idx].Turbine;
+        var oldTurbine = '';
+        try {
+            oldTurbine = oldData[idx].Turbine; // for a while to minimalize an error
+        }
+        catch(e) {}
         var oldVal = oldData[idx];
         if(oldTurbine == turbine){
             if(val.ActivePower > -999999) { 

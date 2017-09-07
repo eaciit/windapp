@@ -92,6 +92,14 @@ page.generateView = function(){
         var comparison = 0;
         var defaultColorStatus = "bg-default-green"
         var colorStatus = "lbl bg-green"
+
+        // adding condition for project na
+        var isgrey = (TurbineActive==0 && WaitingForWind==0 && TurbineDown==0);
+        if(isgrey) {
+            defaultColorStatus = "bg-default-grey";
+            colorStatus = "lbl bg-grey";
+        }
+
         $('#statusprojectdefault_'+ val.Project).addClass(defaultColorStatus);
 
         if(((val.PowerGeneration/1000) / val.Capacity) > 0){
