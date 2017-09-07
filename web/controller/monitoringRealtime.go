@@ -358,6 +358,282 @@ func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interf
 	return helper.CreateResultX(true, results, "success", k)
 }
 
+func (c *MonitoringRealtimeController) GetDataFarm(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+
+	p := struct {
+		Project      string
+		LocationTemp float64
+	}{}
+
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	results := GetMonitoringByFarm(p.Project, p.LocationTemp)
+
+	return helper.CreateResultX(true, results, "success", k)
+}
+
+func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
+	rtkm = tk.M{}
+	alldata, allturbine := []tk.M{}, tk.M{}
+	turbineMap := map[string]tk.M{}
+	totalCapacity := 0.0
+
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"project": project}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbineid": 1, "feeder": 1, "turbinename": 1, "latitude": 1, "longitude": 1, "capacitymw": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
+
+	csrt, err := DB().Connection.NewQuery().From("ref_turbine").
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	_result := []tk.M{}
+	err = csrt.Fetch(&_result, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrt.Close()
+	for _, _tkm := range _result {
+		turbine := _tkm.GetString("turbineid")
+		lturbine := allturbine.Get(_tkm.GetString("feeder"), []string{}).([]string)
+		lturbine = append(lturbine, turbine)
+		sort.Strings(lturbine)
+		allturbine.Set(_tkm.GetString("feeder"), lturbine)
+		turbineMap[turbine] = tk.M{"coords": []float64{_tkm.GetFloat64("latitude"), _tkm.GetFloat64("longitude")}, "name": _tkm.GetString("turbinename"), "capacity": _tkm.GetFloat64("capacitymw") * 1000.0}
+		totalCapacity += _tkm.GetFloat64("capacitymw")
+	}
+
+	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed"}
+
+	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
+		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
+
+	lastUpdate := time.Time{}
+	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
+	turbinedown, turbnotavail := 0, 0
+	t0 := getTimeNow()
+
+	arrturbinestatus := GetTurbineStatus(project, "")
+
+	rconn := DBRealtime()
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"projectname": project}},
+		tk.M{"$sort": tk.M{"turbine": 1, "timestamp": -1}},
+	}
+	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
+		Command("pipe", pipes).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	curtailmentTurbine, waitingForWsTurbine := tk.M{}, tk.M{}
+	reapetedAlarm := tk.M{}
+
+	curtailmentTurbine = getDataPerTurbine("_curtailmentduration", tk.M{"$and": []tk.M{
+		tk.M{"status": true},
+		tk.M{"show": true},
+		tk.M{"projectname": project},
+	}}, false)
+	waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
+	reapetedAlarm = GetRepeatedAlarm(project, t0)
+
+	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
+
+	dataRealtimeValue := 0.0
+	tags := ""
+	tstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}
+	_tdata := tk.M{}
+
+	for {
+		_tdata = tk.M{}
+		err = csr.Fetch(&_tdata, 1, false)
+		if err != nil {
+			break
+		}
+
+		tags = _tdata.GetString("tags")
+		dataRealtimeValue = _tdata.GetFloat64("value")
+		servertstamp = _tdata.Get("servertimestamp", time.Time{}).(time.Time).UTC()
+
+		_tTurbine := _tdata.GetString("turbine")
+		if _iContinue && _iTurbine == _tTurbine {
+			continue
+		}
+		tstamp = _tdata.Get("timestamp", time.Time{}).(time.Time)
+
+		if tstamp.After(lastUpdate) {
+			lastUpdate = tstamp
+		}
+
+		if _iTurbine != _tTurbine {
+			if _iTurbine != "" {
+				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, &_itkm)
+				alldata = append(alldata, _itkm)
+			}
+
+			_iContinue = false
+			_iTurbine = _tTurbine
+			turbineMp := turbineMap[_tTurbine]
+			iststamp = servertstamp
+
+			_itkm = tk.M{}.
+				Set("Turbine", _tTurbine).
+				Set("Name", turbineMp.GetString("name")).
+				Set("DataComing", 0).
+				Set("Status", 1).
+				Set("IsWarning", false).
+				Set("IsReapeatedAlarm", false).
+				Set("AlarmUpdate", time.Time{}).
+				Set("Capacity", turbineMp.GetFloat64("capacity")).
+				Set("ColorStatus", "lbl bg-green").
+				Set("DefaultColorStatus", "bg-default-green")
+
+			for _, afield := range arrfield {
+				_itkm.Set(afield, defaultValue)
+			}
+
+			turbnotavail++
+			if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+				_itkm.Set("DataComing", 1)
+				turbnotavail--
+			}
+
+			if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
+				_itkm.Set("Status", _idt.Status).
+					Set("IsWarning", _idt.IsWarning).
+					Set("AlarmUpdate", _idt.TimeUpdate.UTC())
+				if _idt.Status == 0 && _itkm.GetInt("DataComing") == 1 {
+					turbinedown += 1
+				}
+			}
+
+			if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
+				_itkm.Set("IsReapeatedAlarm", true)
+			}
+
+		}
+
+		// _iContinue = true
+
+		afield, isexist := arrfield[tags]
+		_, isfast := fasttags[tags]
+
+		_ifloat := dataRealtimeValue
+
+		if _ifloat != defaultValue && isexist {
+			if time.Now().UTC().Sub(servertstamp.UTC()).Minutes() >= 60 && isfast {
+				_ifloat = defaultValue
+			} else {
+				switch afield {
+				case "ActivePower":
+					PowerGen += _ifloat
+				case "WindSpeed":
+					AvgWindSpeed += _ifloat
+					CountWS += 1
+				}
+			}
+
+			_itkm.Set(afield, _ifloat)
+		}
+
+		if _itkm.Get("isserverlate", true).(bool) {
+			_itkm.Set("isserverlate", true)
+			if servertstamp.UTC().After(iststamp.UTC()) {
+				iststamp = servertstamp
+				_itkm.Set("servertimestamp", servertstamp)
+			}
+
+			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 3 {
+				_itkm.Set("isserverlate", false)
+			}
+		}
+
+		_itkm.Set("isbordered", false)
+		if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
+			_itkm.Set("isbordered", true)
+		}
+	}
+	csr.Close()
+	if _iTurbine != "" {
+		colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, &_itkm)
+		alldata = append(alldata, _itkm)
+	}
+
+	isInDetail := func(_turbine string) bool {
+		for _, _tkm := range alldata {
+			if _turbine == _tkm.GetString("Turbine") {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, _tkm := range _result {
+		_turbine := _tkm.GetString("turbineid")
+		if isInDetail(_turbine) {
+			continue
+		}
+
+		turbineMp := turbineMap[_turbine]
+		turbnotavail++
+
+		_itkm = tk.M{}.
+			Set("Turbine", _turbine).
+			Set("Name", turbineMp.GetString("name")).
+			Set("DataComing", 0).
+			Set("Status", 0).
+			Set("IsWarning", false).
+			Set("AlarmUpdate", time.Time{}).
+			Set("isbordered", false).
+			Set("IsReapeatedAlarm", false).
+			Set("Capacity", turbineMp.GetFloat64("capacity")).
+			Set("ColorStatus", "lbl bg-grey").
+			Set("DefaultColorStatus", "bg-default-grey")
+
+		for _, afield := range arrfield {
+			_itkm.Set(afield, defaultValue)
+		}
+
+		alldata = append(alldata, _itkm)
+	}
+	if turbnotavail > len(_result) {
+		turbnotavail = len(_result)
+	}
+
+	if turbinedown > len(_result) {
+		turbinedown = len(_result)
+	}
+
+	turbineactive := len(_result) - turbinedown - turbnotavail - len(waitingForWsTurbine)
+	if turbineactive < 0 {
+		turbineactive = 0
+	}
+
+	rtkm.Set("ProjectName", project)
+	rtkm.Set("ListOfTurbine", allturbine)
+	rtkm.Set("Detail", alldata)
+	rtkm.Set("TimeNow", t0)
+	rtkm.Set("TimeMax", lastUpdate)
+	rtkm.Set("PowerGeneration", PowerGen)
+	rtkm.Set("AvgWindSpeed", tk.Div(AvgWindSpeed, CountWS))
+	rtkm.Set("PLF", tk.Div(PowerGen, (totalCapacity*1000))*100)
+	rtkm.Set("TurbineWaitingWS", len(waitingForWsTurbine))
+	rtkm.Set("TurbineActive", turbineactive)
+	rtkm.Set("TurbineDown", turbinedown)
+	rtkm.Set("TurbineNotAvail", turbnotavail)
+
+	return
+}
+
 func GetMonitoringAllProject(project string, locationTemp float64, pageType string) (rtkm tk.M) {
 	// initiate all variables
 	rtkm = tk.M{}
@@ -679,6 +955,29 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 	retVal := 0.0
 
 	return retVal
+}
+func colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine tk.M, _itkm *tk.M) {
+	project := _tdata.GetString("projectname")
+	turbine := _itkm.GetString("Turbine")
+
+	if _itkm.GetInt("DataComing") == 0 {
+		_itkm.Set("ColorStatus", "lbl bg-grey")
+		_itkm.Set("DefaultColorStatus", "bg-default-grey")
+	} else if _itkm.GetInt("Status") == 0 {
+		_itkm.Set("ColorStatus", "lbl bg-red")
+		_itkm.Set("DefaultColorStatus", "bg-default-red")
+	} else if _itkm.GetInt("Status") == 1 && _itkm.Get("IsWarning").(bool) {
+		_itkm.Set("ColorStatus", "lbl bg-orange")
+		_itkm.Set("DefaultColorStatus", "bg-default-orange")
+	} else if waitingForWsTurbine.Has(project + "_" + turbine) {
+		_itkm.Set("ColorStatus", "lbl bg-mustard")
+		_itkm.Set("DefaultColorStatus", "bg-default-mustard")
+	} else if curtailmentTurbine.Has(project + "_" + turbine) {
+		_itkm.Set("ColorStatus", "lbl bg-greenneon")
+		_itkm.Set("DefaultColorStatus", "bg-default-greenneon")
+	}
+
+	return
 }
 
 func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine tk.M,
