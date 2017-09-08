@@ -448,6 +448,32 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
 	reapetedAlarm = GetRepeatedAlarm(project, t0)
 
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"projectid": project}},
+	}
+
+	remarkData := []TurbineCollaborationModel{}
+	remarkMaps := tk.M{}
+	csrRemark, e := DB().Connection.NewQuery().
+		From(new(TurbineCollaborationModel).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrRemark.Close()
+
+	e = csrRemark.Fetch(&remarkData, 0, false)
+	if e != nil {
+		tk.Println(e.Error())
+	}
+	for _, val := range remarkData {
+		if val.Feeder == "" && val.TurbineId == "" {
+			remarkMaps.Set(val.ProjectId, true)
+		} else if val.TurbineId == "" {
+			remarkMaps.Set(val.Feeder, true)
+		} else {
+			remarkMaps.Set(val.TurbineId, true)
+		}
+	}
+
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
 
 	dataRealtimeValue := 0.0
@@ -478,7 +504,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
-				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
+				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
 				alldata = append(alldata, _itkm)
 			}
 
@@ -492,6 +518,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				Set("Name", turbineMp.GetString("name")).
 				Set("DataComing", 0).
 				Set("Status", 1).
+				Set("IsRemark", false).
 				Set("IsWarning", false).
 				Set("IsReapeatedAlarm", false).
 				Set("AlarmUpdate", time.Time{}).
@@ -561,7 +588,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}
 	csr.Close()
 	if _iTurbine != "" {
-		colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
+		colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
 		alldata = append(alldata, _itkm)
 	}
 
@@ -588,6 +615,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 			Set("Name", turbineMp.GetString("name")).
 			Set("DataComing", 0).
 			Set("Status", 0).
+			Set("IsRemark", false).
 			Set("IsWarning", false).
 			Set("AlarmUpdate", time.Time{}).
 			Set("isbordered", false).
@@ -615,6 +643,11 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 		turbineactive = 0
 	}
 
+	if remarkMaps.Has(project) {
+		rtkm.Set("IsRemark", true)
+	} else {
+		rtkm.Set("IsRemark", false)
+	}
 	rtkm.Set("ProjectName", project)
 	rtkm.Set("ListOfTurbine", allturbine)
 	rtkm.Set("Detail", alldata)
@@ -951,7 +984,7 @@ func (c *MonitoringRealtimeController) getValue() float64 {
 
 	return retVal
 }
-func colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine tk.M, _itkm *tk.M, turbinedown, turbnotavail, turbineWaitingWS *int) {
+func colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps tk.M, _itkm *tk.M, turbinedown, turbnotavail, turbineWaitingWS *int) {
 	project := _tdata.GetString("projectname")
 	turbine := _itkm.GetString("Turbine")
 
@@ -974,6 +1007,9 @@ func colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine tk.M, _itkm *t
 		_itkm.Set("ColorStatus", "lbl bg-greenneon")
 		_itkm.Set("DefaultColorStatus", "bg-default-greenneon")
 	}
+	if remarkMaps.Has(turbine) {
+		_itkm.Set("IsRemark", true)
+	}
 
 	return
 }
@@ -992,8 +1028,8 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 	datas := tk.M{}
 
 	for _, tempData := range tempCondition {
-		paramName := tempData.GetString("temp_param")
-		fieldName := tempData.GetString("field_name")
+		paramName := tempData.GetString("description")
+		fieldName := tempData.GetString("alarmstatus")
 		keys = project + "_" + turbine + "_" + fieldName
 
 		if temperatureData.Has(keys) {
@@ -1193,7 +1229,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	reapetedAlarm := tk.M{}
 
 	if pageType == "monitoring" {
-		csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
+		csrTemp, err := DBRealtime().NewQuery().From("ref_monitoringnotification").
 			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
 			Cursor(nil)
 		if err != nil {
@@ -1212,7 +1248,15 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			tk.M{"projectname": project},
 		}}, false)
 		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
-		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
+		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+			tk.M{"status": true},
+			tk.M{"projectname": project},
+		}}, false)
+
+		// for k, v := range temperatureData {
+		// 	tk.Println(k, v)
+		// }
+
 		reapetedAlarm = GetRepeatedAlarm(project, t0)
 
 		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
@@ -1940,7 +1984,7 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	rconn := DBRealtime()
 	pipes := []tk.M{}
 	groups := tk.M{
-		"timestamp": tk.M{"$sum": "$timestamp"},
+		"timestamp": tk.M{"$max": "$timestamp"},
 	}
 	match := []tk.M{}
 
@@ -1954,7 +1998,8 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 			match = append(match, tk.M{"projectname": project})
 		}
 	}
-	pipes = append(pipes, tk.M{"$and": match})
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
+	pipes = append(pipes, tk.M{"$group": groups})
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Command("pipe", pipes).Cursor(nil)

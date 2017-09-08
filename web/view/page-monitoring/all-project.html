@@ -55,10 +55,10 @@
                                     <td class="text-center"><span data-bind="text:kendo.toString(TodayLost , 'n2'), attr: { id: 'TodayLost_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayGen , 'n2'), attr: { id: 'PrevDayGen_'+ Project }">-</span></td>
                                     <td class="text-center"><span data-bind="text:kendo.toString(PrevDayLost , 'n2'), attr: { id: 'PrevDayLost_'+ Project }">-</span></td>
-                                    <td class="text-center"><span data-bind="text:TurbineActive, attr: { id: 'TurbineActive_'+ Project }"></span></td>
-                                    <td class="text-center"><span data-bind="text:WaitingForWind, attr: { id: 'WaitingForWind_'+ Project }" class="text-right"></span></td>
-                                    <td class="text-center"><span data-bind="text:TurbineDown, attr: { id: 'TurbineDown_'+ Project }" class="text-right"></span></td>
-                                     <td class="text-center"><span data-bind="text:TurbineNotAvail, attr: { id: 'TurbineNotAvail_'+ Project }" class="text-right"></span></td>
+                                    <td class="text-center"><span data-bind="text:TurbineActive, attr: { id: 'TurbineActive_'+ Project }" class="fa-green"></span></td>
+                                    <td class="text-center"><span data-bind="text:WaitingForWind, attr: { id: 'WaitingForWind_'+ Project }" class="text-right fa-mustard"></span></td>
+                                    <td class="text-center"><span data-bind="text:TurbineDown, attr: { id: 'TurbineDown_'+ Project }" class="text-right fa-red"></span></td>
+                                     <td class="text-center"><span data-bind="text:TurbineNotAvail, attr: { id: 'TurbineNotAvail_'+ Project }" class="text-right fa-grey"></span></td>
                                     <td class="text-center"><span data-bind="text: LastUpdated == '0001-01-01 00:00:00' ? '-' : moment.utc(LastUpdated).format('DD MMM YYYY HH:mm:ss')"></span></td> 
                                 </tr>
                             </tbody>
