@@ -340,7 +340,7 @@ $(document).ready(function(){
     });
 
     setTimeout(function() {
-        $.when(ma.InitDateValue()).done(function () {
+        $.when(ma.InitDateValue()).done(function () { 
             setTimeout(function() {
                 ma.CreateGrid("alarm");
             }, 100);
