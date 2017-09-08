@@ -19,20 +19,20 @@
                     <input type="hidden" id="feeder" name="feeder" data-bind="value: TbCol.Feeder()" />
                     <div class="form-group col-md-12">
                         <label class="control-label col-md-2" data-bind="text: TbCol.IsTurbine() == true ? 'Turbine' : (TbCol.Feeder() == '' ? 'Project' : 'Feeder')"></label>
-                        <div class="control-input col-md-2" data-bind="visible:TbCol.IsTurbine() == true">
+                        <div class="control-input col-md-2 custom-input" data-bind="visible:TbCol.IsTurbine() == true">
                             <input type="text" name="turbinename" id="turbinename" readonly="readonly" class="input-sm form-control" placeholder="Type turbine name" data-bind="value: TbCol.TurbineName" required data-required-msg="Turbine required!" />
                             <span class="k-invalid-msg" data-for="turbinename"></span>
                         </div>
-                        <div class="control-input col-md-2" data-bind="visible:TbCol.IsTurbine() == true">
+                        <div class="control-input col-md-2 custom-input" data-bind="visible:TbCol.IsTurbine() == true">
                             <input type="text" name="feeder" id="feeder" readonly="readonly" class="input-sm form-control" placeholder="Type feeder name" data-bind="value: TbCol.Feeder" required data-required-msg="Feeder required!" />
                             <span class="k-invalid-msg" data-for="feeder"></span>
                         </div>
-                        <div class="control-input col-md-2" data-bind="visible:TbCol.IsTurbine() == false">
+                        <div class="control-input col-md-2 custom-input" data-bind="visible:TbCol.IsTurbine() == false">
                             <input type="text" name="feeder" id="feeder" readonly="readonly" class="input-sm form-control" placeholder="Type feeder name" data-bind="value: TbCol.Feeder() == '' ? TbCol.Project : TbCol.Feeder" required data-required-msg="Field required!" />
                             <span class="k-invalid-msg" data-for="feeder"></span>
                         </div>
-                        <div class="control-input col-md-4">
-                            <input class="input-sm form-control" type="text" id="date" data-bind="kendoDateTimePicker: { value: TbCol.CurrentData().Date, format:'dd-MMM-yyyy h:mm',min: new Date(2013, 01, 01), max: new Date() }"/>
+                        <div class="control-input col-md-3 custom-input">
+                            <input class="input-sm form-control" type="text" id="date" data-bind="kendoDateTimePicker: { value: TbCol.CurrentData().Date, format:'dd-MMM-yyyy h:mm',min: new Date(2013, 01, 01), max: new Date() }" width="85px" />
                         </div>
                     </div>
                     <div class="clearfix">&nbsp;</div>
@@ -47,7 +47,7 @@
                     <div class="form-group col-md-12">
                         <label class="control-label col-md-2">Remark</label>
                         <div class="control-input col-md-10">
-                            <textarea class="input-sm form-control" id="remark" name="remark" data-bind="value: TbCol.CurrentData().Remark" rows="3" placeholder="Type remark"></textarea>
+                            <textarea class="input-sm form-control" id="remark" name="remark" data-bind="value: TbCol.CurrentData().Remark" rows="2" placeholder="Type remark"></textarea>
                             <span class="k-invalid-msg" data-for="remark"></span>
                         </div>
                     </div>

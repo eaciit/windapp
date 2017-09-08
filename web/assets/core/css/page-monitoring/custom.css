@@ -207,7 +207,7 @@
 }
 
 .modal-dialog {
-  width: 38% !important;
+  width: 31% !important;
   display: inline-block;
   text-align: left;
   vertical-align: middle;
@@ -219,6 +219,16 @@
 
 ul#date_timeview.k-list.k-reset{
   max-height: 200px;
+}
+
+.control-label{
+    width: 50px;
+}
+.custom-input{
+    width: 85px;
+}
+.k-datetimepicker{
+    width: 150px;
 }
 /* layout scheme */
 /*.span-saved-views {
