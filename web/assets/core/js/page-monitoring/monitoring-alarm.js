@@ -339,13 +339,13 @@ $(document).ready(function(){
         }
     });
 
-    setTimeout(function() {
-        $.when(ma.InitDateValue()).done(function () {
+    //setTimeout(function() {
+        $.when(ma.InitDateValue()).done(function () { 
             setTimeout(function() {
                 ma.CreateGrid("alarm");
             }, 100);
         });
-    }, 300);
+    //}, 300);
     
     $('#projectList').kendoDropDownList({
         change: function () {  
