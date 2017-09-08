@@ -20,7 +20,7 @@ ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var singleHandler   = valueAccessor().click,
             doubleHandler   = valueAccessor().dblclick,
-            delay           = valueAccessor().delay || 500,
+            delay           = valueAccessor().delay || 1000,
             clicks          = 0;
 
         $(element).bind('click',function(event) {
