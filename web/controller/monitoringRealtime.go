@@ -992,8 +992,8 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 	datas := tk.M{}
 
 	for _, tempData := range tempCondition {
-		paramName := tempData.GetString("temp_param")
-		fieldName := tempData.GetString("field_name")
+		paramName := tempData.GetString("description")
+		fieldName := tempData.GetString("alarmstatus")
 		keys = project + "_" + turbine + "_" + fieldName
 
 		if temperatureData.Has(keys) {
@@ -1193,7 +1193,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	reapetedAlarm := tk.M{}
 
 	if pageType == "monitoring" {
-		csrTemp, err := DB().Connection.NewQuery().From("TemperatureCondition").
+		csrTemp, err := DBRealtime().NewQuery().From("ref_monitoringnotification").
 			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
 			Cursor(nil)
 		if err != nil {
@@ -1212,7 +1212,15 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			tk.M{"projectname": project},
 		}}, false)
 		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
-		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{}.Set("projectname", project), false)
+		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+			tk.M{"status": true},
+			tk.M{"projectname": project},
+		}}, false)
+
+		// for k, v := range temperatureData {
+		// 	tk.Println(k, v)
+		// }
+
 		reapetedAlarm = GetRepeatedAlarm(project, t0)
 
 		tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
