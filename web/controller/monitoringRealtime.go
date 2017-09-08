@@ -1984,7 +1984,7 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 	rconn := DBRealtime()
 	pipes := []tk.M{}
 	groups := tk.M{
-		"timestamp": tk.M{"$sum": "$timestamp"},
+		"timestamp": tk.M{"$max": "$timestamp"},
 	}
 	match := []tk.M{}
 
@@ -1998,7 +1998,8 @@ func getMaxRealTime(project, turbine string) (timemax time.Time) {
 			match = append(match, tk.M{"projectname": project})
 		}
 	}
-	pipes = append(pipes, tk.M{"$and": match})
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
+	pipes = append(pipes, tk.M{"$group": groups})
 
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
 		Command("pipe", pipes).Cursor(nil)
