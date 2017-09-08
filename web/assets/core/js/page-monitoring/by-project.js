@@ -428,6 +428,10 @@ bp.ToAlarm = function(turbine) {
     }
 }
 
+bp.ToSummary = function(){
+    window.location = viewModel.appName + "page/monitoringsummary";
+}
+
 bp.resetFeeders = function(){
     bp.oldFeeders([])
 }
