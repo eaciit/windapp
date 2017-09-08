@@ -65,9 +65,11 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 	}
 
 	turbColls := TurbineCollaborationModel{}
-	e = csr.Fetch(&turbColls, 1, false)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+	if csr.Count() > 0 {
+		e = csr.Fetch(&turbColls, 1, false)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
 	}
 
 	return helper.CreateResult(true, turbColls, "success")
