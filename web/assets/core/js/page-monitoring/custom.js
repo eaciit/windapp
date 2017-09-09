@@ -20,11 +20,12 @@ ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var singleHandler   = valueAccessor().click,
             doubleHandler   = valueAccessor().dblclick,
-            delay           = valueAccessor().delay || 200,
+            delay           = valueAccessor().delay || 1000,
             clicks          = 0;
 
-        $(element).click(function(event) {
+        $(element).bind('click',function(event) {
             clicks++;
+            console.log(clicks);
             if (clicks === 1) {
                 setTimeout(function() {
                     if( clicks === 1 ) {
@@ -34,6 +35,7 @@ ko.bindingHandlers.singleOrDoubleClick = {
                             singleHandler.call(viewModel, bindingContext.$data, event); 
                         }
                     } else {
+                    	console.log(doubleHandler);
                         // Call the double click handler - passing viewModel as this 'this' object
                         // you may want to pass 'this' explicitly
                         if (doubleHandler !== undefined) { 
