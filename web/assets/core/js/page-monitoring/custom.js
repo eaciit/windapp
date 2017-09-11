@@ -117,6 +117,8 @@ var defaultValue = -999999;
 bpc.plotData = function(project, data) {
 	var $data = data.data;
 	var $elm = $("#cusmon-project-"+ project);
+	var $elmDetail= $("#cusmon-detail-"+ project);
+	var $elmTurbine= $("#cusmon-turbine-"+ project);
 
 	var totalpower = $data.PowerGeneration;
 	var avgwindspd = $data.AvgWindSpeed;
@@ -128,6 +130,13 @@ bpc.plotData = function(project, data) {
 	$elm.find('.t-down[data-id="'+ project +'"]').text($data.TurbineDown);
 	$elm.find('.t-wait[data-id="'+ project +'"]').text($data.TurbineWaitingWS);
 	$elm.find('.t-na[data-id="'+ project +'"]').text($data.TurbineNotAvail);
+
+	if($data.IsRemark == true){
+		$elmDetail.find('.project-remark[data-id="'+ project +'"]').css("display", "block !important");
+	}else{
+		$elmDetail.find('.project-remark[data-id="'+ project +'"]').hide();
+	}
+	
 
 	// set turbine updates
 	var $detail = $data.Detail;
@@ -149,6 +158,13 @@ bpc.plotData = function(project, data) {
 				$elmupdate.prop('style', 'width: 100%');
 			}else{
 				$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
+			}
+
+
+			if(dt.IsRemark == true){
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').css("display", "block !important");
+			}else{
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
 			$elmupdate.prop('aria-valuenow', currPct);

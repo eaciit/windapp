@@ -1,4 +1,14 @@
 /* set coloring scheme */
+.icon-remark{
+    font-size: 6px;
+/*    padding-top: 0px;
+    position: absolute;
+    top: 0;
+    right: 0;*/
+}
+.ui-state-default.col-md-3.col-xs-6{
+    width: 27%
+}
 .fa-green {
   color: #31B445;
 }
