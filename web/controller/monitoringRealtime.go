@@ -73,6 +73,7 @@ var (
 		"Grid Voltage": "GridVoltage", "Ref Radiator Temp1": "RefRadiatorTemp1", "Ref Radiator Temp2": "RefRadiatorTemp2",
 		"Temp Ref Cooling Unit": "TempRefCoolingUnit", "Transformer Winding Temp1": "TransformerWindingTemp1", "PLC Prog Version": "PLCProgVersion",
 		"Transformer Winding Temp2": "TransformerWindingTemp2", "Transformer Winding Temp3": "TransformerWindingTemp3",
+		"AccXDir": "AccXDir", "AccYDir": "AccYDir",
 	}
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
 )

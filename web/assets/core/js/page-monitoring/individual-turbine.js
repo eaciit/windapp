@@ -22,6 +22,7 @@ it.turbineList = ko.observableArray([{}]);
 it.allTurbineList = ko.observableArray([{}]);
 it.isFromSummary = ko.observable(false);
 it.isFromByProject = ko.observable(false);
+it.isShowVibration = ko.observable(false);
 
 it.populateProject = function (data) {
     if (data.length == 0) {
@@ -82,10 +83,12 @@ it.ChangeProject = function() {
         it.project = $("#projectList").data("kendoDropDownList").value();
         var projects = [];
         projects.push(it.project);
+        
         it.populateTurbine(projects, it.allTurbineList, true);
         setTimeout(function(){
             it.isFirst(true);
             it.ShowData();
+            it.isShowVibration(it.project == "Lahori" ? true : false); 
         },300);
     };
 };
@@ -231,6 +234,8 @@ it.transformerWindingTemp3 = ko.observable('');
 it.temp_slip_ring = ko.observable('');
 it.hydraulic_pressure = ko.observable('');
 it.hydraulic_temp = ko.observable('');
+it.AccXDir = ko.observable('');
+it.AccYDir = ko.observable('');
 
 it.isFirst = ko.observable(true);
 
@@ -512,6 +517,16 @@ it.PlotData = function(data) {
     if(data["Drive train vibration"] != -999999)
         it.drive_train_vibra(data["Drive train vibration"].toFixed(2));
     else it.drive_train_vibra('N/A');
+
+    if(data["AccXDir"] != -999999)
+        it.AccXDir(data["AccXDir"].toFixed(2));
+    else it.AccXDir('N/A');
+
+    if(data["AccYDir"] != -999999)
+        it.AccYDir(data["AccYDir"].toFixed(2));
+    else it.AccYDir('N/A');
+
+
     // if(data["Tower vibration"] != -999999)
     //     it.tower_vibra(data["Tower vibration"].toFixed(2));
     // else it.tower_vibra('N/A');
