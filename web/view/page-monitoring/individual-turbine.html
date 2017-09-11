@@ -84,9 +84,16 @@
                                  <hr class="borderGrey">
                                  <strong><span>Freq. Grid</span></strong><strong><span class="pull-right" data-bind="text: it.freq_grid()"></span></strong>
                             </div>
-                            <div class="col-md-4 text-center" style="margin-top: 30px;">
+                            <div class="col-md-4 text-center" style="margin-top: 30px;" data-bind="visible:it.isShowVibration() == false">
                                 <h5><strong>Drive train<small><br><i> (Vibrations) </i></small></strong></h5>
                                 <span class="btn btn-default btn-circle btn-xl" data-bind="text: it.drive_train_vibra()"></span>
+                                <span class=""></span>
+                            </div>
+                            <div class="col-md-4 text-center" data-bind="visible:it.isShowVibration() == true">
+                                <h5><strong>Drive train<small><i> (Vibrations) </i></small></strong></h5>
+                                <span class="text-center"><strong>Vibr X axis</strong></span> <br><h4> <strong><span data-bind="text:it.AccXDir()"></span></strong></h4>
+                                <hr class="borderGrey" style="width: 100px">
+                                <span class="text-center"><strong>Vibr Y Axis</strong></span> <br><h4><strong><span data-bind="text:it.AccYDir()"></span></strong></h4>
                             </div>
                         </div>
                         <div class="col-md-4 border-left-grey">
