@@ -114,9 +114,10 @@ page.generateView = function(){
 
         if(((val.PowerGeneration/1000) / val.Capacity) > 0){
             comparison = ((val.PowerGeneration/1000) / val.Capacity) * 100;
+            var fixCom = (comparison > 100 ? 100 : comparison);
             // console.log(comparison);
             $('#statusproject_'+ val.Project).attr('class', colorStatus);
-            $('#statusproject_'+ val.Project).css('width', comparison + '%');
+            $('#statusproject_'+ val.Project).css('width', fixCom + '%');
         }else{
             comparison = 0;
             $('#statusproject_'+ val.Project).attr('class', 'lbl');
