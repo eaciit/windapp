@@ -76,6 +76,8 @@ var (
 		"AccXDir": "AccXDir", "AccYDir": "AccYDir",
 	}
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
+	fasttags = map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
+		"PitchAngle": "fast", "RotorSpeed_RPM": "fast", "PitchAngle1": "fast", "PitchAngle2": "fast", "PitchAngle3": "fast"}
 )
 
 type MiniScadaHFD struct {
@@ -414,9 +416,6 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}
 
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed"}
-
-	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
-		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
 
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
@@ -1809,7 +1808,12 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	csr.Close()
 	alltkmdata := tk.M{}
 	for _, val := range scadaRealtimeData {
-		alltkmdata.Set(val.Tags, val.Value)
+		_ifloat := val.Value
+		_, isfast := fasttags[val.Tags]
+		if timemax.UTC().Sub(val.TimeStamp.UTC()).Minutes() >= 60 && isfast {
+			_ifloat = defaultValue
+		}
+		alltkmdata.Set(val.Tags, _ifloat)
 	}
 	// ============== end of get realtime data =================
 
