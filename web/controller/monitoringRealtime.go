@@ -1019,7 +1019,7 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 	_itkm *tk.M, tempCondition []tk.M, turbinedown, turbnotavail, turbineWaitingForWS *int) {
 	var redCount, orangeCount, greenCount int
 	timeString := ""
-	keys := ""
+	keys := []string{}
 	tempInfo := map[string]string{}
 	project := _tdata.GetString("projectname")
 	turbine := _itkm.GetString("Turbine")
@@ -1031,33 +1031,47 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 	for _, tempData := range tempCondition {
 		paramName := tempData.GetString("description")
 		fieldName := tempData.GetString("alarmstatus")
-		keys = project + "_" + turbine + "_" + fieldName
+		units := tempData.GetString("units")
 
-		if temperatureData.Has(keys) {
-			datas, _ = tk.ToM(temperatureData.Get(keys))
-			if tk.TypeName(datas.Get("timestart")) == "string" {
-				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(datas.GetString("timestart")))
-				if err != nil {
-					tk.Println(err.Error())
-				}
-				timestart = timestart.UTC()
-			} else {
-				timestart = datas.Get("timestart", time.Time{}).(time.Time).UTC()
+		keys = []string{}
+
+		arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
+		if !tempData.Get("eachcompare", false).(bool) && !tempData.Get("isaverage", false).(bool) {
+			for _, _tag := range arrtags {
+				keys = append(keys, project+"_"+turbine+"_"+fieldName+"_"+tk.ToString(_tag))
 			}
-			value = datas.GetFloat64("value")
+		} else {
+			keys = append(keys, project+"_"+turbine+"_"+fieldName)
+		}
 
-			if datas.Get("status", false).(bool) && datas.Get("iserror", false).(bool) {
-				redCount++
-				timeString = timestart.Format("02 Jan 06 15:04:05")
-				tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", value, timeString)
-			} else if datas.Get("status", false).(bool) {
-				orangeCount++
-				timeString = timestart.Format("02 Jan 06 15:04:05")
-				tempInfo[paramName] = tk.Sprintf("%.2f &deg;C<br />(%s)", value, timeString)
-			} else {
-				greenCount++
+		for _, key := range keys {
+			if temperatureData.Has(key) {
+				datas, _ = tk.ToM(temperatureData.Get(key))
+				if tk.TypeName(datas.Get("timestart")) == "string" {
+					timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(datas.GetString("timestart")))
+					if err != nil {
+						tk.Println(err.Error())
+					}
+					timestart = timestart.UTC()
+				} else {
+					timestart = datas.Get("timestart", time.Time{}).(time.Time).UTC()
+				}
+				value = datas.GetFloat64("value")
+
+				if datas.Get("status", false).(bool) && datas.Get("iserror", false).(bool) {
+					redCount++
+					timeString = timestart.Format("02 Jan 06 15:04:05")
+					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+				} else if datas.Get("status", false).(bool) {
+					orangeCount++
+					timeString = timestart.Format("02 Jan 06 15:04:05")
+					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+				} else {
+					greenCount++
+				}
 			}
 		}
+
 	}
 
 	if orangeCount > 0 || (redCount > 0 && greenCount > 0) {
