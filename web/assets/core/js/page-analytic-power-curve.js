@@ -851,9 +851,13 @@ page.getSelectedFilter = function(){
         $('input[name="filter"]:checked').each(function() {
             if(this.value == "Deviation"){
                 $("#selectedFilter").append(delim + this.value + " < " + deviationVal + " % ");
+            }else if(this.value == "Specific"){
+                 var value = "Site Specific PW"
+                 $("#selectedFilter").append(delim + value + " ");
             }else{
                 $("#selectedFilter").append(delim + this.value + " ");
             }
+
             delim = "| ";
         });      
         if(delim == "") {
