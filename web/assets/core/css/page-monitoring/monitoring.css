@@ -488,7 +488,7 @@ h4.content-heading {
 .table.table-monitoring {
   margin-top: -15px;
   margin-bottom: 15px;
-  width: 400px;
+  width: 410px;
 }
 .table-monitoring>tbody>tr>td, .table-monitoring>tbody>tr>th, .table-monitoring>tfoot>tr>td, 
 .table-monitoring>tfoot>tr>th, .table-monitoring>thead>tr>td, .table-monitoring>thead>tr>th {
@@ -969,6 +969,17 @@ h4.content-heading {
 }
 .bread-info{
     margin-top: 5px;
+}
+
+.inner-triangle{
+    border-left: 60px solid transparent;
+    border-right: 10px solid #265229;
+    border-bottom: 10px solid transparent;
+    height: 0;
+    width: 0;
+    position: absolute;
+    z-index: 2;
+    display: none;
 }
 
 /*SCROLLBAR*/

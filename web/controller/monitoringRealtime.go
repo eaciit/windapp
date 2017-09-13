@@ -76,6 +76,8 @@ var (
 		"AccXDir": "AccXDir", "AccYDir": "AccYDir",
 	}
 	tagsTemp = []string{"TempGearBoxOilSump", "TempHubBearing", "TempGeneratorChoke", "TempGridChoke", "TempConvCabinet2"}
+	fasttags = map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
+		"PitchAngle": "fast", "RotorSpeed_RPM": "fast", "PitchAngle1": "fast", "PitchAngle2": "fast", "PitchAngle3": "fast"}
 )
 
 type MiniScadaHFD struct {
@@ -415,9 +417,6 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed"}
 
-	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
-		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
-
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
 	turbinedown, turbnotavail, turbineWaitingWS := 0, 0, 0
@@ -448,9 +447,17 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}}, false)
 	waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
 	reapetedAlarm = GetRepeatedAlarm(project, t0)
+	remarkDate := time.Date(t0.Year(), t0.Month(), t0.Day(), 0, 0, 0, 0, time.UTC)
 
 	pipes = []tk.M{
-		tk.M{"$match": tk.M{"projectid": project}},
+		tk.M{
+			"$match": tk.M{
+				"$and": []tk.M{
+					tk.M{"projectid": project},
+					tk.M{"date": tk.M{"$gte": remarkDate}},
+				},
+			},
+		},
 	}
 
 	remarkData := []TurbineCollaborationModel{}
@@ -531,7 +538,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set(afield, defaultValue)
 			}
 
-			if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+			if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 				_itkm.Set("DataComing", 1)
 			}
 
@@ -830,7 +837,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
-		if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+		if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 			isDataComing = true
 		} else {
 			isDataComing = false
@@ -1015,18 +1022,33 @@ func colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps tk
 	return
 }
 
-func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine tk.M,
+func temperatureProcess(project string, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine tk.M,
 	_itkm *tk.M, tempCondition []tk.M, turbinedown, turbnotavail, turbineWaitingForWS *int) {
 	var redCount, orangeCount, greenCount int
 	timeString := ""
 	keys := []string{}
 	tempInfo := map[string]string{}
-	project := _tdata.GetString("projectname")
 	turbine := _itkm.GetString("Turbine")
 	timestart := time.Time{}
 	value := 0.0
 	var err error
 	datas := tk.M{}
+
+	tagsunits := map[string]string{}
+	for _, tempData := range tempCondition {
+		arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
+		units := tempData.GetString("units")
+		for _, _tag := range arrtags {
+			tagsunits[tk.ToString(_tag)] = units
+		}
+	}
+
+	getUnits := func(tag string) string {
+		if val, cond := tagsunits[tag]; cond {
+			return val
+		}
+		return "&deg;C"
+	}
 
 	for _, tempData := range tempCondition {
 		paramName := tempData.GetString("description")
@@ -1057,15 +1079,21 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 					timestart = datas.Get("timestart", time.Time{}).(time.Time).UTC()
 				}
 				value = datas.GetFloat64("value")
+				notestart := datas.GetString("notestart")
 
 				if datas.Get("status", false).(bool) && datas.Get("iserror", false).(bool) {
 					redCount++
 					timeString = timestart.Format("02 Jan 06 15:04:05")
 					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+					if notestart != "" {
+						tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+					}
 				} else if datas.Get("status", false).(bool) {
 					orangeCount++
 					timeString = timestart.Format("02 Jan 06 15:04:05")
-					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+					if notestart != "" {
+						tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+					}
 				} else {
 					greenCount++
 				}
@@ -1089,6 +1117,7 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 			items := dataNormal.Get("items", []interface{}{}).([]interface{})
 			for _, item := range items {
 				tkItem, _ = tk.ToM(item)
+				units := getUnits(tkItem.GetString("tags"))
 				if tk.TypeName(tkItem.Get("timeend")) == "string" {
 					timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timeend")))
 					if err != nil {
@@ -1099,9 +1128,13 @@ func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTur
 					timestart = tkItem.Get("timeend", time.Time{}).(time.Time).UTC()
 				}
 				value = tkItem.GetFloat64("value")
+				notestart := datas.GetString("notestart")
 
 				timeString = timestart.Format("02 Jan 06 15:04:05")
-				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f &deg;C<br />(%s)", value, timeString)
+				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+				if notestart != "" {
+					tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+				}
 			}
 			_itkm.Set("BulletColor", "fa fa-circle txt-blink")
 		}
@@ -1331,7 +1364,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
 				if pageType == "monitoring" {
-					temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
+					temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 						&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 				}
 				alldata = append(alldata, _itkm)
@@ -1362,7 +1395,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					_itkm.Set(afield, defaultValue)
 				}
 
-				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+				if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1383,7 +1416,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("Status", 1).
 					Set("IsWarning", false)
 
-				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+				if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1436,7 +1469,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("servertimestamp", servertstamp)
 			}
 
-			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 3 {
+			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 5 {
 				_itkm.Set("isserverlate", false)
 			}
 		}
@@ -1500,7 +1533,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csr.Close()
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
-			temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
+			temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 				&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 		}
 		alldata = append(alldata, _itkm)
@@ -1809,7 +1842,12 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	csr.Close()
 	alltkmdata := tk.M{}
 	for _, val := range scadaRealtimeData {
-		alltkmdata.Set(val.Tags, val.Value)
+		_ifloat := val.Value
+		_, isfast := fasttags[val.Tags]
+		if timemax.UTC().Sub(val.TimeStamp.UTC()).Minutes() >= 60 && isfast {
+			_ifloat = defaultValue
+		}
+		alltkmdata.Set(val.Tags, _ifloat)
 	}
 	// ============== end of get realtime data =================
 
@@ -1838,7 +1876,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	}
 
 	t0 := getTimeNow()
-	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+	if t0.Sub(timemax.UTC()).Minutes() > 5 {
 		alldata.Set("Turbine Status", -999)
 	}
 
@@ -1897,7 +1935,7 @@ func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) int
 	}
 
 	t0 := getTimeNow()
-	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+	if t0.Sub(timemax.UTC()).Minutes() > 5 {
 		alldata.Set("Turbine Status", -999)
 	}
 

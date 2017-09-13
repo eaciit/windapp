@@ -43,8 +43,8 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 	project := payload.Project
 	feeder := payload.Feeder
 	take := payload.Take
-	tNow := time.Now()
-	timestamp := time.Date(tNow.Year(), tNow.Month(), tNow.Day(), 0, 0, 0, 0, time.UTC)
+	indiaTime := getTimeNow()
+	timestamp := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), 0, 0, 0, 0, time.UTC)
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(TurbineCollaborationModel).TableName()).
@@ -94,7 +94,8 @@ func (m *TurbineCollaborationController) Save(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	date, _ := time.Parse("2006-01-02T15:04:05Z", p.Date)
+	// date, _ := time.Parse("2006-01-02T15:04:05Z", p.Date)
+	date := getTimeNow()
 
 	createdBy := ""     //tUser.LoginID
 	createdByName := "" //tUser.FullName
@@ -114,7 +115,7 @@ func (m *TurbineCollaborationController) Save(k *knot.WebContext) interface{} {
 	mdl.Remark = p.Remark
 	mdl.CreatedBy = createdBy
 	mdl.CreatedByName = createdByName
-	mdl.CreatedOn = time.Now()
+	mdl.CreatedOn = time.Now().UTC()
 	mdl.CreatedIp = createdIp
 	mdl.CreatedLoc = createdLoc
 

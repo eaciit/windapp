@@ -78,6 +78,7 @@ type PayloadAnalyticPC struct {
 	Project      string
 	IsClean      bool
 	IsDeviation  bool
+	IsSpecific   bool
 	DeviationVal string
 	DeviationOpr string // add by ams, 2017-08-11
 	IsAverage    bool

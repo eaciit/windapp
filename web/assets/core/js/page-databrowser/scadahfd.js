@@ -7,6 +7,7 @@ var dbsh = viewModel.DatabrowserScadaHFD;
 dbsh.selectedColumn = ko.observableArray([]);
 dbsh.unselectedColumn = ko.observableArray([]);
 dbsh.ColumnList = ko.observableArray([]);
+dbsh.AllProjectColumnList = ko.observableArray([]);
 dbsh.ColList = ko.observableArray([]);
 dbsh.defaultSelectedColumn = ko.observableArray();
 

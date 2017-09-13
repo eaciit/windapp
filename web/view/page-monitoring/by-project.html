@@ -5,7 +5,6 @@
 <script src="{{BaseUrl}}res/core/js/page-monitoring/by-project.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
-
 <div class="row">
     <div class="row">
         <div class="col-md-12 col-sm-12 ez panel-content">
@@ -67,9 +66,10 @@
                                     </tr>
                                     <tr data-bind="visible:isHeader == false">
                                        <!--  <td class="link-detail"><span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></span></td> -->
-                                       <td class="link-detail">
-                                            <spam data-bind="attr: { id: 'linkDetail_'+ Turbine}">
+                                       <td class="link-detail text-center">
+                                           <spam data-bind="attr: { id: 'linkDetail_'+ Turbine}">
                                                 <span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}">
+                                                     <!-- <div class="inner-triangle"></div> -->
                                                     <span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-bind="text:Name"></a></span>
                                                 </span>
                                             </span>
