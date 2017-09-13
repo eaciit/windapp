@@ -59,7 +59,7 @@ func (m *AnalyticPowerCurveController) GetList(k *knot.WebContext) interface{} {
 	isClean := p.IsClean
 	isAverage := p.IsAverage
 
-	pcData, e := getPCData(project)
+	pcData, e := getPCData(project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -175,7 +175,7 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 	// isClean := p.IsClean
 	// isAverage := p.IsAverage
 
-	pcData, e := getPCData(project)
+	pcData, e := getPCData(project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -297,7 +297,12 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		colDeviation = "deviationpct"
 	}
 
-	pcData, e := getPCData(project)
+	issitespecific := false
+	if p.IsSpecific && p.ViewSession != "density" {
+		issitespecific = true
+	}
+
+	pcData, e := getPCData(project, issitespecific)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -442,7 +447,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
-	pcData, e := getPCData(project)
+	pcData, e := getPCData(project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -650,7 +655,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
-	PC1Data, e := getPCData(PC1project)
+	PC1Data, e := getPCData(PC1project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -829,7 +834,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	}
 	turbine := p.Turbine
 	project := p.Project
-	pcData, e := getPCData(project)
+	pcData, e := getPCData(project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1081,7 +1086,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 	turbine := p.Turbine
 	project := p.Project
-	pcData, e := getPCData(project)
+	pcData, e := getPCData(project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1487,7 +1492,7 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 	project := p.Project
 	colors := p.Color
 
-	pcData, e := getPCData(project)
+	pcData, e := getPCData(project, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1542,7 +1547,7 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 	return helper.CreateResult(true, data, "success")
 }
 
-func getPCData(project string) (pcData tk.M, e error) {
+func getPCData(project string, issitespecific bool) (pcData tk.M, e error) {
 	powerCurve := []PowerCurveModel{}
 
 	csr, e := DB().Connection.NewQuery().From(new(PowerCurveModel).TableName()).Where(dbox.Eq("model", project)).Order("windspeed").Cursor(nil)
@@ -1560,7 +1565,11 @@ func getPCData(project string) (pcData tk.M, e error) {
 	var datas [][]float64
 
 	for _, val := range powerCurve {
-		datas = append(datas, []float64{val.WindSpeed, val.Power1})
+		if issitespecific {
+			datas = append(datas, []float64{val.WindSpeed, val.Power1})
+		} else {
+			datas = append(datas, []float64{val.WindSpeed, val.Standard})
+		}
 	}
 
 	pcData = tk.M{

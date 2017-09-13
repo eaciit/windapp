@@ -13,6 +13,7 @@ type PowerCurveModel struct {
 	Model         string
 	WindSpeed     float64
 	Power1        float64
+	Standard      float64
 }
 
 func (m *PowerCurveModel) New() *PowerCurveModel {

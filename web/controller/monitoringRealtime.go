@@ -1022,13 +1022,12 @@ func colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps tk
 	return
 }
 
-func temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine tk.M,
+func temperatureProcess(project string, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine tk.M,
 	_itkm *tk.M, tempCondition []tk.M, turbinedown, turbnotavail, turbineWaitingForWS *int) {
 	var redCount, orangeCount, greenCount int
 	timeString := ""
 	keys := []string{}
 	tempInfo := map[string]string{}
-	project := _tdata.GetString("projectname")
 	turbine := _itkm.GetString("Turbine")
 	timestart := time.Time{}
 	value := 0.0
@@ -1338,7 +1337,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
 				if pageType == "monitoring" {
-					temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
+					temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 						&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 				}
 				alldata = append(alldata, _itkm)
@@ -1507,7 +1506,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csr.Close()
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
-			temperatureProcess(_tdata, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
+			temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 				&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 		}
 		alldata = append(alldata, _itkm)
