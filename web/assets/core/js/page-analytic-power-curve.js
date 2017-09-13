@@ -898,6 +898,7 @@ $(document).ready(function() {
     $("input[name=isAvg]").on("change", function() {
         if(this.id == "density"){
             $('#isSpecific').attr("disabled", "disabled");
+            $('#isSpecific').prop('checked',false);
         }else{
             $('#isSpecific').removeAttr('disabled');
         }
