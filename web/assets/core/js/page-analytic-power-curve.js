@@ -20,6 +20,7 @@ page.detailTitle = ko.observable("");
 page.detailStartDate = ko.observable("");
 page.detailEndDate = ko.observable("");
 
+page.isSpecific = ko.observable(false);
 page.isClean = ko.observable(true);
 page.idName = ko.observable("");
 page.isDeviation = ko.observable(true);
@@ -197,6 +198,7 @@ var Data = {
                 turbine: fa.turbine(),
                 project: fa.project,
                 isClean: page.isClean,
+                isSpecific: page.isSpecific,
                 isDeviation: page.isDeviation,
                 DeviationVal: page.deviationVal,
                 DeviationOpr: page.deviationOpr,
@@ -808,11 +810,13 @@ page.hideAll = function() {
 
 page.resetFilter = function(){
     page.isClean(true);
+    page.isSpecific(false);
     page.isDeviation(true);
     page.sScater(false);
     page.showDownTime(false);
     page.deviationVal("20");
     $('#isClean').prop('checked',true);
+    $('#isSpecific').prop('checked',false);
     $('#isDeviation').prop('checked',true);
     $('#sScater').prop('checked',false);
     $('#showDownTime').prop('checked',false);
@@ -892,6 +896,13 @@ $(document).ready(function() {
     });
 
     $("input[name=isAvg]").on("change", function() {
+        if(this.id == "density"){
+            $('#isSpecific').attr("disabled", "disabled");
+        }else{
+            $('#isSpecific').removeAttr('disabled');
+        }
+
+        
         page.viewSession(this.id);
         Data.InitLinePowerCurve();
     });
@@ -899,6 +910,13 @@ $(document).ready(function() {
     $('#isClean').on('click', function() {
         var isClean = $('#isClean').prop('checked');
         page.isClean(isClean);
+        page.getSelectedFilter();
+        Data.InitLinePowerCurve();
+    });
+
+    $('#isSpecific').on('click', function() {
+        var isSpecific = $('#isSpecific').prop('checked');
+        page.isSpecific(isSpecific);
         page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
