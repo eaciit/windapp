@@ -538,7 +538,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set(afield, defaultValue)
 			}
 
-			if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+			if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 				_itkm.Set("DataComing", 1)
 			}
 
@@ -837,7 +837,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
-		if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+		if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 			isDataComing = true
 		} else {
 			isDataComing = false
@@ -1034,6 +1034,22 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 	var err error
 	datas := tk.M{}
 
+	tagsunits := map[string]string{}
+	for _, tempData := range tempCondition {
+		arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
+		units := tempData.GetString("units")
+		for _, _tag := range arrtags {
+			tagsunits[tk.ToString(_tag)] = units
+		}
+	}
+
+	getUnits := func(tag string) string {
+		if val, cond := tagsunits[tag]; cond {
+			return val
+		}
+		return "&deg;C"
+	}
+
 	for _, tempData := range tempCondition {
 		paramName := tempData.GetString("description")
 		fieldName := tempData.GetString("alarmstatus")
@@ -1063,15 +1079,21 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 					timestart = datas.Get("timestart", time.Time{}).(time.Time).UTC()
 				}
 				value = datas.GetFloat64("value")
+				notestart := datas.GetString("notestart")
 
 				if datas.Get("status", false).(bool) && datas.Get("iserror", false).(bool) {
 					redCount++
 					timeString = timestart.Format("02 Jan 06 15:04:05")
 					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+					if notestart != "" {
+						tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+					}
 				} else if datas.Get("status", false).(bool) {
 					orangeCount++
 					timeString = timestart.Format("02 Jan 06 15:04:05")
-					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+					if notestart != "" {
+						tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+					}
 				} else {
 					greenCount++
 				}
@@ -1095,6 +1117,7 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 			items := dataNormal.Get("items", []interface{}{}).([]interface{})
 			for _, item := range items {
 				tkItem, _ = tk.ToM(item)
+				units := getUnits(tkItem.GetString("tags"))
 				if tk.TypeName(tkItem.Get("timeend")) == "string" {
 					timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timeend")))
 					if err != nil {
@@ -1105,9 +1128,13 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 					timestart = tkItem.Get("timeend", time.Time{}).(time.Time).UTC()
 				}
 				value = tkItem.GetFloat64("value")
+				notestart := datas.GetString("notestart")
 
 				timeString = timestart.Format("02 Jan 06 15:04:05")
-				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f &deg;C<br />(%s)", value, timeString)
+				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+				if notestart != "" {
+					tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+				}
 			}
 			_itkm.Set("BulletColor", "fa fa-circle txt-blink")
 		}
@@ -1368,7 +1395,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					_itkm.Set(afield, defaultValue)
 				}
 
-				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+				if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1389,7 +1416,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("Status", 1).
 					Set("IsWarning", false)
 
-				if t0.Sub(tstamp.UTC()).Minutes() <= 3 {
+				if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1442,7 +1469,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("servertimestamp", servertstamp)
 			}
 
-			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 3 {
+			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 5 {
 				_itkm.Set("isserverlate", false)
 			}
 		}
@@ -1849,7 +1876,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	}
 
 	t0 := getTimeNow()
-	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+	if t0.Sub(timemax.UTC()).Minutes() > 5 {
 		alldata.Set("Turbine Status", -999)
 	}
 
@@ -1908,7 +1935,7 @@ func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) int
 	}
 
 	t0 := getTimeNow()
-	if t0.Sub(timemax.UTC()).Minutes() > 3 {
+	if t0.Sub(timemax.UTC()).Minutes() > 5 {
 		alldata.Set("Turbine Status", -999)
 	}
 
