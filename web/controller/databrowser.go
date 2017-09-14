@@ -120,6 +120,11 @@ func GetHFDCustomFieldList() []tk.M {
 	if e != nil {
 		tk.Println(e.Error())
 	}
+	for _, val := range atkm {
+		val.Set("_id", strings.ToLower(val.GetString("fieldname")))
+		val.Unset("fieldname")
+		val.Unset("realtimefield")
+	}
 	startIndex := len(atkm)
 	for i, str := range _amettower_field {
 		startIndex++
