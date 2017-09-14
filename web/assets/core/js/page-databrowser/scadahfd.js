@@ -257,15 +257,24 @@ dbsh.showColumnHFD = function() {
         dbsh.selectedColumn.push({
             _id: val._id,
             label: val.label,
-            source: val.source
+            source: val.source,
+            order: val.order,
+            projectname: val.projectname,
         });
+    });
+    dbsh.selectedColumn().sort(function(a, b){
+        return b.order < a.order ? 1
+        : b.order > a.order ? -1
+        : 0;
     });
 
     $.each($('#columnListHFD').data('kendoGrid').dataSource.data(), function(i, val) {
         dbsh.unselectedColumn.push({
             _id: val._id,
             label: val.label,
-            source: val.source
+            source: val.source,
+            order: val.order,
+            projectname: val.projectname,
         });
     });
 
