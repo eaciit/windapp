@@ -15,6 +15,7 @@ TbCol.Status = ko.observable('');
 TbCol.ProjectFeeder = ko.observable('');
 TbCol.IsTurbine = ko.observable(true);
 TbCol.IconStatus = ko.observable('');
+TbCol.haveRemark = ko.observable(false);
 
 // variabel to set current data if any edit feature
 TbCol.CurrentData = ko.observable({
@@ -38,7 +39,8 @@ TbCol.ShowModal = function(mode) {
 };
 TbCol.OpenForm = function() {		
 	summary.abortAll(requests);
-	$.when(TbCol.GenerateGrid(TbCol.TurbineId(),TbCol.Project(),TbCol.Feeder())).done(function(){
+	var project = TbCol.Project() == "" ? TbCol.ProjectFeeder() : TbCol.Project();
+	$.when(TbCol.GenerateGrid(TbCol.TurbineId(),project,TbCol.Feeder())).done(function(){
 		$('#mdlTbColab').modal('show');
 	});
 };
@@ -81,8 +83,10 @@ TbCol.GenerateGrid = function(turbine, project,feeder){
 			// $("#date").data("kendoDateTimePicker").value(results.Date);
 			$("#status").val(results.Status);
 			$("#remark").val(results.Remark);
-
+			
         }
+
+        TbCol.haveRemark(results._id == "" ? false : true);
 
         app.loading(false);   
 	});
