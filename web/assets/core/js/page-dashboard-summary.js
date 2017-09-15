@@ -1186,7 +1186,7 @@ sum.indiaMap = function (project) {
         }
 
         sum.removeMarkers();
-        var jsonObj = res.data,i;
+        var jsonObj = res.data;
 
         turbines =[];//Erasing the beaches array
 
