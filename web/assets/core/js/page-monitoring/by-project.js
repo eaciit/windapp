@@ -43,6 +43,9 @@ bp.oldFeeders = ko.observableArray([]);
 bp.fullscreen = ko.observable(false);
 bp.currentTempLocation = ko.observable();
 
+bp.isFirst = ko.observable(true);
+var requests = [];
+
 var audioElement = document.createElement('audio');
     audioElement.setAttribute('src', "../res/alarm/alarm.mp3");
 
@@ -101,7 +104,7 @@ bp.GetDataProject = function(project) {
         Project: project,
         LocationTemp: parseFloat($('#project_temperature').text())
     };
-    var getDetail = toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
+   requests.push(toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdataproject", param, function (res) {
         if(!app.isFine(res)) {
             app.loading(false);
             return;
@@ -188,7 +191,7 @@ bp.GetDataProject = function(project) {
                  app.loading(false);
             },200);
         });
-    });
+    }));
 }
 
 bp.GetData = function(data) {
@@ -433,6 +436,15 @@ bp.ToSummary = function(){
     window.location = viewModel.appName + "page/monitoringsummary";
 }
 
+bp.abortAll = function(requests) {
+     // count = 0;
+     bp.resetFeeders();
+     var length = requests.length;
+     while(length--) {
+         requests[length].abort && requests[length].abort();  // the if is for the first case mostly, where array is still empty, so no abort method exists.
+     }
+}
+
 bp.resetFeeders = function(){
     bp.oldFeeders([])
 }
@@ -472,9 +484,9 @@ $(function() {
         suggest: true,
         change: function () { 
             setTimeout(function(){
-                $.when(bp.resetFeeders()).done(function(){
-                     bp.GetData();
-                });
+                bp.isFirst(true);
+                bp.abortAll(requests);
+                bp.GetData();
             },1500);
             
          }
