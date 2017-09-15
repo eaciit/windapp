@@ -575,39 +575,31 @@ it.ShowData = function() {
     if(it.isFirst() == true){
         app.loading(true);
     }
-    var COOKIES = {};
-    var cookieStr = document.cookie;
+
     var turbine = "";
     var project = "";
 
-    if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
-        
-        document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        cookieStr.split(/; /).forEach(function(keyValuePair) {
-            var cookieName = keyValuePair.replace(/=.*$/, "");
-            var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-            COOKIES[cookieName] = cookieValue;
-        });
-        turbine = COOKIES["turbine"];
-        project = COOKIES["projectname"];
+    if(localStorage.getItem("projectname") !== null && localStorage.getItem("turbine") !== null) {
+        turbine = localStorage.getItem("turbine")
+        project = localStorage.getItem("projectname");
 
-        if(COOKIES["isFromSummary"] !== undefined && COOKIES["isFromSummary"] == "true"){
+        if(localStorage.getItem("isFromSummary") !== undefined && localStorage.getItem("isFromSummary") == "true"){
             it.isFromSummary(true);
         }
 
-        if(COOKIES["isFromByProject"] !== undefined && COOKIES["isFromByProject"] == "true"){
+        if(localStorage.getItem("isFromByProject") !== undefined && localStorage.getItem("isFromByProject") == "true"){
             it.isFromByProject(true);
        }
 
+      
         setTimeout(function(){
             $('#projectList').data('kendoDropDownList').value(project);
             var change = $("#projectList").data("kendoDropDownList").trigger("change");
             setTimeout(function(){
                 $('#turbine').data('kendoDropDownList').value(turbine);
             },200);
+            app.resetLocalStorage();
         },500);
-
         setTimeout(function(){
             it.isFirst(true);
             it.ShowData();
@@ -624,6 +616,8 @@ it.ShowData = function() {
             app.loading(false);
         }, 1500);
     });
+
+
 };
 
 it.showWindspeedColumnChart = function(){
@@ -958,16 +952,16 @@ it.ToTimeSeriesHfd = function() {
     },1500);
 }
 
-it.ToByProject = function(){
-     setTimeout(function(){
+it.ToByProject = function(){    
+    setTimeout(function(){
         app.loading(true);
-        var oldDateObj = new Date();
-        var newDateObj = moment(oldDateObj).add(3, 'm');
+        app.resetLocalStorage();
         var project =  $('#projectList').data('kendoDropDownList').value();
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-        window.location = viewModel.appName + "page/monitoringbyproject";
+        localStorage.setItem('projectname', project);
+        if(localStorage.getItem("projectname")){
+            window.location = viewModel.appName + "page/monitoringbyproject";
+        }
     },1500);
-    
 }
 
 it.ToSummary = function(){
@@ -987,22 +981,18 @@ it.backToProject = function(){
 
 
 it.ToAlarm = function() {
-    app.loading(true);
-    var turbine = $("#turbine").val();
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    var project =  $('#projectList').data('kendoDropDownList').value();
-    
-    document.cookie = "tabActive=alarmRaw;expires="+ newDateObj;
-    document.cookie = "projectname="+project.split("(")[0].trim()+";expires="+ newDateObj;
-    document.cookie = "turbine="+turbine+";expires="+ newDateObj;
-
-
-    if(document.cookie.indexOf("tabActive=") >= 0 && document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0) {
-        window.location = viewModel.appName + "page/monitoringalarm";
-    } else {
-        app.loading(false);
-    }
+    setTimeout(function(){
+        app.loading(true);
+        app.resetLocalStorage();
+        var turbine = $("#turbine").val();
+        var project =  $('#projectList').data('kendoDropDownList').value();
+        localStorage.setItem('turbine', turbine == [] ? null : turbine);
+        localStorage.setItem('projectname', project);
+        localStorage.setItem('tabActive', "alarmRaw");
+        if(localStorage.getItem("turbine") !== null && localStorage.getItem("projectname")){
+            window.location = viewModel.appName + "page/monitoringalarm";
+        }
+    },1500);
 }
 
 it.changeRotation = function(){

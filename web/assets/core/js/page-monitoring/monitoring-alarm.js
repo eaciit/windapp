@@ -26,7 +26,6 @@ ma.UpdateProjectList = function(project) {
 }
 ma.UpdateTurbineList = function(turbineList) {
     if(turbineList.length == 0){
-         console.log("lalalla");
          $("#turbineList").multiselect('selectAll', false).multiselect("refresh");
     }else{
         $('#turbineList').multiselect("deselectAll", false).multiselect("refresh");
@@ -47,17 +46,13 @@ ma.CreateGrid = function(gridType) {
             project: "",
             tipe: gridType,
         };
-        
-        if(cookieStr.indexOf("turbine=") >= 0 && cookieStr.indexOf("projectname=") >= 0) {
-            document.cookie = "projectname=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-            document.cookie = "turbine=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-            cookieStr.split(/; /).forEach(function(keyValuePair) {
-                var cookieName = keyValuePair.replace(/=.*$/, "");
-                var cookieValue = keyValuePair.replace(/^[^=]*\=/, "");
-                COOKIES[cookieName] = cookieValue;
-            });
-            param.turbine = COOKIES["turbine"] == [] ? [] : [COOKIES["turbine"]];
-            param.project = COOKIES["projectname"];
+
+        if(localStorage.getItem("projectname") !==  null && localStorage.getItem("turbine") !== null) {
+            var locTurbine = localStorage.getItem("turbine");
+            param.turbine = locTurbine == "" ? [] : [locTurbine];
+            param.project = localStorage.getItem("projectname");
+
+            var tabActive = localStorage.getItem("tabActive");
 
             $.when(ma.UpdateProjectList(param.project)).done(function () {
                 setTimeout(function(){
@@ -65,24 +60,24 @@ ma.CreateGrid = function(gridType) {
 
                     setTimeout(function() {
                         ma.LoadDataAvail(param.project, gridType);
-                        if(cookieStr.indexOf("tabActive=") >= 0){
-                            if(COOKIES["tabActive"] == "alarmRaw" ){
+                        if(tabActive !== null){
+                            if(tabActive == "alarmRaw" ){
                                 $("#alarmrawTab a:first-child").trigger('click'); 
                             }else{
                                 ma.CreateGridAlarm(gridType, param);
                             }
                         }
                     },500);
-
+                app.resetLocalStorage();
                 }, 1500);
             });
-
         } else {
             param.turbine = fa.turbine();
             param.project = fa.project;
             ma.LoadDataAvail(param.project, gridType);
             ma.CreateGridAlarm(gridType, param);
         }
+
     });
 }
 ma.CreateGridAlarm = function(gridType, param) {
@@ -316,14 +311,15 @@ ma.checkCompleteDate = function () {
     }
 }
 
-ma.ToByProject = function(){
+ma.ToByProject = function(){    
     setTimeout(function(){
         app.loading(true);
-        var oldDateObj = new Date();
-        var newDateObj = moment(oldDateObj).add(3, 'm');
+        app.resetLocalStorage();
         var project =  $('#projectList').data('kendoDropDownList').value();
-        document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-        window.location = viewModel.appName + "page/monitoringbyproject";
+        localStorage.setItem('projectname', project);
+        if(localStorage.getItem("projectname")){
+            window.location = viewModel.appName + "page/monitoringbyproject";
+        }
     },1500);
 }
 

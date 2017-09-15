@@ -132,14 +132,12 @@ page.generateView = function(){
 }
 
 page.ToByProject = function(project) {
-    app.loading(true);
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-    console.log(document.cookie);
-    if(document.cookie.indexOf("project=") >= 0) {
-        window.location = viewModel.appName + "page/monitoringbyproject";
-    } else {
-        app.loading(false);
-    }
+    setTimeout(function(){
+        app.loading(true);
+        app.resetLocalStorage();
+        localStorage.setItem('projectname', project);
+        if(localStorage.getItem('projectname') !== null){
+            window.location = viewModel.appName + "page/monitoringbyproject";
+        }
+    },1500);
 }

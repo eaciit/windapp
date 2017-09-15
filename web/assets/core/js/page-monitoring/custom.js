@@ -231,18 +231,19 @@ bpc.OpenModal = function(data){
 bpc.ToIndividualTurbine = function(data) {
 	return function(data) {
 		if(data.IsTurbine) {
-		    app.loading(true);
-		    var oldDateObj = new Date();
-		    var newDateObj = moment(oldDateObj).add(3, 'm');
-		    document.cookie = "projectname="+data.Project.split("(")[0].trim()+";expires="+ newDateObj;
-		    document.cookie = "turbine="+data.Id+";expires="+ newDateObj;
-		    document.cookie = "isFromSummary=true;expires="+ newDateObj;
-		    document.cookie = "isFromByProject=false;expires="+ newDateObj;
-		    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0 && document.cookie.indexOf("isFromSummary=") >= 0 && document.cookie.indexOf("isFromByProject=") >= 0) {
-		        window.location = viewModel.appName + "page/monitoringbyturbine";
-		    } else {
-		        app.loading(false);
-		    }
+	    setTimeout(function(){
+	        app.loading(true);
+	        app.resetLocalStorage();
+	        localStorage.setItem('turbine', data.Id);
+	        localStorage.setItem('projectname', data.Project);
+	        localStorage.setItem('isFromSummary', true);
+	        localStorage.setItem('isFromByProject', false);
+
+	        if(localStorage.getItem("turbine") !== null && localStorage.getItem("projectname")){
+	        	window.location = viewModel.appName + "page/monitoringbyturbine";
+	        }
+	        
+	    },1500);
 		}
 	}
 }
