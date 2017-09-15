@@ -1864,6 +1864,26 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	}
 	// ============== end of get realtime data =================
 
+	// ============== avg data pitch =================
+	tagsPitchAngle := []string{"PitchAngle1", "PitchAngle2", "PitchAngle3"}
+	sumPA, countPa := defaultValue, 0.0
+	for _, tag := range tagsPitchAngle {
+		if alltkmdata.Has(tag) {
+			tVal := alltkmdata.GetFloat64(tag)
+			if tVal != defaultValue {
+				if sumPA == defaultValue {
+					sumPA = 0.0
+				}
+
+				sumPA += tVal
+				countPa += 1
+			}
+		}
+	}
+	if sumPA != defaultValue {
+		alltkmdata.Set("PitchAngle", tk.Div(sumPA, countPa))
+	}
+	// ============== avg data pitch =================
 	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
 
 	alldata.Set("turbine", p.Turbine).Set("lastupdate", timemax.UTC()).Set("projectname", project)
