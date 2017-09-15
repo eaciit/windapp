@@ -19,7 +19,7 @@ TbCol.haveRemark = ko.observable(false);
 
 // variabel to set current data if any edit feature
 TbCol.CurrentData = ko.observable({
-	Id: '',
+	_id: '',
 	TurbineId: '',
 	TurbineName: '',
 	Project: '',
@@ -108,6 +108,33 @@ TbCol.Save = function() {
             return;
         }
         swal({ title: "Saved", type: "success" });
+       	TbCol.CloseForm();
+       	app.loading(false);
+    }, function (err) {
+        toolkit.showError(err.responseText);
+    });
+	
+}
+
+TbCol.Delete = function() {
+	app.loading(true);
+    var param = {
+    		TurbineId : TbCol.TurbineId(),
+			TurbineName : TbCol.TurbineName(),
+			Feeder : TbCol.Feeder(),
+			Project : (TbCol.Project() == '' ? TbCol.ProjectFeeder() : TbCol.Project()) ,
+			Date : $("#date").data("kendoDateTimePicker").value(),
+			Status :TbCol.CurrentData().Status,
+			Remark : TbCol.CurrentData().Remark,
+			Id: TbCol.CurrentData()._id,
+			IsDeleted: true,
+    }
+
+    toolkit.ajaxPost(viewModel.appName + 'turbinecollaboration/save', param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        swal({ title: "Deleted", type: "success" });
        	TbCol.CloseForm();
        	app.loading(false);
     }, function (err) {
