@@ -1039,13 +1039,13 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 	_itkm *tk.M, tempCondition []tk.M, turbinedown, turbnotavail, turbineWaitingForWS *int) {
 	var redCount, orangeCount, greenCount int
 	timeString := ""
-	keys := []string{}
+	// keys := []string{}
 	tempInfo := map[string]string{}
 	turbine := _itkm.GetString("Turbine")
 	timestart := time.Time{}
 	value := 0.0
 	var err error
-	datas := tk.M{}
+	// datas := tk.M{}
 
 	tagsunits := map[string]string{}
 	for _, tempData := range tempCondition {
@@ -1063,63 +1063,102 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 		return "&deg;C"
 	}
 
-	for _, tempData := range tempCondition {
-		paramName := tempData.GetString("description")
-		fieldName := tempData.GetString("alarmstatus")
-		units := tempData.GetString("units")
+	greenCount = len(tagsunits)
+	// for _, tempData := range tempCondition {
+	// 	paramName := tempData.GetString("description")
+	// 	fieldName := tempData.GetString("alarmstatus")
+	// 	units := tempData.GetString("units")
 
-		keys = []string{}
+	// 	keys = []string{}
 
-		arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
-		if !tempData.Get("eachcompare", false).(bool) && !tempData.Get("isaverage", false).(bool) {
-			for _, _tag := range arrtags {
-				keys = append(keys, project+"_"+turbine+"_"+fieldName+"_"+tk.ToString(_tag))
-			}
-		} else {
-			keys = append(keys, project+"_"+turbine+"_"+fieldName)
-		}
+	// 	arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
+	// 	if !tempData.Get("eachcompare", false).(bool) && !tempData.Get("isaverage", false).(bool) {
+	// 		for _, _tag := range arrtags {
+	// 			keys = append(keys, project+"_"+turbine+"_"+fieldName+"_"+tk.ToString(_tag))
+	// 		}
+	// 	} else {
+	// 		keys = append(keys, project+"_"+turbine+"_"+fieldName)
+	// 	}
 
-		for _, key := range keys {
-			if temperatureData.Has(key) {
-				datas, _ = tk.ToM(temperatureData.Get(key))
-				if tk.TypeName(datas.Get("timestart")) == "string" {
-					timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(datas.GetString("timestart")))
-					if err != nil {
-						tk.Println(err.Error())
-					}
-					timestart = timestart.UTC()
-				} else {
-					timestart = datas.Get("timestart", time.Time{}).(time.Time).UTC()
+	// 	for _, key := range keys {
+	// 		if temperatureData.Has(key) {
+	// 			datas, _ = tk.ToM(temperatureData.Get(key))
+	// 			if tk.TypeName(datas.Get("timestart")) == "string" {
+	// 				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(datas.GetString("timestart")))
+	// 				if err != nil {
+	// 					tk.Println(err.Error())
+	// 				}
+	// 				timestart = timestart.UTC()
+	// 			} else {
+	// 				timestart = datas.Get("timestart", time.Time{}).(time.Time).UTC()
+	// 			}
+	// 			value = datas.GetFloat64("value")
+	// 			notestart := datas.GetString("notestart")
+
+	// 			if datas.Get("status", false).(bool) && datas.Get("iserror", false).(bool) {
+	// 				redCount++
+	// 				timeString = timestart.Format("02 Jan 06 15:04:05")
+	// 				tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+	// 				if notestart != "" {
+	// 					tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+	// 				}
+	// 			} else if datas.Get("status", false).(bool) {
+	// 				orangeCount++
+	// 				timeString = timestart.Format("02 Jan 06 15:04:05")
+	// 				if notestart != "" {
+	// 					tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+	// 				}
+	// 			} else {
+	// 				greenCount++
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	if temperatureData.Has(turbine) {
+		tkItem := tk.M{}
+		dataNormal, _ := tk.ToM(temperatureData.Get(turbine))
+		items := dataNormal.Get("items", []interface{}{}).([]interface{})
+		for _, item := range items {
+			tkItem, _ = tk.ToM(item)
+			units := getUnits(tkItem.GetString("tags"))
+			if tk.TypeName(tkItem.Get("timestart")) == "string" {
+				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timestart")))
+				if err != nil {
+					tk.Println(err.Error())
 				}
-				value = datas.GetFloat64("value")
-				notestart := datas.GetString("notestart")
-
-				if datas.Get("status", false).(bool) && datas.Get("iserror", false).(bool) {
-					redCount++
-					timeString = timestart.Format("02 Jan 06 15:04:05")
-					tempInfo[paramName] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
-					if notestart != "" {
-						tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
-					}
-				} else if datas.Get("status", false).(bool) {
-					orangeCount++
-					timeString = timestart.Format("02 Jan 06 15:04:05")
-					if notestart != "" {
-						tempInfo[paramName] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
-					}
-				} else {
-					greenCount++
-				}
+				timestart = timestart.UTC()
+			} else {
+				timestart = tkItem.Get("timestart", time.Time{}).(time.Time).UTC()
 			}
-		}
+			value = tkItem.GetFloat64("value")
+			notestart := tkItem.GetString("notestart")
 
+			timeString = timestart.Format("02 Jan 06 15:04:05")
+			tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
+			if notestart != "" {
+				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%s %s<br />(%s)", notestart, units, timeString)
+			}
+
+			if tkItem.Get("error", false).(bool) {
+				redCount++
+			} else {
+				orangeCount++
+			}
+
+		}
 	}
 
+	greenCount = greenCount - orangeCount - redCount
 	if orangeCount > 0 || (redCount > 0 && greenCount > 0) {
 		_itkm.Set("BulletColor", "fa fa-circle txt-orange")
 	} else if redCount > 0 && greenCount == 0 {
 		_itkm.Set("BulletColor", "fa fa-circle txt-red")
-	} else if _itkm.GetInt("DataComing") == 0 {
+	} else if greenCount == len(tagsunits) {
+		_itkm.Set("BulletColor", "fa fa-circle txt-green")
+	}
+
+	if _itkm.GetInt("DataComing") == 0 {
 		_itkm.Set("BulletColor", "fa fa-circle txt-grey")
 	}
 
@@ -1141,7 +1180,7 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 					timestart = tkItem.Get("timeend", time.Time{}).(time.Time).UTC()
 				}
 				value = tkItem.GetFloat64("value")
-				notestart := datas.GetString("notestart")
+				notestart := tkItem.GetString("noteend")
 
 				timeString = timestart.Format("02 Jan 06 15:04:05")
 				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
@@ -1191,14 +1230,19 @@ func getDataPerTurbine(tablename string, filter tk.M, isNormal bool) (result tk.
 	if filter != nil {
 		pipes = append(pipes, tk.M{"$match": filter})
 	}
+
 	if isNormal {
 		pipes = append(pipes, tk.M{"$group": tk.M{
 			"_id":     "$turbine",
 			"timemax": tk.M{"$max": "$timeend"},
 			"items": tk.M{"$push": tk.M{
-				"tags":    "$tags",
-				"timeend": "$timeend",
-				"value":   "$value",
+				"tags":      "$tags",
+				"timestart": "$timestart",
+				"timeend":   "$timeend",
+				"value":     "$value",
+				"error":     "$iserror",
+				"notestart": "$notestart",
+				"noteend":   "$noteend",
 			}},
 		}})
 	}
@@ -1309,10 +1353,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			tk.M{"projectname": project},
 		}}, false)
 		waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
+
 		temperatureData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
 			tk.M{"status": true},
 			tk.M{"projectname": project},
-		}}, false)
+		}}, true)
 
 		// for k, v := range temperatureData {
 		// 	tk.Println(k, v)
@@ -1402,7 +1447,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("Capacity", turbineMp.GetFloat64("capacity")).
 					Set("ColorStatus", "lbl bg-green").
 					Set("DefaultColorStatus", "bg-default-green").
-					Set("BulletColor", "fa fa-circle txt-green")
+					Set("BulletColor", "fa fa-circle txt-grey")
 
 				for _, afield := range arrfield {
 					_itkm.Set(afield, defaultValue)
