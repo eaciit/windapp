@@ -208,10 +208,10 @@ var Data = {
             theme: "flat",
             dataSource: {
                 data: dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn(),
-                sort: [{
-                    field: 'label',
-                    dir: 'asc'
-                }],
+                // sort: [{
+                //     field: 'label',
+                //     dir: 'asc'
+                // }],
             },
             height: 300,
             scrollable: true,
@@ -230,15 +230,7 @@ var Data = {
                 });
                 var grid1 = $('#columnListHFD').data('kendoGrid');
                 var grid2 = $('#selectedListHFD').data('kendoGrid');
-
-                var dataSource = grid2.dataSource;
-                var recordsOnCurrentView = dataSource.view().length;
-                
-                if(recordsOnCurrentView == 30){
-                    app.showError("Max. 30 Columns")
-                }else{
-                    dbr.gridMoveTo(grid1, grid2, false);
-                }
+                dbr.gridMoveTo(grid2, grid1, false);
             },
         });
     }
@@ -494,7 +486,9 @@ dbr.gridMoveTo = function(from, to, all) {
             toDS.add({
                 _id: elem._id,
                 label: elem.label,
-                source: elem.source
+                source: elem.source,
+                order: elem.order,
+                projectname: elem.projectname,
             });
             fromDS.remove(elem);
         });
@@ -608,7 +602,8 @@ vm.breadcrumb([{
 dbr.ChangeColumnList = function() {
     dbsh.ColumnList([]);
     $.each(dbsh.AllProjectColumnList(), function(idx, val) {
-        if(val.projectname === $("#projectList").data("kendoDropDownList").value()) {
+        if(val.projectname === $("#projectList").data("kendoDropDownList").value() ||
+            val.source === "MetTower") {
             dbsh.ColumnList.push(val);
         }
     });
@@ -675,7 +670,8 @@ $(document).ready(function() {
     setTimeout(function() {
         dbsh.ColumnList([]);
         $.each(dbsh.AllProjectColumnList(), function(idx, val) {
-            if(val.projectname === $("#projectList").data("kendoDropDownList").value()) {
+            if(val.projectname === $("#projectList").data("kendoDropDownList").value() || 
+                val.source === "MetTower") {
                 dbsh.ColumnList.push(val);
             }
         });

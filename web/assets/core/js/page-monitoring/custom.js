@@ -183,8 +183,8 @@ bpc.refresh = function() {
 // turbine collaboration open
 bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
+		TbCol.ResetData();
 		if(dt.IsTurbine) {
-			TbCol.ResetData();
 			var classString = $("div").find("[data-id='"+dt.Id+"']").children().attr('class').split(' ')[1];
 			var classIcon = 'txt'+ classString.substr(10);
 			
@@ -199,7 +199,6 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.OpenForm();
 			TbCol.IconStatus(classIcon);
 		}else{
-			TbCol.ResetData();
 			TbCol.ProjectFeeder(dt.Project)
 			TbCol.Feeder(dt.Name);
 			TbCol.IsTurbine(false);

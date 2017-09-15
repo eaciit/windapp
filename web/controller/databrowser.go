@@ -111,19 +111,28 @@ func GetHFDCustomFieldList() []tk.M {
 
 	// 	atkm = append(atkm, tkm)
 	// }
-	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").Order("order").Cursor(nil)
 	if e != nil {
 		tk.Println(e.Error())
 	}
+	defer csr.Close()
 	e = csr.Fetch(&atkm, 0, false)
 	if e != nil {
 		tk.Println(e.Error())
 	}
+	for _, val := range atkm {
+		val.Set("_id", strings.ToLower(val.GetString("fieldname")))
+		val.Unset("fieldname")
+		val.Unset("realtimefield")
+	}
+	startIndex := len(atkm)
 	for i, str := range _amettower_field {
+		startIndex++
 		tkm := tk.M{}.
 			Set("_id", str).
 			Set("label", _amettower_label[i]).
-			Set("source", "MetTower")
+			Set("source", "MetTower").
+			Set("order", startIndex)
 
 		atkm = append(atkm, tkm)
 	}
