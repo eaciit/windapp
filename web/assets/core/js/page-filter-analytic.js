@@ -7,7 +7,7 @@ fa.turbineList = ko.observableArray([]);
 fa.projectList = ko.observableArray([]);
 
 fa.periodList = ko.observableArray([
-    { "value": "last24hours", "text": "Last 24 hours" },
+    { "value": "last24hours", "text": "Today" },
     { "value": "last7days", "text": "Last 7 days" },
     { "value": "monthly", "text": "Monthly" },
     { "value": "annual", "text": "Annual" },
@@ -434,14 +434,13 @@ fa.InitDefaultValue = function () {
         });
         $("#turbineList").multiselect("dataprovider",fa.turbineList());
         fa.checkTurbine();
-        fa.setPreviousFilter();
-
-        var prevFilter = fa.previousFilter();
-        
-        $.each(prevFilter, function(key,val){
-            fa.currentFilter()[key] = val
-        }); 
-
+        $.when(fa.setPreviousFilter(true)).done(function(){
+            var prevFilter = fa.previousFilter();
+            
+            $.each(prevFilter, function(key,val){
+                fa.currentFilter()[key] = val
+            }); 
+        });
     },200);
 }
 
@@ -578,15 +577,27 @@ fa.setProjectTurbine = function(projects, turbines, selected){
 	fa.populateProject(selected);
 };
 
-fa.setPreviousFilter = function(){
+fa.setPreviousFilter = function(isFirst){
     fa.infoFiltersChanged(false);
-    fa.previousFilter({
+
+    var data = {
         project: $("#projectList").data("kendoDropDownList").value(), 
         turbine: $("#turbineList").val(), 
         period: $('#periodList').data('kendoDropDownList').value(), 
         startDate: kendo.toString(new Date($('#dateStart').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
         endDate:  kendo.toString(new Date($('#dateEnd').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
-    });
+    }
+
+    fa.previousFilter(data);
+
+    if(isFirst == null){
+        fa.currentFilter(data);
+    }
+
+    if($("#btnRefresh").hasClass("tooltipstered") == true){
+        $(".filter-changed").tooltipster('destroy');
+    }
+
 }
 fa.resetFilter = function(){
     fa.infoFiltersChanged(false);
