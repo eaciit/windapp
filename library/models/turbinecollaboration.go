@@ -27,6 +27,7 @@ type TurbineCollaborationModel struct {
 	CreatedOn     time.Time
 	CreatedIp     string
 	CreatedLoc    string
+	IsDeleted     bool
 }
 
 func (m *TurbineCollaborationModel) New() *TurbineCollaborationModel {

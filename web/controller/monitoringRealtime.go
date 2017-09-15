@@ -447,16 +447,20 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}}, false)
 	waitingForWsTurbine = getDataPerTurbine("_waitingforwindspeed", tk.M{"$and": []tk.M{tk.M{"status": true}, tk.M{"projectname": project}}}, false)
 	reapetedAlarm = GetRepeatedAlarm(project, t0)
-	remarkDate := time.Date(t0.Year(), t0.Month(), t0.Day(), 0, 0, 0, 0, time.UTC)
+	// remarkDate := time.Date(t0.Year(), t0.Month(), t0.Day(), 0, 0, 0, 0, time.UTC)
 
 	pipes = []tk.M{
 		tk.M{
 			"$match": tk.M{
 				"$and": []tk.M{
 					tk.M{"projectid": project},
-					tk.M{"date": tk.M{"$gte": remarkDate}},
+					// tk.M{"date": tk.M{"$gte": remarkDate}},
+					tk.M{"isdeleted": false},
 				},
 			},
+		},
+		tk.M{
+			"$sort": tk.M{"date": -1},
 		},
 	}
 
@@ -656,8 +660,17 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	} else {
 		rtkm.Set("IsRemark", false)
 	}
+	feederRemarkList := map[string]bool{}
+	for feeder := range allturbine {
+		if remarkMaps.Has(feeder) {
+			feederRemarkList[feeder] = true
+		} else {
+			feederRemarkList[feeder] = false
+		}
+	}
 	rtkm.Set("ProjectName", project)
 	rtkm.Set("ListOfTurbine", allturbine)
+	rtkm.Set("FeederRemarkList", feederRemarkList)
 	rtkm.Set("Detail", alldata)
 	rtkm.Set("TimeNow", t0)
 	rtkm.Set("TimeMax", lastUpdate)

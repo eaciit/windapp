@@ -172,6 +172,18 @@ bpc.plotData = function(project, data) {
 			
 		});
 	}
+
+	var $feederList = $data.FeederRemarkList;
+
+	for(var key in $feederList){
+		if($feederList[key] == true){
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ key +'"]').css("display", "block !important");
+		}else{
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ key +'"]').hide();
+		}
+	}
+
+
 }
 
 // getting data every interval time
