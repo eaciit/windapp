@@ -85,7 +85,7 @@ sum.loadData = function () {
             sum.noOfProjectsExFleet(getscadalastupdate[0].NoOfProjects);
             sum.noOfTurbines(getscadalastupdate[0].NoOfTurbines);
             sum.totalMaxCapacity((getscadalastupdate[0].TotalMaxCapacity / 1000) + " MW");
-            sum.currentDown(getscadalastupdate[0].CurrentDown);
+            // sum.currentDown(getscadalastupdate[0].CurrentDown);
             sum.twoDaysDown(getscadalastupdate[0].TwoDaysDown);
 
             
@@ -113,7 +113,7 @@ sum.loadData = function () {
             sum.SummaryData((project == 'Fleet'? 'gridSummaryDataFleet' : 'gridSummaryData'),project);
 
             sum.dataSource(null);
-            sum.currentDown("N/A");
+            // sum.currentDown("N/A");
             sum.twoDaysDown("N/A");       
             sum.ProductionChart(null);
             sum.CumProduction(null);
@@ -227,9 +227,9 @@ sum.loadData = function () {
                 if (!app.isFine(res)) {
                     return;
                 }
-                if (project == "Fleet") {
-                    avail.DTTurbines();
-                } 
+                // if (project == "Fleet") {
+                //     avail.DTTurbines();
+                // } 
             });
         }
 
@@ -1177,7 +1177,6 @@ sum.removeMarkers = function(){
     arrMarkers = [];
 
 }
-
 sum.indiaMap = function (project) {
     var param = { projectname: project }
     toolkit.ajaxPost(viewModel.appName + "dashboard/getmapdata", param, function (res) {
@@ -1186,7 +1185,14 @@ sum.indiaMap = function (project) {
         }
 
         sum.removeMarkers();
-        var jsonObj = res.data;
+        var jsonObj = res.data.resultMap;
+
+        if(project === "Fleet") {
+            sum.currentDown(res.data.totalDownFleet);
+            avail.DTTurbines(res.data.turbineDownList);
+        } else {
+            sum.currentDown(res.data.downPerProject[project]);
+        }
 
         turbines =[];//Erasing the beaches array
 

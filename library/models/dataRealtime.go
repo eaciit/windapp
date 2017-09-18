@@ -1492,6 +1492,7 @@ type TurbineStatus struct {
 	AlarmCode     int
 	AlarmDesc     string
 	IsWarning     bool
+	DateStart     time.Time
 }
 
 func (m *TurbineStatus) New() *TurbineStatus {

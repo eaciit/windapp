@@ -425,12 +425,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	arrturbinestatus := GetTurbineStatus(project, "")
 
 	rconn := DBRealtime()
-	// pipes = []tk.M{
-	// 	tk.M{"$match": tk.M{"projectname": project}},
-	// 	tk.M{"$sort": tk.M{"turbine": 1, "timestamp": -1}},
-	// }
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		// Command("pipe", pipes).Cursor(nil)
 		Where(dbox.Eq("projectname", project)).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
@@ -536,7 +531,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				Set("AlarmUpdate", time.Time{}).
 				Set("Capacity", turbineMp.GetFloat64("capacity")).
 				Set("ColorStatus", "lbl bg-green").
-				Set("DefaultColorStatus", "bg-default-green")
+				Set("DefaultColorStatus", "bg-default-green").
+				Set("TotalProduction", 0.0)
 
 			for _, afield := range arrfield {
 				_itkm.Set(afield, defaultValue)
@@ -556,6 +552,11 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set("IsReapeatedAlarm", true)
 			}
 
+		}
+		if _tdata.GetString("tags") == "Total_Prod_Day_kWh" {
+			if tstamp.Truncate(time.Hour * 24).Equal(t0.Truncate(time.Hour * 24)) {
+				_itkm.Set("TotalProduction", _tdata.GetFloat64("value"))
+			}
 		}
 
 		// _iContinue = true
@@ -634,7 +635,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 			Set("IsReapeatedAlarm", false).
 			Set("Capacity", turbineMp.GetFloat64("capacity")).
 			Set("ColorStatus", "lbl bg-grey").
-			Set("DefaultColorStatus", "bg-default-grey")
+			Set("DefaultColorStatus", "bg-default-grey").
+			Set("TotalProduction", 0.0)
 
 		for _, afield := range arrfield {
 			_itkm.Set(afield, defaultValue)
@@ -901,6 +903,8 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	}
 
 	// set data projects & initiate detail data for each projects
+	defaultColorStatus := ""
+	colorStatus := ""
 	for _, p := range dataProjects {
 		projectId := p.GetString("projectid")
 		maxCap := p.GetFloat64("totalpower")
@@ -957,35 +961,38 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
 
-		isActive, isWaitingWind, isDown, isNa := true, false, false, false
-		if turbineDown > 0 {
-			isDown = true
-		} else if waitingForWind > 0 {
-			isWaitingWind = true
-		} else if turbineNA == totalTurbine {
-			isNa = true
+		if turbineNA == totalTurbine {
+			defaultColorStatus = "bg-default-grey"
+			colorStatus = "lbl bg-grey"
+		} else if turbineDown == totalTurbine {
+			defaultColorStatus = "bg-default-red"
+			colorStatus = "lbl bg-red"
+		} else if waitingForWind == totalTurbine {
+			defaultColorStatus = "bg-default-mustard"
+			colorStatus = "lbl bg-mustard"
+		} else {
+			defaultColorStatus = "bg-default-green"
+			colorStatus = "lbl bg-green"
 		}
 
 		detail := tk.M{
-			"Project":         projectId,
-			"Capacity":        maxCap,
-			"NoOfTurbine":     totalTurbine,
-			"AvgWindSpeed":    avgWs,
-			"LastUpdated":     lastUpdate,
-			"PowerGeneration": activePower,
-			"PLF":             plf,
-			"TurbineActive":   turbineAvail,
-			"TurbineDown":     turbineDown,
-			"TurbineNotAvail": turbineNA,
-			"WaitingForWind":  waitingForWind,
-			"TodayGen":        tk.Div(todayGen, 1000.0),  // convert to mwh
-			"TodayLost":       tk.Div(todayLost, 1000.0), // convert to mwh
-			"PrevDayGen":      tk.Div(prevGen, 1000.0),   // convert to mwh
-			"PrevDayLost":     tk.Div(prevLost, 1000.0),  // convert to mwh
-			"IsAvailable":     isActive,
-			"IsNotAvailable":  isNa,
-			"IsDown":          isDown,
-			"IsWaitingWind":   isWaitingWind,
+			"Project":            projectId,
+			"Capacity":           maxCap,
+			"NoOfTurbine":        totalTurbine,
+			"AvgWindSpeed":       avgWs,
+			"LastUpdated":        lastUpdate,
+			"PowerGeneration":    activePower,
+			"PLF":                plf,
+			"TurbineActive":      turbineAvail,
+			"TurbineDown":        turbineDown,
+			"TurbineNotAvail":    turbineNA,
+			"WaitingForWind":     waitingForWind,
+			"TodayGen":           tk.Div(todayGen, 1000.0),  // convert to mwh
+			"TodayLost":          tk.Div(todayLost, 1000.0), // convert to mwh
+			"PrevDayGen":         tk.Div(prevGen, 1000.0),   // convert to mwh
+			"PrevDayLost":        tk.Div(prevLost, 1000.0),  // convert to mwh
+			"DefaultColorStatus": defaultColorStatus,
+			"ColorStatus":        colorStatus,
 		}
 		details = append(details, detail)
 	}

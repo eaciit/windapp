@@ -3328,6 +3328,10 @@ func setMapData() (result tk.M) {
 	keys := ""
 	lastProject := ""
 	turbineStatus := map[string]string{}
+	turbineDownList := []tk.M{}
+	turbineName := map[string]string{}
+	currentDate := getTimeNow()
+	downPerProject := map[string]int{}
 
 	for _, dt := range lastUpdateRealtime {
 		ids, _ := tk.ToM(dt.Get("_id"))
@@ -3335,12 +3339,16 @@ func setMapData() (result tk.M) {
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
 		if lastProject != _tProject {
-			result.Set(lastProject, tk.M{
-				"grey":        dataNa,
-				"orange":      waitingForWsProject,
-				"red":         dataDowns,
-				"turbineList": turbineStatus},
-			)
+			if lastProject != "" {
+				result.Set(lastProject, tk.M{
+					"grey":        dataNa,
+					"orange":      waitingForWsProject,
+					"red":         dataDowns,
+					"turbineList": turbineStatus,
+				})
+			}
+			downPerProject[_tProject] = 0
+			turbineName, _ = helper.GetTurbineNameList(_tProject)
 			lastProject = _tProject
 			turbineStatus = map[string]string{}
 			waitingForWsProject = 0
@@ -3359,6 +3367,14 @@ func setMapData() (result tk.M) {
 
 		if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
 			if _idt.Status == 0 && isDataComing {
+				downHours := currentDate.UTC().Sub(_idt.DateStart.UTC()).Hours()
+				dtDown := tk.M{
+					"_id":    turbineName[_idt.Turbine],
+					"result": downHours,
+					"isdown": true,
+				}
+				downPerProject[_tProject]++
+				turbineDownList = append(turbineDownList, dtDown)
 				turbineStatus[_tTurbine] = "red"
 				dataDowns++
 			} else if waitingForWs.Has(keys) && isDataComing {
@@ -3372,9 +3388,12 @@ func setMapData() (result tk.M) {
 			"grey":        dataNa,
 			"orange":      waitingForWsProject,
 			"red":         dataDowns,
-			"turbineList": turbineStatus},
-		)
+			"turbineList": turbineStatus,
+		})
 	}
+	result.Set("turbineDownList", turbineDownList)
+	result.Set("downAll", len(turbineDownList))
+	result.Set("downPerProject", downPerProject)
 
 	return
 }
@@ -3402,7 +3421,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		projects = projectList
 	}
 
-	results := []tk.M{}
+	resultMap := []tk.M{}
 	projectTurbineStatus := setMapData()
 	projectVal := tk.M{}
 	turbineCount := 0
@@ -3426,7 +3445,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 					"status": turbineStatus[turbine.Value],
 				})
 			}
-			results = res
+			resultMap = res
 		} else {
 			if projectVal.GetInt("grey") == turbineCount {
 				stsProj = "grey"
@@ -3437,7 +3456,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 			} else {
 				stsProj = "green"
 			}
-			results = append(results, tk.M{
+			resultMap = append(resultMap, tk.M{
 				"name":   project.Value,
 				"value":  project.Value,
 				"coords": project.Coords,
@@ -3446,6 +3465,11 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		}
 	}
 
+	results := tk.M{}
+	results.Set("resultMap", resultMap)
+	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
+	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
+	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
 	return helper.CreateResult(true, results, "success")
 }
 

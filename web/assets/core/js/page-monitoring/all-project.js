@@ -90,27 +90,8 @@ page.generateView = function(){
         }       
 
         var comparison = 0;
-        var defaultColorStatus = "bg-default-green"
-        var colorStatus = "lbl bg-green"
-
-        // adding condition for project na
-        var isgrey = (val.TurbineActive==0 && val.WaitingForWind==0 && val.TurbineDown==0);
-        if(isgrey) {
-            defaultColorStatus = "bg-default-grey";
-            colorStatus = "lbl bg-grey";
-        }
-
-        var ismustard = (val.WaitingForWind>0);
-        if(ismustard) {
-            defaultColorStatus = "bg-default-mustard";
-            colorStatus = "lbl bg-mustard";
-        }
-
-        var isred = (val.TurbineDown>0);
-        if(isred) {
-            defaultColorStatus = "bg-default-red";
-            colorStatus = "lbl bg-red";
-        }
+        var defaultColorStatus = val.DefaultColorStatus
+        var colorStatus = val.ColorStatus
 
         $('#statusprojectdefault_'+ val.Project).addClass(defaultColorStatus);
 

@@ -13,9 +13,9 @@
 
 <script type="text/html" id="turbine-template">
     <div data-bind="css: { 'no-padding': true, 'cusmon-feed': (!t.IsTurbine), 'col-xs-4': (!t.IsTurbine), 'col-xs-2': t.IsTurbine }" class="turbine-detail">
-        <div class="test">
+        <div class="total-production" data-toggle="tooltip" data-placement="top" data-bind="attr: { 'data-id': t.Id }">
             <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}">
-                <i class="icon-remark fa fa-circle" data-toggle="tooltip" data-placement="top" title="Have Remark" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>&nbsp;
+                <i class="icon-remark fa fa-circle" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>&nbsp;
                 <span data-bind="text: t.Name"></span>
             </a>
             <div class="progress" data-bind="visible: t.IsTurbine, attr: { 'data-id': t.Id }">
