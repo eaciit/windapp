@@ -90,25 +90,8 @@ page.generateView = function(){
         }       
 
         var comparison = 0;
-        var defaultColorStatus = "bg-default-green"
-        var colorStatus = "lbl bg-green"
-
-        // adding condition for project na
-        var isgrey = (val.TurbineActive==0 && val.WaitingForWind==0 && val.TurbineDown==0);
-        if(isgrey) {
-            defaultColorStatus = "bg-default-grey";
-            colorStatus = "lbl bg-grey";
-        }
-        var isred = (val.TurbineDown>0);
-        if(isred) {
-            defaultColorStatus = "bg-default-red";
-            colorStatus = "lbl bg-red";
-        }
-        var ismustard = (val.WaitingForWind>0);
-        if(ismustard) {
-            defaultColorStatus = "bg-default-mustard";
-            colorStatus = "lbl bg-mustard";
-        }
+        var defaultColorStatus = val.DefaultColorStatus
+        var colorStatus = val.ColorStatus
 
         $('#statusprojectdefault_'+ val.Project).addClass(defaultColorStatus);
 
@@ -130,14 +113,12 @@ page.generateView = function(){
 }
 
 page.ToByProject = function(project) {
-    app.loading(true);
-    var oldDateObj = new Date();
-    var newDateObj = moment(oldDateObj).add(3, 'm');
-    document.cookie = "project="+project.split("(")[0].trim()+";expires="+ newDateObj;
-    console.log(document.cookie);
-    if(document.cookie.indexOf("project=") >= 0) {
-        window.location = viewModel.appName + "page/monitoringbyproject";
-    } else {
-        app.loading(false);
-    }
+    setTimeout(function(){
+        app.loading(true);
+        app.resetLocalStorage();
+        localStorage.setItem('projectname', project);
+        if(localStorage.getItem('projectname') !== null){
+            window.location = viewModel.appName + "page/monitoringbyproject";
+        }
+    },1500);
 }

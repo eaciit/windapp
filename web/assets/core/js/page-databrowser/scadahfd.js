@@ -7,6 +7,7 @@ var dbsh = viewModel.DatabrowserScadaHFD;
 dbsh.selectedColumn = ko.observableArray([]);
 dbsh.unselectedColumn = ko.observableArray([]);
 dbsh.ColumnList = ko.observableArray([]);
+dbsh.AllProjectColumnList = ko.observableArray([]);
 dbsh.ColList = ko.observableArray([]);
 dbsh.defaultSelectedColumn = ko.observableArray();
 
@@ -256,15 +257,24 @@ dbsh.showColumnHFD = function() {
         dbsh.selectedColumn.push({
             _id: val._id,
             label: val.label,
-            source: val.source
+            source: val.source,
+            order: val.order,
+            projectname: val.projectname,
         });
+    });
+    dbsh.selectedColumn().sort(function(a, b){
+        return b.order < a.order ? 1
+        : b.order > a.order ? -1
+        : 0;
     });
 
     $.each($('#columnListHFD').data('kendoGrid').dataSource.data(), function(i, val) {
         dbsh.unselectedColumn.push({
             _id: val._id,
             label: val.label,
-            source: val.source
+            source: val.source,
+            order: val.order,
+            projectname: val.projectname,
         });
     });
 

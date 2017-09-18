@@ -208,10 +208,10 @@ var Data = {
             theme: "flat",
             dataSource: {
                 data: dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn(),
-                sort: [{
-                    field: 'label',
-                    dir: 'asc'
-                }],
+                // sort: [{
+                //     field: 'label',
+                //     dir: 'asc'
+                // }],
             },
             height: 300,
             scrollable: true,
@@ -230,15 +230,7 @@ var Data = {
                 });
                 var grid1 = $('#columnListHFD').data('kendoGrid');
                 var grid2 = $('#selectedListHFD').data('kendoGrid');
-
-                var dataSource = grid2.dataSource;
-                var recordsOnCurrentView = dataSource.view().length;
-                
-                if(recordsOnCurrentView == 30){
-                    app.showError("Max. 30 Columns")
-                }else{
-                    dbr.gridMoveTo(grid1, grid2, false);
-                }
+                dbr.gridMoveTo(grid2, grid1, false);
             },
         });
     }
@@ -494,7 +486,9 @@ dbr.gridMoveTo = function(from, to, all) {
             toDS.add({
                 _id: elem._id,
                 label: elem.label,
-                source: elem.source
+                source: elem.source,
+                order: elem.order,
+                projectname: elem.projectname,
             });
             fromDS.remove(elem);
         });
@@ -605,6 +599,39 @@ vm.breadcrumb([{
     href: viewModel.appName + 'page/databrowser'
 }]);
 
+dbr.ChangeColumnList = function() {
+    dbsh.ColumnList([]);
+    $.each(dbsh.AllProjectColumnList(), function(idx, val) {
+        if(val.projectname === $("#projectList").data("kendoDropDownList").value() ||
+            val.source === "MetTower") {
+            dbsh.ColumnList.push(val);
+        }
+    });
+    dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
+    var tempSelected = dbsh.selectedColumn();
+    dbsh.selectedColumn([]);
+    $.each(dbsh.AllProjectColumnList(), function(idxAll, valAll) {
+        $.each(tempSelected, function(idxSelect, valSelect) {
+            if(valAll.projectname === valSelect.projectname && valAll.source === valSelect.source &&
+                valAll._id === valSelect._id) {
+                dbsh.selectedColumn.push(valAll);
+            }
+        });
+    });
+
+    var tempUnselected = dbsh.unselectedColumn();
+    dbsh.unselectedColumn([]);
+    $.each(dbsh.AllProjectColumnList(), function(idxAll, valAll) {
+        $.each(tempUnselected, function(idxSelect, valSelect) {
+            if(valAll.projectname === valSelect.projectname && valAll.source === valSelect.source &&
+                valAll._id === valSelect._id) {
+                dbsh.unselectedColumn.push(valAll);
+            }
+        });
+    });
+    dbsh.getColumnListHFD();
+}
+
 $(document).ready(function() {
     // app.loading(true);
     dbr.getAvailDate();
@@ -641,12 +668,22 @@ $(document).ready(function() {
     });
 
     setTimeout(function() {
+        dbsh.ColumnList([]);
+        $.each(dbsh.AllProjectColumnList(), function(idx, val) {
+            if(val.projectname === $("#projectList").data("kendoDropDownList").value() || 
+                val.source === "MetTower") {
+                dbsh.ColumnList.push(val);
+            }
+        });
         dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
         dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
         fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
+        $("#projectList").on("change", function(event) { 
+             dbr.ChangeColumnList();
+        });
     }, 1000);
 
     $('#projectList').kendoDropDownList({

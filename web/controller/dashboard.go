@@ -3282,6 +3282,122 @@ func getMapCol(project string) tk.Ms {
 	return data
 }
 
+func setMapData() (result tk.M) {
+	// initiate all variables
+	result = tk.M{}
+	// set database to realtime data db
+	rconn := DBRealtime()
+	t0 := getTimeNow()
+
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"projectname": tk.M{"$ne": ""}}}}
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":         tk.M{"projectname": "$projectname", "turbine": "$turbine"},
+		"lastupdated": tk.M{"$max": "$timestamp"},
+	}})
+	pipes = append(pipes, tk.M{
+		"$sort": tk.M{
+			"_id.projectname": 1,
+		},
+	})
+
+	csrNa, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).Command("pipe", pipes).Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	defer csrNa.Close()
+	lastUpdateRealtime := []tk.M{}
+	err = csrNa.Fetch(&lastUpdateRealtime, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	arrturbinestatus := GetTurbineStatus("", "")
+	// get no of turbine waiting for wind status
+	waitingForWs := getDataPerTurbine("_waitingforwindspeed", tk.M{
+		"$and": []tk.M{
+			tk.M{"status": true},
+		}}, false)
+
+	waitingForWsProject := 0
+	dataNa := 0
+	dataDowns := 0
+	_tTurbine := ""
+	_tProject := ""
+	isDataComing := false
+	var tstamp time.Time
+	keys := ""
+	lastProject := ""
+	turbineStatus := map[string]string{}
+	turbineDownList := []tk.M{}
+	turbineName := map[string]string{}
+	currentDate := getTimeNow()
+	downPerProject := map[string]int{}
+
+	for _, dt := range lastUpdateRealtime {
+		ids, _ := tk.ToM(dt.Get("_id"))
+		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
+		_tTurbine = ids.GetString("turbine")
+		_tProject = ids.GetString("projectname")
+		if lastProject != _tProject {
+			if lastProject != "" {
+				result.Set(lastProject, tk.M{
+					"grey":        dataNa,
+					"orange":      waitingForWsProject,
+					"red":         dataDowns,
+					"turbineList": turbineStatus,
+				})
+			}
+			downPerProject[_tProject] = 0
+			turbineName, _ = helper.GetTurbineNameList(_tProject)
+			lastProject = _tProject
+			turbineStatus = map[string]string{}
+			waitingForWsProject = 0
+			dataNa = 0
+			dataDowns = 0
+		}
+		turbineStatus[_tTurbine] = "green"
+		if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
+			isDataComing = true
+		} else {
+			turbineStatus[_tTurbine] = "grey"
+			isDataComing = false
+			dataNa++
+		}
+		keys = _tProject + "_" + _tTurbine
+
+		if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
+			if _idt.Status == 0 && isDataComing {
+				downHours := currentDate.UTC().Sub(_idt.DateStart.UTC()).Hours()
+				dtDown := tk.M{
+					"_id":    turbineName[_idt.Turbine],
+					"result": downHours,
+					"isdown": true,
+				}
+				downPerProject[_tProject]++
+				turbineDownList = append(turbineDownList, dtDown)
+				turbineStatus[_tTurbine] = "red"
+				dataDowns++
+			} else if waitingForWs.Has(keys) && isDataComing {
+				turbineStatus[_tTurbine] = "orange"
+				waitingForWsProject++
+			}
+		}
+	}
+	if lastProject != "" {
+		result.Set(lastProject, tk.M{
+			"grey":        dataNa,
+			"orange":      waitingForWsProject,
+			"red":         dataDowns,
+			"turbineList": turbineStatus,
+		})
+	}
+	result.Set("turbineDownList", turbineDownList)
+	result.Set("downAll", len(turbineDownList))
+	result.Set("downPerProject", downPerProject)
+
+	return
+}
+
 func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -3305,69 +3421,42 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		projects = projectList
 	}
 
-	results := []tk.M{}
+	resultMap := []tk.M{}
+	projectTurbineStatus := setMapData()
+	projectVal := tk.M{}
+	turbineCount := 0
+	turbineStatus := map[string]string{}
 
 	for _, project := range projects {
-		tmpRes := GetMonitoringByProjectV2(project.Value, 0.0, "dashboard")
-		detail := tmpRes.Get("Detail").([]tk.M)
 		res := []tk.M{}
 		stsProj := ""
-
+		turbineList, _ := helper.GetTurbineList([]interface{}{project.Value})
+		turbineCount = len(turbineList)
+		if projectTurbineStatus.Has(project.Value) {
+			projectVal = projectTurbineStatus.Get(project.Value, tk.M{}).(tk.M)
+		}
 		if projectName != "Fleet" {
-			turbineList, _ := helper.GetTurbineList([]interface{}{project.Value})
+			turbineStatus = projectVal.Get("turbineList", map[string]string{}).(map[string]string)
 			for _, turbine := range turbineList {
 				res = append(res, tk.M{
 					"name":   turbine.Turbine,
 					"value":  turbine.Value,
 					"coords": turbine.Coords,
-					"status": "grey",
+					"status": turbineStatus[turbine.Value],
 				})
 			}
-		}
-
-		for _, vd := range detail {
-			value := vd.GetString("value")
-			sts := "green"
-
-			status := vd.GetInt("Status")
-			dataComing := vd.GetInt("DataComing")
-			isWarning := vd.Get("IsWarning").(bool)
-
-			if status == 0 {
-				sts = "red"
-				if dataComing == 1 {
-					stsProj = "red"
-				}
-			} else if status == 1 && isWarning {
-				sts = "orange"
-				if stsProj != "red" {
-					stsProj = "orange"
-				}
-			} else if status == 1 && dataComing == 1 {
-				if stsProj != "red" && stsProj != "orange" {
-					stsProj = "green"
-				}
-			}
-
-			if dataComing == 0 {
-				sts = "grey"
-				if stsProj != "red" && stsProj != "orange" && stsProj != "green" {
-					stsProj = "grey"
-				}
-			}
-
-			for _, rs := range res {
-				if rs.GetString("value") == value {
-					rs.Set("status", sts)
-				}
-			}
-
-		}
-
-		if projectName != "Fleet" {
-			results = res
+			resultMap = res
 		} else {
-			results = append(results, tk.M{
+			if projectVal.GetInt("grey") == turbineCount {
+				stsProj = "grey"
+			} else if projectVal.GetInt("red") == turbineCount {
+				stsProj = "red"
+			} else if projectVal.GetInt("orange") == turbineCount {
+				stsProj = "orange"
+			} else {
+				stsProj = "green"
+			}
+			resultMap = append(resultMap, tk.M{
 				"name":   project.Value,
 				"value":  project.Value,
 				"coords": project.Coords,
@@ -3376,6 +3465,11 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 		}
 	}
 
+	results := tk.M{}
+	results.Set("resultMap", resultMap)
+	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
+	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
+	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
 	return helper.CreateResult(true, results, "success")
 }
 

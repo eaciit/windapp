@@ -7,7 +7,7 @@ fa.turbineList = ko.observableArray([]);
 fa.projectList = ko.observableArray([]);
 
 fa.periodList = ko.observableArray([
-    { "value": "last24hours", "text": "Last 24 hours" },
+    { "value": "last24hours", "text": "Today" },
     { "value": "last7days", "text": "Last 7 days" },
     { "value": "monthly", "text": "Monthly" },
     { "value": "annual", "text": "Annual" },
@@ -434,14 +434,13 @@ fa.InitDefaultValue = function () {
         });
         $("#turbineList").multiselect("dataprovider",fa.turbineList());
         fa.checkTurbine();
-        fa.setPreviousFilter();
-
-        var prevFilter = fa.previousFilter();
-        
-        $.each(prevFilter, function(key,val){
-            fa.currentFilter()[key] = val
-        }); 
-
+        $.when(fa.setPreviousFilter(true)).done(function(){
+            var prevFilter = fa.previousFilter();
+            
+            $.each(prevFilter, function(key,val){
+                fa.currentFilter()[key] = val
+            }); 
+        });
     },200);
 }
 
@@ -578,15 +577,27 @@ fa.setProjectTurbine = function(projects, turbines, selected){
 	fa.populateProject(selected);
 };
 
-fa.setPreviousFilter = function(){
+fa.setPreviousFilter = function(isFirst){
     fa.infoFiltersChanged(false);
-    fa.previousFilter({
+
+    var data = {
         project: $("#projectList").data("kendoDropDownList").value(), 
         turbine: $("#turbineList").val(), 
         period: $('#periodList').data('kendoDropDownList').value(), 
         startDate: kendo.toString(new Date($('#dateStart').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
         endDate:  kendo.toString(new Date($('#dateEnd').data('kendoDatePicker').value()), "dd-MMM-yyyy"),
-    });
+    }
+
+    fa.previousFilter(data);
+
+    if(isFirst == null){
+        fa.currentFilter(data);
+    }
+
+    if($("#btnRefresh").hasClass("tooltipstered") == true){
+        $(".filter-changed").tooltipster('destroy');
+    }
+
 }
 fa.resetFilter = function(){
     fa.infoFiltersChanged(false);
@@ -611,37 +622,39 @@ fa.resetFilter = function(){
 }
 
 fa.checkFilter = function(){
-    fa.infoFiltersChanged(false);
-    $.each(fa.currentFilter(), function(key, val){
-        if(key == "turbine"){
-            var diff = [];
-            if(fa.previousFilter().turbine.length > fa.currentFilter().turbine.length){
-                $.grep(fa.previousFilter().turbine, function(el) {
-                        if ($.inArray(el, fa.currentFilter().turbine) == -1) diff.push(el);
-                });  
-            }else{
-                $.grep(fa.currentFilter().turbine, function(el) {
-                        if ($.inArray(el, fa.previousFilter().turbine) == -1) diff.push(el);
-                }); 
-            }
+    // fa.infoFiltersChanged(false);
+    // $.each(fa.currentFilter(), function(key, val){
+    //     if(key == "turbine"){
+    //         var diff = [];
+    //         if(fa.previousFilter().turbine.length > fa.currentFilter().turbine.length){
+    //             $.grep(fa.previousFilter().turbine, function(el) {
+    //                     if ($.inArray(el, fa.currentFilter().turbine) == -1) diff.push(el);
+    //             });  
+    //         }else{
+    //             $.grep(fa.currentFilter().turbine, function(el) {
+    //                     if ($.inArray(el, fa.previousFilter().turbine) == -1) diff.push(el);
+    //             }); 
+    //         }
 
-            if(diff.length > 0){
-                fa.infoFiltersChanged(true);
-            }
-        }else{
-            if(fa.previousFilter()[key] !== val){
-                fa.infoFiltersChanged(true);
-            }
-        }
-    });
+    //         if(diff.length > 0){
+    //             fa.infoFiltersChanged(true);
+    //         }
+    //     }else{
+    //         if(fa.previousFilter()[key] !== val){
+    //             fa.infoFiltersChanged(true);
+    //         }
+    //     }
+    // });
 
-    if(fa.infoFiltersChanged() == true){
-         fa.setTextFilterChanged();
-    }else{
-        if($("#btnRefresh").hasClass("tooltipstered") == true){
-            $(".filter-changed").tooltipster('destroy');
-        }
-    }
+    // if(fa.infoFiltersChanged() == true){
+    //      fa.setTextFilterChanged();
+    // }else{
+    //     if($("#btnRefresh").hasClass("tooltipstered") == true){
+    //         $(".filter-changed").tooltipster('destroy');
+    //     }
+    // }
+
+    return false;
    
 
 }

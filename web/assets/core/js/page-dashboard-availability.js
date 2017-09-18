@@ -134,7 +134,7 @@ avail.loadData = function () {
                     avail.DTLostEnergyData(res.data.lostenergy);
                     avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
                 }
-                avail.DTTurbines();
+                // avail.DTTurbines();
             } else {
                 avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
             }
@@ -1745,22 +1745,44 @@ avail.DTTopDetail = function (e, type) {
 
 }
 
-avail.DTTurbines = function () {
-    var project = $("#projectId").data("kendoDropDownList").value();
-    var date = maxdate;//new Date(Date.UTC(2016, 5, 30, 23, 50, 0, 0));
-    var param = { ProjectName: project, Date: date };
+avail.DTTurbines = function (turbineDownList) {
+    // var project = $("#projectId").data("kendoDropDownList").value();
+    // var date = maxdate;//new Date(Date.UTC(2016, 5, 30, 23, 50, 0, 0));
+    // var param = { ProjectName: project, Date: date };
 
+    // $("#dtturbines").html("");
+
+    // toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeturbines", param, function (res) {
+    //     if (!app.isFine(res)) {
+    //         return;
+    //     }
+
+    //     if (res.data == null){
+    //         $("#dtturbines").html("<center><h2>NONE</h2></center>");
+    //     }else{
+    //         $.each(res.data, function (idx, val) {
+    //         var btn = "btn-success";
+    //         var turbine = val._id;
+    //         var value = val.result.toFixed(2);
+
+    //         if (val.isdown == true) {
+    //             btn = "btn-danger";
+    //         }
+
+    //         $("#dtturbines").append('<div class="btn-group" role="group">' +
+    //             '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
+    //             '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
+    //             '</div>');
+    //         });
+    //     }        
+    // });
     $("#dtturbines").html("");
-
-    toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeturbines", param, function (res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-
-        if (res.data == null){
-            $("#dtturbines").html("<center><h2>NONE</h2></center>");
-        }else{
-            $.each(res.data, function (idx, val) {
+    $("#dtturbinesAvail").html("");
+    if (turbineDownList.length == 0) {
+        $("#dtturbines").html("<center><h2>NONE</h2></center>");
+        $("#dtturbinesAvail").html("<center><h2>NONE</h2></center>");
+    } else {
+        $.each(turbineDownList, function (idx, val) {
             var btn = "btn-success";
             var turbine = val._id;
             var value = val.result.toFixed(2);
@@ -1773,9 +1795,12 @@ avail.DTTurbines = function () {
                 '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
                 '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
                 '</div>');
-            });
-        }        
-    });
+            $("#dtturbinesAvail").append('<div class="btn-group" role="group">' +
+                '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
+                '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
+                '</div>');
+        });
+    }
 }
 
 avail.toDetailLossEnergyLevel1 = function (e, source) {

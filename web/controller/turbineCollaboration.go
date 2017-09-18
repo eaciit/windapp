@@ -43,8 +43,8 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 	project := payload.Project
 	feeder := payload.Feeder
 	take := payload.Take
-	tNow := time.Now()
-	timestamp := time.Date(tNow.Year(), tNow.Month(), tNow.Day(), 0, 0, 0, 0, time.UTC)
+	// indiaTime := getTimeNow()
+	// timestamp := time.Date(indiaTime.Year(), indiaTime.Month(), indiaTime.Day(), 0, 0, 0, 0, time.UTC)
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(TurbineCollaborationModel).TableName()).
@@ -53,16 +53,17 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 				dbox.Eq("turbineid", turbine),
 				dbox.Eq("projectid", project),
 				dbox.Eq("feeder", feeder),
-				dbox.Gte("date", timestamp),
+				// dbox.Gte("date", timestamp),
+				dbox.Eq("isdeleted", false),
 			),
 		).
 		Order("-date").Take(take).
 		Cursor(nil)
-	defer csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	defer csr.Close()
 
 	turbColls := TurbineCollaborationModel{}
 	if csr.Count() > 0 {
@@ -88,13 +89,15 @@ func (m *TurbineCollaborationController) Save(k *knot.WebContext) interface{} {
 		Date        string
 		Status      string
 		Remark      string
+		IsDeleted   bool
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	date, _ := time.Parse("2006-01-02T15:04:05Z", p.Date)
+	// date, _ := time.Parse("2006-01-02T15:04:05Z", p.Date)
+	date := getTimeNow()
 
 	createdBy := ""     //tUser.LoginID
 	createdByName := "" //tUser.FullName
@@ -114,9 +117,10 @@ func (m *TurbineCollaborationController) Save(k *knot.WebContext) interface{} {
 	mdl.Remark = p.Remark
 	mdl.CreatedBy = createdBy
 	mdl.CreatedByName = createdByName
-	mdl.CreatedOn = time.Now()
+	mdl.CreatedOn = time.Now().UTC()
 	mdl.CreatedIp = createdIp
 	mdl.CreatedLoc = createdLoc
+	mdl.IsDeleted = p.IsDeleted
 
 	if p.Id != "" {
 		mdl.Id = p.Id

@@ -167,11 +167,26 @@ bpc.plotData = function(project, data) {
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
+
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="'+ dt.Turbine +'"]').attr("title","Tot. Prod : "+ kendo.toString(dt.TotalProduction,'n2'));
+
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
 			
 		});
 	}
+
+	var $feederList = $data.FeederRemarkList;
+
+	for(var key in $feederList){
+		if($feederList[key] == true){
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ key +'"]').css("display", "block !important");
+		}else{
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ key +'"]').hide();
+		}
+	}
+
+
 }
 
 // getting data every interval time
@@ -183,8 +198,8 @@ bpc.refresh = function() {
 // turbine collaboration open
 bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
+		TbCol.ResetData();
 		if(dt.IsTurbine) {
-			TbCol.ResetData();
 			var classString = $("div").find("[data-id='"+dt.Id+"']").children().attr('class').split(' ')[1];
 			var classIcon = 'txt'+ classString.substr(10);
 			
@@ -199,7 +214,6 @@ bpc.OpenTurbineCollaboration = function(dt) {
 			TbCol.OpenForm();
 			TbCol.IconStatus(classIcon);
 		}else{
-			TbCol.ResetData();
 			TbCol.ProjectFeeder(dt.Project)
 			TbCol.Feeder(dt.Name);
 			TbCol.IsTurbine(false);
@@ -220,18 +234,19 @@ bpc.OpenModal = function(data){
 bpc.ToIndividualTurbine = function(data) {
 	return function(data) {
 		if(data.IsTurbine) {
-		    app.loading(true);
-		    var oldDateObj = new Date();
-		    var newDateObj = moment(oldDateObj).add(3, 'm');
-		    document.cookie = "projectname="+data.Project.split("(")[0].trim()+";expires="+ newDateObj;
-		    document.cookie = "turbine="+data.Id+";expires="+ newDateObj;
-		    document.cookie = "isFromSummary=true;expires="+ newDateObj;
-		    document.cookie = "isFromByProject=false;expires="+ newDateObj;
-		    if(document.cookie.indexOf("projectname=") >= 0 && document.cookie.indexOf("turbine=") >= 0 && document.cookie.indexOf("isFromSummary=") >= 0 && document.cookie.indexOf("isFromByProject=") >= 0) {
-		        window.location = viewModel.appName + "page/monitoringbyturbine";
-		    } else {
-		        app.loading(false);
-		    }
+	    setTimeout(function(){
+	        app.loading(true);
+	        app.resetLocalStorage();
+	        localStorage.setItem('turbine', data.Id);
+	        localStorage.setItem('projectname', data.Project);
+	        localStorage.setItem('isFromSummary', true);
+	        localStorage.setItem('isFromByProject', false);
+
+	        if(localStorage.getItem("turbine") !== null && localStorage.getItem("projectname")){
+	        	window.location = viewModel.appName + "page/monitoringbyturbine";
+	        }
+	        
+	    },1500);
 		}
 	}
 }

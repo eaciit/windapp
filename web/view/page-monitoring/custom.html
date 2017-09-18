@@ -13,9 +13,14 @@
 
 <script type="text/html" id="turbine-template">
     <div data-bind="css: { 'no-padding': true, 'cusmon-feed': (!t.IsTurbine), 'col-xs-4': (!t.IsTurbine), 'col-xs-2': t.IsTurbine }" class="turbine-detail">
-        <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}"><i class="icon-remark fa fa-circle" data-toggle="tooltip" data-placement="top" title="Have Remark" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>&nbsp;<span data-bind="text: t.Name"></span></a>
-        <div class="progress" data-bind="visible: t.IsTurbine, attr: { 'data-id': t.Id }">
-          <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="total-production" data-toggle="tooltip" data-placement="top" data-bind="attr: { 'data-id': t.Id }">
+            <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}">
+                <i class="icon-remark fa fa-circle" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>&nbsp;
+                <span data-bind="text: t.Name"></span>
+            </a>
+            <div class="progress" data-bind="visible: t.IsTurbine, attr: { 'data-id': t.Id }">
+              <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
         </div>
     </div>
 </script>
@@ -97,11 +102,24 @@
 
                         <div class="ui-state-default col-md-3 col-xs-6">
                             <div class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }"> 
-                                <h4 class="cusmon-title"><span data-bind="text: Name, click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}"></span>&nbsp;<i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i></h4>     
+                                <h4 class="cusmon-title text-left">
+                                    <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
+                                    <span data-bind="text: ProjectId, click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span>
+                                </h4>    
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' },attr: { 'id': 'cusmon-turbine-' + ProjectId }"></div>
                             </div>
                         </div>
 
+                    </div>
+                    <div class="col-md-12 notes">
+                        <b>Notes :</b> &nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-red"></i>&nbsp;&nbsp;Turbine Down&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-grey bordered no-padding"></i>&nbsp;&nbsp;Data Delay&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-grey"></i>&nbsp;&nbsp;Data N/A&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-greenneon"></i>&nbsp;&nbsp;Curtailment of Power&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-mustard"></i>&nbsp;&nbsp;Waiting for Wind&nbsp;&nbsp;&nbsp;
+                        <i class="fa fa-square fa-white bordered-red no-padding"></i>&nbsp;&nbsp;Down ≥ 3 times&nbsp;&nbsp;&nbsp;
                     </div>
                 </div>
             </div>
