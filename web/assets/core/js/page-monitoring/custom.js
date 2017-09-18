@@ -167,6 +167,9 @@ bpc.plotData = function(project, data) {
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
+
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="'+ dt.Turbine +'"]').attr("title","Tot. Prod : "+ kendo.toString(dt.TotalProduction,'n2'));
+
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
 			
