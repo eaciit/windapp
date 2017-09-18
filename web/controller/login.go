@@ -14,10 +14,12 @@ import (
 	"github.com/eaciit/toolkit"
 
 	. "eaciit/wfdemo-git/library/core"
+	"sync"
 )
 
 type LoginController struct {
 	App
+	mux sync.Mutex
 }
 
 type Availdatedata struct {
@@ -168,7 +170,9 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 		WriteLog(sessid, "realtime login", r.Request.URL.String())
 		r.SetSession("sessionid", sessid)
 		r.SetSession("menus", menus)
+		l.mux.Lock()
 		helper.WC = r
+		l.mux.Unlock()
 		MenuList = menus
 
 		datePeriod := getLastAvailDate()
@@ -208,7 +212,9 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	WriteLog(sessid, "login", r.Request.URL.String())
 	r.SetSession("sessionid", sessid)
 	r.SetSession("menus", menus)
+	l.mux.Lock()
 	helper.WC = r
+	l.mux.Unlock()
 	MenuList = menus
 
 	// Get Available Date All Collection

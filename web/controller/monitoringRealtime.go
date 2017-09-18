@@ -901,6 +901,8 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	}
 
 	// set data projects & initiate detail data for each projects
+	defaultColorStatus := ""
+	colorStatus := ""
 	for _, p := range dataProjects {
 		projectId := p.GetString("projectid")
 		maxCap := p.GetFloat64("totalpower")
@@ -957,35 +959,38 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
 
-		isActive, isWaitingWind, isDown, isNa := true, false, false, false
-		if turbineDown > 0 {
-			isDown = true
-		} else if waitingForWind > 0 {
-			isWaitingWind = true
-		} else if turbineNA == totalTurbine {
-			isNa = true
+		if turbineNA == totalTurbine {
+			defaultColorStatus = "bg-default-grey"
+			colorStatus = "lbl bg-grey"
+		} else if turbineDown == totalTurbine {
+			defaultColorStatus = "bg-default-red"
+			colorStatus = "lbl bg-red"
+		} else if waitingForWind == totalTurbine {
+			defaultColorStatus = "bg-default-mustard"
+			colorStatus = "lbl bg-mustard"
+		} else {
+			defaultColorStatus = "bg-default-green"
+			colorStatus = "lbl bg-green"
 		}
 
 		detail := tk.M{
-			"Project":         projectId,
-			"Capacity":        maxCap,
-			"NoOfTurbine":     totalTurbine,
-			"AvgWindSpeed":    avgWs,
-			"LastUpdated":     lastUpdate,
-			"PowerGeneration": activePower,
-			"PLF":             plf,
-			"TurbineActive":   turbineAvail,
-			"TurbineDown":     turbineDown,
-			"TurbineNotAvail": turbineNA,
-			"WaitingForWind":  waitingForWind,
-			"TodayGen":        tk.Div(todayGen, 1000.0),  // convert to mwh
-			"TodayLost":       tk.Div(todayLost, 1000.0), // convert to mwh
-			"PrevDayGen":      tk.Div(prevGen, 1000.0),   // convert to mwh
-			"PrevDayLost":     tk.Div(prevLost, 1000.0),  // convert to mwh
-			"IsAvailable":     isActive,
-			"IsNotAvailable":  isNa,
-			"IsDown":          isDown,
-			"IsWaitingWind":   isWaitingWind,
+			"Project":            projectId,
+			"Capacity":           maxCap,
+			"NoOfTurbine":        totalTurbine,
+			"AvgWindSpeed":       avgWs,
+			"LastUpdated":        lastUpdate,
+			"PowerGeneration":    activePower,
+			"PLF":                plf,
+			"TurbineActive":      turbineAvail,
+			"TurbineDown":        turbineDown,
+			"TurbineNotAvail":    turbineNA,
+			"WaitingForWind":     waitingForWind,
+			"TodayGen":           tk.Div(todayGen, 1000.0),  // convert to mwh
+			"TodayLost":          tk.Div(todayLost, 1000.0), // convert to mwh
+			"PrevDayGen":         tk.Div(prevGen, 1000.0),   // convert to mwh
+			"PrevDayLost":        tk.Div(prevLost, 1000.0),  // convert to mwh
+			"DefaultColorStatus": defaultColorStatus,
+			"ColorStatus":        colorStatus,
 		}
 		details = append(details, detail)
 	}
