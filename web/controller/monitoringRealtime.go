@@ -1180,7 +1180,7 @@ func temperatureProcess(project string, tempNormalData, temperatureData, waiting
 					timestart = tkItem.Get("timeend", time.Time{}).(time.Time).UTC()
 				}
 				value = tkItem.GetFloat64("value")
-				notestart := tkItem.GetString("noteend")
+				notestart := tkItem.GetString("notestart")
 
 				timeString = timestart.Format("02 Jan 06 15:04:05")
 				tempInfo[tkItem.GetString("tags")] = tk.Sprintf("%.2f %s<br />(%s)", value, units, timeString)
