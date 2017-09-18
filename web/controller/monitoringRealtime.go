@@ -425,12 +425,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	arrturbinestatus := GetTurbineStatus(project, "")
 
 	rconn := DBRealtime()
-	// pipes = []tk.M{
-	// 	tk.M{"$match": tk.M{"projectname": project}},
-	// 	tk.M{"$sort": tk.M{"turbine": 1, "timestamp": -1}},
-	// }
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		// Command("pipe", pipes).Cursor(nil)
 		Where(dbox.Eq("projectname", project)).
 		Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
@@ -536,7 +531,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				Set("AlarmUpdate", time.Time{}).
 				Set("Capacity", turbineMp.GetFloat64("capacity")).
 				Set("ColorStatus", "lbl bg-green").
-				Set("DefaultColorStatus", "bg-default-green")
+				Set("DefaultColorStatus", "bg-default-green").
+				Set("TotalProduction", 0.0)
 
 			for _, afield := range arrfield {
 				_itkm.Set(afield, defaultValue)
@@ -556,6 +552,11 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set("IsReapeatedAlarm", true)
 			}
 
+		}
+		if _tdata.GetString("tags") == "Total_Prod_Day_kWh" {
+			if tstamp.Truncate(time.Hour * 24).Equal(t0.Truncate(time.Hour * 24)) {
+				_itkm.Set("TotalProduction", _tdata.GetFloat64("value"))
+			}
 		}
 
 		// _iContinue = true
@@ -634,7 +635,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 			Set("IsReapeatedAlarm", false).
 			Set("Capacity", turbineMp.GetFloat64("capacity")).
 			Set("ColorStatus", "lbl bg-grey").
-			Set("DefaultColorStatus", "bg-default-grey")
+			Set("DefaultColorStatus", "bg-default-grey").
+			Set("TotalProduction", 0.0)
 
 		for _, afield := range arrfield {
 			_itkm.Set(afield, defaultValue)

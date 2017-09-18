@@ -19,7 +19,7 @@ import (
 
 type LoginController struct {
 	App
-	mux sync.Mutex
+	mux sync.RWMutex
 }
 
 type Availdatedata struct {
