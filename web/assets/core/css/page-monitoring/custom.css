@@ -145,10 +145,12 @@
 .cusmon-title.no-move { cursor: inherit; }
 .cusmon-turbines .cusmon-name {
     color: #000;
-    font-size: 1.5vmin;
+    /*font-size: 1.5vmin;*/
+    font-size: 1.25vmin;
     position: absolute;
     top: 3px;
-    left: 12.5%;
+    left: 4px;
+    /*left: 12.5%;*/
 }
 .cusmon-turbines .col-xs-2, .cusmon-turbines .col-xs-4 {
     margin: 0;
