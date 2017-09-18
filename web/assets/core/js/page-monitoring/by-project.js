@@ -403,7 +403,6 @@ bp.ToIndividualTurbine = function(turbine){
         if(localStorage.getItem("turbine") !== null && localStorage.getItem("projectname") !== null){
             window.location = viewModel.appName + "page/monitoringbyturbine";
         }
-        console.log(localStorage);
     },1500);
 }
 

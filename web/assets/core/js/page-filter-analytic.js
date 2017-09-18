@@ -622,37 +622,39 @@ fa.resetFilter = function(){
 }
 
 fa.checkFilter = function(){
-    fa.infoFiltersChanged(false);
-    $.each(fa.currentFilter(), function(key, val){
-        if(key == "turbine"){
-            var diff = [];
-            if(fa.previousFilter().turbine.length > fa.currentFilter().turbine.length){
-                $.grep(fa.previousFilter().turbine, function(el) {
-                        if ($.inArray(el, fa.currentFilter().turbine) == -1) diff.push(el);
-                });  
-            }else{
-                $.grep(fa.currentFilter().turbine, function(el) {
-                        if ($.inArray(el, fa.previousFilter().turbine) == -1) diff.push(el);
-                }); 
-            }
+    // fa.infoFiltersChanged(false);
+    // $.each(fa.currentFilter(), function(key, val){
+    //     if(key == "turbine"){
+    //         var diff = [];
+    //         if(fa.previousFilter().turbine.length > fa.currentFilter().turbine.length){
+    //             $.grep(fa.previousFilter().turbine, function(el) {
+    //                     if ($.inArray(el, fa.currentFilter().turbine) == -1) diff.push(el);
+    //             });  
+    //         }else{
+    //             $.grep(fa.currentFilter().turbine, function(el) {
+    //                     if ($.inArray(el, fa.previousFilter().turbine) == -1) diff.push(el);
+    //             }); 
+    //         }
 
-            if(diff.length > 0){
-                fa.infoFiltersChanged(true);
-            }
-        }else{
-            if(fa.previousFilter()[key] !== val){
-                fa.infoFiltersChanged(true);
-            }
-        }
-    });
+    //         if(diff.length > 0){
+    //             fa.infoFiltersChanged(true);
+    //         }
+    //     }else{
+    //         if(fa.previousFilter()[key] !== val){
+    //             fa.infoFiltersChanged(true);
+    //         }
+    //     }
+    // });
 
-    if(fa.infoFiltersChanged() == true){
-         fa.setTextFilterChanged();
-    }else{
-        if($("#btnRefresh").hasClass("tooltipstered") == true){
-            $(".filter-changed").tooltipster('destroy');
-        }
-    }
+    // if(fa.infoFiltersChanged() == true){
+    //      fa.setTextFilterChanged();
+    // }else{
+    //     if($("#btnRefresh").hasClass("tooltipstered") == true){
+    //         $(".filter-changed").tooltipster('destroy');
+    //     }
+    // }
+
+    return false;
    
 
 }
