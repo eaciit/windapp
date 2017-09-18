@@ -134,7 +134,7 @@ avail.loadData = function () {
                     avail.DTLostEnergyData(res.data.lostenergy);
                     avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
                 }
-                avail.DTTurbines();
+                // avail.DTTurbines();
             } else {
                 avail.LossEnergyByType(res.data.lostenergy) /*#"projectChartLossEnergy"*/
             }
@@ -1777,8 +1777,10 @@ avail.DTTurbines = function (turbineDownList) {
     //     }        
     // });
     $("#dtturbines").html("");
+    $("#dtturbinesAvail").html("");
     if (turbineDownList.length == 0) {
         $("#dtturbines").html("<center><h2>NONE</h2></center>");
+        $("#dtturbinesAvail").html("<center><h2>NONE</h2></center>");
     } else {
         $.each(turbineDownList, function (idx, val) {
             var btn = "btn-success";
@@ -1790,6 +1792,10 @@ avail.DTTurbines = function (turbineDownList) {
             }
 
             $("#dtturbines").append('<div class="btn-group" role="group">' +
+                '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
+                '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
+                '</div>');
+            $("#dtturbinesAvail").append('<div class="btn-group" role="group">' +
                 '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
                 '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
                 '</div>');

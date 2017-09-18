@@ -143,8 +143,6 @@ $(function () {
         }
     });
 
-    console.log("First call!");
-
     $("#tabSummary").on("click", function () {
         // intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 4000);
         lgd.isSummary(true);
@@ -176,8 +174,6 @@ $(function () {
         lgd.periodTypeAvailChange();
     });    
 
-    console.log("Second call!");
-
     setTimeout(function(){
         lgd.isSummary(true);
         lgd.isProduction(false);
@@ -189,14 +185,11 @@ $(function () {
 
     },500);
 
-    console.log("End call!");
-
 });
 
 // temporary to fired summary number left side map
 $(document).ready(function() {
     setTimeout(function(){
         sum.loadData();
-        console.log("Data call then!");
     },5000);
 });
