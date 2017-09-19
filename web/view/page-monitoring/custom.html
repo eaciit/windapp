@@ -13,9 +13,10 @@
 
 <script type="text/html" id="turbine-template">
     <div data-bind="css: { 'no-padding': true, 'cusmon-feed': (!t.IsTurbine), 'col-xs-4': (!t.IsTurbine), 'col-xs-2': t.IsTurbine }" class="turbine-detail">
-        <div class="total-production" data-toggle="tooltip" data-placement="top" data-bind="attr: { 'data-id': t.Id }">
+        <div class="total-production" data-bind="attr: { 'data-id': t.Id }">
+            <!-- <div class="inner-triangle" data-bind="attr: { 'data-id': t.Id }"></div> -->
+            <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>
             <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}">
-                <i class="icon-remark fa fa-circle" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>&nbsp;
                 <span data-bind="text: t.Name"></span>
             </a>
             <div class="progress" data-bind="visible: t.IsTurbine, attr: { 'data-id': t.Id }">
@@ -99,7 +100,6 @@
                     <br class="clear" />
 
                     <div id="sortable" data-bind="foreach: bpc.projectList">
-
                         <div class="ui-state-default col-md-3 col-xs-6">
                             <div class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }"> 
                                 <h4 class="cusmon-title text-left">

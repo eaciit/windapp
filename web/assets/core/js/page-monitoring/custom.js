@@ -163,12 +163,14 @@ bpc.plotData = function(project, data) {
 
 			if(dt.IsRemark == true){
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').css("display", "block !important");
+				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').show();
 			}else{
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').hide();
+				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
 
-			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="'+ dt.Turbine +'"]').attr("title","Tot. Prod : "+ kendo.toString(dt.TotalProduction,'n2'));
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="'+ dt.Turbine +'"]').attr("title","Power : "+ kendo.toString(dt.TotalProduction,'n1'));
 
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
