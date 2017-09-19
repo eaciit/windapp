@@ -111,7 +111,8 @@ func GetHFDCustomFieldList() []tk.M {
 
 	// 	atkm = append(atkm, tkm)
 	// }
-	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").Order("order").Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").
+		Where(dbox.Eq("enable", true)).Order("order").Cursor(nil)
 	if e != nil {
 		tk.Println(e.Error())
 	}
