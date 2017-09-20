@@ -13,9 +13,9 @@
 
 <script type="text/html" id="turbine-template">
     <div data-bind="css: { 'no-padding': true, 'cusmon-feed': (!t.IsTurbine), 'col-xs-4': (!t.IsTurbine), 'col-xs-2': t.IsTurbine }" class="turbine-detail">
-        <div class="total-production" data-bind="attr: { 'data-id': t.Id }">
+        <div class="total-production" data-bind="attr: { 'data-id': 'total_'+t.Id }">
             <!-- <div class="inner-triangle" data-bind="attr: { 'data-id': t.Id }"></div> -->
-            <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': t.Id }" style="display: none;"></i>
+            <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': 'icon_'+t.Id }" style="display: none;"></i>
             <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}">
                 <span data-bind="text: t.Name"></span>
             </a>
