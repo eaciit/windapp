@@ -102,9 +102,9 @@
                     <div id="sortable" data-bind="foreach: bpc.projectList">
                         <div class="ui-state-default col-md-3 col-xs-6">
                             <div class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }"> 
-                                <h4 class="cusmon-title text-left">
+                                <h4 class="cusmon-title text-left" data-bind="click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}">
                                     <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
-                                    <span data-bind="text: ProjectId, click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span>
+                                    <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span>
                                 </h4>    
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' },attr: { 'id': 'cusmon-turbine-' + ProjectId }"></div>
                             </div>
