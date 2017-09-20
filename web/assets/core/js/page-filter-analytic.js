@@ -490,11 +490,11 @@ fa.GetBreakDown = function () {
 }
 
 fa.DateChange = function () {
-    fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
-    fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
-    fa.dateStart = new Date(Date.UTC(fa.dateStart.getFullYear(), fa.dateStart.getMonth(), fa.dateStart.getDate(), 0, 0, 0));
-    fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
+    fa.dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
+    fa.dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
 }
 
 fa.checkCompleteDate = function () {
@@ -711,6 +711,25 @@ fa.getDataAvailability = function(){
         vm.projectName(param.project);
         vm.dataAvailability(kendo.toString((res.data * 100), 'n2') + " %");
     })
+}
+
+fa.changeEndDate = function(){
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEndMax = $('#dateEnd').data('kendoDatePicker').max();
+
+    var dateEndPicker  = $('#dateEnd').data('kendoDatePicker');
+
+    
+    setTimeout(function(){
+        if(moment(dateStart).format('MMM-Y') == moment(new Date()).format('MMM-Y')){
+            dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateEndMax.getDate(), 0, 0, 0)));
+        }else{
+            dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth()+1, 0, 0, 0, 0)));
+        }
+    },200);
+    
+    dateEndPicker.min(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0)));
+
 }
 $(document).ready(function () {
     app.loading(true);

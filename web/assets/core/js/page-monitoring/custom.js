@@ -25,7 +25,6 @@ ko.bindingHandlers.singleOrDoubleClick = {
 
         $(element).bind('click',function(event) {
             clicks++;
-            console.log(clicks);
             if (clicks === 1) {
                 setTimeout(function() {
                     if( clicks === 1 ) {
@@ -35,7 +34,6 @@ ko.bindingHandlers.singleOrDoubleClick = {
                             singleHandler.call(viewModel, bindingContext.$data, event); 
                         }
                     } else {
-                    	console.log(doubleHandler);
                         // Call the double click handler - passing viewModel as this 'this' object
                         // you may want to pass 'this' explicitly
                         if (doubleHandler !== undefined) { 
@@ -162,13 +160,15 @@ bpc.plotData = function(project, data) {
 
 
 			if(dt.IsRemark == true){
-				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').css("display", "block !important");
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="icon_'+ dt.Turbine +'"]').css("display", "block !important");
+				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').show();
 			}else{
-				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ dt.Turbine +'"]').hide();
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="icon_'+ dt.Turbine +'"]').hide();
+				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
 
-			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="'+ dt.Turbine +'"]').attr("title","Tot. Prod : "+ kendo.toString(dt.TotalProduction,'n2'));
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Power : "+ kendo.toString(dt.TotalProduction,'n1'));
 
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
@@ -180,9 +180,9 @@ bpc.plotData = function(project, data) {
 
 	for(var key in $feederList){
 		if($feederList[key] == true){
-			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ key +'"]').css("display", "block !important");
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="icon_'+ key +'"]').css("display", "block !important");
 		}else{
-			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="'+ key +'"]').hide();
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="icon_'+ key +'"]').hide();
 		}
 	}
 
@@ -198,10 +198,14 @@ bpc.refresh = function() {
 // turbine collaboration open
 bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
+		console.log(dt);
 		TbCol.ResetData();
 		if(dt.IsTurbine) {
+			var classIcon = 'txt-green';
 			var classString = $("div").find("[data-id='"+dt.Id+"']").children().attr('class').split(' ')[1];
-			var classIcon = 'txt'+ classString.substr(10);
+			if(classString !== undefined){
+				classIcon = 'txt'+ classString.substr(10);
+			}
 			
 			TbCol.TurbineId(dt.Id);
 			TbCol.TurbineName(dt.Name);
