@@ -44,6 +44,8 @@ bp.fullscreen = ko.observable(false);
 bp.currentTempLocation = ko.observable();
 
 bp.isFirst = ko.observable(true);
+
+// var count = 0;
 var requests = [];
 
 var audioElement = document.createElement('audio');
@@ -211,6 +213,8 @@ bp.GetData = function(data) {
              bp.GetDataProject(project);
         }, 200);
     });
+
+    // count++;
 };
 
 bp.PlotData = function(data) {
@@ -301,6 +305,13 @@ bp.PlotData = function(data) {
                 }, 750);
             }
 
+            // if(count == 5 || count == 6 || count == 7){
+            //     console.log("yayay");
+            //     if(turbine == "HBR004"){
+            //         val.isbordered = true;
+            //     }
+            // }
+
             var colorTemperature = val.TemperatureColor;
             $('#temperature_'+ turbine).attr('class', colorTemperature);
             
@@ -344,9 +355,11 @@ bp.PlotData = function(data) {
             }
 
             if(val.isbordered != undefined && val.isbordered == true){
-                $('#statusturbinedefault_'+turbine).addClass("bordered");
+                // $('#statusturbinedefault_'+turbine).addClass("bordered");
+                $('#statusturbinedefault_'+turbine).find(".inner-triangle").show();
             }else{
-                $('#statusturbinedefault_'+turbine).removeClass("bordered");
+                // $('#statusturbinedefault_'+turbine).removeClass("bordered");
+                 $('#statusturbinedefault_'+turbine).find(".inner-triangle").hide();
             }
 
             if(val.IsReapeatedAlarm == true){
