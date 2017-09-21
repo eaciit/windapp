@@ -1,13 +1,43 @@
+.serverlate {
+    -ms-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    margin-right: -5px;
+    float: right;
+    position: inherit;
+    margin-bottom: -20px;
+}
+.inner-triangle{
+    border-left: 92px solid transparent;
+    border-right: 15px solid #263238;
+    border-bottom: 15px solid transparent;
+    height: 0;
+    width: 0;
+    position: absolute;
+    z-index: 2;
+}
+
+.reapeat{
+    border: 2px solid #db1e1e !important;
+}
+
+.link-detail .server-late{
+    margin-top: -2px;
+}
+
 /* set coloring scheme */
 .icon-remark{
-    font-size: 6px;
-/*    padding-top: 0px;
+    font-size: 8px;
     position: absolute;
-    top: 0;
-    right: 0;*/
+    top: 1px;
+    right: 1px;
+    color: black;
 }
 .ui-state-default.col-md-3.col-xs-6{
-    width: 27%
+    width: 25%
 }
 .fa-green {
   color: #31B445;
@@ -158,6 +188,7 @@
     border: 1px solid #337ab7;/*#7F7F7F;*/
     display: table-cell;
     height: 25px;
+    /*max-width: 40px;*/
 }
 .cusmon-turbines .cusmon-feed {
     background: #e0e0e0;
@@ -166,6 +197,7 @@
     min-height: 22px;
     border: 1px solid #337ab7;
     height: 25px;
+    /*max-width: 65px;*/
 }
 .cusmon-turbines .cusmon-feed .cusmon-name { left: 25%; color: #1A1C6F; width: 75%; right: 0; left: 0; margin: auto; }
 .cusmon-turbines .progress {

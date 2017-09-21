@@ -584,6 +584,8 @@ h4.content-heading {
 .linked{
     color: #fff;
     padding-left: 0.5em;
+    font-style: normal;
+    font-weight: 700;
 }
 
 .span-legend {
@@ -979,7 +981,19 @@ h4.content-heading {
     width: 0;
     position: absolute;
     z-index: 2;
-    display: none;
+}
+
+.icon-triangle{
+    border-right: 10px solid #000;
+    border-bottom: 10px solid transparent;
+    height: 0;
+    width: 0;
+    position: absolute;
+    z-index: 2;
+    margin-top: 5px;
+}
+.delay-lbl{
+  margin-left: 10px;
 }
 
 /*SCROLLBAR*/

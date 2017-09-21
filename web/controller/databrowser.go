@@ -111,7 +111,8 @@ func GetHFDCustomFieldList() []tk.M {
 
 	// 	atkm = append(atkm, tkm)
 	// }
-	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").Order("order").Cursor(nil)
+	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").
+		Where(dbox.Eq("enable", true)).Order("order").Cursor(nil)
 	if e != nil {
 		tk.Println(e.Error())
 	}
@@ -121,9 +122,8 @@ func GetHFDCustomFieldList() []tk.M {
 		tk.Println(e.Error())
 	}
 	for _, val := range atkm {
-		val.Set("_id", strings.ToLower(val.GetString("fieldname")))
+		val.Set("_id", strings.ToLower(val.GetString("realtimefield")))
 		val.Unset("fieldname")
-		val.Unset("realtimefield")
 	}
 	startIndex := len(atkm)
 	for i, str := range _amettower_field {
@@ -223,8 +223,9 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
 		database = DB().Connection
 	case "scadahfd":
-		obj := ScadaDataHFD{}
-		tablename = obj.TableName()
+		obj := Scada10Min{}
+		// tablename = obj.TableName()
+		tablename = "Scada10MinHFD"
 		reflectVal = reflect.Indirect(reflect.ValueOf(obj))
 		database = DB().Connection
 	case "met":
@@ -340,8 +341,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 				totalDuration += val.GetFloat64("duration")
 			}
 		case "scadahfd":
-			totalActivePower = m.getSummaryColumn(filter, "fast_activepower_kw", "sum", tablename)
-			AvgWS = m.getSummaryColumn(filter, "fast_windspeed_ms", "avg", tablename)
+			/*totalActivePower = m.getSummaryColumn(filter, "fast_activepower_kw", "sum", tablename)
+			AvgWS = m.getSummaryColumn(filter, "fast_windspeed_ms", "avg", tablename)*/
+			totalActivePower = m.getSummaryColumn(filter, "activepower_kw", "sum", tablename)
+			AvgWS = m.getSummaryColumn(filter, "windspeed_ms", "avg", tablename)
 		}
 	}
 
@@ -546,7 +549,8 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	filter, _ := p.ParseFilter()
 	tipe := p.Misc.GetString("tipe")
 
-	tablename := new(ScadaDataHFD).TableName()
+	// tablename := new(ScadaDataHFD).TableName()
+	tablename := "Scada10MinHFD"
 	arrscadaoem := []string{"_id"}
 	source := "ScadaDataHFD"
 	timestamp := "timestamp"
@@ -560,8 +564,9 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		obj1 := ScadaDataOEM{}
 		val1 = reflect.Indirect(reflect.ValueOf(obj1))
 	case "ScadaHFD":
-		obj1 := ScadaDataHFD{}
-		val1 = reflect.Indirect(reflect.ValueOf(obj1))
+		// obj1 := ScadaDataHFD{}
+		// obj1 := Scada10Min{}
+		// val1 = reflect.Indirect(reflect.ValueOf(obj1))
 		filter = append(filter, dbox.Eq("isnull", false))
 	}
 
@@ -743,8 +748,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			AvgWS = avgWindSpeed / float64(ccount.Count())
 		}
 	case "ScadaHFD":
-		totalActivePower = m.getSummaryColumn(filter, "fast_activepower_kw", "sum", tablename)
-		AvgWS = m.getSummaryColumn(filter, "fast_windspeed_ms", "avg", tablename)
+		/*totalActivePower = m.getSummaryColumn(filter, "fast_activepower_kw", "sum", tablename)
+		AvgWS = m.getSummaryColumn(filter, "fast_windspeed_ms", "avg", tablename)*/
+		totalActivePower = m.getSummaryColumn(filter, "activepower_kw", "sum", tablename)
+		AvgWS = m.getSummaryColumn(filter, "windspeed_ms", "avg", tablename)
 	}
 
 	allFieldRequested := arrscadaoem
@@ -754,17 +761,34 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	obj2 := MetTower{}
 	val2 := reflect.Indirect(reflect.ValueOf(obj2))
 	fieldName := ""
-	for i := 0; i < val1.Type().NumField(); i++ {
-		fieldName = strings.ToLower(val1.Type().Field(i).Name)
-		allHeader[fieldName] = val1.Field(i).Type().Name()
-	}
-	for i := 0; i < val2.Type().NumField(); i++ {
-		fieldName = strings.ToLower(val2.Type().Field(i).Name)
-		allHeader[fieldName] = val2.Field(i).Type().Name()
-	}
-
-	for _, val := range allFieldRequested {
-		header[val] = allHeader[val]
+	switch tipe {
+	case "ScadaOEM":
+		for i := 0; i < val1.Type().NumField(); i++ {
+			fieldName = strings.ToLower(val1.Type().Field(i).Name)
+			allHeader[fieldName] = val1.Field(i).Type().Name()
+		}
+		for i := 0; i < val2.Type().NumField(); i++ {
+			fieldName = strings.ToLower(val2.Type().Field(i).Name)
+			allHeader[fieldName] = val2.Field(i).Type().Name()
+		}
+		for _, val := range allFieldRequested {
+			header[val] = allHeader[val]
+		}
+	case "ScadaHFD":
+		hfdexlist := []string{"timestamp", "projectname", "turbine", "turbinestate", "statedescription"}
+		for _, val := range allFieldRequested {
+			if tk.HasMember(hfdexlist, val) {
+				if val == "timestamp" {
+					header[val] = "time.Time"
+				} else if val == "turbinestate" {
+					header[val] = "int"
+				} else {
+					header[val] = "string"
+				}
+			} else {
+				header[val] = "float64"
+			}
+		}
 	}
 
 	result, e := CheckData(results, filter, header, "custom")
@@ -805,12 +829,12 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 	tkm := []tk.M{}
 
 	switch column {
-	case "fast_windspeed_ms":
-		xFilter = append(filter, dbox.Gte("fast_windspeed_ms", 0))
-		xFilter = append(xFilter, dbox.Lte("fast_windspeed_ms", 25))
-	case "fast_activepower_kw":
-		xFilter = append(filter, dbox.Gte("fast_activepower_kw", -200))
-		xFilter = append(xFilter, dbox.Lte("fast_activepower_kw", 3000))
+	case "windspeed_ms":
+		xFilter = append(filter, dbox.Gte(column, 0))
+		xFilter = append(xFilter, dbox.Lte(column, 25))
+	case "activepower_kw":
+		xFilter = append(filter, dbox.Gte(column, -200))
+		xFilter = append(xFilter, dbox.Lte(column, 3000))
 		xFilter = append(xFilter, dbox.Or(dbox.Eq("isnull", false), dbox.Eq("isnull", nil)))
 	default:
 		return 0
@@ -976,7 +1000,8 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	fieldList := []string{}
 	source := "ScadaDataHFD"
 	timestamp := "timestamp"
-	tablename := new(ScadaDataHFD).TableName()
+	// tablename := new(ScadaDataHFD).TableName()
+	tablename := "Scada10MinHFD"
 	ids := ""
 	switch typeExcel {
 	case "ScadaOEM":
