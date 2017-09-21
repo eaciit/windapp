@@ -8,6 +8,11 @@
     position: absolute;
     z-index: 2;
 }
+
+.reapeat{
+    border: 2px solid #db1e1e !important;
+}
+
 /* set coloring scheme */
 .icon-remark{
     font-size: 8px;

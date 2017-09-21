@@ -137,12 +137,16 @@ bpc.plotData = function(project, data) {
 	$elm.find('.t-wait[data-id="'+ project +'"]').text($data.TurbineWaitingWS);
 	$elm.find('.t-na[data-id="'+ project +'"]').text($data.TurbineNotAvail);
 
+
+	$elmDetail.find('#timemax_'+ project).text(moment.utc($data.TimeMax).format('DD MMM YYYY HH:mm:ss'));
+
 	if($data.IsRemark == true){
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').css("display", "block !important");
 	}else{
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').hide();
 	}
 	
+
 
 	// set turbine updates
 	var $detail = $data.Detail;
@@ -179,6 +183,12 @@ bpc.plotData = function(project, data) {
 			}
 
 
+			if(dt.IsReapeatedAlarm == true){
+                $elmdetail.addClass("reapeat");
+            }else{
+                $elmdetail.removeClass("reapeat");
+            }
+
 			if(dt.IsRemark == true){
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="icon_'+ dt.Turbine +'"]').css("display", "block !important");
 				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').show();
@@ -188,7 +198,7 @@ bpc.plotData = function(project, data) {
 			}
 
 
-			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Power : "+ kendo.toString(dt.TotalProduction,'n1'));
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Power : "+ kendo.toString(dt.TotalProduction,'n2'));
 
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);
