@@ -597,6 +597,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 		_itkm.Set("isbordered", false)
 		if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
 			_itkm.Set("isbordered", true)
+			_itkm.Set("DataComing", 1)
 		}
 	}
 	csr.Close()
@@ -808,13 +809,14 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		}
 	}
 
-	t0 := getTimeNow()
+	t0, servt0 := getTimeNow(), time.Now().UTC()
 
 	pipes = []tk.M{
 		tk.M{"$match": tk.M{"projectname": tk.M{"$ne": ""}}}}
 	pipes = append(pipes, tk.M{"$group": tk.M{
-		"_id":         tk.M{"projectname": "$projectname", "turbine": "$turbine"},
-		"lastupdated": tk.M{"$max": "$timestamp"},
+		"_id":            tk.M{"projectname": "$projectname", "turbine": "$turbine"},
+		"lastupdated":    tk.M{"$max": "$timestamp"},
+		"lasttimeserver": tk.M{"$max": "$servertimestamp"},
 	}})
 	pipes = append(pipes, tk.M{
 		"$sort": tk.M{
@@ -842,23 +844,34 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	waitingForWsProject := map[string]int{}
 	dataNa := map[string]int{}
 	dataDowns := map[string]int{}
+	dataIsBordered := map[string]bool{}
 	_tTurbine := ""
 	_tProject := ""
 	isDataComing := false
-	var tstamp time.Time
+	var tstamp, servtstamp time.Time
 	keys := ""
 	for _, dt := range lastUpdateRealtime {
 		ids, _ := tk.ToM(dt.Get("_id"))
 		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
+		servtstamp = dt.Get("lasttimeserver", time.Time{}).(time.Time).UTC()
+
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
-		if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
+		if t0.Sub(tstamp.UTC()).Minutes() <= 5 || servt0.Sub(servtstamp.UTC()).Minutes() <= 5 {
 			isDataComing = true
 		} else {
 			isDataComing = false
 			dataNa[_tProject] = dataNa[_tProject] + 1
 		}
 		keys = _tProject + "_" + _tTurbine
+
+		if _, exist := dataIsBordered[_tProject]; !exist {
+			dataIsBordered[_tProject] = false
+		}
+
+		if !dataIsBordered[_tProject] && servt0.Sub(servtstamp.UTC()).Minutes() <= 5 && t0.Sub(tstamp.UTC()).Minutes() >= 5 {
+			dataIsBordered[_tProject] = true
+		}
 
 		if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
 			if _idt.Status == 0 && isDataComing {
@@ -986,6 +999,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			"TurbineActive":      turbineAvail,
 			"TurbineDown":        turbineDown,
 			"TurbineNotAvail":    turbineNA,
+			"isbordered":         dataIsBordered[projectId],
 			"WaitingForWind":     waitingForWind,
 			"TodayGen":           tk.Div(todayGen, 1000.0),  // convert to mwh
 			"TodayLost":          tk.Div(todayLost, 1000.0), // convert to mwh
@@ -1429,6 +1443,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
 				if pageType == "monitoring" {
+					_itkm.Set("isbordered", false)
+					if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
+						_itkm.Set("isbordered", true)
+						_itkm.Set("DataComing", 1)
+					}
 					temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 						&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 				}
@@ -1540,11 +1559,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		}
 
 		if pageType == "monitoring" {
-			_itkm.Set("isbordered", false)
-			if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
-				_itkm.Set("isbordered", true)
-				_itkm.Set("DataComing", 1)
-			}
+			// _itkm.Set("isbordered", false)
+			// if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
+			// 	_itkm.Set("isbordered", true)
+			// 	_itkm.Set("DataComing", 1)
+			// }
 
 			if _itkm.GetFloat64("ActivePower") < 0 {
 				_itkm.Set("ActivePowerColor", "redvalue")
@@ -1561,6 +1580,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csr.Close()
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
+			_itkm.Set("isbordered", false)
+			if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
+				_itkm.Set("isbordered", true)
+				_itkm.Set("DataComing", 1)
+			}
 			temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 				&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 		}
