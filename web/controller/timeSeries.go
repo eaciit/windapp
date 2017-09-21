@@ -40,6 +40,33 @@ var (
 		"PitchConvInternalTempBlade1": MappingColumn{"Pitch Conv Internal Temp Blade 1", "PitchConvInternalTempBlade1", "Degree", -10.0, 120.0, "$avg"},
 		"PitchConvInternalTempBlade2": MappingColumn{"Pitch Conv Internal Temp Blade 2", "PitchConvInternalTempBlade2", "Degree", -10.0, 120.0, "$avg"},
 		"PitchConvInternalTempBlade3": MappingColumn{"Pitch Conv Internal Temp Blade 3", "PitchConvInternalTempBlade3", "Degree", -10.0, 120.0, "$avg"},
+		"TempG1L1":                    MappingColumn{"TempG1 L1", "TempG1L1", "Degree", -10.0, 200.0, "$avg"},
+		"TempG1L2":                    MappingColumn{"TempG1 L2", "TempG1L2", "Degree", -10.0, 200.0, "$avg"},
+		"TempG1L3":                    MappingColumn{"TempG1 L3", "TempG1L3", "Degree", -10.0, 200.0, "$avg"},
+		"TempGeneratorBearingDE":      MappingColumn{"Temp Generator Bearing DE", "TempGeneratorBearingDE", "Degree", -10.0, 200.0, "$avg"},
+		"TempGeneratorBearingNDE":     MappingColumn{"Temp Generator Bearing NDE", "TempGeneratorBearingNDE", "Degree", -10.0, 200.0, "$avg"},
+		"TempGearBoxOilSump":          MappingColumn{"Temp Gear Box Oil Sump", "TempGearBoxOilSump", "Degree", -10.0, 200.0, "$avg"},
+		"TempHubBearing":              MappingColumn{"Temp Hub Bearing", "TempHubBearing", "Degree", -10.0, 200.0, "$avg"},
+		"TempGeneratorChoke":          MappingColumn{"Temp Generator Choke", "TempGeneratorChoke", "Degree", -10.0, 200.0, "$avg"},
+		"TempGridChoke":               MappingColumn{"Temp Grid Choke", "TempGridChoke", "Degree", -10.0, 200.0, "$avg"},
+		"TempGeneratorCoolingUnit":    MappingColumn{"Temp Generator Cooling Unit", "TempGeneratorCoolingUnit", "Degree", -10.0, 200.0, "$avg"},
+		"TempConvCabinet2":            MappingColumn{"Temp Conv Cabinet 2", "TempConvCabinet2", "Degree", -10.0, 200.0, "$avg"},
+		"TempOutdoor":                 MappingColumn{"Temp Outdoor", "TempOutdoor", "Degree", -10.0, 200.0, "$avg"},
+		"TempSlipRing":                MappingColumn{"Temp Slip Ring", "TempSlipRing", "Degree", -10.0, 200.0, "$avg"},
+		"TransformerWindingTemp1":     MappingColumn{"Transformer Winding Temp 1", "TransformerWindingTemp1", "Degree", -10.0, 200.0, "$avg"},
+		"TransformerWindingTemp2":     MappingColumn{"Transformer Winding Temp 2", "TransformerWindingTemp2", "Degree", -10.0, 200.0, "$avg"},
+		"TransformerWindingTemp3":     MappingColumn{"Transformer Winding Temp 3", "TransformerWindingTemp3", "Degree", -10.0, 200.0, "$avg"},
+		"TempShaftBearing1":           MappingColumn{"Temp Shaft Bearing 1", "TempShaftBearing1", "Degree", -10.0, 200.0, "$avg"},
+		"TempShaftBearing2":           MappingColumn{"Temp Shaft Bearing 2", "TempShaftBearing2", "Degree", -10.0, 200.0, "$avg"},
+		"TempShaftBearing3":           MappingColumn{"Temp Shaft Bearing 3", "TempShaftBearing3", "Degree", -10.0, 200.0, "$avg"},
+		"TempGearBoxIMSDE":            MappingColumn{"Temp Gear Box IMS DE", "TempGearBoxIMSDE", "Degree", -10.0, 200.0, "$avg"},
+		"TempBottomControlSection":    MappingColumn{"Temp Bottom Control Section", "TempBottomControlSection", "Degree", -10.0, 200.0, "$avg"},
+		"TempBottomPowerSection":      MappingColumn{"Temp Bottom Power Section", "TempBottomPowerSection", "Degree", -10.0, 200.0, "$avg"},
+		"TempCabinetTopBox":           MappingColumn{"Temp Cabinet Top Box", "TempCabinetTopBox", "Degree", -10.0, 200.0, "$avg"},
+		"TempNacelle":                 MappingColumn{"Temp Nacelle", "TempNacelle", "Degree", -10.0, 200.0, "$avg"},
+		"VoltageL1":                   MappingColumn{"Voltage L 1", "VoltageL1", "Volt", -10.0, 1000.0, "$avg"},
+		"VoltageL2":                   MappingColumn{"Voltage L 2", "VoltageL2", "Volt", -10.0, 1000.0, "$avg"},
+		"VoltageL3":                   MappingColumn{"Voltage L 3", "VoltageL3", "Volt", -10.0, 1000.0, "$avg"},
 	}
 )
 
@@ -218,6 +245,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			// collName = new(ScadaDataHFD).TableName()
 			collName = "Scada10MinHFD"
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+			match.Set("isnull", false)
 			// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
 			match.Set("turbine", turbine)
 			group.Set("_id", "$timestamp")
@@ -487,6 +515,7 @@ func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.T
 	match.Set("timestamp", tk.M{"$gte": tStart.UTC(), "$lt": tEnd.UTC()})
 	match.Set("projectname", project)
 	match.Set("turbine", turbine)
+	match.Set("isnull", false)
 
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$project": projection})

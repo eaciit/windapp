@@ -1539,39 +1539,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			}
 		}
 
-		// for _, afield := range arrfield {
-		// 	_lafield := strings.ToLower(afield)
-		// 	if _ifloat := _tdata.GetFloat64(_lafield); _ifloat != defaultValue && (_itkm.GetFloat64(afield) == 0 || _itkm.GetFloat64(afield) == defaultValue) {
-		// 		_itkm.Set(afield, _ifloat)
-
-		// 		switch afield {
-		// 		case "ActivePower":
-		// 			PowerGen += _ifloat
-		// 		case "WindSpeed":
-		// 			AvgWindSpeed += _ifloat
-		// 			CountWS += 1
-		// 		}
-
-		// 	} else {
-		// 		_iContinue = false
-		// 	}
-		// }
-
 		if pageType == "monitoring" {
-			_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-green")
-			if _itkm.GetInt("Status") == 0 {
-				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-red")
-			} else if _itkm.GetInt("Status") == 1 && _itkm["IsWarning"].(bool) {
-				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-orange")
-			}
-
-			if _itkm.GetInt("DataComing") == 0 {
-				_itkm.Set("IconStatus", "fa fa-circle fa-project-info fa-grey")
-			}
-
 			_itkm.Set("isbordered", false)
 			if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
 				_itkm.Set("isbordered", true)
+				_itkm.Set("DataComing", 1)
 			}
 
 			if _itkm.GetFloat64("ActivePower") < 0 {
@@ -1584,15 +1556,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			} else {
 				_itkm.Set("WindSpeedColor", "defaultcolor")
 			}
-			// if dataRealtimeValue > -999999 && tags == "TempOutdoor" {
-			// 	ictempout += 1
-			// 	istempout += dataRealtimeValue
-			// 	// if dataRealtimeValue < locationTemp-4 || dataRealtimeValue > locationTemp+4 {
-			// 	// 	_itkm.Set("TemperatureColor", "txt-red")
-			// 	// } else {
-			// 	// 	_itkm.Set("TemperatureColor", "txt-grey")
-			// 	// }
-			// }
 		}
 	}
 	csr.Close()
