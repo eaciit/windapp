@@ -7,7 +7,7 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
 	"io"
-	"math"
+	// "math"
 	"os"
 
 	"time"
@@ -214,7 +214,8 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		}
 
 		if pageType == "HFD" {
-			collName = new(ScadaDataHFD).TableName()
+			// collName = new(ScadaDataHFD).TableName()
+			collName = "Scada10MinHFD"
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 			// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
 			match.Set("turbine", turbine)
@@ -222,13 +223,13 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			group = tk.M{
 				"_id": "$timestamp",
 				// "energy":    tk.M{"$sum": "$energy"},
-				"windspeed":                   tk.M{"$avg": "$fast_windspeed_ms"},
-				"power":                       tk.M{"$sum": "$fast_activepower_kw"},
-				"winddirection":               tk.M{"$avg": "$slow_winddirection"},
-				"nacellepos":                  tk.M{"$avg": "$slow_nacellepos"},
-				"rotorrpm":                    tk.M{"$avg": "$fast_rotorspeed_rpm"},
-				"genrpm":                      tk.M{"$avg": "$fast_genspeed_rpm"},
-				"pitchangle":                  tk.M{"$avg": "$fast_pitchangle"},
+				"windspeed":                   tk.M{"$avg": "$windspeed_ms"},
+				"power":                       tk.M{"$sum": "$activepower_kw"},
+				"winddirection":               tk.M{"$avg": "$winddirection"},
+				"nacellepos":                  tk.M{"$avg": "$nacellepos"},
+				"rotorrpm":                    tk.M{"$avg": "$rotorspeed_rpm"},
+				"genrpm":                      tk.M{"$avg": "$genspeed_rpm"},
+				"pitchangle":                  tk.M{"$avg": "$pitchangle"},
 				"PitchCabinetTempBlade1":      tk.M{"$avg": "$pitchcabinettempblade1"},
 				"PitchCabinetTempBlade2":      tk.M{"$avg": "$pitchcabinettempblade2"},
 				"PitchCabinetTempBlade3":      tk.M{"$avg": "$pitchcabinettempblade3"},
@@ -431,89 +432,6 @@ func constructDataNotExist(start time.Time, end time.Time, seconds float64) (res
 	return
 }
 
-func getDataLive(project string, turbine string, tStart time.Time, tags []string) (result []tk.M) {
-	filter := []*dbox.Filter{}
-	tmpRes := map[string]interface{}{}
-
-	filter = append(filter, dbox.Eq("projectname", project))
-	filter = append(filter, dbox.Eq("turbine", turbine))
-
-	if tStart.Year() != 1 {
-		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
-	}
-	// rconn := lh.GetConnRealtime()
-	// defer rconn.Close()
-	rconn := DBRealtime()
-
-	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
-		Where(dbox.And(filter...)).
-		Order("-timestamp").
-		Cursor(nil)
-
-	defer csr.Close()
-
-	if err != nil {
-		tk.Println(err.Error())
-	}
-
-	tstamp := time.Time{}
-
-	mapFound := map[string]bool{}
-
-	// log.Printf(">>> %v | %v \n", tStart.String(), csr.Count())
-
-	if csr.Count() > 0 {
-		for {
-			data := tk.M{}
-			err = csr.Fetch(&data, 1, false)
-			if err != nil {
-				break
-			}
-
-			tstamp = data.Get("timestamp", time.Time{}).(time.Time)
-
-			for _, xTag := range tags {
-				tag := xTag
-				if xTag == "power" {
-					tag = "activepower"
-				}
-
-				if !mapFound[tag] {
-					tagVal := data.GetFloat64(tag)
-
-					if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
-						tmpRes[xTag] = nil
-					} else {
-						tmpRes[xTag] = tagVal
-					}
-
-					mapFound[tag] = true
-				}
-			}
-
-			count := 0
-			for _, mp := range mapFound {
-				if mp {
-					count++
-				}
-			}
-
-			if count == len(tags) {
-				break
-			}
-		}
-		csr.Close()
-
-		result = append(result, tk.M{"_id": tstamp})
-
-		for tag, mp := range tmpRes {
-			result[0].Set(tag, mp)
-		}
-
-	}
-	return
-}
-
 func getDataLiveNew(project string, turbine string, tStart time.Time, tags []string) (result []tk.M) {
 	filter := []*dbox.Filter{}
 	tmpRes := map[string]interface{}{}
@@ -569,236 +487,39 @@ func getDataLiveNew(project string, turbine string, tStart time.Time, tags []str
 	return
 }
 
-func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
-	// log.Printf(">>> %v - %v | %v - %v \n", tStart.String(), tStart.UTC().String(), tEnd.String(), tEnd.UTC().String())
-	prefix := "data_"
-	emptyLen := 0
-	emptyStartStr := ""
-
-	var emptyStart time.Time
-	var emptySeconds float64
-
-	for {
-		startStr := tStart.UTC().Format("20060102150405")
-		// endStr := tEnd.Format("20060102150405")
-
-		// log.Printf("%v | %v \n", tStart.String(), tStart.UTC().String())
-
-		if emptyStartStr != "" {
-			// fill in empty seconds HFD data with minutes HFD data
-			emptyStart, _ = time.Parse("20060102150405", emptyStartStr)
-			emptyStart = emptyStart
-			emptySeconds = tStart.Sub(emptyStart).Seconds()
-
-			// log.Printf(">>>> %v | %v ===> %v \n", emptyStart.String(), tStart.UTC().String(), emptySeconds)
-
-			if emptySeconds >= float64(600) || tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
-				match := tk.M{}
-				group := tk.M{}
-				pipes := []tk.M{}
-
-				match.Set("dateinfo.dateid", tk.M{"$gte": emptyStart, "$lt": tStart.UTC()})
-				// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
-				match.Set("projectname", project)
-				match.Set("turbine", turbine)
-				// match.Set("available", 1)
-
-				group = tk.M{
-					"_id": "$timestamp",
-					// "energy":    tk.M{"$sum": "$energy"},
-					"windspeed":     tk.M{"$avg": "$fast_windspeed_ms"},
-					"power":         tk.M{"$sum": "$fast_activepower_kw"},
-					"winddirection": tk.M{"$avg": "$slow_winddirection"},
-					"nacellepos":    tk.M{"$avg": "$slow_nacellepos"},
-					"rotorrpm":      tk.M{"$avg": "$fast_rotorspeed_rpm"},
-					"genrpm":        tk.M{"$avg": "$fast_genspeed_rpm"},
-					"pitchangle":    tk.M{"$avg": "$fast_pitchangle"},
-				}
-
-				pipes = append(pipes, tk.M{"$match": match})
-				pipes = append(pipes, tk.M{"$group": group})
-				pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-				csr, e := DB().Connection.NewQuery().
-					From(new(ScadaDataHFD).TableName()).
-					Command("pipe", pipes).
-					Cursor(nil)
-				defer csr.Close()
-
-				if e == nil {
-					list := []tk.M{}
-					e = csr.Fetch(&list, 0, false)
-
-					// log.Printf(">>>>> %v | %v => %v \n", emptyStart.String(), tStart.UTC().String(), len(list))
-
-					if len(list) > 0 {
-						for _, val := range list {
-							dts := tk.M{}
-							timestamp := val.Get("_id").(time.Time)
-
-							dts.Set("timestamp", timestamp)
-
-							for _, tag := range tags {
-								tagVal := val.GetFloat64(tag)
-								mc := mapField[tag]
-
-								if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
-									dts.Set(mc.SecField, nil)
-								} else {
-									dts.Set(mc.SecField, tagVal)
-								}
-							}
-
-							result = append(result, dts)
-						}
-					}
-
-					emptyStartStr = ""
-					emptyLen = 0
-				}
-			}
-		}
-
-		minute := tk.ToFloat64(tk.ToInt(tStart.Format("4"), tk.RoundingAuto)*60, 0, tk.RoundingAuto)
-		second := tk.ToFloat64(tStart.Format("5"), 0, tk.RoundingAuto)
-
-		totalSeconds := minute + second
-		minuteDiv := math.Mod(totalSeconds, float64(600))
-
-		newTime := tStart.Add(time.Duration(600-minuteDiv) * time.Second)
-
-		f1 := newTime.Format("20060102")
-		f2 := newTime.Format("15")
-		f3 := newTime.Format("1504")
-
-		separator := string(os.PathSeparator)
-
-		folder := strings.ToLower(project) + separator + f1 + separator + f2 + separator + f3
-		file1 := prefix + startStr + ".csv"
-		file2 := turbine + "_" + startStr + ".csv"
-
-		path := helper.GetHFDFolder() + folder + separator + file1
-		if _, _err := os.Stat(path); os.IsNotExist(_err) {
-			path = helper.GetHFDFolder() + folder + separator + file2
-		}
-
-		// log.Printf("%v | %v | %v \n", tStart.UTC().String(), newTime.String(), path)
-
-		tmpResult, err := ReadHFDFile(path, secTags)
-
-		if err != nil {
-			// log.Printf("Err: %v \n", err.Error())
-		}
-
-		if len(tmpResult) > 0 {
-			// log.Printf("len(tmpResult) > 0 || %v \n", emptyStartStr)
-			mapTag := map[string][]float64{}
-			res := tk.M{}
-
-			for _, r := range tmpResult {
-				for _, tag := range secTags {
-					if tag == r.Tag && turbine == r.Turbine {
-						mapTag[tag] = append(mapTag[tag], r.Value)
-					}
-				}
-			}
-
-			res.Set("timestamp", tStart)
-			for n, mp := range mapTag {
-				var value float64
-				if len(mp) > 0 {
-					for _, v := range mp {
-						value += v
-					}
-
-					if value == float64(-99999.00) && value == float64(-999999.00) && value == float64(-9999999.00) {
-						res.Set(n, nil)
-					} else {
-						value = value / float64(len(mp))
-						res.Set(n, value)
-					}
-
-					// if startStr == "20170418225105" {
-					// 	log.Printf(">>> %v > %#v | %v | %v \n", n, mp, value, res.Get(n))
-					// }
-
-				} else {
-					res.Set(n, nil)
-				}
-			}
-
-			result = append(result, res)
-		} else {
-			// log.Printf("else || %v \n", emptyStartStr)
-			// res := tk.M{}
-			// res.Set("from", tStart)
-			// res.Set("to", tStart.Add(5*time.Second))
-
-			// empty = append(empty, res)
-
-			if emptyStartStr == "" {
-				emptyLen++
-				emptyStartStr = startStr
-				// log.Printf("else if || %v | %v \n", emptySeconds, float64(emptyLen))
-			} else {
-				// log.Printf("else else || %v | %v \n", emptySeconds, float64(emptyLen))
-				if emptySeconds/5 != float64(emptyLen) {
-					emptyStartStr = ""
-					emptyLen = 0
-				} else {
-					emptyLen++
-				}
-			}
-		}
-
-		if tStart.Sub(tEnd).Seconds() >= 0 {
-			break
-		}
-
-		// log.Printf(">>> %v \n", startStr)
-
-		modSecond := math.Mod(second, float64(5))
-		if modSecond == 0 {
-			tStart = tStart.Add(5 * time.Second)
-		} else {
-			tStart = tStart.Add(time.Duration(5-modSecond) * time.Second)
-		}
-
-		// tStart = tStart.Add(1 * time.Second)
-	}
-
-	return
-}
-
 func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
 
 	dhfd, draw, allkey := make(map[time.Time]tk.M, 0), make(map[time.Time]tk.M, 0), make(map[time.Time]int, 0)
 
 	match := tk.M{}
 	pipes := []tk.M{}
-
+	projection := map[string]int{"timestamp": 1}
+	for _, tag := range tags {
+		projection[tag] = 1
+	}
 	match.Set("timestamp", tk.M{"$gte": tStart.UTC(), "$lt": tEnd.UTC()})
 	match.Set("projectname", project)
 	match.Set("turbine", turbine)
 
 	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$project": projection})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		Select("timestamp", "fast_windspeed_ms", "fast_activepower_kw", "slow_winddirection",
-			"slow_nacellepos", "fast_rotorspeed_rpm", "fast_genspeed_rpm", "fast_pitchangle",
-			"pitchcabinettempblade1", "pitchcabinettempblade2", "pitchcabinettempblade3",
-			"pitchconvinternaltempblade1", "pitchconvinternaltempblade2", "pitchconvinternaltempblade3").
-		From(new(ScadaDataHFD).TableName()).
+		// Select("timestamp", "fast_windspeed_ms", "fast_activepower_kw", "slow_winddirection",
+		// 	"slow_nacellepos", "fast_rotorspeed_rpm", "fast_genspeed_rpm", "fast_pitchangle",
+		// 	"pitchcabinettempblade1", "pitchcabinettempblade2", "pitchcabinettempblade3",
+		// 	"pitchconvinternaltempblade1", "pitchconvinternaltempblade2", "pitchconvinternaltempblade3").
+		From("Scada10MinHFD").
 		Command("pipe", pipes).
 		Cursor(nil)
 	defer csr.Close()
 
 	if e == nil {
-		fname := map[string]string{"windspeed": "fast_windspeed_ms", "power": "fast_activepower_kw", "winddirection": "slow_winddirection",
-			"nacellepos": "slow_nacellepos", "rotorrpm": "fast_rotorspeed_rpm", "genrpm": "fast_genspeed_rpm", "pitchangle": "fast_pitchangle",
-			"PitchCabinetTempBlade1": "pitchcabinettempblade1", "PitchCabinetTempBlade2": "pitchcabinettempblade2", "PitchCabinetTempBlade3": "pitchcabinettempblade3",
-			"PitchConvInternalTempBlade1": "pitchconvinternaltempblade1", "PitchConvInternalTempBlade2": "pitchconvinternaltempblade2", "PitchConvInternalTempBlade3": "pitchconvinternaltempblade3"}
+		// fname := map[string]string{"windspeed": "fast_windspeed_ms", "power": "fast_activepower_kw", "winddirection": "slow_winddirection",
+		// 	"nacellepos": "slow_nacellepos", "rotorrpm": "fast_rotorspeed_rpm", "genrpm": "fast_genspeed_rpm", "pitchangle": "fast_pitchangle",
+		// 	"PitchCabinetTempBlade1": "pitchcabinettempblade1", "PitchCabinetTempBlade2": "pitchcabinettempblade2", "PitchCabinetTempBlade3": "pitchcabinettempblade3",
+		// 	"PitchConvInternalTempBlade1": "pitchconvinternaltempblade1", "PitchConvInternalTempBlade2": "pitchconvinternaltempblade2", "PitchConvInternalTempBlade3": "pitchconvinternaltempblade3"}
 		for {
 			dt, dts := tk.M{}, tk.M{}
 			err := csr.Fetch(&dt, 1, false)
@@ -810,8 +531,8 @@ func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.T
 			dts.Set("timestamp", dtime)
 
 			for _, tag := range tags {
-				val := dt.GetFloat64(fname[tag])
 				mc := mapField[tag]
+				val := dt.GetFloat64(mc.SecField)
 
 				if val == float64(-99999.00) || val == float64(-999999.00) || val == float64(-9999999.00) {
 					dts.Set(mc.SecField, nil)
@@ -926,3 +647,287 @@ func (b ByTime) Swap(i, j int) {
 func (b ByTime) Less(i, j int) bool {
 	return b[i].Before(b[j])
 }
+
+// func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
+// 	// log.Printf(">>> %v - %v | %v - %v \n", tStart.String(), tStart.UTC().String(), tEnd.String(), tEnd.UTC().String())
+// 	prefix := "data_"
+// 	emptyLen := 0
+// 	emptyStartStr := ""
+
+// 	var emptyStart time.Time
+// 	var emptySeconds float64
+
+// 	for {
+// 		startStr := tStart.UTC().Format("20060102150405")
+// 		// endStr := tEnd.Format("20060102150405")
+
+// 		// log.Printf("%v | %v \n", tStart.String(), tStart.UTC().String())
+
+// 		if emptyStartStr != "" {
+// 			// fill in empty seconds HFD data with minutes HFD data
+// 			emptyStart, _ = time.Parse("20060102150405", emptyStartStr)
+// 			emptyStart = emptyStart
+// 			emptySeconds = tStart.Sub(emptyStart).Seconds()
+
+// 			// log.Printf(">>>> %v | %v ===> %v \n", emptyStart.String(), tStart.UTC().String(), emptySeconds)
+
+// 			if emptySeconds >= float64(600) || tStart.UTC().Sub(tEnd.UTC()).Seconds() >= 0 {
+// 				match := tk.M{}
+// 				group := tk.M{}
+// 				pipes := []tk.M{}
+
+// 				match.Set("dateinfo.dateid", tk.M{"$gte": emptyStart, "$lt": tStart.UTC()})
+// 				// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
+// 				match.Set("projectname", project)
+// 				match.Set("turbine", turbine)
+// 				// match.Set("available", 1)
+
+// 				group = tk.M{
+// 					"_id": "$timestamp",
+// 					// "energy":    tk.M{"$sum": "$energy"},
+// 					"windspeed":     tk.M{"$avg": "$fast_windspeed_ms"},
+// 					"power":         tk.M{"$sum": "$fast_activepower_kw"},
+// 					"winddirection": tk.M{"$avg": "$slow_winddirection"},
+// 					"nacellepos":    tk.M{"$avg": "$slow_nacellepos"},
+// 					"rotorrpm":      tk.M{"$avg": "$fast_rotorspeed_rpm"},
+// 					"genrpm":        tk.M{"$avg": "$fast_genspeed_rpm"},
+// 					"pitchangle":    tk.M{"$avg": "$fast_pitchangle"},
+// 				}
+
+// 				pipes = append(pipes, tk.M{"$match": match})
+// 				pipes = append(pipes, tk.M{"$group": group})
+// 				pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+// 				csr, e := DB().Connection.NewQuery().
+// 					From(new(ScadaDataHFD).TableName()).
+// 					Command("pipe", pipes).
+// 					Cursor(nil)
+// 				defer csr.Close()
+
+// 				if e == nil {
+// 					list := []tk.M{}
+// 					e = csr.Fetch(&list, 0, false)
+
+// 					// log.Printf(">>>>> %v | %v => %v \n", emptyStart.String(), tStart.UTC().String(), len(list))
+
+// 					if len(list) > 0 {
+// 						for _, val := range list {
+// 							dts := tk.M{}
+// 							timestamp := val.Get("_id").(time.Time)
+
+// 							dts.Set("timestamp", timestamp)
+
+// 							for _, tag := range tags {
+// 								tagVal := val.GetFloat64(tag)
+// 								mc := mapField[tag]
+
+// 								if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+// 									dts.Set(mc.SecField, nil)
+// 								} else {
+// 									dts.Set(mc.SecField, tagVal)
+// 								}
+// 							}
+
+// 							result = append(result, dts)
+// 						}
+// 					}
+
+// 					emptyStartStr = ""
+// 					emptyLen = 0
+// 				}
+// 			}
+// 		}
+
+// 		minute := tk.ToFloat64(tk.ToInt(tStart.Format("4"), tk.RoundingAuto)*60, 0, tk.RoundingAuto)
+// 		second := tk.ToFloat64(tStart.Format("5"), 0, tk.RoundingAuto)
+
+// 		totalSeconds := minute + second
+// 		minuteDiv := math.Mod(totalSeconds, float64(600))
+
+// 		newTime := tStart.Add(time.Duration(600-minuteDiv) * time.Second)
+
+// 		f1 := newTime.Format("20060102")
+// 		f2 := newTime.Format("15")
+// 		f3 := newTime.Format("1504")
+
+// 		separator := string(os.PathSeparator)
+
+// 		folder := strings.ToLower(project) + separator + f1 + separator + f2 + separator + f3
+// 		file1 := prefix + startStr + ".csv"
+// 		file2 := turbine + "_" + startStr + ".csv"
+
+// 		path := helper.GetHFDFolder() + folder + separator + file1
+// 		if _, _err := os.Stat(path); os.IsNotExist(_err) {
+// 			path = helper.GetHFDFolder() + folder + separator + file2
+// 		}
+
+// 		// log.Printf("%v | %v | %v \n", tStart.UTC().String(), newTime.String(), path)
+
+// 		tmpResult, err := ReadHFDFile(path, secTags)
+
+// 		if err != nil {
+// 			// log.Printf("Err: %v \n", err.Error())
+// 		}
+
+// 		if len(tmpResult) > 0 {
+// 			// log.Printf("len(tmpResult) > 0 || %v \n", emptyStartStr)
+// 			mapTag := map[string][]float64{}
+// 			res := tk.M{}
+
+// 			for _, r := range tmpResult {
+// 				for _, tag := range secTags {
+// 					if tag == r.Tag && turbine == r.Turbine {
+// 						mapTag[tag] = append(mapTag[tag], r.Value)
+// 					}
+// 				}
+// 			}
+
+// 			res.Set("timestamp", tStart)
+// 			for n, mp := range mapTag {
+// 				var value float64
+// 				if len(mp) > 0 {
+// 					for _, v := range mp {
+// 						value += v
+// 					}
+
+// 					if value == float64(-99999.00) && value == float64(-999999.00) && value == float64(-9999999.00) {
+// 						res.Set(n, nil)
+// 					} else {
+// 						value = value / float64(len(mp))
+// 						res.Set(n, value)
+// 					}
+
+// 					// if startStr == "20170418225105" {
+// 					// 	log.Printf(">>> %v > %#v | %v | %v \n", n, mp, value, res.Get(n))
+// 					// }
+
+// 				} else {
+// 					res.Set(n, nil)
+// 				}
+// 			}
+
+// 			result = append(result, res)
+// 		} else {
+// 			// log.Printf("else || %v \n", emptyStartStr)
+// 			// res := tk.M{}
+// 			// res.Set("from", tStart)
+// 			// res.Set("to", tStart.Add(5*time.Second))
+
+// 			// empty = append(empty, res)
+
+// 			if emptyStartStr == "" {
+// 				emptyLen++
+// 				emptyStartStr = startStr
+// 				// log.Printf("else if || %v | %v \n", emptySeconds, float64(emptyLen))
+// 			} else {
+// 				// log.Printf("else else || %v | %v \n", emptySeconds, float64(emptyLen))
+// 				if emptySeconds/5 != float64(emptyLen) {
+// 					emptyStartStr = ""
+// 					emptyLen = 0
+// 				} else {
+// 					emptyLen++
+// 				}
+// 			}
+// 		}
+
+// 		if tStart.Sub(tEnd).Seconds() >= 0 {
+// 			break
+// 		}
+
+// 		// log.Printf(">>> %v \n", startStr)
+
+// 		modSecond := math.Mod(second, float64(5))
+// 		if modSecond == 0 {
+// 			tStart = tStart.Add(5 * time.Second)
+// 		} else {
+// 			tStart = tStart.Add(time.Duration(5-modSecond) * time.Second)
+// 		}
+
+// 		// tStart = tStart.Add(1 * time.Second)
+// 	}
+
+// 	return
+// }
+
+// func getDataLive(project string, turbine string, tStart time.Time, tags []string) (result []tk.M) {
+// 	filter := []*dbox.Filter{}
+// 	tmpRes := map[string]interface{}{}
+
+// 	filter = append(filter, dbox.Eq("projectname", project))
+// 	filter = append(filter, dbox.Eq("turbine", turbine))
+
+// 	if tStart.Year() != 1 {
+// 		filter = append(filter, dbox.Gt("timestamp", tStart.UTC()))
+// 	}
+// 	// rconn := lh.GetConnRealtime()
+// 	// defer rconn.Close()
+// 	rconn := DBRealtime()
+
+// 	csr, err := rconn.NewQuery().From(new(ScadaRealTime).TableName()).
+// 		Where(dbox.And(filter...)).
+// 		Order("-timestamp").
+// 		Cursor(nil)
+
+// 	defer csr.Close()
+
+// 	if err != nil {
+// 		tk.Println(err.Error())
+// 	}
+
+// 	tstamp := time.Time{}
+
+// 	mapFound := map[string]bool{}
+
+// 	// log.Printf(">>> %v | %v \n", tStart.String(), csr.Count())
+
+// 	if csr.Count() > 0 {
+// 		for {
+// 			data := tk.M{}
+// 			err = csr.Fetch(&data, 1, false)
+// 			if err != nil {
+// 				break
+// 			}
+
+// 			tstamp = data.Get("timestamp", time.Time{}).(time.Time)
+
+// 			for _, xTag := range tags {
+// 				tag := xTag
+// 				if xTag == "power" {
+// 					tag = "activepower"
+// 				}
+
+// 				if !mapFound[tag] {
+// 					tagVal := data.GetFloat64(tag)
+
+// 					if tagVal == float64(-99999.00) || tagVal == float64(-999999.00) || tagVal == float64(-9999999.00) {
+// 						tmpRes[xTag] = nil
+// 					} else {
+// 						tmpRes[xTag] = tagVal
+// 					}
+
+// 					mapFound[tag] = true
+// 				}
+// 			}
+
+// 			count := 0
+// 			for _, mp := range mapFound {
+// 				if mp {
+// 					count++
+// 				}
+// 			}
+
+// 			if count == len(tags) {
+// 				break
+// 			}
+// 		}
+// 		csr.Close()
+
+// 		result = append(result, tk.M{"_id": tstamp})
+
+// 		for tag, mp := range tmpRes {
+// 			result[0].Set(tag, mp)
+// 		}
+
+// 	}
+// 	return
+// }
