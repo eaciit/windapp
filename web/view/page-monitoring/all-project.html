@@ -39,7 +39,8 @@
                                     <td width="2%"><strong><span data-bind="text: Project"></span></strong></td>
 <!--                                     <td width="6" class="text-center"><span data-bind="text:kendo.toString((PowerGeneration/1000) , 'n2'), attr: { id: 'PowerGeneration_'+ Project }"></span> / <span data-bind="text:kendo.toString(Capacity , 'n2'), attr: { id: 'Capacity_'+ Project }"></span></td> -->
                                     <td width="6%">
-                                        <div class="link-detail" data-bind="click:function(){page.ToByProject(Project)}" data-toggle="tooltip" data-placement="top" title="Click to Monitoring By Project" >
+                                         <img src="{{BaseUrl}}res/img/triangle.png" class="serverlate" data-bind="visible: isbordered == true"/>
+                                        <div class="link-detail server-late" data-bind="click:function(){page.ToByProject(Project)}" data-toggle="tooltip" data-placement="top" title="Click to Monitoring By Project" >
                                             <span class="progress-custom-blind" data-bind="attr: { id: 'statusprojectdefault_'+ Project}">
                                                 <span data-bind="attr: { id: 'statusproject_'+ Project}"></span>
                                             </span>

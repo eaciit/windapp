@@ -1,4 +1,15 @@
-
+.serverlate {
+    -ms-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    margin-right: -5px;
+    float: right;
+    position: inherit;
+    margin-bottom: -20px;
+}
 .inner-triangle{
     border-left: 92px solid transparent;
     border-right: 15px solid #263238;
@@ -11,6 +22,10 @@
 
 .reapeat{
     border: 2px solid #db1e1e !important;
+}
+
+.link-detail .server-late{
+    margin-top: -2px;
 }
 
 /* set coloring scheme */
