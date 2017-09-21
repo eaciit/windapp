@@ -494,8 +494,8 @@ func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.T
 	match := tk.M{}
 	pipes := []tk.M{}
 	projection := map[string]int{"timestamp": 1}
-	for _, tag := range tags {
-		projection[tag] = 1
+	for _, tag := range secTags {
+		projection[strings.ToLower(tag)] = 1
 	}
 	match.Set("timestamp", tk.M{"$gte": tStart.UTC(), "$lt": tEnd.UTC()})
 	match.Set("projectname", project)
@@ -504,7 +504,6 @@ func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.T
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$project": projection})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
-
 	csr, e := DB().Connection.NewQuery().
 		// Select("timestamp", "fast_windspeed_ms", "fast_activepower_kw", "slow_winddirection",
 		// 	"slow_nacellepos", "fast_rotorspeed_rpm", "fast_genspeed_rpm", "fast_pitchangle",
@@ -532,7 +531,7 @@ func GetHFDDataRev(project string, turbine string, tStart time.Time, tEnd time.T
 
 			for _, tag := range tags {
 				mc := mapField[tag]
-				val := dt.GetFloat64(mc.SecField)
+				val := dt.GetFloat64(strings.ToLower(mc.SecField))
 
 				if val == float64(-99999.00) || val == float64(-999999.00) || val == float64(-9999999.00) {
 					dts.Set(mc.SecField, nil)
