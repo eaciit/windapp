@@ -26,20 +26,20 @@ var (
 	// notAvailValue    = -9999999.0
 	// notAvailValueOEM = -99999.0
 	mapField = map[string]MappingColumn{
-		"windspeed":                   MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0},
-		"power":                       MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0 + (2100.0 * 0.10)},
-		"production":                  MappingColumn{"Production", "", "kWh", -200, 2100.0},
-		"winddirection":               MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0},
-		"nacellepos":                  MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0},
-		"rotorrpm":                    MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0},
-		"genrpm":                      MappingColumn{"Generator RPM", "GenSpeed_RPM", "RPM", 0.0, 30.0},
-		"pitchangle":                  MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0},
-		"PitchCabinetTempBlade1":      MappingColumn{"Pitch Cabinet Temp Blade 1", "PitchCabinetTempBlade1", "Degree", -10.0, 120.0},
-		"PitchCabinetTempBlade2":      MappingColumn{"Pitch Cabinet Temp Blade 2", "PitchCabinetTempBlade2", "Degree", -10.0, 120.0},
-		"PitchCabinetTempBlade3":      MappingColumn{"Pitch Cabinet Temp Blade 3", "PitchCabinetTempBlade3", "Degree", -10.0, 120.0},
-		"PitchConvInternalTempBlade1": MappingColumn{"Pitch Conv Internal Temp Blade 1", "PitchConvInternalTempBlade1", "Degree", -10.0, 120.0},
-		"PitchConvInternalTempBlade2": MappingColumn{"Pitch Conv Internal Temp Blade 2", "PitchConvInternalTempBlade2", "Degree", -10.0, 120.0},
-		"PitchConvInternalTempBlade3": MappingColumn{"Pitch Conv Internal Temp Blade 3", "PitchConvInternalTempBlade3", "Degree", -10.0, 120.0},
+		"windspeed":                   MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0, "$avg"},
+		"power":                       MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0 + (2100.0 * 0.10), "$sum"},
+		"production":                  MappingColumn{"Production", "", "kWh", -200, 2100.0, "$sum"},
+		"winddirection":               MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0, "$avg"},
+		"nacellepos":                  MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0, "$avg"},
+		"rotorrpm":                    MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0, "$avg"},
+		"genrpm":                      MappingColumn{"Generator RPM", "GenSpeed_RPM", "RPM", 0.0, 30.0, "$avg"},
+		"pitchangle":                  MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0, "$avg"},
+		"PitchCabinetTempBlade1":      MappingColumn{"Pitch Cabinet Temp Blade 1", "PitchCabinetTempBlade1", "Degree", -10.0, 120.0, "$avg"},
+		"PitchCabinetTempBlade2":      MappingColumn{"Pitch Cabinet Temp Blade 2", "PitchCabinetTempBlade2", "Degree", -10.0, 120.0, "$avg"},
+		"PitchCabinetTempBlade3":      MappingColumn{"Pitch Cabinet Temp Blade 3", "PitchCabinetTempBlade3", "Degree", -10.0, 120.0, "$avg"},
+		"PitchConvInternalTempBlade1": MappingColumn{"Pitch Conv Internal Temp Blade 1", "PitchConvInternalTempBlade1", "Degree", -10.0, 120.0, "$avg"},
+		"PitchConvInternalTempBlade2": MappingColumn{"Pitch Conv Internal Temp Blade 2", "PitchConvInternalTempBlade2", "Degree", -10.0, 120.0, "$avg"},
+		"PitchConvInternalTempBlade3": MappingColumn{"Pitch Conv Internal Temp Blade 3", "PitchConvInternalTempBlade3", "Degree", -10.0, 120.0, "$avg"},
 	}
 )
 
@@ -62,11 +62,12 @@ type ResDataAvail struct {
 }
 
 type MappingColumn struct {
-	Name     string
-	SecField string
-	Unit     string
-	MinValue float64
-	MaxValue float64
+	Name      string
+	SecField  string
+	Unit      string
+	MinValue  float64
+	MaxValue  float64
+	Aggregate string
 }
 
 func CreateTimeSeriesController() *TimeSeriesController {
@@ -161,7 +162,7 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				}
 
 				if len(hfds) > 0 || p.IsHour {
-					for _, tag := range p.TagList {
+					for _, tag := range tags {
 						var dts [][]interface{}
 						var dterr [][]interface{}
 						columnTag := mapField[tag]
@@ -219,23 +220,9 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 			// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
 			match.Set("turbine", turbine)
-
-			group = tk.M{
-				"_id": "$timestamp",
-				// "energy":    tk.M{"$sum": "$energy"},
-				"windspeed":                   tk.M{"$avg": "$windspeed_ms"},
-				"power":                       tk.M{"$sum": "$activepower_kw"},
-				"winddirection":               tk.M{"$avg": "$winddirection"},
-				"nacellepos":                  tk.M{"$avg": "$nacellepos"},
-				"rotorrpm":                    tk.M{"$avg": "$rotorspeed_rpm"},
-				"genrpm":                      tk.M{"$avg": "$genspeed_rpm"},
-				"pitchangle":                  tk.M{"$avg": "$pitchangle"},
-				"PitchCabinetTempBlade1":      tk.M{"$avg": "$pitchcabinettempblade1"},
-				"PitchCabinetTempBlade2":      tk.M{"$avg": "$pitchcabinettempblade2"},
-				"PitchCabinetTempBlade3":      tk.M{"$avg": "$pitchcabinettempblade3"},
-				"PitchConvInternalTempBlade1": tk.M{"$avg": "$pitchconvinternaltempblade1"},
-				"PitchConvInternalTempBlade2": tk.M{"$avg": "$pitchconvinternaltempblade2"},
-				"PitchConvInternalTempBlade3": tk.M{"$avg": "$pitchconvinternaltempblade3"},
+			group.Set("_id", "$timestamp")
+			for _, tag := range tags {
+				group.Set(tag, tk.M{mapField[tag].Aggregate: "$" + strings.ToLower(mapField[tag].SecField)})
 			}
 		} else if pageType == "OEM" {
 			collName = new(ScadaDataOEM).TableName()
