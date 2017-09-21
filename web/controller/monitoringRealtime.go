@@ -555,7 +555,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 		}
 		if _tdata.GetString("tags") == "Total_Prod_Day_kWh" {
 			if tstamp.Truncate(time.Hour * 24).Equal(t0.Truncate(time.Hour * 24)) {
-				_itkm.Set("TotalProduction", _tdata.GetFloat64("value"))
+				_itkm.Set("TotalProduction", _tdata.GetFloat64("value")/1000) /*ibu nya minta megawatt*/
 			}
 		}
 
