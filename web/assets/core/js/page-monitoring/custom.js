@@ -16,6 +16,11 @@ bpc.turbineList = ko.observableArray([]);
 
 var requests = [];
 
+
+var audioElement = document.createElement('audio');
+    audioElement.setAttribute('src', "../res/alarm/alarm.mp3");
+
+
 ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var singleHandler   = valueAccessor().click,
@@ -113,6 +118,9 @@ bpc.getData = function() {
 // ploting the data
 var defaultValue = -999999;
 bpc.plotData = function(project, data) {
+	audioElement.currentTime = 0;
+    audioElement.pause();
+
 	var $data = data.data;
 	var $elm = $("#cusmon-project-"+ project);
 	var $elmDetail= $("#cusmon-detail-"+ project);
@@ -146,11 +154,23 @@ bpc.plotData = function(project, data) {
 
 			var defaultColorStatus = dt.DefaultColorStatus;
 
-
 			if(dt.ActivePower > 0 && dt.Capacity > 0) {
 				currPct = (dt.ActivePower/dt.Capacity)*100;
 			}
 			var $elmupdate = $elmdetail.find('.progress-bar[role="progressbar"]');
+
+			var $oldStatus = $elmupdate.attr('class').split(' ')[1];
+
+			if($oldStatus !== undefined){
+				if($oldStatus == "bg-default-green" && defaultColorStatus == "bg-default-red"){
+                    var playPromise = audioElement.play();
+                    if (playPromise !== null){
+                        playPromise.catch(() => { audioElement.play(); })
+                    }
+                }else{
+                    audioElement.pause();
+                }
+			}
 
 			if(defaultColorStatus != "bg-default-green"){
 				$elmupdate.prop('style', 'width: 100%');
