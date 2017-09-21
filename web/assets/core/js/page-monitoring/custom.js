@@ -16,6 +16,11 @@ bpc.turbineList = ko.observableArray([]);
 
 var requests = [];
 
+
+var audioElement = document.createElement('audio');
+    audioElement.setAttribute('src', "../res/alarm/alarm.mp3");
+
+
 ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         var singleHandler   = valueAccessor().click,
@@ -113,6 +118,9 @@ bpc.getData = function() {
 // ploting the data
 var defaultValue = -999999;
 bpc.plotData = function(project, data) {
+	audioElement.currentTime = 0;
+    audioElement.pause();
+
 	var $data = data.data;
 	var $elm = $("#cusmon-project-"+ project);
 	var $elmDetail= $("#cusmon-detail-"+ project);
@@ -129,12 +137,16 @@ bpc.plotData = function(project, data) {
 	$elm.find('.t-wait[data-id="'+ project +'"]').text($data.TurbineWaitingWS);
 	$elm.find('.t-na[data-id="'+ project +'"]').text($data.TurbineNotAvail);
 
+
+	$elmDetail.find('#timemax_'+ project).text(moment.utc($data.TimeMax).format('DD MMM YYYY HH:mm:ss'));
+
 	if($data.IsRemark == true){
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').css("display", "block !important");
 	}else{
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').hide();
 	}
 	
+
 
 	// set turbine updates
 	var $detail = $data.Detail;
@@ -146,11 +158,23 @@ bpc.plotData = function(project, data) {
 
 			var defaultColorStatus = dt.DefaultColorStatus;
 
-
 			if(dt.ActivePower > 0 && dt.Capacity > 0) {
 				currPct = (dt.ActivePower/dt.Capacity)*100;
 			}
 			var $elmupdate = $elmdetail.find('.progress-bar[role="progressbar"]');
+
+			var $oldStatus = $elmupdate.attr('class').split(' ')[1];
+
+			if($oldStatus !== undefined){
+				if($oldStatus == "bg-default-green" && defaultColorStatus == "bg-default-red"){
+                    var playPromise = audioElement.play();
+                    if (playPromise !== null){
+                        playPromise.catch(() => { audioElement.play(); })
+                    }
+                }else{
+                    audioElement.pause();
+                }
+			}
 
 			if(defaultColorStatus != "bg-default-green"){
 				$elmupdate.prop('style', 'width: 100%');
@@ -158,6 +182,12 @@ bpc.plotData = function(project, data) {
 				$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
 			}
 
+
+			if(dt.IsReapeatedAlarm == true){
+                $elmdetail.addClass("reapeat");
+            }else{
+                $elmdetail.removeClass("reapeat");
+            }
 
 			if(dt.IsRemark == true){
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-remark[data-id="icon_'+ dt.Turbine +'"]').css("display", "block !important");
@@ -168,7 +198,7 @@ bpc.plotData = function(project, data) {
 			}
 
 
-			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Power : "+ kendo.toString(dt.TotalProduction,'n1'));
+			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Power : "+ kendo.toString(dt.TotalProduction,'n2'));
 
 			$elmupdate.prop('aria-valuenow', currPct);
 			$elmupdate.attr("class" , "progress-bar " +defaultColorStatus);

@@ -3287,13 +3287,14 @@ func setMapData() (result tk.M) {
 	result = tk.M{}
 	// set database to realtime data db
 	rconn := DBRealtime()
-	t0 := getTimeNow()
+	t0, servt0 := getTimeNow(), time.Now().UTC()
 
 	pipes := []tk.M{
 		tk.M{"$match": tk.M{"projectname": tk.M{"$ne": ""}}}}
 	pipes = append(pipes, tk.M{"$group": tk.M{
-		"_id":         tk.M{"projectname": "$projectname", "turbine": "$turbine"},
-		"lastupdated": tk.M{"$max": "$timestamp"},
+		"_id":            tk.M{"projectname": "$projectname", "turbine": "$turbine"},
+		"lastupdated":    tk.M{"$max": "$timestamp"},
+		"lasttimeserver": tk.M{"$max": "$servertimestamp"},
 	}})
 	pipes = append(pipes, tk.M{
 		"$sort": tk.M{
@@ -3324,7 +3325,7 @@ func setMapData() (result tk.M) {
 	_tTurbine := ""
 	_tProject := ""
 	isDataComing := false
-	var tstamp time.Time
+	var tstamp, servtstamp time.Time
 	keys := ""
 	lastProject := ""
 	turbineStatus := map[string]string{}
@@ -3335,7 +3336,8 @@ func setMapData() (result tk.M) {
 
 	for _, dt := range lastUpdateRealtime {
 		ids, _ := tk.ToM(dt.Get("_id"))
-		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
+		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time).UTC()
+		servtstamp = dt.Get("lasttimeserver", time.Time{}).(time.Time).UTC()
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
 		if lastProject != _tProject {
@@ -3356,7 +3358,7 @@ func setMapData() (result tk.M) {
 			dataDowns = 0
 		}
 		turbineStatus[_tTurbine] = "green"
-		if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
+		if t0.Sub(tstamp).Minutes() <= 5 || servt0.Sub(servtstamp).Minutes() <= 5 {
 			isDataComing = true
 		} else {
 			turbineStatus[_tTurbine] = "grey"
