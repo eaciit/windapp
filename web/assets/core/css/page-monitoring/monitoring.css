@@ -584,6 +584,8 @@ h4.content-heading {
 .linked{
     color: #fff;
     padding-left: 0.5em;
+    font-style: normal;
+    font-weight: 700;
 }
 
 .span-legend {
