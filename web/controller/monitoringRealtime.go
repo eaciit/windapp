@@ -589,7 +589,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set("servertimestamp", servertstamp)
 			}
 
-			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 3 {
+			if time.Now().UTC().Sub(iststamp.UTC()).Minutes() <= 5 {
 				_itkm.Set("isserverlate", false)
 			}
 		}
