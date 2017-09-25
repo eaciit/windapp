@@ -20,7 +20,7 @@
 				<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: fa.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {fa.showHidePeriod()} }">
                 </select>
 				<span class="show_hide custom-period">
-                    <input class="filter-date-start input-filter" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date(),change: function(){fa.DateChange()}}" />
+                    <input class="filter-date-start input-filter" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date(),change: function(){ $.when(fa.changeEndDate()).done(function(){fa.DateChange()})}}" />
                     <label class="label-filters">to</label>
                     <input class="filter-date-end input-filter" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date(),change: function(){fa.DateChange()}}" />
                 </span>

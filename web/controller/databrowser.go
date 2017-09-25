@@ -722,7 +722,9 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			Aggr(dbox.AggrSum, "$energy", "TotalEnergy").
 			Group("turbine").Where(dbox.And(filter...))
 	case "ScadaHFD":
-		queryAggr = queryAggr.Group("turbine").Where(dbox.And(filter...))
+		queryAggr = queryAggr.Aggr(dbox.AggrSum, "$activepower_kw", "TotalActivePower").
+			Aggr(dbox.AggrSum, "$windspeed_ms", "AvgWindSpeed").
+			Group("turbine").Where(dbox.And(filter...))
 	}
 
 	caggr, e := queryAggr.Cursor(nil)
@@ -748,10 +750,15 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			AvgWS = avgWindSpeed / float64(ccount.Count())
 		}
 	case "ScadaHFD":
-		/*totalActivePower = m.getSummaryColumn(filter, "fast_activepower_kw", "sum", tablename)
-		AvgWS = m.getSummaryColumn(filter, "fast_windspeed_ms", "avg", tablename)*/
-		totalActivePower = m.getSummaryColumn(filter, "activepower_kw", "sum", tablename)
-		AvgWS = m.getSummaryColumn(filter, "windspeed_ms", "avg", tablename)
+		/*totalActivePower = m.getSummaryColumn(filter, "activepower_kw", "sum", tablename)
+		AvgWS = m.getSummaryColumn(filter, "windspeed_ms", "avg", tablename)*/
+		for _, val := range aggrData {
+			totalActivePower += val.GetFloat64("TotalActivePower")
+			avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+		}
+		if ccount.Count() > 0.0 {
+			AvgWS = avgWindSpeed / float64(ccount.Count())
+		}
 	}
 
 	allFieldRequested := arrscadaoem

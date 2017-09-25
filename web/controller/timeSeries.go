@@ -33,7 +33,7 @@ var (
 		"nacellepos":                  MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0, "$avg"},
 		"rotorrpm":                    MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0, "$avg"},
 		"genrpm":                      MappingColumn{"Generator RPM", "GenSpeed_RPM", "RPM", 0.0, 30.0, "$avg"},
-		"pitchangle":                  MappingColumn{"Pitch Angle", "PitchAngle1", "Degree", -10.0, 120.0, "$avg"},
+		"pitchangle":                  MappingColumn{"Pitch Angle", "PitchAngle", "Degree", -10.0, 120.0, "$avg"},
 		"PitchCabinetTempBlade1":      MappingColumn{"Pitch Cabinet Temp Blade 1", "PitchCabinetTempBlade1", "Degree", -10.0, 120.0, "$avg"},
 		"PitchCabinetTempBlade2":      MappingColumn{"Pitch Cabinet Temp Blade 2", "PitchCabinetTempBlade2", "Degree", -10.0, 120.0, "$avg"},
 		"PitchCabinetTempBlade3":      MappingColumn{"Pitch Cabinet Temp Blade 3", "PitchCabinetTempBlade3", "Degree", -10.0, 120.0, "$avg"},
