@@ -576,40 +576,10 @@ it.ShowData = function() {
         app.loading(true);
     }
 
-    var turbine = "";
-    var project = "";
 
-    if(localStorage.getItem("projectname") !== null && localStorage.getItem("turbine") !== null) {
-        turbine = localStorage.getItem("turbine")
-        project = localStorage.getItem("projectname");
-
-        if(localStorage.getItem("isFromSummary") !== undefined && localStorage.getItem("isFromSummary") == "true"){
-            it.isFromSummary(true);
-        }
-
-        if(localStorage.getItem("isFromByProject") !== undefined && localStorage.getItem("isFromByProject") == "true"){
-            it.isFromByProject(true);
-       }
-
-      
-        setTimeout(function(){
-            $('#projectList').data('kendoDropDownList').value(project);
-            var change = $("#projectList").data("kendoDropDownList").trigger("change");
-            setTimeout(function(){
-                $('#turbine').data('kendoDropDownList').value(turbine);
-            },200);
-            app.resetLocalStorage();
-        },500);
-        setTimeout(function(){
-            it.isFirst(true);
-            it.ShowData();
-        },300);
-
-    } else {
-        turbine = $('#turbine').data('kendoDropDownList').value();
-        project = $('#projectList').data('kendoDropDownList').value();
-        it.GetData(project, turbine);
-    }
+    var turbine = $('#turbine').data('kendoDropDownList').value();
+    var project = $('#projectList').data('kendoDropDownList').value();
+    it.GetData(project, turbine);
 
     $.when(it.showWindRoseChart()).done(function () {
         setTimeout(function() {
@@ -1013,6 +983,36 @@ it.changeColor = function(){
 }
 
 $(document).ready(function(){
+    
+    console.log(localStorage.getItem("turbine"));
+    
+    if(localStorage.getItem("projectname") !== null && localStorage.getItem("turbine") !== null) {
+        var turbine = localStorage.getItem("turbine")
+        var project = localStorage.getItem("projectname");
+
+        if(localStorage.getItem("isFromSummary") !== undefined && localStorage.getItem("isFromSummary") == "true"){
+            it.isFromSummary(true);
+        }
+
+        if(localStorage.getItem("isFromByProject") !== undefined && localStorage.getItem("isFromByProject") == "true"){
+            it.isFromByProject(true);
+       }
+
+      
+        setTimeout(function(){
+            $('#projectList').data('kendoDropDownList').value(project);
+            var change = $("#projectList").data("kendoDropDownList").trigger("change");
+            setTimeout(function(){
+                $('#turbine').data('kendoDropDownList').value(turbine);
+            },200);
+
+            app.resetLocalStorage();
+            it.isFirst(true);
+        },500);
+
+    }
+
+
     setTimeout(function() {
         it.ShowData();
         intervalTurbine = window.setInterval(it.ShowData, 6000);

@@ -428,10 +428,7 @@ app.runAfter = function () {
 };
 
 app.resetLocalStorage = function(){
-    localStorage.removeItem('projectname');
-    localStorage.removeItem('turbine');
-    localStorage.removeItem('isFromSummary');
-    localStorage.removeItem('isFromByProject');
+    localStorage.clear();
 }
 
 viewModel.StringExt = new Object();
