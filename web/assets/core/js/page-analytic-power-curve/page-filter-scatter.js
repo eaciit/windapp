@@ -264,6 +264,25 @@ fa.checkCompleteDate = function () {
 
 }
 
+fa.changeEndDate = function(){
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEndMax = $('#dateEnd').data('kendoDatePicker').max();
+
+    var dateEndPicker  = $('#dateEnd').data('kendoDatePicker');
+
+    
+    setTimeout(function(){
+        if(moment(dateStart).format('MMM-Y') == moment(new Date()).format('MMM-Y')){
+            dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateEndMax.getDate(), 0, 0, 0)));
+        }else{
+            dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth()+1, 0, 0, 0, 0)));
+        }
+    },200);
+    
+    dateEndPicker.min(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0)));
+
+}
+
 fa.setProjectTurbine = function(projects, turbines, selected){
 	fa.rawproject(projects);
     fa.rawturbine(turbines);
