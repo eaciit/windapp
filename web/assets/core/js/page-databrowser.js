@@ -612,7 +612,7 @@ dbr.ChangeColumnList = function() {
     dbsh.selectedColumn([]);
     $.each(dbsh.AllProjectColumnList(), function(idxAll, valAll) {
         $.each(tempSelected, function(idxSelect, valSelect) {
-            if(valAll.projectname === valSelect.projectname && valAll.source === valSelect.source &&
+            if(valAll.projectname === $("#projectList").data("kendoDropDownList").value() && valAll.source === valSelect.source &&
                 valAll._id === valSelect._id) {
                 dbsh.selectedColumn.push(valAll);
             }
@@ -623,7 +623,7 @@ dbr.ChangeColumnList = function() {
     dbsh.unselectedColumn([]);
     $.each(dbsh.AllProjectColumnList(), function(idxAll, valAll) {
         $.each(tempUnselected, function(idxSelect, valSelect) {
-            if(valAll.projectname === valSelect.projectname && valAll.source === valSelect.source &&
+            if(valAll.projectname === $("#projectList").data("kendoDropDownList").value() && valAll.source === valSelect.source &&
                 valAll._id === valSelect._id) {
                 dbsh.unselectedColumn.push(valAll);
             }
