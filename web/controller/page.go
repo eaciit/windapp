@@ -406,7 +406,7 @@ func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface
 func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
-	r.Config.IncludeFiles = []string{"page-monitoring/turbine-pic.html"}
+	r.Config.IncludeFiles = []string{"page-monitoring/turbine-pic.html","page-monitoring/turbine-collaboration.html"}
 	r.Config.ViewName = "page-monitoring/individual-turbine.html"
 	// allTurbineList, _ := helper.GetAllTurbineList()
 	// w.Params.Set("AllTurbineList", allTurbineList)
