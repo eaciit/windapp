@@ -1936,7 +1936,7 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	// get remarks / turbine collaboration
 	remarkDate, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
-	pipes = []tk.M{
+	pipes := []tk.M{
 		tk.M{
 			"$match": tk.M{
 				"$and": []tk.M{
