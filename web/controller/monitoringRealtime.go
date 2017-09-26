@@ -1934,6 +1934,40 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	project := p.Project
 
+	// get remarks / turbine collaboration
+	remarkDate, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	pipes := []tk.M{
+		tk.M{
+			"$match": tk.M{
+				"$and": []tk.M{
+					tk.M{"turbineid": p.Turbine},
+					tk.M{"date": tk.M{"$gte": remarkDate}},
+					tk.M{"isdeleted": false},
+				},
+			},
+		},
+		tk.M{
+			"$sort": tk.M{"date": -1},
+		},
+	}
+
+	remarkData := []TurbineCollaborationModel{}
+	csrRemark, e := DB().Connection.NewQuery().
+		From(new(TurbineCollaborationModel).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrRemark.Close()
+
+	e = csrRemark.Fetch(&remarkData, 1, false)
+	if e != nil {
+		tk.Println(e.Error())
+	}
+
+	isRemark := false
+	if len(remarkData) > 0 {
+		isRemark = true
+	}
+
 	timemax := getMaxRealTime(project, p.Turbine).UTC()
 	// alltkmdata := getLastValueFromRaw(timemax, project, p.Turbine)
 	// ============== get realtime data =================
@@ -2007,6 +2041,8 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	if t0.Sub(timemax.UTC()).Minutes() > 5 {
 		alldata.Set("Turbine Status", -999)
 	}
+
+	alldata.Set("isRemark", isRemark)
 
 	return helper.CreateResultX(true, alldata, "success", k)
 }

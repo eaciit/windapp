@@ -62,9 +62,9 @@ if (pageType == "OEM") {
         {text: "Voltage L1" , value:"VoltageL1"},
         {text: "Voltage L2" , value:"VoltageL2"},
         {text: "Voltage L3" , value:"VoltageL3"},
-        {text: "Pitch Accu V1" , value:"PitchAccuV1"},
-        {text: "Pitch Accu V2" , value:"PitchAccuV2"},
-        {text: "Pitch Accu V3" , value:"PitchAccuV3"},      
+        {text: "Blade Voltage V1" , value:"PitchAccuV1"},
+        {text: "Blade Voltage V2" , value:"PitchAccuV2"},
+        {text: "Blade Voltage V3" , value:"PitchAccuV3"},      
     ]);
 }
 
