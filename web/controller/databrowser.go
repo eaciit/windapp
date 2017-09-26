@@ -573,11 +573,13 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	istimestamp := false
 	arrmettower := []string{}
 	ids := ""
+	projection := map[string]int{}
 	if p.Custom.Has("ColumnList") {
 		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
 			_tkm, _ := tk.ToM(_val)
 			ids = strings.ToLower(_tkm.GetString("_id"))
 			if _tkm.GetString("source") == source {
+				projection[ids] = 1
 				arrscadaoem = append(arrscadaoem, ids)
 				if ids == "timestamp" {
 					istimestamp = true
@@ -587,26 +589,31 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			}
 		}
 	}
-
-	query := DB().Connection.NewQuery().
-		Select(arrscadaoem...).
-		From(tablename).
-		Skip(p.Skip).
-		Take(p.Take)
-	query.Where(dbox.And(filter...))
-
+	matches := []tk.M{}
+	for _, val := range filter {
+		matches = append(matches, tk.M{
+			val.Field: tk.M{val.Op: val.Value},
+		})
+	}
+	sortList := map[string]int{}
 	if len(p.Sort) > 0 {
-		var arrsort []string
 		for _, val := range p.Sort {
 			if val.Dir == "desc" {
-				arrsort = append(arrsort, strings.ToLower("-"+val.Field))
+				sortList[strings.ToLower("-"+val.Field)] = -1
 			} else {
-				arrsort = append(arrsort, strings.ToLower(val.Field))
+				sortList[strings.ToLower("-"+val.Field)] = 1
 			}
 		}
-		query = query.Order(arrsort...)
 	}
-	csr, e := query.Cursor(nil)
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$project": projection},
+		tk.M{"$skip": p.Skip},
+		tk.M{"$limit": p.Take},
+		tk.M{"$sort": sortList},
+	}
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -614,7 +621,6 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
-
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -695,13 +701,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 	}
 
-	queryC := DB().Connection.NewQuery().From(tablename).Where(dbox.And(filter...))
-	ccount, e := queryC.Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	defer ccount.Close()
-
+	countAll := 0.0 //jangan dibaca dengan lantang, nanti pada gempar
 	totalPower := 0.0
 	totalPowerLost := 0.0
 	totalActivePower := 0.0
@@ -711,23 +711,35 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	AvgWS := 0.0
 
 	aggrData := []tk.M{}
+	groups := tk.M{}
 
-	queryAggr := DB().Connection.NewQuery().From(tablename)
 	switch tipe {
 	case "ScadaOEM":
-		queryAggr = queryAggr.Aggr(dbox.AggrSum, "$power", "TotalPower").
-			Aggr(dbox.AggrSum, "$powerlost", "TotalPowerLost").
-			Aggr(dbox.AggrSum, "$ai_intern_activpower", "TotalActivePower").
-			Aggr(dbox.AggrSum, "$ai_intern_windspeed", "AvgWindSpeed").
-			Aggr(dbox.AggrSum, "$energy", "TotalEnergy").
-			Group("turbine").Where(dbox.And(filter...))
+		groups = tk.M{
+			"_id":              "$turbine",
+			"TotalPower":       tk.M{"$sum": "$power"},
+			"TotalPowerLost":   tk.M{"$sum": "$powerlost"},
+			"TotalActivePower": tk.M{"$sum": "$ai_intern_activpower"},
+			"AvgWindSpeed":     tk.M{"$sum": "$ai_intern_windspeed"},
+			"TotalEnergy":      tk.M{"$sum": "$energy"},
+			"DataCount":        tk.M{"$sum": 1},
+		}
 	case "ScadaHFD":
-		queryAggr = queryAggr.Aggr(dbox.AggrSum, "$activepower_kw", "TotalActivePower").
-			Aggr(dbox.AggrSum, "$windspeed_ms", "AvgWindSpeed").
-			Group("turbine").Where(dbox.And(filter...))
+		groups = tk.M{
+			"_id":              "$turbine",
+			"TotalActivePower": tk.M{"$sum": "$activepower_kw"},
+			"AvgWindSpeed":     tk.M{"$sum": "$windspeed_ms"},
+			"DataCount":        tk.M{"$sum": 1},
+		}
+	}
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$group": groups},
+		tk.M{"$sort": sortList},
 	}
 
-	caggr, e := queryAggr.Cursor(nil)
+	caggr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -745,9 +757,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			totalActivePower += val.GetFloat64("TotalActivePower")
 			avgWindSpeed += val.GetFloat64("AvgWindSpeed")
 			totalEnergy += val.GetFloat64("TotalEnergy")
+			countAll += val.GetFloat64("DataCount")
 		}
-		if ccount.Count() > 0.0 {
-			AvgWS = avgWindSpeed / float64(ccount.Count())
+		if countAll > 0.0 {
+			AvgWS = avgWindSpeed / countAll
 		}
 	case "ScadaHFD":
 		/*totalActivePower = m.getSummaryColumn(filter, "activepower_kw", "sum", tablename)
@@ -755,9 +768,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		for _, val := range aggrData {
 			totalActivePower += val.GetFloat64("TotalActivePower")
 			avgWindSpeed += val.GetFloat64("AvgWindSpeed")
+			countAll += val.GetFloat64("DataCount")
 		}
-		if ccount.Count() > 0.0 {
-			AvgWS = avgWindSpeed / float64(ccount.Count())
+		if countAll > 0.0 {
+			AvgWS = avgWindSpeed / countAll
 		}
 	}
 
@@ -816,7 +830,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		LastSort         []helper.Sorting
 	}{
 		Data:             result,
-		Total:            ccount.Count(),
+		Total:            tk.ToInt(countAll, tk.RoundingAuto),
 		TotalPower:       totalPower,
 		TotalPowerLost:   totalPowerLost,
 		TotalActivePower: totalActivePower,

@@ -334,6 +334,21 @@ func EnergyMeasurement(data interface{}, key1 string, key2 string) toolkit.Ms {
 	return result
 }
 
+func CreateResultWithoutSession(success bool, data interface{}, message string) map[string]interface{} {
+	if !success {
+		toolkit.Println("ERROR! ", message)
+		if DebugMode {
+			panic(message)
+		}
+	}
+	
+	return map[string]interface{}{
+		"data":    data,
+		"success": success,
+		"message": message,
+	}
+}
+
 func CreateResult(success bool, data interface{}, message string) map[string]interface{} {
 	if !success {
 		toolkit.Println("ERROR! ", message)

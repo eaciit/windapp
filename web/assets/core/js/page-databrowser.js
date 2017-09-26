@@ -619,15 +619,20 @@ dbr.ChangeColumnList = function() {
         });
     });
 
-    var tempUnselected = dbsh.unselectedColumn();
     dbsh.unselectedColumn([]);
+    var isExist = false;
     $.each(dbsh.AllProjectColumnList(), function(idxAll, valAll) {
-        $.each(tempUnselected, function(idxSelect, valSelect) {
+        isExist = false;
+        $.each(dbsh.selectedColumn(), function(idxSelect, valSelect) {
             if(valAll.projectname === $("#projectList").data("kendoDropDownList").value() && valAll.source === valSelect.source &&
                 valAll._id === valSelect._id) {
-                dbsh.unselectedColumn.push(valAll);
+                isExist = true;
             }
         });
+        if(!isExist && (valAll.projectname === $("#projectList").data("kendoDropDownList").value() ||
+            valAll.source === "MetTower")) {
+            dbsh.unselectedColumn.push(valAll);
+        }
     });
     dbsh.getColumnListHFD();
 }
