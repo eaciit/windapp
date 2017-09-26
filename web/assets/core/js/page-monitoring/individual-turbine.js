@@ -23,6 +23,21 @@ it.allTurbineList = ko.observableArray([{}]);
 it.isFromSummary = ko.observable(false);
 it.isFromByProject = ko.observable(false);
 it.isShowVibration = ko.observable(false);
+it.feeder = ko.observableArray();
+it.colorStatus = ko.observable();
+
+
+
+it.getFeeder = function(project, turbine){
+    var turbineList = it.allTurbineList;
+    if(turbineList.length > 0) {
+        $.each(it.allTurbineList, function(key, val){
+            if(val.Project == project && val.Turbine == turbine){
+                it.feeder(val.Feeder);
+            }
+        });
+    }
+}
 
 it.populateProject = function (data) {
     if (data.length == 0) {
@@ -50,7 +65,7 @@ it.populateProject = function (data) {
 
 it.populateTurbine = function (project, turbine, isChange) {
     if (turbine.length == 0) {
-        turbine = [];;
+        turbine = [];
         it.turbineList([{ Id: "", Lat: 0.0, Lon: 0.0 }]);
     } else {
         var turbinevalue = [];
@@ -115,6 +130,10 @@ it.getTimestamp = function(param){
 }
 
 it.GetData = function(project, turbine) {
+
+    it.getFeeder(project, turbine);
+
+
     var param = { 
         Project: project,
         Turbine: turbine
@@ -160,6 +179,22 @@ it.GetData = function(project, turbine) {
         it.isFirst(false);
     });
 };
+
+it.ShowRemark = function(){
+    TbCol.ResetData();
+    var turbineName = $('#turbine').data('kendoDropDownList').text();
+    var turbineId = $('#turbine').data('kendoDropDownList').value();
+
+    TbCol.TurbineId(turbineId);
+    TbCol.TurbineName(turbineName);
+    TbCol.UserId('');
+    TbCol.UserName('');
+    TbCol.Project(it.project);
+    TbCol.Feeder(it.feeder());
+    TbCol.IsTurbine(true);
+    TbCol.OpenForm();
+    TbCol.IconStatus(it.colorStatus());
+}
 
 // it.rotor_r_cur = ko.observable('');
 // it.rotor_y_cur = ko.observable('');
@@ -248,10 +283,13 @@ it.PlotData = function(data) {
 
     if (data["Turbine Status"] === -999) {
         $('#rotorPic').css({"fill": "#b8b9bb"});
+        it.colorStatus("txt-grey");
     } else if (data["Turbine Status"] == 1) {
         $('#rotorPic').css({"fill": "#31b445"});
+        it.colorStatus("txt-green");
     } else {
         $('#rotorPic').css({"fill": "#db1e1e"});
+        it.colorStatus("txt-red");
     }
 
     /*WIND SPEED PART*/
@@ -531,6 +569,11 @@ it.PlotData = function(data) {
     //     it.tower_vibra(data["Tower vibration"].toFixed(2));
     // else it.tower_vibra('N/A');
 
+    if(data["isRemark"] == true){
+        $(".icon-remark").show();
+    }else{
+         $(".icon-remark").hide();
+    }
 
     it.changeRotation();
     it.changeColor();

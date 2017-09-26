@@ -40,7 +40,9 @@ TbCol.ShowModal = function(mode) {
 TbCol.OpenForm = function() {
 	if(typeof summary !== 'undefined' ){
 		summary.abortAll(requests);
-	}else{
+	}
+
+	if(typeof bp !== 'undefined'){
 		bp.abortAll(requests);
 	}	
 	
@@ -52,9 +54,12 @@ TbCol.OpenForm = function() {
 TbCol.CloseForm = function() {
 	if(typeof summary !== 'undefined'){
 		$allFarmsInterval = bpc.refresh();
-	}else{
+	}
+
+	if(typeof bp !== 'undefined'){
 		setInterval(bp.GetData, 5000);
 	}
+	
 	$('#mdlTbColab').modal('hide');
 };
 

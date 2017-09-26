@@ -151,12 +151,14 @@ dbsh.InitScadaHFDGrid= function() {
                 },
             },
             sort: [{
-                field: 'timeStamp',
+                field: 'timestamp',
                 dir: 'asc'
-            }, {
-                field: 'turbine',
-                dir: 'asc'
-            }],
+            }, 
+            // {
+            //     field: 'turbine',
+            //     dir: 'asc'
+            // }
+            ],
         },
         excel: {
             fileName: "Scada HFD.xlsx",
@@ -205,8 +207,8 @@ dbsh.InitScadaHFDGrid= function() {
         $("#modalShowHideHFD").modal();
         return false;
     });
-    $('#scadahfdGrid').data("kendoGrid").showColumn("Turbine");
-    $('#scadahfdGrid').data("kendoGrid").showColumn("TimeStamp");
+    $('#scadahfdGrid').data("kendoGrid").showColumn("turbine");
+    $('#scadahfdGrid').data("kendoGrid").showColumn("timestamp");
     $("#scadahfdGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","73px");
     
     $('#scadahfdGrid').data("kendoGrid").refresh();
