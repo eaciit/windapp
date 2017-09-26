@@ -2364,6 +2364,141 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 	return
 }
 
+func getReffMonitoringNotif(project string, rconn dbox.IConnection) (tkm tk.M) {
+	tkm = tk.M{}
+	csr, err := rconn.NewQuery().
+		Select("alarmstatus", "description").
+		From("RealMonitoringNotification").
+		Where(dbox.Eq("project", project)).
+		Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	for {
+		result := tk.M{}
+		err = csr.Fetch(&result, 1, false)
+		if err != nil {
+			break
+		}
+
+		tkm.Set(result.GetString("alarmstatus"), result.GetString("description"))
+	}
+
+	return
+}
+
+func (c *MonitoringRealtimeController) GetDataNotification(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+
+	p := new(AlarmPayloads)
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResultX(false, nil, e.Error(), k)
+	}
+	rconn := DBRealtime()
+
+	project := p.Project
+	tablename := new(MonitoringNotification).TableName()
+	reffmonitoring := getReffMonitoringNotif(project, rconn)
+
+	dfilter := []*dbox.Filter{}
+	dfilter = append(dfilter, dbox.Eq("projectname", project))
+	orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
+		dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
+		dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)),
+		dbox.Eq("timeend", time.Time{}))
+	dfilter = append(dfilter, orFilter)
+	if len(p.Turbine) > 0 {
+		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
+	}
+
+	aggr := map[string]interface{}{}
+	aggr["countdata"] = 1
+	tkmgroup := tk.M{}
+	resultGroup, err := alarmQuery(tablename, "group", p, dfilter, aggr)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+	if len(resultGroup) > 0 {
+		tkmgroup = resultGroup[0]
+	}
+
+	totalData := tkmgroup.GetInt("countdata")
+
+	query := rconn.NewQuery().From(tablename).
+		Where(dbox.And(dfilter...))
+	query = query.Skip(p.Skip).Take(p.Take)
+	if len(p.Sort) > 0 {
+		var arrsort []string
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				arrsort = append(arrsort, strings.ToLower("-"+strings.ToLower(val.Field)))
+			} else {
+				arrsort = append(arrsort, strings.ToLower(strings.ToLower(val.Field)))
+			}
+		}
+		query = query.Order(arrsort...)
+	}
+
+	csr, err := query.Cursor(nil)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	turbineName, err := helper.GetTurbineNameList(project)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	results := []MonitoringNotification{}
+	err = csr.Fetch(&results, 0, false)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	restkm := []tk.M{}
+	for _, val := range results {
+		tkm := tk.M{}
+		tkm.Set("projectname", val.ProjectName)
+		tkm.Set("turbine", turbineName[val.Turbine])
+		tkm.Set("timestart", val.TimeStart)
+		tkm.Set("timeend", val.TimeEnd)
+		tkm.Set("description", reffmonitoring.GetString(val.GTags))
+		tkm.Set("tag", val.Tags)
+
+		tkm.Set("duration", val.TimeEnd.UTC().Sub(val.TimeStart.UTC()).Seconds())
+
+		tkm.Set("startcond", tk.Sprintf("%.2f", val.Value))
+		tkm.Set("endcond", tk.Sprintf("%.2f", val.LastValue))
+
+		if val.NoteStart != "" {
+			tkm.Set("startcond", val.NoteStart)
+		}
+
+		if val.NoteEnd != "" {
+			tkm.Set("endcond", val.NoteEnd)
+		}
+
+		restkm = append(restkm, tkm)
+	}
+
+	retData := tk.M{}.Set("Data", restkm).
+		Set("Total", totalData).
+		// Set("Duration", totalDuration).
+		Set("mindate", tStart.UTC()).
+		Set("maxdate", tEnd.UTC())
+
+	return helper.CreateResultX(true, retData, "success", k)
+}
+
 /*
 func (c *MonitoringRealtimeController) GetMonitoringByProject(project string) (rtkm tk.M) {
 
