@@ -245,6 +245,7 @@ dbsh.getColumnListHFD = function(){
     // console.log(dbsh.ColumnList());
 }
 dbsh.showColumnHFD = function() {
+    app.loading(true);
     dbsh.selectedColumn([]);
     dbsh.unselectedColumn([]);
     var grid = $('#selectedListHFD').data('kendoGrid');

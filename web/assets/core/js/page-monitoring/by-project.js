@@ -381,10 +381,55 @@ bp.PlotData = function(data) {
                     bp.ToAlarm(turbine);
                 });
             });
+
+
+            if(val.IsRemark == true){
+                 $('#iconTurbine_'+turbine).css("display", "block !important");
+            }else{
+                 $('#iconTurbine_'+turbine).hide();
+            }
+
+
+            $('#linkDetail_'+turbine).on("dblclick", function(e){
+                TbCol.ResetData();
+
+                var classIcon = 'txt-green';
+                var classString = defaultColorStatus;
+                if(classString !== undefined){
+                    classIcon = 'txt'+ classString.substr(10);
+                }
+                
+                TbCol.TurbineId(turbine);
+                TbCol.TurbineName(val.Name);
+                TbCol.UserId('');
+                TbCol.UserName('');
+                TbCol.Project(data.ProjectName);
+                TbCol.Feeder(val.feederName);
+                TbCol.IsTurbine(true);
+                TbCol.OpenForm();
+                TbCol.IconStatus(classIcon);
+            });
         }
 
     });
 
+    var $feederList = data.FeederRemarkList;
+
+    $.each($feederList , function(key, val){
+        if(val == true){
+            $(".tableDetails").find('.icon-remark[data-id="iconFeeder_'+ key +'"]').css("display", "block !important");
+        }else{
+            $(".tableDetails").find('.icon-remark[data-id="iconFeeder_'+ key +'"]').hide();
+        }
+
+        $(".tableDetails").find('.feederRemark[data-id="linkFeeder_'+ key +'"]').on("click", function(e){
+            TbCol.ResetData();
+            TbCol.ProjectFeeder(data.ProjectName)
+            TbCol.Feeder(key);
+            TbCol.IsTurbine(false);
+            TbCol.OpenForm();
+        });
+    });
 
 
 

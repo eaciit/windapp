@@ -64,9 +64,9 @@ var (
 		"TempBottomPowerSection":      MappingColumn{"Temp Bottom Power Section", "TempBottomPowerSection", "Degree", -10.0, 200.0, "$avg"},
 		"TempCabinetTopBox":           MappingColumn{"Temp Cabinet Top Box", "TempCabinetTopBox", "Degree", -10.0, 200.0, "$avg"},
 		"TempNacelle":                 MappingColumn{"Temp Nacelle", "TempNacelle", "Degree", -10.0, 200.0, "$avg"},
-		"VoltageL1":                   MappingColumn{"Voltage L 1", "VoltageL1", "Volt", -10.0, 1000.0, "$avg"},
-		"VoltageL2":                   MappingColumn{"Voltage L 2", "VoltageL2", "Volt", -10.0, 1000.0, "$avg"},
-		"VoltageL3":                   MappingColumn{"Voltage L 3", "VoltageL3", "Volt", -10.0, 1000.0, "$avg"},
+		"VoltageL1":                   MappingColumn{"Voltage L 1", "GridPPVPhaseAB", "Volt", -10.0, 1000.0, "$avg"},
+		"VoltageL2":                   MappingColumn{"Voltage L 2", "GridPPVPhaseBC", "Volt", -10.0, 1000.0, "$avg"},
+		"VoltageL3":                   MappingColumn{"Voltage L 3", "GridPPVPhaseCA", "Volt", -10.0, 1000.0, "$avg"},
 	}
 )
 

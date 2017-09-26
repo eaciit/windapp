@@ -37,15 +37,24 @@ TbCol.CurrentData = ko.observable({
 TbCol.ShowModal = function(mode) {
 	$('#mdlTbColab').modal(mode);
 };
-TbCol.OpenForm = function() {		
-	summary.abortAll(requests);
+TbCol.OpenForm = function() {
+	if(typeof summary !== 'undefined' ){
+		summary.abortAll(requests);
+	}else{
+		bp.abortAll(requests);
+	}	
+	
 	var project = TbCol.Project() == "" ? TbCol.ProjectFeeder() : TbCol.Project();
 	$.when(TbCol.GenerateGrid(TbCol.TurbineId(),project,TbCol.Feeder())).done(function(){
 		$('#mdlTbColab').modal('show');
 	});
 };
 TbCol.CloseForm = function() {
-	$allFarmsInterval = bpc.refresh();
+	if(typeof summary !== 'undefined'){
+		$allFarmsInterval = bpc.refresh();
+	}else{
+		setInterval(bp.GetData, 5000);
+	}
 	$('#mdlTbColab').modal('hide');
 };
 
