@@ -228,7 +228,6 @@ bpc.refresh = function() {
 // turbine collaboration open
 bpc.OpenTurbineCollaboration = function(dt) {
 	return function(dt) {
-		console.log(dt);
 		TbCol.ResetData();
 		if(dt.IsTurbine) {
 			var classIcon = 'txt-green';

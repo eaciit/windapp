@@ -5,6 +5,7 @@
 <script src="{{BaseUrl}}res/core/js/page-monitoring/by-project.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
+{{template "turbine-collaboration.html"}}
 <div class="row">
     <div class="row">
         <div class="col-md-12 col-sm-12 ez panel-content">
@@ -60,17 +61,16 @@
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
                                     </tr>
                                 </thead>
-                                <tbody data-bind="foreach:details">
+                                <tbody data-bind="foreach:details" class="tableDetails">
                                     <tr data-bind="visible:index == 0 && isHeader == true">
-                                       <td colspan="9"><strong><span data-bind="text:feederName"></span></strong></td> 
+                                       <td colspan="9" class="feederRemark" data-bind="attr: { 'data-id': 'linkFeeder_'+feederName}" style="cursor: pointer; cursor: hand;"><strong><span data-bind="text:feederName"></span> &nbsp; <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': 'iconFeeder_'+feederName}" style="display: none;"></i></strong></td> 
                                     </tr>
                                     <tr data-bind="visible:isHeader == false">
-                                       <!--  <td class="link-detail"><span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}"><span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-toggle="tooltip" title="Click to Individual Turbine" data-bind="text:Name, click: function(){ bp.ToIndividualTurbine(Turbine)}"></a></span></span></td> -->
                                        <td class="link-detail text-center">
                                            <spam data-bind="attr: { id: 'linkDetail_'+ Turbine}">
-                                                <span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}">
+                                               <span class="progress-custom" data-bind="attr: { id: 'statusturbinedefault_'+ Turbine}">
                                                      <div class="inner-triangle"></div>
-                                                    <span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-bind="text:Name"></a></span>
+                                                    <span data-bind="attr: { id: 'statusturbine_'+ Turbine}"><a class="linked" data-bind="text:Name"></a> &nbsp; &nbsp; <i class="icon-remark fa fa-star" data-bind="attr: { id: 'iconTurbine_'+ Turbine }" style="display: none; font-size: 8px"></i></span>
                                                 </span>
                                             </span>
                                         </td>
