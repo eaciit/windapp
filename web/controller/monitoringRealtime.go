@@ -2368,7 +2368,7 @@ func getReffMonitoringNotif(project string, rconn dbox.IConnection) (tkm tk.M) {
 	tkm = tk.M{}
 	csr, err := rconn.NewQuery().
 		Select("alarmstatus", "description").
-		From("RealMonitoringNotification").
+		From("ref_monitoringnotification").
 		Where(dbox.Eq("project", project)).
 		Cursor(nil)
 	if err != nil {
