@@ -992,6 +992,11 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			colorStatus = "lbl bg-green"
 		}
 
+		//Lahori already in MwH
+		if projectId != "Lahori" {
+			todayGen = tk.Div(todayGen, 1000)
+		}
+
 		detail := tk.M{
 			"Project":            projectId,
 			"Capacity":           maxCap,
@@ -1005,7 +1010,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			"TurbineNotAvail":    turbineNA,
 			"isbordered":         dataIsBordered[projectId],
 			"WaitingForWind":     waitingForWind,
-			"TodayGen":           tk.Div(todayGen, 1000.0),  // convert to mwh
+			"TodayGen":           todayGen,
 			"TodayLost":          tk.Div(todayLost, 1000.0), // convert to mwh
 			"PrevDayGen":         tk.Div(prevGen, 1000.0),   // convert to mwh
 			"PrevDayLost":        tk.Div(prevLost, 1000.0),  // convert to mwh
