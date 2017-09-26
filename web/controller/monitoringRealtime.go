@@ -2367,7 +2367,7 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 func getReffMonitoringNotif(project string, rconn dbox.IConnection) (tkm tk.M) {
 	tkm = tk.M{}
 	csr, err := rconn.NewQuery().
-		Select("alarmstatus", "description").
+		Select("tags", "description", "viewdesc").
 		From("ref_monitoringnotification").
 		Where(dbox.Eq("project", project)).
 		Cursor(nil)
@@ -2383,7 +2383,18 @@ func getReffMonitoringNotif(project string, rconn dbox.IConnection) (tkm tk.M) {
 			break
 		}
 
-		tkm.Set(result.GetString("alarmstatus"), result.GetString("description"))
+		tags := result.Get("tags", []interface{}{}).([]interface{})
+		viewdesc := tk.M{}
+		if result.Has("viewdesc") {
+			viewdesc, _ = tk.ToM(result["viewdesc"])
+		}
+		for _, tag := range tags {
+			stag := tk.ToString(tag)
+			tkm.Set(stag, result.GetString("description"))
+			if viewdesc.Has(stag) {
+				tkm.Set(stag, viewdesc.GetString(stag))
+			}
+		}
 	}
 
 	return
@@ -2471,7 +2482,7 @@ func (c *MonitoringRealtimeController) GetDataNotification(k *knot.WebContext) i
 		tkm.Set("turbine", turbineName[val.Turbine])
 		tkm.Set("timestart", val.TimeStart)
 		tkm.Set("timeend", val.TimeEnd)
-		tkm.Set("description", reffmonitoring.GetString(val.GTags))
+		tkm.Set("description", reffmonitoring.GetString(val.Tags))
 		tkm.Set("tag", val.Tags)
 
 		tkm.Set("duration", val.TimeEnd.UTC().Sub(val.TimeStart.UTC()).Seconds())
