@@ -67,9 +67,9 @@ var (
 		"VoltageL1":                   MappingColumn{"Voltage L 1", "GridPPVPhaseAB", "Volt", -10.0, 1000.0, "$avg"},
 		"VoltageL2":                   MappingColumn{"Voltage L 2", "GridPPVPhaseBC", "Volt", -10.0, 1000.0, "$avg"},
 		"VoltageL3":                   MappingColumn{"Voltage L 3", "GridPPVPhaseCA", "Volt", -10.0, 1000.0, "$avg"},
-		"PitchAccuV1":                 MappingColumn{"Pitch Accu V1", "PitchAccuV1", "Volt", -10.0, 1000.0, "$avg"},
-		"PitchAccuV2":                 MappingColumn{"Pitch Accu V2", "PitchAccuV2", "Volt", -10.0, 1000.0, "$avg"},
-		"PitchAccuV3":                 MappingColumn{"Pitch Accu V3", "PitchAccuV3", "Volt", -10.0, 1000.0, "$avg"},
+		"PitchAccuV1":                 MappingColumn{"Blade Voltage V1", "PitchAccuV1", "Volt", -10.0, 1000.0, "$avg"},
+		"PitchAccuV2":                 MappingColumn{"Blade Voltage V2", "PitchAccuV2", "Volt", -10.0, 1000.0, "$avg"},
+		"PitchAccuV3":                 MappingColumn{"Blade Voltage V3", "PitchAccuV3", "Volt", -10.0, 1000.0, "$avg"},
 	}
 )
 
