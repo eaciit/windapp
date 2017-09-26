@@ -1398,6 +1398,44 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	}
 
+	//get remark data
+	pipes = []tk.M{
+		tk.M{
+			"$match": tk.M{
+				"$and": []tk.M{
+					tk.M{"projectid": project},
+					tk.M{"isdeleted": false},
+				},
+			},
+		},
+		tk.M{
+			"$sort": tk.M{"date": -1},
+		},
+	}
+
+	remarkData := []TurbineCollaborationModel{}
+	remarkMaps := tk.M{}
+	csrRemark, e := DB().Connection.NewQuery().Select("projectid", "turbineid", "feeder").
+		From(new(TurbineCollaborationModel).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrRemark.Close()
+
+	e = csrRemark.Fetch(&remarkData, 0, false)
+	if e != nil {
+		tk.Println(e.Error())
+	}
+	for _, val := range remarkData {
+		if val.Feeder == "" && val.TurbineId == "" {
+			remarkMaps.Set(val.ProjectId, true)
+		} else if val.TurbineId == "" {
+			remarkMaps.Set(val.Feeder, true)
+		} else {
+			remarkMaps.Set(val.TurbineId, true)
+		}
+	}
+	//===============
+
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
 
 	dataRealtimeValue := 0.0
@@ -1477,7 +1515,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("Capacity", turbineMp.GetFloat64("capacity")).
 					Set("ColorStatus", "lbl bg-green").
 					Set("DefaultColorStatus", "bg-default-green").
-					Set("BulletColor", "fa fa-circle txt-grey")
+					Set("BulletColor", "fa fa-circle txt-grey").
+					Set("IsRemark", remarkMaps.Has(_tTurbine))
 
 				for _, afield := range arrfield {
 					_itkm.Set(afield, defaultValue)
@@ -1646,7 +1685,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			Set("Capacity", turbineMp.GetFloat64("capacity")).
 			Set("ColorStatus", "lbl bg-grey").
 			Set("DefaultColorStatus", "bg-default-grey").
-			Set("BulletColor", "fa fa-circle txt-grey")
+			Set("BulletColor", "fa fa-circle txt-grey").
+			Set("IsRemark", remarkMaps.Has(_turbine))
 
 		for _, afield := range arrfield {
 			_itkm.Set(afield, defaultValue)
@@ -1668,6 +1708,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		if turbineactive < 0 {
 			turbineactive = 0
 		}
+
+		rtkm.Set("IsRemark", remarkMaps.Has(project))
+		feederRemarkList := map[string]bool{}
+		for key, _ := range allturbine {
+			feederRemarkList[key] = remarkMaps.Has(key)
+		}
+		rtkm.Set("FeederRemarkList", feederRemarkList)
 
 		rtkm.Set("ProjectName", project)
 		rtkm.Set("ListOfTurbine", allturbine)
