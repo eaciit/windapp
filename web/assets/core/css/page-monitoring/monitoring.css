@@ -958,6 +958,14 @@ h4.content-heading {
   background-color: #;
 }
 
+.maximize-mode .inner-triangle{
+    border-right: 10px solid #fff;
+}
+
+.maximize-mode .icon-triangle{
+    border-right: 10px solid #fff;
+}
+
 .maximize-mode .modal-lg {
    color: #585555;
 }
@@ -975,7 +983,7 @@ h4.content-heading {
 
 .inner-triangle{
     border-left: 60px solid transparent;
-    border-right: 10px solid #265229;
+    border-right: 10px solid #000;
     border-bottom: 10px solid transparent;
     height: 0;
     width: 0;
@@ -1034,4 +1042,42 @@ h4.content-heading {
 *:-webkit-full-screen,
 *:-moz-full-screen {
    overflow: auto !important;
+}
+.modal {
+  text-align: center;
+  padding: 0!important;
+  background: transparent;
+}
+
+.modal:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -4px;
+}
+
+.modal-dialog {
+  width: 31% !important;
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}
+.modal-backdrop
+{
+    opacity:0.5 !important;
+}
+
+ul#date_timeview.k-list.k-reset{
+  max-height: 200px;
+}
+
+.control-label{
+    width: 50px;
+}
+.custom-input{
+    width: 85px;
+}
+.k-datetimepicker{
+    width: 150px;
 }
