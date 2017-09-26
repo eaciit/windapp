@@ -3472,7 +3472,10 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
 	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
 	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
-	return helper.CreateResult(true, results, "success")
+	
+	// probably its temporary solution to handle fatal error: concurrent map writes
+	//return helper.CreateResult(true, results, "success")
+	return helper.CreateResultWithoutSession(true, results, "success")
 }
 
 func (m *DashboardController) GetMapData_old(k *knot.WebContext) interface{} {
