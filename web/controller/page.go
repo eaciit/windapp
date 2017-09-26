@@ -421,6 +421,14 @@ func (w *PageController) MonitoringAlarm(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) MonitoringNotification(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = []string{"_filter-analytic.html"}
+	r.Config.ViewName = "page-monitoring/notification.html"
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) MonitoringWeather(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
