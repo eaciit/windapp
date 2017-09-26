@@ -150,7 +150,10 @@ mn.generateGrid = function(param){
         },{
             field: "description",
             title: "Description",
-            width: 190
+            width: 190,
+            attributes: {
+                style: "text-align:center;"
+            },
         }]
     });
 
