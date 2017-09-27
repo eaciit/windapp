@@ -167,13 +167,11 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			pipes = append(pipes, tk.M{"$group": tk.M{
 				"_id":       tk.M{"colId": "$dateinfo.dateid"},
 				"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
-				"totaldata": tk.M{"$sum": 1},
 			}})
 		} else {
 			pipes = append(pipes, tk.M{"$group": tk.M{
 				"_id":       tk.M{"colId": "$dateinfo.dateid"},
 				"colresult": tk.M{"$avg": "$trefhrefhumid855mavg"},
-				"totaldata": tk.M{"$sum": 1},
 			}})
 		}
 
@@ -259,8 +257,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	}
 	pipes = append(pipes, tk.M{"$group": tk.M{
 		"_id":       tk.M{"colId": colId, "Turbine": "$turbine"},
-		"colresult": tk.M{"$avg": "$" + colName},
-		"totaldata": tk.M{"$sum": 1}}})
+		"colresult": tk.M{"$avg": "$" + colName}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -271,7 +268,17 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	e = csr.Fetch(&list, 0, false)
+
+	_list := tk.M{}
+	list = []tk.M{}
+	for {
+		_list = tk.M{}
+		e = csr.Fetch(&_list, 1, false)
+		if e != nil {
+			break
+		}
+		list = append(list, _list)
+	}
 	defer csr.Close()
 
 	if len(p.Turbine) == 0 {
@@ -467,7 +474,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		tk.M{"$match": tk.M{"$and": matches}},
 	}
 
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$dateinfo.dateid", "colresult": tk.M{"$avg": "$" + colName}, "totaldata": tk.M{"$sum": 1}}})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$dateinfo.dateid", "colresult": tk.M{"$avg": "$" + colName}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
