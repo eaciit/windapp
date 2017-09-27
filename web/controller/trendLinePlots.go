@@ -258,7 +258,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	pipes = append(pipes, tk.M{"$group": tk.M{
 		"_id":       tk.M{"colId": colId, "Turbine": "$turbine"},
 		"colresult": tk.M{"$avg": "$" + colName}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.Turbine": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From("Scada10MinHFD").
