@@ -16,6 +16,7 @@ type MonitoringNotification struct {
 	Tags          string
 	TimeStart     time.Time
 	TimeEnd       time.Time
+	Duration      float64
 	Status        bool
 	IsError       bool
 	CompareVal    float64
