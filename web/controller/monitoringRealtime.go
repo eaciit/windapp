@@ -2518,7 +2518,12 @@ func (c *MonitoringRealtimeController) GetDataNotification(k *knot.WebContext) i
 		tkm.Set("turbine", turbineName[val.Turbine])
 		tkm.Set("timestart", val.TimeStart)
 		tkm.Set("timeend", val.TimeEnd)
-		tkm.Set("description", reffmonitoring.GetString(val.Tags))
+		tkm.Set("description", val.Tags)
+		vDesc := reffmonitoring.GetString(val.Tags)
+		if vDesc != "" {
+			tkm.Set("description", vDesc)
+		}
+
 		tkm.Set("tag", val.Tags)
 
 		tkm.Set("duration", val.TimeEnd.UTC().Sub(val.TimeStart.UTC()).Seconds())

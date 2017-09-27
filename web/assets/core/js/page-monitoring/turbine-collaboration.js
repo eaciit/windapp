@@ -94,7 +94,14 @@ TbCol.GenerateGrid = function(turbine, project,feeder){
 				TbCol.CurrentData()[key] = results[key] == undefined ? '' : results[key];
 			});
 
-			// $("#date").data("kendoDateTimePicker").value(results.Date);
+
+        	if(results._id !== ""){
+        		$("#date").data("kendoDateTimePicker").value(new Date(results.Date));
+        	}else{
+        		var val = kendo.toString(kendo.parseDate(new Date()), 'dd-MMM-yyyy H:m');
+				$("#date").data("kendoDateTimePicker").value(val);
+        	}
+
 			$("#status").val(results.Status);
 			$("#remark").val(results.Remark);
 			

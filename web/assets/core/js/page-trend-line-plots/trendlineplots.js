@@ -19,7 +19,7 @@ tlp.turbineList = ko.observableArray([]);
 
 tlp.turbine = ko.observableArray([]);
 tlp.compTemp = ko.observableArray([
-    { "value": 1, "text": "Ambient Temp", "colname": "temp_outdoor" },
+    { "value": 1, "text": "Ambient Temp", "colname": "tempoutdoor" },
     // { "value": 2, "text": "Temp_GearBox_IMS_NDE", "colname": "temp_gearbox_ims_nde" }, 
     // { "value": 3, "text": "Temp_GearBox_HSS_NDE", "colname": "temp_gearbox_hss_nde"  },
     // { "value": 4, "text": "Temp_G1L1", "colname": "temp_g1l1"  },
@@ -27,12 +27,12 @@ tlp.compTemp = ko.observableArray([
     // { "value": 6, "text": "Temp_G1L3", "colname": "temp_g1l3"  },
     // { "value": 7, "text": "Temp_GearBox_HSS_DE", "colname": "temp_gearbox_hss_de"  },
     // { "value": 8, "text": "Temp_GearOilSump", "colname": "temp_gearoilsump"  },
-    { "value": 9, "text": "Temp_GeneratorBearing_DE", "colname": "temp_generatorbearing_de"  },
-    { "value": 10, "text": "Temp_GeneratorBearing_NDE", "colname": "temp_generatorbearing_nde"  },
+    { "value": 9, "text": "Temp_GeneratorBearing_DE", "colname": "tempgeneratorbearingde"  },
+    { "value": 10, "text": "Temp_GeneratorBearing_NDE", "colname": "tempgeneratorbearingnde"  },
     // { "value": 11, "text": "Temp_MainBearing", "colname": "temp_mainbearing"  },
     // { "value": 12, "text": "Temp_GearBox_IMS_DE", "colname": "temp_gearbox_ims_de"  },
     // { "value": 13, "text": "Converter-1,2 temp", "colname": ""  },
-    { "value": 14, "text": "Nacelle Temp", "colname": "temp_nacelle"  },
+    { "value": 14, "text": "Nacelle Temp", "colname": "tempnacelle"  },
 ]);
 
 tlp.deviation= ko.observable(2);
@@ -42,27 +42,29 @@ tlp.compTempVal = ko.observable(1);
 
 
 tlp.getAvailDate = function(){
-    app.ajaxPost(viewModel.appName + "/trendlineplots/getscadaoemavaildate", {}, function(res) {
+    app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
         if (!app.isFine(res)) {
             return;
         }
+        var availDateAll = res.data;
+        var namaproject = $('#projectList').data("kendoDropDownList").value();
 
-        //Scada Data
-        if (res.data.ScadaOemAvailDate.length == 0) {
-            res.data.ScadaOemAvailDate = [];
-        } else {
-            if (res.data.ScadaOemAvailDate.length > 0) {
-                var minDatetemp = new Date(res.data.ScadaOemAvailDate[0]);
-                var maxDatetemp = new Date(res.data.ScadaOemAvailDate[1]);
+        if(namaproject == "") {
+            namaproject = "Tejuva";
+        }
+        var startDate = kendo.toString(moment.utc(availDateAll[namaproject]["ScadaDataHFD"][0]).format('DD-MMM-YYYY'));
+        var endDate = kendo.toString(moment.utc(availDateAll[namaproject]["ScadaDataHFD"][1]).format('DD-MMM-YYYY'));
 
-                $('#availabledatestarttlp').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMM-YYYY')));
-                $('#availabledateendtlp').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMM-YYYY')));
+        $('#availabledatestarttlp').html(startDate);
+        $('#availabledateendtlp').html(endDate);
 
-                var startDate = new Date(Date.UTC(moment(maxDatetemp).get('year'), maxDatetemp.getMonth(), maxDatetemp.getDate() - 7, 0, 0, 0, 0));
+        var maxDateData = new Date(availDateAll[namaproject]["ScadaDataHFD"][1]);
 
-                $('#dateStart').data('kendoDatePicker').value(startDate);
-                $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(maxDatetemp).format('DD-MMM-YYYY')));
-            }
+        if(moment(maxDateData).get('year') !== 1){
+            var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+            $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+            $('#dateEnd').data('kendoDatePicker').value(endDate);
         }
     });
 }
@@ -300,10 +302,6 @@ tlp.showHideLegend = function(idx){
 }
 
 $(document).ready(function() {
-
-    tlp.getAvailDate();
-
-
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {
@@ -323,16 +321,17 @@ $(document).ready(function() {
     });
 
     $('#projectList').kendoDropDownList({
-		change: function () {  
-            tlp.getAvailDate();
-			var project = $('#projectList').data("kendoDropDownList").value();
+		change: function () {
+            var project = $('#projectList').data("kendoDropDownList").value();
 			fa.populateTurbine(project);
             fa.project = project;
+            tlp.getAvailDate();
 		}
 	});
 
     setTimeout(function() {
         if(fa.LoadData()) {
+            tlp.getAvailDate();
             fa.checkTurbine();
             tlp.initChart();
         }
