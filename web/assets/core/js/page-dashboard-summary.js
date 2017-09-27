@@ -1445,15 +1445,19 @@ sum.DetailProd = function (e) {
     sum.isDetailLostEnergy(false);
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = { 'project': project, 'date': bulan };
+    var dataSource;
+    var measurement;
 
-    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod_old", param, function (res) {
+    var reqDetail = toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprodlevel1", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
-        var dataSource = res.data;
-        var measurement = " (" + dataSource[0].measurement + ") ";
+        dataSource = res.data;
+        measurement = " (" + dataSource[0].measurement + ") ";
         sum.detailProdMsTxt(measurement);
-
+    });
+    
+    $.when(reqDetail).done(function() {
         $("#chartDetailProduction").kendoChart({
             theme: "material",
             dataSource: {
@@ -1624,9 +1628,7 @@ sum.DetailProd = function (e) {
                 app.loading(false);
             }
         });
-    });
-    
-    
+    })
 }
 
 sum.DetailProdByProject = function (e) {
