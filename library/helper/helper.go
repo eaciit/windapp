@@ -595,11 +595,15 @@ func PopulateReducesAvailability(ctx *orm.DataContext) (brakeReducesAvailability
 func PopulateTurbines(_db dbox.IConnection, project string) (tkturbines tk.M) {
 	tkturbines = tk.M{}
 
-	csr, e := _db.NewQuery().
+	query := _db.NewQuery().
 		Select("turbineid", "turbinename").
-		From("ref_turbine").
-		Where(dbox.Eq("project", project)).
-		Cursor(nil)
+		From("ref_turbine")
+
+	if project != "" && strings.ToLower(project) != "fleet" {
+		query.Where(dbox.Eq("project", project))
+	}
+
+	csr, e := query.Cursor(nil)
 
 	if e != nil {
 		return
@@ -637,10 +641,13 @@ func PopulateTurbinesCapacity(_db dbox.IConnection, project string) (tkturbines 
 	e = csr.Fetch(&data, 0, false)
 	for _, val := range data {
 		_id := val.GetString("turbineid")
+		tkturbines.Set(_id, val.GetFloat64("capacitymw"))
+
 		if project == "" || strings.ToLower(project) == "fleet" {
 			_id = val.GetString("project")
+			lval := tkturbines.GetFloat64(_id)
+			tkturbines.Set(_id, val.GetFloat64("capacitymw")+lval)
 		}
-		tkturbines.Set(_id, val.GetFloat64("capacitymw"))
 	}
 	return
 }
