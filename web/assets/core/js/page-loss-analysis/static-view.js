@@ -274,7 +274,6 @@ sv.getGridView = function(gData){
     $('#lossGrid').kendoGrid({
         dataSource: {
             data: gData,
-            pageSize: 24,
             aggregate: [
                 { field: "Production", aggregate: "sum" },
                 { field: "LossEnergy", aggregate: "sum" },
@@ -289,6 +288,7 @@ sv.getGridView = function(gData){
                 { field: "OKTime", aggregate: "sum" },
             ],
             serverPaging: false,
+            sort: [ { field: "Id", dir: "asc" }],
         },
         scrollable: true,
         groupable: false,
