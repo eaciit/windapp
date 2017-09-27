@@ -587,7 +587,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, dataItem, "success")
 }
 
-func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} {
+func (m *DashboardController) GetDetailProdLevel1(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := tk.M{}
@@ -597,18 +597,23 @@ func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} 
 	}
 
 	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
-	matches := tk.M{"dateinfo.monthdesc": p.GetString("date"), "available": 1}
+	matches := tk.M{"dateinfo.monthdesc": p.GetString("date")}
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
 	}
-	fields := tk.M{"$sum": "$power"}
-
 	pipe := []tk.M{{"$match": matches},
-		{"$group": tk.M{"_id": ids, "production": fields}},
+		{"$group": tk.M{
+			"_id":        ids,
+			"production": tk.M{"$sum": "$production"},
+			"lostenergy": tk.M{"$sum": "$lostenergy"},
+			"mdownhours": tk.M{"$sum": "$machinedownhours"},
+			"gdownhours": tk.M{"$sum": "$griddownhours"},
+			"odownhours": tk.M{"$sum": "$otherdowntimehours"},
+		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
 	csrScada, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
 
@@ -619,40 +624,16 @@ func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} 
 
 	resultScada := []tk.M{}
 	e = csrScada.Fetch(&resultScada, 0, false)
-
-	matches.Unset("dateinfo.monthdesc")
-	matches.Unset("available")
-
-	matches.Set("startdateinfo.monthdesc", p.GetString("date"))
-	fields = tk.M{"$sum": "$powerlost"}
-
-	pipe = []tk.M{{"$match": matches}, {"$group": tk.M{"_id": ids, "totalpowerlost": fields,
-		"totalduration": tk.M{"$sum": "$duration"}}}}
-	csrAlarm, e := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).
-		Command("pipe", pipe).
-		Cursor(nil)
-
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrAlarm.Close()
 
-	resultAlarm := []tk.M{}
-	e = csrAlarm.Fetch(&resultAlarm, 0, false)
-
-	dataPowerLost := tk.M{}
-	dataDuration := tk.M{}
-	for _, val := range resultAlarm {
-		data := val["_id"].(tk.M)
-		dataPowerLost.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalpowerlost"))
-		dataDuration.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalduration"))
-	}
-	totalPower := tk.M{}
-	totalPowerLost := tk.M{}
-	totalTurbines := tk.M{}
+	totalEnergy := map[string]float64{}
+	totalEnergyLost := map[string]float64{}
+	totalTurbines := map[string]int{}
 	detailData := tk.M{}
 	detail := []tk.M{}
+	downtimehours := 0.0
 
 	listturbine := tk.M{}
 	tproject := ""
@@ -663,45 +644,29 @@ func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} 
 			tproject = project
 			listturbine = PopulateTurbines(DB().Connection, tproject)
 		}
-
-		_id := project + "_" + data.GetString("turbine")
-		if dataPowerLost.Has(_id) {
-			val.Set("lostenergy", dataPowerLost.GetFloat64(_id))
-			val.Set("downtime", dataDuration.GetFloat64(_id))
-		}
 		val.Unset("_id")
-		val.Set("production", val.GetFloat64("production")/6)
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {
 			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
 		}
+		downtimehours = val.GetFloat64("mdownhours") + val.GetFloat64("gdownhours") + val.GetFloat64("odownhours")
+		val.Set("downtimehours", downtimehours)
+
 		detail = append(detail, val)
 		detailData.Set(project, detail)
 
-		if totalPower.Has(project) {
-			totalPower.Set(data.GetString("project"), totalPower.GetFloat64(project)+val.GetFloat64("production"))
-		} else {
-			totalPower.Set(data.GetString("project"), val.GetFloat64("production"))
-		}
-		if totalPowerLost.Has(project) {
-			totalPowerLost.Set(data.GetString("project"), totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
-		} else {
-			totalPowerLost.Set(data.GetString("project"), val.GetFloat64("lostenergy"))
-		}
-		if totalTurbines.Has(project) {
-			totalTurbines.Set(data.GetString("project"), totalTurbines.GetInt(project)+1)
-		} else {
-			totalTurbines.Set(data.GetString("project"), 1)
-		}
+		totalEnergy[project] += val.GetFloat64("production")
+		totalEnergyLost[project] += val.GetFloat64("lostenergy")
+		totalTurbines[project]++
 	}
 
 	dataItem := []tk.M{}
-	for project, val := range totalPower {
+	for project, val := range totalEnergy {
 		data := tk.M{
 			"project":    project,
-			"production": val.(float64),
-			"lostenergy": totalPowerLost.GetFloat64(project),
-			"wtg":        totalTurbines.GetInt(project),
+			"production": val,
+			"lostenergy": totalEnergyLost[project],
+			"wtg":        totalTurbines[project],
 			"detail":     detailData[project],
 		}
 		dataItem = append(dataItem, data)
@@ -3472,7 +3437,10 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
 	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
 	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
-	return helper.CreateResult(true, results, "success")
+
+	// probably its temporary solution to handle fatal error: concurrent map writes
+	//return helper.CreateResult(true, results, "success")
+	return helper.CreateResultWithoutSession(true, results, "success")
 }
 
 func (m *DashboardController) GetMapData_old(k *knot.WebContext) interface{} {
