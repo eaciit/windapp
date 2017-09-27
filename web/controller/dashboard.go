@@ -3929,14 +3929,10 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	}
 
 	group.Set("production", tk.M{"$sum": "$production"})
-	group.Set("plf", tk.M{"$avg": "$plf"})
 	group.Set("oktime", tk.M{"$sum": "$oktime"})
-	group.Set("machineavail", tk.M{"$avg": "$machineavail"})
-	group.Set("lowestmachineavail", tk.M{"$min": "$machineavail"})
-	group.Set("lowestplf", tk.M{"$min": "$plf"})
-	group.Set("maxlossenergy", tk.M{"$max": "$lostenergy"})
-	group.Set("gridavail", tk.M{"$avg": "$gridavail"})
-	group.Set("totalavail", tk.M{"$avg": "$totalavail"})
+	group.Set("lowestmachineavail", tk.M{"$min": "$machineavail"}) //?
+	group.Set("lowestplf", tk.M{"$min": "$plf"})                   //?
+	group.Set("maxlossenergy", tk.M{"$max": "$lostenergy"})        //?
 	group.Set("totalrows", tk.M{"$sum": "$totalrows"})
 	group.Set("maxDate", tk.M{"$max": "$dateinfo.dateid"})
 	group.Set("minDate", tk.M{"$min": "$dateinfo.dateid"})
@@ -3945,11 +3941,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		{"$match": matches},
 		{"$group": group},
 		{"$sort": tk.M{"_id": 1}},
-		// {"$skip": p.Skip},
-		// {"$limit": p.Take},
 	}
-
-	// tk.Printf("%v\n", matches)
 
 	pipeCount := []tk.M{
 		{"$match": matches},
@@ -4026,12 +4018,12 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	turbineName := map[string]string{}
 
 	for idx, dt := range result {
-		lowestPlf := tk.ToFloat64(result[idx].GetFloat64("lowestplf"), 2, tk.RoundingAuto)
+		lowestPlf := tk.ToFloat64(result[idx].GetFloat64("lowestplf"), 2, tk.RoundingAuto) * 100
 		if lowestPlf <= 0 {
 			lowestPlf = 0
 		}
 
-		lowestMachineAvail := tk.ToFloat64(result[idx].GetFloat64("lowestmachineavail"), 2, tk.RoundingAuto)
+		lowestMachineAvail := tk.ToFloat64(result[idx].GetFloat64("lowestmachineavail"), 2, tk.RoundingAuto) * 100
 		maxLossEnergy := tk.ToFloat64(result[idx].GetFloat64("maxlossenergy"), 2, tk.RoundingAuto)
 
 		minDate := dt.Get("minDate", time.Time{}).(time.Time)
