@@ -67,7 +67,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	catTitle := ""
 	listOfYears := []int{}
 
-	colId := "$dateinfoutc.dateid"
+	colId := "$dateinfo.dateid"
 	/*============================== AVG TLP PART ============================*/
 	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project)
 	if e != nil {
@@ -152,30 +152,30 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	metData.Set("idxseries", selArr)
 	// if colName == "temp_yawbrake_1" {
 	if colName == "temp_outdoor" {
-		pipes = []tk.M{}
+		matches := []tk.M{
+			tk.M{"_id": tk.M{"$ne": ""}},
+			tk.M{"timestamp": tk.M{"$gte": tStart}},
+			tk.M{"timestamp": tk.M{"$lte": tEnd}},
+		}
+		pipes = []tk.M{
+			tk.M{"$match": tk.M{"$and": matches}},
+		}
+		if project != "" {
+			filter = append(filter, dbox.Eq("projectname", project))
+		}
 		if tStart.Before(time.Date(2017, 1, 1, 0, 0, 0, 0, time.UTC)) {
 			pipes = append(pipes, tk.M{"$group": tk.M{
 				"_id":       tk.M{"colId": "$dateinfo.dateid"},
 				"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
-				"totaldata": tk.M{"$sum": 1},
 			}})
 		} else {
 			pipes = append(pipes, tk.M{"$group": tk.M{
 				"_id":       tk.M{"colId": "$dateinfo.dateid"},
 				"colresult": tk.M{"$avg": "$trefhrefhumid855mavg"},
-				"totaldata": tk.M{"$sum": 1},
 			}})
 		}
 
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-		filter = nil
-		filter = append(filter, dbox.Ne("_id", ""))
-		filter = append(filter, dbox.Gte("timestamp", tStart))
-		filter = append(filter, dbox.Lte("timestamp", tEnd))
-		if project != "" {
-			filter = append(filter, dbox.Eq("projectname", project))
-		}
 
 		csrMet, e := DB().Connection.NewQuery().
 			From(new(MetTower).TableName()).
@@ -246,31 +246,39 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	/*================================= END OF MET TOWER PART =================================*/
 
 	/*==================== SCADA DATA OEM PART ====================*/
-	pipes = []tk.M{}
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "colresult": tk.M{"$avg": "$" + colName}, "totaldata": tk.M{"$sum": 1}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	filter = nil
-	filter = append(filter, dbox.Eq("projectname", project))
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("timestamputc", tStart))
-	filter = append(filter, dbox.Lte("timestamputc", tEnd))
-	filter = append(filter, dbox.Ne("turbine", ""))
-	filter = append(filter, dbox.Ne("timestamp", ""))
-	filter = append(filter, dbox.Ne("powerlost", ""))
-	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
-	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
+	matches := []tk.M{
+		tk.M{"projectname": project},
+		tk.M{"isnull": false},
+		tk.M{"timestamp": tk.M{"$gte": tStart}},
+		tk.M{"timestamp": tk.M{"$lte": tEnd}},
+	}
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+	}
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":       tk.M{"colId": colId, "Turbine": "$turbine"},
+		"colresult": tk.M{"$avg": "$" + colName}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.Turbine": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaDataOEM).TableName()).
+		From("Scada10MinHFD").
 		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
 		Cursor(nil)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	e = csr.Fetch(&list, 0, false)
+
+	_list := tk.M{}
+	list = []tk.M{}
+	for {
+		_list = tk.M{}
+		e = csr.Fetch(&_list, 1, false)
+		if e != nil {
+			break
+		}
+		list = append(list, _list)
+	}
 	defer csr.Close()
 
 	if len(p.Turbine) == 0 {
@@ -450,35 +458,28 @@ func (m *TrendLinePlotsController) GetScadaOemAvailDate(k *knot.WebContext) inte
 func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, project string) (datas []float64, pcData tk.M, e error) {
 
 	var (
-		pipes  []tk.M
-		filter []*dbox.Filter
-		list   []tk.M
+		pipes []tk.M
+		list  []tk.M
 	)
 
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$dateinfoutc.dateid", "colresult": tk.M{"$avg": "$" + colName}, "totaldata": tk.M{"$sum": 1}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	filter = nil
-
+	matches := []tk.M{
+		tk.M{"isnull": false},
+		tk.M{"dateinfo.dateid": tk.M{"$gte": DateStart}},
+		tk.M{"dateinfo.dateid": tk.M{"$lte": DateEnd}},
+	}
 	if project != "" {
-		filter = append(filter, dbox.Eq("projectname", project))
+		matches = append(matches, tk.M{"projectname": project})
+	}
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
 	}
 
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfoutc.dateid", DateStart))
-	filter = append(filter, dbox.Lte("dateinfoutc.dateid", DateEnd))
-	// if(len(Turbine) > 0){
-	// 	filter = append(filter, dbox.In("turbine", Turbine...))
-	// }
-	filter = append(filter, dbox.Ne("timestamp", ""))
-	filter = append(filter, dbox.Ne("powerlost", ""))
-	filter = append(filter, dbox.Ne("ai_intern_activpower", ""))
-	filter = append(filter, dbox.Ne("ai_intern_windspeed", ""))
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$dateinfo.dateid", "colresult": tk.M{"$avg": "$" + colName}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaDataOEM).TableName()).
+		From("Scada10MinHFD").
 		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
 		Cursor(nil)
 
 	if e != nil {

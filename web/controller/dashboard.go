@@ -587,7 +587,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, dataItem, "success")
 }
 
-func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} {
+func (m *DashboardController) GetDetailProdLevel1(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	p := tk.M{}
@@ -597,18 +597,23 @@ func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} 
 	}
 
 	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
-	matches := tk.M{"dateinfo.monthdesc": p.GetString("date"), "available": 1}
+	matches := tk.M{"dateinfo.monthdesc": p.GetString("date")}
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
 	}
-	fields := tk.M{"$sum": "$power"}
-
 	pipe := []tk.M{{"$match": matches},
-		{"$group": tk.M{"_id": ids, "production": fields}},
+		{"$group": tk.M{
+			"_id":        ids,
+			"production": tk.M{"$sum": "$production"},
+			"lostenergy": tk.M{"$sum": "$lostenergy"},
+			"mdownhours": tk.M{"$sum": "$machinedownhours"},
+			"gdownhours": tk.M{"$sum": "$griddownhours"},
+			"odownhours": tk.M{"$sum": "$otherdowntimehours"},
+		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
 	csrScada, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
+		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
 
@@ -619,40 +624,16 @@ func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} 
 
 	resultScada := []tk.M{}
 	e = csrScada.Fetch(&resultScada, 0, false)
-
-	matches.Unset("dateinfo.monthdesc")
-	matches.Unset("available")
-
-	matches.Set("startdateinfo.monthdesc", p.GetString("date"))
-	fields = tk.M{"$sum": "$powerlost"}
-
-	pipe = []tk.M{{"$match": matches}, {"$group": tk.M{"_id": ids, "totalpowerlost": fields,
-		"totalduration": tk.M{"$sum": "$duration"}}}}
-	csrAlarm, e := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).
-		Command("pipe", pipe).
-		Cursor(nil)
-
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrAlarm.Close()
 
-	resultAlarm := []tk.M{}
-	e = csrAlarm.Fetch(&resultAlarm, 0, false)
-
-	dataPowerLost := tk.M{}
-	dataDuration := tk.M{}
-	for _, val := range resultAlarm {
-		data := val["_id"].(tk.M)
-		dataPowerLost.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalpowerlost"))
-		dataDuration.Set(data.GetString("project")+"_"+data.GetString("turbine"), val.GetFloat64("totalduration"))
-	}
-	totalPower := tk.M{}
-	totalPowerLost := tk.M{}
-	totalTurbines := tk.M{}
+	totalEnergy := map[string]float64{}
+	totalEnergyLost := map[string]float64{}
+	totalTurbines := map[string]int{}
 	detailData := tk.M{}
 	detail := []tk.M{}
+	downtimehours := 0.0
 
 	listturbine := tk.M{}
 	tproject := ""
@@ -663,45 +644,29 @@ func (m *DashboardController) GetDetailProd_Old(k *knot.WebContext) interface{} 
 			tproject = project
 			listturbine = PopulateTurbines(DB().Connection, tproject)
 		}
-
-		_id := project + "_" + data.GetString("turbine")
-		if dataPowerLost.Has(_id) {
-			val.Set("lostenergy", dataPowerLost.GetFloat64(_id))
-			val.Set("downtime", dataDuration.GetFloat64(_id))
-		}
 		val.Unset("_id")
-		val.Set("production", val.GetFloat64("production")/6)
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {
 			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
 		}
+		downtimehours = val.GetFloat64("mdownhours") + val.GetFloat64("gdownhours") + val.GetFloat64("odownhours")
+		val.Set("downtimehours", downtimehours)
+
 		detail = append(detail, val)
 		detailData.Set(project, detail)
 
-		if totalPower.Has(project) {
-			totalPower.Set(data.GetString("project"), totalPower.GetFloat64(project)+val.GetFloat64("production"))
-		} else {
-			totalPower.Set(data.GetString("project"), val.GetFloat64("production"))
-		}
-		if totalPowerLost.Has(project) {
-			totalPowerLost.Set(data.GetString("project"), totalPowerLost.GetFloat64(project)+val.GetFloat64("lostenergy"))
-		} else {
-			totalPowerLost.Set(data.GetString("project"), val.GetFloat64("lostenergy"))
-		}
-		if totalTurbines.Has(project) {
-			totalTurbines.Set(data.GetString("project"), totalTurbines.GetInt(project)+1)
-		} else {
-			totalTurbines.Set(data.GetString("project"), 1)
-		}
+		totalEnergy[project] += val.GetFloat64("production")
+		totalEnergyLost[project] += val.GetFloat64("lostenergy")
+		totalTurbines[project]++
 	}
 
 	dataItem := []tk.M{}
-	for project, val := range totalPower {
+	for project, val := range totalEnergy {
 		data := tk.M{
 			"project":    project,
-			"production": val.(float64),
-			"lostenergy": totalPowerLost.GetFloat64(project),
-			"wtg":        totalTurbines.GetInt(project),
+			"production": val,
+			"lostenergy": totalEnergyLost[project],
+			"wtg":        totalTurbines[project],
 			"detail":     detailData[project],
 		}
 		dataItem = append(dataItem, data)
@@ -3472,7 +3437,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
 	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
 	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
-	
+
 	// probably its temporary solution to handle fatal error: concurrent map writes
 	//return helper.CreateResult(true, results, "success")
 	return helper.CreateResultWithoutSession(true, results, "success")
@@ -3924,40 +3889,21 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	// log.Printf("tmp: \n%#v \n", tmp)
 
 	matches = tk.M{"$and": tmp}
-	group := tk.M{}
-	if projectName != "" {
-		group.Set("_id", tk.M{"id1": "$turbine", "id2": "$projectname"})
-	} else {
-		group.Set("_id", "$projectname")
-	}
 
+	pipe := []tk.M{{"$match": matches}}
+
+	group := tk.M{}
+	group.Set("_id", tk.M{"id1": "$turbine", "id2": "$projectname"})
+	group.Set("machinedownhours", tk.M{"$sum": "$machinedownhours"})
+	group.Set("lossenergy", tk.M{"$sum": "$lostenergy"})
 	group.Set("production", tk.M{"$sum": "$production"})
-	group.Set("plf", tk.M{"$avg": "$plf"})
 	group.Set("oktime", tk.M{"$sum": "$oktime"})
-	group.Set("machineavail", tk.M{"$avg": "$machineavail"})
-	group.Set("lowestmachineavail", tk.M{"$min": "$machineavail"})
-	group.Set("lowestplf", tk.M{"$min": "$plf"})
-	group.Set("maxlossenergy", tk.M{"$max": "$lostenergy"})
-	group.Set("gridavail", tk.M{"$avg": "$gridavail"})
-	group.Set("totalavail", tk.M{"$avg": "$totalavail"})
 	group.Set("totalrows", tk.M{"$sum": "$totalrows"})
 	group.Set("maxDate", tk.M{"$max": "$dateinfo.dateid"})
 	group.Set("minDate", tk.M{"$min": "$dateinfo.dateid"})
+	pipe = append(pipe, tk.M{"$group": group})
 
-	pipe := []tk.M{
-		{"$match": matches},
-		{"$group": group},
-		{"$sort": tk.M{"_id": 1}},
-		// {"$skip": p.Skip},
-		// {"$limit": p.Take},
-	}
-
-	// tk.Printf("%v\n", matches)
-
-	pipeCount := []tk.M{
-		{"$match": matches},
-		{"$group": group},
-	}
+	pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryDaily).TableName()).
@@ -3975,7 +3921,6 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	totalTurbine := tk.M{}
 
 	if projectName == "" {
-
 		groupTotalTurbine := tk.M{
 			"_id":   tk.M{"id1": "$turbine", "id2": "$projectname"},
 			"count": tk.M{"$sum": 1},
@@ -4019,181 +3964,121 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 	}
 
-	listturbine, listcapacity := tk.M{}, tk.M{}
-	if projectName != "" {
-		listturbine = PopulateTurbines(DB().Connection, projectName)
-	}
+	listturbine, listcapacity := PopulateTurbines(DB().Connection, projectName), tk.M{}
 
 	listcapacity = PopulateTurbinesCapacity(DB().Connection, projectName)
-	lastProject := ""
-	turbineName := map[string]string{}
+	databyproject, arrproj := map[string][]tk.M{}, []string{}
 
-	for idx, dt := range result {
-		lowestPlf := tk.ToFloat64(result[idx].GetFloat64("lowestplf"), 2, tk.RoundingAuto)
-		if lowestPlf <= 0 {
-			lowestPlf = 0
+	for _, dres := range result {
+		_proj := dres.Get("_id").(tk.M).GetString("id2")
+		_name := dres.Get("_id").(tk.M).GetString("id1")
+
+		if _, cond := databyproject[_proj]; !cond {
+			databyproject[_proj] = []tk.M{}
 		}
 
-		lowestMachineAvail := tk.ToFloat64(result[idx].GetFloat64("lowestmachineavail"), 2, tk.RoundingAuto)
-		maxLossEnergy := tk.ToFloat64(result[idx].GetFloat64("maxlossenergy"), 2, tk.RoundingAuto)
+		if !tk.HasMember(arrproj, _proj) {
+			arrproj = append(arrproj, _proj)
+		}
 
-		minDate := dt.Get("minDate", time.Time{}).(time.Time)
-		maxDate := dt.Get("maxDate", time.Time{}).(time.Time)
+		dres.Set("name", _name)
+		if listturbine.Has(_name) {
+			dres.Set("name", listturbine.GetString(_name))
+		}
+
+		machinedownhours := tk.ToFloat64(dres.GetFloat64("machinedownhours"), 2, tk.RoundingAuto)
+
+		lowestMachineAvail := float64(0)
+		maxLossEnergy := tk.ToFloat64(dres.GetFloat64("lossenergy"), 2, tk.RoundingAuto)
+
+		minDate := dres.Get("minDate", time.Time{}).(time.Time)
+		maxDate := dres.Get("maxDate", time.Time{}).(time.Time)
 		totalHours = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
 
-		if projectName != "" {
-			_name := dt.Get("_id").(tk.M).GetString("id1")
-			result[idx].Set("name", _name)
-			if listturbine.Has(_name) {
-				result[idx].Set("name", listturbine.GetString(_name))
-			}
-			result[idx].Set("lowestplf", formatStringFloat(tk.ToString(lowestPlf), 2)+" %")
-			result[idx].Set("lowestmachineavail", formatStringFloat(tk.ToString(lowestMachineAvail), 2)+" %")
-			result[idx].Set("maxlossenergy", maxLossEnergy)
+		turbineMW = listcapacity.GetFloat64(_name)
+		maxCapacity := turbineMW * totalHours
 
-			turbineMW = listcapacity.GetFloat64(_name)
-			maxCapacity := turbineMW * totalHours
+		lowestMachineAvail = tk.Div(totalHours-machinedownhours, totalHours)
 
-			result[idx].Set("maxcapacity", maxCapacity)
-			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
-			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, totalHours))
-			result[idx].Set("dataavail", tk.Div(result[idx].GetFloat64("totalrows")/6, totalHours))
-		} else {
+		// dres.Set("lowestplf", formatStringFloat(tk.ToString(lowestPlf), 2)+" %")
+		dres.Set("lowestmachineavail", formatStringFloat(tk.ToString(lowestMachineAvail), 2)+" %")
 
-			if lastProject != dt.GetString("_id") {
-				lastProject = dt.GetString("_id")
-				turbineName, e = helper.GetTurbineNameList(lastProject)
-				if e != nil {
-					return helper.CreateResult(false, nil, e.Error())
+		// dres.Set("plffloat", lowestPlf)
+		dres.Set("machineavailfloat", lowestMachineAvail)
+
+		dres.Set("maxlossenergy", maxLossEnergy)
+		dres.Set("maxcapacity", maxCapacity)
+		dres.Set("plf", (dres.GetFloat64("production")/1000000)/(maxCapacity/1000))
+		dres.Set("totalavail", tk.Div(dres.GetFloat64("oktime")/3600, totalHours))
+		dres.Set("dataavail", tk.Div(dres.GetFloat64("totalrows")/6, totalHours))
+
+		databyproject[_proj] = append(databyproject[_proj], dres)
+	}
+
+	lasresult := []tk.M{}
+	if projectName != "" {
+		lasresult = databyproject[projectName]
+	} else {
+		for _, proj := range arrproj {
+			ltkm := tk.M{}
+			ltkm.Set("name", proj)
+			noofwtg := float64(len(databyproject[proj]))
+			ltkm.Set("noofwtg", len(databyproject[proj]))
+
+			minDate, maxDate := time.Time{}, time.Time{}
+
+			lplf, lmachineavail, llostenergy := float64(0), float64(0), float64(0)
+			for _, tkm := range databyproject[proj] {
+				ltkm.Set("production", ltkm.GetFloat64("production")+tkm.GetFloat64("production"))
+				ltkm.Set("oktime", ltkm.GetFloat64("oktime")+tkm.GetFloat64("oktime"))
+				ltkm.Set("totalrows", ltkm.GetFloat64("totalrows")+tkm.GetFloat64("totalrows"))
+
+				iMinDate := tkm.Get("minDate", time.Time{}).(time.Time)
+				iMaxDate := tkm.Get("maxDate", time.Time{}).(time.Time)
+
+				if (minDate.IsZero() || minDate.UTC().After(iMinDate.UTC())) && !iMinDate.IsZero() {
+					minDate = iMinDate
+				}
+
+				if (maxDate.IsZero() || maxDate.UTC().Before(iMaxDate.UTC())) && !iMaxDate.IsZero() {
+					maxDate = iMaxDate
+				}
+
+				if lmachineavail == 0 || lmachineavail > tkm.GetFloat64("machineavailfloat") {
+					lmachineavail = tkm.GetFloat64("machineavailfloat")
+					ltkm.Set("lowestmachineavail", formatStringFloat(tk.ToString(lmachineavail*100), 2)+"% ("+tkm.GetString("name")+")")
+				}
+
+				if lplf == 0 || lplf > tkm.GetFloat64("plf") {
+					lplf = tkm.GetFloat64("plf")
+					ltkm.Set("lowestplf", formatStringFloat(tk.ToString(lplf*100), 2)+"% ("+tkm.GetString("name")+")")
+				}
+
+				if llostenergy == 0 || llostenergy < tkm.GetFloat64("maxlossenergy") {
+					llostenergy = tkm.GetFloat64("maxlossenergy")
+					ltkm.Set("maxlossenergy", formatStringFloat(tk.ToString(llostenergy), 2)+" ("+tkm.GetString("name")+")")
 				}
 			}
-			result[idx].Set("name", dt.GetString("_id"))
-			result[idx].Set("noofwtg", totalTurbine.GetInt(result[idx].GetString("name")))
 
-			turbineMW = listcapacity.GetFloat64(dt.GetString("_id"))
-			maxCapacity := turbineMW * totalTurbine.GetFloat64(result[idx].GetString("name")) * totalHours
-			result[idx].Set("maxcapacity", maxCapacity)
-			result[idx].Set("plf", (result[idx].GetFloat64("production")/1000000)/(maxCapacity/1000))
+			totalHours = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+			turbineMW = listcapacity.GetFloat64(proj)
+			maxCapacity := turbineMW * totalHours
 
-			result[idx].Set("totalavail", tk.Div(result[idx].GetFloat64("oktime")/3600, (totalHours*totalTurbine.GetFloat64(result[idx].GetString("name")))))
-			result[idx].Set("dataavail", tk.Div(result[idx].GetFloat64("totalrows")/6, (totalHours*totalTurbine.GetFloat64(result[idx].GetString("name")))))
-			// ---- lowestplf
-			// tk.Printfn("%v : maxCapacity := %v * %v", dt.GetString("_id"), turbineMW, totalHours)
-			matchesTurbine := tmp
-			matchesTurbine = append(matchesTurbine, tk.M{"projectname": dt.GetString("_id")})
-			pipeSub := []tk.M{
-				{"$match": tk.M{"$and": matchesTurbine}},
-				{"$sort": tk.M{"plf": 1}},
-				{"$limit": 1},
-			}
+			ltkm.Set("maxcapacity", maxCapacity)
+			ltkm.Set("plf", (ltkm.GetFloat64("production")/1000000)/(maxCapacity/1000))
+			ltkm.Set("totalavail", tk.Div(ltkm.GetFloat64("oktime")/3600, totalHours*noofwtg))
+			ltkm.Set("dataavail", tk.Div(ltkm.GetFloat64("totalrows")/6, totalHours*noofwtg))
 
-			csr, e = DB().Connection.NewQuery().
-				From(new(ScadaSummaryDaily).TableName()).
-				Command("pipe", pipeSub).
-				Cursor(nil)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			defer csr.Close()
-
-			lowest := []tk.M{}
-			e = csr.Fetch(&lowest, 0, false)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			if len(lowest) > 0 {
-				result[idx].Set("lowestplf", formatStringFloat(tk.ToString(lowestPlf), 2)+"% ("+turbineName[lowest[0].GetString("turbine")]+")")
-			}
-
-			// ---- lowestmachineavail
-
-			pipeSub = []tk.M{
-				{"$match": tk.M{"$and": matchesTurbine}},
-				{"$sort": tk.M{"machineavail": 1}},
-				{"$limit": 1},
-			}
-
-			csr, e = DB().Connection.NewQuery().
-				From(new(ScadaSummaryDaily).TableName()).
-				Command("pipe", pipeSub).
-				Cursor(nil)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			defer csr.Close()
-
-			lowest = []tk.M{}
-			e = csr.Fetch(&lowest, 0, false)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			if len(lowest) > 0 {
-				result[idx].Set("lowestmachineavail", formatStringFloat(tk.ToString(lowestMachineAvail), 2)+"% ("+turbineName[lowest[0].GetString("turbine")]+")")
-			}
-
-			// ---- maxlossenergy
-
-			pipeSub = []tk.M{
-				{"$match": tk.M{"$and": matchesTurbine}},
-				{"$sort": tk.M{"lostenergy": -1}},
-				{"$limit": 1},
-			}
-
-			csr, e = DB().Connection.NewQuery().
-				From(new(ScadaSummaryDaily).TableName()).
-				Command("pipe", pipeSub).
-				Cursor(nil)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			defer csr.Close()
-
-			highest := []tk.M{}
-			e = csr.Fetch(&highest, 0, false)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			if len(highest) > 0 {
-				result[idx].Set("maxlossenergy", formatStringFloat(tk.ToString(maxLossEnergy), 2)+" ("+turbineName[highest[0].GetString("turbine")]+")")
-			}
+			lasresult = append(lasresult, ltkm)
 		}
-	}
-
-	csrCount, e := DB().Connection.NewQuery().
-		From(new(ScadaSummaryDaily).TableName()).
-		Command("pipe", pipeCount).
-		Cursor(nil)
-	defer csrCount.Close()
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	rs := []tk.M{}
-	e = csrCount.Fetch(&rs, 0, false)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	data := struct {
 		Data  []tk.M
 		Total int
 	}{
-		Data:  result,
-		Total: tk.SliceLen(rs),
+		Data:  lasresult,
+		Total: len(lasresult),
 	}
 
 	return helper.CreateResult(true, data, "success")
