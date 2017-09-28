@@ -33,9 +33,11 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 	if isAnalyst {
 		projectList, _ := helper.GetProjectList()
 		turbineList, _ := helper.GetTurbineList(nil)
+		temperatureList, _ := helper.GetTemperatureList()
 
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
+		w.Params.Set("TemperatureList", temperatureList)
 	}
 
 	r.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")

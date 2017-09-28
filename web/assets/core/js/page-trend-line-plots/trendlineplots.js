@@ -16,6 +16,7 @@ vm.breadcrumb([ {
 }]);
 
 tlp.turbineList = ko.observableArray([]);
+tlp.temperatureList = ko.observableArray([]);
 
 tlp.turbine = ko.observableArray([]);
 tlp.compTemp = ko.observableArray([
@@ -71,7 +72,8 @@ tlp.getAvailDate = function(){
 
 tlp.initChart = function() {
     app.loading(true);
-    
+    var project = $('#projectList').data("kendoDropDownList").value();
+    tlp.compTemp(tlp.temperatureList()[project]);    
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
     var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
@@ -326,6 +328,7 @@ $(document).ready(function() {
 			fa.populateTurbine(project);
             fa.project = project;
             tlp.getAvailDate();
+            tlp.compTemp(tlp.temperatureList()[project]);
 		}
 	});
 
