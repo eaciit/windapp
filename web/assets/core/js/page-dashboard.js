@@ -186,10 +186,3 @@ $(function () {
     },500);
 
 });
-
-// temporary to fired summary number left side map
-$(document).ready(function() {
-    setTimeout(function(){
-        sum.loadData();
-    },5000);
-});
