@@ -100,7 +100,7 @@ lgd.LoadData = function () {
         prod.loadData();
         avail.loadData();
         sum.loadData();
-    }, 600);
+    }, 5000);
 }
 
 

@@ -2,7 +2,7 @@
 
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
-var maxSelectedItems = 4;
+var maxSelectedItems = 5;
 var defaultHour = 5*24;
 
 pg.tags = ko.observableArray();
