@@ -80,7 +80,7 @@ lgd.LoadData = function () {
     lgd.stop();
     app.loading(true);
     sum.scadaLastUpdate();
-
+    
     var project = $("#projectId").data("kendoDropDownList").value();
     var param = { ProjectName: project, Date: maxdate };
 
@@ -96,11 +96,9 @@ lgd.LoadData = function () {
         $("#div-winddistribution").hide();
     }
 
-    setTimeout(function () {
-        prod.loadData();
-        avail.loadData();
+    setTimeout(function(){
         sum.loadData();
-    }, 600);
+    },5000);
 }
 
 
