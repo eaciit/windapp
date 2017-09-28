@@ -610,7 +610,7 @@ sum.WindDistribution = function (dataSource) {
                 visible: false,
             }
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
