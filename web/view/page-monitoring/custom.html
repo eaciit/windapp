@@ -135,14 +135,20 @@
         var currFeed = '';
 
         // getting unique feeder by project
-        $.each(_.sortBy(turbineList, function(o){ return o.ProjectId + ':' + o.Feeder; }), function(idx, t){
-            if(currFeed!=t.Feeder) {
-                feeds.push(t);
-                currFeed = t.Feeder;
-            }
-        });
+        $.each(projectList, function(i, val){
+            var turbineByProject = $.grep(turbineList, function(e){ return e.Project == val.ProjectId });
+            var currFeed = '';
 
-        // adding feeder as turbine for viewing purpose
+            // getting unique feeder by project
+            $.each(_.sortBy(turbineByProject, function(o){ return o.ProjectId + ':' + o.Feeder; }), function(idx, t){
+                if(currFeed!=t.Feeder) {
+                    feeds.push(t);
+                    currFeed = t.Feeder;
+                }
+            });
+            
+        })
+
         $.each(feeds, function(idx, dt){
             newFeeds.push({
                 Project: dt.Project,
@@ -154,7 +160,7 @@
                 Status : dt.DefaultColorStatus
             });
             var turbineByFeed = _.filter(turbineList, function(o){
-                return (o.Feeder==dt.Feeder);
+                return (o.Project == dt.Project && o.Feeder==dt.Feeder);
             });
             if(turbineByFeed.length > 0) {
                 $.each(turbineByFeed, function(idx, dt){
