@@ -503,7 +503,7 @@ pg.options = function(){
                     });
 
                     this.value(values);
-                    app.showError("Max. 4 Tags");
+                    app.showError("Max. 5 Tags");
                 }
 
             }
