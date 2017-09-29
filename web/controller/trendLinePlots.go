@@ -299,6 +299,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	for _, turbineX := range sortTurbines {
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
@@ -309,7 +313,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		var datas []float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
+		turbineData.Set("name", turbineName[turbineX])
 		turbineData.Set("type", "line")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
@@ -378,10 +382,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		if val > maxValue {
 			maxValue = val
 		}
-	}
-	turbineName, e := helper.GetTurbineNameList(p.Project)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	data := struct {
