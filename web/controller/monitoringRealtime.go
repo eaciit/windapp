@@ -81,10 +81,10 @@ var (
 )
 
 type MiniScadaHFD struct {
-	Slow_Nacellepos    float64
-	Fast_Windspeed_Ms  float64
-	Slow_Winddirection float64
-	Turbine            string
+	Nacellepos    float64
+	Windspeed_Ms  float64
+	Winddirection float64
+	Turbine       string
 }
 
 type AlarmPayloads struct {
@@ -145,12 +145,9 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 
 	query := []tk.M{}
 	pipes := []tk.M{}
-	query = append(query, tk.M{"_id": tk.M{"$ne": nil}})
+	query = append(query, tk.M{"isnull": false})
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lt": tEnd}})
-	query = append(query, tk.M{"fast_windspeed_ms": tk.M{"$gt": -999999.0}})
-	query = append(query, tk.M{"slow_winddirection": tk.M{"$gt": -999999.0}})
-	query = append(query, tk.M{"slow_nacellepos": tk.M{"$gt": -999999.0}})
 
 	if p.Project != "" {
 		query = append(query, tk.M{"projectname": p.Project})
@@ -166,8 +163,8 @@ func (m *MonitoringRealtimeController) GetWindRoseMonitoring(k *knot.WebContext)
 	queryT := query
 	queryT = append(queryT, tk.M{"turbine": turbineVal})
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": queryT}})
-	pipes = append(pipes, tk.M{"$project": tk.M{"slow_nacellepos": 1, "fast_windspeed_ms": 1, "slow_winddirection": 1}})
-	csr, _ := DB().Connection.NewQuery().From(new(ScadaDataHFD).TableName()).
+	pipes = append(pipes, tk.M{"$project": tk.M{"nacellepos": 1, "windspeed_ms": 1, "winddirection": 1}})
+	csr, _ := DB().Connection.NewQuery().From("Scada10MinHFD").
 		Command("pipe", pipes).Cursor(nil)
 
 	for {
@@ -199,14 +196,14 @@ func GenerateWindRose(data []MiniScadaHFD, tipe, turbineVal string) tk.M {
 			var dirNo, dirDesc int
 
 			if tipe == "nacelle" {
-				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos, section)
+				dirNo, dirDesc = getDirection(dt.Nacellepos, section)
 			} else if tipe == "winddir" {
-				dirNo, dirDesc = getDirection(dt.Slow_Winddirection+300, section)
+				dirNo, dirDesc = getDirection(dt.Winddirection+300, section)
 			} else {
-				dirNo, dirDesc = getDirection(dt.Slow_Nacellepos+dt.Slow_Winddirection+300, section)
+				dirNo, dirDesc = getDirection(dt.Nacellepos+dt.Winddirection+300, section)
 			}
 
-			wsNo, wsDesc := getWsCategory(dt.Fast_Windspeed_Ms)
+			wsNo, wsDesc := getWsCategory(dt.Windspeed_Ms)
 
 			di.DirectionNo = dirNo
 			di.DirectionDesc = dirDesc
