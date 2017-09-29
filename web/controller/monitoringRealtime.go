@@ -1333,7 +1333,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	arrfield := map[string]string{"ActivePower_kW": "ActivePower", "WindSpeed_ms": "WindSpeed",
 		"WindDirection": "WindDirection", "NacellePos": "NacellePosition", "TempOutdoor": "Temperature",
-		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM"}
+		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM", "PitchAngle1": "PA1", "PitchAngle2": "PA2", "PitchAngle3": "PA3",
+		"Total_Prod_Day_kWh": "TotalProdDay"}
 
 	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
 		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
@@ -1460,17 +1461,6 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		dataRealtimeValue = _tdata.GetFloat64("value")
 		servertstamp = _tdata.Get("servertimestamp", time.Time{}).(time.Time).UTC()
 
-		// isfound := false
-		// for k, _ := range arrfield {
-		// 	if arrfield.GetString(k) == tags {
-		// 		isfound = true
-		// 	}
-		// }
-
-		// if !isfound {
-		// 	continue
-		// }
-
 		_tTurbine := _tdata.GetString("turbine")
 		if _iContinue && _iTurbine == _tTurbine {
 			continue
@@ -1495,6 +1485,16 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 						_itkm.Set("isbordered", true)
 						_itkm.Set("DataComing", 1)
 					}
+
+					avgPA := getAverageValue(_itkm.GetFloat64("PA1"), _itkm.GetFloat64("PA2"), _itkm.GetFloat64("PA3"))
+					if avgPA != defaultValue && (project == "Lahori" || _itkm.GetFloat64("PitchAngle") == defaultValue) {
+						_itkm.Set("PitchAngle", avgPA)
+					}
+
+					if tpd := _itkm.GetFloat64("TotalProdDay"); tpd != defaultValue && project != "Lahori" {
+						_itkm.Set("TotalProdDay", tk.Div(tpd, 1000))
+					}
+
 					temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 						&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 				}
@@ -1633,6 +1633,16 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				_itkm.Set("isbordered", true)
 				_itkm.Set("DataComing", 1)
 			}
+
+			avgPA := getAverageValue(_itkm.GetFloat64("PA1"), _itkm.GetFloat64("PA2"), _itkm.GetFloat64("PA3"))
+			if avgPA != defaultValue && (project == "Lahori" || _itkm.GetFloat64("PitchAngle") == defaultValue) {
+				_itkm.Set("PitchAngle", avgPA)
+			}
+
+			if tpd := _itkm.GetFloat64("TotalProdDay"); tpd != defaultValue && project != "Lahori" {
+				_itkm.Set("TotalProdDay", tk.Div(tpd, 1000))
+			}
+
 			temperatureProcess(project, tempNormalData, temperatureData, waitingForWsTurbine, curtailmentTurbine,
 				&_itkm, tempCondition, &turbinedown, &turbnotavail, &turbineWaitingForWS)
 		}
@@ -1994,23 +2004,9 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 	// ============== end of get realtime data =================
 
 	// ============== avg data pitch =================
-	tagsPitchAngle := []string{"PitchAngle1", "PitchAngle2", "PitchAngle3"}
-	sumPA, countPa := defaultValue, 0.0
-	for _, tag := range tagsPitchAngle {
-		if alltkmdata.Has(tag) {
-			tVal := alltkmdata.GetFloat64(tag)
-			if tVal != defaultValue {
-				if sumPA == defaultValue {
-					sumPA = 0.0
-				}
-
-				sumPA += tVal
-				countPa += 1
-			}
-		}
-	}
-	if sumPA != defaultValue {
-		alltkmdata.Set("PitchAngle", tk.Div(sumPA, countPa))
+	avgPA := getAverageValue(alltkmdata.GetFloat64("PitchAngle1"), alltkmdata.GetFloat64("PitchAngle2"), alltkmdata.GetFloat64("PitchAngle3"))
+	if avgPA != defaultValue {
+		alltkmdata.Set("PitchAngle", avgPA)
 	}
 	// ============== avg data pitch =================
 	arrturbinestatus := GetTurbineStatus(project, p.Turbine)
@@ -2549,6 +2545,23 @@ func (c *MonitoringRealtimeController) GetDataNotification(k *knot.WebContext) i
 		Set("maxdate", tEnd.UTC())
 
 	return helper.CreateResultX(true, retData, "success", k)
+}
+
+func getAverageValue(aVal ...float64) float64 {
+	sVal, cVal := float64(0), float64(0)
+
+	for _, val := range aVal {
+		if val != defaultValue {
+			sVal += val
+			cVal += 1
+		}
+	}
+
+	if cVal > 0 {
+		return tk.Div(sVal, cVal)
+	}
+
+	return defaultValue
 }
 
 /*
