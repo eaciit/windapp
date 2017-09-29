@@ -132,7 +132,7 @@ sum.loadData = function () {
             var availabilityData = [];
             var availabilitySeries = [];
             if(project === "Fleet") {
-                sum.dataSourceScadaAvailability(res.data["Availability"]);
+                sum.dataSourceScadaAvailability(res.data["Data"]);
                 sum.PLF('chartPLFFleet',res.data["Data"]);
                 sum.ProdCurLast('chartCurrLastFleet',res.data["Data"]);
                 sum.ProdMonth('chartProdMonthFleet',res.data["Data"]);
@@ -610,7 +610,7 @@ sum.WindDistribution = function (dataSource) {
                 visible: false,
             }
         }],
-        seriesColors: colorField,
+        seriesColors: colorFieldProject,
         valueAxis: {
             labels: {
                 step: 2,
@@ -1436,6 +1436,11 @@ sum.CumProduction = function (dataSource) {
 
 sum.DetailProd = function (e) {
     app.loading(true);
+
+    $("#chartDetailProduction").html("");
+    $("#chartDetailLostEnergy").html("");
+    $("#gridDetailProduction").html("");
+
     var bulan = e.category;
     sum.detailProdTxt(bulan);
     vm.isDashboard(false);
@@ -1638,6 +1643,8 @@ sum.DetailProdByProject = function (e) {
     sum.isDetailProd(false);
     sum.isDetailLostEnergy(false);
     sum.isDetailProdByProject(true);
+    $("#chartDetailProdByProject").html("");
+    $("#gridDetailProdByProject").html("");
 
     // var project = e.series.name;
     var param = { 'project': e.category, 'date': sum.detailProdTxt() };
@@ -1656,7 +1663,6 @@ sum.DetailProdByProject = function (e) {
 
         sum.detailSummary(dataSource);
         sum.detailProdMsTxt(measurement);
-
         $("#chartDetailProdByProject").kendoChart({
             theme: "material",
             dataSource: {
@@ -1744,7 +1750,7 @@ sum.DetailProdByProject = function (e) {
             }
         });
 
-
+        
         $("#gridDetailProdByProject").kendoGrid({
             theme: "flat",
             height: 200,

@@ -16,6 +16,7 @@ vm.breadcrumb([ {
 }]);
 
 tlp.turbineList = ko.observableArray([]);
+tlp.temperatureList = ko.observableArray([]);
 
 tlp.turbine = ko.observableArray([]);
 tlp.compTemp = ko.observableArray([
@@ -71,7 +72,8 @@ tlp.getAvailDate = function(){
 
 tlp.initChart = function() {
     app.loading(true);
-    
+    var project = $('#projectList').data("kendoDropDownList").value();
+    tlp.compTemp(tlp.temperatureList()[project]);    
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
     var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
@@ -229,24 +231,19 @@ tlp.InitRightTurbineList = function(turbinename){
     }
 
     $("#right-turbine-list").html("");
-    var buttonName;
     $.each(dtTurbines, function(idx, val) {
         if(val.idxseries > 0){
-            buttonName = val.name;
-            if(buttonName != "Met Tower") {
-                buttonName = turbinename[val.name];
-            }
             if(val.data == undefined || val.data == ""){
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" disabled="disabled" onclick="tlp.showHideLegend(' + val.idxseries + ')" style="border-color:#a0a0a0;background-color:#a0a0a0"></button>' +
                 '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="disabled-' + val.idxseries + '" hidden disabled="disabled">' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" disabled="disabled" onclick="tlp.showHideLegend(' + val.idxseries  + ')">' + buttonName + '</button>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" disabled="disabled" onclick="tlp.showHideLegend(' + val.idxseries  + ')">' + val.name + '</button>' +
                 '</div>');
             }else{
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="tlp.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
                 '<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + val.idxseries + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" onclick="tlp.showHideLegend(' + val.idxseries  + ')">' + buttonName + '</button>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button" onclick="tlp.showHideLegend(' + val.idxseries  + ')">' + val.name + '</button>' +
                 '</div>'); 
             }
         }
@@ -326,6 +323,7 @@ $(document).ready(function() {
 			fa.populateTurbine(project);
             fa.project = project;
             tlp.getAvailDate();
+            tlp.compTemp(tlp.temperatureList()[project]);
 		}
 	});
 

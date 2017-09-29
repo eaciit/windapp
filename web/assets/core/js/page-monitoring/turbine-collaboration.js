@@ -96,12 +96,14 @@ TbCol.GenerateGrid = function(turbine, project,feeder){
 
 
         	if(results._id !== ""){
-        		$("#date").data("kendoDateTimePicker").value(new Date(results.Date));
+        		var val = moment.utc(results.Date).format("D MMM YYYY H:mm");
+        		$("#lastUpdated").html(val)
         	}else{
-        		var val = kendo.toString(kendo.parseDate(new Date()), 'dd-MMM-yyyy H:m');
-				$("#date").data("kendoDateTimePicker").value(val);
+				$("#lastUpdated").html("")
         	}
 
+
+    		
 			$("#status").val(results.Status);
 			$("#remark").val(results.Remark);
 			
@@ -119,7 +121,7 @@ TbCol.Save = function() {
 			TurbineName : TbCol.TurbineName(),
 			Feeder : TbCol.Feeder(),
 			Project : (TbCol.Project() == '' ? TbCol.ProjectFeeder() : TbCol.Project()) ,
-			Date : $("#date").data("kendoDateTimePicker").value(),
+			Date : new Date(),
 			Status :TbCol.CurrentData().Status,
 			Remark : TbCol.CurrentData().Remark,
     }

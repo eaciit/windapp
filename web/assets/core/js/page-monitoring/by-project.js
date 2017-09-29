@@ -149,6 +149,7 @@ bp.GetDataProject = function(project) {
                     feedHeader.isHeader = true;
                     feedHeader.feederName = i;
                     feedHeader.index = idx;
+                    feedHeader.TotalProdDay = null;
                     feeders.push(feedHeader);
                 }
                 $.each(res.data.Detail, function(index, detail){
@@ -285,6 +286,15 @@ bp.PlotData = function(data) {
                 
                 window.setTimeout(function(){ 
                     $('#rotor_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
+            }
+            if(val.TotalProdDay > -999999) {
+                if(kendo.toString(val.TotalProdDay, 'n2')!= kendo.toString(oldVal.TotalProdDay, 'n2')) {
+                    $('#total_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#total_'+ turbine).css('background-color', 'transparent'); 
                 }, 750);
             }
             if(val.PitchAngle > -999999) {
