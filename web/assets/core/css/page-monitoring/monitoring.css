@@ -681,6 +681,7 @@ h4.content-heading {
 
 .panel-body{
     margin-bottom: 50px;
+    margin-right: -20px;
 }
 
 .turbine-weather{
