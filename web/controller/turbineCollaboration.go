@@ -73,6 +73,8 @@ func (m *TurbineCollaborationController) GetLatest(k *knot.WebContext) interface
 		}
 	}
 
+	turbColls.Date = turbColls.Date.UTC()
+	
 	return helper.CreateResult(true, turbColls, "success")
 }
 
