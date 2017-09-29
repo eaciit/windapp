@@ -350,7 +350,7 @@ bp.PlotData = function(data) {
             
             
             if((val.ActivePower / val.Capacity) > 0){
-                comparison = (val.ActivePower / val.Capacity) * 70;
+                comparison = (val.ActivePower / val.Capacity) * 65;
                 var fixCom = (comparison > 100 ? 64 : comparison);
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
                 $('#statusturbine_'+ turbine).css('width', fixCom + 'px');
@@ -361,7 +361,7 @@ bp.PlotData = function(data) {
 
             if(colorStatus=="lbl bg-red"){
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
-                $('#statusturbine_'+ turbine).css('width',  70 +'px');
+                $('#statusturbine_'+ turbine).css('width',  65 +'px');
             }
 
             if(val.isbordered != undefined && val.isbordered == true){
