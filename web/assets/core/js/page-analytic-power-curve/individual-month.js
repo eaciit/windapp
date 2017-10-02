@@ -276,3 +276,17 @@ $(document).ready(function() {
 
     page.LoadData();
 });
+
+$(function(){
+    $(window).scroll(function(){
+        var currentTop = $(window).scrollTop();
+        var legendWrp  = $('#legend-wrapper');
+        if(currentTop <= 139) {
+            legendWrp.animate({ top: 139 - currentTop }, 0);
+            legendWrp.css({ 'width': '60%', 'left': '20%' });
+        } else {
+            legendWrp.animate({ top: 0 }, 0);
+            legendWrp.css({ 'width': '100%', 'left': '0%' });
+        }
+    });
+});

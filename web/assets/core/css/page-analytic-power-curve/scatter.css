@@ -21,6 +21,8 @@
 
 #legend-list {
     text-align: center;
+    background: rgba(255,255,255,1);
+    padding: 5px 0px;
 }
 .label-scatter {
     padding: 3px 5px 3px 3px;
@@ -45,4 +47,11 @@
 
 .k-tooltip{
     margin-left: -20px;
+}
+
+#legend-wrapper {
+    z-index: 1001;
+    position: fixed;
+    width: 60%;
+    left: 20%;
 }
