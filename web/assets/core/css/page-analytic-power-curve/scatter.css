@@ -21,8 +21,6 @@
 
 #legend-list {
     text-align: center;
-    background: rgba(255,255,255,1);
-    padding: 5px 0px;
 }
 .label-scatter {
     padding: 3px 5px 3px 3px;
@@ -49,9 +47,15 @@
     margin-left: -20px;
 }
 
-#legend-wrapper {
-    z-index: 1001;
+#legend-list {
+    padding: 0.5ex;
+    background-color: #ffffff;
+}
+
+#legend-list.legend {
+    margin-top: 0 !important;
     position: fixed;
-    width: 60%;
-    left: 20%;
+    top: 0;
+    z-index: 10000;
+    border-radius: 0 0 0.5em 0.5em;
 }

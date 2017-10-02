@@ -249,7 +249,22 @@ page.InitLinePowerCurve = function() {
     });
 }
 
-$(document).ready(function() {
+function sticky_relocate() {
+    var window_top = $(window).scrollTop();
+    var div_top = $('#legend-anchor').offset().top;
+    if (window_top > div_top) {
+        $('#legend-list').addClass('legend');
+        $('#legend-anchor').height($('#legend-list').outerHeight());
+    } else {
+        $('#legend-list').removeClass('legend');
+        $('#legend-anchor').height(0);
+    }
+}
+
+$(function() {
+    $(window).scroll(sticky_relocate);
+    sticky_relocate();
+
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         page.LoadData();
@@ -275,18 +290,4 @@ $(document).ready(function() {
     });
 
     page.LoadData();
-});
-
-$(function(){
-    $(window).scroll(function(){
-        var currentTop = $(window).scrollTop();
-        var legendWrp  = $('#legend-wrapper');
-        if(currentTop <= 139) {
-            legendWrp.animate({ top: 139 - currentTop }, 0);
-            legendWrp.css({ 'width': '60%', 'left': '20%' });
-        } else {
-            legendWrp.animate({ top: 0 }, 0);
-            legendWrp.css({ 'width': '100%', 'left': '0%' });
-        }
-    });
 });
