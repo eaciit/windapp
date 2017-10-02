@@ -249,7 +249,22 @@ page.InitLinePowerCurve = function() {
     });
 }
 
-$(document).ready(function() {
+function sticky_relocate() {
+    var window_top = $(window).scrollTop();
+    var div_top = $('#legend-anchor').offset().top;
+    if (window_top > div_top) {
+        $('#legend-list').addClass('legend');
+        $('#legend-anchor').height($('#legend-list').outerHeight());
+    } else {
+        $('#legend-list').removeClass('legend');
+        $('#legend-anchor').height(0);
+    }
+}
+
+$(function() {
+    $(window).scroll(sticky_relocate);
+    sticky_relocate();
+
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         page.LoadData();
