@@ -46,3 +46,16 @@
 .k-tooltip{
     margin-left: -20px;
 }
+
+#legend-list {
+    padding: 0.5ex;
+    background-color: #ffffff;
+}
+
+#legend-list.legend {
+    margin-top: 0 !important;
+    position: fixed;
+    top: 0;
+    z-index: 10000;
+    border-radius: 0 0 0.5em 0.5em;
+}
