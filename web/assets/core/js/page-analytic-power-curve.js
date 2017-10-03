@@ -20,13 +20,15 @@ page.detailTitle = ko.observable("");
 page.detailStartDate = ko.observable("");
 page.detailEndDate = ko.observable("");
 
-page.isSpecific = ko.observable(false);
+page.isSpecific = ko.observable(true);
 page.isClean = ko.observable(true);
 page.idName = ko.observable("");
 page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
 page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
+
+page.isDensity = ko.observable(false);
 
 // add by ams Aug 11, 2017
 page.deviationOpts = ko.observableArray([
@@ -810,11 +812,12 @@ page.hideAll = function() {
 
 page.resetFilter = function(){
     page.isClean(true);
-    page.isSpecific(false);
+    page.isSpecific(true);
     page.isDeviation(true);
     page.sScater(false);
     page.showDownTime(false);
     page.deviationVal("20");
+    page.isDensity(false);
     $('#isClean').prop('checked',true);
     $('#isSpecific').prop('checked',false);
     $('#isDeviation').prop('checked',true);
@@ -870,6 +873,8 @@ $(document).ready(function() {
     di.getAvailDate();
     page.getSelectedFilter();
 
+    $('#pc-filter-density').hide();
+    $('#pc-filter-downtime').hide();
     
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
@@ -900,14 +905,23 @@ $(document).ready(function() {
     });
 
     $("input[name=isAvg]").on("change", function() {
-        if(this.id == "density"){
-            $('#isSpecific').attr("disabled", "disabled");
-            $('#isSpecific').prop('checked',false);
+        // if(this.id == "density"){
+        //     $('#isSpecific').attr("disabled", "disabled");
+        //     $('#isSpecific').prop('checked',false);
+        // }else{
+        //     $('#isSpecific').removeAttr('disabled');
+        // }
+
+        page.isSpecific(true);
+        $('#pc-filter-density').toggle();
+        if(this.id == "sitespesific"){
+            $('#isDensity').attr("disabled", "disabled");
+            $('#isDensity').prop('checked',false);
         }else{
-            $('#isSpecific').removeAttr('disabled');
+            page.isSpecific(false);
+            $('#isDensity').removeAttr('disabled');
         }
 
-        
         page.viewSession(this.id);
         Data.InitLinePowerCurve();
     });
@@ -926,6 +940,13 @@ $(document).ready(function() {
         Data.InitLinePowerCurve();
     });
 
+    $('#isDensity').on('click', function() {
+        var isDensity = $('#isDensity').prop('checked');
+        page.isDensity(isDensity);
+        page.getSelectedFilter();
+        Data.InitLinePowerCurve();
+    });
+
     $('#isDeviation').on('click', function() {
         var isDeviation = $('#isDeviation').prop('checked');
         page.isDeviation(isDeviation);
@@ -937,6 +958,8 @@ $(document).ready(function() {
     $('#sScater').on('click', function() {
         var sScater = $('#sScater').prop('checked');
         page.sScater(sScater);
+
+        $('#pc-filter-downtime').toggle();
 
         page.getSelectedFilter();
         page.HideforScatter();
