@@ -42,7 +42,7 @@
     margin-top: 7.5px;
 }
 .radio-filter {
-	width: 125px !important;
+	width: 160px !important;
 	margin-bottom: 2px !important;
 }
 
@@ -59,7 +59,7 @@
     overflow-y: auto;
 }
 .cFilter{
-    margin-left: 65px;
+    /*margin-left: 65px;*/
 }
 .detPc{
     margin-top: -10px;
@@ -178,7 +178,12 @@
     font-weight: 600;
 }
 #filter-power-curve{
-    width: 275px;
+    /*width: 275px;*/
+    width: 100%;
+    text-align: center;
+}
+#filter-power-curve.list-inline>li {
+    margin-left: -5px;
 }
 .form-inline.form-group{
     margin-left: 20px;
@@ -204,5 +209,5 @@
     border: 2px solid #555555;
 }
 #content-power-curve{
-    height: 475px;
+    height: 525px;
 }
