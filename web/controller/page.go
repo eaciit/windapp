@@ -159,6 +159,14 @@ func (w *PageController) AnalyticPCMonthly(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) AnalyticPCMonthlyScatter(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-power-curve/individual-month-scatter.html"
+
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) AnalyticPCComparison(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
