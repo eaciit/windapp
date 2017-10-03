@@ -265,6 +265,11 @@ $(function() {
     $(window).scroll(sticky_relocate);
     sticky_relocate();
 
+    setTimeout(function(){
+        $("#periodList").data("kendoDropDownList").value("monthly");
+        $("#periodList").data("kendoDropDownList").trigger("change");
+    },200);
+
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         page.LoadData();
@@ -276,17 +281,6 @@ $(function() {
     $(".label-filter")[3].remove();
     // $(".label-filter")[2].remove();
 
-    // $('#dateStart').kendoDatePicker({
-    //     start: "year",
-    //     depth: "year",
-    //     format: "MMM-yyyy",
-    // });
-    $('#dateStart').kendoDatePicker({
-        start: "year",
-        depth: "year",
-        format: "MMM yyyy",
-    });
-    
 
     $('#projectList').kendoDropDownList({
         data: fa.projectList,
