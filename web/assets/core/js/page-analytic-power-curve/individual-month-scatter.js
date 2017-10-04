@@ -60,8 +60,9 @@ page.LoadData = function() {
         var param = {
             turbine: fa.turbine(),
             project: fa.project,
+            datestart: $('#dateStart').data('kendoDatePicker').value(),
         };
-        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getlistpowercurvemonthly", param, function (res) {
+        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getlistpowercurvemonthlyscatter", param, function (res) {
             if (!app.isFine(res)) {
                 app.loading(false);
                 return;
@@ -70,23 +71,23 @@ page.LoadData = function() {
                 page.dataPCEachTurbine(res.data.Data);
                 page.InitLinePowerCurve();
             }
-            if (res.data.Category != null) {
-                listOfCategory = res.data.Category;
-                $("#legend-list").html("");
-                listOfButton = {};
-                $.each(listOfCategory, function (idx, val) {
-                    if(idx > 0) {
-                        var idName = "btn" + idx;
-                        listOfButton[idName] = true;
-                        $("#legend-list").append(
-                            '<button id="' + idName + 
-                            '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
-                            val.color + ';background-color:' + val.color + ';"></button>' +
-                            '<span class="span-legend">' + val.category + '</span>'
-                        );
-                    }
-                });
-            }
+            // if (res.data.Category != null) {
+            //     listOfCategory = res.data.Category;
+            //     $("#legend-list").html("");
+            //     listOfButton = {};
+            //     $.each(listOfCategory, function (idx, val) {
+            //         if(idx > 0) {
+            //             var idName = "btn" + idx;
+            //             listOfButton[idName] = true;
+            //             $("#legend-list").append(
+            //                 '<button id="' + idName + 
+            //                 '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
+            //                 val.color + ';background-color:' + val.color + ';"></button>' +
+            //                 '<span class="span-legend">' + val.category + '</span>'
+            //             );
+            //         }
+            //     });
+            // }
             app.loading(false);
         })
     }, 300);
@@ -280,7 +281,6 @@ $(function() {
     $(".filter-date-end").hide();
     $(".label-filter")[3].remove();
     // $(".label-filter")[2].remove();
-
 
     $('#projectList').kendoDropDownList({
         data: fa.projectList,

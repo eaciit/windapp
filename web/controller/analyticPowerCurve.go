@@ -534,8 +534,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	}
 	sort.Strings(sortTurbines)
 
-	//tk.Printf("Sort Turbines : %#v\n", sortTurbines)
-
 	selArr := 0
 	dataSeries = append(dataSeries, pcData)
 
@@ -543,7 +541,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if p.Project != "" {
 		turbineName, _ = helper.GetTurbineNameList(p.Project)
 	}
-	//tk.Printf("Turbines : %#v\n", turbineName)
+
 	turbineXid := ""
 	for _, turbineX := range sortTurbines {
 		selArr = 0
@@ -609,6 +607,125 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		catList = tk.M{"category": monthIndex.GetString(tk.ToString(idx)), "color": colorField[idx]}
 		categoryList = append(categoryList, catList)
 	}
+
+	data := struct {
+		Data     []tk.M
+		Category []tk.M
+	}{
+		Data:     results,
+		Category: categoryList,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		pipes      []tk.M
+		dataSeries []tk.M
+	)
+
+	p := new(PayloadAnalyticPC)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	project := p.Project
+	tStart, _ := time.Parse("20060102", p.DateStart.Format("200601")+"01")
+	tEnd := tStart.AddDate(0, 1, 0)
+
+	pcData, e := getPCData(project, true)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	match := []tk.M{}
+	match = append(match, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	match = append(match, tk.M{"timestamp": tk.M{"$lt": tEnd}})
+	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
+	match = append(match, tk.M{"oktime": 600})
+	match = append(match, tk.M{"available": 1})
+
+	if len(p.Turbine) > 0 {
+		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+	}
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
+	match = append(match, tk.M{"projectname": tk.M{"turbine": 1, "power": 1, "avgwindspeed": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	// e = csr.Fetch(&list, 0, false)
+	defer csr.Close()
+
+	var datas [][]float64
+	results := []tk.M{}
+	sortTurbines := []string{}
+
+	resData := tk.M{}
+	for {
+		tkm := tk.M{}
+		e = csr.Fetch(&tkm, 1, false)
+		if e != nil {
+			break
+		}
+		sturbine := tkm.GetString("turbine")
+		lfloat64 := resData.Get(sturbine, map[float64]float64{}).(map[float64]float64)
+		lfloat64[tk.ToFloat64(tkm.Get("avgwindspeed"), 3, tk.RoundingAuto)] = tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
+		resData.Set(sturbine, lfloat64)
+	}
+
+	for _, turX := range p.Turbine {
+		sortTurbines = append(sortTurbines, tk.ToString(turX))
+	}
+	sort.Strings(sortTurbines)
+
+	turbineName := map[string]string{}
+	if p.Project != "" {
+		turbineName, _ = helper.GetTurbineNameList(p.Project)
+	}
+
+	for _, turbineX := range sortTurbines {
+		dataSeries = []tk.M{}                   /*clear variable for next data*/
+		dataSeries = append(dataSeries, pcData) /*always append expected value at beginning*/
+
+		datas = [][]float64{}
+		for ws, power := range resData.Get(turbineX, map[float64]float64{}).(map[float64]float64) {
+			datas = append(datas, []float64{ws, power})
+		}
+
+		monthData := tk.M{}
+		monthData.Set("name", turbineName[turbineX])
+		monthData.Set("turbineid", turbineX)
+		monthData.Set("type", "scatter")
+		monthData.Set("style", "smooth")
+		monthData.Set("dashType", "solid")
+		monthData.Set("markers", tk.M{"visible": true, "size": 1})
+		monthData.Set("width", 2)
+		monthData.Set("color", "#21c4af")
+		monthData.Set("idxseries", "Data")
+		monthData.Set("data", datas)
+		dataSeries = append(dataSeries, monthData)
+
+		turbineData := tk.M{
+			"NameID": turbineX,
+			"Name":   turbineName[turbineX],
+			"Data":   dataSeries,
+		}
+		results = append(results, turbineData)
+	}
+
+	categoryList := []tk.M{}
+	categoryList = append(categoryList, tk.M{"category": "Power Curve", "color": "#ff9933"})
+	categoryList = append(categoryList, tk.M{"category": "Data", "color": "#21c4af"})
 
 	data := struct {
 		Data     []tk.M
@@ -699,7 +816,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	var datas [][]float64
 	turbineData := tk.M{}
 	// turbineData.Set("name", PC1turbine)
-	turbineData.Set("name", turbineName[p.PC1Turbine] +" ("+  PC1tStart.Format("02-Jan-2006") + "  to "+ PC1tEnd.Format("02-Jan-2006") +")")
+	turbineData.Set("name", turbineName[p.PC1Turbine]+" ("+PC1tStart.Format("02-Jan-2006")+"  to "+PC1tEnd.Format("02-Jan-2006")+")")
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
@@ -741,7 +858,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	var datasC2 [][]float64
 	turbineData = tk.M{}
 	// turbineData.Set("name", PC2turbine)
-	turbineData.Set("name", turbineName[p.PC2Turbine]+" ("+  PC2tStart.Format("02-Jan-2006") + "  to "+ PC2tEnd.Format("02-Jan-2006") +")")
+	turbineData.Set("name", turbineName[p.PC2Turbine]+" ("+PC2tStart.Format("02-Jan-2006")+"  to "+PC2tEnd.Format("02-Jan-2006")+")")
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
