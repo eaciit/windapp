@@ -309,8 +309,10 @@ fa.showHidePeriod = function (callback) {
                 format: "MMM-yyyy",
             });
 
-            $('#dateStart').data('kendoDatePicker').value(startMonthDate);
-            $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
+            fa.dateStart = startMonthDate;
+            fa.dateEnd = endMonthDate;
+            $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
+            $('#dateEnd').data('kendoDatePicker').value(fa.dateEnd);
 
             $(".show_hide").show();
         } else if (period == "annual") {
@@ -714,19 +716,28 @@ fa.getDataAvailability = function(){
 }
 
 fa.changeEndDate = function(){
+
+    var period = $('#periodList').data('kendoDropDownList').value();
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEndMax = $('#dateEnd').data('kendoDatePicker').max();
 
     var dateEndPicker  = $('#dateEnd').data('kendoDatePicker');
-
+    var dateStartPicker =  $('#dateStart').data('kendoDatePicker');
     
     setTimeout(function(){
+        if(period == "monthly"){
+            var date = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), 1, 0, 0, 0));
+            dateStartPicker.value(date);
+        }
         if(moment(dateStart).format('MMM-Y') == moment(new Date()).format('MMM-Y')){
             dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateEndMax.getDate(), 0, 0, 0)));
         }else{
             dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth()+1, 0, 0, 0, 0)));
         }
-    },200);
+
+
+        fa.DateChange();
+    },300);
     
     dateEndPicker.min(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0)));
 

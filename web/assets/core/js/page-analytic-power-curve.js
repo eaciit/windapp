@@ -6,13 +6,7 @@ var page = viewModel.AnalyticPowerCurve;
 page.turbineList = ko.observableArray([]);
 page.downList = ko.observableArray([]);
 page.dtLineChart = ko.observableArray([]);
-page.projectList = ko.observableArray([{
-    "value": 1,
-    "text": "WindFarm-01"
-}, {
-    "value": 2,
-    "text": "WindFarm-02"
-}, ]);
+page.projectList = ko.observableArray([]);
 
 page.isMain = ko.observable(true);
 page.isDetail = ko.observable(false);
@@ -42,6 +36,8 @@ page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+page.ss_airdensity = ko.observable(0.0);
+page.std_airdensity = ko.observable(0.0);
 var lastParam;
 var lastParamDetail;
 
@@ -109,7 +105,7 @@ page.ExportPowerCurvePdf = function() {
       var options2 = $.extend(true, options, exportOptions);
       container.kendoChart(options2);
 
-      $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
+      $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
         var chart = $("#powerCurveDetail").getKendoChart();
@@ -150,7 +146,7 @@ page.ExportPowerCurveDetailPdf = function() {
           var options2 = $.extend(true, options, exportOptions);
           container.kendoChart(options2);
 
-          $("#powerCurveDetail").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
+          $("#powerCurveDetail").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
     }
 
 vm.currentMenu('Power Curve');
@@ -234,7 +230,7 @@ var Data = {
                         visible: false,
                     },
                     chartArea: {
-                        height: 375,
+                        height: 425,
                     },
                     seriesDefaults: {
                         type: "scatterLine",
@@ -889,6 +885,13 @@ $(document).ready(function() {
                 Data.InitLinePowerCurve();
             }
             page.project(project);
+            var getAd = _.find(page.projectList(), function(p) {
+                return p.ProjectId == project
+            });
+            if(getAd!=undefined) {
+                page.ss_airdensity(getAd.SS_AirDensity);
+                page.std_airdensity(getAd.STD_AirDensity);
+            }
         }, 1000);
     });
 
@@ -897,6 +900,15 @@ $(document).ready(function() {
         $('.multiselect-native-select').hide();
         page.currProject(fa.project);
         page.project(fa.project);
+
+        var getAd = _.find(page.projectList(), function(p) {
+            return p.ProjectId == fa.project
+        });
+        if(getAd!=undefined) {
+            page.ss_airdensity(getAd.SS_AirDensity);
+            page.std_airdensity(getAd.STD_AirDensity);
+        }
+        
         Data.LoadData();
     }, 1000);
 

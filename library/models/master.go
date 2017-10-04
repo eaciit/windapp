@@ -46,6 +46,8 @@ type ProjectMaster struct {
 	TotalTurbine      int
 	RevenueMultiplier float64
 	City              string
+	SS_AirDensity     float64
+	STD_AirDensity    float64
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -79,4 +81,6 @@ type ProjectOut struct {
 	City              string
 	NoOfTurbine       int
 	TotalMaxCapacity  float64
+	SS_AirDensity     float64
+	STD_AirDensity    float64
 }
