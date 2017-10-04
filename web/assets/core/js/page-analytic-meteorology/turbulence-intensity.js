@@ -171,7 +171,7 @@ var ti = {
 	},
 	showHideAllLegend: function(e){
 	    if (e.checked == true) {
-	        $('.fa-check').css("visibility", 'visible');
+	        $('.fa-check-turbulence').css("visibility", 'visible');
 	        $.each(pm.ChartSeriesturbulence(), function (i, val) {
 	            if($("#chartTI").data("kendoChart").options.series[val.idxseries] != undefined){
 	                $("#chartTI").data("kendoChart").options.series[val.idxseries].visible = true;
@@ -185,32 +185,32 @@ var ti = {
 	                $("#chartTI").data("kendoChart").options.series[val.idxseries].visible = false;
 	            }  
 	        });
-	        $('.fa-check').css("visibility", 'hidden');
+	        $('.fa-check-turbulence').css("visibility", 'hidden');
 	        /*$('#labelShowHide b').text('Tick All Turbines');*/
 	        $('#labelShowHide b').text('Select All');
 	    }
-	    $('.chk-option').not(e).prop('checked', e.checked);
+	    $('.chk-option-turbulence').not(e).prop('checked', e.checked);
 
 	    $("#chartTI").data("kendoChart").redraw();
 	},
 	showHideLegend: function(idx){
-	    $('#chk-' + idx).trigger('click');
+	    $('#chk-turbulence' + idx).trigger('click');
 	    var chart = $("#chartTI").data("kendoChart");
-	    var leTur = $('input[id*=chk-][type=checkbox]').length;
+	    var leTur = $('input[id*=chk-turbulence][type=checkbox]').length;
 
-	    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
+	    if ($('input[id*=chk-turbulence][type=checkbox]:checked').length == $('input[id*=chk-turbulence][type=checkbox]').length) {
 	        $('#showHideAllturbulence').prop('checked', true);
 	    } else {
 	        $('#showHideAllturbulence').prop('checked', false);
 	    }
 
-	    if ($('#chk-' + idx).is(':checked')) {
-	        $('#icon-' + idx).css("visibility", "visible");
+	    if ($('#chk-turbulence' + idx).is(':checked')) {
+	        $('#icon-turbulence' + idx).css("visibility", "visible");
 	    } else {
-	        $('#icon-' + idx).css("visibility", "hidden");
+	        $('#icon-turbulence' + idx).css("visibility", "hidden");
 	    }
 
-	    if ($('#chk-' + idx).is(':checked')) {
+	    if ($('#chk-turbulence' + idx).is(':checked')) {
 	        $("#chartTI").data("kendoChart").options.series[idx].visible = true
 	    } else {
 	        $("#chartTI").data("kendoChart").options.series[idx].visible = false
@@ -233,8 +233,8 @@ var ti = {
 
 			$.each(pm.ChartSeriesturbulence(), function (idx, val) {
 	        $("#right-turbine-turbulence").append('<div class="btn-group">' +
-				'<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="ti.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
-				'<input class="chk-option" type="checkbox" name="' + val.name + '" checked id="chk-' + (idx) + '" hidden>' +
+				'<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="ti.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check fa-check-turbulence" id="icon-turbulence' + (idx) + '"></i></button>' +
+				'<input class="chk-option-turbulence" type="checkbox" name="' + val.name + '" checked id="chk-turbulence' + (idx) + '" hidden>' +
 				'<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="ti.showHideLegend(' + (idx) + ')" type="button">' + val.name + '</button>' +
 				'</div>');
 			});

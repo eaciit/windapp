@@ -58,7 +58,7 @@ page.getPDF = function(selector){
       kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
         setTimeout(function(){
             app.loading(false);
-        },200)
+        },2000)
     });
 }
 

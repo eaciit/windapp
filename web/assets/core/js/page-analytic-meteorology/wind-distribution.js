@@ -47,8 +47,8 @@ wd.InitRightTurbineList= function () {
 
     $.each(wd.turbineList(), function (idx, val) {
         $("#right-turbine-list").append('<div class="btn-group">' +
-            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="wd.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + (idx) + '"></i></button>' +
-            '<input class="chk-option" type="checkbox" name="' + val.turbine + '" checked id="chk-' + (idx) + '" hidden>' +
+            '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="wd.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check fa-check-winddist" id="icon-wind-distribution' + (idx) + '"></i></button>' +
+            '<input class="chk-option-winddist" type="checkbox" name="' + val.turbine + '" checked id="chk-wind-distribution' + (idx) + '" hidden>' +
             '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="wd.showHideLegend(' + (idx) + ')" type="button">' + val.turbine + '</button>' +
             '</div>');
     });
@@ -179,7 +179,7 @@ wd.ChartWindDistributon =  function () {
 wd.showHideAllLegend = function (e) {
 
     if (e.checked == true) {
-        $('.fa-check').css("visibility", 'visible');
+        $('.fa-check-winddist').css("visibility", 'visible');
         $.each(wd.turbineList(), function (i, val) {
             if($("#windDistribution").data("kendoChart").options.series[i] != undefined){
                 $("#windDistribution").data("kendoChart").options.series[i].visible = true;
@@ -193,11 +193,11 @@ wd.showHideAllLegend = function (e) {
                 $("#windDistribution").data("kendoChart").options.series[i].visible = false;
             }  
         });
-        $('.fa-check').css("visibility", 'hidden');
+        $('.fa-check-winddist').css("visibility", 'hidden');
         /*$('#labelShowHide b').text('Tick All Turbines');*/
         $('#labelShowHide b').text('Select All');
     }
-    $('.chk-option').not(e).prop('checked', e.checked);
+    $('.chk-option-winddist').not(e).prop('checked', e.checked);
 
     $("#windDistribution").data("kendoChart").redraw();
 }
@@ -205,23 +205,23 @@ wd.showHideAllLegend = function (e) {
 wd.showHideLegend = function (idx) {
     var stat = false;
 
-    $('#chk-' + idx).trigger('click');
+    $('#chk-wind-distribution' + idx).trigger('click');
     var chart = $("#windDistribution").data("kendoChart");
-    var leTur = $('input[id*=chk-][type=checkbox]').length
+    var leTur = $('input[id*=chk-wind-distribution][type=checkbox]').length
 
-    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
+    if ($('input[id*=chk-wind-distribution][type=checkbox]:checked').length == $('input[id*=chk-wind-distribution][type=checkbox]').length) {
         $('#showHideAll').prop('checked', true);
     } else {
         $('#showHideAll').prop('checked', false);
     }
 
-    if ($('#chk-' + idx).is(':checked')) {
-        $('#icon-' + idx).css("visibility", "visible");
+    if ($('#chk-wind-distribution' + idx).is(':checked')) {
+        $('#icon-wind-distribution' + idx).css("visibility", "visible");
     } else {
-        $('#icon-' + idx).css("visibility", "hidden");
+        $('#icon-wind-distribution' + idx).css("visibility", "hidden");
     }
 
-    if ($('#chk-' + idx).is(':checked')) {
+    if ($('#chk-wind-distribution' + idx).is(':checked')) {
         $("#windDistribution").data("kendoChart").options.series[idx].visible = true
     } else {
         $("#windDistribution").data("kendoChart").options.series[idx].visible = false
