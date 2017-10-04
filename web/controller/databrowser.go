@@ -595,23 +595,25 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			val.Field: tk.M{val.Op: val.Value},
 		})
 	}
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$project": projection},
+	}
 	sortList := map[string]int{}
 	if len(p.Sort) > 0 {
 		for _, val := range p.Sort {
 			if val.Dir == "desc" {
-				sortList[strings.ToLower("-"+val.Field)] = -1
+				sortList[strings.ToLower(val.Field)] = -1
 			} else {
-				sortList[strings.ToLower("-"+val.Field)] = 1
+				sortList[strings.ToLower(val.Field)] = 1
 			}
 		}
+		pipes = append(pipes, tk.M{"$sort": sortList})
 	}
-	pipes := []tk.M{
-		tk.M{"$match": tk.M{"$and": matches}},
-		tk.M{"$project": projection},
+	pipes = append(pipes, []tk.M{
 		tk.M{"$skip": p.Skip},
 		tk.M{"$limit": p.Take},
-		tk.M{"$sort": sortList},
-	}
+	}...)
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
 	if e != nil {
@@ -735,7 +737,6 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	pipes = []tk.M{
 		tk.M{"$match": tk.M{"$and": matches}},
 		tk.M{"$group": groups},
-		tk.M{"$sort": sortList},
 	}
 
 	caggr, e := DB().Connection.NewQuery().
