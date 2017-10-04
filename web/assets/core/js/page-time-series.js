@@ -2,7 +2,7 @@
 
 viewModel.TurbineHealth = new Object();
 var pg = viewModel.TurbineHealth;
-var maxSelectedItems = 4;
+var maxSelectedItems = 5;
 var defaultHour = 5*24;
 
 pg.tags = ko.observableArray();
@@ -487,18 +487,23 @@ pg.options = function(){
             dataValueField : 'value', 
             dataTextField: 'text',
             suggest: true, 
-            maxSelectedItems: maxSelectedItems,
             minSelectedItems: 1,
             change: function(e) {
-
+            
                 var amountOfSelectedItems = this.dataItems().length;
-                var maxSelectedItems = e.sender.options.maxSelectedItems;
                
                 if (this.value().length == 0) {
                     this.value("windspeed")
                 }
-                if (amountOfSelectedItems >= maxSelectedItems){
-                     app.showError("Max. 4 Tags");
+                if (amountOfSelectedItems > maxSelectedItems){
+                    var values = [];
+                    var data = (this.dataItems()).slice(0,-1);
+                    $.each(data, function(key, val){
+                        values.push(val.value);
+                    });
+
+                    this.value(values);
+                    app.showError("Max. 5 Tags");
                 }
 
             }
@@ -515,6 +520,7 @@ pg.options = function(){
 pg.getDataStockChart = function(param){
     if(fa.LoadData()) {
         // if (param == "refresh") {
+        $("#modalDetail").modal("hide");
         pg.dataType("MIN");
         // }
         app.loading(true);

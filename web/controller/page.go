@@ -33,9 +33,11 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 	if isAnalyst {
 		projectList, _ := helper.GetProjectList()
 		turbineList, _ := helper.GetTurbineList(nil)
+		temperatureList, _ := helper.GetTemperatureList()
 
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
+		w.Params.Set("TemperatureList", temperatureList)
 	}
 
 	r.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -153,6 +155,14 @@ func (w *PageController) AnalyticPCMonthly(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-power-curve/individual-month.html"
+
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) AnalyticPCMonthlyScatter(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-power-curve/individual-month-scatter.html"
 
 	return w.GetParams(r, true)
 }
@@ -374,7 +384,7 @@ func (w *PageController) Monitoring(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring.html"
 	r.Config.IncludeFiles = []string{"_filter-monitoring.html"}
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -387,7 +397,7 @@ func (w *PageController) MonitoringByProject(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/by-project.html"
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -398,7 +408,7 @@ func (w *PageController) MonitoringAllProject(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/all-project.html"
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -410,7 +420,7 @@ func (w *PageController) MonitoringSummary(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/summary.html"
 	r.Config.IncludeFiles = []string{"page-monitoring/all-project.html", "page-monitoring/custom.html", "page-monitoring/turbine-collaboration.html"}
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -422,7 +432,7 @@ func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface
 	r.Config.ViewName = "page-monitoring/custom.html"
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -436,7 +446,7 @@ func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	// allTurbineList, _ := helper.GetAllTurbineList()
 	// w.Params.Set("AllTurbineList", allTurbineList)
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -449,7 +459,7 @@ func (w *PageController) MonitoringAlarm(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"_filter-analytic.html"}
 	r.Config.ViewName = "page-monitoring/monitoring-alarm.html"
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -462,7 +472,7 @@ func (w *PageController) MonitoringNotification(r *knot.WebContext) interface{} 
 	r.Config.IncludeFiles = []string{"_filter-analytic.html"}
 	r.Config.ViewName = "page-monitoring/notification.html"
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 
@@ -474,7 +484,7 @@ func (w *PageController) MonitoringWeather(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/weather-forecast.html"
 
-	if r.Session("sessionid", "") != "" {
+	if r.Session("sessionid", "") == "" {
 		r.SetSession("sessionid", "monitoring-page")
 	}
 

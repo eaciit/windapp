@@ -363,8 +363,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	// //fast_windspeed_ms
 	// //
 	csrhfd, e := DB().Connection.NewQuery().
-		Select("fast_activepower_kw", "fast_windspeed_ms", "dateinfo.dateid").
-		From("ScadaDataHFD").
+		Select("activepower_kw", "windspeed_ms", "dateinfo.dateid").
+		From("Scada10MinHFD").
 		Where(dbox.And(filter...)).
 		Cursor(nil)
 
@@ -399,8 +399,8 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 		ltkm.Set("midate", _midate)
 		ltkm.Set("madate", _madate)
 
-		_dws := _tkm.GetFloat64("fast_windspeed_ms")
-		_dap := _tkm.GetFloat64("fast_activepower_kw")
+		_dws := _tkm.GetFloat64("windspeed_ms")
+		_dap := _tkm.GetFloat64("activepower_kw")
 		_cws := float64(1)
 		if _dws == -9999999.0 {
 			_dws = 0

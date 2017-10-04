@@ -299,6 +299,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	for _, turbineX := range sortTurbines {
 		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
 			y := x.(tk.M)
@@ -309,7 +313,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		var datas []float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineX)
+		turbineData.Set("name", turbineName[turbineX])
 		turbineData.Set("type", "line")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
@@ -379,10 +383,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			maxValue = val
 		}
 	}
-	turbineName, e := helper.GetTurbineNameList(p.Project)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
 
 	data := struct {
 		Data        []tk.M
@@ -398,50 +398,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		Min:         tk.ToInt((minValue - 2), tk.RoundingAuto),
 		Max:         tk.ToInt((maxValue + 2), tk.RoundingAuto),
 		TurbineName: turbineName,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
-func (m *TrendLinePlotsController) GetScadaOemAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	Scadaresults := make([]time.Time, 0)
-
-	// Scada Data
-	for i := 0; i < 2; i++ {
-		var arrsort []string
-		if i == 0 {
-			arrsort = append(arrsort, "timestamp")
-		} else {
-			arrsort = append(arrsort, "-timestamp")
-		}
-
-		query := DB().Connection.NewQuery().From(new(ScadaDataOEM).TableName()).Skip(0).Take(1)
-		query = query.Order(arrsort...)
-
-		csr, e := query.Cursor(nil)
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		defer csr.Close()
-
-		Result := make([]ScadaDataOEM, 0)
-		e = csr.Fetch(&Result, 0, false)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-
-		for _, val := range Result {
-			Scadaresults = append(Scadaresults, val.TimeStampUTC.UTC())
-		}
-	}
-
-	data := struct {
-		ScadaOemAvailDate []time.Time
-	}{
-		ScadaOemAvailDate: Scadaresults,
 	}
 
 	return helper.CreateResult(true, data, "success")

@@ -681,6 +681,7 @@ h4.content-heading {
 
 .panel-body{
     margin-bottom: 50px;
+    margin-right: -20px;
 }
 
 .turbine-weather{
@@ -818,7 +819,7 @@ h4.content-heading {
 }
 
 .progress-custom{
-  width: 70px;
+  width: 65px;
   display: inline-block;
   padding-top: 0px;
   line-height: 1;

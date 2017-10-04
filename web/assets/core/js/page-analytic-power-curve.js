@@ -6,13 +6,7 @@ var page = viewModel.AnalyticPowerCurve;
 page.turbineList = ko.observableArray([]);
 page.downList = ko.observableArray([]);
 page.dtLineChart = ko.observableArray([]);
-page.projectList = ko.observableArray([{
-    "value": 1,
-    "text": "WindFarm-01"
-}, {
-    "value": 2,
-    "text": "WindFarm-02"
-}, ]);
+page.projectList = ko.observableArray([]);
 
 page.isMain = ko.observable(true);
 page.isDetail = ko.observable(false);
@@ -20,13 +14,15 @@ page.detailTitle = ko.observable("");
 page.detailStartDate = ko.observable("");
 page.detailEndDate = ko.observable("");
 
-page.isSpecific = ko.observable(false);
+page.isSpecific = ko.observable(true);
 page.isClean = ko.observable(true);
 page.idName = ko.observable("");
 page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
 page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
+
+page.isDensity = ko.observable(false);
 
 // add by ams Aug 11, 2017
 page.deviationOpts = ko.observableArray([
@@ -40,6 +36,8 @@ page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+page.ss_airdensity = ko.observable(0.0);
+page.std_airdensity = ko.observable(0.0);
 var lastParam;
 var lastParamDetail;
 
@@ -107,7 +105,7 @@ page.ExportPowerCurvePdf = function() {
       var options2 = $.extend(true, options, exportOptions);
       container.kendoChart(options2);
 
-      $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
+      $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
         var chart = $("#powerCurveDetail").getKendoChart();
@@ -148,7 +146,7 @@ page.ExportPowerCurveDetailPdf = function() {
           var options2 = $.extend(true, options, exportOptions);
           container.kendoChart(options2);
 
-          $("#powerCurveDetail").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 375}, render: function(e){return false}}));
+          $("#powerCurveDetail").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
     }
 
 vm.currentMenu('Power Curve');
@@ -232,7 +230,7 @@ var Data = {
                         visible: false,
                     },
                     chartArea: {
-                        height: 375,
+                        height: 425,
                     },
                     seriesDefaults: {
                         type: "scatterLine",
@@ -810,11 +808,12 @@ page.hideAll = function() {
 
 page.resetFilter = function(){
     page.isClean(true);
-    page.isSpecific(false);
+    page.isSpecific(true);
     page.isDeviation(true);
     page.sScater(false);
     page.showDownTime(false);
     page.deviationVal("20");
+    page.isDensity(false);
     $('#isClean').prop('checked',true);
     $('#isSpecific').prop('checked',false);
     $('#isDeviation').prop('checked',true);
@@ -870,6 +869,8 @@ $(document).ready(function() {
     di.getAvailDate();
     page.getSelectedFilter();
 
+    $('#pc-filter-density').hide();
+    $('#pc-filter-downtime').hide();
     
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
@@ -884,6 +885,13 @@ $(document).ready(function() {
                 Data.InitLinePowerCurve();
             }
             page.project(project);
+            var getAd = _.find(page.projectList(), function(p) {
+                return p.ProjectId == project
+            });
+            if(getAd!=undefined) {
+                page.ss_airdensity(getAd.SS_AirDensity);
+                page.std_airdensity(getAd.STD_AirDensity);
+            }
         }, 1000);
     });
 
@@ -892,6 +900,15 @@ $(document).ready(function() {
         $('.multiselect-native-select').hide();
         page.currProject(fa.project);
         page.project(fa.project);
+
+        var getAd = _.find(page.projectList(), function(p) {
+            return p.ProjectId == fa.project
+        });
+        if(getAd!=undefined) {
+            page.ss_airdensity(getAd.SS_AirDensity);
+            page.std_airdensity(getAd.STD_AirDensity);
+        }
+        
         Data.LoadData();
     }, 1000);
 
@@ -900,14 +917,23 @@ $(document).ready(function() {
     });
 
     $("input[name=isAvg]").on("change", function() {
-        if(this.id == "density"){
-            $('#isSpecific').attr("disabled", "disabled");
-            $('#isSpecific').prop('checked',false);
+        // if(this.id == "density"){
+        //     $('#isSpecific').attr("disabled", "disabled");
+        //     $('#isSpecific').prop('checked',false);
+        // }else{
+        //     $('#isSpecific').removeAttr('disabled');
+        // }
+
+        page.isSpecific(true);
+        $('#pc-filter-density').toggle();
+        if(this.id == "sitespesific"){
+            $('#isDensity').attr("disabled", "disabled");
+            $('#isDensity').prop('checked',false);
         }else{
-            $('#isSpecific').removeAttr('disabled');
+            page.isSpecific(false);
+            $('#isDensity').removeAttr('disabled');
         }
 
-        
         page.viewSession(this.id);
         Data.InitLinePowerCurve();
     });
@@ -926,6 +952,13 @@ $(document).ready(function() {
         Data.InitLinePowerCurve();
     });
 
+    $('#isDensity').on('click', function() {
+        var isDensity = $('#isDensity').prop('checked');
+        page.isDensity(isDensity);
+        page.getSelectedFilter();
+        Data.InitLinePowerCurve();
+    });
+
     $('#isDeviation').on('click', function() {
         var isDeviation = $('#isDeviation').prop('checked');
         page.isDeviation(isDeviation);
@@ -937,6 +970,8 @@ $(document).ready(function() {
     $('#sScater').on('click', function() {
         var sScater = $('#sScater').prop('checked');
         page.sScater(sScater);
+
+        $('#pc-filter-downtime').toggle();
 
         page.getSelectedFilter();
         page.HideforScatter();

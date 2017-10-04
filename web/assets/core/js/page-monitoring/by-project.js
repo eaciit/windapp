@@ -149,6 +149,7 @@ bp.GetDataProject = function(project) {
                     feedHeader.isHeader = true;
                     feedHeader.feederName = i;
                     feedHeader.index = idx;
+                    feedHeader.TotalProdDay = null;
                     feeders.push(feedHeader);
                 }
                 $.each(res.data.Detail, function(index, detail){
@@ -287,6 +288,15 @@ bp.PlotData = function(data) {
                     $('#rotor_'+ turbine).css('background-color', 'transparent'); 
                 }, 750);
             }
+            if(val.TotalProdDay > -999999) {
+                if(kendo.toString(val.TotalProdDay, 'n2')!= kendo.toString(oldVal.TotalProdDay, 'n2')) {
+                    $('#total_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
+                }
+                
+                window.setTimeout(function(){ 
+                    $('#total_'+ turbine).css('background-color', 'transparent'); 
+                }, 750);
+            }
             if(val.PitchAngle > -999999) {
                 if(kendo.toString(val.PitchAngle, 'n2')!=kendo.toString(oldVal.PitchAngle, 'n2')) {
                     $('#pitch_'+ turbine).css('background-color', 'rgba(255, 216, 0, 0.7)');    
@@ -340,7 +350,7 @@ bp.PlotData = function(data) {
             
             
             if((val.ActivePower / val.Capacity) > 0){
-                comparison = (val.ActivePower / val.Capacity) * 70;
+                comparison = (val.ActivePower / val.Capacity) * 65;
                 var fixCom = (comparison > 100 ? 64 : comparison);
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
                 $('#statusturbine_'+ turbine).css('width', fixCom + 'px');
@@ -351,7 +361,7 @@ bp.PlotData = function(data) {
 
             if(colorStatus=="lbl bg-red"){
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
-                $('#statusturbine_'+ turbine).css('width',  70 +'px');
+                $('#statusturbine_'+ turbine).css('width',  65 +'px');
             }
 
             if(val.isbordered != undefined && val.isbordered == true){

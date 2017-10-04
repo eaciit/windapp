@@ -52,18 +52,19 @@
                                     <tr>
                                         <th width="85">Turbine</th>
                                         <th width="40" class="text-center"><i data-toggle="tooltip" title="Actual Generation (KW)">Pwr.</i></th>
-                                        <th width="40" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
+                                        <th width="30" class="text-center"><i data-toggle="tooltip" title="Avg. Wind Speed (m/s)">Ws.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Nacelle Position (deg)">Nc.Pos</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Rotor RPM">Rtr.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Pitch Angle">P.A.</i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Temperature">Temp</i></th>
+                                        <th width="35" class="text-center"><i data-toggle="tooltip" title="Total Production (Mwh)">Prod.</i></th>
                                         <th width="20" class="text-center"><i data-toggle="tooltip" title="Temp. Status"><i class="fa fa-bell"></i></i></th>
                                         <th width="35" class="text-center"><i data-toggle="tooltip" title="Alarm Description">Desc</i></th>
                                     </tr>
                                 </thead>
                                 <tbody data-bind="foreach:details" class="tableDetails">
                                     <tr data-bind="visible:index == 0 && isHeader == true">
-                                       <td colspan="9" class="feederRemark" data-bind="attr: { 'data-id': 'linkFeeder_'+feederName}" style="cursor: pointer; cursor: hand;"><strong><span data-bind="text:feederName"></span> &nbsp; <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': 'iconFeeder_'+feederName}" style="display: none;"></i></strong></td> 
+                                       <td colspan="10" class="feederRemark" data-bind="attr: { 'data-id': 'linkFeeder_'+feederName}" style="cursor: pointer; cursor: hand;"><strong><span data-bind="text:feederName"></span> &nbsp; <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': 'iconFeeder_'+feederName}" style="display: none;"></i></strong></td> 
                                     </tr>
                                     <tr data-bind="visible:isHeader == false">
                                        <td class="link-detail text-center">
@@ -80,6 +81,7 @@
                                         <td align="right"><span data-bind="attr: { id: 'rotor_'+ Turbine }, text: (RotorRPM > -999999) ? kendo.toString(RotorRPM, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'pitch_'+ Turbine }, text: (PitchAngle > -999999) ? kendo.toString(PitchAngle, 'n2') : '-'">-</span></td>
                                         <td align="right"><span data-bind="attr: { id: 'temperature_'+ Turbine ,class: TemperatureColor}, text: (Temperature > -999999) ? kendo.toString(Temperature, 'n2') : '-'">-</span></td>
+                                         <td align="right"><span data-bind="attr: { id: 'total_'+ Turbine }, text: (TotalProdDay > -999999) ? kendo.toString(TotalProdDay, 'n2') : '-'">-</span></td>
                                         <td align="right"><span><i data-html="true" data-bind="attr: { id: 'temperaturecolor_'+ Turbine}" data-toggle="tooltip" title="" class="bstooltip"></i></span></td>
                                         <td align="center"><span data-bind="attr: { id: 'alarmdesc_'+ Turbine }" data-toggle="tooltip" title="">-</span></td>
                                     </tr>

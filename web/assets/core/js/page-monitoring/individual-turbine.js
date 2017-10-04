@@ -28,16 +28,18 @@ it.colorStatus = ko.observable();
 
 
 
-it.getFeeder = function(project, turbine){
-    var turbineList = it.allTurbineList;
-    if(turbineList.length > 0) {
-        $.each(it.allTurbineList, function(key, val){
-            if(val.Project == project && val.Turbine == turbine){
-                it.feeder(val.Feeder);
-            }
-        });
-    }
-}
+// it.getFeeder = function(project, turbine){
+//     setTimeout(function(){
+//         var turbineList = it.allTurbineList;
+//         if(turbineList.length > 0) {
+//             $.each(it.allTurbineList, function(key, val){
+//                 if(val.Project == project && val.Turbine == turbine){
+//                     it.feeder(val.Feeder);
+//                 }
+//             });
+//         }
+//     },500);
+// }
 
 it.populateProject = function (data) {
     if (data.length == 0) {
@@ -130,10 +132,6 @@ it.getTimestamp = function(param){
 }
 
 it.GetData = function(project, turbine) {
-
-    it.getFeeder(project, turbine);
-
-
     var param = { 
         Project: project,
         Turbine: turbine
@@ -175,6 +173,7 @@ it.GetData = function(project, turbine) {
             },500);
         }
 
+
         it.PlotData(res.data);
         it.isFirst(false);
     });
@@ -184,13 +183,15 @@ it.ShowRemark = function(){
     TbCol.ResetData();
     var turbineName = $('#turbine').data('kendoDropDownList').text();
     var turbineId = $('#turbine').data('kendoDropDownList').value();
+    var result = $.grep(turbineList, function(e){ return e.Project == it.project && e.Value == turbineId})[0];
+
 
     TbCol.TurbineId(turbineId);
     TbCol.TurbineName(turbineName);
     TbCol.UserId('');
     TbCol.UserName('');
     TbCol.Project(it.project);
-    TbCol.Feeder(it.feeder());
+    TbCol.Feeder(result.Feeder);
     TbCol.IsTurbine(true);
     TbCol.OpenForm();
     TbCol.IconStatus(it.colorStatus());
@@ -278,6 +279,7 @@ it.dataWindspeed = ko.observableArray([]);
 it.dataPower = ko.observableArray([]);
 
 it.PlotData = function(data) {
+
     var lastUpdate = moment.utc(data["lastupdate"]);
     $('#turbine_last_update').text(lastUpdate.format("DD MMM YYYY HH:mm:ss"));
 
@@ -654,6 +656,7 @@ it.ShowData = function() {
         it.GetData(project, turbine);
     }
 
+    
     $.when(it.showWindRoseChart()).done(function () {
         setTimeout(function() {
             app.loading(false);

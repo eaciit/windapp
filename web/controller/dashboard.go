@@ -2030,8 +2030,13 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 				}
 			}
 		}
-
+		projectSorted := []string{}
 		for key := range projectList {
+			projectSorted = append(projectSorted, key)
+		}
+		sort.Strings(projectSorted)
+
+		for _, key := range projectSorted {
 			dataSeries = append(dataSeries, tk.M{
 				"field": key,
 				"name":  key,
@@ -2493,6 +2498,7 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			projects = append(projects, v.Value)
 		}
 	}
+	sort.Strings(projects)
 
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)

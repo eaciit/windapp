@@ -20,7 +20,7 @@ vm.breadcrumb([{
 
 
 pc.periodList = ko.observableArray([
-    { "value": "last24hours", "text": "Last 24 hours" },
+    { "value": "last24hours", "text": "Today" },
     { "value": "last7days", "text": "Last 7 days" },
     { "value": "monthly", "text": "Monthly" },
     { "value": "annual", "text": "Annual" },
@@ -407,8 +407,9 @@ pc.initChart = function() {
                     return;
                 }
                 
-                var dataTurbine = res.data.Data;
 
+
+                var dataTurbine = res.data.Data;
                 
                 $('#chartPCcomparison').html("");
                 $("#chartPCcomparison").kendoChart({
@@ -424,6 +425,7 @@ pc.initChart = function() {
                     legend: {
                         position: "bottom",
                         visible: true,
+                        offsetX: 50,
                         labels: {
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         },

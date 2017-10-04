@@ -164,7 +164,8 @@
 
 <script>
     it.populateProject({{.ProjectList}});
+    var turbineList = {{.TurbineList}};
     setTimeout(function() {
-        it.populateTurbine(it.project, {{.TurbineList}}, true);
+        it.populateTurbine(it.project, turbineList, true);
     }, 500);
 </script>

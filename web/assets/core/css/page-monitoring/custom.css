@@ -176,7 +176,7 @@
 .cusmon-turbines .cusmon-name {
     color: #000;
     /*font-size: 1.5vmin;*/
-    font-size: 1.25vmin;
+    font-size: 10.5px;
     position: absolute;
     top: 3px;
     left: 4px;
@@ -207,6 +207,7 @@
     border-bottom-left-radius: 0;
     margin: 0;
     height: 23px;
+    background: #fff;
 }
 .cusmon-turbines .progress .progress-bar { 
     border-top-right-radius: 0;

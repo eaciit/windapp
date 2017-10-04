@@ -341,7 +341,7 @@ func CreateResultWithoutSession(success bool, data interface{}, message string) 
 			panic(message)
 		}
 	}
-	
+
 	return map[string]interface{}{
 		"data":    data,
 		"success": success,
@@ -683,6 +683,56 @@ func HelperSetDb(conn dbox.IConnection) {
 	_ = SetDb(conn)
 }
 
+// { "value": 1, "text": "Ambient Temp", "colname": "tempoutdoor" }
+
+func GetTemperatureList() (result toolkit.M, e error) {
+	csr, e := DB().Connection.NewQuery().
+		From("ref_databrowsertag").
+		Order("projectname", "label").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	_data := toolkit.M{}
+	lastProject := ""
+	currProject := ""
+	indexCount := 1
+	tempList := []toolkit.M{}
+	result = toolkit.M{}
+	for {
+		_data = toolkit.M{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		currProject = _data.GetString("projectname")
+		if lastProject != currProject {
+			if lastProject != "" {
+				result.Set(lastProject, tempList)
+				indexCount = 1
+				tempList = []toolkit.M{}
+			}
+			lastProject = currProject
+		}
+		if strings.Contains(strings.ToLower(_data.GetString("realtimefield")), "temp") {
+			tempList = append(tempList, toolkit.M{
+				"value":   indexCount,
+				"text":    _data.GetString("label"),
+				"colname": strings.ToLower(_data.GetString("realtimefield")),
+			})
+			indexCount++
+		}
+	}
+	if lastProject != "" {
+		result.Set(lastProject, tempList)
+	}
+
+	return
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	csr, e := DB().Connection.NewQuery().
 		From(new(md.ProjectMaster).TableName()).
@@ -707,6 +757,8 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			Coords:            []float64{val.Latitude, val.Longitude},
 			RevenueMultiplier: val.RevenueMultiplier,
 			City:              val.City,
+			SS_AirDensity:     val.SS_AirDensity,
+			STD_AirDensity:    val.STD_AirDensity,
 		})
 	}
 
