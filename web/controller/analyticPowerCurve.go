@@ -642,8 +642,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	match := []tk.M{}
-	match = append(match, tk.M{"timestamp": tk.M{"$gte": tStart}})
-	match = append(match, tk.M{"timestamp": tk.M{"$lt": tEnd}})
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
 	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
 	match = append(match, tk.M{"oktime": 600})
 	match = append(match, tk.M{"available": 1})
@@ -653,7 +653,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	}
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
-	match = append(match, tk.M{"projectname": tk.M{"turbine": 1, "power": 1, "avgwindspeed": 1}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "power": 1, "avgwindspeed": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -677,6 +677,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		if e != nil {
 			break
 		}
+		// turbine:HBR004 _id:Tejuva_HBR004_20170928140000 avgwindspeed:4.522146326086955 power:178.4509971666666
 		sturbine := tkm.GetString("turbine")
 		lfloat64 := resData.Get(sturbine, map[float64]float64{}).(map[float64]float64)
 		lfloat64[tk.ToFloat64(tkm.Get("avgwindspeed"), 3, tk.RoundingAuto)] = tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
