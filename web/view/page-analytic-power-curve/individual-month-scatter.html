@@ -5,14 +5,17 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/individual-month-scatter.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
 <div>
-	<div class="row">
+	<div class="row scatter-content">
 		{{template "_filter-analytic.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
 						<span class="tools pull-right">
-							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i>
+							<!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="page.getPDF('.scatter-content')">
+						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+						  	</button>
 	                  	</span>
 					</div>
 					<div class="panel-body">
