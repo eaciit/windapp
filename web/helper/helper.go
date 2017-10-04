@@ -757,6 +757,8 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			Coords:            []float64{val.Latitude, val.Longitude},
 			RevenueMultiplier: val.RevenueMultiplier,
 			City:              val.City,
+			SS_AirDensity:     val.SS_AirDensity,
+			STD_AirDensity:    val.STD_AirDensity,
 		})
 	}
 

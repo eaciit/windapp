@@ -181,9 +181,14 @@
     /*width: 275px;*/
     width: 100%;
     text-align: center;
+    margin-top: -15px;
+    padding-left: 35px;
 }
 #filter-power-curve.list-inline>li {
     margin-left: -5px;
+}
+#downtime-list {
+    margin-top: -15px;
 }
 .form-inline.form-group{
     margin-left: 20px;
@@ -209,5 +214,14 @@
     border: 2px solid #555555;
 }
 #content-power-curve{
-    height: 525px;
+    height: 530px;
+}
+#airdensity_info {
+    position: absolute;
+    top: 36px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
 }
