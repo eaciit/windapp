@@ -621,7 +621,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
-
 	var (
 		pipes      []tk.M
 		dataSeries []tk.M
@@ -654,6 +653,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "power": 1, "avgwindspeed": 1}})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id": tk.M{
+			"turbine":      "$turbine",
+			"avgwindspeed": "$avgwindspeed",
+		},
+		"power": tk.M{"$avg": "$power"},
+	}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -663,7 +669,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	// e = csr.Fetch(&list, 0, false)
+	alltkm := []tk.M{}
+	e = csr.Fetch(&alltkm, 0, false)
 	defer csr.Close()
 
 	var datas [][]float64
@@ -671,16 +678,17 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	sortTurbines := []string{}
 
 	resData := tk.M{}
-	for {
-		tkm := tk.M{}
-		e = csr.Fetch(&tkm, 1, false)
-		if e != nil {
-			break
-		}
+	for _, tkm := range alltkm {
+		// tkm := tk.M{}
+		// e = csr.Fetch(&tkm, 1, false)
+		// if e != nil {
+		// 	break
+		// }
 		// turbine:HBR004 _id:Tejuva_HBR004_20170928140000 avgwindspeed:4.522146326086955 power:178.4509971666666
-		sturbine := tkm.GetString("turbine")
+		ids, _ := tk.ToM(tkm["_id"])
+		sturbine := ids.GetString("turbine")
 		lfloat64 := resData.Get(sturbine, map[float64]float64{}).(map[float64]float64)
-		lfloat64[tk.ToFloat64(tkm.Get("avgwindspeed"), 3, tk.RoundingAuto)] = tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
+		lfloat64[tk.ToFloat64(ids.Get("avgwindspeed"), 3, tk.RoundingAuto)] = tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
 		resData.Set(sturbine, lfloat64)
 	}
 
