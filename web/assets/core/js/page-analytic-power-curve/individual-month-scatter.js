@@ -94,12 +94,8 @@ page.LoadData = function() {
 }
 
 page.InitLinePowerCurve = function() {
-    fa.LoadData();
+    
     listOfChart = [];
-
-    di.getAvailDate();
-
-
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name
         var idChart = "#chart-" + dataTurbine.Name
@@ -266,6 +262,7 @@ $(function() {
     $(window).scroll(sticky_relocate);
     sticky_relocate();
 
+    di.getAvailDate();
     setTimeout(function(){
         $("#periodList").data("kendoDropDownList").value("monthly");
         $("#periodList").data("kendoDropDownList").trigger("change");
