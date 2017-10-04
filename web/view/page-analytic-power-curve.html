@@ -52,7 +52,7 @@
 								</div>
 								<div class="power-curve-chart">
 									<div id="airdensity_info">
-										<span data-bind="text: 'AD = ' + (page.isSpecific()?page.ss_airdensity():page.std_airdensity())"></span>
+										<span data-bind="html: (page.isSpecific()?'Site ':'Std ') + 'AD : <b>' + (page.isSpecific()?page.ss_airdensity():page.std_airdensity()) + '</b>'"></span>
 									</div>
 									<div id="powerCurve"></div>
 								</div>
