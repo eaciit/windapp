@@ -1006,17 +1006,17 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 	switch p.ScatterType {
 	case "temp":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Temperature", "nacelletemperature")
-		seriesData = setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature")
+		seriesData = setScatterData("Nacelle Temperature", "WindSpeed", "NacelleTemperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "deviation":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Deviation", "nacelledeviation")
-		seriesData = setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "nacelledeviation")
+		seriesData = setScatterData("Nacelle Deviation", "WindSpeed", "NacelleDeviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "pitch":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Pitch", "avgbladeangle")
-		seriesData = setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle")
+		seriesData = setScatterData("Pitch Angle", "WindSpeed", "PitchAngle", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "ambient":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Ambient", "ambienttemperature")
-		seriesData = setScatterData("Ambient", "WindSpeed", "Ambient", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature")
+		seriesData = setScatterData("Ambient Temperature", "WindSpeed", "AmbientTemperature", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
 	}
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
