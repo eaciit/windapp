@@ -23,10 +23,7 @@ vm.breadcrumb([{
 }]);
 
 page.LoadData = function() {
-    var isValid = fa.LoadData();
-    if(isValid) {
-        page.getPowerCurveScatter();
-    }
+    page.getPowerCurveScatter();
 }
 
 page.refreshChart = function() {
@@ -206,6 +203,10 @@ $(document).ready(function() {
         }, 300);
     });
     $.when(di.getAvailDate()).done(function() {
-        page.LoadData();
+        setTimeout(function(){
+            fa.LoadData();
+            page.LoadData();
+        },500);
+       
     });
 });
