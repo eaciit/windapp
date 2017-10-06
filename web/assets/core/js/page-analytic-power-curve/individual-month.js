@@ -93,11 +93,7 @@ page.LoadData = function() {
 }
 
 page.InitLinePowerCurve = function() {
-    fa.LoadData();
     listOfChart = [];
-
-    di.getAvailDate();
-
 
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name
@@ -288,6 +284,6 @@ $(function() {
             di.getAvailDate();
          }
     });
-
+    di.getAvailDate();
     page.LoadData();
 });

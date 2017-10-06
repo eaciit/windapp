@@ -421,6 +421,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
+	/* ================= EXPECTED RESULT ==================
+	Power against Wind Speed for each Month, for each Turbine
+	*/
+
 	var (
 		pipes      []tk.M
 		list       []tk.M
@@ -441,16 +445,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
 
-	//tk.Printf("Start : #%v\n", tStart)
-	//tk.Printf("End : #%v\n", tEnd)
-
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
-	pcData, e := getPCData(project, true)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
 	match := []tk.M{}
 	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
@@ -514,7 +511,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	turbine := p.Turbine
 	sortTurbines := []string{}
 
-	for _, listVal := range list {
+	for _, listVal := range list { /* only to get list of turbine and list of month for sorting purpose*/
 		ids, _ = tk.ToM(listVal["_id"])
 		if len(p.Turbine) == 0 {
 			exist := false
@@ -539,6 +536,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	sort.Strings(sortTurbines)
 
 	selArr := 0
+	pcData, e := getPCData(project, true)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	dataSeries = append(dataSeries, pcData)
 
 	turbineName := map[string]string{}
@@ -574,7 +575,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			monthData.Set("color", colorField[selArr])
 			monthData.Set("idxseries", selArr)
 
-			monthIndex.Set(tk.ToString(selArr), simpleMonth)
+			monthIndex.Set(tk.ToString(selArr), simpleMonth) /*{"1": "jan 16", "2": "feb 16", ...}*/
 
 			for _, val := range monthExist {
 				idD := val.Get("_id").(tk.M)
