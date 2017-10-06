@@ -58,10 +58,7 @@ vm.breadcrumb([{
 }]);
 
 page.LoadData = function() {
-    var isValid = fa.LoadData();
-    if(isValid) {
-        page.getPowerCurveScatter();
-    }
+    page.getPowerCurveScatter();
 }
 
 page.refreshChart = function() {
@@ -247,6 +244,7 @@ page.createChart = function(dtSeries){
 }
 
 $(document).ready(function() {
+
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
            page.LoadData();
@@ -254,6 +252,10 @@ $(document).ready(function() {
     });
 
     $.when(di.getAvailDate()).done(function() {
-        page.LoadData();
+        setTimeout(function(){
+            fa.LoadData();
+            page.LoadData();
+        },500);
+       
     });
 });
