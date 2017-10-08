@@ -232,11 +232,11 @@
 					<div class="sparkbar pad" data-color="#fff">Down More Than 2 Days</div>
 					<h4 class="description-header third-city" data-bind="text:sum.twoDaysDown">0</h4>
 				</div>
-				<div class="description-block">
+				<div class="description-block hidden">
 					<div class="sparkbar pad" data-color="#fff">Performance vs Budget</div>
 					<h4 class="description-header second-city">0%</h4>
 				</div>
-				<div class="description-block margin-bottom">
+				<div class="description-block margin-bottom hidden">
 					<div class="sparkbar pad" data-color="#fff">Achievement vs Annual Budget</div>
 					<h4 class="description-header second-city">0%</h4>
 				</div>
@@ -494,7 +494,7 @@
 		                            <label class="summary-header">Controller Generation (<span data-bind="text:sum.detailSummary().measurement"></span>)</label><br />
 		                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().production , 'n2')">0</label>
 	                        	</div>
-	                        	<div class="col-md-8" style="width: 410px;">
+	                        	<div class="col-md-8" style="width: 398px;">
 									<div class="col-md-4 border-right">
 			                            <label class="summary-header long-title">Longterm P50(MWh)</label><br />
 			                            <label class="summary-number" data-bind="text:kendo.toString(sum.detailSummary().budget_p50, 'n2')">0</label>
