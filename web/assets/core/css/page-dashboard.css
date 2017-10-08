@@ -406,12 +406,12 @@
 	    font-weight: bold;
 	}
 	.production-part{
-		width: 488px;
+		width: 600px;
 		background: #eee;
 	}
 	.sum-production{
 		border-right: 2px solid #78909C;
-		max-width: 122px;
+		max-width: 190px;
 	}
 	.border-right{
 		border-right: 2px solid #78909C;
