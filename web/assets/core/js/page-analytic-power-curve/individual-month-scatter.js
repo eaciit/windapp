@@ -39,6 +39,29 @@ vm.breadcrumb([{
     href: viewModel.appName + 'page/analyticpcmonthlyscatter'
 }]);
 
+
+page.getPDF = function(selector){
+    app.loading(true);
+    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+    var project = $("#projectList").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "10mm",
+                top    : "10mm",
+                right  : "10mm",
+                bottom : "10mm"
+            }
+        });
+      kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 page.showHideLegend = function (index) {
     var idName = "btn" + index;
     listOfButton[idName] = !listOfButton[idName];
@@ -94,7 +117,7 @@ page.LoadData = function() {
 }
 
 page.InitLinePowerCurve = function() {
-    
+
     listOfChart = [];
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name

@@ -45,10 +45,7 @@ vm.breadcrumb([{
 }]);
 
 page.LoadData = function() {
-    var isValid = fa.LoadData();
-    if (isValid) {
-        page.getPowerCurveScatter();
-    }
+    page.getPowerCurveScatter();
 }
 
 page.setAxis = function(name, title) {
@@ -119,8 +116,8 @@ page.getPowerCurveScatter = function() {
         period: fa.period,
         dateStart: dateStart,
         dateEnd: dateEnd,
-        turbine: fa.turbine,
-        project: fa.project,
+        turbine: $("#turbineList").val(),
+        project: $('#projectList').data("kendoDropDownList").value(),
         scatterType: page.scatterType,
     };
 
@@ -128,6 +125,9 @@ page.getPowerCurveScatter = function() {
         if (!app.isFine(res)) {
             return;
         }
+
+        $("#turbineName").html($("#turbineList option:selected").text());
+        
         var dtSeries = res.data.Data;
         
         var yAxes = [];
@@ -226,13 +226,19 @@ page.getPowerCurveScatter = function() {
 }
 
 $(document).ready(function() {
+
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
             page.LoadData();
         }, 300);
     });
 
+
     $.when(di.getAvailDate()).done(function() {
-        page.LoadData();
+        setTimeout(function(){
+            fa.LoadData();
+            page.LoadData();
+        },500);
+        
     });
 });

@@ -6,6 +6,7 @@ var sum = viewModel.summary;
 
 sum.isDetailProd = ko.observable(false);
 sum.isDetailProdByProject = ko.observable(false);
+sum.isMonthlyProject = ko.observable(false);
 
 sum.isDetailLostEnergy = ko.observable(false);
 sum.isDetailLostEnergyLevel2 = ko.observable(false);
@@ -812,6 +813,13 @@ sum.ProdMonth = function (id, dataSource) {
         // seriesColors: colorField,
         seriesClick: function (e) {
             sum.DetailProd(e);
+        },
+        plotAreaClick: function(e) {
+            if (e.originalEvent.type === "contextmenu") {
+              // Disable browser context menu
+              e.originalEvent.preventDefault();
+            }
+            sum.MonthlyProject(e);
         },
         valueAxes: [{
             name: "Production",
@@ -1636,7 +1644,138 @@ sum.DetailProd = function (e) {
     })
 }
 
+// show monthly project, level 2 of generation summary / production monthly from dashboard
+sum.MonthlyProject = function (e) {
+    app.loading(true);
+
+    $('.monthlyProjectChart').html("");
+
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isMonthlyProject(true);
+
+    var param = {
+        Projects: ["Tejuva", "Lahori", "Amba"],
+    };
+    var dataSource;
+    var dataRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getmonthlyproject", param, function (res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        dataSource = res.data;
+    });
+
+    var chartProperties = {
+        theme: "material",
+        dataSource: {
+            data: null
+        },
+        title: {
+            text: ""
+        },
+        legend: {
+            position: "top",
+            labels: {
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            }
+        },
+        chartArea: {
+            padding: 0,
+            margin: 0,
+            height: 200,
+        },
+        seriesDefaults: {
+            type: "column",
+            area: {
+                line: {
+                    style: "smooth"
+                }
+            }
+        },
+        series: [{
+            name: "Production ",
+            field: "production",
+            axis: "production"
+            // opacity : 0.7,
+        }, {
+            name: "Lost Energy ",
+            field: "lostenergy",
+            axis: "lostenergy"
+            // opacity : 0.7,
+        }],
+        seriesColors: colorField,
+        valueAxes: [{
+            name: "production",
+            title: { text: "Production ",font: "11px"},
+            
+        }, {
+            name: "lostenergy",
+            title: { text: "Lost Energy ",font: "11px"},
+        }],
+        valueAxis: {
+            line: {
+                visible: false
+            },
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+        },
+        categoryAxis: {
+            field: "monthdesc",
+            majorGridLines: {
+                visible: false
+            },
+            majorTickType: "none",
+            labels: {
+                template: '#=  value.substring(0,3) #',
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            axisCrossingValues: [0, 1000],
+        },
+        tooltip: {
+            visible: true,
+            shared: true,
+            template: "#= kendo.toString(value, 'n2') #",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+        },
+        seriesClick: function (e) {
+            sum.DetailProdByProject(e);
+        },
+    };
+    
+    $.when(dataRequest).done(function() {
+        var charts = $('.monthlyProjectChart');
+        if(charts.length > 0) {
+            $.each(charts, function(idx, elm){
+                var project = $(elm).attr('data-project');
+                if(project!='Fleet') {
+                    chartProperties.dataSource = eval("dataSource."+ project);
+                    chartProperties.seriesClick = function(e) {
+                        sum.DetailProdByProjectDetail(project, e);
+                    };
+                    $(elm).kendoChart(chartProperties);
+                }
+            });
+        }
+        app.loading(false);
+    });
+} 
+
 sum.DetailProdByProject = function (e) {
+    $('#btn-back-prod-summary').removeAttr('onclick');
+
     app.loading(true);
     vm.isDashboard(false);
     lgd.isSummary(false);
@@ -1650,6 +1789,157 @@ sum.DetailProdByProject = function (e) {
     var param = { 'project': e.category, 'date': sum.detailProdTxt() };
 
     sum.detailProdProjectTxt(e.category);
+    sum.detailProdDateTxt(sum.detailProdTxt());
+
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
+        
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataSource = res.data[0];
+
+        var measurement = " (" + dataSource.measurement + ") ";
+
+        sum.detailSummary(dataSource);
+        sum.detailProdMsTxt(measurement);
+        $("#chartDetailProdByProject").kendoChart({
+            theme: "material",
+            dataSource: {
+                data: dataSource.detail
+            },
+            title: {
+                text: ""
+            },
+            legend: {
+                position: "top",
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
+            },
+            chartArea: {
+                padding: 0,
+                margin: 0,
+                height: 350,
+            },
+            seriesDefaults: {
+                type: "column",
+                area: {
+                    line: {
+                        style: "smooth"
+                    }
+                }
+            },
+            series: [{
+                name: "Production " +measurement,
+                field: "production",
+                axis: "production"
+                // opacity : 0.7,
+            }, {
+                name: "Lost Energy " +measurement,
+                field: "lostenergy",
+                axis: "lostenergy"
+                // opacity : 0.7,
+            }],
+            seriesColors: colorField,
+            valueAxes: [{
+                name: "production",
+                title: { text: "Production " +measurement ,font: "11px"},
+                
+            }, {
+                name: "lostenergy",
+                title: { text: "Lost Energy " + measurement,font: "11px"},
+            }],
+            valueAxis: {
+                line: {
+                    visible: false
+                },
+                labels:{
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+            },
+            categoryAxis: {
+                field: "turbine",
+                majorGridLines: {
+                    visible: false
+                },
+                majorTickType: "none",
+                labels: {
+                    rotation: 45,
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValues: [0, 1000],
+            },
+            tooltip: {
+                visible: true,
+                shared: true,
+                template: "#= kendo.toString(value, 'n2') #",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            }
+        });
+
+        
+        $("#gridDetailProdByProject").kendoGrid({
+            theme: "flat",
+            height: 200,
+            pageable: {
+                pageSize: 10,
+                input: true, 
+            },
+            columns: [
+                { title: "Turbine Name", field: "turbine", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Production<br>" + measurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Lost Energy<br>" + measurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+            ],
+            dataSource: {
+                data: dataSource.detail,
+                sort: { field: "turbine", dir: 'asc' },
+                pageSize: 10
+            },
+            dataBound : function(){
+                setTimeout(function(){
+                    app.loading(false);
+                },200);
+            }
+        });
+
+    });
+
+
+}
+
+sum.DetailProdByProjectDetail = function (project, e) {
+    $('#btn-back-prod-summary').attr('onclick', 'sum.backToMonthlyProject()');
+
+    var bulan = e.category;
+    sum.detailProdTxt(bulan);
+
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isMonthlyProject(false);
+    sum.isDetailProd(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailProdByProject(true);
+    $("#chartDetailProdByProject").html("");
+    $("#gridDetailProdByProject").html("");
+
+    // var project = e.series.name;
+    var param = { 'project': project, 'date': sum.detailProdTxt() };
+
+    sum.detailProdProjectTxt(project);
     sum.detailProdDateTxt(sum.detailProdTxt());
 
     toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
@@ -2006,9 +2296,17 @@ sum.backToDashboard = function () {
     sum.isDetailProdByProject(false);
     sum.isDetailLostEnergy(false);
     sum.isDetailLostEnergyLevel2(false);
+    sum.isMonthlyProject(false);
 }
+
 sum.toDetailProduction = function () {
     sum.isDetailProd(true);
+    sum.isDetailProdByProject(false);
+}
+
+sum.backToMonthlyProject = function() {
+    sum.isMonthlyProject(true);
+    sum.isDetailProd(false);
     sum.isDetailProdByProject(false);
 }
 

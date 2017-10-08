@@ -517,74 +517,78 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	}
 
 	xbudget := float64(1)
+	dataItemTemp := []tk.M{}
 
-	bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
-	csrBudget, e := DB().Connection.NewQuery().
-		From(new(ExpPValueModel).TableName()).
-		Where(dbox.And(
-			dbox.Eq("projectname", p.GetString("project")),
-			dbox.Eq("monthno", bulan),
-		)).
-		Cursor(nil)
+	if len(resultMonthly) > 0 {
+		bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
+		csrBudget, e := DB().Connection.NewQuery().
+			From(new(ExpPValueModel).TableName()).
+			Where(dbox.And(
+				dbox.Eq("projectname", p.GetString("project")),
+				dbox.Eq("monthno", bulan),
+			)).
+			Cursor(nil)
 
-	if tnow := getTimeNow(); int(tnow.Month()) == bulan {
-		maxdate = maxdate.AddDate(0, 0, 1)
-		tdays := maxdate.UTC().Sub(resultMonthly[0].DateInfo.DateId.UTC()).Hours() / 24
-		mdays := tk.ToFloat64(time.Date(maxdate.Year(), maxdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day(), 0, tk.RoundingAuto)
-		xbudget = tdays / mdays
-	}
+		if tnow := getTimeNow(); int(tnow.Month()) == bulan {
+			maxdate = maxdate.AddDate(0, 0, 1)
+			tdays := maxdate.UTC().Sub(resultMonthly[0].DateInfo.DateId.UTC()).Hours() / 24
+			mdays := tk.ToFloat64(time.Date(maxdate.Year(), maxdate.Month(), 0, 0, 0, 0, 0, time.UTC).Day(), 0, tk.RoundingAuto)
+			xbudget = tdays / mdays
+		}
 
-	if e != nil {
-		helper.CreateResult(false, nil, e.Error())
-	}
-	defer csrBudget.Close()
+		if e != nil {
+			helper.CreateResult(false, nil, e.Error())
+		}
+		defer csrBudget.Close()
 
-	resultBudget := []ExpPValueModel{}
-	e = csrBudget.Fetch(&resultBudget, 0, false)
-	if e != nil {
-		helper.CreateResult(false, nil, e.Error())
-	}
+		resultBudget := []ExpPValueModel{}
+		e = csrBudget.Fetch(&resultBudget, 0, false)
+		if e != nil {
+			helper.CreateResult(false, nil, e.Error())
+		}
 
-	projectList, _ := helper.GetProjectList()
-	dataItem := []tk.M{}
-	for project, val := range totalPower {
+		projectList, _ := helper.GetProjectList()
+		dataItem := []tk.M{}
+		for project, val := range totalPower {
 
-		labelproject := ""
-		for _, _info := range projectList {
-			if strings.ToLower(_info.Value) == strings.ToLower(project) {
-				labelproject = _info.Name
-				break
+			labelproject := ""
+			for _, _info := range projectList {
+				if strings.ToLower(_info.Value) == strings.ToLower(project) {
+					labelproject = _info.Name
+					break
+				}
 			}
-		}
 
-		data := tk.M{
-			"project":       project,
-			"production":    val.(float64),
-			"lostenergy":    totalPowerLost.GetFloat64(project),
-			"wtg":           totalTurbines.GetInt(project),
-			"labelproject":  labelproject,
-			"detail":        detailData[project],
-			"avgwindspeed":  resultMonthly[0].AvgWindSpeed,
-			"downtimehours": resultMonthly[0].DowntimeHours,
-			"plf":           resultMonthly[0].PLF,
-			"trueavail":     resultMonthly[0].TrueAvail,
-			"budget_p50":    resultBudget[0].P50NetGenMWH * xbudget,
-			"budget_p75":    resultBudget[0].P75NetGenMWH * xbudget,
-			"budget_p90":    resultBudget[0].P90NetGenMWH * xbudget,
+			data := tk.M{
+				"project":       project,
+				"production":    val.(float64),
+				"lostenergy":    totalPowerLost.GetFloat64(project),
+				"wtg":           totalTurbines.GetInt(project),
+				"labelproject":  labelproject,
+				"detail":        detailData[project],
+				"avgwindspeed":  resultMonthly[0].AvgWindSpeed,
+				"downtimehours": resultMonthly[0].DowntimeHours,
+				"plf":           resultMonthly[0].PLF,
+				"trueavail":     resultMonthly[0].TrueAvail,
+				"budget_p50":    resultBudget[0].P50NetGenMWH * xbudget,
+				"budget_p75":    resultBudget[0].P75NetGenMWH * xbudget,
+				"budget_p90":    resultBudget[0].P90NetGenMWH * xbudget,
+			}
+			dataItem = append(dataItem, data)
 		}
-		dataItem = append(dataItem, data)
+		dataItemTemp = dataItem
 	}
-	dataItemTemp := dataItem
-	dataItem = []tk.M{}
+
+	dataOutput := []tk.M{}
 	for _, val := range dataItemTemp {
 		newdata := helper.EnergyMeasurement(val, "production", "lostenergy")
 		val = newdata[0]
 		newdetail := helper.EnergyMeasurement(val["detail"].([]tk.M), "production", "lostenergy")
 		val.Set("detail", newdetail)
-		dataItem = append(dataItem, val)
+		dataOutput = append(dataOutput, val)
 	}
 
-	return helper.CreateResult(true, dataItem, "success")
+	return helper.CreateResult(true, dataOutput, "success")
 }
 
 func (m *DashboardController) GetDetailProdLevel1(k *knot.WebContext) interface{} {
@@ -4098,4 +4102,104 @@ func formatStringFloat(str string, decimalPoint int) (result string) {
 		result = str
 	}
 	return
+}
+
+func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	// initiate data return
+	data := map[string][]tk.M{}
+
+	// get payload
+	type PayloadMonthlyProject struct {
+		Projects []string
+	}
+
+	p := new(PayloadMonthlyProject)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// initiate last 12 months
+	startYear := time.Now().Year()
+	startMonth := int(time.Now().Month()) + 1
+	if startMonth == 13 {
+		startMonth = 1
+	} else {
+		startYear--
+	}
+
+	// getting data last 12 months for all projects
+	monthIdFilter := tk.ToInt((tk.ToString(startYear) + LeftPad2Len(tk.ToString(startMonth), "0", 2)), "0")
+	csrScada, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryByMonth).TableName()).
+		Where(dbox.And(dbox.Ne("projectname", "Fleet"), dbox.Gt("dateinfo.monthid", monthIdFilter))).
+		Order("projectname", "dateinfo.monthid").Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrScada.Close()
+
+	results := []tk.M{}
+	e = csrScada.Fetch(&results, 0, false)
+
+	// plot data
+	dataPlot := tk.M{}
+	if len(results) > 0 {
+		for _, res := range results {
+			project := res.GetString("projectname")
+			dateinfo := res.Get("dateinfo").(tk.M)
+			monthid := dateinfo.GetInt("monthid")
+			production := tk.Div(res.GetFloat64("production"), 1000.0)
+			lostenergy := res.GetFloat64("lostenergy")
+			dataPlot.Set(project+"|"+tk.ToString(monthid), tk.M{
+				"production": production,
+				"lostenergy": lostenergy,
+			})
+		}
+	}
+
+	// define data last 12 months for each projects
+	if len(p.Projects) > 0 {
+		for _, project := range p.Projects {
+			for i := 0; i < 12; i++ {
+				monthId := tk.ToInt((tk.ToString(startYear) + LeftPad2Len(tk.ToString(startMonth), "0", 2)), "0")
+
+				production := 0.0
+				lostenergy := 0.0
+				if dataPlot.Has(project + "|" + tk.ToString(monthId)) {
+					dtp := dataPlot[project+"|"+tk.ToString(monthId)]
+					production = dtp.(tk.M).GetFloat64("production")
+					lostenergy = dtp.(tk.M).GetFloat64("lostenergy")
+				}
+
+				dateInfo := MonthIDToDateInfo(monthId)
+				data[project] = append(data[project], tk.M{
+					"monthid":    dateInfo.MonthId,
+					"monthdesc":  dateInfo.MonthDesc,
+					"production": production,
+					"lostenergy": lostenergy,
+				})
+
+				startMonth++
+				if startMonth == 13 {
+					startMonth = 1
+					startYear++
+				}
+			}
+
+			startYear = time.Now().Year()
+			startMonth = int(time.Now().Month()) + 1
+			if startMonth == 13 {
+				startMonth = 1
+			} else {
+				startYear--
+			}
+		}
+	}
+	tk.Printf("Data : %#v\n", data)
+
+	return helper.CreateResult(true, data, "success")
 }

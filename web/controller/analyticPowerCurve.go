@@ -421,6 +421,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
+	/* ================= EXPECTED RESULT ==================
+	Power against Wind Speed for each Month, for each Turbine
+	*/
+
 	var (
 		pipes      []tk.M
 		list       []tk.M
@@ -441,22 +445,19 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
 
-	//tk.Printf("Start : #%v\n", tStart)
-	//tk.Printf("End : #%v\n", tEnd)
-
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
-	pcData, e := getPCData(project, true)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
 	match := []tk.M{}
 	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
 	match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
-	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
+	match = append(match, tk.M{"power": tk.M{"$gte": 0}})
+	match = append(match, tk.M{"$or": []tk.M{
+		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$lt": 10}}, tk.M{"avgwindspeed": tk.M{"$lt": 3}}}},
+		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$gte": 10}}, tk.M{"avgwindspeed": tk.M{"$gte": 3}}}}}})
+
 	match = append(match, tk.M{"oktime": 600})
 	match = append(match, tk.M{"available": 1})
 
@@ -510,7 +511,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	turbine := p.Turbine
 	sortTurbines := []string{}
 
-	for _, listVal := range list {
+	for _, listVal := range list { /* only to get list of turbine and list of month for sorting purpose*/
 		ids, _ = tk.ToM(listVal["_id"])
 		if len(p.Turbine) == 0 {
 			exist := false
@@ -535,6 +536,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	sort.Strings(sortTurbines)
 
 	selArr := 0
+	pcData, e := getPCData(project, true)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 	dataSeries = append(dataSeries, pcData)
 
 	turbineName := map[string]string{}
@@ -570,7 +575,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 			monthData.Set("color", colorField[selArr])
 			monthData.Set("idxseries", selArr)
 
-			monthIndex.Set(tk.ToString(selArr), simpleMonth)
+			monthIndex.Set(tk.ToString(selArr), simpleMonth) /*{"1": "jan 16", "2": "feb 16", ...}*/
 
 			for _, val := range monthExist {
 				idD := val.Get("_id").(tk.M)
@@ -621,7 +626,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
-
 	var (
 		pipes      []tk.M
 		dataSeries []tk.M
@@ -654,6 +658,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "power": 1, "avgwindspeed": 1}})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id": tk.M{
+			"turbine":      "$turbine",
+			"avgwindspeed": "$avgwindspeed",
+		},
+		"power": tk.M{"$avg": "$power"},
+	}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
@@ -663,7 +674,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	// e = csr.Fetch(&list, 0, false)
+	alltkm := []tk.M{}
+	e = csr.Fetch(&alltkm, 0, false)
 	defer csr.Close()
 
 	var datas [][]float64
@@ -671,16 +683,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	sortTurbines := []string{}
 
 	resData := tk.M{}
-	for {
-		tkm := tk.M{}
-		e = csr.Fetch(&tkm, 1, false)
-		if e != nil {
-			break
-		}
-		// turbine:HBR004 _id:Tejuva_HBR004_20170928140000 avgwindspeed:4.522146326086955 power:178.4509971666666
-		sturbine := tkm.GetString("turbine")
+	for _, tkm := range alltkm {
+		ids, _ := tk.ToM(tkm["_id"])
+		sturbine := ids.GetString("turbine")
 		lfloat64 := resData.Get(sturbine, map[float64]float64{}).(map[float64]float64)
-		lfloat64[tk.ToFloat64(tkm.Get("avgwindspeed"), 3, tk.RoundingAuto)] = tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
+		ws, pwr := tk.ToFloat64(ids.Get("avgwindspeed"), 3, tk.RoundingAuto), tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
+		if ws < 3 && pwr > 10 {
+			continue
+		}
+
+		lfloat64[ws] = pwr
 		resData.Set(sturbine, lfloat64)
 	}
 
@@ -998,17 +1010,17 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 	switch p.ScatterType {
 	case "temp":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Temperature", "nacelletemperature")
-		seriesData = setScatterData("Temperature", "WindSpeed", "Temperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature")
+		seriesData = setScatterData("Nacelle Temperature", "WindSpeed", "NacelleTemperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "deviation":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Deviation", "nacelledeviation")
-		seriesData = setScatterData("Deviation", "WindSpeed", "Deviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "nacelledeviation")
+		seriesData = setScatterData("Nacelle Deviation", "WindSpeed", "NacelleDeviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "pitch":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Pitch", "avgbladeangle")
-		seriesData = setScatterData("Pitch", "WindSpeed", "Pitch", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle")
+		seriesData = setScatterData("Pitch Angle", "WindSpeed", "PitchAngle", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "ambient":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "Ambient", "ambienttemperature")
-		seriesData = setScatterData("Ambient", "WindSpeed", "Ambient", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature")
+		seriesData = setScatterData("Ambient Temperature", "WindSpeed", "AmbientTemperature", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
 	}
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
