@@ -955,6 +955,11 @@ $(document).ready(function() {
     $('#isDensity').on('click', function() {
         var isDensity = $('#isDensity').prop('checked');
         page.isDensity(isDensity);
+        if(isDensity) {
+            page.viewSession("density");
+        } else {
+            page.viewSession("standardpc");
+        }
         page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
