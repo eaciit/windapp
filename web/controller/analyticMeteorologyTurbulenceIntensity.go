@@ -55,17 +55,17 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
-	query = append(query, tk.M{"fast_windspeed_bin": tk.M{"$gte": 0}})
-	query = append(query, tk.M{"fast_windspeed_bin": tk.M{"$lte": 25}})
-	query = append(query, tk.M{"fast_windspeed_ms": tk.M{"$gte": -200}})
-	query = append(query, tk.M{"fast_windspeed_ms_stddev": tk.M{"$gte": -200}})
+	query = append(query, tk.M{"windspeed_ms_bin": tk.M{"$gte": 0}})
+	query = append(query, tk.M{"windspeed_ms_bin": tk.M{"$lte": 25}})
+	query = append(query, tk.M{"windspeed_ms": tk.M{"$gte": -200}})
+	query = append(query, tk.M{"windspeed_ms_stddev": tk.M{"$gte": -200}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{
 		"turbine":      "$turbine",
-		"windspeedbin": "$fast_windspeed_bin"},
-		"avgws":       tk.M{"$avg": "$fast_windspeed_ms"},
-		"avgwsstddev": tk.M{"$avg": "$fast_windspeed_ms_stddev"},
+		"windspeedbin": "$windspeed_ms_bin"},
+		"avgws":       tk.M{"$avg": "$windspeed_ms"},
+		"avgwsstddev": tk.M{"$avg": "$windspeed_ms_stddev"},
 	},
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.windspeedbin": 1}})
@@ -85,7 +85,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	pipesmet = append(pipesmet, tk.M{"$sort": tk.M{"_id.windspeedbin": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaDataHFD).TableName()).
+		From("Scada10MinHFD").
 		Command("pipe", pipes).
 		Cursor(nil)
 
