@@ -7,6 +7,8 @@ page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
     { "value": "pitch", "text": "Pitch Angle" },
     { "value": "rotor", "text": "Rotor RPM" },
+    { "value": "generatorrpm", "text": "Generator RPM" },
+    { "value": "windspeed", "text": "Wind Speed" },
 ]);
 
 vm.currentMenu('Operational Power Curve');
@@ -76,6 +78,16 @@ page.getPowerCurveScatter = function() {
                 name = "rotorAxis"
                 title = "Revolutions per Minute (RPM)";
                 measurement = 'rpm'
+                break;
+            case "generatorrpm":
+                name = "generatorAxis"
+                title = "Generator per Minute (RPM)";
+                measurement = 'rpm'
+                break;
+            case "windspeed":
+                name = "windspeedAxis"
+                title = "Avg. Wind Speed (m/s)";
+                measurement = 'm/s'
                 break;
         }
         xAxis = {

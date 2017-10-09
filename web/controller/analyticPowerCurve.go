@@ -1049,6 +1049,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	type ScadaMini struct {
 		Power         float64
 		RotorRPM      float64
+		GeneratorRPM  float64
+		AvgWindSpeed  float64
 		AvgBladeAngle float64
 	}
 
@@ -1155,6 +1157,52 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			}
 		}
 		seriesData = setScatterData("Pitch Angle", "Pitch", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
+	case "generatorrpm":
+		for _, val := range list {
+			data = tk.M{}
+			if val.GeneratorRPM < minAxisX {
+				minAxisX = val.GeneratorRPM
+			}
+			if val.GeneratorRPM > maxAxisX {
+				maxAxisX = val.GeneratorRPM
+			}
+			if val.Power < minAxisY {
+				minAxisY = val.Power
+			}
+			if val.Power > maxAxisY {
+				maxAxisY = val.Power
+			}
+
+			data.Set("Generator", val.GeneratorRPM)
+			data.Set("Power", val.Power)
+			data.Set("valueColor", colorField[1])
+
+			datas = append(datas, data)
+		}
+		seriesData = setScatterData("Generator RPM", "Generator", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
+	case "windspeed":
+		for _, val := range list {
+			data = tk.M{}
+			if val.AvgWindSpeed < minAxisX {
+				minAxisX = val.AvgWindSpeed
+			}
+			if val.AvgWindSpeed > maxAxisX {
+				maxAxisX = val.AvgWindSpeed
+			}
+			if val.Power < minAxisY {
+				minAxisY = val.Power
+			}
+			if val.Power > maxAxisY {
+				maxAxisY = val.Power
+			}
+
+			data.Set("WindSpeed", val.AvgWindSpeed)
+			data.Set("Power", val.Power)
+			data.Set("valueColor", colorField[1])
+
+			datas = append(datas, data)
+		}
+		seriesData = setScatterData("Wind Speed", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
 	}
 	seriesData.Unset("name")
 	dataSeries = append(dataSeries, seriesData)
