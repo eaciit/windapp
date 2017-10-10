@@ -1676,22 +1676,46 @@ sum.MonthlyProject = function (e, tipe) {
         dataSource = res.data;
     });
     var dataSeries = [{
-        name: "Production ",
+        name: "Production (MWh)",
         field: "production",
         axis: "production"
     }, {
-        name: "Lost Energy ",
+        name: "Lost Energy (MWh) ",
         field: "lostenergy",
         axis: "lostenergy"
     }];
 
     var valueAxesData = [{
         name: "production",
-        title: { text: "Production ",font: "11px"},
+        title: { text: "Production (MWh)",font: "10px"},
+        line: {
+            visible: false
+        },
+        labels:{
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        },
+        axisCrossingValue: -10,
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
         
     }, {
         name: "lostenergy",
-        title: { text: "Lost Energy ",font: "11px"},
+        title: { text: "Lost Energy (MWh)",font: "10px"},
+        line: {
+            visible: false
+        },
+        labels:{
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        },
+        axisCrossingValue: -10,
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
     }];
 
     if(tipe == "plf") {
@@ -1707,7 +1731,7 @@ sum.MonthlyProject = function (e, tipe) {
     }
 
     var chartProperties = {
-        theme: "material",
+        theme: "flat",
         dataSource: {
             data: null
         },
@@ -1721,7 +1745,7 @@ sum.MonthlyProject = function (e, tipe) {
             }
         },
         chartArea: {
-            padding: 0,
+            padding: 10,
             margin: 0,
             height: 200,
         },
@@ -1736,20 +1760,20 @@ sum.MonthlyProject = function (e, tipe) {
         series: dataSeries,
         seriesColors: colorField,
         valueAxes: valueAxesData,
-        valueAxis: {
-            line: {
-                visible: false
-            },
-            labels:{
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-        },
+        // valueAxis: {
+        //     line: {
+        //         visible: false
+        //     },
+        //     labels:{
+        //         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        //     },
+        //     axisCrossingValue: -10,
+        //     majorGridLines: {
+        //         visible: true,
+        //         color: "#eee",
+        //         width: 0.8,
+        //     },
+        // },
         categoryAxis: {
             field: "monthdesc",
             majorGridLines: {

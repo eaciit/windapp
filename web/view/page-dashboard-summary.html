@@ -458,8 +458,8 @@
 				<div class="panel-heading"><span>Controller Generation (GWh) - Last 12 Months By Project</span></div>
 				<div class="panel-body">
 
-					<div class="monthly-project-wrapper" data-bind="foreach: lgd.projectList()">
-						<div class="col-md-6 monthly-project-item" data-bind="visible: (value!='Fleet')">
+					<div class="monthly-project-wrapper text-center" data-bind="foreach: lgd.projectList()">
+						<div class="col-md-4 monthly-project-item" data-bind="visible: (value!='Fleet')">
 							<strong><span data-bind="html: text"></span></strong>
 							<div class="monthlyProjectChart" data-bind="attr: { 'data-project': value }"></div>							
 						</div>
