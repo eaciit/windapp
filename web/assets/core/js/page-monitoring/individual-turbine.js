@@ -60,7 +60,7 @@ it.populateProject = function (data) {
         // override to set the value
         setTimeout(function () {
             $("#projectList").data("kendoDropDownList").select(0);
-            it.project = $("#projectList").data("kendoDropDownList").value();
+            it.project($("#projectList").data("kendoDropDownList").value());
         }, 300);
     }
 };
@@ -97,15 +97,15 @@ it.populateTurbine = function (project, turbine, isChange) {
 
 it.ChangeProject = function() {
     return function() {
-        it.project = $("#projectList").data("kendoDropDownList").value();
+        it.project($("#projectList").data("kendoDropDownList").value());
         var projects = [];
-        projects.push(it.project);
+        projects.push(it.project());
         
         it.populateTurbine(projects, it.allTurbineList, true);
         setTimeout(function(){
             it.isFirst(true);
             it.ShowData();
-            it.isShowVibration(it.project == "Lahori" ? true : false); 
+            it.isShowVibration(it.project() == "Lahori" ? true : false); 
         },300);
     };
 };
@@ -183,14 +183,14 @@ it.ShowRemark = function(){
     TbCol.ResetData();
     var turbineName = $('#turbine').data('kendoDropDownList').text();
     var turbineId = $('#turbine').data('kendoDropDownList').value();
-    var result = $.grep(turbineList, function(e){ return e.Project == it.project && e.Value == turbineId})[0];
+    var result = $.grep(turbineList, function(e){ return e.Project == it.project() && e.Value == turbineId})[0];
 
 
     TbCol.TurbineId(turbineId);
     TbCol.TurbineName(turbineName);
     TbCol.UserId('');
     TbCol.UserName('');
-    TbCol.Project(it.project);
+    TbCol.Project(it.project());
     TbCol.Feeder(result.Feeder);
     TbCol.IsTurbine(true);
     TbCol.OpenForm();
@@ -275,6 +275,9 @@ it.AccYDir = ko.observable('');
 
 it.isFirst = ko.observable(true);
 
+it.grid_voltage = ko.observable(0);
+it.grid_current = ko.observable(0);
+it.radiator_temp = ko.observable(0);
 it.dataWindspeed = ko.observableArray([]);
 it.dataPower = ko.observableArray([]);
 
