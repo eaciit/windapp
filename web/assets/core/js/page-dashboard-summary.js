@@ -159,6 +159,7 @@ sum.loadData = function () {
                     seriesObj["name"] = key;
                     seriesObj["field"] = key;
                     seriesObj["color"] = colorFieldProject[projectCount];
+                    seriesObj["missingValues"]= "gap";
                     availabilitySeries.push(seriesObj);
                     projectCount++;
                 }
@@ -186,6 +187,7 @@ sum.loadData = function () {
                     seriesObj["name"] = project;
                     seriesObj["field"] = project;
                     seriesObj["color"] = colorFieldProject[1];
+                    seriesObj["missingValues"]= "gap";
                     availabilitySeries.push(seriesObj);
 
                     sum.availData(availabilityData);
