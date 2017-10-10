@@ -232,7 +232,7 @@ type ScadaSummaryVariance struct {
 	ProductionLastYear float64
 	Revenue            float64
 	RevenueInLacs      float64
-	TrueAvail          float64
+	TrueAvail          interface{}
 	ScadaAvail         float64
 	MachineAvail       float64
 	GridAvail          float64
@@ -303,6 +303,9 @@ func GetDataAvailability(datalastmonth []ScadaSummaryByMonth, projectname string
 				dataVariance.Revenue = dataPerMonth[keys].Revenue
 				dataVariance.RevenueInLacs = dataPerMonth[keys].RevenueInLacs
 				dataVariance.TrueAvail = dataPerMonth[keys].TrueAvail
+				if dataPerMonth[keys].TrueAvail == 0 && dataPerMonth[keys].ScadaAvail == 0 {
+					dataVariance.TrueAvail = nil
+				}
 				dataVariance.ScadaAvail = dataPerMonth[keys].ScadaAvail
 				dataVariance.MachineAvail = dataPerMonth[keys].MachineAvail
 				dataVariance.GridAvail = dataPerMonth[keys].GridAvail
@@ -337,6 +340,9 @@ func GetDataAvailability(datalastmonth []ScadaSummaryByMonth, projectname string
 				dataVariance.Revenue = datatemp.Revenue
 				dataVariance.RevenueInLacs = datatemp.RevenueInLacs
 				dataVariance.TrueAvail = datatemp.TrueAvail
+				if datatemp.TrueAvail == 0 && datatemp.ScadaAvail == 0 {
+					dataVariance.TrueAvail = nil
+				}
 				dataVariance.ScadaAvail = datatemp.ScadaAvail
 				dataVariance.MachineAvail = datatemp.MachineAvail
 				dataVariance.GridAvail = datatemp.GridAvail
@@ -4157,6 +4163,7 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 			dataPlot.Set(project+"|"+tk.ToString(monthid), tk.M{
 				"production": production,
 				"lostenergy": lostenergy,
+				"plf":        res.GetFloat64("plf"),
 			})
 		}
 	}
@@ -4169,10 +4176,12 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 
 				production := 0.0
 				lostenergy := 0.0
+				plf := 0.0
 				if dataPlot.Has(project + "|" + tk.ToString(monthId)) {
 					dtp := dataPlot[project+"|"+tk.ToString(monthId)]
 					production = dtp.(tk.M).GetFloat64("production")
 					lostenergy = dtp.(tk.M).GetFloat64("lostenergy")
+					plf = dtp.(tk.M).GetFloat64("plf")
 				}
 
 				dateInfo := MonthIDToDateInfo(monthId)
@@ -4181,6 +4190,7 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 					"monthdesc":  dateInfo.MonthDesc,
 					"production": production,
 					"lostenergy": lostenergy,
+					"plf":        plf,
 				})
 
 				startMonth++

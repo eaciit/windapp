@@ -122,7 +122,8 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 				"projectname": "$projectname",
 				"turbine":     "$turbine",
 			},
-			"totaldenPower": tk.M{"$sum": "$denpower"},
+			// "totaldenPower": tk.M{"$sum": "$denpower"}, //changes to pc value with actual avgwindspeed, 10/10/2017
+			"totaldenPower": tk.M{"$sum": "$pcvalue"},
 			"totalPower":    tk.M{"$sum": "$power"},
 			"totalOKTime":   tk.M{"$sum": "$oktime"},
 		}

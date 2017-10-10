@@ -502,6 +502,16 @@ func (w *PageController) Dashboard(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, false)
 }
+func (w *PageController) Starter(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-starter.html"
+	// r.Config.IncludeFiles = []string{"page-dashboard-summary.html", "page-dashboard-production.html", "page-dashboard-availability.html"}
+	projectList, _ := helper.GetProjectList()
+	w.Params.Set("ProjectList", projectList)
+
+	return w.GetParams(r, false)
+}
 
 func (w *PageController) Home(r *knot.WebContext) interface{} {
 	http.Redirect(r.Writer, r.Request, "dashboard", http.StatusTemporaryRedirect)
