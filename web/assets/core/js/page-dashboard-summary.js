@@ -226,17 +226,17 @@ sum.loadData = function () {
                 sum.windDistData(res.data.Data);
             });
 
-            lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", { ProjectName: project, Date: maxdate}, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                // if (project == "Fleet") {
-                //     avail.DTTurbines();
-                // } 
-            });
+            // lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", { ProjectName: project, Date: maxdate}, function (res) {
+            //     if (!app.isFine(res)) {
+            //         return;
+            //     }
+            //     // if (project == "Fleet") {
+            //     //     avail.DTTurbines();
+            //     // } 
+            // });
         }
 
-        $.when(sum.indiaMap(project),ajax2, ajax3,lostEnergyReq).done(function(){
+        $.when(sum.indiaMap(project),ajax2, ajax3).done(function(){
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({
@@ -386,6 +386,15 @@ sum.PLF = function (id,dataSource) {
                 visible: false
             },
             majorTickType: "none"
+        },
+        plotAreaClick: function(e) {
+            if(id === "chartPLFFleet") {
+                if (e.originalEvent.type === "contextmenu") {
+                  // Disable browser context menu
+                  e.originalEvent.preventDefault();
+                }
+                sum.MonthlyProject(e, "plf");
+            }
         },
         tooltip: {
             visible: true,
@@ -821,7 +830,7 @@ sum.ProdMonth = function (id, dataSource) {
               // Disable browser context menu
               e.originalEvent.preventDefault();
             }
-            sum.MonthlyProject(e);
+            sum.MonthlyProject(e, "production");
         },
         valueAxes: [{
             name: "Production",
@@ -1647,7 +1656,7 @@ sum.DetailProd = function (e) {
 }
 
 // show monthly project, level 2 of generation summary / production monthly from dashboard
-sum.MonthlyProject = function (e) {
+sum.MonthlyProject = function (e, tipe) {
     app.loading(true);
 
     $('.monthlyProjectChart').html("");
@@ -1666,6 +1675,36 @@ sum.MonthlyProject = function (e) {
         }
         dataSource = res.data;
     });
+    var dataSeries = [{
+        name: "Production ",
+        field: "production",
+        axis: "production"
+    }, {
+        name: "Lost Energy ",
+        field: "lostenergy",
+        axis: "lostenergy"
+    }];
+
+    var valueAxesData = [{
+        name: "production",
+        title: { text: "Production ",font: "11px"},
+        
+    }, {
+        name: "lostenergy",
+        title: { text: "Lost Energy ",font: "11px"},
+    }];
+
+    if(tipe == "plf") {
+        dataSeries = [{
+            name: "PLF ",
+            field: "plf",
+            axis: "plf"
+        }];
+        valueAxesData = [{
+            name: "plf",
+            title: { text: "PLF ",font: "11px"},
+        }];
+    }
 
     var chartProperties = {
         theme: "material",
@@ -1694,26 +1733,9 @@ sum.MonthlyProject = function (e) {
                 }
             }
         },
-        series: [{
-            name: "Production ",
-            field: "production",
-            axis: "production"
-            // opacity : 0.7,
-        }, {
-            name: "Lost Energy ",
-            field: "lostenergy",
-            axis: "lostenergy"
-            // opacity : 0.7,
-        }],
+        series: dataSeries,
         seriesColors: colorField,
-        valueAxes: [{
-            name: "production",
-            title: { text: "Production ",font: "11px"},
-            
-        }, {
-            name: "lostenergy",
-            title: { text: "Lost Energy ",font: "11px"},
-        }],
+        valueAxes: valueAxesData,
         valueAxis: {
             line: {
                 visible: false
