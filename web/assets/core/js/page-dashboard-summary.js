@@ -1811,7 +1811,7 @@ sum.MonthlyProject = function (e, tipe) {
                 if(project!='Fleet') {
                     chartProperties.dataSource = eval("dataSource."+ project);
                     chartProperties.seriesClick = function(e) {
-                        sum.DetailProdByProjectDetail(project, e);
+                        sum.DetailProdByProjectDetail(project, e, tipe);
                     };
                     $(elm).kendoChart(chartProperties);
                 }
@@ -1968,7 +1968,7 @@ sum.DetailProdByProject = function (e) {
 
 }
 
-sum.DetailProdByProjectDetail = function (project, e) {
+sum.DetailProdByProjectDetail = function (project, e, tipe) {
     $('#btn-back-prod-summary').attr('onclick', 'sum.backToMonthlyProject()');
 
     var bulan = e.category;
@@ -1998,9 +1998,42 @@ sum.DetailProdByProjectDetail = function (project, e) {
         var dataSource = res.data[0];
 
         var measurement = " (" + dataSource.measurement + ") ";
+        var gridMeasurement = " (" + dataSource.measurement + ") ";
+        var seriesData = [{
+            name: "Production " +measurement,
+            field: "production",
+            axis: "production"
+        }, {
+            name: "Lost Energy " +measurement,
+            field: "lostenergy",
+            axis: "lostenergy"
+        }];
+        var isHidden = true;
+        var valueAxesData = [{
+            name: "production",
+            title: { text: "Production " +measurement ,font: "11px"},
+            
+        }, {
+            name: "lostenergy",
+            title: { text: "Lost Energy " + measurement,font: "11px"},
+        }];
+        if(tipe === "plf") {
+            measurement = " (%) ";
+            seriesData = [{
+                name: "PLF " +measurement,
+                field: "plf",
+                axis: "plf"
+            }]
+            valueAxesData = [{
+                name: "plf",
+                title: { text: "PLF " +measurement ,font: "11px"},
+            }];
+            isHidden = false;
+        }
 
         sum.detailSummary(dataSource);
         sum.detailProdMsTxt(measurement);
+
         $("#chartDetailProdByProject").kendoChart({
             theme: "material",
             dataSource: {
@@ -2028,26 +2061,9 @@ sum.DetailProdByProjectDetail = function (project, e) {
                     }
                 }
             },
-            series: [{
-                name: "Production " +measurement,
-                field: "production",
-                axis: "production"
-                // opacity : 0.7,
-            }, {
-                name: "Lost Energy " +measurement,
-                field: "lostenergy",
-                axis: "lostenergy"
-                // opacity : 0.7,
-            }],
+            series: seriesData,
             seriesColors: colorField,
-            valueAxes: [{
-                name: "production",
-                title: { text: "Production " +measurement ,font: "11px"},
-                
-            }, {
-                name: "lostenergy",
-                title: { text: "Lost Energy " + measurement,font: "11px"},
-            }],
+            valueAxes: valueAxesData,
             valueAxis: {
                 line: {
                     visible: false
@@ -2098,9 +2114,10 @@ sum.DetailProdByProjectDetail = function (project, e) {
             },
             columns: [
                 { title: "Turbine Name", field: "turbine", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Production<br>" + measurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Lost Energy<br>" + measurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Production<br>" + gridMeasurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Lost Energy<br>" + gridMeasurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { hidden: !isHidden, title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { hidden: isHidden, title: "PLF<br>(%)", field: "plf", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
             ],
             dataSource: {
                 data: dataSource.detail,

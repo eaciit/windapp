@@ -417,11 +417,16 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
+	var turbineList []TurbineOut
 	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
 	matches := tk.M{"dateinfo.monthdesc": p.GetString("date")}
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
+		turbineList, _ = helper.GetTurbineList([]interface{}{p.GetString("project")})
+	}
+	turbineCapacity := map[string]float64{}
+	for _, v := range turbineList {
+		turbineCapacity[tk.Sprintf("%s_%s", v.Project, v.Value)] = v.Capacity
 	}
 
 	pipe := []tk.M{{"$match": matches},
@@ -433,6 +438,9 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			"mdownhours": tk.M{"$sum": "$machinedownhours"},
 			"gdownhours": tk.M{"$sum": "$griddownhours"},
 			"odownhours": tk.M{"$sum": "$otherdowntimehours"},
+			"power":      tk.M{"$sum": "$powerkw"},
+			"maxdate":    tk.M{"$max": "$dateinfo.dateid"},
+			"mindate":    tk.M{"$min": "$dateinfo.dateid"},
 		}},
 		{"$sort": tk.M{"projectname": 1}}}
 
@@ -469,6 +477,13 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			listturbine = PopulateTurbines(DB().Connection, tproject)
 		}
 		val.Unset("_id")
+		hourValue := val.Get("maxdate").(time.Time).AddDate(0, 0, 1).UTC().Sub(val.Get("mindate").(time.Time).UTC()).Hours()
+
+		in := tk.M{}.Set("energy", val.GetFloat64("power")/6/1000).
+			Set("totalhour", hourValue).Set("totalcapacity", turbineCapacity[tk.Sprintf("%s_%s", project, data.GetString("turbine"))])
+		res := helper.CalcAvailabilityAndPLF(in)
+		val.Set("plf", res.GetFloat64("plf"))
+
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {
 			val.Set("turbine", listturbine.GetString(data.GetString("turbine")))
@@ -476,6 +491,8 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 		downtimehours := val.GetFloat64("mdownhours") + val.GetFloat64("gdownhours") + val.GetFloat64("odownhours")
 		val.Set("downtimehours", downtimehours)
+		val.Unset("maxdate")
+		val.Unset("mindate")
 
 		detail = append(detail, val)
 		detailData.Set(project, detail)
