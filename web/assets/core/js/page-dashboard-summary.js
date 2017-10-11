@@ -10,11 +10,16 @@ sum.isMonthlyProject = ko.observable(false);
 
 sum.isDetailLostEnergy = ko.observable(false);
 sum.isDetailLostEnergyLevel2 = ko.observable(false);
+sum.isSummaryDetail = ko.observable(true);
+sum.isGridDetail = ko.observable(true);
+
+sum.isDetailAvailability = ko.observable(false);
 
 sum.detailProdTxt = ko.observable('');
 sum.detailProdMsTxt = ko.observable('');
 sum.detailProdProjectTxt = ko.observable('');
 sum.detailProdDateTxt = ko.observable('');
+sum.titleDetailLevel1 = ko.observable('');
 
 sum.noOfProjects = ko.observable();
 sum.noOfProjectsExFleet = ko.observable();
@@ -33,6 +38,7 @@ sum.periodSelected = ko.observable('currentmonth');
 sum.detailSummary = ko.observableArray([]);
 sum.getScadaLastUpdate = ko.observableArray([]);
 sum.detailProjectName = ko.observable();
+sum.DetailAvailabilityData = ko.observableArray([]);
 
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -159,6 +165,7 @@ sum.loadData = function () {
                     seriesObj["name"] = key;
                     seriesObj["field"] = key;
                     seriesObj["color"] = colorFieldProject[projectCount];
+                    seriesObj["missingValues"]= "gap";
                     availabilitySeries.push(seriesObj);
                     projectCount++;
                 }
@@ -166,9 +173,7 @@ sum.loadData = function () {
                 sum.availData(availabilityData);
                 sum.availSeries(availabilitySeries);
 
-                sum.AvailabilityChart(availabilityData, availabilitySeries);
-
-                // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
+                sum.AvailabilityChart(availabilityData, availabilitySeries, "fleet");
             } else {
                 sum.PLF('chartPLF',res.data["Data"]);
                 sum.ProdCurLast('chartCurrLast',res.data["Data"]);
@@ -186,18 +191,18 @@ sum.loadData = function () {
                     seriesObj["name"] = project;
                     seriesObj["field"] = project;
                     seriesObj["color"] = colorFieldProject[1];
+                    seriesObj["missingValues"]= "gap";
                     availabilitySeries.push(seriesObj);
 
                     sum.availData(availabilityData);
                     sum.availSeries(availabilitySeries);
 
-                    sum.AvailabilityChart(availabilityData, availabilitySeries);
+                    sum.AvailabilityChart(availabilityData, availabilitySeries, "project");
                 } else {
                     sum.availData(availData);
                     sum.availSeries(availabilitySeries);
-                    sum.AvailabilityChart(availData, availabilitySeries);
+                    sum.AvailabilityChart(availData, availabilitySeries, "project");
                 }
-                // sum.AvailabilityChart(res.data["Data"]);
             }
 
             
@@ -224,17 +229,17 @@ sum.loadData = function () {
                 sum.windDistData(res.data.Data);
             });
 
-            lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", { ProjectName: project, Date: maxdate}, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                // if (project == "Fleet") {
-                //     avail.DTTurbines();
-                // } 
-            });
+            // lostEnergyReq = toolkit.ajaxPost(viewModel.appName + "dashboard/getlostenergy", { ProjectName: project, Date: maxdate}, function (res) {
+            //     if (!app.isFine(res)) {
+            //         return;
+            //     }
+            //     // if (project == "Fleet") {
+            //     //     avail.DTTurbines();
+            //     // } 
+            // });
         }
 
-        $.when(sum.indiaMap(project),ajax2, ajax3,lostEnergyReq).done(function(){
+        $.when(sum.indiaMap(project),ajax2, ajax3).done(function(){
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({
@@ -384,6 +389,15 @@ sum.PLF = function (id,dataSource) {
                 visible: false
             },
             majorTickType: "none"
+        },
+        plotAreaClick: function(e) {
+            if(id === "chartPLFFleet") {
+                if (e.originalEvent.type === "contextmenu") {
+                  // Disable browser context menu
+                  e.originalEvent.preventDefault();
+                }
+                sum.MonthlyProject(e, "plf");
+            }
         },
         tooltip: {
             visible: true,
@@ -819,7 +833,7 @@ sum.ProdMonth = function (id, dataSource) {
               // Disable browser context menu
               e.originalEvent.preventDefault();
             }
-            sum.MonthlyProject(e);
+            sum.MonthlyProject(e, "production");
         },
         valueAxes: [{
             name: "Production",
@@ -870,7 +884,7 @@ sum.ProdMonth = function (id, dataSource) {
 //         sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
 //     }, 300);
 // }
-sum.AvailabilityChart = function (dataSource, dataSeries) {
+sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
     $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({
         dataSource: {
@@ -946,6 +960,15 @@ sum.AvailabilityChart = function (dataSource, dataSeries) {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
+        },
+        plotAreaClick: function(e) {
+            if(tipe === "fleet") {
+                if (e.originalEvent.type === "contextmenu") {
+                  // Disable browser context menu
+                  e.originalEvent.preventDefault();
+                }
+                sum.DetailAvailability("Fleet", e, "availability");
+            }
         },
         tooltip: {
             visible: true,
@@ -1645,7 +1668,7 @@ sum.DetailProd = function (e) {
 }
 
 // show monthly project, level 2 of generation summary / production monthly from dashboard
-sum.MonthlyProject = function (e) {
+sum.MonthlyProject = function (e, tipe) {
     app.loading(true);
 
     $('.monthlyProjectChart').html("");
@@ -1664,9 +1687,65 @@ sum.MonthlyProject = function (e) {
         }
         dataSource = res.data;
     });
+    var dataSeries = [{
+        name: "Production (MWh)",
+        field: "production",
+        axis: "production"
+    }, {
+        name: "Lost Energy (MWh) ",
+        field: "lostenergy",
+        axis: "lostenergy"
+    }];
+
+    var valueAxesData = [{
+        name: "production",
+        title: { text: "Production (MWh)",font: "10px"},
+        line: {
+            visible: false
+        },
+        labels:{
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        },
+        axisCrossingValue: -10,
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+        
+    }, {
+        name: "lostenergy",
+        title: { text: "Lost Energy (MWh)",font: "10px"},
+        line: {
+            visible: false
+        },
+        labels:{
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        },
+        axisCrossingValue: -10,
+        majorGridLines: {
+            visible: true,
+            color: "#eee",
+            width: 0.8,
+        },
+    }];
+    sum.titleDetailLevel1('Controller Generation (GWh) - Last 12 Months By Project');
+
+    if(tipe == "plf") {
+        sum.titleDetailLevel1('PLF (%) - Last 12 Months By Project');
+        dataSeries = [{
+            name: "PLF ",
+            field: "plf",
+            axis: "plf"
+        }];
+        valueAxesData = [{
+            name: "plf",
+            title: { text: "PLF ",font: "11px"},
+        }];
+    }
 
     var chartProperties = {
-        theme: "material",
+        theme: "flat",
         dataSource: {
             data: null
         },
@@ -1680,7 +1759,7 @@ sum.MonthlyProject = function (e) {
             }
         },
         chartArea: {
-            padding: 0,
+            padding: 10,
             margin: 0,
             height: 200,
         },
@@ -1692,40 +1771,23 @@ sum.MonthlyProject = function (e) {
                 }
             }
         },
-        series: [{
-            name: "Production ",
-            field: "production",
-            axis: "production"
-            // opacity : 0.7,
-        }, {
-            name: "Lost Energy ",
-            field: "lostenergy",
-            axis: "lostenergy"
-            // opacity : 0.7,
-        }],
+        series: dataSeries,
         seriesColors: colorField,
-        valueAxes: [{
-            name: "production",
-            title: { text: "Production ",font: "11px"},
-            
-        }, {
-            name: "lostenergy",
-            title: { text: "Lost Energy ",font: "11px"},
-        }],
-        valueAxis: {
-            line: {
-                visible: false
-            },
-            labels:{
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            axisCrossingValue: -10,
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-        },
+        valueAxes: valueAxesData,
+        // valueAxis: {
+        //     line: {
+        //         visible: false
+        //     },
+        //     labels:{
+        //         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+        //     },
+        //     axisCrossingValue: -10,
+        //     majorGridLines: {
+        //         visible: true,
+        //         color: "#eee",
+        //         width: 0.8,
+        //     },
+        // },
         categoryAxis: {
             field: "monthdesc",
             majorGridLines: {
@@ -1763,7 +1825,7 @@ sum.MonthlyProject = function (e) {
                 if(project!='Fleet') {
                     chartProperties.dataSource = eval("dataSource."+ project);
                     chartProperties.seriesClick = function(e) {
-                        sum.DetailProdByProjectDetail(project, e);
+                        sum.DetailProdByProjectDetail(project, e, tipe);
                     };
                     $(elm).kendoChart(chartProperties);
                 }
@@ -1920,7 +1982,7 @@ sum.DetailProdByProject = function (e) {
 
 }
 
-sum.DetailProdByProjectDetail = function (project, e) {
+sum.DetailProdByProjectDetail = function (project, e, tipe) {
     $('#btn-back-prod-summary').attr('onclick', 'sum.backToMonthlyProject()');
 
     var bulan = e.category;
@@ -1933,6 +1995,11 @@ sum.DetailProdByProjectDetail = function (project, e) {
     sum.isDetailProd(false);
     sum.isDetailLostEnergy(false);
     sum.isDetailProdByProject(true);
+    sum.isSummaryDetail(true);
+    sum.isGridDetail(true);
+    if(tipe === "plf") {
+        sum.isSummaryDetail(false);
+    }
     $("#chartDetailProdByProject").html("");
     $("#gridDetailProdByProject").html("");
 
@@ -1950,9 +2017,42 @@ sum.DetailProdByProjectDetail = function (project, e) {
         var dataSource = res.data[0];
 
         var measurement = " (" + dataSource.measurement + ") ";
+        var gridMeasurement = " (" + dataSource.measurement + ") ";
+        var seriesData = [{
+            name: "Production " +measurement,
+            field: "production",
+            axis: "production"
+        }, {
+            name: "Lost Energy " +measurement,
+            field: "lostenergy",
+            axis: "lostenergy"
+        }];
+        var isHidden = true;
+        var valueAxesData = [{
+            name: "production",
+            title: { text: "Production " +measurement ,font: "11px"},
+            
+        }, {
+            name: "lostenergy",
+            title: { text: "Lost Energy " + measurement,font: "11px"},
+        }];
+        if(tipe === "plf") {
+            measurement = " (%) ";
+            seriesData = [{
+                name: "PLF " +measurement,
+                field: "plf",
+                axis: "plf"
+            }]
+            valueAxesData = [{
+                name: "plf",
+                title: { text: "PLF " +measurement ,font: "11px"},
+            }];
+            isHidden = false;
+        }
 
         sum.detailSummary(dataSource);
         sum.detailProdMsTxt(measurement);
+
         $("#chartDetailProdByProject").kendoChart({
             theme: "material",
             dataSource: {
@@ -1980,26 +2080,9 @@ sum.DetailProdByProjectDetail = function (project, e) {
                     }
                 }
             },
-            series: [{
-                name: "Production " +measurement,
-                field: "production",
-                axis: "production"
-                // opacity : 0.7,
-            }, {
-                name: "Lost Energy " +measurement,
-                field: "lostenergy",
-                axis: "lostenergy"
-                // opacity : 0.7,
-            }],
+            series: seriesData,
             seriesColors: colorField,
-            valueAxes: [{
-                name: "production",
-                title: { text: "Production " +measurement ,font: "11px"},
-                
-            }, {
-                name: "lostenergy",
-                title: { text: "Lost Energy " + measurement,font: "11px"},
-            }],
+            valueAxes: valueAxesData,
             valueAxis: {
                 line: {
                     visible: false
@@ -2050,9 +2133,10 @@ sum.DetailProdByProjectDetail = function (project, e) {
             },
             columns: [
                 { title: "Turbine Name", field: "turbine", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Production<br>" + measurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Lost Energy<br>" + measurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
-                { title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Production<br>" + gridMeasurement, field: "production", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { title: "Lost Energy<br>" + gridMeasurement, field: "lostenergy", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { hidden: !isHidden, title: "Downtime<br>(Hours)", field: "downtimehours", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
+                { hidden: isHidden, title: "PLF<br>(%)", field: "plf", format: "{0:n2}", headerAttributes: { style: "text-align: center" }, attributes: { class: "align-center" } },
             ],
             dataSource: {
                 data: dataSource.detail,
@@ -2069,6 +2153,124 @@ sum.DetailProdByProjectDetail = function (project, e) {
     });
 
 
+}
+
+sum.DetailAvailability = function (project, e, tipe) {
+    $('#btn-back-availability').attr('onclick', 'sum.backToDashboard()');
+    $('.detailAvailability').html("");
+
+    var bulan = e.category;
+    sum.detailProdTxt(bulan);
+
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isMonthlyProject(false);
+    sum.isDetailProd(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailProdByProject(false);
+    sum.isSummaryDetail(false);
+    sum.isGridDetail(false);
+    sum.isDetailAvailability(true);
+
+    var param = { 'project': project, 'date': sum.detailProdTxt() };
+
+    sum.detailProdProjectTxt(project);
+    sum.detailProdDateTxt(sum.detailProdTxt());
+
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
+        
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataSource = res.data;
+        sum.DetailAvailabilityData(dataSource);
+
+        $.each(dataSource, function(key, val){
+            var seriesData = [{
+                name: "Availability (%)",
+                field: "trueavail",
+                axis: "availability",
+                color: customColorProject[val.project],
+            }];
+
+            var isHidden = true;
+
+            $("#chartDetailAvail-"+val.project).kendoChart({
+                theme: "material",
+                dataSource: {
+                    data: val.detail
+                },
+                title: { 
+                    text: val.project,
+                    font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                legend: {
+                    visible: false,
+                    position: "top",
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    }
+                },
+                chartArea: {
+                    padding: 10,
+                    margin: 10,
+                    height: 250,
+                },
+                seriesDefaults: {
+                    type: "column",
+                    area: {
+                        line: {
+                            style: "smooth"
+                        }
+                    }
+                },
+                series: seriesData,
+                valueAxis: {
+                    name: "availability",
+                    title: { text: "Availability  (%)",font: "11px"},
+                    line: {
+                        visible: false
+                    },
+                    labels:{
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    axisCrossingValue: -10,
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                },
+                categoryAxis: {
+                    field: "turbine",
+                    majorGridLines: {
+                        visible: false
+                    },
+                    majorTickType: "none",
+                    labels: {
+                        rotation: 45,
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    axisCrossingValues: [0, 1000],
+                },
+                tooltip: {
+                    visible: true,
+                    shared: true,
+                    template: "#= kendo.toString(value, 'n2') #",
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                }
+            });
+        });
+
+        app.loading(false);
+    });
 }
 
 sum.DetailLostEnergy = function(e){
@@ -2297,6 +2499,7 @@ sum.backToDashboard = function () {
     sum.isDetailLostEnergy(false);
     sum.isDetailLostEnergyLevel2(false);
     sum.isMonthlyProject(false);
+    sum.isDetailAvailability(false);
 }
 
 sum.toDetailProduction = function () {

@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	CONF_DB_ACL      string = "db_acl"
-	CONF_DB_OSTRO    string = "db_ostro"
-	CONF_DB_REALTIME string = "db_realtime"
+	CONF_DB_ACL       string = "db_acl"
+	CONF_DB_OSTRO     string = "db_ostro"
+	CONF_DB_REALTIME  string = "db_realtime"
+	CONF_DB_REPORTING string = "db_reporting"
 )
 
 type Configuration struct {

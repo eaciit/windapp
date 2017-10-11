@@ -1,0 +1,58 @@
+.content{
+	padding: 0px;
+}
+.navbar-header{
+	margin-top: 15px;
+}
+.navbar-brand{
+	margin-top: -12.5px;
+}
+.desc-title{
+	font-size: 17px;
+    vertical-align: middle;
+    margin-top: 20px !important;
+    color: #585555;
+}
+.panel-heading{
+	text-align: center;
+}
+.panel-body{
+	height:calc(100vh - 70px);
+}
+.content-link{
+	margin-top: 15px;padding: 100px;
+}
+.image-logo{
+	width: 150px;
+    margin-top: -15px;
+}
+.title{
+	font-size: 35px;
+    text-align: center;
+}
+
+.fa {
+    font-size: 65px;
+    font-weight: 500;
+}
+
+
+.title-link{
+	font-size: 20px;
+}
+
+.btn-orange{
+	background: #ff9933;border-color: #ff9933;width: 240px;height: 170px;color: #fff;
+}
+
+.btn-green{
+	background: #21c4af;border-color: #21c4af;width: 240px;height: 170px;color: #fff;
+}
+
+.btn-blue{
+	background: #4589b0;border-color: #4589b0;width: 240px;height: 170px;color: #fff;
+}
+
+.btn-yellow{
+	background: #e4cc37;border-color: #e4cc37;width: 240px;height: 170px;color: #fff;
+}

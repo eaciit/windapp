@@ -33,6 +33,7 @@ pc.dateStart = ko.observable();
 pc.dateEnd = ko.observable();
 pc.turbine = ko.observableArray([]);
 pc.project = ko.observable();
+pc.sScater = ko.observable(false);
 
 pc.rawturbine = ko.observableArray([]);
 pc.rawproject = ko.observableArray([]);
@@ -381,20 +382,18 @@ pc.initChart = function() {
         } else if(p2DateStart - p2DateEnd > 25200000) {
             toolkit.showError("Invalid Date Range Selection for Filter 2");
         } else {
-            
-            
             var link = "analyticpowercurve/getlistpowercurvecomparison"
 
             app.loading(true);
             var param = {
                 PC1Period       : $('#periodList').data('kendoDropDownList').value(),
-                PC1Project      :  $("#projectList1").data("kendoDropDownList").value(),
-                PC1Turbine      :  $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
+                PC1Project      : $("#projectList1").data("kendoDropDownList").value(),
+                PC1Turbine      : $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
                 PC1DateStart    : p1DateStart,
                 PC1DateEnd      : p1DateEnd,
 
                 PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-                PC2Project      :  $("#projectList1").data("kendoDropDownList").value(),
+                PC2Project      : $("#projectList1").data("kendoDropDownList").value(),
                 PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
                 PC2DateStart    : p2DateStart,
                 PC2DateEnd      : p2DateEnd
@@ -406,9 +405,6 @@ pc.initChart = function() {
                     app.loading(false);
                     return;
                 }
-                
-
-
                 var dataTurbine = res.data.Data;
                 
                 $('#chartPCcomparison').html("");
@@ -535,11 +531,176 @@ pc.initChart = function() {
                     zoomable: false
                 });
                 app.loading(false);
-                $("#chartPCcomparison").data("kendoChart").refresh();
-
-                
+                if (pc.sScater()) {
+                    pc.getScatter(param, dataTurbine);
+                }
+                $("#chartPCcomparison").data("kendoChart").refresh();                
             });
         }
+}
+
+pc.getScatter = function(paramLine, dtLine) {
+    var turbineList = [];
+    var kolor = [];
+    var idx;
+    app.loading(true);
+    var paramList = [];
+    for(idx=1; idx<=2; idx++) {
+        turbineList = [];
+        kolor = [];
+        kolor.push(dtLine[idx].color);
+        turbineList.push(paramLine["PC"+idx.toString()+"Turbine"]);
+        var dateStart = paramLine["PC"+idx.toString()+"DateStart"];
+        var dateEnd = paramLine["PC"+idx.toString()+"DateEnd"];
+        var param = {
+            period: paramLine["PC"+idx.toString()+"Period"],
+            dateStart: dateStart,
+            dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
+            turbine: turbineList,
+            project: paramLine["PC"+idx.toString()+"Project"],
+            Color: kolor,
+            isDeviation: true,
+            deviationVal: "-999999",
+            IsDownTime: false,
+            ViewSession: ""
+        };
+        paramList.push(param);
+    }
+    var dataPowerCurves = [];
+    var reqScatter1 = toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", paramList[0], function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataPowerCurves1 = res.data.Data;
+        if (dataPowerCurves1 != null) {
+            if (dataPowerCurves1.length > 0) {
+                dataPowerCurves.push(dataPowerCurves1[0]);
+            }
+        }
+    });
+    var reqScatter2 = toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", paramList[1], function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataPowerCurves2 = res.data.Data;
+        if (dataPowerCurves2 != null) {
+            if (dataPowerCurves2.length > 0) {
+                dataPowerCurves.push(dataPowerCurves2[0]);
+            }
+        }
+    });
+    $.when(reqScatter1, reqScatter2).done(function() {
+        var dtSeries = new Array();
+        if (dataPowerCurves != null) {
+            if (dataPowerCurves.length > 0) {
+                dtSeries = dtLine.concat(dataPowerCurves);
+            }
+        } else {
+            dtSeries = dtLine;
+        }
+
+        $('#chartPCcomparison').html("");
+        $("#chartPCcomparison").kendoChart({
+            theme: "flat",
+            // renderAs: "canvas",
+            pdf: {
+              fileName: "DetailPowerCurve.pdf",
+            },
+            // title: {
+            //     text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
+            //     visible: false,
+            //     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            // },
+            legend: {
+                visible: false,
+                position: "bottom"
+            },
+            seriesDefaults: {
+                type: "scatterLine",
+                style: "smooth",
+            },
+            series: dtSeries,
+            categoryAxis: {
+                labels: {
+                    step: 1
+                }
+            },
+            valueAxis: [{
+                labels: {
+                    format: "N0",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                }
+            }],
+            xAxis: {
+                majorUnit: 1,
+                title: {
+                    text: "Wind Speed (m/s)",
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    color: "#585555",
+                    visible: true,
+                },
+                labels: {
+                    format: "N0",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                crosshair: {
+                    visible: true,
+                    tooltip: {
+                        visible: true,
+                        format: "N2",
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    }
+                },
+                max: 25
+            },
+            yAxis: {
+                title: {
+                    text: "Generation (KW)",
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    color: "#585555"
+                },
+                labels: {
+                    format: "N0",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValue: -5,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                crosshair: {
+                    visible: true,
+                    tooltip: {
+                        visible: true,
+                        format: "N1",
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    }
+                },
+            },
+            pannable: true,
+            zoomable: true
+        });
+
+        app.loading(false);
+    });
 }
 
 pc.setProjectTurbine = function(projects, turbines, selected){
@@ -554,6 +715,11 @@ $(document).ready(function () {
         setTimeout(function() {
             pc.initChart();
         }, 300);
+    });
+    $('#sScater').on('click', function() {
+        var sScater = $('#sScater').prop('checked');
+        pc.sScater(sScater);
+        pc.initChart();
     });
 
     $('#projectList1').kendoDropDownList({

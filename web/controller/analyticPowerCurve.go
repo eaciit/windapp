@@ -389,12 +389,20 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("color", colorField[selArr])
 		turbineData.Set("idxseries", idx+1)
 
+		totalDataPerTurbine := 0
 		for _, val := range exist {
 			idD := val.Get("_id").(tk.M)
-
+			totalData := val.GetInt("totaldata")
+			totalDataPerTurbine += totalData
 			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 		}
 
+		totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
+		turbineData.Set("totaldays", totalDays)
+		totalDataShouldBe := totalDays * 144
+		turbineData.Set("totaldatashouldbe", totalDataShouldBe)
+		turbineData.Set("totaldata", totalDataPerTurbine)
+		turbineData.Set("dataavailpct", tk.Div(float64(totalDataPerTurbine), totalDataShouldBe))
 		if len(datas) > 0 {
 			turbineData.Set("data", datas)
 		}
@@ -1049,6 +1057,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	type ScadaMini struct {
 		Power         float64
 		RotorRPM      float64
+		GeneratorRPM  float64
+		AvgWindSpeed  float64
 		AvgBladeAngle float64
 	}
 
@@ -1155,6 +1165,52 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			}
 		}
 		seriesData = setScatterData("Pitch Angle", "Pitch", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
+	case "generatorrpm":
+		for _, val := range list {
+			data = tk.M{}
+			if val.GeneratorRPM < minAxisX {
+				minAxisX = val.GeneratorRPM
+			}
+			if val.GeneratorRPM > maxAxisX {
+				maxAxisX = val.GeneratorRPM
+			}
+			if val.Power < minAxisY {
+				minAxisY = val.Power
+			}
+			if val.Power > maxAxisY {
+				maxAxisY = val.Power
+			}
+
+			data.Set("Generator", val.GeneratorRPM)
+			data.Set("Power", val.Power)
+			data.Set("valueColor", colorField[1])
+
+			datas = append(datas, data)
+		}
+		seriesData = setScatterData("Generator RPM", "Generator", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
+	case "windspeed":
+		for _, val := range list {
+			data = tk.M{}
+			if val.AvgWindSpeed < minAxisX {
+				minAxisX = val.AvgWindSpeed
+			}
+			if val.AvgWindSpeed > maxAxisX {
+				maxAxisX = val.AvgWindSpeed
+			}
+			if val.Power < minAxisY {
+				minAxisY = val.Power
+			}
+			if val.Power > maxAxisY {
+				maxAxisY = val.Power
+			}
+
+			data.Set("WindSpeed", val.AvgWindSpeed)
+			data.Set("Power", val.Power)
+			data.Set("valueColor", colorField[1])
+
+			datas = append(datas, data)
+		}
+		seriesData = setScatterData("Wind Speed", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, datas)
 	}
 	seriesData.Unset("name")
 	dataSeries = append(dataSeries, seriesData)
@@ -1412,6 +1468,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
+	totalDataShouldBe := totalDays * 144
+
 	selArr := 0
 	for _, turbineX := range turbine {
 		var filter []*dbox.Filter
@@ -1442,12 +1501,18 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 
 		defer csr.Close()
 
+		totalData := len(list)
+
 		turbineData := tk.M{}
 		turbineData.Set("name", "Scatter-"+turbineName[turbineX.(string)])
 		turbineData.Set("xField", "WindSpeed")
 		turbineData.Set("yField", "Power")
 		turbineData.Set("colorField", "valueColor")
 		turbineData.Set("type", "scatter")
+		turbineData.Set("totaldatashouldbe", totalDataShouldBe)
+		turbineData.Set("totaldays", totalDays)
+		turbineData.Set("totaldata", totalData)
+		turbineData.Set("dataavailpct", tk.Div(float64(totalData), totalDataShouldBe))
 		// turbineData.Set("markers", tk.M{
 		// 			"size":       10,
 		// 			"type":       "triangle",

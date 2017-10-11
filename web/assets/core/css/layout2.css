@@ -449,7 +449,8 @@ form.k-filter-menu.k-popup.k-group.k-reset.k-state-border-down {
 }
 
 .navbar-brand {
-    padding: 5px 5px;
+    /*padding: 5px 5px;*/
+    padding: 15px 10px;
 }
 
 .skin-black .main-header .navbar-brand {

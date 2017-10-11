@@ -278,6 +278,7 @@ func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
 		"page-analytic-meteorology/wind-distribution.html",
 		"page-analytic-meteorology/average-windspeed.html",
 		"page-analytic-meteorology/turbine-correlation.html",
+		"page-analytic-meteorology/energy-correlation.html",
 	}
 	r.Config.ViewName = "page-analytic-meteorology.html"
 
@@ -497,6 +498,16 @@ func (w *PageController) Dashboard(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-dashboard.html"
 	r.Config.IncludeFiles = []string{"page-dashboard-summary.html", "page-dashboard-production.html", "page-dashboard-availability.html"}
 
+	projectList, _ := helper.GetProjectList()
+	w.Params.Set("ProjectList", projectList)
+
+	return w.GetParams(r, false)
+}
+func (w *PageController) Starter(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-starter.html"
+	// r.Config.IncludeFiles = []string{"page-dashboard-summary.html", "page-dashboard-production.html", "page-dashboard-availability.html"}
 	projectList, _ := helper.GetProjectList()
 	w.Params.Set("ProjectList", projectList)
 
