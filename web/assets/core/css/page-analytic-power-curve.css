@@ -40,6 +40,7 @@
 }
 #showHideChk {
     margin-top: 7.5px;
+    margin-left: -25px;
 }
 .radio-filter {
 	width: 160px !important;
@@ -52,11 +53,13 @@
     font-weight: bold;
 }
 .turList{
-    max-height:360px;
-    height: 360px;
-    margin-top: -12.5px;
+    max-height: 470px;
+    height: 470px;
+    margin-top: -13.5px;
     overflow-x: auto;
     overflow-y: auto;
+    width: 360px;
+    margin-left: -10px;
 }
 .cFilter{
     /*margin-left: 65px;*/
@@ -174,8 +177,20 @@
 .wbtn
 {
     font-size: 10px;
-    width: 55px;
+    width: 90px;
     font-weight: 600;
+    text-align: left;
+    padding-left: 2px;
+    padding-top: 2px;
+}
+.wbtn label {
+    height: 100%;
+    font-size: 11px;
+    margin-right: 1px;
+    padding-top: 3px;
+    padding-right: 1px;
+    padding-left: 3px;
+    background: #e0e0e0;
 }
 #filter-power-curve{
     /*width: 275px;*/
@@ -224,4 +239,15 @@
     border: 1px solid #E0E0DF;
     background: rgba(255,255,255,0.7);
     padding: 4px 10px;
+    width: 114px;
+}
+#dataavail_info {
+    position: absolute;
+    top: 62px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 114px;
 }

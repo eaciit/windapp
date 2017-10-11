@@ -389,12 +389,20 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("color", colorField[selArr])
 		turbineData.Set("idxseries", idx+1)
 
+		totalDataPerTurbine := 0
 		for _, val := range exist {
 			idD := val.Get("_id").(tk.M)
-
+			totalData := val.GetInt("totaldata")
+			totalDataPerTurbine += totalData
 			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 		}
 
+		totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
+		turbineData.Set("totaldays", totalDays)
+		totalDataShouldBe := totalDays * 144
+		turbineData.Set("totaldatashouldbe", totalDataShouldBe)
+		turbineData.Set("totaldata", totalDataPerTurbine)
+		turbineData.Set("dataavailpct", tk.Div(float64(totalDataPerTurbine), totalDataShouldBe))
 		if len(datas) > 0 {
 			turbineData.Set("data", datas)
 		}
@@ -1460,6 +1468,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
+	totalDataShouldBe := totalDays * 144
+
 	selArr := 0
 	for _, turbineX := range turbine {
 		var filter []*dbox.Filter
@@ -1490,12 +1501,18 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 
 		defer csr.Close()
 
+		totalData := len(list)
+
 		turbineData := tk.M{}
 		turbineData.Set("name", "Scatter-"+turbineName[turbineX.(string)])
 		turbineData.Set("xField", "WindSpeed")
 		turbineData.Set("yField", "Power")
 		turbineData.Set("colorField", "valueColor")
 		turbineData.Set("type", "scatter")
+		turbineData.Set("totaldatashouldbe", totalDataShouldBe)
+		turbineData.Set("totaldays", totalDays)
+		turbineData.Set("totaldata", totalData)
+		turbineData.Set("dataavailpct", tk.Div(float64(totalData), totalDataShouldBe))
 		// turbineData.Set("markers", tk.M{
 		// 			"size":       10,
 		// 			"type":       "triangle",
