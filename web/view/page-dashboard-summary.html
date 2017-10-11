@@ -455,9 +455,8 @@
 	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading"><span>Controller Generation (GWh) - Last 12 Months By Project</span></div>
+				<div class="panel-heading"><span data-bind="text:sum.titleDetailLevel1"></span></div>
 				<div class="panel-body">
-
 					<div class="monthly-project-wrapper text-center" data-bind="foreach: lgd.projectList()">
 						<div class="col-md-4 monthly-project-item" data-bind="visible: (value!='Fleet')">
 							<strong><span data-bind="html: text"></span></strong>
@@ -487,7 +486,7 @@
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading"><span data-bind="text:sum.detailSummary().labelproject"></span>&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdDateTxt"></strong></div>
 				<div class="panel-body">
-					<div class="col-md-12">
+					<div class="col-md-12" data-bind="visible:sum.isSummaryDetail">
 						<div class="control-summary production-part left-border-org">
 							<div class="col-md-12">
 								<div class="col-md-4 sum-production">
@@ -535,7 +534,7 @@
 						<div id="chartDetailProdByProject"></div>
 						<div class="clearfix">&nbsp;</div>
 					</div>
-					<div class="col-md-12">
+					<div class="col-md-12" data-bind="visible:sum.isGridDetail">
 						<div id="gridDetailProdByProject"></div>
 					</div>
 

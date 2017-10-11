@@ -70,26 +70,28 @@ func GetLog(payload toolkit.M) (toolkit.M, error) {
 }
 
 func WriteLog(sessionId interface{}, access, reference string) error {
-	userid, err := GetUserName(sessionId)
-	if err != nil {
-		return err
-	}
+	if sessionId != nil {
+		userid, err := GetUserName(sessionId)
+		if err != nil {
+			return err
+		}
 
-	log := new(Log)
-	log.ID = toolkit.RandomString(32)
-	log.Name = userid.FullName
-	log.Action = access
-	log.Reference = reference
-	log.Time = time.Now()
+		log := new(Log)
+		log.ID = toolkit.RandomString(32)
+		log.Name = userid.FullName
+		log.Action = access
+		log.Reference = reference
+		log.Time = time.Now()
 
-	if access == "login" || access == "logout" {
-		log.Description = log.Name + " " + access + " at " + log.Time.String()
-	} else {
-		log.Description = log.Name + " is accessing page " + log.Reference + " at " + log.Time.String()
-	}
+		if access == "login" || access == "logout" {
+			log.Description = log.Name + " " + access + " at " + log.Time.String()
+		} else {
+			log.Description = log.Name + " is accessing page " + log.Reference + " at " + log.Time.String()
+		}
 
-	if err := log.Save(); err != nil {
-		return err
+		if err := log.Save(); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -10,11 +10,14 @@ sum.isMonthlyProject = ko.observable(false);
 
 sum.isDetailLostEnergy = ko.observable(false);
 sum.isDetailLostEnergyLevel2 = ko.observable(false);
+sum.isSummaryDetail = ko.observable(true);
+sum.isGridDetail = ko.observable(true);
 
 sum.detailProdTxt = ko.observable('');
 sum.detailProdMsTxt = ko.observable('');
 sum.detailProdProjectTxt = ko.observable('');
 sum.detailProdDateTxt = ko.observable('');
+sum.titleDetailLevel1 = ko.observable('');
 
 sum.noOfProjects = ko.observable();
 sum.noOfProjectsExFleet = ko.observable();
@@ -167,9 +170,7 @@ sum.loadData = function () {
                 sum.availData(availabilityData);
                 sum.availSeries(availabilitySeries);
 
-                sum.AvailabilityChart(availabilityData, availabilitySeries);
-
-                // sum.AvailabilityChart(res.data["Availability"][lgd.projectAvailSelected()]);
+                sum.AvailabilityChart(availabilityData, availabilitySeries, "fleet");
             } else {
                 sum.PLF('chartPLF',res.data["Data"]);
                 sum.ProdCurLast('chartCurrLast',res.data["Data"]);
@@ -193,13 +194,12 @@ sum.loadData = function () {
                     sum.availData(availabilityData);
                     sum.availSeries(availabilitySeries);
 
-                    sum.AvailabilityChart(availabilityData, availabilitySeries);
+                    sum.AvailabilityChart(availabilityData, availabilitySeries, "project");
                 } else {
                     sum.availData(availData);
                     sum.availSeries(availabilitySeries);
-                    sum.AvailabilityChart(availData, availabilitySeries);
+                    sum.AvailabilityChart(availData, availabilitySeries, "project");
                 }
-                // sum.AvailabilityChart(res.data["Data"]);
             }
 
             
@@ -881,7 +881,7 @@ sum.ProdMonth = function (id, dataSource) {
 //         sum.AvailabilityChart(sum.availabilityData()[lgd.projectAvailSelected()]);
 //     }, 300);
 // }
-sum.AvailabilityChart = function (dataSource, dataSeries) {
+sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
     $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
     $("#chartAbility").kendoChart({
         dataSource: {
@@ -957,6 +957,15 @@ sum.AvailabilityChart = function (dataSource, dataSeries) {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none"
+        },
+        plotAreaClick: function(e) {
+            // if(tipe === "fleet") {
+            //     if (e.originalEvent.type === "contextmenu") {
+            //       // Disable browser context menu
+            //       e.originalEvent.preventDefault();
+            //     }
+            //     sum.DetailProdByProjectDetail("Fleet", e, "availability");
+            // }
         },
         tooltip: {
             visible: true,
@@ -1717,8 +1726,10 @@ sum.MonthlyProject = function (e, tipe) {
             width: 0.8,
         },
     }];
+    sum.titleDetailLevel1('Controller Generation (GWh) - Last 12 Months By Project');
 
     if(tipe == "plf") {
+        sum.titleDetailLevel1('PLF (%) - Last 12 Months By Project');
         dataSeries = [{
             name: "PLF ",
             field: "plf",
@@ -1981,6 +1992,11 @@ sum.DetailProdByProjectDetail = function (project, e, tipe) {
     sum.isDetailProd(false);
     sum.isDetailLostEnergy(false);
     sum.isDetailProdByProject(true);
+    sum.isSummaryDetail(true);
+    sum.isGridDetail(true);
+    if(tipe === "plf") {
+        sum.isSummaryDetail(false);
+    }
     $("#chartDetailProdByProject").html("");
     $("#gridDetailProdByProject").html("");
 

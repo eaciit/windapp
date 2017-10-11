@@ -423,6 +423,8 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 	if p.GetString("project") != "Fleet" {
 		matches.Set("projectname", p.GetString("project"))
 		turbineList, _ = helper.GetTurbineList([]interface{}{p.GetString("project")})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
 	}
 	turbineCapacity := map[string]float64{}
 	for _, v := range turbineList {
@@ -431,18 +433,20 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 	pipe := []tk.M{{"$match": matches},
 		{"$group": tk.M{
-			"_id":        ids,
-			"production": tk.M{"$sum": "$production"},
-			"lostenergy": tk.M{"$sum": "$lostenergy"},
-			"dateid":     tk.M{"$max": "$dateinfo.dateid"},
-			"mdownhours": tk.M{"$sum": "$machinedownhours"},
-			"gdownhours": tk.M{"$sum": "$griddownhours"},
-			"odownhours": tk.M{"$sum": "$otherdowntimehours"},
-			"power":      tk.M{"$sum": "$powerkw"},
-			"maxdate":    tk.M{"$max": "$dateinfo.dateid"},
-			"mindate":    tk.M{"$min": "$dateinfo.dateid"},
+			"_id":            ids,
+			"production":     tk.M{"$sum": "$production"},
+			"lostenergy":     tk.M{"$sum": "$lostenergy"},
+			"dateid":         tk.M{"$max": "$dateinfo.dateid"},
+			"mdownhours":     tk.M{"$sum": "$machinedownhours"},
+			"gdownhours":     tk.M{"$sum": "$griddownhours"},
+			"odownhours":     tk.M{"$sum": "$otherdowntimehours"},
+			"oktime":         tk.M{"$sum": "$oktime"},
+			"totaltimestamp": tk.M{"$sum": 1},
+			"power":          tk.M{"$sum": "$powerkw"},
+			"maxdate":        tk.M{"$max": "$dateinfo.dateid"},
+			"mindate":        tk.M{"$min": "$dateinfo.dateid"},
 		}},
-		{"$sort": tk.M{"projectname": 1}}}
+		{"$sort": tk.M{"_id.project": 1}}}
 
 	csrScada, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryDaily).TableName()).
@@ -474,15 +478,27 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		project := data.GetString("project")
 		if tproject != project {
 			tproject = project
+			detail = []tk.M{}
 			listturbine = PopulateTurbines(DB().Connection, tproject)
 		}
 		val.Unset("_id")
 		hourValue := val.Get("maxdate").(time.Time).AddDate(0, 0, 1).UTC().Sub(val.Get("mindate").(time.Time).UTC()).Hours()
 
-		in := tk.M{}.Set("energy", val.GetFloat64("power")/6/1000).
-			Set("totalhour", hourValue).Set("totalcapacity", turbineCapacity[tk.Sprintf("%s_%s", project, data.GetString("turbine"))])
+		okTime := val.GetFloat64("oktime") / 3600 /*jadikan hour*/
+		power := val.GetFloat64("power") / 1000.0 /*megaWatt*/
+		energy := power / 6                       /*MWh karena kapasitas turbine maksimal hanya MWh*/
+		mDownTime := val.GetFloat64("mdownhours")
+		gDownTime := val.GetFloat64("gdownhours")
+		uDownTime := val.GetFloat64("odownhours")
+		sumTimeStamp := val.GetFloat64("totaltimestamp")
+
+		in := tk.M{}.Set("noofturbine", 1).Set("oktime", okTime).Set("energy", energy).
+			Set("totalhour", hourValue).Set("totalcapacity", turbineCapacity[tk.Sprintf("%s_%s", project, data.GetString("turbine"))]).
+			Set("counttimestamp", sumTimeStamp).Set("machinedowntime", mDownTime).Set("griddowntime", gDownTime).
+			Set("otherdowntime", uDownTime)
 		res := helper.CalcAvailabilityAndPLF(in)
 		val.Set("plf", res.GetFloat64("plf"))
+		val.Set("trueavail", res.GetFloat64("plf"))
 
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {
@@ -544,13 +560,13 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 
 	if len(resultMonthly) > 0 {
 		bulan := resultMonthly[0].DateInfo.MonthId - (resultMonthly[0].DateInfo.Year * 100)
-		csrBudget, e := DB().Connection.NewQuery().
-			From(new(ExpPValueModel).TableName()).
-			Where(dbox.And(
-				dbox.Eq("projectname", p.GetString("project")),
-				dbox.Eq("monthno", bulan),
-			)).
-			Cursor(nil)
+		filterBudget := []*dbox.Filter{}
+		query := DB().Connection.NewQuery().From(new(ExpPValueModel).TableName())
+		filterBudget = append(filterBudget, dbox.Eq("monthno", bulan))
+		if p.GetString("project") != "Fleet" {
+			filterBudget = append(filterBudget, dbox.Eq("projectname", p.GetString("project")))
+		}
+		csrBudget, e := query.Where(dbox.And(filterBudget...)).Cursor(nil)
 
 		if tnow := getTimeNow(); int(tnow.Month()) == bulan {
 			maxdate = maxdate.AddDate(0, 0, 1)
@@ -569,6 +585,10 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		if e != nil {
 			helper.CreateResult(false, nil, e.Error())
 		}
+		budgetPerProject := map[string]ExpPValueModel{}
+		for _, val := range resultBudget {
+			budgetPerProject[val.ProjectName] = val
+		}
 
 		projectList, _ := helper.GetProjectList()
 		dataItem := []tk.M{}
@@ -581,6 +601,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 					break
 				}
 			}
+			budget := budgetPerProject[project]
 
 			data := tk.M{
 				"project":       project,
@@ -593,9 +614,9 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 				"downtimehours": resultMonthly[0].DowntimeHours,
 				"plf":           resultMonthly[0].PLF,
 				"trueavail":     resultMonthly[0].TrueAvail,
-				"budget_p50":    resultBudget[0].P50NetGenMWH * xbudget,
-				"budget_p75":    resultBudget[0].P75NetGenMWH * xbudget,
-				"budget_p90":    resultBudget[0].P90NetGenMWH * xbudget,
+				"budget_p50":    budget.P50NetGenMWH * xbudget,
+				"budget_p75":    budget.P75NetGenMWH * xbudget,
+				"budget_p90":    budget.P90NetGenMWH * xbudget,
 			}
 			dataItem = append(dataItem, data)
 		}
@@ -4226,7 +4247,6 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 			}
 		}
 	}
-	tk.Printf("Data : %#v\n", data)
 
 	return helper.CreateResult(true, data, "success")
 }
