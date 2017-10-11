@@ -2101,26 +2101,31 @@ func (c *MonitoringRealtimeController) GetDataTurbineOld(k *knot.WebContext) int
 
 func GetTurbineStatus(project string, turbine string) (res map[string]TurbineStatus) {
 	res = map[string]TurbineStatus{}
-
-	filtercond := []*dbox.Filter{}
-	filtercond = append(filtercond, dbox.Ne("projectname", ""))
+	query := []tk.M{
+		tk.M{"projectname": tk.M{"$ne": ""}},
+	}
 	if project != "Fleet" && project != "" {
-		filtercond = append(filtercond, dbox.Eq("projectname", project))
+		query = append(query, tk.M{"projectname": project})
 	}
 
 	if turbine != "" {
 		// if project == "Lahori" {
 		// 	turbine = project+"_"+turbine
 		// }
-		filtercond = append(filtercond, dbox.Eq("_id", project+"_"+turbine))
+		query = append(query, tk.M{"_id": project + "_" + turbine})
 	}
 
 	// rconn := lh.GetConnRealtime()
 	// defer rconn.Close()
 	rconn := DBRealtime()
+	pipes := []tk.M{
+		tk.M{
+			"$match": tk.M{"$and": query},
+		},
+	}
 
 	csr, err := rconn.NewQuery().From(new(TurbineStatus).TableName()).
-		Where(dbox.And(filtercond...)).
+		Command("pipe", pipes).
 		Cursor(nil)
 
 	if err != nil {

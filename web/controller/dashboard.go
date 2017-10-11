@@ -924,6 +924,356 @@ func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "success")
 }
 
+func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	results := tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	var pipes []tk.M
+	var fromDate time.Time
+	match := tk.M{}
+
+	fromDate = p.Date.AddDate(0, -11, 0)
+	match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+
+	if p.ProjectName != "Fleet" {
+		match.Set("projectname", p.ProjectName)
+	}
+
+	pipes = append(pipes, tk.M{"$unwind": "$detail"})
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$detail.detaildateinfo.monthid", "result": tk.M{"$sum": "$detail.powerlost"}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	// get the top 10 of turbine dan mengambil total
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(Alarm).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, results, e.Error())
+	}
+
+	allLossData := []tk.M{}
+	e = csr.Fetch(&allLossData, 0, false)
+	csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, results, e.Error())
+	}
+
+	monthList := []int{}
+	lossPerMonth := tk.M{}
+	monthCount := (fromDate.Year() * 100) + int(fromDate.Month()) /*201611*/
+	maxMonth := (fromDate.Year() * 100) + 12                      /*201612*/
+	for i := 1; i <= 12; i++ {
+		if monthCount > maxMonth {
+			monthCount = monthCount - maxMonth + (p.Date.Year() * 100) /*(201613 - 201612) + 201700*/
+			maxMonth = (p.Date.Year() * 100) + 12
+		}
+		monthList = append(monthList, monthCount)
+		monthCount++
+	}
+
+	for _, monthly := range allLossData {
+		lossPerMonth.Set(tk.ToString(monthly.GetInt("_id")), monthly.GetFloat64("result")) /*untuk total list tiap bulan*/
+	}
+
+	downCause := tk.M{}
+	downCause.Set("griddown", "Grid Down")
+	downCause.Set("machinedown", "Machine Down")
+	downCause.Set("unknown", "Unknown")
+
+	tmpResult := []tk.M{}
+	downDone := []string{}
+
+	for f, t := range downCause { /*hanya query loss energy per downtime type saja*/
+		pipes = []tk.M{}
+		loopMatch := match
+		field := tk.ToString(f)
+		title := tk.ToString(t)
+
+		downDone = append(downDone, field)
+
+		for _, done := range downDone {
+			match.Unset("detail." + done)
+		}
+
+		loopMatch.Set("detail."+field, true)
+
+		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		pipes = append(pipes, tk.M{"$match": loopMatch})
+
+		pipes = append(pipes,
+			tk.M{
+				"$group": tk.M{"_id": tk.M{"id3": "$detail.detaildateinfo.monthid", "id4": title},
+					"result": tk.M{"$sum": "$detail.powerlost"},
+				},
+			},
+		)
+
+		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
+
+		csr, e := DB().Connection.NewQuery().
+			From(new(Alarm).TableName()).
+			Command("pipe", pipes).
+			Cursor(nil)
+
+		if e != nil {
+			return helper.CreateResult(false, results, e.Error())
+		}
+
+		resLoop := []tk.M{}
+		e = csr.Fetch(&resLoop, 0, false)
+		csr.Close()
+
+		for _, res := range resLoop {
+			tmpResult = append(tmpResult, res)
+		}
+	}
+
+	resY := []tk.M{}
+	totalLossPerYear := map[string]float64{}
+	totalLoss := 0.0
+
+	for _, t := range downCause { /*mencari data per bulan untuk tiap downtime type*/
+		totalLoss = 0.0
+		title := tk.ToString(t)
+		keyTotal := strings.Replace(title, " ", "", -69)
+
+		for _, month := range monthList {
+			resX := tk.M{}
+			resX.Set("_id", tk.M{"id3": month, "id4": title})
+			resX.Set("result", 0)
+
+		out:
+			for _, res := range tmpResult {
+				id3 := res.Get("_id").(tk.M).GetInt("id3")
+				id4 := res.Get("_id").(tk.M).GetString("id4")
+
+				if id3 == month && id4 == title {
+					resX = res
+					totalLoss += res.GetFloat64("result")
+					break out
+				}
+			}
+			resY = append(resY, resX)
+		}
+		totalLossPerYear[keyTotal] = totalLoss
+	}
+
+	fromYear := fromDate.Year() * 100
+	toYear := p.Date.Year() * 100
+	result := []tk.M{}
+	for _, month := range monthList {
+		resVal := tk.M{}
+		monthInt := month - toYear
+		if monthInt < 0 {
+			monthInt = month - fromYear
+		}
+		resVal.Set("_id", time.Month(monthInt).String()[0:3])
+		for _, val := range resY {
+			valMonth := val.Get("_id").(tk.M).GetInt("id3")
+			valResult := val.GetFloat64("result")
+			valTitle := ""
+
+			splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
+
+			if len(splitTitle) > 1 {
+				valTitle = splitTitle[0] + splitTitle[1]
+			} else {
+				valTitle = splitTitle[0]
+			}
+
+			if month == valMonth && valResult != 0 {
+				resVal.Set(valTitle, valResult)
+			} else if resVal.Get(valTitle) == nil {
+				resVal.Set(valTitle, 0)
+			}
+		}
+
+		resVal.Set("Total", lossPerMonth.GetFloat64(tk.ToString(month)))
+		result = append(result, resVal)
+	}
+	results.Set("datachart", result)
+	results.Set("datapie", totalLossPerYear)
+	return helper.CreateResult(true, results, "success")
+}
+
+func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	result := []tk.M{}
+
+	p := new(PayloadDashboard)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	var pipes []tk.M
+	var fromDate time.Time
+	match := tk.M{}
+
+	fromDate = p.Date.AddDate(0, -11, 0)
+	match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+
+	if p.ProjectName != "Fleet" {
+		match.Set("projectname", p.ProjectName)
+	}
+
+	pipes = append(pipes, tk.M{"$unwind": "$detail"})
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+
+	// get the top 10 of turbine dan mengambil total
+
+	csr, e := DB().Connection.NewQuery().
+		Select("_id").
+		From(new(Alarm).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, result, e.Error())
+	}
+
+	top10Turbines := []tk.M{}
+	e = csr.Fetch(&top10Turbines, 0, false)
+	csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, result, e.Error())
+	}
+
+	turbines := []string{}
+	turbinesVal := tk.M{}
+
+	for _, turbine := range top10Turbines {
+		turbines = append(turbines, turbine.Get("_id").(string))                   /*untuk turbine list supaya query gak banyak2*/
+		turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result")) /*untuk total list tiap turbine*/
+	}
+	match.Set("turbine", tk.M{"$in": turbines})
+
+	downCause := tk.M{}
+	downCause.Set("griddown", "Grid Down")
+	downCause.Set("machinedown", "Machine Down")
+	downCause.Set("unknown", "Unknown")
+
+	tmpResult := []tk.M{}
+	downDone := []string{}
+
+	for f, t := range downCause {
+		pipes = []tk.M{}
+		loopMatch := match
+		field := tk.ToString(f)
+		title := tk.ToString(t)
+
+		downDone = append(downDone, field)
+
+		for _, done := range downDone {
+			match.Unset("detail." + done)
+		}
+
+		loopMatch.Set("detail."+field, true)
+
+		pipes = append(pipes, tk.M{"$unwind": "$detail"})
+		pipes = append(pipes, tk.M{"$match": loopMatch})
+
+		pipes = append(pipes,
+			tk.M{
+				"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
+					"result": tk.M{"$sum": "$detail.powerlost"},
+				},
+			},
+		)
+
+		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+
+		csr, e := DB().Connection.NewQuery().
+			From(new(Alarm).TableName()).
+			Command("pipe", pipes).
+			Cursor(nil)
+
+		if e != nil {
+			return helper.CreateResult(false, result, e.Error())
+		}
+
+		resLoop := []tk.M{}
+		e = csr.Fetch(&resLoop, 0, false)
+		csr.Close()
+
+		for _, res := range resLoop {
+			tmpResult = append(tmpResult, res)
+		}
+	}
+
+	resY := []tk.M{}
+
+	for _, t := range downCause {
+		title := tk.ToString(t)
+
+		for _, turbine := range turbines {
+			resX := tk.M{}
+			resX.Set("_id", tk.M{"id3": turbine, "id4": title})
+			resX.Set("result", 0)
+
+		out:
+			for _, res := range tmpResult {
+				id3 := res.Get("_id").(tk.M).GetString("id3")
+				id4 := res.Get("_id").(tk.M).GetString("id4")
+
+				if id3 == turbine && id4 == title {
+					resX = res
+					break out
+				}
+			}
+			resY = append(resY, resX)
+		}
+	}
+	project := p.ProjectName
+	if p.ProjectName == "Fleet" {
+		project = ""
+	}
+	turbineName, _ := helper.GetTurbineNameList(project)
+	for _, turbine := range turbines {
+		resVal := tk.M{}
+		resVal.Set("_id", turbineName[turbine])
+		for _, val := range resY {
+			valTurbine := val.Get("_id").(tk.M).GetString("id3")
+			valResult := val.GetFloat64("result")
+			valTitle := ""
+
+			splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
+
+			if len(splitTitle) > 1 {
+				valTitle = splitTitle[0] + splitTitle[1]
+			} else {
+				valTitle = splitTitle[0]
+			}
+
+			if turbine == valTurbine && valResult != 0 {
+				resVal.Set(valTitle, valResult)
+			} else if resVal.Get(valTitle) == nil {
+				resVal.Set(valTitle, 0)
+			}
+		}
+
+		resVal.Set("Total", turbinesVal.GetFloat64(turbine))
+		result = append(result, resVal)
+	}
+	return helper.CreateResult(true, result, "success")
+}
+
 func (m *DashboardController) GetDowntimeTop(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
