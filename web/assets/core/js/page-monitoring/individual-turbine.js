@@ -277,7 +277,8 @@ it.isFirst = ko.observable(true);
 
 it.grid_voltage = ko.observable(0);
 it.grid_current = ko.observable(0);
-it.radiator_temp = ko.observable(0);
+it.radiator_temp1 = ko.observable(0);
+it.radiator_temp2 = ko.observable(0);
 it.dataWindspeed = ko.observableArray([]);
 it.dataPower = ko.observableArray([]);
 
@@ -796,15 +797,39 @@ it.showWindspeedLiveChart = function(){
         exporting: {
             enabled: false
         },
-        yAxis:{
-          labels:
-          {
-            enabled: false
-          },
-          gridLineWidth: 1,
-          minorGridLineWidth: 0,
-          opposite:false
-        },
+        // yAxis:{
+        //   labels:
+        //   {
+        //     enabled: false
+        //   },
+        //   gridLineWidth: 1,
+        //   minorGridLineWidth: 0,
+        //   opposite:false
+        // },
+        yAxis : [{ // Primary yAxis
+            gridLineWidth: 1,
+            minorGridLineWidth: 0,
+            labels: {
+                enabled: false
+            },
+            title: {
+                text: 'Wind Speed',
+                enabled: false
+            },
+            opposite: true
+
+        }, { // Secondary yAxis
+            gridLineWidth: 1,
+            minorGridLineWidth: 0,
+            title: {
+                text: 'Power',
+                enabled: false
+            },
+            labels: {
+                enabled: false
+            }
+
+        }],
         xAxis: {
            type: 'datetime',
            dateTimeLabelFormats : {
@@ -848,6 +873,7 @@ it.showWindspeedLiveChart = function(){
             color: colorField[0],
             name: 'Wind Speed',
             data: [it.dataWindspeed()],
+            yAxis: 0,
             tooltip: {
                 valueSuffix: 'm/s'
             },
@@ -855,6 +881,7 @@ it.showWindspeedLiveChart = function(){
             name: 'Power',
             color: colorField[1],
             data: [it.dataPower()],
+            yAxis: 1,
             tooltip: {
                 valueSuffix: 'kW'
             },

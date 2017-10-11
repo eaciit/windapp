@@ -139,7 +139,7 @@
                                  <hr class="borderGrey">
                                 <strong><span>Gen. 1 phase 3 coil</span></strong><strong><span class="pull-right" data-bind="text: it.temp_gen_coil3()"></span></strong>
                                 <hr class="borderGrey" data-bind="visible:it.project() == 'Amba'">
-                                <span data-bind="visible:it.project() == 'Amba'"><strong><span>Radiator Temp</span></strong><strong><span class="pull-right" data-bind="text: it.radiator_temp()"></span></strong></span>
+                                <span data-bind="visible:it.project() == 'Amba'"><strong><span>Radiator Temp 1</span></strong><strong><span class="pull-right" data-bind="text: it.radiator_temp1()"></span></strong></span>
                             </div>
                             <div class="col-md-3 border-left-grey">
                                  <span><strong>Gen. bearing  : </strong></span>
@@ -147,6 +147,8 @@
                                  <span>Drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_driven()"></span></strong>
                                  <hr class="borderGrey">
                                  <span >Non-drive</span><strong><span class="pull-right" data-bind="text: it.temp_gen_bearing_non_driven()"></span></strong>
+                                 <hr class="borderGrey" data-bind="visible:it.project() == 'Amba'">
+                                <span data-bind="visible:it.project() == 'Amba'"><strong><span>Radiator Temp 2</span></strong><strong><span class="pull-right" data-bind="text: it.radiator_temp2()"></span></strong></span>
                              </div>
                              <div class="col-md-3 border-left-grey" data-bind="visible:it.project() == 'Amba'">
                                 <strong><span>Trafo Windings 1</span></strong><strong><span class="pull-right" data-bind="text: it.transformer_winding_temp1()"></span></strong>
