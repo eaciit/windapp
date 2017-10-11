@@ -499,6 +499,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 	// combine
 
 	tmpRes := tk.M{}
+	monthMap := map[string]int{}
 
 	for _, val := range list {
 		id := val.Get("_id").(tk.M)
@@ -517,6 +518,7 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 		time := tk.M{}
 		time.Set("time", strings.ToUpper(trim)+" "+split[1])
+		monthMap[strings.ToUpper(trim)+" "+split[1]] = 1
 
 		col := tk.M{}
 		col.Set("WRA", reswra)
@@ -528,10 +530,30 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 		tmpRes.Set(strings.Trim(turbine, " "), details)
 	}
+	monthList := []string{}
+	for key := range monthMap {
+		monthList = append(monthList, key)
+	}
 
 	turbineList := []string{}
-	for key := range tmpRes {
-		turbineList = append(turbineList, key)
+	for namaTurbine, val := range tmpRes {
+		details := val.([]tk.M)
+		monthExist := map[string]bool{}
+		for _, detail := range details {
+			monthExist[detail.GetString("time")] = true
+		}
+		for _, month := range monthList {
+			_, hasMonth := monthExist[month]
+			if !hasMonth {
+				dummyItem := tk.M{
+					"col":  tk.M{"WRA": 0.0, "Onsite": 0.0},
+					"time": month,
+				}
+				details = append(details, dummyItem)
+			}
+		}
+		tmpRes.Set(namaTurbine, details)
+		turbineList = append(turbineList, namaTurbine)
 	}
 
 	sort.Strings(turbineList)
