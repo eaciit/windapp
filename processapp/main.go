@@ -2,8 +2,8 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/processapp/controllers"
-	// . "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
-	. "eaciit/wfdemo-git/processapp/controllers/excelConverter"
+	. "eaciit/wfdemo-git/processapp/controllers/dataGenerator"
+	// . "eaciit/wfdemo-git/processapp/controllers/excelConverter"
 
 	"os"
 	"runtime"
@@ -39,7 +39,7 @@ func main() {
 
 		// new(ConvAlarm).Generate(base)
 		// new(ConvAlarmBrakeMaster).Generate(base)
-		new(ConvAlarmBrakeMaster).GenerateForAmba(base)
+		// new(ConvAlarmBrakeMaster).GenerateForAmba(base)
 
 		// new(GenAlarmOverlapping).Generate(base)
 		// new(ConvTurbine).Generate(base)
@@ -78,6 +78,7 @@ func main() {
 		met.GenerateWindRose(base)*/
 
 		// new(UpdateScadaHFD).DoUpdateWsBin(base)
+		new(UpdateScadaHFD).DoUpdateTurbineStateForScadaData(base)
 
 		// new(ConvScadaDataOEM).Generate(base)
 

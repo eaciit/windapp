@@ -734,9 +734,12 @@ func GetTemperatureList() (result toolkit.M, e error) {
 }
 
 func GetProjectList() (result []md.ProjectOut, e error) {
+	pipes := []toolkit.M{
+		toolkit.M{"$match": toolkit.M{"active": true}},
+	}
 	csr, e := DB().Connection.NewQuery().
 		From(new(md.ProjectMaster).TableName()).
-		Where(dbox.Eq("active", true)).
+		Command("pipe", pipes).
 		Cursor(nil)
 
 	if e != nil {

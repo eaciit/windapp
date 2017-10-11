@@ -16,6 +16,12 @@ km.dsTotaldataWS = ko.observable();
 km.dsCategoryProduction = ko.observableArray();
 km.dsValueProduction = ko.observableArray();
 km.dsTotaldataProduction = ko.observable();
+km.dsCategoryTemp = ko.observableArray();
+km.dsValueTemp = ko.observableArray();
+km.dsTotaldataTemp = ko.observable();
+
+km.tempTagsDs = ko.observableArray();
+km.tempTagsList = ko.observableArray();
 
 km.ExportKeyMetrics = function () {
     var chart = $("#dh-chart").getKendoChart();
@@ -230,6 +236,103 @@ km.createChartProduction = function (turbinename) {
 
 }
 
+km.createChartTemp = function (turbinename) {
+    $("#totalCountTemp").html('(Total Count Data: ' + km.dsTotaldataTemp() + ')');
+    var turbineData = '';
+    if(fa.turbine().length == 0) {
+        turbineData = 'All Turbines';
+    }else if($(".multiselect-native-select").find($(".multiselect-item.multiselect-all.active")).length == 1){
+        turbineData = 'All Turbines';
+    } else {
+        var turbineName;
+        for(var i=0; i<fa.turbine().length; i++) {
+            if(i==0) {
+                turbineName = turbinename[fa.turbine()[i]];
+            } else {
+                turbineName += ", " + turbinename[fa.turbine()[i]];
+            }
+        }
+        turbineData = turbineName;
+    }
+    var _rotationlabel = 0
+    if (km.BinValue() > 20) {
+        _rotationlabel = 68
+    }
+    $("#turbineListTemp").html('for ' + turbineData);
+    $("#dhtemp-chart").replaceWith("<div id='dhtemp-chart'></div>");
+    $("#dhtemp-chart").kendoChart({
+        theme: "flat",
+        legend: {
+            position: "top",
+            visible: false
+        },
+        seriesDefaults: {
+            type: "column",
+            gap: 0,
+            border: 1
+        },
+        series: [{
+            name: "Temperature",
+            data: km.dsValueTemp(),
+            color: "#ea5b19"
+        }],
+        valueAxis: {
+            title: {
+                text: "Percentage of Temperature (%)",
+                visible: true,
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                format: "{0}",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            line: {
+                visible: false
+            },
+            min: 0,
+            axisCrossingValue: 0
+        },
+        categoryAxis: {
+            title: {
+                text: "Temperature",
+                visible: true,
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            categories: km.dsCategoryTemp(),
+            majorGridLines: {
+                visible: false
+            },
+            line: {
+                visible: false
+            },
+            labels: {
+                rotation : _rotationlabel,
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                template: "#: ((value.split('~'))[0]) #",
+                format: "{0:n0}"
+            }
+        },
+        tooltip: {
+            visible: true,
+            format: "{0:n0}%",
+            template: "#= category # : #= value #%",
+            background: "rgb(255,255,255, 0.9)",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            }
+        }
+    });
+
+}
+
 vm.currentMenu('Histograms');
 vm.currentTitle('Histograms');
 vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms', href: viewModel.appName + 'page/analyticdatahistogram' }]);
@@ -241,6 +344,15 @@ km.getData = function () {
 
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+
+        var tagList = km.tempTagsList();
+        km.tempTagsDs(eval("tagList."+ fa.project));
+
+        $('#sTempTags').kendoDropDownList({
+            dataSource: km.tempTagsDs(),
+            dataValueField: 'colname', 
+            dataTextField: 'text',
+        });
 
         var paramFilter = {
             period: fa.period,
@@ -291,7 +403,26 @@ km.getData = function () {
             }
         });
 
-        $.when(requestHistogram, requestProduction).done(function(){
+        var parDataTemp = {
+            MinValue: parseFloat(km.MinValueWindSpeed()),
+            MaxValue: parseFloat(km.MaxValueWindSpeed()),
+            BinValue: parseInt(km.BinValueWindSpeed()),
+            FieldName: $('#sTempTags').data('kendoDropDownList').value(),
+            Filter: paramFilter,
+        };
+        var requestHistogramTemp = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            if (res.data != null) {
+                km.dsCategoryTemp(res.data.category);
+                km.dsValueTemp(res.data.value);
+                km.dsTotaldataTemp(res.data.totaldata);
+                km.createChartTemp(res.data.turbinename);
+            }
+        });
+
+        $.when(requestHistogram, requestProduction, requestHistogramTemp).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },500);
@@ -303,15 +434,28 @@ km.SubmitValues = function () {
     km.getData();
 }
 
+km.getTempTags = function() {
+    var param = {};
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemptags", param, function (res) {
+        if (res.data != null) {
+            km.tempTagsList(res.data);
+        }
+    });
+}
+
 
 $(document).ready(function () {
     di.getAvailDate();
+    
+    km.getTempTags();
+
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         setTimeout(function () {
             km.getData();
         }, 300);
     });
+
     $('#exportXlsx').on('click', function (e) {
         window.open('data:application/vnd.ms-excel,' + encodeURIComponent($('div[id$=dhprod-chart]').html()));
         e.preventDefault();
