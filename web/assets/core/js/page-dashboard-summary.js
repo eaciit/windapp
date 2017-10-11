@@ -13,6 +13,8 @@ sum.isDetailLostEnergyLevel2 = ko.observable(false);
 sum.isSummaryDetail = ko.observable(true);
 sum.isGridDetail = ko.observable(true);
 
+sum.isDetailAvailability = ko.observable(false);
+
 sum.detailProdTxt = ko.observable('');
 sum.detailProdMsTxt = ko.observable('');
 sum.detailProdProjectTxt = ko.observable('');
@@ -36,6 +38,7 @@ sum.periodSelected = ko.observable('currentmonth');
 sum.detailSummary = ko.observableArray([]);
 sum.getScadaLastUpdate = ko.observableArray([]);
 sum.detailProjectName = ko.observable();
+sum.DetailAvailabilityData = ko.observableArray([]);
 
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -959,13 +962,13 @@ sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
             majorTickType: "none"
         },
         plotAreaClick: function(e) {
-            // if(tipe === "fleet") {
-            //     if (e.originalEvent.type === "contextmenu") {
-            //       // Disable browser context menu
-            //       e.originalEvent.preventDefault();
-            //     }
-            //     sum.DetailProdByProjectDetail("Fleet", e, "availability");
-            // }
+            if(tipe === "fleet") {
+                if (e.originalEvent.type === "contextmenu") {
+                  // Disable browser context menu
+                  e.originalEvent.preventDefault();
+                }
+                sum.DetailAvailability("Fleet", e, "availability");
+            }
         },
         tooltip: {
             visible: true,
@@ -2152,6 +2155,124 @@ sum.DetailProdByProjectDetail = function (project, e, tipe) {
 
 }
 
+sum.DetailAvailability = function (project, e, tipe) {
+    $('#btn-back-availability').attr('onclick', 'sum.backToDashboard()');
+    $('.detailAvailability').html("");
+
+    var bulan = e.category;
+    sum.detailProdTxt(bulan);
+
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isMonthlyProject(false);
+    sum.isDetailProd(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailProdByProject(false);
+    sum.isSummaryDetail(false);
+    sum.isGridDetail(false);
+    sum.isDetailAvailability(true);
+
+    var param = { 'project': project, 'date': sum.detailProdTxt() };
+
+    sum.detailProdProjectTxt(project);
+    sum.detailProdDateTxt(sum.detailProdTxt());
+
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetailprod", param, function (res) {
+        
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataSource = res.data;
+        sum.DetailAvailabilityData(dataSource);
+
+        $.each(dataSource, function(key, val){
+            var seriesData = [{
+                name: "Availability (%)",
+                field: "trueavail",
+                axis: "availability",
+                color: customColorProject[val.project],
+            }];
+
+            var isHidden = true;
+
+            $("#chartDetailAvail-"+val.project).kendoChart({
+                theme: "material",
+                dataSource: {
+                    data: val.detail
+                },
+                title: { 
+                    text: val.project,
+                    font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                legend: {
+                    visible: false,
+                    position: "top",
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    }
+                },
+                chartArea: {
+                    padding: 10,
+                    margin: 10,
+                    height: 250,
+                },
+                seriesDefaults: {
+                    type: "column",
+                    area: {
+                        line: {
+                            style: "smooth"
+                        }
+                    }
+                },
+                series: seriesData,
+                valueAxis: {
+                    name: "availability",
+                    title: { text: "Availability  (%)",font: "11px"},
+                    line: {
+                        visible: false
+                    },
+                    labels:{
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    axisCrossingValue: -10,
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                },
+                categoryAxis: {
+                    field: "turbine",
+                    majorGridLines: {
+                        visible: false
+                    },
+                    majorTickType: "none",
+                    labels: {
+                        rotation: 45,
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    axisCrossingValues: [0, 1000],
+                },
+                tooltip: {
+                    visible: true,
+                    shared: true,
+                    template: "#= kendo.toString(value, 'n2') #",
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                }
+            });
+        });
+
+        app.loading(false);
+    });
+}
+
 sum.DetailLostEnergy = function(e){
     app.loading(true);
     vm.isDashboard(false);
@@ -2378,6 +2499,7 @@ sum.backToDashboard = function () {
     sum.isDetailLostEnergy(false);
     sum.isDetailLostEnergyLevel2(false);
     sum.isMonthlyProject(false);
+    sum.isDetailAvailability(false);
 }
 
 sum.toDetailProduction = function () {

@@ -512,3 +512,9 @@ var colorFields2 =  ["#9e9e9e","#337ab7","#ff0000"];
 // var colorFieldProject = ["#0a547b","#1fbec3","#abe8db"];
 // var colorFieldProject = ["#2abb9c","#39ca74","#2f81b7","#f0c231","#96ceb4"];
 var colorFieldProject = ["#21c4af","#2f81b7","#f0c231","#96ceb4"];
+
+var customColorProject = {
+    Amba : "#21c4af",
+    Lahori : "#2f81b7",
+    Tejuva : "#f0c231",
+}
