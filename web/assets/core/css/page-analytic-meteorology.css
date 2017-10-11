@@ -203,9 +203,10 @@ label.summary-number {
 .mb-5{
 	 margin-bottom: -5px;
 }
-#gridTurbineCorrelation .k-grid-content-locked {
+#gridTurbineCorrelation .k-grid-content-locked, #gridEnergyCorrelation .k-grid-content-locked{
      height: 342px!important; 
 }
+
 #gridTable1224 >.k-grid-header > .k-grid-header-wrap > table > thead > tr {
 	height: 37px !important;
 }
