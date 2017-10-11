@@ -1113,27 +1113,24 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 
 	result := []tk.M{}
 
-	p := new(PayloadDashboard)
+	p := tk.M{}
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	var pipes []tk.M
-	var fromDate time.Time
 	match := tk.M{}
+	match.Set("detail.detaildateinfo.monthdesc", p.GetString("date"))
 
-	fromDate = p.Date.AddDate(0, -11, 0)
-	match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
-
-	if p.ProjectName != "Fleet" {
-		match.Set("projectname", p.ProjectName)
+	if p.GetString("project") != "Fleet" {
+		match.Set("projectname", p.GetString("project"))
 	}
 
 	pipes = append(pipes, tk.M{"$unwind": "$detail"})
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	// get the top 10 of turbine dan mengambil total
 
@@ -1147,8 +1144,8 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 		return helper.CreateResult(false, result, e.Error())
 	}
 
-	top10Turbines := []tk.M{}
-	e = csr.Fetch(&top10Turbines, 0, false)
+	allLossData := []tk.M{}
+	e = csr.Fetch(&allLossData, 0, false)
 	csr.Close()
 
 	if e != nil {
@@ -1158,7 +1155,7 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 	turbines := []string{}
 	turbinesVal := tk.M{}
 
-	for _, turbine := range top10Turbines {
+	for _, turbine := range allLossData {
 		turbines = append(turbines, turbine.Get("_id").(string))                   /*untuk turbine list supaya query gak banyak2*/
 		turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result")) /*untuk total list tiap turbine*/
 	}
@@ -1197,7 +1194,7 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 			},
 		)
 
-		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
+		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
 		csr, e := DB().Connection.NewQuery().
 			From(new(Alarm).TableName()).
@@ -1240,8 +1237,8 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 			resY = append(resY, resX)
 		}
 	}
-	project := p.ProjectName
-	if p.ProjectName == "Fleet" {
+	project := p.GetString("project")
+	if p.GetString("project") == "Fleet" {
 		project = ""
 	}
 	turbineName, _ := helper.GetTurbineNameList(project)
