@@ -43,7 +43,7 @@ page.showHideLegend = function (index) {
     var idName = "btn" + index;
     listOfButton[idName] = !listOfButton[idName];
     if (listOfButton[idName] == false) {
-        $("#" + idName).css({ 'background': '#8f8f8f', 'border-color': '#8f8f8f' });
+        $("#" + idName).css({ 'background': '#E0E0E0', 'border-color': '#E0E0E0' });
     } else {
         $("#" + idName).css({ 'background': listOfCategory[index].color, 'border-color': listOfCategory[index].color });
     }
