@@ -948,8 +948,13 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 
 	pipes = append(pipes, tk.M{"$unwind": "$detail"})
 	pipes = append(pipes, tk.M{"$match": match})
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$detail.detaildateinfo.monthid", "result": tk.M{"$sum": "$detail.powerlost"}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id": tk.M{
+			"projectname": "$projectname",
+			"bulan":       "$detail.detaildateinfo.monthid",
+		},
+		"result": tk.M{"$sum": "$detail.powerlost"}}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.bulan": 1}})
 
 	// get the top 10 of turbine dan mengambil total
 
@@ -982,9 +987,17 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 		monthList = append(monthList, monthCount)
 		monthCount++
 	}
-
+	projectMap := map[string]int{}
 	for _, monthly := range allLossData {
-		lossPerMonth.Set(tk.ToString(monthly.GetInt("_id")), monthly.GetFloat64("result")) /*untuk total list tiap bulan*/
+		ids := monthly.Get("_id").(tk.M)
+		project := ids.GetString("projectname")
+		bulan := ids.GetInt("bulan")
+		projectMap[project] = 1
+		lossPerMonth.Set(tk.Sprintf("%s_%s", project, tk.ToString(bulan)), monthly.GetFloat64("result")) /*untuk total list tiap bulan*/
+	}
+	projectList := []string{}
+	for key := range projectMap {
+		projectList = append(projectList, key)
 	}
 
 	downCause := tk.M{}
@@ -1014,7 +1027,7 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 
 		pipes = append(pipes,
 			tk.M{
-				"$group": tk.M{"_id": tk.M{"id3": "$detail.detaildateinfo.monthid", "id4": title},
+				"$group": tk.M{"_id": tk.M{"id2": "$projectname", "id3": "$detail.detaildateinfo.monthid", "id4": title},
 					"result": tk.M{"$sum": "$detail.powerlost"},
 				},
 			},
@@ -1044,66 +1057,70 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 	totalLossPerYear := map[string]float64{}
 	totalLoss := 0.0
 
-	for _, t := range downCause { /*mencari data per bulan untuk tiap downtime type*/
-		totalLoss = 0.0
-		title := tk.ToString(t)
-		keyTotal := strings.Replace(title, " ", "", -69)
+	for _, project := range projectList {
+		for _, t := range downCause { /*mencari data per bulan untuk tiap downtime type, jika ada yang kosong maka apply default data*/
+			totalLoss = 0.0
+			title := tk.ToString(t)
+			keyTotal := strings.Replace(title, " ", "", -69)
 
-		for _, month := range monthList {
-			resX := tk.M{}
-			resX.Set("_id", tk.M{"id3": month, "id4": title})
-			resX.Set("result", 0)
+			for _, month := range monthList {
+				resX := tk.M{}
+				resX.Set("_id", tk.M{"id2": project, "id3": month, "id4": title})
+				resX.Set("result", 0)
 
-		out:
-			for _, res := range tmpResult {
-				id3 := res.Get("_id").(tk.M).GetInt("id3")
-				id4 := res.Get("_id").(tk.M).GetString("id4")
+			out:
+				for _, res := range tmpResult {
+					idProject := res.Get("_id").(tk.M).GetString("id2")
+					id3 := res.Get("_id").(tk.M).GetInt("id3")
+					id4 := res.Get("_id").(tk.M).GetString("id4")
 
-				if id3 == month && id4 == title {
-					resX = res
-					totalLoss += res.GetFloat64("result")
-					break out
+					if id3 == month && id4 == title && idProject == project {
+						resX = res
+						totalLoss += res.GetFloat64("result")
+						break out
+					}
 				}
+				resY = append(resY, resX)
 			}
-			resY = append(resY, resX)
+			totalLossPerYear[keyTotal] = totalLoss
 		}
-		totalLossPerYear[keyTotal] = totalLoss
 	}
 
 	fromYear := fromDate.Year() * 100
 	toYear := p.Date.Year() * 100
 	result := []tk.M{}
-	for _, month := range monthList {
-		resVal := tk.M{}
-		monthInt := month - toYear
-		if monthInt < 0 {
-			monthInt = month - fromYear
-		}
-		resVal.Set("_id", time.Month(monthInt).String()[0:3])
-		for _, val := range resY {
-			valMonth := val.Get("_id").(tk.M).GetInt("id3")
-			valResult := val.GetFloat64("result")
-			valTitle := ""
+	resultPerProject := tk.M{}
 
-			splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
-
-			if len(splitTitle) > 1 {
-				valTitle = splitTitle[0] + splitTitle[1]
-			} else {
-				valTitle = splitTitle[0]
+	for _, project := range projectList {
+		result = []tk.M{}
+		for _, month := range monthList {
+			resVal := tk.M{}
+			monthInt := month - toYear
+			if monthInt < 0 {
+				monthInt = month - fromYear
 			}
+			resVal.Set("_id", time.Month(monthInt).String()[0:3]) /* _id: "Aug" */
+			for _, down := range downCause {
+				for _, val := range resY {
+					valProject := val.Get("_id").(tk.M).GetString("id2")
+					valMonth := val.Get("_id").(tk.M).GetInt("id3")
+					valResult := val.GetFloat64("result")
+					oriTitle := val.Get("_id").(tk.M).GetString("id4")
+					valTitle := strings.Replace(oriTitle, " ", "", -69)
 
-			if month == valMonth && valResult != 0 {
-				resVal.Set(valTitle, valResult)
-			} else if resVal.Get(valTitle) == nil {
-				resVal.Set(valTitle, 0)
+					if month == valMonth && project == valProject && oriTitle == tk.ToString(down) && valResult != 0 {
+						resVal.Set(valTitle, valResult) /* MachineDown : 7.6666 */
+					} else if resVal.Get(valTitle) == nil {
+						resVal.Set(valTitle, 0) /*GridDown : 0 */
+					}
+				}
 			}
+			resVal.Set("Total", lossPerMonth.GetFloat64(tk.Sprintf("%s_%s", project, tk.ToString(month))))
+			result = append(result, resVal)
 		}
-
-		resVal.Set("Total", lossPerMonth.GetFloat64(tk.ToString(month)))
-		result = append(result, resVal)
+		resultPerProject.Set(project, result)
 	}
-	results.Set("datachart", result)
+	results.Set("datachart", resultPerProject)
 	results.Set("datapie", totalLossPerYear)
 	return helper.CreateResult(true, results, "success")
 }
