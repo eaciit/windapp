@@ -218,6 +218,168 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type HeatMap struct {
+		Color   string
+		Opacity float64
+	}
+
+	var dataSeries []tk.M
+	var dataHeat []tk.M
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	query, pipes := []tk.M{}, []tk.M{}
+	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
+
+	if p.Project != "" {
+		query = append(query, tk.M{"projectname": p.Project})
+	}
+
+	query = append(query, tk.M{"power": tk.M{"$gte": 0}})
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "power": 1, "timestamp": 1}})
+
+	csr, err := DB().Connection.NewQuery().From(new(ScadaData).TableName()).
+		Command("pipe", pipes).Cursor(nil)
+
+	if err != nil {
+		return helper.CreateResult(false, nil, err.Error())
+	}
+	defer csr.Close()
+
+	allres := tk.M{}
+	arrturbine := []string{}
+	_tturbine := tk.M{}
+
+	for {
+		trx := new(ScadaData)
+		e := csr.Fetch(trx, 1, false)
+		if e != nil {
+			break
+		}
+
+		dkey := trx.TimeStamp.Format("20060102150405")
+
+		_tkm := allres.Get(trx.Turbine, tk.M{}).(tk.M)
+		if trx.Power != -99999.0 {
+			_tkm.Set(dkey, trx.Power)
+		}
+
+		allres.Set(trx.Turbine, _tkm)
+		_tturbine.Set(trx.Turbine, 1)
+	}
+
+	for key, _ := range _tturbine {
+		arrturbine = append(arrturbine, key)
+	}
+
+	sort.Strings(arrturbine)
+	pturbine := arrturbine
+	arrturbine = append([]string{"Turbine"}, arrturbine...)
+
+	if len(p.Turbine) > 0 {
+		pturbine = []string{}
+		for _, _v := range p.Turbine {
+			pturbine = append(pturbine, tk.ToString(_v))
+		}
+	}
+
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for _, _turbine := range pturbine {
+		_tkm := tk.M{}.Set("Turbine", turbineName[_turbine])
+		for i := 1; i < len(arrturbine); i++ {
+			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
+			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
+			if arrturbine[i] != _turbine && len(_dt01) > 0 && len(_dt02) > 0 {
+				_tkm.Set(arrturbine[i],
+					GetCorrelation(_dt01, _dt02))
+			} else {
+				_tkm.Set(arrturbine[i], "-")
+			}
+		}
+		dataSeries = append(dataSeries, _tkm)
+	}
+
+	for _, _tkm := range dataSeries {
+		_heattkm := tk.M{}
+
+		_aint := []float64{}
+
+		for _key, _val := range _tkm {
+			if tk.ToString(_val) == "-" || _key == "Turbine" {
+				continue
+			}
+			_num := tk.ToFloat64(_val, 2, tk.RoundingAuto)
+			if !tk.HasMember(_aint, _num) {
+				_aint = append(_aint, _num)
+			}
+		}
+
+		sort.Float64s(_aint)
+		_mapunique := map[float64]float64{}
+		_median := float64((len(_aint) + 1)) / 2
+		for _i, _val := range _aint {
+			_mapunique[_val] = float64(_i) + 1
+		}
+
+		// tk.Println("MAP : ", _mapunique, " MEDIAN : ", _median)
+
+		for _key, _val := range _tkm {
+			_dt := HeatMap{}
+			_dt.Color = "white"
+			_dt.Opacity = 1
+
+			if tk.ToString(_val) != "-" && _key != "Turbine" {
+				_fval := tk.ToFloat64(_val, 2, tk.RoundingAuto)
+				if _median != _mapunique[_fval] {
+					if _median > _mapunique[_fval] {
+						_dt.Color = "red"
+						_dt.Opacity = tk.Div((_median - _mapunique[_fval]), _median)
+					} else {
+						_dt.Color = "green"
+						_dt.Opacity = tk.Div((_mapunique[_fval] - _median), _median)
+					}
+				}
+			}
+
+			_heattkm.Set(_key, _dt)
+		}
+
+		dataHeat = append(dataHeat, _heattkm)
+	}
+
+	data := struct {
+		Column      []string
+		Data        []tk.M
+		Heat        []tk.M
+		TurbineName map[string]string
+	}{
+		Column:      arrturbine,
+		Data:        dataSeries,
+		Heat:        dataHeat,
+		TurbineName: turbineName,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
