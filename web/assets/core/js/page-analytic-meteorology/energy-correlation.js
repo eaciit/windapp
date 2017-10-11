@@ -47,7 +47,7 @@ ec.EnergyCorrelation = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         pm.showFilter();
-        if(pm.isFirstTurbine() === true){
+        if(pm.isFirstEnergy() === true){
             app.loading(true);
             var param = {
                 period: fa.period,
@@ -169,7 +169,7 @@ ec.EnergyCorrelation = function(){
                     $("#gridEnergyCorrelation >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","37px");
                     $("#gridEnergyCorrelation").data("kendoGrid").refresh(); 
                     app.loading(false);
-                    pm.isFirstTurbine(false)    
+                    pm.isFirstEnergy(false)    
                 },200);
                 $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
                 $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');

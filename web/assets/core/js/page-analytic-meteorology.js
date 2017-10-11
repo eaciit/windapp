@@ -55,6 +55,7 @@ pm.isFirstWindDis = ko.observable(true);
 pm.isFirstTurbulence = ko.observable(true);
 pm.isFirstTemperature = ko.observable(true);
 pm.isFirstTurbine = ko.observable(true);
+pm.isFirstEnergy = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
 
@@ -119,6 +120,7 @@ pm.resetStatus= function(){
     pm.isFirstTurbulence(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
+    pm.isFirstEnergy(true);
     pm.isFirstTwelve(true);
     pm.isFirstWindRoseComparison(true);
 }

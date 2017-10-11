@@ -1,27 +1,28 @@
 
-#gridTurbineCorrelation ::-webkit-scrollbar {
+#gridTurbineCorrelation ::-webkit-scrollbar, #gridEnergyCorrelation ::-webkit-scrollbar {
   height: 10px;
   width: 10px;
   background: #ecf0f5;
   -webkit-border-radius: 0ex;
 }
 
-#gridTurbineCorrelation tr:hover {
+#gridTurbineCorrelation tr:hover , #gridEnergyCorrelation tr:hover {
   background: transparent;
   color:#585555;
 }
  
-#gridTurbineCorrelation tr.k-alt:hover {
+#gridTurbineCorrelation tr.k-alt:hover, #gridEnergyCorrelation tr.k-alt:hover {
   background: transparent;
   color:#585555;
 }
 
 
-#gridTurbineCorrelation ::-webkit-scrollbar-thumb {
+#gridTurbineCorrelation ::-webkit-scrollbar-thumb, #gridEnergyCorrelation ::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   -webkit-border-radius: 0ex;
   -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }
+
 
 .chk-custom{
 	display: inline;
