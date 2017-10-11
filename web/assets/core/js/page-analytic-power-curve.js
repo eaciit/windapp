@@ -23,6 +23,7 @@ page.showDownTime = ko.observable(false);
 page.deviationVal = ko.observable("20");
 
 page.isDensity = ko.observable(false);
+page.dataAvail = ko.observable(0.0);
 
 // add by ams Aug 11, 2017
 page.deviationOpts = ko.observableArray([
@@ -680,16 +681,21 @@ var Data = {
             $("#showHideChk").html("");
         }
 
+        var totalDataShoulBeInProject = 0;
+        var totalDataAvailInProject = 0;
         $("#right-turbine-list").html("");
         $.each(dtTurbines, function(idx, val) {
             if(val.name != "Power Curve"){
+                totalDataShoulBeInProject += val.totaldatashouldbe;
+                totalDataAvailInProject += val.totaldata;
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
                 '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + val.idxseries + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + '</button>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + ' <label class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ val.name +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
                 '</div>');
             }
         });
+        page.dataAvail((totalDataAvailInProject / totalDataShoulBeInProject));
     },
     InitDownList: function() {
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdownlist", "", function(res) {
@@ -863,6 +869,13 @@ page.getSelectedFilter = function(){
             $("#selectedFilter").append("No Filter Selected.");
         }  
     },200);
+}
+
+page.CheckDeviationValue = function(elm) {
+    var value = $(elm).val();
+    if(value=='') {
+        $(elm).val(0);
+    }
 }
 
 $(document).ready(function() {

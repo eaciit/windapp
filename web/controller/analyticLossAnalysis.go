@@ -1408,6 +1408,109 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type TempHistoPayload struct {
+		MaxValue  float64
+		MinValue  float64
+		BinValue  int
+		FieldName string
+		Filter    PayloadAnalytic
+	}
+
+	p := new(TempHistoPayload)
+	e := k.GetPayload(&p)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	/*tStart, _ := time.Parse("2006-01-02", p.Filter.DateStart.UTC().Format("2006-01-02"))
+	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.Filter.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Filter.Turbine
+	project := p.Filter.Project
+
+	category := []string{}
+	value := []float64{}
+	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
+	startcategory := p.MinValue
+	totalData := 0.0
+
+	match := tk.M{}
+	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+	if project != "" {
+		match.Set("projectname", project)
+	}
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+	group := tk.M{
+		"_id":   "",
+		"total": tk.M{}.Set("$sum", 1),
+	}
+
+	for i := 0; i < (p.BinValue); i++ {
+
+		category = append(category, fmt.Sprintf("%.0f", startcategory))
+		match.Set(p.FieldName, tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
+		// match.Set("isnull", false)
+
+		var pipes []tk.M
+		pipes = append(pipes, tk.M{}.Set("$match", match))
+		pipes = append(pipes, tk.M{}.Set("$group", group))
+
+		csr, e := DB().Connection.NewQuery().
+			From("Scada10MinHFD").
+			Command("pipe", pipes).
+			Cursor(nil)
+
+		defer csr.Close()
+
+		if e != nil {
+			return helper.CreateResult(false, nil, "Error query : "+e.Error())
+		}
+
+		resultCategory := []tk.M{}
+		e = csr.Fetch(&resultCategory, 0, false)
+
+		if len(resultCategory) > 0 {
+			value = append(value, float64(resultCategory[0]["total"].(int)))
+			totalData = totalData + float64(resultCategory[0]["total"].(int))
+		} else {
+			value = append(value, 0.00)
+		}
+
+		startcategory = startcategory + interval
+	}
+
+	for i := 0; i < len(value); i++ {
+		valuex := float64(int((value[i]/totalData*100)*100)) / 100
+		if valuex < 0 {
+			value[i] = 0
+		} else {
+			value[i] = valuex
+		}
+	}
+	turbineName, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	data := tk.M{
+		"category":    category,
+		"value":       value,
+		"totaldata":   totalData,
+		"turbinename": turbineName,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -1578,4 +1681,12 @@ func (m *AnalyticLossAnalysisController) GetAvailDate_DRAFT(k *knot.WebContext) 
 	result["lastdate"] = lastDateData
 
 	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticLossAnalysisController) GetTempTags(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	tempTags, _ := helper.GetTemperatureList()
+
+	return helper.CreateResult(true, tempTags, "success")
 }
