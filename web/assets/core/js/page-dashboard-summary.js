@@ -15,6 +15,9 @@ sum.isGridDetail = ko.observable(true);
 
 sum.isDetailAvailability = ko.observable(false);
 
+sum.isDetailLostEnergyPlot = ko.observable(false);
+sum.isDetailLostEnergyPlotLevel2 = ko.observable(false);
+
 sum.detailProdTxt = ko.observable('');
 sum.detailProdMsTxt = ko.observable('');
 sum.detailProdProjectTxt = ko.observable('');
@@ -39,6 +42,7 @@ sum.detailSummary = ko.observableArray([]);
 sum.getScadaLastUpdate = ko.observableArray([]);
 sum.detailProjectName = ko.observable();
 sum.DetailAvailabilityData = ko.observableArray([]);
+sum.DetailLostEnergyData = ko.observableArray([]);
 
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -449,6 +453,13 @@ sum.LostEnergy = function (dataSource) {
         seriesColors: colorField,
         seriesClick: function (e) {
             sum.DetailLostEnergy(e);
+        },
+        plotAreaClick: function(e) {
+            if (e.originalEvent.type === "contextmenu") {
+              // Disable browser context menu
+              e.originalEvent.preventDefault();
+            }
+            sum.DetailLTPlot("Fleet", e);
         },
         valueAxis: {
             // labels: {
@@ -1699,7 +1710,12 @@ sum.MonthlyProject = function (e, tipe) {
 
     var valueAxesData = [{
         name: "production",
-        title: { text: "Production (MWh)",font: "10px"},
+        title: { 
+            margin: {
+                right: 0
+            },
+            text: "Production (MWh)",font: "10px"
+        },
         line: {
             visible: false
         },
@@ -1715,7 +1731,11 @@ sum.MonthlyProject = function (e, tipe) {
         
     }, {
         name: "lostenergy",
-        title: { text: "Lost Energy (MWh)",font: "10px"},
+        title: { 
+            margin: {
+                left: 0
+            },
+            text: "Lost Energy (MWh)",font: "10px"},
         line: {
             visible: false
         },
@@ -1740,7 +1760,23 @@ sum.MonthlyProject = function (e, tipe) {
         }];
         valueAxesData = [{
             name: "plf",
-            title: { text: "PLF ",font: "11px"},
+            title: { 
+                margin: {
+                    left: 0
+                },
+                text: "PLF (%)",font: "11px"},
+            line: {
+                visible: false
+            },
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
         }];
     }
 
@@ -1760,7 +1796,7 @@ sum.MonthlyProject = function (e, tipe) {
         },
         chartArea: {
             padding: 10,
-            margin: 0,
+            margin: 5,
             height: 200,
         },
         seriesDefaults: {
@@ -2046,6 +2082,18 @@ sum.DetailProdByProjectDetail = function (project, e, tipe) {
             valueAxesData = [{
                 name: "plf",
                 title: { text: "PLF " +measurement ,font: "11px"},
+                line: {
+                    visible: false
+                },
+                labels:{
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
             }];
             isHidden = false;
         }
@@ -2490,6 +2538,302 @@ sum.DetailLostEnergyLevel2 = function(e){
         });
     });
 }
+
+
+sum.DetailLTPlot = function(project, e){
+
+    $('.detaillostenergy').html("");
+
+    var bulan = e.category;
+    sum.detailProdTxt(bulan);
+
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isMonthlyProject(false);
+    sum.isDetailProd(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailProdByProject(false);
+    sum.isSummaryDetail(false);
+    sum.isGridDetail(false);
+    sum.isDetailAvailability(false);
+    sum.isDetailLostEnergyPlotLevel2(false);
+    sum.isDetailLostEnergyPlot(true);
+
+
+    var param = { 'ProjectName': project, 'Date': new Date()};
+
+    sum.detailProdProjectTxt(project);
+    sum.detailProdDateTxt(sum.detailProdTxt());
+
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetaillosslevel1", param, function (res) {
+        
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataSource = res.data;
+
+        setTimeout(function(){
+            sum.DetailLostEnergyData(dataSource.datachart);
+            $.each(dataSource.datachart, function(key, val){
+                $("#chartLostEnergyByMonth-"+key).kendoChart({
+                    dataSource: {
+                        data: dataSource.datachart[key],
+                    },
+                    theme: "flat",
+                    title: { 
+                        text: "",
+                        font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    legend: {
+                        position: "top",
+                        visible: true,
+                        labels: {
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        }
+                    },
+                    chartArea: {
+                        height: 185,
+                        background: "transparent",
+                        padding: 0,
+                    },
+                    seriesDefaults: {
+                        type: "column",
+                        stack: true
+                    },
+                    series: [{
+                        name: "Grid Down",
+                        type: "column",
+                        field: "GridDown",
+                    },{
+                        name: "Machine Down",
+                        type: "column",
+                        field: "MachineDown",
+                    },{
+                        name: "Unknown",
+                        type: "column",
+                        field: "Unknown",
+                    }],
+                    seriesColors: colorFieldProject,
+                    valueAxis: {
+                        min: 0,
+                        labels: {
+                            step: 2,
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                        line: {
+                            visible: false
+                        },
+                        axisCrossingValue: -10,
+                        majorGridLines: {
+                            visible: true,
+                            color: "#eee",
+                            width: 0.8,
+                        }
+                    },
+                    categoryAxis: {
+                        field: "_id",
+                        majorGridLines: {
+                            visible: false
+                        },
+                        labels: {
+                            template: '#=  value.substring(0,3) #',
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        },
+                        majorTickType: "none"
+                    },
+                    tooltip: {
+                        visible: true,
+                        format: "{0:n1}",
+                        background: "rgb(255,255,255, 0.9)",
+                        // template: "#= series.name # :  #= series.value #",
+                        shared: true,
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    },
+                    seriesClick: function (e) {
+                        sum.DetailLTPlotLevel2(key,e);
+                    },
+                });
+            });
+
+            $.each(dataSource.datapie, function(key, val){
+
+                var dataPie = dataSource.datapie[key].sort(function (a, b) {
+                    return a.name.localeCompare( b.name );
+                });
+
+                $("#chartLostEnergyByType-"+key).kendoChart({
+                    theme: "flat",
+                    title: {
+                        text: ""
+                    },
+                    chartArea: {
+                        width: 300,
+                        height: 200
+                    },
+                    legend: {
+                        position: "right",
+                        visible: true,
+                        labels: {
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        }
+                    },
+                    dataSource: {
+                        data: dataPie
+                    },
+                    series: [{
+                        type: "pie",
+                        field: "value",
+                        categoryField: "name",
+                    }],
+                    seriesColors: colorFieldProject,
+                    tooltip: {
+                        visible: true,
+                        format: "{0:n1}",
+                        background: "rgb(255,255,255, 0.9)",
+                        template: "${ category } : ${ kendo.toString(value, 'n2') }",
+                        shared: true,
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    },
+                });
+            });
+
+
+        },500);
+
+        app.loading(false);
+    });
+
+}
+sum.DetailLTPlotLevel2 = function(project, e){
+
+    $('.detaillostenergylvl2').html("");
+
+    sum.detailProdTxt(e.category);
+
+    app.loading(true);
+    vm.isDashboard(false);
+    lgd.isSummary(false);
+    sum.isMonthlyProject(false);
+    sum.isDetailProd(false);
+    sum.isDetailLostEnergy(false);
+    sum.isDetailProdByProject(false);
+    sum.isSummaryDetail(false);
+    sum.isGridDetail(false);
+    sum.isDetailAvailability(false);
+    sum.isDetailLostEnergyPlotLevel2(true);
+    sum.isDetailLostEnergyPlot(false);
+
+
+    var param = { 'project': project, 'date': e.category};
+
+    sum.detailProdProjectTxt(project);
+    sum.detailProdDateTxt(sum.detailProdTxt());
+
+    toolkit.ajaxPost(viewModel.appName + "dashboard/getdetaillosslevel2", param, function (res) {
+        
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dataSource = res.data;
+
+        setTimeout(function(){
+            $(".detaillostenergylvl2").kendoChart({
+                dataSource: {
+                    data: dataSource,
+                },
+                theme: "flat",
+                title: { 
+                    text: "",
+                    font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                legend: {
+                    position: "top",
+                    visible: true,
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    }
+                },
+                chartArea: {
+                    height: 350,
+                    background: "transparent",
+                    padding: 0,
+                },
+                seriesDefaults: {
+                    type: "column",
+                    stack: true
+                },
+                series: [{
+                    name: "Grid Down",
+                    type: "column",
+                    field: "GridDown",
+                },{
+                    name: "Machine Down",
+                    type: "column",
+                    field: "MachineDown",
+                },{
+                    name: "Unknown",
+                    type: "column",
+                    field: "Unknown",
+                }],
+                seriesColors: colorFieldProject,
+                valueAxis: {
+                    min: 0,
+                    labels: {
+                        step: 2,
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    line: {
+                        visible: false
+                    },
+                    axisCrossingValue: -10,
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    }
+                },
+                categoryAxis: {
+                    field: "_id",
+                    majorGridLines: {
+                        visible: false
+                    },
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        rotation: "auto",
+                    },
+                    majorTickType: "none"
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{0:n1}",
+                    background: "rgb(255,255,255, 0.9)",
+                    // template: "#= series.name # :  #= series.value #",
+                    shared: true,
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                },
+            });
+        },500);
+
+        app.loading(false);
+    });
+
+}
 sum.backToDashboard = function () {
     lgd.start();
     vm.isDashboard(true);
@@ -2500,6 +2844,13 @@ sum.backToDashboard = function () {
     sum.isDetailLostEnergyLevel2(false);
     sum.isMonthlyProject(false);
     sum.isDetailAvailability(false);
+    sum.isDetailLostEnergyPlot(false);
+    sum.isDetailLostEnergyPlotLevel2(false);
+}
+
+sum.toDetailLostEnergyLvl1 = function(){
+    sum.isDetailLostEnergyPlot(true);
+    sum.isDetailLostEnergyPlotLevel2(false);
 }
 
 sum.toDetailProduction = function () {

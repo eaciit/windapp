@@ -617,3 +617,68 @@
 		</div>
 	</div>
 </div>
+
+<div data-bind="visible:sum.isDetailLostEnergyPlot()">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" data-bind="click:sum.backToDashboard()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Detail Lost Energy (MWh)&nbsp;&nbsp;</div>
+				<div class="panel-body" >
+					<div class="lostenergy-project-wrapper text-center" data-bind="foreach: lgd.projectList()" style="margin-top: -25px;">
+						<div class="col-md-12 detail-lostenergy-item" data-bind="visible: (value!='Fleet')">
+							<div class="col-sm-7">
+								<h5 class="text-left"><strong><span  data-bind="html:value"></span></strong></h5>
+								<div class="detaillostenergy" data-bind="attr: { 'id': 'chartLostEnergyByMonth-'+value}" style="margin-top: -20px;"></div>		
+							</div>	
+							<div class="col-sm-5">
+								<div class="detaillostenergy" data-bind="attr: { 'id': 'chartLostEnergyByType-'+value}"></div>		
+							</div>				
+						</div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div data-bind="visible:sum.isDetailLostEnergyPlotLevel2()">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12">
+			<ul class="nav nav-pills nav-replace-title" role="tablist">
+				<li role="presentation" class="active">
+					<a role="tab" data-toggle="tab" class="btn-back" onclick="sum.toDetailLostEnergyLvl1()"><i class="fa fa-reply" aria-hidden="true"></i> Back </a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">Detail Lost Energy (MWh)&nbsp;&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp;<strong><span data-bind="text:sum.detailProdDateTxt()"></span>&nbsp;&nbsp;<span class="fa fa-angle-double-right"></span>&nbsp; <span data-bind="text:sum.detailProdProjectTxt()"></span></strong></div>
+				<div class="panel-body" >
+					<div class="lostenergy-project-wrapper text-center">
+						<div class="col-md-12 detail-lostenergy-item">
+							<div class="detaillostenergylvl2"></div>			
+						</div>
+						<div class="clearfix">&nbsp;</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+
+

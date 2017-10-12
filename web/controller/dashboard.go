@@ -976,16 +976,23 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 	}
 
 	monthList := []int{}
+	monthDescList := map[int]string{}
 	lossPerMonth := tk.M{}
 	monthCount := (fromDate.Year() * 100) + int(fromDate.Month()) /*201611*/
 	maxMonth := (fromDate.Year() * 100) + 12                      /*201612*/
+	monthInt := int(fromDate.Month())
+	yearInt := fromDate.Year()
 	for i := 1; i <= 12; i++ {
 		if monthCount > maxMonth {
 			monthCount = monthCount - maxMonth + (p.Date.Year() * 100) /*(201613 - 201612) + 201700*/
 			maxMonth = (p.Date.Year() * 100) + 12
+			yearInt = p.Date.Year()
+			monthInt = 1
 		}
 		monthList = append(monthList, monthCount)
+		monthDescList[monthCount] = tk.Sprintf("%s %d", time.Month(monthInt).String(), yearInt)
 		monthCount++
+		monthInt++
 	}
 	projectMap := map[string]int{}
 	for _, monthly := range allLossData {
@@ -1054,10 +1061,30 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 	}
 
 	resY := []tk.M{}
-	totalLossPerYear := map[string]float64{}
+	totalLossPerYear := tk.M{}
+	/* expected output :
+	{
+		Amba: [
+		{
+			"name": "MachineDown",
+			"value": xxxxxx,
+		},
+		{
+			"name": "GridDown",
+			"value": xxxxxx,
+		}],
+		Lahori: [
+		{
+			"name": "MachineDown",
+			"value": xxxxxx,
+		}]
+	}
+	*/
 	totalLoss := 0.0
+	totalLossPerType := []tk.M{}
 
 	for _, project := range projectList {
+		totalLossPerType = []tk.M{}
 		for _, t := range downCause { /*mencari data per bulan untuk tiap downtime type, jika ada yang kosong maka apply default data*/
 			totalLoss = 0.0
 			title := tk.ToString(t)
@@ -1067,7 +1094,6 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 				resX := tk.M{}
 				resX.Set("_id", tk.M{"id2": project, "id3": month, "id4": title})
 				resX.Set("result", 0)
-
 			out:
 				for _, res := range tmpResult {
 					idProject := res.Get("_id").(tk.M).GetString("id2")
@@ -1082,12 +1108,14 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 				}
 				resY = append(resY, resX)
 			}
-			totalLossPerYear[keyTotal] = totalLoss
+			totalLossPerType = append(totalLossPerType, tk.M{
+				"name":  keyTotal,
+				"value": totalLoss / 1000,
+			})
 		}
+		totalLossPerYear[project] = totalLossPerType
 	}
 
-	fromYear := fromDate.Year() * 100
-	toYear := p.Date.Year() * 100
 	result := []tk.M{}
 	resultPerProject := tk.M{}
 
@@ -1095,27 +1123,23 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 		result = []tk.M{}
 		for _, month := range monthList {
 			resVal := tk.M{}
-			monthInt := month - toYear
-			if monthInt < 0 {
-				monthInt = month - fromYear
-			}
-			resVal.Set("_id", time.Month(monthInt).String()[0:3]) /* _id: "Aug" */
+			resVal.Set("_id", monthDescList[month]) /* _id: "August 2017" */
 			for _, down := range downCause {
 				for _, val := range resY {
 					valProject := val.Get("_id").(tk.M).GetString("id2")
 					valMonth := val.Get("_id").(tk.M).GetInt("id3")
-					valResult := val.GetFloat64("result")
+					valResult := val.GetFloat64("result") / 1000 /* jadikan MWh */
 					oriTitle := val.Get("_id").(tk.M).GetString("id4")
 					valTitle := strings.Replace(oriTitle, " ", "", -69)
 
-					if month == valMonth && project == valProject && oriTitle == tk.ToString(down) && valResult != 0 {
+					if month == valMonth && project == valProject && oriTitle == tk.ToString(down) && valResult > 0 {
 						resVal.Set(valTitle, valResult) /* MachineDown : 7.6666 */
 					} else if resVal.Get(valTitle) == nil {
 						resVal.Set(valTitle, 0) /*GridDown : 0 */
 					}
 				}
 			}
-			resVal.Set("Total", lossPerMonth.GetFloat64(tk.Sprintf("%s_%s", project, tk.ToString(month))))
+			resVal.Set("Total", lossPerMonth.GetFloat64(tk.Sprintf("%s_%s", project, tk.ToString(month)))/1000) /* jadikan MWh */
 			result = append(result, resVal)
 		}
 		resultPerProject.Set(project, result)
@@ -1148,8 +1172,6 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 	pipes = append(pipes, tk.M{"$match": match})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	// get the top 10 of turbine dan mengambil total
 
 	csr, e := DB().Connection.NewQuery().
 		Select("_id").
@@ -1264,7 +1286,7 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 		resVal.Set("_id", turbineName[turbine])
 		for _, val := range resY {
 			valTurbine := val.Get("_id").(tk.M).GetString("id3")
-			valResult := val.GetFloat64("result")
+			valResult := val.GetFloat64("result") / 1000 /* ubah jadi MWh */
 			valTitle := ""
 
 			splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
@@ -1275,14 +1297,14 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 				valTitle = splitTitle[0]
 			}
 
-			if turbine == valTurbine && valResult != 0 {
+			if turbine == valTurbine && valResult > 0 {
 				resVal.Set(valTitle, valResult)
 			} else if resVal.Get(valTitle) == nil {
 				resVal.Set(valTitle, 0)
 			}
 		}
 
-		resVal.Set("Total", turbinesVal.GetFloat64(turbine))
+		resVal.Set("Total", turbinesVal.GetFloat64(turbine)/1000) /* ubah jadi MWh */
 		result = append(result, resVal)
 	}
 	return helper.CreateResult(true, result, "success")
