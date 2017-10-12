@@ -78,7 +78,7 @@ page.monthDetail = function(month) {
 	        categoryHeaderDay = res.data.Month;
 			colspanDay = categoryHeaderDay.length;
 			widthColumnDay = (90 / colspanDay) + "%";
-			page.createViewDaily();
+			page.createViewDaily(month);
         } else {
         	swal({
 	            title: "Warning",
@@ -98,10 +98,10 @@ page.monthDetail = function(month) {
     });
 }
 
-page.createViewDaily = function(){
+page.createViewDaily = function(month){
 	$("#tableContent").html("");
 	$("#tableHeader").html("");
-	$("#tableHeader").append('<td width="10%" class="border-right clickable" colspan="2" onclick="page.createView()"><a role="tab" data-toggle="tab" class="btn-back"><i class="fa fa-reply" aria-hidden="true"></i> Back </a></td>');
+	$("#tableHeader").append('<td width="10%" class="border-right clickable" colspan="2" onclick="page.createView()"><a role="tab" data-toggle="tab" class="btn-back"><i class="fa fa-reply" aria-hidden="true"></i> Back </a> <strong style="float: right;">'+month.substring(0,3)+" "+month.slice(-4)+'</strong></td>');
 
 	$.each(categoryHeaderDay, function(id, ress){
 		var tdHeader = ' <td width="'+widthColumnDay+'" class="text-month" ><strong>'+ress+'</strong></td>';
