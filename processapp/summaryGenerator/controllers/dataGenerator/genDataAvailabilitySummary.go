@@ -36,6 +36,8 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	availHFD := ev.scadaHFDSummary()
 	// Met Tower
 	availMet := ev.metTowerSummary()
+	// HFD PROJECT
+	availHFDProject := ev.scadaHFDSummaryProject()
 
 	ev.Ctx.DeleteMany(new(DataAvailability), nil)
 
@@ -48,6 +50,10 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 	e = ev.Ctx.Insert(availMet)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+	}
+	e = ev.Ctx.Insert(availHFDProject)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
@@ -238,6 +244,174 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 			wg.Wait()
 		}
 	}
+
+	availability.Details = details
+
+	return availability
+}
+
+func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
+	tk.Println("===================== SCADA DATA HFD...")
+	availability := new(DataAvailability)
+	availability.Name = "Scada Data HFD_PROJECT"
+	availability.Type = "SCADA_DATA_HFD_PROJECT"
+
+	ctx, e := PrepareConnection()
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		os.Exit(0)
+	}
+
+	countx := 0
+
+	details := []DataAvailabilityDetail{}
+
+	now := time.Now().UTC()
+
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
+	id := now.Format("20060102_150405_SCADAHFD_PROJECT")
+
+	// latest 6 month
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+
+	availability.ID = id
+	availability.PeriodFrom = periodFrom
+	availability.PeriodTo = periodTo
+
+	for _, projectData := range ev.BaseController.ProjectList {
+		projectName := projectData.ProjectId
+		detail := []DataAvailabilityDetail{}
+		start := time.Now()
+
+		match := tk.M{}
+		match.Set("projectname", projectName)
+		match.Set("timestamp", tk.M{"$gte": periodFrom})
+		match.Set("isnull", false)
+
+		pipes := []tk.M{}
+		pipes = append(pipes, tk.M{"$match": match})
+		pipes = append(pipes, tk.M{"$project": tk.M{"projectname": 1, "timestamp": 1}})
+		pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
+
+		csr, e := ctx.NewQuery().From("Scada10MinHFD").
+			Command("pipe", pipes).Cursor(nil)
+
+		countError := 0
+
+		for {
+			countError++
+			if e != nil {
+				csr, e = ctx.NewQuery().From("Scada10MinHFD").
+					Command("pipe", pipes).Cursor(nil)
+				ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+			} else {
+				break
+			}
+
+			if countError == 5 {
+				break
+			}
+		}
+
+		defer csr.Close()
+
+		type Scada10MinHFDCustom struct {
+			TimeStamp time.Time
+		}
+		list := []Scada10MinHFDCustom{}
+
+		for {
+			countError++
+			e = csr.Fetch(&list, 0, false)
+			if e != nil {
+				ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+			} else {
+				break
+			}
+
+			if countError == 5 {
+				break
+			}
+		}
+
+		before := Scada10MinHFDCustom{}
+		from := Scada10MinHFDCustom{}
+		latestData := Scada10MinHFDCustom{}
+		hoursGap := 0.0
+		duration := 0.0
+		countID := 0
+
+		if len(list) > 0 {
+			for idx, oem := range list {
+				if idx > 0 {
+					before = list[idx-1]
+					hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
+					// log.Printf("xxx: %v - %v = %v \n", oem.TimeStamp.UTC().String(), from.TimeStamp.UTC().String(), hoursGap/24)
+
+					if hoursGap > 24 {
+						countID++
+						// log.Printf("hrs gap: %v \n", hoursGap)
+						// set duration for available datas
+						duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 2, tk.RoundingAuto)
+						details = append(details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, "", duration, true, countID))
+						// set duration for unavailable datas
+						countID++
+						duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+						details = append(details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, "", duration, false, countID))
+						from = oem
+					}
+				} else {
+					from = oem
+
+					// set gap from stardate until first data in db
+					hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
+					// log.Printf("idx=0 hrs gap: %v | %v | %v \n", hoursGap, from.TimeStamp.UTC().String(), periodFrom.UTC().String())
+					if hoursGap > 24 {
+						countID++
+						duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+						detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, "", duration, false, countID))
+					}
+				}
+
+				latestData = oem
+			}
+
+			hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
+
+			if hoursGap > 24 {
+				countID++
+				duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+				details = append(details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, "", duration, true, countID))
+			}
+
+			// set gap from last data until periodTo
+			hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
+			if hoursGap > 24 {
+				countID++
+				duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+				detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, "", duration, false, countID))
+			}
+
+			if len(detail) == 0 {
+				countID++
+				duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, "", duration, true, countID))
+			}
+		} else {
+			countID++
+			duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
+			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, "", duration, false, countID))
+		}
+
+		mtx.Lock()
+		details = append(details, detail...)
+		ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", projectName, len(list), time.Now().Sub(start).Seconds()), sInfo)
+		mtx.Unlock()
+
+		csr.Close()
+	}
+
+	countx++
 
 	availability.Details = details
 

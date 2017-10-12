@@ -542,7 +542,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 			}
 		}
 
-		if collType == "MET_TOWER" && project != "Tejuva" {
+		if collType == "MET_TOWER" && project != "Tejuva" { /* Khusus Met Tower selain Tejuva dimerahkan semuaa */
 			datas = []tk.M{}
 			datas = append(datas, tk.M{
 				"tooltip":  from.Format("2 Jan 2006") + " until " + to.Format("2 Jan 2006"),
@@ -554,7 +554,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 		if collType != "MET_TOWER" {
 			totalPercent = 0.0
-			for idx, val := range datas {
+			for idx, val := range datas { /* jika percentage nya kebablasan */
 				totalPercent += val.GetFloat64("floatval")
 				if idx == len(datas)-1 {
 					diffPercent = totalPercent - 100.0
