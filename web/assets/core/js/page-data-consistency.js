@@ -140,7 +140,7 @@ pg.DataCon = function(){
                                 if (!app.isFine(res)) {
                                     return;
                                 }
-                                return res.data
+                                return res.data.data
                             }
                         },
                     },
