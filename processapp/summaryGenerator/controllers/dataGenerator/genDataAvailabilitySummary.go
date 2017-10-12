@@ -29,25 +29,24 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	ev.BaseController = base
 	tk.Println("===================== Start process Data Availability Summary...")
 
-	ev.Ctx.DeleteMany(new(DataAvailability), nil)
-
 	// mtx.Lock()
 	// OEM
 	availOEM := ev.scadaOEMSummary()
+	// HFD
+	availHFD := ev.scadaHFDSummary()
+	// Met Tower
+	availMet := ev.metTowerSummary()
+
+	ev.Ctx.DeleteMany(new(DataAvailability), nil)
+
 	e := ev.Ctx.Insert(availOEM)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
-
-	// HFD
-	availHFD := ev.scadaHFDSummary()
 	e = ev.Ctx.Insert(availHFD)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
-
-	// Met Tower
-	availMet := ev.metTowerSummary()
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
