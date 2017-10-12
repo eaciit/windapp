@@ -501,6 +501,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	}
 
 	var totalTurbine, turbinecapacity float64
+	availdate := tk.M{}
 	// var data DataReturn
 
 	p := new(PayloadAnalytic)
@@ -625,6 +626,8 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		duration = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
 		totalhours := duration * totalTurbine
 
+		availdate.Set("scada", []time.Time{minDate, maxDate})
+
 		sPower = scada.GetFloat64("PowerKW") / 1000
 		sWindspeed = tk.Div(scada.GetFloat64("SumWindSpeed"), scada.GetFloat64("CountWindSpeed"))
 		sEnergy = scada.GetFloat64("Production") / 1000
@@ -731,6 +734,8 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		maxDate := dgr.Get("maxdate").(time.Time).UTC()
 		duration = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
 
+		availdate.Set("dgr", []time.Time{minDate, maxDate})
+
 		aduration := (duration * float64(len(turbine))) - dgr.GetFloat64("egscheduled") - dgr.GetFloat64("egunscheduled") - dgr.GetFloat64("fmenvironmental") - dgr.GetFloat64("fmtheft") - dgr.GetFloat64("rowignonoem") - dgr.GetFloat64("rowmcnonoem")
 		gdown := dgr.GetFloat64("igscheduled") + dgr.GetFloat64("igunscheduled") + dgr.GetFloat64("pssscheduled") + dgr.GetFloat64("pssunscheduled") + dgr.GetFloat64("rowigoem")
 		mdown := dgr.GetFloat64("wtgscheduled") + dgr.GetFloat64("wtgunscheduled") + dgr.GetFloat64("rowmcoem") + dgr.GetFloat64("aor")
@@ -791,5 +796,6 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		}
 	}
 
-	return helper.CreateResult(true, result, "success")
+	lastres := tk.M{}.Set("data", result).Set("availdate", availdate)
+	return helper.CreateResult(true, lastres, "success")
 }
