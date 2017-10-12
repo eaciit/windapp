@@ -744,7 +744,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 
 		sOktime = dgr.GetFloat64("generationhours")
 		sPower = sEnergy * 6
-		tk.Println(sOktime, " / ", duration, " * ", len(turbine))
+		// tk.Println(sOktime, " / ", duration, " * ", len(turbine))
 		sTrueavail = (sOktime) / (duration * float64(len(turbine))) * 100
 	} else {
 		dgrDataAvailable = false
