@@ -816,10 +816,11 @@ it.showWindspeedLiveChart = function(){
                 text: 'Wind Speed',
                 enabled: false
             },
-            opposite: true
+            height: '50%',
+            // opposite: true
 
         }, { // Secondary yAxis
-            gridLineWidth: 1,
+            gridLineWidth: 0,
             minorGridLineWidth: 0,
             title: {
                 text: 'Power',
@@ -827,7 +828,10 @@ it.showWindspeedLiveChart = function(){
             },
             labels: {
                 enabled: false
-            }
+            },
+            top: '55%',
+            height: '45%',
+            offset: 0,
 
         }],
         xAxis: {
