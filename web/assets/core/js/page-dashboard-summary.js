@@ -1710,7 +1710,12 @@ sum.MonthlyProject = function (e, tipe) {
 
     var valueAxesData = [{
         name: "production",
-        title: { text: "Production (MWh)",font: "10px"},
+        title: { 
+            margin: {
+                right: 0
+            },
+            text: "Production (MWh)",font: "10px"
+        },
         line: {
             visible: false
         },
@@ -1726,7 +1731,11 @@ sum.MonthlyProject = function (e, tipe) {
         
     }, {
         name: "lostenergy",
-        title: { text: "Lost Energy (MWh)",font: "10px"},
+        title: { 
+            margin: {
+                left: 0
+            },
+            text: "Lost Energy (MWh)",font: "10px"},
         line: {
             visible: false
         },
@@ -1751,7 +1760,23 @@ sum.MonthlyProject = function (e, tipe) {
         }];
         valueAxesData = [{
             name: "plf",
-            title: { text: "PLF ",font: "11px"},
+            title: { 
+                margin: {
+                    left: 0
+                },
+                text: "PLF ",font: "11px"},
+            line: {
+                visible: false
+            },
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
         }];
     }
 
@@ -1771,7 +1796,7 @@ sum.MonthlyProject = function (e, tipe) {
         },
         chartArea: {
             padding: 10,
-            margin: 0,
+            margin: 5,
             height: 200,
         },
         seriesDefaults: {
@@ -2057,6 +2082,18 @@ sum.DetailProdByProjectDetail = function (project, e, tipe) {
             valueAxesData = [{
                 name: "plf",
                 title: { text: "PLF " +measurement ,font: "11px"},
+                line: {
+                    visible: false
+                },
+                labels:{
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
             }];
             isHidden = false;
         }
