@@ -1764,7 +1764,7 @@ sum.MonthlyProject = function (e, tipe) {
                 margin: {
                     left: 0
                 },
-                text: "PLF ",font: "11px"},
+                text: "PLF (%)",font: "11px"},
             line: {
                 visible: false
             },
@@ -2662,6 +2662,11 @@ sum.DetailLTPlot = function(project, e){
             });
 
             $.each(dataSource.datapie, function(key, val){
+
+                var dataPie = dataSource.datapie[key].sort(function (a, b) {
+                    return a.name.localeCompare( b.name );
+                });
+
                 $("#chartLostEnergyByType-"+key).kendoChart({
                     theme: "flat",
                     title: {
@@ -2679,7 +2684,7 @@ sum.DetailLTPlot = function(project, e){
                         }
                     },
                     dataSource: {
-                        data: dataSource.datapie[key]
+                        data: dataPie
                     },
                     series: [{
                         type: "pie",
