@@ -1082,7 +1082,7 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 				}
 				resY = append(resY, resX)
 			}
-			totalLossPerYear[keyTotal] = totalLoss
+			totalLossPerYear[keyTotal] = totalLoss / 1000
 		}
 	}
 
@@ -1104,18 +1104,18 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 				for _, val := range resY {
 					valProject := val.Get("_id").(tk.M).GetString("id2")
 					valMonth := val.Get("_id").(tk.M).GetInt("id3")
-					valResult := val.GetFloat64("result")
+					valResult := val.GetFloat64("result") / 1000 /* jadikan MWh */
 					oriTitle := val.Get("_id").(tk.M).GetString("id4")
 					valTitle := strings.Replace(oriTitle, " ", "", -69)
 
-					if month == valMonth && project == valProject && oriTitle == tk.ToString(down) && valResult != 0 {
+					if month == valMonth && project == valProject && oriTitle == tk.ToString(down) && valResult > 0 {
 						resVal.Set(valTitle, valResult) /* MachineDown : 7.6666 */
 					} else if resVal.Get(valTitle) == nil {
 						resVal.Set(valTitle, 0) /*GridDown : 0 */
 					}
 				}
 			}
-			resVal.Set("Total", lossPerMonth.GetFloat64(tk.Sprintf("%s_%s", project, tk.ToString(month))))
+			resVal.Set("Total", lossPerMonth.GetFloat64(tk.Sprintf("%s_%s", project, tk.ToString(month)))/1000) /* jadikan MWh */
 			result = append(result, resVal)
 		}
 		resultPerProject.Set(project, result)
