@@ -46,7 +46,7 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
-	// HFD
+	// Met Tower
 	availMet := ev.metTowerSummary()
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
@@ -295,7 +295,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 			pipes = append(pipes, tk.M{"$project": tk.M{"projectname": 1, "turbine": 1, "timestamp": 1}})
 			pipes = append(pipes, tk.M{"$sort": tk.M{"timestamp": 1}})
 
-			csr, e := ctx.NewQuery().From(new(ScadaDataHFD).TableName()).
+			csr, e := ctx.NewQuery().From("Scada10MinHFD").
 				Command("pipe", pipes).Cursor(nil)
 
 			countError := 0
@@ -303,7 +303,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 			for {
 				countError++
 				if e != nil {
-					csr, e = ctx.NewQuery().From(new(ScadaDataHFD).TableName()).
+					csr, e = ctx.NewQuery().From("Scada10MinHFD").
 						Command("pipe", pipes).Cursor(nil)
 					ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 				} else {
@@ -317,7 +317,10 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 			defer csr.Close()
 
-			list := []ScadaDataHFD{}
+			type Scada10MinHFDCustom struct {
+				TimeStamp time.Time
+			}
+			list := []Scada10MinHFDCustom{}
 
 			for {
 				countError++
@@ -333,9 +336,9 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 				}
 			}
 
-			before := ScadaDataHFD{}
-			from := ScadaDataHFD{}
-			latestData := ScadaDataHFD{}
+			before := Scada10MinHFDCustom{}
+			from := Scada10MinHFDCustom{}
+			latestData := Scada10MinHFDCustom{}
 			hoursGap := 0.0
 			duration := 0.0
 			countID := 0
