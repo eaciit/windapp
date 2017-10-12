@@ -703,10 +703,13 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	// 	Set("TodayGen", "Total_Prod_Day_kWh") // can added later if needed
 
 	// getting all projects base data
+	pipeProject := []tk.M{
+		tk.M{"$match": tk.M{"active": true}},
+		tk.M{"$sort": tk.M{"projectname": 1}},
+	}
 	csrProject, err := DB().Connection.NewQuery().
 		From("ref_project").
-		Where(dbox.Eq("active", true)).
-		Order("projectname").
+		Command("pipe", pipeProject).
 		Cursor(nil)
 	defer csrProject.Close()
 
