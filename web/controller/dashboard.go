@@ -1054,10 +1054,30 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 	}
 
 	resY := []tk.M{}
-	totalLossPerYear := map[string]float64{}
+	totalLossPerYear := tk.M{}
+	/* expected output :
+	{
+		Amba: [
+		{
+			"name": "MachineDown",
+			"value": xxxxxx,
+		},
+		{
+			"name": "GridDown",
+			"value": xxxxxx,
+		}],
+		Lahori: [
+		{
+			"name": "MachineDown",
+			"value": xxxxxx,
+		}]
+	}
+	*/
 	totalLoss := 0.0
+	totalLossPerType := []tk.M{}
 
 	for _, project := range projectList {
+		totalLossPerType = []tk.M{}
 		for _, t := range downCause { /*mencari data per bulan untuk tiap downtime type, jika ada yang kosong maka apply default data*/
 			totalLoss = 0.0
 			title := tk.ToString(t)
@@ -1067,7 +1087,6 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 				resX := tk.M{}
 				resX.Set("_id", tk.M{"id2": project, "id3": month, "id4": title})
 				resX.Set("result", 0)
-
 			out:
 				for _, res := range tmpResult {
 					idProject := res.Get("_id").(tk.M).GetString("id2")
@@ -1082,8 +1101,12 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 				}
 				resY = append(resY, resX)
 			}
-			totalLossPerYear[keyTotal] = totalLoss / 1000
+			totalLossPerType = append(totalLossPerType, tk.M{
+				"name":  keyTotal,
+				"value": totalLoss / 1000,
+			})
 		}
+		totalLossPerYear[project] = totalLossPerType
 	}
 
 	fromYear := fromDate.Year() * 100
