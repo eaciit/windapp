@@ -1149,8 +1149,6 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	// get the top 10 of turbine dan mengambil total
-
 	csr, e := DB().Connection.NewQuery().
 		Select("_id").
 		From(new(Alarm).TableName()).
@@ -1264,7 +1262,7 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 		resVal.Set("_id", turbineName[turbine])
 		for _, val := range resY {
 			valTurbine := val.Get("_id").(tk.M).GetString("id3")
-			valResult := val.GetFloat64("result")
+			valResult := val.GetFloat64("result") / 1000 /* ubah jadi MWh */
 			valTitle := ""
 
 			splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
@@ -1275,14 +1273,14 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 				valTitle = splitTitle[0]
 			}
 
-			if turbine == valTurbine && valResult != 0 {
+			if turbine == valTurbine && valResult > 0 {
 				resVal.Set(valTitle, valResult)
 			} else if resVal.Get(valTitle) == nil {
 				resVal.Set(valTitle, 0)
 			}
 		}
 
-		resVal.Set("Total", turbinesVal.GetFloat64(turbine))
+		resVal.Set("Total", turbinesVal.GetFloat64(turbine)/1000) /* ubah jadi MWh */
 		result = append(result, resVal)
 	}
 	return helper.CreateResult(true, result, "success")
