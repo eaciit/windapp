@@ -275,10 +275,12 @@ it.AccYDir = ko.observable('');
 
 it.isFirst = ko.observable(true);
 
-it.grid_voltage = ko.observable(0);
-it.grid_current = ko.observable(0);
-it.radiator_temp1 = ko.observable(0);
-it.radiator_temp2 = ko.observable(0);
+it.grid_voltage = ko.observable('');
+it.grid_current = ko.observable('');
+it.rotor_current = ko.observable('');
+it.stator_current = ko.observable('');
+it.radiator_temp1 = ko.observable('');
+it.radiator_temp2 = ko.observable('');
 it.dataWindspeed = ko.observableArray([]);
 it.dataPower = ko.observableArray([]);
 
@@ -569,6 +571,26 @@ it.PlotData = function(data) {
     if(data["AccYDir"] != -999999)
         it.AccYDir(data["AccYDir"].toFixed(2));
     else it.AccYDir('N/A');
+
+    /* AMBA PART */
+    if(data["Grid Current"] != -999999)
+        it.grid_current(data["Grid Current"].toFixed(2));
+    else it.grid_current('N/A');
+    if(data["Grid Voltage"] != -999999)
+        it.grid_voltage(data["Grid Voltage"].toFixed(2));
+    else it.grid_voltage('N/A');
+    if(data["Rotor Current"] != -999999)
+        it.rotor_current(data["Rotor Current"].toFixed(2));
+    else it.rotor_current('N/A');
+    if(data["Stator Current"] != -999999)
+        it.stator_current(data["Stator Current"].toFixed(2));
+    else it.stator_current('N/A');
+    if(data["Ref Radiator Temp1"] != -999999)
+        it.radiator_temp1(data["Ref Radiator Temp1"].toFixed(2));
+    else it.radiator_temp1('N/A');
+    if(data["Ref Radiator Temp2"] != -999999)
+        it.radiator_temp2(data["Ref Radiator Temp2"].toFixed(2));
+    else it.radiator_temp2('N/A');
 
 
     // if(data["Tower vibration"] != -999999)
