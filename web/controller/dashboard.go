@@ -976,16 +976,23 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 	}
 
 	monthList := []int{}
+	monthDescList := map[int]string{}
 	lossPerMonth := tk.M{}
 	monthCount := (fromDate.Year() * 100) + int(fromDate.Month()) /*201611*/
 	maxMonth := (fromDate.Year() * 100) + 12                      /*201612*/
+	monthInt := int(fromDate.Month())
+	yearInt := fromDate.Year()
 	for i := 1; i <= 12; i++ {
 		if monthCount > maxMonth {
 			monthCount = monthCount - maxMonth + (p.Date.Year() * 100) /*(201613 - 201612) + 201700*/
 			maxMonth = (p.Date.Year() * 100) + 12
+			yearInt = p.Date.Year()
+			monthInt = 1
 		}
 		monthList = append(monthList, monthCount)
+		monthDescList[monthCount] = tk.Sprintf("%s %d", time.Month(monthInt).String(), yearInt)
 		monthCount++
+		monthInt++
 	}
 	projectMap := map[string]int{}
 	for _, monthly := range allLossData {
@@ -1109,8 +1116,6 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 		totalLossPerYear[project] = totalLossPerType
 	}
 
-	fromYear := fromDate.Year() * 100
-	toYear := p.Date.Year() * 100
 	result := []tk.M{}
 	resultPerProject := tk.M{}
 
@@ -1118,11 +1123,7 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 		result = []tk.M{}
 		for _, month := range monthList {
 			resVal := tk.M{}
-			monthInt := month - toYear
-			if monthInt < 0 {
-				monthInt = month - fromYear
-			}
-			resVal.Set("_id", time.Month(monthInt).String()[0:3]) /* _id: "Aug" */
+			resVal.Set("_id", monthDescList[month]) /* _id: "August 2017" */
 			for _, down := range downCause {
 				for _, val := range resY {
 					valProject := val.Get("_id").(tk.M).GetString("id2")

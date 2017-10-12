@@ -477,7 +477,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 			// log.Printf(">> %v | %v | %v | %v | %v | %v \n", p, t, pFrom.String(), pTo.String(), totalDurationDays, name)
 
-			// set availabiility data based on index ordering in collection
+			// set availability data based on index ordering in collection
 			// log.Printf(">>>> turbine: %v \n", t)
 			for index := 1; index <= len(availList); index++ {
 			breakAvail:
