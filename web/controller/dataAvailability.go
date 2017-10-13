@@ -441,9 +441,6 @@ func getParentData(project string, collType string) []tk.M {
 	datas := []tk.M{}
 
 	if len(list) > 0 {
-		// totalPercent := 0.0
-		// diffPercent := 0.0
-
 		for _, dt := range list {
 			pTo := dt.Get("periodTo").(time.Time)
 			pFrom := dt.Get("periodFrom").(time.Time)
@@ -462,15 +459,6 @@ func getParentData(project string, collType string) []tk.M {
 
 				datas = append(datas, setDataColumn(start, end, isAvail, duration))
 			}
-
-			// totalPercent = 0.0
-			// for idx, val := range datas {
-			// 	totalPercent += val.GetFloat64("floatval")
-			// 	if idx == len(datas)-1 {
-			// 		diffPercent = totalPercent - 100.0
-			// 		datas[idx].Set("value", tk.ToString(val.GetFloat64("floatval")-diffPercent)+"%")
-			// 	}
-			// }
 		}
 
 	}

@@ -78,13 +78,14 @@ pg.DataCon = function(){
 
             var dateStart = $('#dateStart').data('kendoDatePicker').value();
             var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+            var project = $('#projectList').data('kendoDropDownList').value();
 
             var param = {
                 period: fa.period,
                 Turbine: fa.turbine(),
                 DateStart: dateStart,
                 DateEnd: dateEnd,
-                Project: fa.project
+                Project: project
             };
 
             var dataAvailDGR = "";
