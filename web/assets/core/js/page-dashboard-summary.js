@@ -978,7 +978,8 @@ sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
                   // Disable browser context menu
                   e.originalEvent.preventDefault();
                 }
-                sum.DetailAvailability("Fleet", e, "availability");
+                // sum.DetailAvailability("Fleet", e, "availability");
+                sum.MonthlyProject(e, "availability");
             }
         },
         tooltip: {
@@ -1780,6 +1781,35 @@ sum.MonthlyProject = function (e, tipe) {
         }];
     }
 
+    if(tipe == "availability"){
+        sum.titleDetailLevel1('Availability (%) - Last 12 Months By Project');
+        dataSeries = [{
+            name: "Availability",
+            field: "availability",
+            axis: "availability"
+        }];
+        valueAxesData = [{
+            name: "availability",
+            title: { 
+                margin: {
+                    left: 0
+                },
+                text: "Availability (%)",font: "11px"},
+            line: {
+                visible: false
+            },
+            labels:{
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+        }];
+    }
+
     var chartProperties = {
         theme: "flat",
         dataSource: {
@@ -2033,9 +2063,15 @@ sum.DetailProdByProjectDetail = function (project, e, tipe) {
     sum.isDetailProdByProject(true);
     sum.isSummaryDetail(true);
     sum.isGridDetail(true);
-    if(tipe === "plf") {
+
+    if(tipe === "plf" || tipe === "availability") {
         sum.isSummaryDetail(false);
     }
+
+    if(tipe == "availability"){
+        sum.isGridDetail(false);
+    }
+
     $("#chartDetailProdByProject").html("");
     $("#gridDetailProdByProject").html("");
 
@@ -2082,6 +2118,32 @@ sum.DetailProdByProjectDetail = function (project, e, tipe) {
             valueAxesData = [{
                 name: "plf",
                 title: { text: "PLF " +measurement ,font: "11px"},
+                line: {
+                    visible: false
+                },
+                labels:{
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+            }];
+            isHidden = false;
+        }
+
+        if(tipe === "availability") {
+            measurement = " (%) ";
+            seriesData = [{
+                name: "Availability " +measurement,
+                field: "trueavail",
+                axis: "trueavail"
+            }]
+            valueAxesData = [{
+                name: "trueavail",
+                title: { text: "Availability " +measurement ,font: "11px"},
                 line: {
                     visible: false
                 },
