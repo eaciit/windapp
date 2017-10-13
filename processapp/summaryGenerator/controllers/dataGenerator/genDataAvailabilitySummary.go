@@ -255,7 +255,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 	now := time.Now().UTC()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	id := now.Format("20060102_150405_SCADAHFD_PROJECT")
+	id := now.Format("20060102_150405_SCADAOEM_PROJECT")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
