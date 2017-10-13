@@ -11,6 +11,7 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
+	"sort"
 )
 
 var (
@@ -205,8 +206,10 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 
 	timeParse, e := time.Parse("January 2006", monthdesc)
 	if e != nil {
-		return nil
+		tk.Println("error parse time", e.Error())
+		return tk.M{}
 	}
+	/* bulan di filter ditambah 1 bulan kemudian dikurangi 1 hari, didapatkan jumlah max hari pada bulan di filter */
 	timeParse = timeParse.AddDate(0, 1, -1)
 
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
@@ -217,19 +220,21 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 		Cursor(nil)
 
 	if e != nil {
-		return nil
+		tk.Println("error cursor", e.Error())
+		return tk.M{}
 	}
 	defer csr.Close()
 
-	e = csr.Fetch(&dailyData, 0, false)
+	e = csr.Fetch(&dailyData, 0, false) /* data per hari selama 1 bulan untuk summary sesuai filter */
 	if e != nil {
-		return nil
+		tk.Println("error fetching data", e.Error())
+		return tk.M{}
 	}
 
 	result := tk.M{}
 
 	if len(dailyData) > 0 {
-		totalDay := timeParse.Day()
+		totalDay := timeParse.Day() /* maksimum hari pada bulan filter */
 		dataPerDay := tk.M{}
 		timeConv := time.Time{}
 		for _, val := range dailyData {
@@ -266,6 +271,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 		}
 		result = tk.M{"Category": "Data Availability", "Turbine": []tk.M{}, "Data": datas}
 
+		/* ========= It's time for another query ================ */
 		dailyTurbine := []tk.M{}
 		pipes = []tk.M{}
 		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
@@ -274,45 +280,40 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 			"scadaavail": tk.M{"$avg": "$scadaavail"},
 		}})
 
-		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.turbine": 1, "_id.tanggal": 1}})
-
 		csrTurbine, e := DB().Connection.NewQuery().
 			From(new(ScadaSummaryDaily).TableName()).
 			Command("pipe", pipes).
 			Cursor(nil)
 
 		if e != nil {
-			return nil
+			tk.Println("error cursor summary daily", e.Error())
+			return tk.M{}
 		}
 		defer csrTurbine.Close()
 
-		e = csrTurbine.Fetch(&dailyTurbine, 0, false)
+		e = csrTurbine.Fetch(&dailyTurbine, 0, false) /* data per hari per turbine selama 1 bulan sesuai filter*/
 		if e != nil {
-			return nil
+			tk.Println("error fetching data daily turbine", e.Error())
+			return tk.M{}
 		}
 
 		if len(dailyTurbine) > 0 {
 			dataPerTurbine := tk.M{}
 			timeConv = time.Time{}
 			turbineList := []string{}
-			lastTurbine := ""
+			turbineMap := map[string]bool{}
 			ids := tk.M{}
 			for _, val := range dailyTurbine {
-				ids, _ = tk.ToM(val.Get("_id"))
-				if lastTurbine != ids.GetString("turbine") {
-					lastTurbine = ids.GetString("turbine")
-					turbineList = append(turbineList, lastTurbine)
-				}
-				if tk.TypeName(ids.Get("tanggal")) == "string" {
-					timeConv, e = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(ids.GetString("tanggal")))
-					if e != nil {
-						tk.Println(e.Error())
-					}
-				} else {
-					timeConv = ids.Get("tanggal", time.Time{}).(time.Time)
-				}
+				ids = val.Get("_id", tk.M{}).(tk.M)
+				turbineMap[ids.GetString("turbine")] = true
+				timeConv = ids.Get("tanggal", time.Time{}).(time.Time)
 				dataPerTurbine.Set(tk.ToString(timeConv.Day())+"_"+ids.GetString("turbine"), val.GetFloat64("scadaavail"))
 			}
+			for key := range turbineMap {
+				turbineList = append(turbineList, key)
+			}
+			sort.Strings(turbineList)
+
 			turbineDetails := []tk.M{}
 			turbineDatas := []tk.M{}
 			turbineItem := tk.M{}
@@ -323,7 +324,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 				tk.Println(e.Error())
 			}
 			_turbine := ""
-			lastTurbine = ""
+			lastTurbine := ""
 
 			for _, turbine := range turbineList {
 				_turbine = turbineName[turbine]
@@ -331,7 +332,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 					lastTurbine = turbine
 					turbineDetails = []tk.M{}
 				}
-				for idx := 1; idx <= totalDay; idx++ {
+				for idx := 1; idx <= totalDay; idx++ { /* dengan metode ini sudah pasti urut harinya */
 					percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100
 					if dataPerTurbine.Has(tk.ToString(idx) + "_" + turbine) {
 						if dataPerTurbine.GetFloat64(tk.ToString(idx)+"_"+turbine) < 0.5 {
@@ -369,11 +370,117 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 	return result
 }
 
+func getParentData(project string, collType string) []tk.M {
+	var (
+		pipes []tk.M
+		list  []tk.M
+	)
+	group := tk.M{
+		"_id": tk.M{
+			"name":    "$name",
+			"project": "$details.projectname",
+			"index":   "$details.id",
+		},
+		"periodTo":   tk.M{"$max": "$periodto"},
+		"periodFrom": tk.M{"$min": "$periodfrom"},
+		"list": tk.M{
+			"$push": tk.M{
+				"id":       "$details.id",
+				"start":    "$details.start",
+				"end":      "$details.end",
+				"duration": "$details.duration",
+				"isavail":  "$details.isavail",
+			},
+		},
+	}
+
+	projection := tk.M{
+		"name":       "$_id.name",
+		"project":    "$_id.project",
+		"index":      "$_id.index",
+		"periodTo":   1,
+		"periodFrom": 1,
+		"list":       1,
+	}
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"type": tk.M{"$eq": collType}}})
+	pipes = append(pipes, tk.M{"$unwind": "$details"})
+	pipes = append(pipes, tk.M{"$group": group})
+	pipes = append(pipes, tk.M{"$project": projection})
+
+	match := tk.M{}
+
+	if project != "" {
+		match.Set("project", project)
+	}
+
+	if match.Get("project") != nil {
+		pipes = append(pipes, tk.M{"$match": match})
+	}
+
+	pipes = append(pipes, tk.M{"$sort": tk.M{"index": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(DataAvailability).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		tk.Println("error cursor", e.Error())
+		return []tk.M{}
+	}
+
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		tk.Println("error fetching data", e.Error())
+		return []tk.M{}
+	}
+
+	defer csr.Close()
+
+	datas := []tk.M{}
+
+	if len(list) > 0 {
+		// totalPercent := 0.0
+		// diffPercent := 0.0
+
+		for _, dt := range list {
+			pTo := dt.Get("periodTo").(time.Time)
+			pFrom := dt.Get("periodFrom").(time.Time)
+
+			from = pFrom.UTC()
+			to = pTo.UTC()
+
+			availList := dt.Get("list").([]interface{})
+
+			for _, av := range availList {
+				avail := av.(tk.M)
+				start := avail.Get("start").(time.Time).UTC()
+				end := avail.Get("end").(time.Time).UTC()
+				duration := avail.GetFloat64("duration")
+				isAvail := avail.Get("isavail").(bool)
+
+				datas = append(datas, setDataColumn(start, end, isAvail, duration))
+			}
+
+			// totalPercent = 0.0
+			// for idx, val := range datas {
+			// 	totalPercent += val.GetFloat64("floatval")
+			// 	if idx == len(datas)-1 {
+			// 		diffPercent = totalPercent - 100.0
+			// 		datas[idx].Set("value", tk.ToString(val.GetFloat64("floatval")-diffPercent)+"%")
+			// 	}
+			// }
+		}
+
+	}
+	return datas
+}
+
 func getAvailCollection(project string, turbines []interface{}, collType string) tk.M {
 	var (
-		pipes          []tk.M
-		list           []tk.M
-		falseContainer []FalseContainer
+		pipes []tk.M
+		list  []tk.M
 	)
 	group := tk.M{
 		"_id": tk.M{
@@ -430,10 +537,15 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		Cursor(nil)
 
 	if e != nil {
-		return nil
+		tk.Println("error cursor", e.Error())
+		return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
 	}
 
 	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		tk.Println("error fetching data", e.Error())
+		return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
+	}
 
 	defer csr.Close()
 
@@ -443,7 +555,8 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 	if len(list) > 0 {
 		totalPercent := 0.0
 		diffPercent := 0.0
-		datas := []tk.M{}
+		collTypeParent := collType + "_PROJECT"
+		datas := getParentData(project, collTypeParent)
 		turbineName := map[string]string{}
 		latestProject := ""
 
@@ -452,7 +565,8 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 			if latestProject != p {
 				turbineName, e = helper.GetTurbineNameList(p)
 				if e != nil {
-					return nil
+					tk.Println("error get turbine name", e.Error())
+					return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
 				}
 			}
 			t := turbineName[dt.GetString("turbine")]
@@ -468,10 +582,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 			turbineDetails := []tk.M{}
 
-			// log.Printf(">> %v | %v | %v | %v | %v | %v \n", p, t, pFrom.String(), pTo.String(), totalDurationDays, name)
-
-			// set availabiility data based on index ordering in collection
-			// log.Printf(">>>> turbine: %v \n", t)
+			// set availability data based on index ordering in collection
 			for index := 1; index <= len(availList); index++ {
 			breakAvail:
 				for _, av := range availList {
@@ -482,18 +593,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 						duration := avail.GetFloat64("duration")
 						isAvail := avail.Get("isavail").(bool)
 
-						if !isAvail {
-							falseContainer = setFalseContainer(start, end, falseContainer)
-							// log.Printf(">> !avail: %v | %v | %v \n", start.String(), end.String(), duration)
-							// for _, fc := range falseContainer {
-							// 	log.Printf(">> falsecontainer: %v | %v | %v \n", fc.Order, fc.Start.String(), fc.End.String())
-							// }
-						}
-
 						turbineDetails = append(turbineDetails, setDataColumn(start, end, isAvail, duration))
-
-						// log.Printf(">>>> %v | %v | %v \n", start.Format("2 Jan 2006")+" until "+end.Format("2 Jan 2006"), class, tk.ToString(percentage)+"%")
-
 						break breakAvail
 					}
 				}
@@ -513,29 +613,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 			res = append(res, turbine)
 		}
 
-		// for _, fc := range falseContainer {
-		// 	log.Printf("%v | %v | %v \n", fc.Order, fc.Start.String(), fc.End.String())
-		// }
-
-		// set turbine parent availabililty
-		var before time.Time
-		for idx, fc := range falseContainer {
-			if idx == 0 {
-				if fc.Start.Sub(from.UTC()).Seconds() > 0 {
-					datas = append(datas, setDataColumn(from, fc.Start, true, fc.Start.Sub(from.UTC()).Hours()/24))
-				}
-				datas = append(datas, setDataColumn(fc.Start, fc.End, false, fc.End.Sub(fc.Start.UTC()).Hours()/24))
-				before = fc.End
-			} else {
-				if fc.Start.Sub(before.UTC()).Seconds() > 0 {
-					datas = append(datas, setDataColumn(before, fc.Start, true, fc.Start.Sub(before.UTC()).Hours()/24))
-				}
-				datas = append(datas, setDataColumn(fc.Start, fc.End, false, fc.End.Sub(fc.Start.UTC()).Hours()/24))
-				before = fc.End
-			}
-		}
-
-		if collType == "MET_TOWER" && project != "Tejuva" {
+		if collType == "MET_TOWER" && project != "Tejuva" { /* Khusus Met Tower selain Tejuva dimerahkan semuaa */
 			datas = []tk.M{}
 			datas = append(datas, tk.M{
 				"tooltip":  from.Format("2 Jan 2006") + " until " + to.Format("2 Jan 2006"),
@@ -547,7 +625,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 		if collType != "MET_TOWER" {
 			totalPercent = 0.0
-			for idx, val := range datas {
+			for idx, val := range datas { /* jika percentage nya kebablasan */
 				totalPercent += val.GetFloat64("floatval")
 				if idx == len(datas)-1 {
 					diffPercent = totalPercent - 100.0
@@ -561,7 +639,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 	}
 
-	return nil
+	return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
 }
 
 func setDataColumn(start time.Time, end time.Time, avail bool, durationInDay float64) tk.M {
