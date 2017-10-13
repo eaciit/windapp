@@ -59,7 +59,7 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	/* ============== PROJECT LEVEL ============== */
 	availMet.ID = availMet.ID + "_PROJECT"
 	availMet.Type = availMet.Type + "_PROJECT"
-	availMet.name = availMet.name + " PROJECT"
+	availMet.Name = availMet.Name + " PROJECT"
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
