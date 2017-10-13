@@ -107,10 +107,6 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 
 	}
 
-	// log.Printf(">> %v | %v \n", totalTurbine, plfDivider)
-
-	// get ScadaSummaryDaily
-
 	pipes = append(pipes, tk.M{"$group": tk.M{
 		"_id":              "$projectname",
 		"PowerKW":          tk.M{"$sum": "$powerkw"},
@@ -485,21 +481,350 @@ func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "success")
 }
 
-/*func (m *AnalyticDgrScadaController) GetData(k *knot.WebContext) interface{} {
+func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
+	type DataItem struct {
+		power        float64
+		energy       float64
+		windspeed    float64
+		downtime     float64
+		plf          float64
+		gridavail    float64
+		machineavail float64
+		trueavail    float64
+	}
 
-	p := new(helper.Payloads)
+	type DataReturn struct {
+		dgr      DataItem
+		scada    DataItem
+		variance DataItem
+	}
+
+	var totalTurbine, turbinecapacity float64
+	availdate := tk.M{}
+	// var data DataReturn
+
+	p := new(PayloadAnalytic)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	filter := p.ParseFilter()
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	duration := tk.ToFloat64(tEnd.Sub(tStart).Hours()/24, 0, tk.RoundingAuto) // duration in days
+	turbine := p.Turbine
+	project := p.Project
+
+	var (
+		pipes  []tk.M
+		filter []*dbox.Filter
+	)
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
+
+	var turbineList []TurbineOut
+	if project != "" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{project})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+
+	if len(turbine) > 0 {
+		for _, vt := range turbine {
+			for _, v := range turbineList {
+				if vt == v.Value {
+					turbinecapacity += v.Capacity
+					totalTurbine += 1
+				}
+			}
+		}
+
+		filter = append(filter, dbox.In("turbine", turbine...))
+	} else {
+		if project != "" {
+			for _, v := range turbineList {
+				if project == v.Project {
+					turbinecapacity += v.Capacity
+					totalTurbine += 1
+				}
+			}
+		} else {
+			for _, v := range turbineList {
+				turbinecapacity += v.Capacity
+				totalTurbine += 1
+			}
+		}
+
+	}
+
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":              "$projectname",
+		"PowerKW":          tk.M{"$sum": "$powerkw"},
+		"Production":       tk.M{"$sum": "$production"},
+		"WS":               tk.M{"$avg": "$avgwindspeed"},
+		"OKTime":           tk.M{"$sum": "$oktime"},
+		"DownTimeDuration": tk.M{"$sum": "$downtimehours"}, //totaldowntimehours
+		"machinedownhours": tk.M{"$sum": "$machinedownhours"},
+		"griddownhours":    tk.M{"$sum": "$griddownhours"},
+		"LossEnergy":       tk.M{"$sum": "$lostenergy"},
+		"SumWindSpeed":     tk.M{"$sum": "$detwindspeed.sumwindspeed"},
+		"CountWindSpeed":   tk.M{"$sum": "$detwindspeed.countwindspeed"},
+		"plf":              tk.M{"$avg": "$plf"},
+		"machineavail":     tk.M{"$avg": "$machineavail"},
+		"gridavail":        tk.M{"$avg": "$gridavail"},
+		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
+		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
+	}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryDaily).TableName()).
+		Command("pipe", pipes).
+		Where(dbox.And(filter...)).
+		Cursor(nil)
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
+	defer csr.Close()
 
-	return helper.CreateResult(true, data, "success")
+	resultScada := []tk.M{}
+	e = csr.Fetch(&resultScada, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+
+	defer csr.Close()
+
+	var scadaItem DataItem
+
+	sPower := 0.0
+	sEnergy := 0.0
+	sDowntime := 0.0
+	sOktime := 0.0
+	sWindspeed := 0.0
+	sPlf := 0.0
+	sGridavail := 0.0
+	sMachineavail := 0.0
+	sTrueavail := 0.0
+	scadaDataAvailable := true
+
+	if len(resultScada) > 0 {
+		scada := resultScada[0]
+
+		minDate := scada.Get("mindate").(time.Time).UTC()
+		maxDate := scada.Get("maxdate").(time.Time).UTC()
+		duration = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+		totalhours := duration * totalTurbine
+
+		availdate.Set("scada", []time.Time{minDate, maxDate})
+
+		sPower = scada.GetFloat64("PowerKW") / 1000
+		sWindspeed = tk.Div(scada.GetFloat64("SumWindSpeed"), scada.GetFloat64("CountWindSpeed"))
+		sEnergy = scada.GetFloat64("Production") / 1000
+		sDowntime = scada.GetFloat64("DownTimeDuration")
+		sOktime = scada.GetFloat64("OKTime")
+		// tk.Println(sOktime, " / (", duration, " * ", totalTurbine, " * ", 3600)
+		sTrueavail = (sOktime / (duration * totalTurbine * 3600)) * 100
+		sPlf = (sEnergy / (turbinecapacity * duration)) * 100
+		sMachineavail = tk.Div(totalhours-scada.GetFloat64("machinedownhours"), totalhours) * 100
+		sGridavail = tk.Div(totalhours-scada.GetFloat64("griddownhours"), totalhours) * 100
+	} else {
+		scadaDataAvailable = false
+	}
+
+	scadaItem.power = sPower
+	scadaItem.energy = sEnergy
+	scadaItem.windspeed = sWindspeed
+	scadaItem.downtime = sDowntime
+	scadaItem.plf = sPlf
+	scadaItem.gridavail = sGridavail
+	scadaItem.machineavail = sMachineavail
+	scadaItem.trueavail = sTrueavail
+
+	// ========================================================= DGR
+
+	query := []tk.M{}
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
+
+	if project != "" {
+		query = append(query, tk.M{"chosensite": project})
+	}
+
+	reffdgrturb := getturbinedgr(project)
+	if len(turbine) != 0 {
+		intturbine := []string{}
+		for _, _turb := range turbine {
+			intturbine = append(intturbine, reffdgrturb.GetString(tk.ToString(_turb)))
+		}
+		query = append(query, tk.M{"turbine": tk.M{"$in": intturbine}})
+	}
+
+	pipes = nil
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$chosensite",
+		"genkwhday":           tk.M{"$sum": "$genkwhday"},
+		"lostenergy":          tk.M{"$sum": "$lostenergy"},
+		"gridavailability":    tk.M{"$avg": "$intga"}, //extga
+		"downtimehours":       tk.M{"$sum": "$totaldowntimehours"},
+		"machineavailability": tk.M{"$avg": "$ma"},
+		"plfday":              tk.M{"$avg": "$plfday"},
+		"mindate":             tk.M{"$min": "$dateinfo.dateid"},
+		"maxdate":             tk.M{"$max": "$dateinfo.dateid"},
+		"generationhours":     tk.M{"$sum": "$generationhours"},
+		//for calculate "A" value
+		"egscheduled":     tk.M{"$sum": "$egscheduled"},
+		"egunscheduled":   tk.M{"$sum": "$egunscheduled"},
+		"fmenvironmental": tk.M{"$sum": "$fmenvironmental"},
+		"fmtheft":         tk.M{"$sum": "$fmtheft"},
+		"rowignonoem":     tk.M{"$sum": "$rowignonoem"},
+		"rowmcnonoem":     tk.M{"$sum": "$rowmcnonoem"},
+		//for calculate grid avail value
+		"igscheduled":    tk.M{"$sum": "$igscheduled"},
+		"igunscheduled":  tk.M{"$sum": "$igunscheduled"},
+		"pssscheduled":   tk.M{"$sum": "$pssscheduled"},
+		"pssunscheduled": tk.M{"$sum": "$pssunscheduled"},
+		"rowigoem":       tk.M{"$sum": "$rowigoem"},
+		//for calculate machine avail value
+		"wtgscheduled":   tk.M{"$sum": "$wtgscheduled"},
+		"wtgunscheduled": tk.M{"$sum": "$wtgunscheduled"},
+		"rowmcoem":       tk.M{"$sum": "$rowmcoem"},
+		"aor":            tk.M{"$sum": "$aor"},
+	}})
+
+	csr, e = DB().Connection.NewQuery().
+		From(new(DGRModel).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	list := []tk.M{}
+	e = csr.Fetch(&list, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	var dgrItem DataItem
+
+	sPower = 0.0
+	sEnergy = 0.0
+	sDowntime = 0.0
+	sOktime = 0.0
+	sWindspeed = -0.0
+	sPlf = 0.0
+	sGridavail = 0.0
+	sMachineavail = 0.0
+	sTrueavail = 0.0
+
+	dgrDataAvailable := true
+	// tk.Println(list)
+	if len(list) > 0 {
+		dgr := list[0]
+
+		minDate := dgr.Get("mindate").(time.Time).UTC()
+		maxDate := dgr.Get("maxdate").(time.Time).UTC()
+		duration = maxDate.AddDate(0, 0, 1).UTC().Sub(minDate.UTC()).Hours()
+
+		availdate.Set("dgr", []time.Time{minDate, maxDate})
+
+		aduration := (duration * float64(len(turbine))) - dgr.GetFloat64("egscheduled") - dgr.GetFloat64("egunscheduled") - dgr.GetFloat64("fmenvironmental") - dgr.GetFloat64("fmtheft") - dgr.GetFloat64("rowignonoem") - dgr.GetFloat64("rowmcnonoem")
+		gdown := dgr.GetFloat64("igscheduled") + dgr.GetFloat64("igunscheduled") + dgr.GetFloat64("pssscheduled") + dgr.GetFloat64("pssunscheduled") + dgr.GetFloat64("rowigoem")
+		mdown := dgr.GetFloat64("wtgscheduled") + dgr.GetFloat64("wtgunscheduled") + dgr.GetFloat64("rowmcoem") + dgr.GetFloat64("aor")
+
+		sEnergy = dgr.GetFloat64("genkwhday") / 1000
+		sDowntime = dgr.GetFloat64("downtimehours")
+
+		sGridavail = tk.Div((aduration-gdown), aduration) * 100
+		sPlf = (sEnergy / (turbinecapacity * duration)) * 100
+		sMachineavail = tk.Div((aduration-mdown), aduration) * 100
+
+		sOktime = dgr.GetFloat64("generationhours")
+		sPower = sEnergy * 6
+		// tk.Println(sOktime, " / ", duration, " * ", len(turbine))
+		sTrueavail = (sOktime) / (duration * float64(len(turbine))) * 100
+	} else {
+		dgrDataAvailable = false
+	}
+
+	dgrItem.power = sPower
+	dgrItem.energy = sEnergy
+	dgrItem.downtime = sDowntime
+	dgrItem.windspeed = sWindspeed
+	dgrItem.plf = sPlf
+	dgrItem.gridavail = sGridavail
+	dgrItem.machineavail = sMachineavail
+	dgrItem.trueavail = sTrueavail
+
+	var varItem DataItem
+	varItem.power = dgrItem.power - scadaItem.power
+	varItem.energy = dgrItem.energy - scadaItem.energy
+	varItem.windspeed = dgrItem.windspeed - scadaItem.windspeed
+	varItem.plf = dgrItem.plf - scadaItem.plf
+	varItem.gridavail = dgrItem.gridavail - scadaItem.gridavail
+	varItem.machineavail = dgrItem.machineavail - scadaItem.machineavail
+	varItem.trueavail = dgrItem.trueavail - scadaItem.trueavail
+	varItem.downtime = dgrItem.downtime - scadaItem.downtime
+
+	result := []tk.M{}
+	result = append(result, tk.M{"desc": "Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Avg. Wind Speed (m/s)", "dgr": "N/A", "scada": scadaItem.windspeed, "difference": varItem.windspeed, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Downtime (Hours)", "dgr": dgrItem.downtime, "scada": scadaItem.downtime, "difference": varItem.downtime, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "PLF", "dgr": dgrItem.plf, "scada": scadaItem.plf, "difference": varItem.plf, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Grid Availability", "dgr": dgrItem.gridavail, "scada": scadaItem.gridavail, "difference": varItem.gridavail, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Machine Availability", "dgr": dgrItem.machineavail, "scada": scadaItem.machineavail, "difference": varItem.machineavail, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "True Availability", "dgr": dgrItem.trueavail, "scada": scadaItem.trueavail, "difference": varItem.trueavail, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+
+	if scadaDataAvailable == false {
+		for _, val := range result {
+			val["scada"] = "N/A"
+		}
+	}
+
+	if dgrDataAvailable == false {
+		for _, val := range result {
+			val["dgr"] = "N/A"
+		}
+	}
+
+	lastres := tk.M{}.Set("data", result).Set("availdate", availdate)
+	return helper.CreateResult(true, lastres, "success")
 }
-*/
+
+func getturbinedgr(iproject string) (tkm tk.M) {
+	tkm = tk.M{}
+
+	csr, e := DB().Connection.NewQuery().
+		Select("turbineid", "turbinedgr").
+		From("ref_turbine").
+		Where(dbox.Eq("project", iproject)).
+		Cursor(nil)
+	defer csr.Close()
+
+	res := []tk.M{}
+	e = csr.Fetch(&res, 0, false)
+	if e != nil {
+		return
+	}
+
+	for _, val := range res {
+		tkm.Set(val.GetString("turbineid"), val.GetString("turbinedgr"))
+	}
+
+	return
+}

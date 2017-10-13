@@ -318,7 +318,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
-	filter = append(filter, dbox.Gt("power", 0))
+	if !p.IsPower0 {
+		filter = append(filter, dbox.Gt("power", 0))
+	}
 	filter = append(filter, dbox.Eq("available", 1))
 
 	// modify by ams, 2017-08-11
@@ -1449,6 +1451,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 	}
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
+	DeviationOpr := tk.ToInt(p.DeviationOpr, tk.RoundingAuto)
 	viewSession := p.ViewSession
 	isClean := p.IsClean
 	dVal := (tk.ToFloat64(tk.ToInt(DeviationVal, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
@@ -1480,8 +1483,15 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		filter = append(filter, dbox.Eq("projectname", project))
 		filter = append(filter, dbox.Eq("available", 1))
 
-		if !IsDeviation {
-			filter = append(filter, dbox.Gte(colDeviation, dVal))
+		// if !IsDeviation {
+		// 	filter = append(filter, dbox.Gte(colDeviation, dVal))
+		// }
+		if IsDeviation {
+			if DeviationOpr > 0 {
+				filter = append(filter, dbox.Gte(colDeviation, dVal))
+			} else {
+				filter = append(filter, dbox.Lte(colDeviation, dVal))
+			}
 		}
 		if isClean {
 			filter = append(filter, dbox.Eq("oktime", 600))
@@ -1544,7 +1554,15 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					arrDatas = append(arrDatas, datas)
 				}
 			default:
-				if val.AvgWindSpeed > 0 && val.Power > 0 {
+				isShow := true
+				if !p.IsPower0 {
+					if val.AvgWindSpeed > 0 && val.Power > 0 {
+						isShow = true
+					} else {
+						isShow = false
+					}
+				}
+				if isShow {
 
 					datas.Set("WindSpeed", val.AvgWindSpeed)
 					datas.Set("Power", val.Power)

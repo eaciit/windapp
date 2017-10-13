@@ -83,6 +83,9 @@ type ScadaData struct {
 	MTTF                      float64
 	PerformanceIndex          float64
 	NacelleDeviation          float64 //new added on Jul 24, 2017 by asp
+	TurbineState              float64 //new added on Oct 12, 2017 by asp
+	StateDescription          string  //new added on Oct 12, 2017 by asp
+	StateStatus               string  //new added on Oct 12, 2017 by asp
 }
 
 func (m *ScadaData) New() *ScadaData {

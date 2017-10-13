@@ -113,7 +113,7 @@ pg.setAvailableDate = function(isFirstLoad) {
             $('#dateEnd').data('kendoDatePicker').value(endDate);  
         }
 
-    }, 300);
+    }, 500);
 }
 pg.backToDownTime = function () {
     pg.isDetailDTTop(false);
