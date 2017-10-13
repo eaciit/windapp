@@ -653,18 +653,25 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 
 	// ========================================================= DGR
 
-	var filterd []*dbox.Filter
-	filterd = append(filterd, dbox.Gte("dateinfo.dateid", tStart))
-	filterd = append(filterd, dbox.Lte("dateinfo.dateid", tEnd))
+	query := []tk.M{}
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
+
 	if project != "" {
-		filterd = append(filterd, dbox.Eq("chosensite", project))
+		query = append(query, tk.M{"chosensite": project})
 	}
 
+	reffdgrturb := getturbinedgr(project)
 	if len(turbine) != 0 {
-		filterd = append(filterd, dbox.In("turbine", turbine...))
+		intturbine := []string{}
+		for _, _turb := range turbine {
+			intturbine = append(intturbine, reffdgrturb.GetString(tk.ToString(_turb)))
+		}
+		query = append(query, tk.M{"turbine": tk.M{"$in": intturbine}})
 	}
 
 	pipes = nil
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$chosensite",
 		"genkwhday":           tk.M{"$sum": "$genkwhday"},
 		"lostenergy":          tk.M{"$sum": "$lostenergy"},
@@ -698,7 +705,6 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	csr, e = DB().Connection.NewQuery().
 		From(new(DGRModel).TableName()).
 		Command("pipe", pipes).
-		Where(filterd...).
 		Cursor(nil)
 	defer csr.Close()
 
@@ -798,4 +804,27 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 
 	lastres := tk.M{}.Set("data", result).Set("availdate", availdate)
 	return helper.CreateResult(true, lastres, "success")
+}
+
+func getturbinedgr(iproject string) (tkm tk.M) {
+	tkm = tk.M{}
+
+	csr, e := DB().Connection.NewQuery().
+		Select("turbineid", "turbinedgr").
+		From("ref_turbine").
+		Where(dbox.Eq("project", iproject)).
+		Cursor(nil)
+	defer csr.Close()
+
+	res := []tk.M{}
+	e = csr.Fetch(&res, 0, false)
+	if e != nil {
+		return
+	}
+
+	for _, val := range res {
+		tkm.Set(val.GetString("turbineid"), val.GetString("turbinedgr"))
+	}
+
+	return
 }
