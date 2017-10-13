@@ -225,7 +225,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 	}
 	defer csr.Close()
 
-	e = csr.Fetch(&dailyData, 0, false) /* data per hari selama 1 bulan untuk summary sesuai filter */
+	e = csr.Fetch(&dailyData, 0, false) /* data per hari selama 1 bulan untuk parent sesuai filter */
 	if e != nil {
 		tk.Println("error fetching data", e.Error())
 		return tk.M{}
@@ -244,10 +244,10 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 		datas := []tk.M{}
 		percentage := 0.0
 		kelas := "progress-bar progress-bar-success"
-		for idx := 1; idx <= totalDay; idx++ {
-			percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100
+		for idx := 1; idx <= totalDay; idx++ { /* untuk mendapatkan data tiap hari secara urut */
+			percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100 /* percentage 1 hari dibanding totalHari dalam 1 bulan*/
 			if dataPerDay.Has(tk.ToString(idx)) {
-				if dataPerDay.GetFloat64(tk.ToString(idx)) < 0.5 {
+				if dataPerDay.GetFloat64(tk.ToString(idx)) < 0.5 { /* jika kurang dari 0.5 availability nya, maka warnanya merah */
 					kelas = "progress-bar progress-bar-red"
 				} else {
 					kelas = "progress-bar progress-bar-success"
@@ -259,7 +259,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 					"floatval": percentage,
 					"opacity":  setOpacity(dataPerDay.GetFloat64(tk.ToString(idx))),
 				})
-			} else {
+			} else { /* default value jika tidak ada data availability pada hari tersebut */
 				datas = append(datas, tk.M{
 					"tooltip":  "Day " + tk.ToString(idx),
 					"class":    "progress-bar progress-bar-red",
@@ -271,7 +271,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 		}
 		result = tk.M{"Category": "Data Availability", "Turbine": []tk.M{}, "Data": datas}
 
-		/* ========= It's time for another query ================ */
+		/* ========= Query Drill Down per Turbine ================ */
 		dailyTurbine := []tk.M{}
 		pipes = []tk.M{}
 		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
@@ -301,9 +301,9 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 			dataPerTurbine := tk.M{}
 			timeConv = time.Time{}
 			turbineList := []string{}
-			turbineMap := map[string]bool{}
+			turbineMap := map[string]bool{} /* untuk mengambil unique turbine */
 			ids := tk.M{}
-			for _, val := range dailyTurbine {
+			for _, val := range dailyTurbine { /* pembentukan map data agar dapat diakses secara mudah sesuai turbine dan tanggal */
 				ids = val.Get("_id", tk.M{}).(tk.M)
 				turbineMap[ids.GetString("turbine")] = true
 				timeConv = ids.Get("tanggal", time.Time{}).(time.Time)
@@ -326,14 +326,14 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 			_turbine := ""
 			lastTurbine := ""
 
-			for _, turbine := range turbineList {
+			for _, turbine := range turbineList { /* dengan metode ini sudah pasti urut turbinenya */
 				_turbine = turbineName[turbine]
 				if lastTurbine != turbine {
 					lastTurbine = turbine
 					turbineDetails = []tk.M{}
 				}
 				for idx := 1; idx <= totalDay; idx++ { /* dengan metode ini sudah pasti urut harinya */
-					percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100
+					percentage = 1.0 / tk.ToFloat64(totalDay, 6, tk.RoundingAuto) * 100 /* percentage 1/totalHari selama 1 bulan */
 					if dataPerTurbine.Has(tk.ToString(idx) + "_" + turbine) {
 						if dataPerTurbine.GetFloat64(tk.ToString(idx)+"_"+turbine) < 0.5 {
 							kelas = "progress-bar progress-bar-red"
@@ -347,7 +347,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 							"floatval": percentage,
 							"opacity":  setOpacity(dataPerTurbine.GetFloat64(tk.ToString(idx) + "_" + turbine)),
 						})
-					} else {
+					} else { /* data default jika tidak ada data availability di hari tersebut */
 						turbineDetails = append(turbineDetails, tk.M{
 							"tooltip":  "Day " + tk.ToString(idx),
 							"class":    "progress-bar progress-bar-red",

@@ -125,19 +125,17 @@ pg.DataCon = function(){
                             if (!app.isFine(res)) {
                                 return;
                             }
-                            var availDate = res.data.availdate;
-                            if(availDate["dgr"] !== undefined){
-                                 dataAvailDGR = kendo.toString(moment.utc(new Date(availDate["dgr"][0])).format('DD-MMM-YYYY')) + " to " + kendo.toString(moment.utc(new Date(availDate["dgr"][1])).format('DD-MMM-YYYY'));
-                            }else{
-                                dataAvailDGR = "N/A to N/A";
-                            }
-                           
-                           if(availDate["scada"] !== undefined){
-                                dataAvailScada = dataAvailDGR = kendo.toString(moment.utc(new Date(availDate["scada"][0])).format('DD-MMM-YYYY')) + " to " + kendo.toString(moment.utc(new Date(availDate["scada"][1])).format('DD-MMM-YYYY'));
-                           }else{
-                                dataAvailScada = "N/A to N/A";
-                           }
                             
+                            var availDate = res.data.availdate;
+                            var dateStartDGR = kendo.toString(moment.utc(new Date(availDate["dgr"][0])).format('DD-MMM-YYYY'));
+                            var dateEndDGR = kendo.toString(moment.utc(availDate["dgr"][1]).format('DD-MMM-YYYY'));
+
+                            dataAvailDGR =  dateStartDGR+ " to " +dateEndDGR ;
+                            dataAvailScada = dataAvailDGR = kendo.toString(moment.utc(new Date(availDate["scada"][0])).format('DD-MMM-YYYY')) + " to " + kendo.toString(moment.utc(new Date(availDate["scada"][1])).format('DD-MMM-YYYY'));
+
+                             $("#dateDgr").html(dateStartDGR+ " to " +dateEndDGR);
+                             $("#dateScada").html(dataAvailScada);
+
                             return res.data.data
                         }
                     },
@@ -165,8 +163,6 @@ pg.DataCon = function(){
 
                 ],
                 dataBound: function(){
-                    $("#dateDgr").html(dataAvailDGR);
-                    $("#dateScada").html(dataAvailScada);
                     app.loading(false);
                     pg.isFirstDataCon(false);
                 }

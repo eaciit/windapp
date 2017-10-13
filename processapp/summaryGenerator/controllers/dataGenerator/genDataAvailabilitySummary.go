@@ -598,6 +598,136 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 	wg.Done()
 }
 
+func (ev *DataAvailabilitySummary) scadaHFDSummaryDaily() *DataAvailability {
+	tk.Println("===================== SCADA DATA HFD DAILY...")
+	var wg sync.WaitGroup
+
+	ctx, e := PrepareConnection()
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		os.Exit(0)
+	}
+	now := time.Now().UTC()
+
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
+	id := now.Format("20060102_150405_SCADAHFD_DAILY")
+
+	// latest 6 month
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+
+	availabilityDaily := new(DataAvailability)
+	availabilityDaily.Name = "Scada Data HFD_DAILY"
+	availabilityDaily.Type = "SCADA_DATA_HFD_DAILY"
+	availabilityDaily.ID = id
+	availabilityDaily.PeriodFrom = periodFrom
+	availabilityDaily.PeriodTo = periodTo
+
+	matches := []tk.M{
+		tk.M{"timestamp": tk.M{"$gte": periodFrom}},
+		tk.M{"isnull": false},
+	}
+	groups := tk.M{
+		"_id": tk.M{
+			"projectname": "$projectname",
+			"turbine":     "$turbine",
+			"tanggal":     "$dateinfo.dateid",
+		},
+		"totaldata": tk.M{"$sum": 1},
+	}
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$group": groups})
+	pipes = append(pipes, tk.M{"$project": tk.M{"projectname": 1, "timestamp": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.tanggal": 1}})
+
+	csr, e := ctx.NewQuery().From("Scada10MinHFD").
+		Command("pipe", pipes).Cursor(nil)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+	}
+
+	_data := tk.M{}
+	dataPerturbine := map[string][]tk.M{} /* for appending data per project per turbine */
+	currProject := ""
+	currTurbine := ""
+	keys := ""
+	for {
+		_data = tk.M{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		currProject = _data.GetString("projectname")
+		currTurbine = _data.GetString("turbine")
+		keys = tk.Sprintf("%s_%s", currProject, currTurbine)
+		dataPerturbine[keys] = append(dataPerturbine[keys], _data)
+	}
+	csr.Close()
+
+	countx := 0
+	maxPar := 5
+
+	detailsDaily := []DataAvailabilityDetail{}
+
+	for turbine, turbineVal := range ev.BaseController.RefTurbines {
+		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
+		currProject = value.GetString("project")
+		keys = tk.Sprintf("%s_%s", currProject, turbine)
+		go workerDaily(dataPerturbine[keys], &detailsDaily, &wg)
+
+		countx++
+
+		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
+			wg.Wait()
+		}
+	}
+
+	availabilityDaily.Details = detailsDaily
+	ev.Log.AddLog(tk.Sprintf(">> DONE SCADA HFD DAILY"), sInfo)
+
+	return availabilityDaily
+}
+
+func workerDaily(data []tk.M, details *[]DataAvailabilityDetail, wg *sync.WaitGroup) {
+	detail := []DataAvailabilityDetail{}
+	/*groups := tk.M{
+		"_id": tk.M{
+			"projectname": "$projectname",
+			"turbine":     "$turbine",
+			"tanggal":     "$dateinfo.dateid",
+		},
+		"totaldata": tk.M{"$sum": 1},
+	}*/
+	ids := tk.M{}
+	maxDataPerDay := 6.0 * 24.0 /* dalam 1 jam ada 6 data karena per 10 menit*/
+	duration := 0.0
+	countID := 1
+	periodFrom := time.Time{}
+	periodTo := time.Time{}
+	if len(data) > 0 {
+		for _, datum := range data {
+			ids = datum.Get("_id", tk.M{}).(tk.M)
+			periodFrom = ids.Get("tanggal", time.Time{}).(time.Time)
+			periodTo = periodFrom
+			duration = tk.Div(datum.GetFloat64("totaldata"), maxDataPerDay)
+			if duration >= 0.5 {
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
+					datum.GetString("turbine"), duration, true, countID))
+			} else {
+				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
+					datum.GetString("turbine"), duration, false, countID))
+			}
+			countID++
+		}
+	}
+	mtx.Lock()
+	*details = append(*details, detail...)
+	mtx.Unlock()
+
+	wg.Done()
+}
+
 func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool, id int) DataAvailabilityDetail {
 
 	res := DataAvailabilityDetail{

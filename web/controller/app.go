@@ -81,6 +81,7 @@ type PayloadAnalyticPC struct {
 	IsSpecific   bool
 	DeviationVal string
 	DeviationOpr string // add by ams, 2017-08-11
+	IsPower0     bool
 	IsAverage    bool
 	Color        []interface{}
 	ColorDeg     []interface{}

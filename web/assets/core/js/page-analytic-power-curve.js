@@ -16,6 +16,7 @@ page.detailEndDate = ko.observable("");
 
 page.isSpecific = ko.observable(true);
 page.isClean = ko.observable(true);
+page.isPower0 = ko.observable(true); // to show all data, even power less than 0
 page.idName = ko.observable("");
 page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
@@ -199,6 +200,7 @@ var Data = {
                 isClean: page.isClean,
                 isSpecific: page.isSpecific,
                 isDeviation: page.isDeviation,
+                isPower0: page.isPower0,
                 DeviationVal: page.deviationVal,
                 DeviationOpr: page.deviationOpr,
                 ViewSession: page.viewSession
@@ -400,11 +402,31 @@ var Data = {
             project: fa.project,
             Color: kolor,
             // ColorDeg: kolorDeg,
+            isClean: page.isClean,
+            isSpecific: page.isSpecific,
             isDeviation: page.isDeviation,
+            isPower0: page.isPower0,
             deviationVal: page.deviationVal,
+            DeviationOpr: page.deviationOpr,
             IsDownTime: page.showDownTime(),
             ViewSession: page.viewSession()
         };
+        // var param = {
+        //     period: fa.period,
+        //     dateStart: dateStart,
+        //     dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
+        //     turbine: fa.turbine(),
+        //     project: fa.project,
+        //     Color: kolor,
+        //     isClean: page.isClean,
+        //     isSpecific: page.isSpecific,
+        //     isDeviation: page.isDeviation,
+        //     isPower0: page.isPower0,
+        //     deviationVal: page.deviationVal,
+        //     DeviationOpr: page.deviationOpr,
+        //     IsDownTime: page.showDownTime(),
+        //     ViewSession: page.viewSession
+        // }
         lastParam = param;
 
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
@@ -816,12 +838,14 @@ page.resetFilter = function(){
     page.isClean(true);
     page.isSpecific(true);
     page.isDeviation(true);
+    page.isPower0(false);
     page.sScater(false);
     page.showDownTime(false);
     page.deviationVal("20");
     page.isDensity(false);
     $('#isClean').prop('checked',true);
     $('#isSpecific').prop('checked',false);
+    $('#isPower0').prop('checked',false);
     $('#isDeviation').prop('checked',true);
     $('#sScater').prop('checked',false);
     $('#showDownTime').prop('checked',false);
@@ -954,6 +978,13 @@ $(document).ready(function() {
     $('#isClean').on('click', function() {
         var isClean = $('#isClean').prop('checked');
         page.isClean(isClean);
+        page.getSelectedFilter();
+        Data.InitLinePowerCurve();
+    });
+
+    $('#isPower0').on('click', function() {
+        var isPower0 = $('#isPower0').prop('checked');
+        page.isPower0(isPower0);
         page.getSelectedFilter();
         Data.InitLinePowerCurve();
     });
