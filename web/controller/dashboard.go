@@ -4608,7 +4608,7 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 					production = dtp.(tk.M).GetFloat64("production")
 					lostenergy = dtp.(tk.M).GetFloat64("lostenergy")
 					plf = dtp.(tk.M).GetFloat64("plf")
-					plf = dtp.(tk.M).GetFloat64("trueavail")
+					trueavail = dtp.(tk.M).GetFloat64("trueavail")
 				}
 
 				dateInfo := MonthIDToDateInfo(monthId)
