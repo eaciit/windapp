@@ -4588,6 +4588,7 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 				"production": production,
 				"lostenergy": lostenergy,
 				"plf":        res.GetFloat64("plf"),
+				"trueavail":  res.GetFloat64("trueavail"),
 			})
 		}
 	}
@@ -4601,20 +4602,23 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 				production := 0.0
 				lostenergy := 0.0
 				plf := 0.0
+				trueavail := 0.0
 				if dataPlot.Has(project + "|" + tk.ToString(monthId)) {
 					dtp := dataPlot[project+"|"+tk.ToString(monthId)]
 					production = dtp.(tk.M).GetFloat64("production")
 					lostenergy = dtp.(tk.M).GetFloat64("lostenergy")
 					plf = dtp.(tk.M).GetFloat64("plf")
+					plf = dtp.(tk.M).GetFloat64("trueavail")
 				}
 
 				dateInfo := MonthIDToDateInfo(monthId)
 				data[project] = append(data[project], tk.M{
-					"monthid":    dateInfo.MonthId,
-					"monthdesc":  dateInfo.MonthDesc,
-					"production": production,
-					"lostenergy": lostenergy,
-					"plf":        plf,
+					"monthid":      dateInfo.MonthId,
+					"monthdesc":    dateInfo.MonthDesc,
+					"production":   production,
+					"lostenergy":   lostenergy,
+					"plf":          plf,
+					"availability": trueavail,
 				})
 
 				startMonth++
