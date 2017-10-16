@@ -31,8 +31,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	k.Config.OutputType = knot.OutputJson
 
 	var (
-		filter []*dbox.Filter
-		pipes  []tk.M
+		pipes []tk.M
 	)
 
 	p := new(PayloadAnalytic)
@@ -49,17 +48,16 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	}
 	turbine := p.Turbine
 	project := p.Project
-
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+	matches := []tk.M{}
+	matches = append(matches, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	matches = append(matches, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 
 	if project != "" {
-		filter = append(filter, dbox.Eq("projectname", project))
+		matches = append(matches, tk.M{"projectname": project})
 	}
 
 	if len(turbine) != 0 {
-		filter = append(filter, dbox.In("turbine", turbine...))
+		matches = append(matches, tk.M{"turbine": tk.M{"$in": turbine}})
 	}
 
 	breakdown := "Turbine"
@@ -68,6 +66,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		ids = "$projectname"
 		breakdown = "Project"
 	}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
 	// Aggr(dbox.AggrMax, "$dateinfo.dateid", "max").
 	// Aggr(dbox.AggrMin, "$dateinfo.dateid", "min").
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": ids,
@@ -89,7 +88,6 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
 		Cursor(nil)
 
 	if e != nil {
