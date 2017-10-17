@@ -559,74 +559,21 @@ func (m *AnalyticLossAnalysisController) GetLostEnergyTab(k *knot.WebContext) in
 }
 
 func getCatLossTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
-	var result []tk.M
+	result := []tk.M{}
 	var e error
-	var pipes []tk.M
-	match := tk.M{}
 
 	if p != nil {
-		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		data, e := getLossDuration(topType, p, k)
 		if e != nil {
 			return result, e
 		}
-		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
-
-		if p.Project != "" {
-			match.Set("projectname", p.Project)
-		}
-
-		if len(p.Turbine) != 0 {
-			match.Set("turbine", tk.M{"$in": p.Turbine})
-		}
-
-		pipes = append(pipes, tk.M{"$match": match})
-		if topType == "duration" {
-			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":         "",
-				"machinedown": tk.M{"$sum": "$machinedownhours"},
-				"griddown":    tk.M{"$sum": "$griddownhours"},
-				"unknown":     tk.M{"$sum": "$otherdowntimehours"},
-			}})
-		} else if topType == "loss" {
-			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":         "",
-				"machinedown": tk.M{"$sum": "$machinedownloss"},
-				"griddown":    tk.M{"$sum": "$griddownloss"},
-				"unknown":     tk.M{"$sum": "$otherdownloss"},
-			}})
-		}
-
-		csr, e := DB().Connection.NewQuery().
-			From(new(ScadaSummaryDaily).TableName()).
-			Command("pipe", pipes).
-			Cursor(nil)
-
-		if e != nil {
-			return result, e
-		}
-
-		downTimeData := []tk.M{}
-		e = csr.Fetch(&downTimeData, 0, false)
-		csr.Close()
-
-		if e != nil {
-			return result, e
-		}
-
-		downCause := map[string]string{}
-		downCause["griddown"] = "Grid Down"
-		downCause["machinedown"] = "Machine Down"
-		downCause["unknown"] = "Unknown"
-
+		machineDown, _ := getMachineDownType()
 		tmpResult := []tk.M{}
-
-		for field, title := range downCause {
-			for _, val := range downTimeData {
-				tmpResult = append(tmpResult, tk.M{
-					"title":  title,
-					"result": val.GetString(field),
-				})
-			}
+		for field, title := range machineDown {
+			tmpResult = append(tmpResult, tk.M{
+				"title":  title,
+				"result": data.GetFloat64(field),
+			})
 		}
 
 		size := len(tmpResult)
@@ -651,79 +598,22 @@ func getCatLossTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebCo
 }
 
 func getCatLossTopFrequency(p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
-	var result []tk.M
+	result := []tk.M{}
 	var e error
-	var pipes []tk.M
-	match := tk.M{}
 
 	if p != nil {
-		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		freqData, e := getLossFrequency(p, k)
 		if e != nil {
 			return result, e
 		}
-		match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
-		match.Set("reduceavailability", true)
-
-		if p.Project != "" {
-			match.Set("projectname", p.Project)
-		}
-
-		if len(p.Turbine) != 0 {
-			match.Set("turbine", tk.M{"$in": p.Turbine})
-		}
-
-		pipes = append(pipes, tk.M{"$match": match})
-
-		downCause := tk.M{}
-		downCause.Set("griddown", "Grid Down")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
-
+		machineDown, _ := getMachineDownType()
 		tmpResult := []tk.M{}
-		downDone := []string{}
-
-		for f, t := range downCause {
-			pipes = []tk.M{}
-			loopMatch := match
-			field := tk.ToString(f)
-			title := tk.ToString(t)
-
-			downDone = append(downDone, field)
-
-			for _, done := range downDone {
-				match.Unset(done)
-			}
-
-			loopMatch.Set(field, true)
-
-			pipes = append(pipes, tk.M{"$match": loopMatch})
-			pipes = append(pipes,
-				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": 1}},
-				},
-			)
-
-			csr, e := DB().Connection.NewQuery().
-				From(new(Alarm).TableName()).
-				Command("pipe", pipes).
-				Cursor(nil)
-
-			if e != nil {
-				return result, e
-			}
-
-			resLoop := []tk.M{}
-			e = csr.Fetch(&resLoop, 0, false)
-
-			csr.Close()
-
-			for _, res := range resLoop {
-				res.Set("title", res.Get("_id", tk.M{}).(tk.M).GetString("id2"))
-				res.Unset("_id")
-				tmpResult = append(tmpResult, res)
-			}
+		for field, title := range machineDown {
+			tmpResult = append(tmpResult, tk.M{
+				"title":  title,
+				"result": freqData.GetFloat64(field),
+			})
 		}
-
 		size := len(tmpResult)
 
 		if size > 1 {
