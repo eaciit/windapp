@@ -139,7 +139,7 @@ dt.Downtime = function(){
         if(pg.isFirstDowntime() === true){
             app.loading(true);
 
-            pg.setAvailableDate(true);
+            // pg.setAvailableDate(true);
 
             setTimeout(function(){
                 var dateStart = $('#dateStart').data('kendoDatePicker').value();
