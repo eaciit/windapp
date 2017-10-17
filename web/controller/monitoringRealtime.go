@@ -545,7 +545,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 					Set("AlarmUpdate", _idt.TimeUpdate.UTC())
 			}
 
-			if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
+			if reapetedAlarm.GetFloat64(_tTurbine) >= 5 {
 				_itkm.Set("IsReapeatedAlarm", true)
 			}
 
@@ -1539,7 +1539,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 						Set("AlarmUpdate", _idt.TimeUpdate.UTC())
 				}
 
-				if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
+				if reapetedAlarm.GetFloat64(_tTurbine) >= 5 {
 					_itkm.Set("IsReapeatedAlarm", true)
 				}
 			} else if pageType == "dashboard" {
