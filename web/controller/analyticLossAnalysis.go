@@ -662,6 +662,7 @@ func getCatLossTopFrequency(p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, err
 			return result, e
 		}
 		match.Set("startdate", tk.M{"$gte": tStart, "$lte": tEnd})
+		match.Set("reduceavailability", true)
 
 		if p.Project != "" {
 			match.Set("projectname", p.Project)
