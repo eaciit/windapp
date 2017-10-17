@@ -86,6 +86,7 @@ type ScadaData struct {
 	TurbineState              float64 //new added on Oct 12, 2017 by asp
 	StateDescription          string  //new added on Oct 12, 2017 by asp
 	StateStatus               string  //new added on Oct 12, 2017 by asp
+	IsValidState              bool    //new added on Oct 17, 2017 by asp
 }
 
 func (m *ScadaData) New() *ScadaData {

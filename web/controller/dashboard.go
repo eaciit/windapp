@@ -812,6 +812,131 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
+func getLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) (tk.M, error) {
+	result := tk.M{}
+	var e error
+	var pipes []tk.M
+	match := tk.M{}
+
+	if p != nil {
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return result, e
+		}
+		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+
+		if p.Project != "" {
+			match.Set("projectname", p.Project)
+		}
+
+		if len(p.Turbine) != 0 {
+			match.Set("turbine", tk.M{"$in": p.Turbine})
+		}
+
+		pipes = append(pipes, tk.M{"$match": match})
+		if topType == "duration" {
+			pipes = append(pipes, tk.M{"$group": tk.M{
+				"_id":         "",
+				"machinedown": tk.M{"$sum": "$machinedownhours"},
+				"griddown":    tk.M{"$sum": "$griddownhours"},
+				"unknown":     tk.M{"$sum": "$otherdowntimehours"},
+			}})
+		} else if topType == "loss" {
+			pipes = append(pipes, tk.M{"$group": tk.M{
+				"_id":         "",
+				"machinedown": tk.M{"$sum": "$machinedownloss"},
+				"griddown":    tk.M{"$sum": "$griddownloss"},
+				"unknown":     tk.M{"$sum": "$otherdownloss"},
+			}})
+		}
+
+		csr, e := DB().Connection.NewQuery().
+			From(new(ScadaSummaryDaily).TableName()).
+			Command("pipe", pipes).
+			Cursor(nil)
+
+		if e != nil {
+			return result, e
+		}
+
+		downTimeData := []tk.M{}
+		e = csr.Fetch(&downTimeData, 0, false)
+		if e != nil {
+			return result, e
+		}
+		defer csr.Close()
+
+		if len(downTimeData) > 0 {
+			result = downTimeData[0]
+		}
+	}
+
+	return result, e
+}
+
+func getLossFrequency(p *PayloadAnalytic, k *knot.WebContext) (tk.M, error) {
+	result := tk.M{}
+	var e error
+	var pipes []tk.M
+	matches := []tk.M{}
+
+	if p != nil {
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return result, e
+		}
+		matches = append(matches, tk.M{"startdate": tk.M{"$gte": tStart}})
+		matches = append(matches, tk.M{"startdate": tk.M{"$lte": tEnd}})
+		matches = append(matches, tk.M{"reduceavailability": true})
+		matches = append(matches, tk.M{"duration": tk.M{"$gt": 0}})
+
+		if p.Project != "" {
+			matches = append(matches, tk.M{"projectname": p.Project})
+		}
+
+		if len(p.Turbine) != 0 {
+			matches = append(matches, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+		}
+
+		downCause, _ := getMachineDownType()
+
+		for field := range downCause {
+			pipes = []tk.M{}
+			loopMatch := matches
+
+			loopMatch = append(loopMatch, tk.M{field: true})
+
+			pipes = append(pipes, tk.M{"$match": tk.M{"$and": loopMatch}})
+			pipes = append(pipes,
+				tk.M{
+					"$group": tk.M{"_id": "", "result": tk.M{"$sum": 1}},
+				},
+			)
+
+			csr, e := DB().Connection.NewQuery().
+				From(new(Alarm).TableName()).
+				Command("pipe", pipes).
+				Cursor(nil)
+
+			if e != nil {
+				return result, e
+			}
+
+			resLoop := []tk.M{}
+			e = csr.Fetch(&resLoop, 0, false)
+
+			csr.Close()
+
+			for _, res := range resLoop {
+				res.Unset("_id")
+				result.Set(field, res.GetFloat64("result"))
+			}
+		}
+	}
+
+	return result, e
+}
+
 func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -822,83 +947,31 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	}
 
 	machinedown, _ := getMachineDownType()
-	projectList := []string{}
-	if p.Project == "" {
-		projectList, e = getProject()
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-	} else {
-		projectList = []string{p.Project}
-	}
 
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	result := []tk.M{}
+
+	lossEnergyData, e := getLossDuration("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	var pipes []tk.M
-	match := tk.M{}
-
-	match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
-
-	if len(p.Turbine) != 0 {
-		match.Set("turbine", tk.M{"$in": p.Turbine})
+	durationData, e := getLossDuration("duration", p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
 	}
-	result := []tk.M{}
+	freqData, e := getLossFrequency(p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
-	for _, project := range projectList {
-		for field, mdName := range machinedown {
-			pipes = []tk.M{}
-			match.Set("projectname", project)
-			match.Set("detail."+field, true)
-			pipes = append(pipes, tk.M{"$unwind": "$detail"})
-			pipes = append(pipes, tk.M{"$match": match})
-			groups := tk.M{
-				"_id": tk.M{
-					"id1": mdName,
-					"id2": mdName,
-					"id3": project,
-				},
-				"powerlost": tk.M{"$sum": "$detail.powerlost"},
-				"duration":  tk.M{"$sum": "$detail.duration"},
-				"frequency": tk.M{"$sum": 1},
-			}
-			pipes = append(pipes, tk.M{"$group": groups})
-
-			csr, e := DB().Connection.NewQuery().
-				From(new(Alarm).TableName()).
-				Command("pipe", pipes).
-				Cursor(nil)
-
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-
-			tmpRes := []tk.M{}
-			e = csr.Fetch(&tmpRes, 0, false)
-			if e != nil {
-				return helper.CreateResult(false, nil, e.Error())
-			}
-			csr.Close()
-
-			found := false
-			if tk.SliceLen(tmpRes) > 0 {
-				found = true
-				tmpRes[0]["powerlost"] = tmpRes[0].GetFloat64("powerlost") / 1000
-				result = append(result, tmpRes[0])
-			}
-
-			if !found {
-				emptyRes := tk.M{}
-				emptyRes.Set("_id", tk.M{"id1": mdName, "id2": mdName, "id3": tk.ToString(project)})
-				emptyRes.Set("powerlost", 0)
-				emptyRes.Set("duration", 0)
-				emptyRes.Set("frequency", 0)
-
-				result = append(result, emptyRes)
-			}
-			match.Unset("detail." + field)
-		}
+	for field, mdName := range machinedown {
+		res := tk.M{}
+		res.Set("field", mdName)
+		res.Set("title", mdName)
+		res.Set("projectname", p.Project)
+		res.Set("powerlost", lossEnergyData.GetFloat64(field)/1000)
+		res.Set("duration", durationData.GetFloat64(field))
+		res.Set("frequency", freqData.GetFloat64(field))
+		result = append(result, res)
 	}
 	return helper.CreateResult(true, result, "success")
 }

@@ -512,6 +512,26 @@ func (m *AnalyticLossAnalysisController) GetComponentAlarmTab(k *knot.WebContext
 	return helper.CreateResult(true, result, "success")
 }
 
+func (m *AnalyticLossAnalysisController) GetFrequencyTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := tk.M{}
+
+	catlossfreq, e := getCatLossTopFrequency(p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	result.Set("catlossfreq", catlossfreq)
+
+	return helper.CreateResult(true, result, "success")
+}
+
 func (m *AnalyticLossAnalysisController) GetLostEnergyTab(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -523,120 +543,77 @@ func (m *AnalyticLossAnalysisController) GetLostEnergyTab(k *knot.WebContext) in
 
 	result := tk.M{}
 
-	catloss, e := getCatLossTopFiltered("loss", p, k)
+	catloss, e := getCatLossTopLossDuration("loss", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catloss", catloss)
 
-	catlossduration, e := getCatLossTopFiltered("duration", p, k)
+	catlossduration, e := getCatLossTopLossDuration("duration", p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	result.Set("catlossduration", catlossduration)
 
-	catlossfreq, e := getCatLossTopFiltered("frequency", p, k)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	result.Set("catlossfreq", catlossfreq)
-
 	return helper.CreateResult(true, result, "success")
 }
 
-func getCatLossTopFiltered(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
-	var result []tk.M
+func getCatLossTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
+	result := []tk.M{}
 	var e error
-	var pipes []tk.M
-	match := tk.M{}
 
 	if p != nil {
-		// tStart, _ := time.Parse("2006-01-02", p.DateStart.UTC().Format("2006-01-02"))
-		// tEnd, _ := time.Parse("2006-01-02 15:04:05", p.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")
-		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		data, e := getLossDuration(topType, p, k)
 		if e != nil {
 			return result, e
 		}
-		match.Set("_id", tk.M{"$ne": ""})
-		match.Set("detail.startdate", tk.M{"$gte": tStart, "$lte": tEnd})
-
-		if p.Project != "" {
-			match.Set("projectname", p.Project)
-		}
-
-		if len(p.Turbine) != 0 {
-			match.Set("turbine", tk.M{"$in": p.Turbine})
-		}
-
-		pipes = append(pipes, tk.M{"$match": match})
-
-		downCause := tk.M{}
-		// downCause.Set("aebok", "AEBOK")
-		// downCause.Set("externalstop", "External Stop")
-		downCause.Set("griddown", "Grid Down")
-		// downCause.Set("internalgrid", "Internal Grid")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
-		// downCause.Set("weatherstop", "Weather Stop")
-
+		machineDown, _ := getMachineDownType()
 		tmpResult := []tk.M{}
-		downDone := []string{}
+		for field, title := range machineDown {
+			tmpResult = append(tmpResult, tk.M{
+				"title":  title,
+				"result": data.GetFloat64(field),
+			})
+		}
 
-		for f, t := range downCause {
-			pipes = []tk.M{}
-			loopMatch := match
-			field := tk.ToString(f)
-			title := tk.ToString(t)
+		size := len(tmpResult)
 
-			downDone = append(downDone, field)
+		if size > 1 {
+			for i := 0; i < size; i++ {
+				for j := size - 1; j >= i+1; j-- {
+					a := tmpResult[j].GetFloat64("result")
+					b := tmpResult[j-1].GetFloat64("result")
 
-			for _, done := range downDone {
-				match.Unset("detail." + done)
-			}
-
-			loopMatch.Set("detail."+field, true)
-
-			pipes = append(pipes, tk.M{"$unwind": "$detail"})
-			pipes = append(pipes, tk.M{"$match": loopMatch})
-			if topType == "loss" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$detail.powerlost"}},
-					},
-				)
-			} else if topType == "duration" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": "$detail.duration"}},
-					},
-				)
-			} else if topType == "frequency" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id1": field, "id2": title}, "result": tk.M{"$sum": 1}},
-					},
-				)
-			}
-
-			csr, e := DB().Connection.NewQuery().
-				From(new(Alarm).TableName()).
-				Command("pipe", pipes).
-				Cursor(nil)
-
-			if e != nil {
-				return result, e
-			}
-
-			resLoop := []tk.M{}
-			e = csr.Fetch(&resLoop, 0, false)
-
-			csr.Close()
-
-			for _, res := range resLoop {
-				tmpResult = append(tmpResult, res)
+					if a > b {
+						tmpResult[j], tmpResult[j-1] = tmpResult[j-1], tmpResult[j]
+					}
+				}
 			}
 		}
 
+		result = tmpResult
+	}
+
+	return result, e
+}
+
+func getCatLossTopFrequency(p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
+	result := []tk.M{}
+	var e error
+
+	if p != nil {
+		freqData, e := getLossFrequency(p, k)
+		if e != nil {
+			return result, e
+		}
+		machineDown, _ := getMachineDownType()
+		tmpResult := []tk.M{}
+		for field, title := range machineDown {
+			tmpResult = append(tmpResult, tk.M{
+				"title":  title,
+				"result": freqData.GetFloat64(field),
+			})
+		}
 		size := len(tmpResult)
 
 		if size > 1 {
