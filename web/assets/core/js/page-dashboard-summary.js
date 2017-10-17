@@ -2452,7 +2452,7 @@ sum.DetailLostEnergy = function(e){
                 title: {
                     text: "MWh",
                     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    visible: false, 
+                    visible: true, 
                 },
                 labels: {
                     step: 2,
@@ -2556,6 +2556,11 @@ sum.DetailLostEnergyLevel2 = function(e){
             }],
             seriesColors: colorField,
             valueAxis: {
+                title: {
+                    text: "MWh",
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    visible: true, 
+                },
                 labels: {
                     step: 2,
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -2644,7 +2649,7 @@ sum.DetailLTPlot = function(project, e){
                     },
                     theme: "flat",
                     title: { 
-                        text: "",
+                        text: key,
                         font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     },
                     legend: {
@@ -2678,7 +2683,11 @@ sum.DetailLTPlot = function(project, e){
                     }],
                     seriesColors: colorFieldProject,
                     valueAxis: {
-                        min: 0,
+                        title: {
+                            text: "MWh",
+                            font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            visible: true, 
+                        },
                         labels: {
                             step: 2,
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -2850,7 +2859,12 @@ sum.DetailLTPlotLevel2 = function(project, e){
                 }],
                 seriesColors: colorFieldProject,
                 valueAxis: {
-                    min: 0,
+                    // min: 0,
+                    title: {
+                        text: "MWh",
+                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        visible: true, 
+                    },
                     labels: {
                         step: 2,
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
