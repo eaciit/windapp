@@ -80,7 +80,7 @@ func main() {
 		new(GenDataWindDistribution).GenerateCurrentMonth(base) // step add.01
 
 		// not dependent Generate
-		new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
+		// new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
 		// new(EventReduceAvailability).ConvertEventReduceAvailability(base)
 
 		// // custom function temporary running
