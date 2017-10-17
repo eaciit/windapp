@@ -44,6 +44,13 @@ le.LossEnergy = function(){
                 setTimeout(function(){
                     le.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
                     le.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+                },300);
+            });
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getfrequencytab", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                setTimeout(function(){
                     le.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
 
                     app.loading(false);
@@ -140,7 +147,7 @@ le.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
 
         },
         categoryAxis: {
-            field: "_id.id2",
+            field: "title",
             title: {
                 text: "Loss Categories",
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
