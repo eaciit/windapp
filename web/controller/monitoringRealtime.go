@@ -978,18 +978,18 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
 
-		if turbineNA == totalTurbine {
-			defaultColorStatus = "bg-default-grey"
-			colorStatus = "lbl bg-grey"
-		} else if turbineDown == totalTurbine {
-			defaultColorStatus = "bg-default-red"
-			colorStatus = "lbl bg-red"
-		} else if waitingForWind == totalTurbine {
-			defaultColorStatus = "bg-default-mustard"
-			colorStatus = "lbl bg-mustard"
-		} else {
+		if turbineAvail > 0 {
 			defaultColorStatus = "bg-default-green"
 			colorStatus = "lbl bg-green"
+		} else if waitingForWind > 0 {
+			defaultColorStatus = "bg-default-mustard"
+			colorStatus = "lbl bg-mustard"
+		} else if turbineDown > 0 {
+			defaultColorStatus = "bg-default-red"
+			colorStatus = "lbl bg-red"
+		} else if turbineNA > 0 {
+			defaultColorStatus = "bg-default-grey"
+			colorStatus = "lbl bg-grey"
 		}
 
 		//Lahori already in MwH
