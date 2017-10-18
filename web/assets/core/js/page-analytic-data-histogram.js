@@ -403,26 +403,27 @@ km.getData = function () {
             }
         });
 
-        var parDataTemp = {
-            MinValue: parseFloat(km.MinValueWindSpeed()),
-            MaxValue: parseFloat(km.MaxValueWindSpeed()),
-            BinValue: parseInt(km.BinValueWindSpeed()),
-            FieldName: $('#sTempTags').data('kendoDropDownList').value(),
-            Filter: paramFilter,
-        };
-        var requestHistogramTemp = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data != null) {
-                km.dsCategoryTemp(res.data.category);
-                km.dsValueTemp(res.data.value);
-                km.dsTotaldataTemp(res.data.totaldata);
-                km.createChartTemp(res.data.turbinename);
-            }
-        });
+        // var parDataTemp = {
+        //     MinValue: parseFloat(km.MinValueWindSpeed()),
+        //     MaxValue: parseFloat(km.MaxValueWindSpeed()),
+        //     BinValue: parseInt(km.BinValueWindSpeed()),
+        //     FieldName: $('#sTempTags').data('kendoDropDownList').value(),
+        //     Filter: paramFilter,
+        // };
+        // var requestHistogramTemp = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
+        //     if (!app.isFine(res)) {
+        //         return;
+        //     }
+        //     if (res.data != null) {
+        //         km.dsCategoryTemp(res.data.category);
+        //         km.dsValueTemp(res.data.value);
+        //         km.dsTotaldataTemp(res.data.totaldata);
+        //         km.createChartTemp(res.data.turbinename);
+        //     }
+        // });
 
-        $.when(requestHistogram, requestProduction, requestHistogramTemp).done(function(){
+        // $.when(requestHistogram, requestProduction, requestHistogramTemp).done(function(){
+        $.when(requestHistogram, requestProduction).done(function(){
             setTimeout(function(){
                 app.loading(false);
             },500);
