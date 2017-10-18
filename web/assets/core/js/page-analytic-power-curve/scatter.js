@@ -98,6 +98,12 @@ page.setAxis = function(name, title) {
             case "ambient":
                 result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176) + "C";
                 break;
+            case "windspeed_dev":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + "m/s";
+                break;
+            case "windspeed_ti":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # ";
+                break;
         }
     }
     return result

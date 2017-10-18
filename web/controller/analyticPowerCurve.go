@@ -947,7 +947,7 @@ func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resW
 	return
 }
 
-func getScatterValue10Min(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+func getScatterValue10Min(list []tk.M, tipe, field string, isTI bool) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
 	resWSvsPower = []tk.M{}
 	resWSvsTipe = []tk.M{}
 	dataWSvsPower := tk.M{}
@@ -963,7 +963,11 @@ func getScatterValue10Min(list []tk.M, tipe, field string) (resWSvsPower []tk.M,
 		resWSvsPower = append(resWSvsPower, dataWSvsPower)
 
 		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("windspeed_ms"))
-		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+		if isTI {
+			dataWSvsTipe.Set(tipe, tk.Div(val.GetFloat64(field), val.GetFloat64("windspeed_ms")))
+		} else {
+			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+		}
 		dataWSvsTipe.Set("valueColor", colorField[2])
 
 		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
@@ -1065,8 +1069,6 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		list = append(list, _list)
 	}
 
-	tk.Printf("%#v\n", list)
-
 	defer csr.Close()
 
 	turbineData := tk.M{}
@@ -1088,10 +1090,10 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature")
 		seriesData = setScatterData("Ambient Temperature", "WindSpeed", "AmbientTemperature", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "windspeed_dev":
-		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedStdDev", "windspeed_ms_stddev")
+		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedStdDev", "windspeed_ms_stddev", false)
 		seriesData = setScatterData("Wind Speed Std. Dev.", "WindSpeed", "WindSpeedStdDev", colorField[2], "windspeed_dev", tk.M{"size": 2}, resWSvsTipe)
 	case "windspeed_ti":
-		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedTI", "windspeed_ms_stddev")
+		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedTI", "windspeed_ms_stddev", true)
 		seriesData = setScatterData("Wind Speed TI", "WindSpeed", "WindSpeedTI", colorField[2], "windspeed_ti", tk.M{"size": 2}, resWSvsTipe)
 	}
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
