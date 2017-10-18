@@ -27,6 +27,8 @@ page.scatterList = ko.observableArray([
     { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
     { "value": "ambient", "text": "Ambient Temperature" },
+    { "value": "windspeed_dev", "text": "Wind Speed Std. Dev." },
+    { "value": "windspeed_ti", "text": "TI Wind Speed" },
     // { "value": "mainbearing", "text": "Temp Main Bearing" },
     // { "value": "gearbox", "text": "Temp  Gearbox HSS De" },
 ]);
@@ -148,6 +150,14 @@ page.getPowerCurveScatter = function() {
                 break;
             case "ambient":
                 var axis = page.setAxis("ambientAxis", "Temperature (Celcius)");
+                yAxes.push(axis);
+                break;
+            case "windspeed_dev":
+                var axis = page.setAxis("windspeed_dev", "Wind Speed Std. Dev.");
+                yAxes.push(axis);
+                break;
+            case "windspeed_ti":
+                var axis = page.setAxis("windspeed_ti", "TI Wind Speed");
                 yAxes.push(axis);
                 break;
         }

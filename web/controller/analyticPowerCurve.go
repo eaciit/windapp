@@ -947,6 +947,30 @@ func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resW
 	return
 }
 
+func getScatterValue10Min(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+	resWSvsPower = []tk.M{}
+	resWSvsTipe = []tk.M{}
+	dataWSvsPower := tk.M{}
+	dataWSvsTipe := tk.M{}
+	for _, val := range list {
+		dataWSvsPower = tk.M{}
+		dataWSvsTipe = tk.M{}
+
+		dataWSvsPower.Set("WindSpeed", val.GetFloat64("windspeed_ms"))
+		dataWSvsPower.Set("Power", val.GetFloat64("activepower_kw"))
+		dataWSvsPower.Set("valueColor", colorField[1])
+
+		resWSvsPower = append(resWSvsPower, dataWSvsPower)
+
+		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("windspeed_ms"))
+		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+		dataWSvsTipe.Set("valueColor", colorField[2])
+
+		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+	}
+	return
+}
+
 func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -981,27 +1005,57 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	dataSeries = append(dataSeries, pcData)
 
 	var filter []*dbox.Filter
-	filter = []*dbox.Filter{}
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("timestamp", tStart))
-	filter = append(filter, dbox.Lte("timestamp", tEnd))
-	filter = append(filter, dbox.Eq("turbine", turbine))
-	filter = append(filter, dbox.Eq("projectname", project))
-	// filter = append(filter, dbox.Eq("oktime", 600))
-	filter = append(filter, dbox.Gt("avgwindspeed", 0))
-	filter = append(filter, dbox.Gt("power", 0))
-	filter = append(filter, dbox.Eq("available", 1))
 
-	csr, e := DB().Connection.NewQuery().
-		Select("power", "avgwindspeed", "avgbladeangle", "nacelletemperature", "nacelledeviation", "ambienttemperature").
-		From(new(ScadaData).TableName()).
-		Where(dbox.And(filter...)).
-		Take(10000).
-		Cursor(nil)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+	scatterType := p.ScatterType
+	isScada10Min := true
+	if scatterType == "temp" || scatterType == "deviation" || scatterType == "pitch" || scatterType == "ambient" {
+		isScada10Min = false
 	}
 	_list := tk.M{}
+	var csr dbox.ICursor
+	if !isScada10Min {
+		filter = []*dbox.Filter{}
+		filter = append(filter, dbox.Ne("_id", ""))
+		filter = append(filter, dbox.Gte("timestamp", tStart))
+		filter = append(filter, dbox.Lte("timestamp", tEnd))
+		filter = append(filter, dbox.Eq("turbine", turbine))
+		filter = append(filter, dbox.Eq("projectname", project))
+		// filter = append(filter, dbox.Eq("oktime", 600))
+		filter = append(filter, dbox.Gt("avgwindspeed", 0))
+		filter = append(filter, dbox.Gt("power", 0))
+		filter = append(filter, dbox.Eq("available", 1))
+
+		csr, e = DB().Connection.NewQuery().
+			Select("power", "avgwindspeed", "avgbladeangle", "nacelletemperature", "nacelledeviation", "ambienttemperature").
+			From(new(ScadaData).TableName()).
+			Where(dbox.And(filter...)).
+			Take(10000).
+			Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+	} else {
+		filter = []*dbox.Filter{}
+		filter = append(filter, dbox.Ne("_id", ""))
+		filter = append(filter, dbox.Gte("timestamp", tStart))
+		filter = append(filter, dbox.Lte("timestamp", tEnd))
+		filter = append(filter, dbox.Eq("turbine", turbine))
+		filter = append(filter, dbox.Eq("projectname", project))
+		filter = append(filter, dbox.Gt("windspeed_ms", 0))
+		filter = append(filter, dbox.Gt("activepower_kw", 0))
+
+		csr, e = DB().Connection.NewQuery().
+			Select("activepower_kw", "windspeed_ms_stddev", "windspeed_ms").
+			From("Scada10MinHFD").
+			Where(dbox.And(filter...)).
+			Take(10000).
+			Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+	}
+
 	for {
 		_list = tk.M{}
 		e = csr.Fetch(&_list, 1, false)
@@ -1011,6 +1065,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		list = append(list, _list)
 	}
 
+	tk.Printf("%#v\n", list)
+
 	defer csr.Close()
 
 	turbineData := tk.M{}
@@ -1018,7 +1074,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	resWSvsPower := []tk.M{}
 	resWSvsTipe := []tk.M{}
 
-	switch p.ScatterType {
+	switch scatterType {
 	case "temp":
 		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature")
 		seriesData = setScatterData("Nacelle Temperature", "WindSpeed", "NacelleTemperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
@@ -1031,6 +1087,12 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	case "ambient":
 		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature")
 		seriesData = setScatterData("Ambient Temperature", "WindSpeed", "AmbientTemperature", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
+	case "windspeed_dev":
+		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedStdDev", "windspeed_ms_stddev")
+		seriesData = setScatterData("Wind Speed Std. Dev.", "WindSpeed", "WindSpeedStdDev", colorField[2], "windspeed_dev", tk.M{"size": 2}, resWSvsTipe)
+	case "windspeed_ti":
+		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedTI", "windspeed_ms_stddev")
+		seriesData = setScatterData("Wind Speed TI", "WindSpeed", "WindSpeedTI", colorField[2], "windspeed_ti", tk.M{"size": 2}, resWSvsTipe)
 	}
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
