@@ -631,7 +631,8 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		sPower = scada.GetFloat64("PowerKW") / 1000
 		sWindspeed = tk.Div(scada.GetFloat64("SumWindSpeed"), scada.GetFloat64("CountWindSpeed"))
 		sEnergy = scada.GetFloat64("Production") / 1000
-		sDowntime = scada.GetFloat64("DownTimeDuration")
+		sDowntime = scada.GetFloat64("machinedownhours") + scada.GetFloat64("griddownhours")
+		// sDowntime = scada.GetFloat64("DownTimeDuration")
 		sOktime = scada.GetFloat64("OKTime")
 		// tk.Println(sOktime, " / (", duration, " * ", totalTurbine, " * ", 3600)
 		sTrueavail = (sOktime / (duration * totalTurbine * 3600)) * 100
@@ -669,7 +670,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		}
 		query = append(query, tk.M{"turbine": tk.M{"$in": intturbine}})
 	}
-
+	// tk.Println(">>> ", query)
 	pipes = nil
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$chosensite",
@@ -732,7 +733,6 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	sTrueavail = 0.0
 
 	dgrDataAvailable := true
-	// tk.Println(list)
 	if len(list) > 0 {
 		dgr := list[0]
 
@@ -793,12 +793,14 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	if scadaDataAvailable == false {
 		for _, val := range result {
 			val["scada"] = "N/A"
+			availdate.Set("scada", "N/A")
 		}
 	}
 
 	if dgrDataAvailable == false {
 		for _, val := range result {
 			val["dgr"] = "N/A"
+			availdate.Set("dgr", "N/A")
 		}
 	}
 
