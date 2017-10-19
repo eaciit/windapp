@@ -809,7 +809,10 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 func GetTurbineNameList(project string) (turbineName map[string]string, err error) {
 	query := DBRealtime().NewQuery().From("ref_turbine")
 	if project != "" && project != "Fleet" {
-		query = query.Where(dbox.Eq("project", project))
+		pipes := []toolkit.M{
+			toolkit.M{"$match": toolkit.M{"project": project}},
+		}
+		query = query.Command("pipe", pipes)
 	}
 	csrTurbine, err := query.Cursor(nil)
 	if err != nil {
