@@ -16,7 +16,7 @@ page.detailEndDate = ko.observable("");
 
 page.isSpecific = ko.observable(true);
 page.isClean = ko.observable(true);
-page.isPower0 = ko.observable(true); // to show all data, even power less than 0
+page.isPower0 = ko.observable(false); // to show all data, even power less than 0
 page.idName = ko.observable("");
 page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
@@ -25,6 +25,7 @@ page.deviationVal = ko.observable("20");
 
 page.isDensity = ko.observable(false);
 page.dataAvail = ko.observable(0.0);
+page.totalAvail = ko.observable(0.0);
 
 // add by ams Aug 11, 2017
 page.deviationOpts = ko.observableArray([
@@ -212,6 +213,8 @@ var Data = {
                     app.loading(false);
                     return;
                 }
+
+                page.totalAvail(res.data.TotalDataAvail);
 
                 dataTurbine = res.data.Data;
                 localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
@@ -879,7 +882,7 @@ page.getSelectedFilter = function(){
         var delim = "";
         $('input[name="filter"]:checked').each(function() {
             if(this.value == "Deviation"){
-                $("#selectedFilter").append(delim + this.value + " < " + deviationVal + " % ");
+                $("#selectedFilter").append(delim + this.value + ($("#deviationOpr").val()=="0"?" < ":" > ") + deviationVal + " % ");
             }else if(this.value == "Specific"){
                  var value = "Site Specific PW"
                  $("#selectedFilter").append(delim + value + " ");
@@ -983,7 +986,7 @@ $(document).ready(function() {
     });
 
     $('#isPower0').on('click', function() {
-        var isPower0 = $('#isPower0').prop('checked');
+        var isPower0 = $('#isPower0').is(':checked');
         page.isPower0(isPower0);
         page.getSelectedFilter();
         Data.InitLinePowerCurve();

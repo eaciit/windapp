@@ -55,7 +55,10 @@
 										<span data-bind="html: (page.isSpecific()?'Site ':'Std ') + 'AD : <b>' + (page.isSpecific()?page.ss_airdensity():page.std_airdensity()) + '</b>'"></span>
 									</div>
 									<div id="dataavail_info">
-										<span data-bind="html: 'Data Av : <b>' + kendo.toString(page.dataAvail(), 'p1') + '</b>'"></span>
+										<span data-bind="html: 'Sample Data Av : <b>' + kendo.toString(page.dataAvail(), 'p1') + '</b>'"></span>
+									</div>
+									<div id="totaldataavail_info">
+										<span data-bind="html: 'Total Data Av : <b>' + kendo.toString(page.totalAvail(), 'p1') + '</b>'"></span>
 									</div>
 									<div id="powerCurve"></div>
 								</div>

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	// "fmt"
+	"math"
 	"sort"
 	"time"
 
@@ -253,6 +254,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 	var (
 		pipes        []tk.M
+		pipesx       []tk.M
 		filter       []*dbox.Filter
 		list         []tk.M
 		dataSeries   []tk.M
@@ -347,6 +349,43 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
+	pipesx = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
+	pipesx = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+	var filterx []*dbox.Filter
+	filterx = append(filterx, dbox.Gte("dateinfo.dateid", tStart))
+	filterx = append(filterx, dbox.Lte("dateinfo.dateid", tEnd))
+	filterx = append(filterx, dbox.Eq("projectname", project))
+	filterx = append(filterx, dbox.Eq("available", 1))
+	filterx = append(filterx, dbox.Ne("_id", ""))
+
+	var listAll []tk.M
+	csrAll, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipesx).
+		Where(dbox.And(filterx...)).
+		Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csrAll.Fetch(&listAll, 0, false)
+	defer csrAll.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0) + 1
+	totalDataShouldBe := totalDays * 144
+	totalDataAll := 0
+	if len(listAll) > 0 {
+		for _, l := range listAll {
+			totalDataAll += l.GetInt("totaldata")
+		}
+	}
+	totalDataAvail := tk.Div(float64(totalDataAll), (totalDataShouldBe * float64(len(p.Turbine))))
+
 	if len(p.Turbine) == 0 {
 		for _, listVal := range list {
 			exist := false
@@ -420,9 +459,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 
 	data := struct {
-		Data []tk.M
+		Data           []tk.M
+		TotalData      int
+		TotalDataAvail float64
 	}{
-		Data: dataSeries,
+		Data:           dataSeries,
+		TotalData:      totalDataAll,
+		TotalDataAvail: totalDataAvail,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1546,15 +1589,18 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		filter = append(filter, dbox.Eq("turbine", turbineX))
 		filter = append(filter, dbox.Eq("projectname", project))
 		filter = append(filter, dbox.Eq("available", 1))
+		if !p.IsPower0 {
+			filter = append(filter, dbox.Gt("power", 0.0))
+		}
 
 		// if !IsDeviation {
 		// 	filter = append(filter, dbox.Gte(colDeviation, dVal))
 		// }
 		if IsDeviation {
 			if DeviationOpr > 0 {
-				filter = append(filter, dbox.Gte(colDeviation, dVal))
+				filter = append(filter, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
 			} else {
-				filter = append(filter, dbox.Lte(colDeviation, dVal))
+				filter = append(filter, dbox.Or(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
 			}
 		}
 		if isClean {
@@ -1562,7 +1608,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		}
 		filter = append(filter, dbox.Ne("_id", ""))
 
-		csr, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...)).Take(10000).Cursor(nil)
+		// csr, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...)).Take(10000).Cursor(nil)
+		csr, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...)).Cursor(nil)
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
@@ -1608,11 +1655,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					datas.Set("WindSpeed", val.DenWindSpeed)
 					datas.Set("Power", val.Power)
 
-					if val.DenDeviationPct <= dVal {
+					if math.Abs(val.DenDeviationPct) <= dVal {
 						// datas.Set("valueColor", colordeg[selArr])
-						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
-					} else {
 						datas.Set("valueColor", colors[selArr])
+					} else {
+						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
 					}
 
 					arrDatas = append(arrDatas, datas)
@@ -1630,11 +1677,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 
 					datas.Set("WindSpeed", val.AvgWindSpeed)
 					datas.Set("Power", val.Power)
-					if val.DeviationPct <= dVal {
+					if math.Abs(val.DeviationPct) <= dVal {
 						// datas.Set("valueColor", colordeg[selArr])
-						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
-					} else {
 						datas.Set("valueColor", colors[selArr])
+					} else {
+						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
 					}
 
 					arrDatas = append(arrDatas, datas)
