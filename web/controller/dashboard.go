@@ -2199,7 +2199,7 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 // 	return
 // }
 
-func getLossCategoriesFreq(matchSource, downCause tk.M, val string) (resLoop []tk.M) {
+func getLossCategoriesFreq(matchSource tk.M, downCause map[string]string, val string) (resLoop []tk.M) {
 	pipes := []tk.M{}
 	match := tk.M{}
 	for key, valMatch := range matchSource {
@@ -2211,7 +2211,7 @@ func getLossCategoriesFreq(matchSource, downCause tk.M, val string) (resLoop []t
 
 	loopMatch := match
 	field := val
-	title := downCause.GetString(val)
+	title := downCause[val]
 
 	loopMatch.Set(field, true)
 
@@ -2258,11 +2258,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
 		}
-
-		downCause := tk.M{}
-		downCause.Set("griddown", "Grid Down")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
+		downCause, _ := getMachineDownType()
 		sortedDown := []string{}
 		for key := range downCause {
 			sortedDown = append(sortedDown, key)
@@ -2279,7 +2275,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 			pipes = []tk.M{}
 			loopMatch := match
 			field := val
-			title := downCause.GetString(val)
+			title := downCause[val]
 
 			downDone = append(downDone, field)
 
@@ -2366,8 +2362,8 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		ids := []string{}
 		hasil := tk.M{}
 		for _, val := range sortedDown {
-			keys := "detail." + val + "_" + downCause.GetString(val)
-			keysFreq := val + "_" + downCause.GetString(val)
+			keys := "detail." + val + "_" + downCause[val]
+			keysFreq := val + "_" + downCause[val]
 			if tmpResultDuration.Has(keys) {
 				ids = strings.Split(keys, "_")
 				hasil, _ = tk.ToM(tmpResultDuration[keys])
@@ -2419,31 +2415,19 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			match.Set("projectname", p.ProjectName)
 		}
 
-		downCause := tk.M{}
-		// downCause.Set("aebok", "AEBOK")
-		// downCause.Set("externalstop", "External Stop")
-		downCause.Set("griddown", "Grid Down")
-		// downCause.Set("internalgrid", "Internal Grid")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
-		// downCause.Set("weatherstop", "Weather Stop")
-
+		downCause, _ := getMachineDownType()
 		sortedDown := []string{}
 		for key := range downCause {
 			sortedDown = append(sortedDown, key)
 		}
 		sort.Strings(sortedDown)
-
-		// tmpResult := []tk.M{}
-		// tmpResultFreq := []tk.M{}
-		// tmpResultPower := []tk.M{}
 		downDone := []string{}
 
 		for _, val := range sortedDown {
 			pipes = []tk.M{}
 			loopMatch := match
 			field := val
-			title := downCause.GetString(val)
+			title := downCause[val]
 
 			downDone = append(downDone, field)
 
@@ -2480,9 +2464,6 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			csr.Close()
 
 			for _, res := range resLoop {
-				// tmpResult = append(tmpResult, res)
-				// tmpResultFreq = append(tmpResultFreq, res)
-				// tmpResultPower = append(tmpResultPower, res)
 				resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
 				resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
 			}
@@ -2492,59 +2473,6 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
 			}
 		}
-
-		// size := len(tmpResult)
-		// sizeF := len(tmpResultFreq)
-		// sizeP := len(tmpResultPower)
-
-		// if size > 1 {
-		// 	for i := 0; i < size; i++ {
-		// 		for j := size - 1; j >= i+1; j-- {
-		// 			a := tmpResult[j].GetFloat64("duration")
-		// 			b := tmpResult[j-1].GetFloat64("duration")
-
-		// 			if a > b {
-		// 				tmpResult[j], tmpResult[j-1] = tmpResult[j-1], tmpResult[j]
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// if sizeF > 1 {
-		// 	for i := 0; i < sizeF; i++ {
-		// 		for j := sizeF - 1; j >= i+1; j-- {
-		// 			a := tmpResultFreq[j].GetInt("freq")
-		// 			b := tmpResultFreq[j-1].GetInt("freq")
-
-		// 			if a > b {
-		// 				tmpResultFreq[j], tmpResultFreq[j-1] = tmpResultFreq[j-1], tmpResultFreq[j]
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// if sizeP > 1 {
-		// 	for i := 0; i < size; i++ {
-		// 		for j := size - 1; j >= i+1; j-- {
-		// 			a := tmpResultPower[j].GetFloat64("powerlost")
-		// 			b := tmpResultPower[j-1].GetFloat64("powerlost")
-
-		// 			if a > b {
-		// 				tmpResultPower[j], tmpResultPower[j-1] = tmpResultPower[j-1], tmpResultPower[j]
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// for _, res := range tmpResult {
-		// 	resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
-		// }
-		// for _, res := range tmpResultFreq {
-		// 	resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
-		// }
-		// for _, res := range tmpResultPower {
-		// 	resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
-		// }
 	}
 
 	return
