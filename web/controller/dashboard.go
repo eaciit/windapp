@@ -976,7 +976,7 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "success")
 }
 
-func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
+func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} { /* hanya dipakai di dashboard availability */
 	k.Config.OutputType = knot.OutputJson
 
 	result := tk.M{}
@@ -989,11 +989,6 @@ func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
 	downtimeDatas := getDownTimeLostEnergy("project", p)
 	result.Set("lostenergy", downtimeDatas)
 
-	if !p.IsDetail {
-		if p.Type == "" && p.ProjectName == "Fleet" {
-			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
-		}
-	}
 	return helper.CreateResult(true, result, "success")
 }
 
@@ -1373,8 +1368,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	} else {
 		fromDate = p.Date.AddDate(0, -12, 0)
 		match.Set("detail.detaildateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
-		/*tk.Println("From Date: ", fromDate)
-		tk.Println("PayLoad Date: ", p.Date)*/
 	}
 
 	if p.ProjectName != "Fleet" {
@@ -1417,16 +1410,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 					},
 				)
 			} else {
-				// pipes = append(pipes,
-				// 	tk.M{
-				// 		/*"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-				// 		"result": tk.M{"$sum": "$lostenergy"},*/
-				// 		"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$type"},
-				// 			"result": tk.M{"$sum": "$lostenergy"}, /*changed from by project to by MD type per 11 Oct 16 [RS]*/
-				// 		},
-				// 	},
-				// )
-
 				pipes = append(pipes, tk.M{"$unwind": "$detail"})
 				pipes = append(pipes, tk.M{"$match": match})
 				pipes = append(pipes,
@@ -1463,13 +1446,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				},
 			)
 		} else {
-			/*pipes = append(pipes,
-				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": "$type", "id2": "$type", "id3": "$projectname"},
-						"powerlost": tk.M{"$sum": "$powerlost"},
-					},
-				},
-			)*/
 
 			pipeIds := tk.M{
 				"id1": "tipe",
@@ -1503,10 +1479,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	if p.DateStr == "" && tipe != "fleetdowntime" {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
-		/*for _, pip := range pipes {
-			log.Printf("%#v \n", pip)
-		}*/
-
 		csr, e := DB().Connection.NewQuery().
 			From(new(Alarm).TableName()).
 			Command("pipe", pipes).
@@ -1532,7 +1504,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			if p.Type == "All Types" {
 				stack = machinedown
 			} else {
-				// stack[p.ProjectName] = p.ProjectName
 				stack = machinedown
 				/*changed from by project to by MD type per 11 Oct 16 [RS]*/
 			}
@@ -1547,13 +1518,9 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 
 		dt, _ := time.Parse("2006-01-02 15:04:05", fromDate.UTC().Format("2006-01")+"-01 00:00:00")
-		// lineData := tk.M{}
 
 		for field, title := range stack {
 			if tipe != "type" {
-				/*for _, val := range tmpResult {
-					log.Printf("val: %#v \n", val)
-				}*/
 
 				for i := 1; i < 13; i++ {
 					currDate := dt.AddDate(0, i, 0)
@@ -1592,12 +1559,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 								break
 							}
 						}
-						// tk.Printf("ID 1 => %#v\n", id1)
-						// tk.Printf("MonthId => %#v\n", dateInfo.MonthId)
-						// tk.Printf("ID 3 => %#v\n", id3)
-						// tk.Printf("Title => %#v\n", tk.ToString(title))
-						// tk.Printf("Value => %#v\n", val.GetFloat64("result"))
-
 					}
 
 					if !found {
@@ -1744,8 +1705,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 						},
 					},
 				)
-
-				// tk.Printf("\n%#v \n\n", pipesX)
 
 				csr, e := DB().Connection.NewQuery().
 					From(new(Alarm).TableName()).
@@ -2240,7 +2199,7 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) 
 // 	return
 // }
 
-func getLossCategoriesFreq(matchSource, downCause tk.M, val string) (resLoop []tk.M) {
+func getLossCategoriesFreq(matchSource tk.M, downCause map[string]string, val string) (resLoop []tk.M) {
 	pipes := []tk.M{}
 	match := tk.M{}
 	for key, valMatch := range matchSource {
@@ -2252,7 +2211,7 @@ func getLossCategoriesFreq(matchSource, downCause tk.M, val string) (resLoop []t
 
 	loopMatch := match
 	field := val
-	title := downCause.GetString(val)
+	title := downCause[val]
 
 	loopMatch.Set(field, true)
 
@@ -2299,11 +2258,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		if p.ProjectName != "Fleet" {
 			match.Set("projectname", p.ProjectName)
 		}
-
-		downCause := tk.M{}
-		downCause.Set("griddown", "Grid Down")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
+		downCause, _ := getMachineDownType()
 		sortedDown := []string{}
 		for key := range downCause {
 			sortedDown = append(sortedDown, key)
@@ -2320,7 +2275,7 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 			pipes = []tk.M{}
 			loopMatch := match
 			field := val
-			title := downCause.GetString(val)
+			title := downCause[val]
 
 			downDone = append(downDone, field)
 
@@ -2407,8 +2362,8 @@ func getLossCategoriesTopStack(p *PayloadDashboard) (resultDuration, resultFreq,
 		ids := []string{}
 		hasil := tk.M{}
 		for _, val := range sortedDown {
-			keys := "detail." + val + "_" + downCause.GetString(val)
-			keysFreq := val + "_" + downCause.GetString(val)
+			keys := "detail." + val + "_" + downCause[val]
+			keysFreq := val + "_" + downCause[val]
 			if tmpResultDuration.Has(keys) {
 				ids = strings.Split(keys, "_")
 				hasil, _ = tk.ToM(tmpResultDuration[keys])
@@ -2460,31 +2415,19 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			match.Set("projectname", p.ProjectName)
 		}
 
-		downCause := tk.M{}
-		// downCause.Set("aebok", "AEBOK")
-		// downCause.Set("externalstop", "External Stop")
-		downCause.Set("griddown", "Grid Down")
-		// downCause.Set("internalgrid", "Internal Grid")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
-		// downCause.Set("weatherstop", "Weather Stop")
-
+		downCause, _ := getMachineDownType()
 		sortedDown := []string{}
 		for key := range downCause {
 			sortedDown = append(sortedDown, key)
 		}
 		sort.Strings(sortedDown)
-
-		// tmpResult := []tk.M{}
-		// tmpResultFreq := []tk.M{}
-		// tmpResultPower := []tk.M{}
 		downDone := []string{}
 
 		for _, val := range sortedDown {
 			pipes = []tk.M{}
 			loopMatch := match
 			field := val
-			title := downCause.GetString(val)
+			title := downCause[val]
 
 			downDone = append(downDone, field)
 
@@ -2521,9 +2464,6 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			csr.Close()
 
 			for _, res := range resLoop {
-				// tmpResult = append(tmpResult, res)
-				// tmpResultFreq = append(tmpResultFreq, res)
-				// tmpResultPower = append(tmpResultPower, res)
 				resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
 				resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
 			}
@@ -2533,59 +2473,6 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
 			}
 		}
-
-		// size := len(tmpResult)
-		// sizeF := len(tmpResultFreq)
-		// sizeP := len(tmpResultPower)
-
-		// if size > 1 {
-		// 	for i := 0; i < size; i++ {
-		// 		for j := size - 1; j >= i+1; j-- {
-		// 			a := tmpResult[j].GetFloat64("duration")
-		// 			b := tmpResult[j-1].GetFloat64("duration")
-
-		// 			if a > b {
-		// 				tmpResult[j], tmpResult[j-1] = tmpResult[j-1], tmpResult[j]
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// if sizeF > 1 {
-		// 	for i := 0; i < sizeF; i++ {
-		// 		for j := sizeF - 1; j >= i+1; j-- {
-		// 			a := tmpResultFreq[j].GetInt("freq")
-		// 			b := tmpResultFreq[j-1].GetInt("freq")
-
-		// 			if a > b {
-		// 				tmpResultFreq[j], tmpResultFreq[j-1] = tmpResultFreq[j-1], tmpResultFreq[j]
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// if sizeP > 1 {
-		// 	for i := 0; i < size; i++ {
-		// 		for j := size - 1; j >= i+1; j-- {
-		// 			a := tmpResultPower[j].GetFloat64("powerlost")
-		// 			b := tmpResultPower[j-1].GetFloat64("powerlost")
-
-		// 			if a > b {
-		// 				tmpResultPower[j], tmpResultPower[j-1] = tmpResultPower[j-1], tmpResultPower[j]
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// for _, res := range tmpResult {
-		// 	resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
-		// }
-		// for _, res := range tmpResultFreq {
-		// 	resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
-		// }
-		// for _, res := range tmpResultPower {
-		// 	resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
-		// }
 	}
 
 	return

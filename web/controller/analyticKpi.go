@@ -130,12 +130,16 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 	if p.Project != "" {
 		match.Set("projectname", p.Project)
 	}
-
+	pValueDivider := 1.0
 	if rowsBreakdown == "Project" {
 		groupId.Set("id1", "$projectname")
 	} else if rowsBreakdown == "Turbine" {
 		if len(p.Turbine) > 0 {
+			pValueDivider = float64(len(p.Turbine))
 			match.Set("turbine", tk.M{"$in": p.Turbine})
+		} else {
+			turbineData, _ := helper.GetTurbineList([]interface{}{p.Project})
+			pValueDivider = float64(len(turbineData))
 		}
 		groupId.Set("id1", "$turbine")
 	}
@@ -421,12 +425,18 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 		}
 
 		if len(expS) > 0 {
+			tNow := getTimeNow()
 			for keyYearDay, data := range monthDay {
 
 				year := keyYearDay[:4]
 				month := keyYearDay[4:]
 
 				days := data.(tk.M).GetFloat64("days")
+				if tk.ToInt(year, tk.RoundingAuto) == tNow.Year() &&
+					tk.ToInt(month, tk.RoundingAuto) == int(tNow.Month()) &&
+					days > float64(tNow.Day()) {
+					days = float64(tNow.Day())
+				}
 				if colBreakdown == "Date" {
 					days = 1
 				}
@@ -459,11 +469,11 @@ func (m *AnalyticKpiController) GetScadaSummaryList(k *knot.WebContext) interfac
 								tmpVal = tk.ToFloat64(pval.P90Plf*100, 2, tk.RoundingAuto)
 							} else if key == "P50Generation" || key == "P75Generation" || key == "P90Generation" {
 								if key == "P50Generation" {
-									tmpVal = (pval.P50NetGenMWH / totalInMonth * days)
+									tmpVal = (pval.P50NetGenMWH / totalInMonth * days) / pValueDivider
 								} else if key == "P75Generation" {
-									tmpVal = (pval.P75NetGenMWH / totalInMonth * days)
+									tmpVal = (pval.P75NetGenMWH / totalInMonth * days) / pValueDivider
 								} else if key == "P90Generation" {
-									tmpVal = (pval.P90NetGenMWH / totalInMonth * days)
+									tmpVal = (pval.P90NetGenMWH / totalInMonth * days) / pValueDivider
 								}
 							}
 							if pValues != nil {
