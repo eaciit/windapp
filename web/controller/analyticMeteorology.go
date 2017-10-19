@@ -146,10 +146,10 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
 			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
 			if arrturbine[i] != _turbine && len(_dt01) > 0 && len(_dt02) > 0 {
-				_tkm.Set(arrturbine[i],
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]),
 					GetCorrelation(_dt01, _dt02))
 			} else {
-				_tkm.Set(arrturbine[i], "-")
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]), "-")
 			}
 		}
 		dataSeries = append(dataSeries, _tkm)
@@ -313,10 +313,10 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
 			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
 			if arrturbine[i] != _turbine && len(_dt01) > 0 && len(_dt02) > 0 {
-				_tkm.Set(arrturbine[i],
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]),
 					GetCorrelation(_dt01, _dt02))
 			} else {
-				_tkm.Set(arrturbine[i], "-")
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]), "-")
 			}
 		}
 		dataSeries = append(dataSeries, _tkm)
