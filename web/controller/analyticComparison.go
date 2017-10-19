@@ -279,7 +279,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		}
 
 		var totP50PLF, totP75PLF, totP90PLF, totP50Generation, totP75Generation, totP90Generation float64
-		tNow := time.Now().UTC()
+		tNow := getTimeNow()
 
 		if len(pvalues) > 0 {
 			for _, pval := range pvalues {

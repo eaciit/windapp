@@ -22,8 +22,14 @@ func CreateAnalyticKeyMetricsController() *AnalyticKeyMetrics {
 }
 
 func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
+	tNow := getTimeNow()
 	for yearDay, data := range monthDay {
 		days := data.(tk.M).GetFloat64("days")
+		if tk.ToInt(yearDay[0:4], tk.RoundingAuto) == tNow.Year() &&
+			tk.ToInt(yearDay[4:], tk.RoundingAuto) == int(tNow.Month()) &&
+			days > float64(tNow.Day()) {
+			days = float64(tNow.Day())
+		}
 		totalInMonth := data.(tk.M).GetFloat64("totalInMonth")
 		if tk.ToInt(yearDay[4:], tk.RoundingAuto) == monthno {
 			return value / totalInMonth * days
