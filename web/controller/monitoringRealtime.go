@@ -978,18 +978,18 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		turbineAvail := totalTurbine - turbineDown - turbineNA - waitingForWind
 
-		if turbineNA == totalTurbine {
-			defaultColorStatus = "bg-default-grey"
-			colorStatus = "lbl bg-grey"
-		} else if turbineDown == totalTurbine {
-			defaultColorStatus = "bg-default-red"
-			colorStatus = "lbl bg-red"
-		} else if waitingForWind == totalTurbine {
-			defaultColorStatus = "bg-default-mustard"
-			colorStatus = "lbl bg-mustard"
-		} else {
+		if turbineAvail > 0 {
 			defaultColorStatus = "bg-default-green"
 			colorStatus = "lbl bg-green"
+		} else if waitingForWind > 0 {
+			defaultColorStatus = "bg-default-mustard"
+			colorStatus = "lbl bg-mustard"
+		} else if turbineDown > 0 {
+			defaultColorStatus = "bg-default-red"
+			colorStatus = "lbl bg-red"
+		} else if turbineNA > 0 {
+			defaultColorStatus = "bg-default-grey"
+			colorStatus = "lbl bg-grey"
 		}
 
 		//Lahori already in MwH
@@ -1336,8 +1336,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM", "PitchAngle1": "PA1", "PitchAngle2": "PA2", "PitchAngle3": "PA3",
 		"Total_Prod_Day_kWh": "TotalProdDay"}
 
-	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
-		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
+	// fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
+	// 	"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
 
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)

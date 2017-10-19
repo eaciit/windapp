@@ -247,7 +247,7 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 		query = append(query, tk.M{"projectname": p.Project})
 	}
 
-	query = append(query, tk.M{"statestatus": "up"})
+	query = append(query, tk.M{"isvalidstate": true})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "power": 1, "timestamp": 1, "statedescription": 1}})
@@ -271,10 +271,10 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 			break
 		}
 
-		lstatedesc := strings.ToLower(trx.StateDescription)
-		if strings.Contains(lstatedesc, "ready") || strings.Contains(lstatedesc, "wind") {
-			continue
-		}
+		// lstatedesc := strings.ToLower(trx.StateDescription)
+		// if strings.Contains(lstatedesc, "ready") || strings.Contains(lstatedesc, "wind") {
+		// 	continue
+		// }
 
 		dkey := trx.TimeStamp.Format("20060102150405")
 
@@ -369,6 +369,8 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 
 		dataHeat = append(dataHeat, _heattkm)
 	}
+
+	sort.Strings(arrturbine)
 
 	data := struct {
 		Column      []string
