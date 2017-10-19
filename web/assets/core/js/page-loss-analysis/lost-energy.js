@@ -44,6 +44,13 @@ le.LossEnergy = function(){
                 setTimeout(function(){
                     le.TLossCat('chartLCByTEL', true, res.data.catloss, 'MWh');
                     le.TLossCat('chartLCByDuration', false, res.data.catlossduration, 'Hours');
+                },300);
+            });
+            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getfrequencytab", param, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                setTimeout(function(){
                     le.TLossCat('chartLCByFreq', false, res.data.catlossfreq, 'Times');
 
                     app.loading(false);
@@ -83,9 +90,9 @@ le.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
     } 
 
     if(measurement == "MWh") {
-       templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n1')# " + measurement
+       templateLossCat = "<b>#: category # :</b> #: kendo.toString(value/1000, 'n2')# " + measurement
     } else if(measurement == "Hours") {
-        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n1')# " + measurement
+        templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n2')# " + measurement
     } else {
         templateLossCat = "<b>#: category # :</b> #: kendo.toString(value, 'n0')# "
     }
@@ -140,7 +147,7 @@ le.TLossCat = function (id, byTotalLostenergy, dataSource, measurement) {
 
         },
         categoryAxis: {
-            field: "_id.id2",
+            field: "title",
             title: {
                 text: "Loss Categories",
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -172,8 +179,8 @@ le.DTLEbyType = function (dataSource) {
     $("#chartDTLEbyType").kendoChart({
         dataSource: {
             data: dataSource,
-            group: [{ field: "_id.id3" }],
-            sort: { field: "_id.id1", dir: 'asc' }
+            group: [{ field: "projectname" }],
+            sort: { field: "field", dir: 'asc' }
         },
         theme: "flat",
         title: {
@@ -195,6 +202,9 @@ le.DTLEbyType = function (dataSource) {
             stack: true
         },
         series: [{
+            name: function () {
+                return "Energy Loss";
+            },
             type: "column",
             field: "powerlost",
             // opacity : 0.7,
@@ -251,7 +261,7 @@ le.DTLEbyType = function (dataSource) {
             visible: false,
         }],
         categoryAxis: {
-            field: "_id.id2",
+            field: "title",
             majorGridLines: {
                 visible: false
             },

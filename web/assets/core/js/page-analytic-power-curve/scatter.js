@@ -27,6 +27,8 @@ page.scatterList = ko.observableArray([
     { "value": "deviation", "text": "Nacelle Deviation" },
     { "value": "pitch", "text": "Pitch Angle" },
     { "value": "ambient", "text": "Ambient Temperature" },
+    { "value": "windspeed_dev", "text": "Wind Speed Std. Dev." },
+    { "value": "windspeed_ti", "text": "TI Wind Speed" },
     // { "value": "mainbearing", "text": "Temp Main Bearing" },
     // { "value": "gearbox", "text": "Temp  Gearbox HSS De" },
 ]);
@@ -96,6 +98,12 @@ page.setAxis = function(name, title) {
             case "ambient":
                 result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + String.fromCharCode(176) + "C";
                 break;
+            case "windspeed_dev":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # " + "m/s";
+                break;
+            case "windspeed_ti":
+                result.crosshair.tooltip.template = "#= kendo.toString(value, 'n2') # ";
+                break;
         }
     }
     return result
@@ -148,6 +156,14 @@ page.getPowerCurveScatter = function() {
                 break;
             case "ambient":
                 var axis = page.setAxis("ambientAxis", "Temperature (Celcius)");
+                yAxes.push(axis);
+                break;
+            case "windspeed_dev":
+                var axis = page.setAxis("windspeed_dev", "Wind Speed Std. Dev.");
+                yAxes.push(axis);
+                break;
+            case "windspeed_ti":
+                var axis = page.setAxis("windspeed_ti", "TI Wind Speed");
                 yAxes.push(axis);
                 break;
         }

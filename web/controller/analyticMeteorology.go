@@ -146,10 +146,10 @@ func (m *AnalyticMeteorologyController) GetWindCorrelation(k *knot.WebContext) i
 			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
 			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
 			if arrturbine[i] != _turbine && len(_dt01) > 0 && len(_dt02) > 0 {
-				_tkm.Set(arrturbine[i],
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]),
 					GetCorrelation(_dt01, _dt02))
 			} else {
-				_tkm.Set(arrturbine[i], "-")
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]), "-")
 			}
 		}
 		dataSeries = append(dataSeries, _tkm)
@@ -247,7 +247,7 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 		query = append(query, tk.M{"projectname": p.Project})
 	}
 
-	query = append(query, tk.M{"statestatus": "up"})
+	query = append(query, tk.M{"isvalidstate": true})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "power": 1, "timestamp": 1, "statedescription": 1}})
@@ -271,10 +271,10 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 			break
 		}
 
-		lstatedesc := strings.ToLower(trx.StateDescription)
-		if strings.Contains(lstatedesc, "ready") || strings.Contains(lstatedesc, "wind") {
-			continue
-		}
+		// lstatedesc := strings.ToLower(trx.StateDescription)
+		// if strings.Contains(lstatedesc, "ready") || strings.Contains(lstatedesc, "wind") {
+		// 	continue
+		// }
 
 		dkey := trx.TimeStamp.Format("20060102150405")
 
@@ -313,10 +313,10 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 			_dt01 := allres.Get(_turbine, tk.M{}).(tk.M)
 			_dt02 := allres.Get(arrturbine[i], tk.M{}).(tk.M)
 			if arrturbine[i] != _turbine && len(_dt01) > 0 && len(_dt02) > 0 {
-				_tkm.Set(arrturbine[i],
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]),
 					GetCorrelation(_dt01, _dt02))
 			} else {
-				_tkm.Set(arrturbine[i], "-")
+				_tkm.Set(tk.Sprintf("%#v", arrturbine[i]), "-")
 			}
 		}
 		dataSeries = append(dataSeries, _tkm)
@@ -369,6 +369,8 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 
 		dataHeat = append(dataHeat, _heattkm)
 	}
+
+	sort.Strings(arrturbine)
 
 	data := struct {
 		Column      []string

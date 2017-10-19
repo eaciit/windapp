@@ -561,8 +561,10 @@ pc.getScatter = function(paramLine, dtLine) {
             Color: kolor,
             isDeviation: true,
             deviationVal: "-999999",
+            DeviationOpr: "1",
             IsDownTime: false,
-            ViewSession: ""
+            ViewSession: "",
+            isPower0: false,
         };
         paramList.push(param);
     }
