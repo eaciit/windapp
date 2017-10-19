@@ -279,6 +279,7 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 		}
 
 		var totP50PLF, totP75PLF, totP90PLF, totP50Generation, totP75Generation, totP90Generation float64
+		tNow := time.Now().UTC()
 
 		if len(pvalues) > 0 {
 			for _, pval := range pvalues {
@@ -294,6 +295,11 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 						for yearDay, data := range monthDay {
 							days := data.(tk.M).GetFloat64("days")
 							totalInMonth := data.(tk.M).GetFloat64("totalInMonth")
+							if tk.ToInt(yearDay[0:4], tk.RoundingAuto) == tNow.Year() &&
+								tk.ToInt(yearDay[4:], tk.RoundingAuto) == int(tNow.Month()) &&
+								days > float64(tNow.Day()) {
+								days = float64(tNow.Day())
+							}
 
 							if tk.ToInt(yearDay[4:], tk.RoundingAuto) == pval.MonthNo {
 								if val == "P50Generation" {

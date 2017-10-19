@@ -976,7 +976,7 @@ func (m *DashboardController) GetDownTimeLoss(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "success")
 }
 
-func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
+func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} { /* hanya dipakai di dashboard availability */
 	k.Config.OutputType = knot.OutputJson
 
 	result := tk.M{}
@@ -989,11 +989,6 @@ func (m *DashboardController) GetLostEnergy(k *knot.WebContext) interface{} {
 	downtimeDatas := getDownTimeLostEnergy("project", p)
 	result.Set("lostenergy", downtimeDatas)
 
-	if !p.IsDetail {
-		if p.Type == "" && p.ProjectName == "Fleet" {
-			result.Set("lostenergybytype", getDownTimeLostEnergy("type", p))
-		}
-	}
 	return helper.CreateResult(true, result, "success")
 }
 
@@ -1373,8 +1368,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	} else {
 		fromDate = p.Date.AddDate(0, -12, 0)
 		match.Set("detail.detaildateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date})
-		/*tk.Println("From Date: ", fromDate)
-		tk.Println("PayLoad Date: ", p.Date)*/
 	}
 
 	if p.ProjectName != "Fleet" {
@@ -1417,16 +1410,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 					},
 				)
 			} else {
-				// pipes = append(pipes,
-				// 	tk.M{
-				// 		/*"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-				// 		"result": tk.M{"$sum": "$lostenergy"},*/
-				// 		"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$type"},
-				// 			"result": tk.M{"$sum": "$lostenergy"}, /*changed from by project to by MD type per 11 Oct 16 [RS]*/
-				// 		},
-				// 	},
-				// )
-
 				pipes = append(pipes, tk.M{"$unwind": "$detail"})
 				pipes = append(pipes, tk.M{"$match": match})
 				pipes = append(pipes,
@@ -1463,13 +1446,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				},
 			)
 		} else {
-			/*pipes = append(pipes,
-				tk.M{
-					"$group": tk.M{"_id": tk.M{"id1": "$type", "id2": "$type", "id3": "$projectname"},
-						"powerlost": tk.M{"$sum": "$powerlost"},
-					},
-				},
-			)*/
 
 			pipeIds := tk.M{
 				"id1": "tipe",
@@ -1503,10 +1479,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	if p.DateStr == "" && tipe != "fleetdowntime" {
 		pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id3": 1}})
 
-		/*for _, pip := range pipes {
-			log.Printf("%#v \n", pip)
-		}*/
-
 		csr, e := DB().Connection.NewQuery().
 			From(new(Alarm).TableName()).
 			Command("pipe", pipes).
@@ -1532,7 +1504,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			if p.Type == "All Types" {
 				stack = machinedown
 			} else {
-				// stack[p.ProjectName] = p.ProjectName
 				stack = machinedown
 				/*changed from by project to by MD type per 11 Oct 16 [RS]*/
 			}
@@ -1547,13 +1518,9 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 		}
 
 		dt, _ := time.Parse("2006-01-02 15:04:05", fromDate.UTC().Format("2006-01")+"-01 00:00:00")
-		// lineData := tk.M{}
 
 		for field, title := range stack {
 			if tipe != "type" {
-				/*for _, val := range tmpResult {
-					log.Printf("val: %#v \n", val)
-				}*/
 
 				for i := 1; i < 13; i++ {
 					currDate := dt.AddDate(0, i, 0)
@@ -1592,12 +1559,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 								break
 							}
 						}
-						// tk.Printf("ID 1 => %#v\n", id1)
-						// tk.Printf("MonthId => %#v\n", dateInfo.MonthId)
-						// tk.Printf("ID 3 => %#v\n", id3)
-						// tk.Printf("Title => %#v\n", tk.ToString(title))
-						// tk.Printf("Value => %#v\n", val.GetFloat64("result"))
-
 					}
 
 					if !found {
@@ -1744,8 +1705,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 						},
 					},
 				)
-
-				// tk.Printf("\n%#v \n\n", pipesX)
 
 				csr, e := DB().Connection.NewQuery().
 					From(new(Alarm).TableName()).

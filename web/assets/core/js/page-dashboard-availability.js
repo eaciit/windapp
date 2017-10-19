@@ -127,9 +127,6 @@ avail.loadData = function () {
                 return;
             }
             if (project == "Fleet") {
-                if (res.data.lostenergybytype != null) {
-                   // avail.DTLEbyType(res.data.lostenergybytype); /*"#chartDTLEbyType"*/
-                }
                 if (res.data.lostenergy != null) {
                     avail.DTLostEnergyData(res.data.lostenergy);
                     avail.DTLostEnergy(res.data.lostenergy); /*"#chartDTLostEnergy"*/
@@ -1746,36 +1743,6 @@ avail.DTTopDetail = function (e, type) {
 }
 
 avail.DTTurbines = function (turbineDownList) {
-    // var project = $("#projectId").data("kendoDropDownList").value();
-    // var date = maxdate;//new Date(Date.UTC(2016, 5, 30, 23, 50, 0, 0));
-    // var param = { ProjectName: project, Date: date };
-
-    // $("#dtturbines").html("");
-
-    // toolkit.ajaxPost(viewModel.appName + "dashboard/getdowntimeturbines", param, function (res) {
-    //     if (!app.isFine(res)) {
-    //         return;
-    //     }
-
-    //     if (res.data == null){
-    //         $("#dtturbines").html("<center><h2>NONE</h2></center>");
-    //     }else{
-    //         $.each(res.data, function (idx, val) {
-    //         var btn = "btn-success";
-    //         var turbine = val._id;
-    //         var value = val.result.toFixed(2);
-
-    //         if (val.isdown == true) {
-    //             btn = "btn-danger";
-    //         }
-
-    //         $("#dtturbines").append('<div class="btn-group" role="group">' +
-    //             '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
-    //             '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
-    //             '</div>');
-    //         });
-    //     }        
-    // });
     $("#dtturbines").html("");
     $("#dtturbinesAvail").html("");
     if (turbineDownList.length == 0) {
@@ -1827,12 +1794,7 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyByDown(lastDataChartLevel1);
-            // var tableRequest = avail.toDetailDTLETTable(param);
-            // $.when(tableRequest).done(function(){
-            //     setTimeout(function(){
-            //         app.loading(false);
-            //     },50);
-            // });
+           
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -1857,8 +1819,6 @@ avail.toDetailLossEnergyLevel1 = function (e, source) {
                 avail.DTLostEnergyByDown(res.data.lostenergy);
                 lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
             });
-            // var tableRequest = avail.toDetailDTLETTable(param);
-            // $.when(chartRequest, tableRequest).done(function(){
             $.when(chartRequest).done(function(){
                 setTimeout(function(){
                     app.loading(false);
@@ -2005,12 +1965,6 @@ avail.toDetailDTLELevel1 = function (e, source) {
 
             /*create chart & table*/
             avail.DTLostEnergyFleet(lastDataChartLevel1);
-            // var tableRequest = avail.toDetailDTLETTable(param);
-            // $.when(tableRequest).done(function(){
-            //     setTimeout(function(){
-            //         app.loading(false);
-            //     },50);
-            // });
             setTimeout(function(){
                 app.loading(false);
             },50);
@@ -2070,9 +2024,6 @@ avail.toDetailDTLELevel1 = function (e, source) {
             avail.DTLostEnergyFleet(res.data.lostenergy);
             lastDataChartLevel1 = res.data.lostenergy; /*data yang digunakan ketika tombol back dari level 2 ditekan*/
         });
-        // var tableRequest = avail.toDetailDTLETTable(param);
-
-        // $.when(chartRequest, tableRequest).done(function(){
         $.when(chartRequest).done(function(){
             setTimeout(function(){
                 app.loading(false);
