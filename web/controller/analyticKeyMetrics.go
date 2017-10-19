@@ -195,6 +195,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
+			isExpPValue = false
 			// tk.Printf("breakDown : %s \n", breakDown)
 		}
 		series := tk.M{}
@@ -315,7 +316,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
 						} else { /*jika lebih dari 1 bulan*/
 							month := val.GetInt("monthno")
-							maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
+							maxDays := monthDay.Get(tk.ToString(tStart.Year())+tk.ToString(month), tk.M{}).(tk.M).GetInt("totalInMonth")
 							for iDate := startdate; iDate <= maxDays; iDate++ {
 								categories = append(categories, tk.ToString(iDate))
 							}
