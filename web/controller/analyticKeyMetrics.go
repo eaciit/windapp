@@ -22,8 +22,14 @@ func CreateAnalyticKeyMetricsController() *AnalyticKeyMetrics {
 }
 
 func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
+	tNow := getTimeNow()
 	for yearDay, data := range monthDay {
 		days := data.(tk.M).GetFloat64("days")
+		if tk.ToInt(yearDay[0:4], tk.RoundingAuto) == tNow.Year() &&
+			tk.ToInt(yearDay[4:], tk.RoundingAuto) == int(tNow.Month()) &&
+			days > float64(tNow.Day()) {
+			days = float64(tNow.Day())
+		}
 		totalInMonth := data.(tk.M).GetFloat64("totalInMonth")
 		if tk.ToInt(yearDay[4:], tk.RoundingAuto) == monthno {
 			return value / totalInMonth * days
@@ -195,6 +201,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
+			isExpPValue = false
 			// tk.Printf("breakDown : %s \n", breakDown)
 		}
 		series := tk.M{}
@@ -315,7 +322,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
 						} else { /*jika lebih dari 1 bulan*/
 							month := val.GetInt("monthno")
-							maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
+							maxDays := monthDay.Get(tk.ToString(tStart.Year())+tk.ToString(month), tk.M{}).(tk.M).GetInt("totalInMonth")
 							for iDate := startdate; iDate <= maxDays; iDate++ {
 								categories = append(categories, tk.ToString(iDate))
 							}

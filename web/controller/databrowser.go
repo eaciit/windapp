@@ -564,9 +564,6 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		obj1 := ScadaDataOEM{}
 		val1 = reflect.Indirect(reflect.ValueOf(obj1))
 	case "ScadaHFD":
-		// obj1 := ScadaDataHFD{}
-		// obj1 := Scada10Min{}
-		// val1 = reflect.Indirect(reflect.ValueOf(obj1))
 		filter = append(filter, dbox.Eq("isnull", false))
 	}
 

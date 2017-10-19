@@ -23,7 +23,15 @@
                     <div class="panel-body">
                       {{template "_dateinfo.html"}}
                       <div class="clearfix">&nbsp;</div>
-                        <div class="col-md-6 bdr-right">
+                      <div class="col-md-9 no-padding">
+                          <label class="control-label col-md-1 no-padding">Histogram For : </label>
+                          <div class="col-md-2">
+                            <select id="select-page-view" data-bind="options:km.histogramCols,optionsText:'text',optionsValue:'value',value:km.pageView(),event : { change:function(){ km.changePageView() } }" class="form-control input-sm"></select>
+                          </div>
+                      </div>
+                      <div class="clearfix">&nbsp;</div>
+                      <div class="clearfix">&nbsp;</div>
+                        <div class="col-md-12" id="wrap-windspeed" data-bind="visible:(km.pageView()=='windspeed')">
                             <div class="col-md-12 title-label">
                                 Wind Speed (m/s) 
                                 <span id="turbineListTitle"></span> <br />
@@ -61,7 +69,7 @@
                                 <div id="dh-chart"></div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12" id="wrap-production" data-bind="visible:(km.pageView()=='production')">
                           <div class="col-md-12 title-label">
                                 Production (MWH)
                                 <span id="turbineListProd"></span> <br />
@@ -100,7 +108,7 @@
                             </div>
                         </div>
                         <div class="clearfix">&nbsp;</div>
-                        <div class="col-md-6">
+                        <div class="col-md-12" id="wrap-temperature" data-bind="visible:(km.pageView()=='temperature')">
                           <div class="col-md-12 title-label">
                                 Temperature
                                 <span id="turbineListProd"></span> <br />
@@ -110,17 +118,17 @@
                               <div class="input-group input-group-sm ez width-80">
                                   <span class="input-group-addon width-100 align-right">Min. Value</span>
                                   <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MinValue">
+                                      placeholder="Type Value" data-bind="value: km.MinValueTemp">
                               </div>
                               <div class="input-group input-group-sm ez width-80">
                                   <span class="input-group-addon width-100 align-right">Max. Value</span>
                                   <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MaxValue">
+                                      placeholder="Type Value" data-bind="value: km.MaxValueTemp">
                               </div>
                               <div class="input-group input-group-sm ez width-80">
                                   <span class="input-group-addon width-100 align-right">Number of Bin.</span>
                                   <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.BinValue">
+                                      placeholder="Type Value" data-bind="value: km.BinValueTemp">
                               </div>
                               <div class="clearfix">&nbsp;</div><br />
                               <div class="input-group input-group-sm ez width-80">

@@ -39,7 +39,9 @@ page.ExportIndividualMonthPdf = function() {
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
     { "value": "deviation", "text": "Nacelle Deviation" },
+    // { "value": "temp", "text": "Nacelle Temperature" },
     { "value": "pitch", "text": "Pitch Angle" },
+    // { "value": "ambient", "text": "Ambient Temperature" },
     /*{ "value": "power", "text": "Temperature Analysis" },
     { "value": "grid", "text": "Temperature Analysis" },*/
 ]);
