@@ -1336,8 +1336,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		"PitchAngle": "PitchAngle", "RotorSpeed_RPM": "RotorRPM", "PitchAngle1": "PA1", "PitchAngle2": "PA2", "PitchAngle3": "PA3",
 		"Total_Prod_Day_kWh": "TotalProdDay"}
 
-	fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
-		"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
+	// fasttags := map[string]string{"ActivePower_kW": "fast", "WindSpeed_ms": "fast",
+	// 	"PitchAngle": "fast", "RotorSpeed_RPM": "fast"}
 
 	lastUpdate := time.Time{}
 	PowerGen, AvgWindSpeed, CountWS := float64(0), float64(0), float64(0)
