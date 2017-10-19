@@ -1503,6 +1503,8 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 			Command("pipe", pipes).
 			Cursor(nil)
 
+		tk.Printf("%#v\n", pipes)
+
 		defer csr.Close()
 
 		if e != nil {

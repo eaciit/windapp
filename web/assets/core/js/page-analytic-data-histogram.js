@@ -5,6 +5,9 @@ var km = viewModel.KeyMetrics;
 km.MinValue = ko.observable(0);
 km.MaxValue = ko.observable(2000);
 km.BinValue = ko.observable(40);
+km.MinValueTemp = ko.observable(25);
+km.MaxValueTemp = ko.observable(55);
+km.BinValueTemp = ko.observable(30);
 km.MinValueWindSpeed = ko.observable(0);
 km.MaxValueWindSpeed = ko.observable(24);
 km.BinValueWindSpeed = ko.observable(24);
@@ -22,6 +25,14 @@ km.dsTotaldataTemp = ko.observable();
 
 km.tempTagsDs = ko.observableArray();
 km.tempTagsList = ko.observableArray();
+
+km.histogramCols = ko.observableArray([
+    { text: "Production", value: "production" },
+    { text: "Wind Speed", value: "windspeed" },
+    { text: "Temperature", value: "temperature" },
+]);
+
+km.pageView = ko.observable("windspeed");
 
 km.ExportKeyMetrics = function () {
     var chart = $("#dh-chart").getKendoChart();
@@ -361,73 +372,85 @@ km.getData = function () {
             DateEnd: dateEnd,
             Project: fa.project
         };
+        // var request;
+        switch(km.pageView()) {
+            case "windspeed":
+                var parDataWS = {
+                    MinValue: parseFloat(km.MinValueWindSpeed()),
+                    MaxValue: parseFloat(km.MaxValueWindSpeed()),
+                    BinValue: parseInt(km.BinValueWindSpeed()),
+                    Filter: paramFilter
+                };
+                toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
+                    if (res.data != null) {
+                        km.dsCategorywindspeed(res.data.categorywindspeed);
+                        km.dsValuewindSpeed(res.data.valuewindspeed);
+                        km.dsTotaldataWS(res.data.totaldata);
+                        // km.dsValuewindSpeed.push(0);
+                        // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
+                        km.createChart(res.data.turbinename);
 
-        var parDataWS = {
-            MinValue: parseFloat(km.MinValueWindSpeed()),
-            MaxValue: parseFloat(km.MaxValueWindSpeed()),
-            BinValue: parseInt(km.BinValueWindSpeed()),
-            Filter: paramFilter
-        };
-        var requestHistogram = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gethistogramdata", parDataWS, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data != null) {
-                km.dsCategorywindspeed(res.data.categorywindspeed);
-                km.dsValuewindSpeed(res.data.valuewindspeed);
-                km.dsTotaldataWS(res.data.totaldata);
-                // km.dsValuewindSpeed.push(0);
-                // km.dsCategorywindspeed.push(km.dsCategorywindspeed()[km.dsCategorywindspeed().length - 1].split(' ~ ')[1]);
-                km.createChart(res.data.turbinename);
-            }
-        });
+                        app.loading(false);
+                    }
+                });
+                break;
+            case "production":
+                var parDataProd = {
+                    MinValue: parseFloat(km.MinValue()),
+                    MaxValue: parseFloat(km.MaxValue()),
+                    BinValue: parseInt(km.BinValue()),
+                    Filter: paramFilter
+                };
+                toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
+                    if (res.data != null) {
 
-        var parDataProd = {
-            MinValue: parseFloat(km.MinValue()),
-            MaxValue: parseFloat(km.MaxValue()),
-            BinValue: parseInt(km.BinValue()),
-            Filter: paramFilter
-        };
-        var requestProduction  = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getproductionhistogramdata", parDataProd, function (res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            if (res.data != null) {
+                        km.dsCategoryProduction(res.data.categoryproduction);
+                        km.dsValueProduction(res.data.valueproduction);
+                        km.dsTotaldataProduction(res.data.totaldata);
+                        // km.dsValueProduction.push(0);
+                        // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
+                        km.createChartProduction(res.data.turbinename);
 
-                km.dsCategoryProduction(res.data.categoryproduction);
-                km.dsValueProduction(res.data.valueproduction);
-                km.dsTotaldataProduction(res.data.totaldata);
-                // km.dsValueProduction.push(0);
-                // km.dsCategoryProduction.push(km.dsCategoryProduction()[km.dsCategoryProduction().length - 1].split(' ~ ')[1]);
-                km.createChartProduction(res.data.turbinename);
-            }
-        });
+                        app.loading(false);
+                    }
+                });
+                break;
+            case "temperature":
+                var parDataTemp = {
+                    MinValue: parseFloat(km.MinValueTemp()),
+                    MaxValue: parseFloat(km.MaxValueTemp()),
+                    BinValue: parseInt(km.BinValueTemp()),
+                    FieldName: $('#sTempTags').data('kendoDropDownList').value(),
+                    Filter: paramFilter,
+                };
+                toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
+                    if (!app.isFine(res)) {
+                        return;
+                    }
+                    if (res.data != null) {
+                        km.dsCategoryTemp(res.data.category);
+                        km.dsValueTemp(res.data.value);
+                        km.dsTotaldataTemp(res.data.totaldata);
+                        km.createChartTemp(res.data.turbinename);
 
-        // var parDataTemp = {
-        //     MinValue: parseFloat(km.MinValueWindSpeed()),
-        //     MaxValue: parseFloat(km.MaxValueWindSpeed()),
-        //     BinValue: parseInt(km.BinValueWindSpeed()),
-        //     FieldName: $('#sTempTags').data('kendoDropDownList').value(),
-        //     Filter: paramFilter,
-        // };
-        // var requestHistogramTemp = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
-        //     if (!app.isFine(res)) {
-        //         return;
-        //     }
-        //     if (res.data != null) {
-        //         km.dsCategoryTemp(res.data.category);
-        //         km.dsValueTemp(res.data.value);
-        //         km.dsTotaldataTemp(res.data.totaldata);
-        //         km.createChartTemp(res.data.turbinename);
-        //     }
-        // });
+                        app.loading(false);
+                    }
+                });
+                break;
+        }
 
         // $.when(requestHistogram, requestProduction, requestHistogramTemp).done(function(){
-        $.when(requestHistogram, requestProduction).done(function(){
-            setTimeout(function(){
-                app.loading(false);
-            },500);
-        });
+       // $.when(request).done(function(){
+       //      setTimeout(function(){
+       //          app.loading(false);
+       //      },500);
+       //  });
     }
 }
 
@@ -485,5 +508,20 @@ $(document).ready(function () {
         km.getData();
     }, 800);
 });
+
+km.changePageView = function() {
+    km.pageView($('#select-page-view').val());
+    setTimeout(function () {
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+          $el.multiselect('deselect', $(this).val());
+        });
+
+        if(fa.turbineList().length > 1){
+            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
+        }
+        km.getData();
+    }, 300);
+};
 
 $(document).bind("kendo:skinChange", km.createChart);
