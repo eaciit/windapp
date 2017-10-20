@@ -1275,7 +1275,7 @@ func (m *DashboardController) GetLossCategories(k *knot.WebContext) interface{} 
 	if !p.IsDetail {
 		var lossD, lossF, loss, dataSeries []tk.M
 		if p.ProjectName != "Fleet" {
-			lossD, lossF, loss = getLossCategoriesTopDFP(p)
+			lossD, lossF, loss = getLossCategoriesTopDFP(p, k)
 		} else {
 			lossD, lossF, loss, dataSeries = getLossCategoriesTopStack(p, k)
 		}
@@ -2109,15 +2109,14 @@ func getLossCategoriesTopStack(p *PayloadDashboard, k *knot.WebContext) (resultD
 	return
 }
 
-func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, resultPowerLost []tk.M) {
-	var pipes []tk.M
+func getLossCategoriesTopDFP(p *PayloadDashboard, k *knot.WebContext) (resultDuration, resultFreq, resultPowerLost []tk.M) {
 	var fromDate time.Time
 	match := tk.M{}
 
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
 
-		match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+		match.Set("startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
 		match.Set("reduceavailability", true)
 
 		if p.ProjectName != "Fleet" {
@@ -2130,57 +2129,45 @@ func getLossCategoriesTopDFP(p *PayloadDashboard) (resultDuration, resultFreq, r
 			sortedDown = append(sortedDown, key)
 		}
 		sort.Strings(sortedDown)
-		downDone := []string{}
+
+		newP := new(PayloadAnalytic)
+		newP.DateStart = fromDate.UTC()
+		newP.DateEnd = p.Date.UTC()
+		newP.Period = "custom"
+		if p.ProjectName != "Fleet" {
+			newP.Project = p.ProjectName
+		}
+		lossDurData, e := getLossDuration("both", newP, k)
+		if e != nil {
+			return
+		}
+		tmpResultPowerLost := tk.M{}
+		tmpResultDuration := tk.M{}
 
 		for _, val := range sortedDown {
-			pipes = []tk.M{}
-			loopMatch := match
 			field := val
 			title := downCause[val]
-
-			downDone = append(downDone, field)
-
-			for _, done := range downDone {
-				match.Unset(done)
+			loopMatch := tk.M{}
+			for keyMatch, valMatch := range match {
+				loopMatch.Set(keyMatch, valMatch)
 			}
-
 			loopMatch.Set(field, true)
-
-			pipes = append(pipes, tk.M{"$unwind": "$detail"})
-			pipes = append(pipes, tk.M{"$match": loopMatch})
-			pipes = append(pipes,
-				tk.M{
-					"$group": tk.M{
-						"_id":       tk.M{"id1": "detail." + field, "id2": title},
-						"duration":  tk.M{"$sum": "$detail.duration"},
-						"freq":      tk.M{"$sum": 1},
-						"powerlost": tk.M{"$sum": "$detail.powerlost"}},
-				},
-			)
-
-			csr, e := DB().Connection.NewQuery().
-				From(new(Alarm).TableName()).
-				Command("pipe", pipes).
-				Cursor(nil)
-
-			if e != nil {
-				return
-			}
-
-			resLoop := []tk.M{}
-			e = csr.Fetch(&resLoop, 0, false)
-
-			csr.Close()
-
-			for _, res := range resLoop {
-				resultDuration = append(resultDuration, tk.M{"_id": res["_id"], "result": res.GetFloat64("duration")})
-				resultPowerLost = append(resultPowerLost, tk.M{"_id": res["_id"], "result": res.GetFloat64("powerlost")})
-			}
-
-			resLoopFreq := getLossCategoriesFreq(match, downCause, val)
+			resLoopFreq := getLossCategoriesFreq(loopMatch, downCause, val)
 			for _, res := range resLoopFreq {
 				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
 			}
+			tmpResultPowerLost = tk.M{
+				"_id": tk.M{"id2": title},
+			}
+			tmpResultDuration = tk.M{
+				"_id": tk.M{"id2": title},
+			}
+			for _, val := range lossDurData {
+				tmpResultPowerLost.Set("result", val.GetFloat64(field+"loss"))
+				tmpResultDuration.Set("result", val.GetFloat64(field+"duration"))
+			}
+			resultDuration = append(resultDuration, tmpResultDuration)
+			resultPowerLost = append(resultPowerLost, tmpResultPowerLost)
 		}
 	}
 
