@@ -501,7 +501,7 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 	var formFilter = '<td class="column-filter-form" id="td-form-filter-' + id + '">' +
 		'<div style="overflow-y:auto; height:100%">' +
 		'<label class="col-md-1 col-sm-1 control-label" style="width:70px;">Project</label>' +
-		'<select class="col-md-1 col-sm-1" id="projectList-' + id + '" name="" style="width:110px"></select>' +
+		'<select class="col-md-1 col-sm-1" id="projectList-' + id + '" name="" style="width:130px"></select>' +
 		'<div class="clearfix">&nbsp;</div>' +
 		'<label class="col-md-1 col-sm-1 control-label" style="width:70px;">Turbine</label>' +
 		'<select class="col-md-1 col-sm-1" id="turbineList-' + id + '" name="" style="width:140px"></select>' +
@@ -511,7 +511,7 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 		'<div class="clearfix">&nbsp;</div>' +
 		'<span id="show_hide' + id + '">' +
 		'<label class="col-md-1 col-sm-1 control-label" id="label-start-' + id + '" style="width:120px;margin-right:-50px">Start date</label>' +
-		'<input class="col-md-1 col-sm-1" type="text" id="dateStart-' + id + '"  />' +
+		'<input class="col-md-1 col-sm-1" type="text" id="dateStart-' + id + '"/>' +
 		'<div class="clearfix">&nbsp;</div>' +
 		'<label class="col-md-1 col-sm-1 control-label" id="label-end-' + id + '" style="width:120px;margin-right:-50px">End date</label>' +
 		'<input class="col-md-1 col-sm-1" type="text" id="dateEnd-' + id + '" " />&nbsp;' +
