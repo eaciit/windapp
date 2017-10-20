@@ -565,9 +565,13 @@ func getCatLossTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebCo
 	var e error
 
 	if p != nil {
-		data, e := getLossDuration(topType, p, k)
+		data := tk.M{}
+		lossDurData, e := getLossDuration(topType, p, k)
 		if e != nil {
 			return result, e
+		}
+		if len(lossDurData) > 0 {
+			data = lossDurData[0]
 		}
 		machineDown, _ := getMachineDownType()
 		tmpResult := []tk.M{}
