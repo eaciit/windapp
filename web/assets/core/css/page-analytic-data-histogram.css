@@ -36,13 +36,13 @@
 
 .histogramvalue{
     padding-bottom: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
     /*padding-left: 95px;*/
 }
 
 .title-label{
     padding-bottom: 5px;
-    margin-bottom: 10px;
+    margin-bottom: -10px;
     text-align: center;
     font-family: Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif;
     font-size: 13px;
@@ -53,4 +53,15 @@
 }
 .bdr-right{
     border-right: 2px solid #eee;
+}
+/*#wrap-windspeed, #wrap-production,#wrap-temperature{
+    margin-bottom: 40px;
+}*/
+.tools{
+    position: relative;
+    z-index: 10
+}
+#dh-chart-div > .k-grid , #dhprod-chart-div > .k-grid, #dhtemp-chart-div > .k-grid{
+    width: 30%;
+    left: 35%;
 }
