@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	c "github.com/eaciit/crowd"
@@ -18,6 +19,7 @@ import (
 
 type AnalyticLossAnalysisController struct {
 	App
+	mux sync.Mutex
 }
 
 var colorFields = [...]string{"#ff880e", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#D91E18", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#f35838", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548"}
@@ -1260,8 +1262,6 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	/*tStart, _ := time.Parse("2006-01-02", p.Filter.DateStart.UTC().Format("2006-01-02"))
-	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.Filter.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -1356,8 +1356,6 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	/*tStart, _ := time.Parse("2006-01-02", p.Filter.DateStart.UTC().Format("2006-01-02"))
-	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.Filter.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -1460,68 +1458,82 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	/*tStart, _ := time.Parse("2006-01-02", p.Filter.DateStart.UTC().Format("2006-01-02"))
-	tEnd, _ := time.Parse("2006-01-02 15:04:05", p.Filter.DateEnd.UTC().Format("2006-01-02")+" 23:59:59")*/
-	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	turbine := p.Filter.Turbine
-	project := p.Filter.Project
-
 	category := []string{}
 	value := []float64{}
 	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
 	startcategory := p.MinValue
 	totalData := 0.0
 
-	match := tk.M{}
-	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
-	if project != "" {
-		match.Set("projectname", project)
-	}
-	if len(turbine) > 0 {
-		match.Set("turbine", tk.M{}.Set("$in", turbine))
-	}
-	group := tk.M{
-		"_id":   "",
-		"total": tk.M{}.Set("$sum", 1),
-	}
+	var wg sync.WaitGroup
+	wg.Add(p.BinValue)
+	valueMap := tk.M{}
 
 	for i := 0; i < (p.BinValue); i++ {
 
 		category = append(category, fmt.Sprintf("%.0f", startcategory))
-		match.Set(p.FieldName, tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
+
 		// match.Set("isnull", false)
+		go func(p *TempHistoPayload, k *knot.WebContext, valueMap tk.M, totalData *float64, startcategory, interval float64, wg *sync.WaitGroup) {
+			defer wg.Done()
+			tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
+			if e != nil {
+				tk.Println("error on get start end data go func", e.Error())
+				return
+			}
+			turbine := p.Filter.Turbine
+			project := p.Filter.Project
+			match := tk.M{}
+			match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+			if project != "" {
+				match.Set("projectname", project)
+			}
+			if len(turbine) > 0 {
+				match.Set("turbine", tk.M{}.Set("$in", turbine))
+			}
+			match.Set(p.FieldName, tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
+			group := tk.M{
+				"_id":   "",
+				"total": tk.M{}.Set("$sum", 1),
+			}
+			var pipes []tk.M
+			pipes = append(pipes, tk.M{}.Set("$match", match))
+			pipes = append(pipes, tk.M{}.Set("$group", group))
 
-		var pipes []tk.M
-		pipes = append(pipes, tk.M{}.Set("$match", match))
-		pipes = append(pipes, tk.M{}.Set("$group", group))
+			csr, e := DB().Connection.NewQuery().
+				From("Scada10MinHFD").
+				Command("pipe", pipes).
+				Cursor(nil)
 
-		csr, e := DB().Connection.NewQuery().
-			From("Scada10MinHFD").
-			Command("pipe", pipes).
-			Cursor(nil)
+			defer csr.Close()
 
-		tk.Printf("%#v\n", pipes)
+			if e != nil {
+				tk.Println("error on cursor go func get temperature histogram", e.Error())
+				return
+			}
 
-		defer csr.Close()
+			resultCategory := []tk.M{}
+			e = csr.Fetch(&resultCategory, 0, false)
+			if e != nil {
+				tk.Println("error on fetch go func get temperature histogram", e.Error())
+				return
+			}
 
-		if e != nil {
-			return helper.CreateResult(false, nil, "Error query : "+e.Error())
-		}
-
-		resultCategory := []tk.M{}
-		e = csr.Fetch(&resultCategory, 0, false)
-
-		if len(resultCategory) > 0 {
-			value = append(value, float64(resultCategory[0]["total"].(int)))
-			totalData = totalData + float64(resultCategory[0]["total"].(int))
-		} else {
-			value = append(value, 0.00)
-		}
+			m.mux.Lock()
+			if len(resultCategory) > 0 {
+				valueMap.Set(fmt.Sprintf("%.0f", startcategory), float64(resultCategory[0]["total"].(int)))
+				*totalData = *totalData + float64(resultCategory[0]["total"].(int))
+			} else {
+				valueMap.Set(fmt.Sprintf("%.0f", startcategory), 0.0)
+			}
+			m.mux.Unlock()
+		}(p, k, valueMap, &totalData, startcategory, interval, &wg)
 
 		startcategory = startcategory + interval
+	}
+	wg.Wait()
+
+	for _, val := range category {
+		value = append(value, valueMap.GetFloat64(val))
 	}
 
 	for i := 0; i < len(value); i++ {
@@ -1532,7 +1544,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 			value[i] = valuex
 		}
 	}
-	turbineName, e := helper.GetTurbineNameList(project)
+	turbineName, e := helper.GetTurbineNameList(p.Filter.Project)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
