@@ -57,6 +57,7 @@ type PayloadAnalytic struct {
 	IsDownTime bool
 	Color      []interface{}
 	BreakDown  string
+	DateStr    string
 }
 
 type PayloadAnalyticTLP struct {

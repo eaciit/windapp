@@ -667,7 +667,7 @@ avail.TopTurbineByLoss = function (dataSource) {
             },
             labels: {
                 step: 2,
-                template: "#: kendo.toString(value/1000, 'n0') #",
+                template: "#: kendo.toString(value, 'n0') #",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
@@ -697,7 +697,7 @@ avail.TopTurbineByLoss = function (dataSource) {
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value/1000, 'n1') # MWh",
+            template: "#: category #: #: kendo.toString(value, 'n1') # MWh",
             border: {
                 color: "#eee",
                 width: "2px",
@@ -1337,7 +1337,7 @@ avail.DTLoss = function (dataSource) {
             },
             labels: {
                 step: 2,
-                template: "#: kendo.toString(value/1000, 'n0') #",
+                template: "#: kendo.toString(value, 'n0') #",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             line: {
@@ -1367,7 +1367,7 @@ avail.DTLoss = function (dataSource) {
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            template: "#: category #: #: kendo.toString(value/1000, 'n1') # MWh",
+            template: "#: category #: #: kendo.toString(value, 'n1') # MWh",
             border: {
                 color: "#eee",
                 width: "2px",

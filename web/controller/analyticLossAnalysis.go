@@ -646,6 +646,7 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 	var e error
 	var pipes []tk.M
 	match := tk.M{}
+	breakdown := "$turbine"
 
 	if p != nil {
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
@@ -660,11 +661,16 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 		if len(p.Turbine) != 0 {
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
-		match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+		if p.BreakDown == "$projectname" {
+			breakdown = p.BreakDown
+			match.Set("dateinfo.monthdesc", p.DateStr)
+		} else {
+			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
+		}
 		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
 			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":         "$turbine",
+				"_id":         breakdown,
 				"result":      tk.M{"$sum": "$downtimehours"},
 				"machinedown": tk.M{"$sum": "$machinedownhours"},
 				"griddown":    tk.M{"$sum": "$griddownhours"},
@@ -672,7 +678,7 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 			}})
 		} else if topType == "loss" {
 			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":         "$turbine",
+				"_id":         breakdown,
 				"result":      tk.M{"$sum": "$lostenergy"},
 				"machinedown": tk.M{"$sum": "$machinedownloss"},
 				"griddown":    tk.M{"$sum": "$griddownloss"},
@@ -703,13 +709,10 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 
 		turbineList := []string{}
 		for _, turbine := range top10Turbines {
-			turbineList = append(turbineList, turbine.Get("_id").(string))
+			turbineList = append(turbineList, turbine.Get("_id").(string)) /* if breakdown by project so it become project */
 		}
 
-		downCause := map[string]string{}
-		downCause["griddown"] = "Grid Down"
-		downCause["machinedown"] = "Machine Down"
-		downCause["unknown"] = "Unknown"
+		downCause, _ := getMachineDownType()
 
 		turbineName, e := helper.GetTurbineNameList(p.Project)
 		if e != nil {
@@ -719,6 +722,9 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 		for _, turbine := range turbineList {
 			resVal := tk.M{}
 			resVal.Set("_id", turbineName[turbine])
+			if p.BreakDown == "$projectname" {
+				resVal.Set("_id", turbine)
+			}
 			lossPerTurbine := 0.0
 			for _, val := range top10Turbines {
 				valTurbine := val.GetString("_id")

@@ -814,6 +814,10 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 
 func getLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]tk.M, error) {
 	result := []tk.M{}
+	breakdown := "$projectname"
+	if p.BreakDown == "$turbine" {
+		breakdown = p.BreakDown
+	}
 	var e error
 	var pipes []tk.M
 	match := tk.M{}
@@ -836,21 +840,21 @@ func getLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]
 		pipes = append(pipes, tk.M{"$match": match})
 		if topType == "duration" {
 			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":         "$projectname",
+				"_id":         breakdown,
 				"machinedown": tk.M{"$sum": "$machinedownhours"},
 				"griddown":    tk.M{"$sum": "$griddownhours"},
 				"unknown":     tk.M{"$sum": "$otherdowntimehours"},
 			}})
 		} else if topType == "loss" {
 			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":         "$projectname",
+				"_id":         breakdown,
 				"machinedown": tk.M{"$sum": "$machinedownloss"},
 				"griddown":    tk.M{"$sum": "$griddownloss"},
 				"unknown":     tk.M{"$sum": "$otherdownloss"},
 			}})
 		} else if topType == "both" {
 			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id": "$projectname",
+				"_id": breakdown,
 				"machinedownduration": tk.M{"$sum": "$machinedownhours"},
 				"griddownduration":    tk.M{"$sum": "$griddownhours"},
 				"unknownduration":     tk.M{"$sum": "$otherdowntimehours"},
@@ -1198,10 +1202,7 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 	}
 	sort.Strings(turbineList)
 
-	downCause := map[string]string{}
-	downCause["griddown"] = "Grid Down"
-	downCause["machinedown"] = "Machine Down"
-	downCause["unknown"] = "Unknown"
+	downCause, _ := getMachineDownType()
 
 	project := p.GetString("project")
 	if p.GetString("project") == "Fleet" {
@@ -1250,13 +1251,13 @@ func (m *DashboardController) GetDowntimeTop(k *knot.WebContext) interface{} {
 	if !p.IsDetail {
 		if p.ProjectName != "Fleet" {
 			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
-			result.Set("duration", getTurbineDownTimeTop("duration", p))
-			result.Set("frequency", getTurbineDownTimeTop("frequency", p))
+			result.Set("duration", getTurbineDownTimeTop("duration", p, k))
+			result.Set("frequency", getTurbineDownTimeTop("frequency", p, k))
 		}
 		if p.Type == "project" {
-			result.Set(p.Type, getTurbineDownTimeTop(p.Type, p))
+			result.Set(p.Type, getTurbineDownTimeTop(p.Type, p, k))
 		}
-		result.Set("loss", getTurbineDownTimeTop("loss", p))
+		result.Set("loss", getTurbineDownTimeTop("loss", p, k))
 	}
 	return helper.CreateResult(true, result, "success")
 }
@@ -1762,218 +1763,34 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	return
 }
 
-func getTurbineDownTimeTop(topType string, p *PayloadDashboard) (result []tk.M) {
-	var pipes []tk.M
-	var fromDate time.Time
-	match := tk.M{}
-
+func getTurbineDownTimeTop(topType string, p *PayloadDashboard, k *knot.WebContext) (result []tk.M) {
 	if p.DateStr == "" || (p.DateStr != "" && topType == "project") {
+		var e error
+		var fromDate time.Time
 		fromDate = p.Date.AddDate(0, -12, 0)
+		newPayload := new(PayloadAnalytic)
 		if topType != "project" {
-			match.Set("detail.startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+			newPayload.DateStart = fromDate.UTC()
+			newPayload.DateEnd = p.Date.UTC()
 		} else {
-			match.Set("detail.detaildateinfo.monthdesc", p.DateStr)
+			newPayload.DateStr = p.DateStr
 		}
 
-		if p.ProjectName != "Fleet" {
-			match.Set("projectname", p.ProjectName)
+		if p.ProjectName != "Fleet" && p.ProjectName != "" {
+			newPayload.Project = p.ProjectName
 		}
 
-		pipes = append(pipes, tk.M{"$unwind": "$detail"})
-		pipes = append(pipes, tk.M{"$match": match})
-
-		if topType == "duration" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.duration"}}})
-		} else if topType == "frequency" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": 1}}})
-		} else if topType == "loss" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$turbine", "result": tk.M{"$sum": "$detail.powerlost"}}})
-		} else if topType == "project" {
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$projectname", "result": tk.M{"$sum": "$detail.powerlost"}}})
+		if topType != "frequency" {
+			if topType == "project" { /* untuk tipe ini hanya get loss saja */
+				topType = "loss"
+				newPayload.BreakDown = "$projectname"
+			}
+			result, e = getDownTimeTopLossDuration(topType, newPayload, k)
+		} else {
+			result, e = getDownTimeTopFrequency(newPayload, k)
 		}
-
-		pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
-		pipes = append(pipes, tk.M{"$limit": 10})
-
-		// get the top 10
-
-		csr, e := DB().Connection.NewQuery().
-			Select("_id").
-			From(new(Alarm).TableName()).
-			Command("pipe", pipes).
-			Cursor(nil)
-
 		if e != nil {
 			return
-		}
-
-		top10Turbines := []tk.M{}
-		e = csr.Fetch(&top10Turbines, 0, false)
-		// add by ams, 2016-10-07
-		csr.Close()
-
-		if e != nil {
-			return
-		}
-
-		// get the downtime
-
-		turbines := []string{}
-		turbinesVal := tk.M{}
-
-		for _, turbine := range top10Turbines {
-			turbines = append(turbines, turbine.Get("_id").(string))                   /*untuk turbine list*/
-			turbinesVal.Set(turbine.Get("_id").(string), turbine.GetFloat64("result")) /*untuk total list tiap turbine*/
-		}
-		if topType != "project" {
-			match.Set("turbine", tk.M{"$in": turbines})
-		}
-
-		downCause := tk.M{}
-		// downCause.Set("aebok", "AEBOK")
-		// downCause.Set("externalstop", "External Stop")
-		downCause.Set("griddown", "Grid Down")
-		// downCause.Set("internalgrid", "Internal Grid")
-		downCause.Set("machinedown", "Machine Down")
-		downCause.Set("unknown", "Unknown")
-		// downCause.Set("weatherstop", "Weather Stop")
-
-		tmpResult := []tk.M{}
-		downDone := []string{}
-
-		for f, t := range downCause {
-			pipes = []tk.M{}
-			loopMatch := match
-			field := tk.ToString(f)
-			title := tk.ToString(t)
-
-			downDone = append(downDone, field)
-
-			for _, done := range downDone {
-				match.Unset("detail." + done)
-			}
-
-			loopMatch.Set("detail."+field, true)
-
-			pipes = append(pipes, tk.M{"$unwind": "$detail"})
-			pipes = append(pipes, tk.M{"$match": loopMatch})
-			if topType == "duration" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": "$detail.duration"},
-						},
-					},
-				)
-			} else if topType == "frequency" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": 1},
-						},
-					},
-				)
-			} else if topType == "loss" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$turbine", "id4": title},
-							"result": tk.M{"$sum": "$detail.powerlost"},
-						},
-					},
-				)
-			} else if topType == "project" {
-				pipes = append(pipes,
-					tk.M{
-						"$group": tk.M{"_id": tk.M{"id3": "$projectname", "id4": title},
-							"result": tk.M{"$sum": "$detail.powerlost"},
-						},
-					},
-				)
-			}
-
-			pipes = append(pipes, tk.M{"$sort": tk.M{"result": -1}})
-
-			csr, e := DB().Connection.NewQuery().
-				From(new(Alarm).TableName()).
-				Command("pipe", pipes).
-				Cursor(nil)
-
-			if e != nil {
-				return
-			}
-
-			resLoop := []tk.M{}
-			e = csr.Fetch(&resLoop, 0, false)
-
-			// add by ams, 2016-10-07
-			csr.Close()
-
-			for _, res := range resLoop {
-				tmpResult = append(tmpResult, res)
-			}
-		}
-
-		resY := []tk.M{}
-
-		for _, t := range downCause {
-			title := tk.ToString(t)
-
-			for _, turbine := range turbines {
-				resX := tk.M{}
-				resX.Set("_id", tk.M{"id3": turbine, "id4": title})
-				resX.Set("result", 0)
-
-			out:
-				for _, res := range tmpResult {
-					id3 := res.Get("_id").(tk.M).GetString("id3")
-					id4 := res.Get("_id").(tk.M).GetString("id4")
-
-					if id3 == turbine && id4 == title {
-						resX = res
-						break out
-					}
-				}
-
-				// if title == "External Stop" {
-				resY = append(resY, resX)
-				// }
-			}
-		}
-		project := p.ProjectName
-		if p.ProjectName == "Fleet" {
-			project = ""
-		}
-		turbineName, _ := helper.GetTurbineNameList(project)
-		for _, turbine := range turbines {
-			resVal := tk.M{}
-			if topType != "project" {
-				resVal.Set("_id", turbineName[turbine])
-			} else {
-				resVal.Set("_id", turbine)
-			}
-
-			for _, val := range resY {
-				valTurbine := val.Get("_id").(tk.M).GetString("id3")
-				valResult := val.GetFloat64("result")
-				valTitle := ""
-
-				splitTitle := strings.Split(val.Get("_id").(tk.M).GetString("id4"), " ")
-
-				if len(splitTitle) > 1 {
-					valTitle = splitTitle[0] + "" + splitTitle[1]
-				} else {
-					valTitle = splitTitle[0]
-				}
-
-				if turbine == valTurbine && valResult != 0 {
-					resVal.Set(valTitle, valResult)
-				} else if resVal.Get(valTitle) == nil {
-					resVal.Set(valTitle, 0)
-				}
-			}
-
-			resVal.Set("Total", turbinesVal.GetFloat64(turbine))
-			result = append(result, resVal)
 		}
 	}
 
