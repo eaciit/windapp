@@ -613,9 +613,17 @@ pc.getScatter = function(paramLine, dtLine) {
             //     visible: false,
             //     font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             // },
+            // legend: {
+            //     visible: false,
+            //     position: "bottom"
+            // },
             legend: {
-                visible: false,
-                position: "bottom"
+                position: "bottom",
+                visible: true,
+                offsetX: 50,
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                },
             },
             seriesDefaults: {
                 type: "scatterLine",
@@ -700,6 +708,15 @@ pc.getScatter = function(paramLine, dtLine) {
             pannable: true,
             zoomable: true
         });
+
+        var chart = $("#chartPCcomparison").data("kendoChart");
+        var series = chart.options.series;
+        for (var i = 0; i < series.length; i++) {
+            if(i >= series.length-2) {
+                series[i].visibleInLegend = false;
+            }
+        };
+        chart.redraw();
 
         app.loading(false);
     });
