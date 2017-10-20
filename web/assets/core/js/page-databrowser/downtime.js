@@ -162,7 +162,7 @@ dbd.InitDEgrid = function() {
             }, {
                 title: "Duration (hh:mm:ss)",
                 field: "Duration",
-                template: '#= kendo.toString(secondsToHms(Duration)) #',
+                template: '#= kendo.toString(secondsToHmsDatabrowser(Duration)) #',
                 width: 90,
                 attributes: {
                     class: "align-center"
