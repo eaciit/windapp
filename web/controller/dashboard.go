@@ -1250,15 +1250,21 @@ func (m *DashboardController) GetDowntimeTop(k *knot.WebContext) interface{} {
 	}
 
 	if !p.IsDetail {
+		var wg sync.WaitGroup
+		var mux sync.Mutex
 		if p.ProjectName != "Fleet" {
+			wg.Add(2)
 			//tidak bisa dicombine karena tiap top 10 kategori beda urutan top 10 nya
-			result.Set("duration", getTurbineDownTimeTop("duration", p, k))
-			result.Set("frequency", getTurbineDownTimeTop("frequency", p, k))
+			go getTurbineDownTimeTop(result, "duration", p, k, &wg, &mux)
+			go getTurbineDownTimeTop(result, "frequency", p, k, &wg, &mux)
 		}
 		if p.Type == "project" {
-			result.Set(p.Type, getTurbineDownTimeTop(p.Type, p, k))
+			wg.Add(1)
+			go getTurbineDownTimeTop(result, p.Type, p, k, &wg, &mux)
 		}
-		result.Set("loss", getTurbineDownTimeTop("loss", p, k))
+		wg.Add(1)
+		go getTurbineDownTimeTop(result, "loss", p, k, &wg, &mux)
+		wg.Wait()
 	}
 	return helper.CreateResult(true, result, "success")
 }
@@ -1764,7 +1770,8 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 	return
 }
 
-func getTurbineDownTimeTop(topType string, p *PayloadDashboard, k *knot.WebContext) (result []tk.M) {
+func getTurbineDownTimeTop(result tk.M, topType string, p *PayloadDashboard, k *knot.WebContext, wg *sync.WaitGroup, mux *sync.Mutex) {
+	defer wg.Done()
 	if p.DateStr == "" || (p.DateStr != "" && topType == "project") {
 		var e error
 		var fromDate time.Time
@@ -1780,22 +1787,24 @@ func getTurbineDownTimeTop(topType string, p *PayloadDashboard, k *knot.WebConte
 		if p.ProjectName != "Fleet" && p.ProjectName != "" {
 			newPayload.Project = p.ProjectName
 		}
-
+		dataResult := []tk.M{}
 		if topType != "frequency" {
+			tipe := topType
 			if topType == "project" { /* untuk tipe ini hanya get loss saja */
-				topType = "loss"
+				tipe = "loss"
 				newPayload.BreakDown = "$projectname"
 			}
-			result, e = getDownTimeTopLossDuration(topType, newPayload, k)
+			dataResult, e = getDownTimeTopLossDuration(tipe, newPayload, k)
 		} else {
-			result, e = getDownTimeTopFrequency(newPayload, k)
+			dataResult, e = getDownTimeTopFrequency(newPayload, k)
 		}
 		if e != nil {
 			return
 		}
+		mux.Lock()
+		result.Set(topType, dataResult)
+		mux.Unlock()
 	}
-
-	return
 }
 
 func getLossCategoriesFreq(matchSource tk.M, downCause map[string]string, val string) (resLoop []tk.M) {
