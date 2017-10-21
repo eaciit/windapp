@@ -393,37 +393,18 @@ func (m *DashboardController) GetScadaSummaryByMonth(k *knot.WebContext) interfa
 
 	var finalResult tk.M
 	finalResult = tk.M{}
+
 	if len(datalastmonth) > 0 {
-		result := []interface{}{}
-		var wg sync.WaitGroup
-		var mux sync.Mutex
-		wg.Add(1)
-		go func(result *[]interface{}, datalastmonth []ScadaSummaryByMonth, projectName string, wg *sync.WaitGroup, mux *sync.Mutex) {
-			defer wg.Done()
-			avail := GetDataAvailability(datalastmonth, projectName)
-			mux.Lock()
-			for _, val := range avail {
-				*result = append(*result, val)
-			}
-			mux.Unlock()
-		}(&result, datalastmonth, p.ProjectName, &wg, &mux)
+		result := GetDataAvailability(datalastmonth, p.ProjectName)
+		finalResult.Set("Data", result)
 		if p.ProjectName == "Fleet" {
 			availData := tk.M{}
-			var wgFleet sync.WaitGroup
-			wgFleet.Add(len(p.ProjectList))
 			for _, projectName := range p.ProjectList {
-				go func(datalastmonth []ScadaSummaryByMonth, projectName string, wgFleet *sync.WaitGroup, mux *sync.Mutex) {
-					defer wgFleet.Done()
-					avail := GetDataAvailability(datalastmonth, projectName)
-					mux.Lock()
-					availData.Set(projectName, avail)
-					mux.Unlock()
-				}(datalastmonth, projectName, &wgFleet, &mux)
+				avail := GetDataAvailability(datalastmonth, projectName)
+				availData.Set(projectName, avail)
 			}
 			finalResult.Set("Availability", availData)
 		}
-		wg.Wait()
-		finalResult.Set("Data", result)
 	}
 
 	return helper.CreateResult(true, finalResult, "success")

@@ -60,9 +60,11 @@ vm.dateAsOf(app.currentDateData);
 
 sum.scadaLastUpdate = function(){
     var project = $("#projectId").data("kendoDropDownList").value();
+    sum.paramPeriod = [];
     for(var i=0;i<sum.periodList.length;i++) {
         sum.paramPeriod.push(sum.periodList[i].value);
     }
+    sum.paramAvailPeriod = [];
     for(var i=0;i<lgd.projectAvailList().length;i++) {
         sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
     }
