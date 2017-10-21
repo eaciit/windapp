@@ -69,7 +69,7 @@ sum.scadaLastUpdate = function(){
     var param = { ProjectName: project, Date: maxdate};
 
 
-    toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
+    var reqData = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -83,6 +83,7 @@ sum.scadaLastUpdate = function(){
         }
         
     });
+    return reqData
 }
 sum.loadData = function () {
     if (lgd.isSummary()) {

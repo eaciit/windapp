@@ -646,7 +646,7 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 	var e error
 	var pipes []tk.M
 	match := tk.M{}
-	breakdown := "$turbine"
+	breakdown := "$turbine" /* default grouping */
 
 	if p != nil {
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
@@ -661,9 +661,9 @@ func getDownTimeTopLossDuration(topType string, p *PayloadAnalytic, k *knot.WebC
 		if len(p.Turbine) != 0 {
 			match.Set("turbine", tk.M{"$in": p.Turbine})
 		}
-		if p.BreakDown == "$projectname" {
+		if p.BreakDown == "$projectname" { /* untuk drilldown loss energy saat series di klik*/
 			breakdown = p.BreakDown
-			match.Set("dateinfo.monthdesc", p.DateStr)
+			match.Set("dateinfo.monthdesc", p.DateStr) /* drilldown nya per bulan makanya filternya dibedakan */
 		} else {
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 		}

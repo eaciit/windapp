@@ -10,6 +10,7 @@ import (
 
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/orm"
+	"sync"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -1842,24 +1843,54 @@ func getLossCategoriesFreq(matchSource tk.M, downCause map[string]string, val st
 
 }
 
-func getLossCategoriesTopStack(p *PayloadDashboard, k *knot.WebContext) (resultDuration, resultFreq, resultPowerLost, dataSeries []tk.M) {
+func workerLossDur(lossDurData *[]tk.M, newP *PayloadAnalytic, k *knot.WebContext, wg *sync.WaitGroup, mux *sync.Mutex) {
+	defer wg.Done()
+	data, e := getLossDuration("both", newP, k)
+	if e != nil {
+		return
+	}
+	mux.Lock()
+	for _, val := range data {
+		*lossDurData = append(*lossDurData, val)
+	}
+	mux.Unlock()
+}
+
+func workerFreq(field string, downCause map[string]string, resFreqAsync tk.M, p *PayloadDashboard, wg *sync.WaitGroup, mux *sync.Mutex) {
+	defer wg.Done()
 	var fromDate time.Time
 	match := tk.M{}
+	fromDate = p.Date.AddDate(0, -12, 0)
+	match.Set("startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
+	match.Set("reduceavailability", true)
 
+	if p.ProjectName != "Fleet" {
+		match.Set("projectname", p.ProjectName)
+	}
+	match.Set(field, true)
+	resLoopFreq := getLossCategoriesFreq(match, downCause, field)
+
+	tmpData := tk.M{}
+	for _, res := range resLoopFreq {
+		resID, _ := tk.ToM(res["_id"])
+		tmpData.Set(resID.GetString("project"), res.GetFloat64("freq"))
+	}
+	mux.Lock()
+	resFreqAsync.Set(field, tmpData)
+	mux.Unlock()
+}
+
+func getLossCategoriesTopStack(p *PayloadDashboard, k *knot.WebContext) (resultDuration, resultFreq, resultPowerLost, dataSeries []tk.M) {
 	if p.DateStr == "" {
-		fromDate = p.Date.AddDate(0, -12, 0)
-		match.Set("startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
-		match.Set("reduceavailability", true)
-
-		if p.ProjectName != "Fleet" {
-			match.Set("projectname", p.ProjectName)
-		}
 		downCause, _ := getMachineDownType()
 		sortedDown := []string{}
 		for key := range downCause {
 			sortedDown = append(sortedDown, key)
 		}
 		sort.Strings(sortedDown)
+
+		var fromDate time.Time
+		fromDate = p.Date.AddDate(0, -12, 0)
 
 		newP := new(PayloadAnalytic)
 		newP.DateStart = fromDate.UTC()
@@ -1868,24 +1899,27 @@ func getLossCategoriesTopStack(p *PayloadDashboard, k *knot.WebContext) (resultD
 		if p.ProjectName != "Fleet" {
 			newP.Project = p.ProjectName
 		}
-		lossDurData, e := getLossDuration("both", newP, k)
-		if e != nil {
-			return
+		lossDurData := []tk.M{}
+		resFreqAsync := tk.M{}
+		var wg sync.WaitGroup
+		var mux sync.Mutex
+
+		wg.Add(len(sortedDown) + 1)
+		go workerLossDur(&lossDurData, newP, k, &wg, &mux)
+
+		for _, field := range sortedDown {
+			go workerFreq(field, downCause, resFreqAsync, p, &wg, &mux)
 		}
+		wg.Wait()
 
 		tmpResultFreq := tk.M{}
 		tmpResultPowerLost := tk.M{}
 		tmpResultDuration := tk.M{}
 		projectList := map[string]int{}
+
 		for _, val := range sortedDown {
 			field := val
 			title := downCause[val]
-			loopMatch := tk.M{}
-			for keyMatch, valMatch := range match {
-				loopMatch.Set(keyMatch, valMatch)
-			}
-			loopMatch.Set(field, true)
-			resLoopFreq := getLossCategoriesFreq(loopMatch, downCause, val)
 
 			tmpResultFreq = tk.M{
 				"_id": tk.M{"id2": title},
@@ -1901,9 +1935,9 @@ func getLossCategoriesTopStack(p *PayloadDashboard, k *knot.WebContext) (resultD
 				tmpResultPowerLost.Set(val.GetString("_id"), val.GetFloat64(field+"loss"))
 				tmpResultDuration.Set(val.GetString("_id"), val.GetFloat64(field+"duration"))
 			}
-			for _, res := range resLoopFreq {
-				resID, _ := tk.ToM(res["_id"])
-				tmpResultFreq.Set(resID.GetString("project"), res.GetFloat64("freq"))
+
+			for field, res := range resFreqAsync.Get(field, tk.M{}).(tk.M) {
+				tmpResultFreq.Set(field, res)
 			}
 			resultFreq = append(resultFreq, tmpResultFreq)
 			resultDuration = append(resultDuration, tmpResultDuration)
@@ -1927,18 +1961,9 @@ func getLossCategoriesTopStack(p *PayloadDashboard, k *knot.WebContext) (resultD
 }
 
 func getLossCategoriesTopDFP(p *PayloadDashboard, k *knot.WebContext) (resultDuration, resultFreq, resultPowerLost []tk.M) {
-	var fromDate time.Time
-	match := tk.M{}
-
 	if p.DateStr == "" {
+		var fromDate time.Time
 		fromDate = p.Date.AddDate(0, -12, 0)
-
-		match.Set("startdate", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
-		match.Set("reduceavailability", true)
-
-		if p.ProjectName != "Fleet" {
-			match.Set("projectname", p.ProjectName)
-		}
 
 		downCause, _ := getMachineDownType()
 		sortedDown := []string{}
@@ -1954,24 +1979,29 @@ func getLossCategoriesTopDFP(p *PayloadDashboard, k *knot.WebContext) (resultDur
 		if p.ProjectName != "Fleet" {
 			newP.Project = p.ProjectName
 		}
-		lossDurData, e := getLossDuration("both", newP, k)
-		if e != nil {
-			return
+		lossDurData := []tk.M{}
+		resFreqAsync := tk.M{}
+		var wg sync.WaitGroup
+		var mux sync.Mutex
+
+		wg.Add(len(sortedDown) + 1)
+		go workerLossDur(&lossDurData, newP, k, &wg, &mux)
+
+		for _, field := range sortedDown {
+			go workerFreq(field, downCause, resFreqAsync, p, &wg, &mux)
 		}
+		wg.Wait()
+
 		tmpResultPowerLost := tk.M{}
 		tmpResultDuration := tk.M{}
+		tmpResultFreq := tk.M{}
 
 		for _, val := range sortedDown {
 			field := val
 			title := downCause[val]
-			loopMatch := tk.M{}
-			for keyMatch, valMatch := range match {
-				loopMatch.Set(keyMatch, valMatch)
-			}
-			loopMatch.Set(field, true)
-			resLoopFreq := getLossCategoriesFreq(loopMatch, downCause, val)
-			for _, res := range resLoopFreq {
-				resultFreq = append(resultFreq, tk.M{"_id": res["_id"], "result": res.GetInt("freq")})
+
+			tmpResultFreq = tk.M{
+				"_id": tk.M{"id2": title},
 			}
 			tmpResultPowerLost = tk.M{
 				"_id": tk.M{"id2": title},
@@ -1983,6 +2013,10 @@ func getLossCategoriesTopDFP(p *PayloadDashboard, k *knot.WebContext) (resultDur
 				tmpResultPowerLost.Set("result", val.GetFloat64(field+"loss"))
 				tmpResultDuration.Set("result", val.GetFloat64(field+"duration"))
 			}
+			for _, res := range resFreqAsync.Get(field, tk.M{}).(tk.M) {
+				tmpResultFreq.Set("result", res)
+			}
+			resultFreq = append(resultFreq, tmpResultFreq)
 			resultDuration = append(resultDuration, tmpResultDuration)
 			resultPowerLost = append(resultPowerLost, tmpResultPowerLost)
 		}
