@@ -1062,15 +1062,15 @@ func getAvailabilityValue(tStart time.Time, tEnd time.Time, project string, turb
 
 	e = csr.Fetch(&list, 0, false)
 
+	var turbineList []TurbineOut
+	if project != "" {
+		turbineList, _ = helper.GetTurbineList([]interface{}{project})
+	} else {
+		turbineList, _ = helper.GetTurbineList(nil)
+	}
+
 	for _, val := range list {
 		var totalTurbine, hourValue, plfDivider float64
-		var turbineList []TurbineOut
-
-		if project != "" {
-			turbineList, _ = helper.GetTurbineList([]interface{}{project})
-		} else {
-			turbineList, _ = helper.GetTurbineList(nil)
-		}
 
 		id := val.Get("_id").(tk.M)
 		key := id.GetString("id1")
