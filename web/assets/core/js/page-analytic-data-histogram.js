@@ -23,6 +23,11 @@ km.dsCategoryTemp = ko.observableArray();
 km.dsValueTemp = ko.observableArray();
 km.dsTotaldataTemp = ko.observable();
 
+km.dsWindTurbinename = ko.observableArray([]);
+km.dsTempTurbinename = ko.observableArray([]);
+km.dsProdTurbinename = ko.observableArray([]);
+
+
 km.tempTagsDs = ko.observableArray();
 km.tempTagsList = ko.observableArray();
 
@@ -70,6 +75,11 @@ km.createChart = function (turbinename) {
         legend: {
             position: "top",
             visible: false
+        },
+        chartArea: {
+            background: "transparent",
+            margin: 0,
+            padding: 0
         },
         seriesDefaults: {
             type: "column",
@@ -172,6 +182,11 @@ km.createChartProduction = function (turbinename) {
         legend: {
             position: "top",
             visible: false
+        },
+        chartArea: {
+            background: "transparent",
+            margin: 0,
+            padding: 0
         },
         seriesDefaults: {
             type: "column",
@@ -276,6 +291,11 @@ km.createChartTemp = function (turbinename) {
         legend: {
             position: "top",
             visible: false
+        },
+        chartArea: {
+            background: "transparent",
+            margin: 0,
+            padding: 0
         },
         seriesDefaults: {
             type: "column",
@@ -386,6 +406,7 @@ km.getData = function () {
                         return;
                     }
                     if (res.data != null) {
+                        km.dsWindTurbinename(res.data.turbinename);
                         km.dsCategorywindspeed(res.data.categorywindspeed);
                         km.dsValuewindSpeed(res.data.valuewindspeed);
                         km.dsTotaldataWS(res.data.totaldata);
@@ -409,7 +430,7 @@ km.getData = function () {
                         return;
                     }
                     if (res.data != null) {
-
+                        km.dsProdTurbinename(res.data.turbinename);
                         km.dsCategoryProduction(res.data.categoryproduction);
                         km.dsValueProduction(res.data.valueproduction);
                         km.dsTotaldataProduction(res.data.totaldata);
@@ -434,6 +455,7 @@ km.getData = function () {
                         return;
                     }
                     if (res.data != null) {
+                        km.dsTempTurbinename(res.data.turbinename);
                         km.dsCategoryTemp(res.data.category);
                         km.dsValueTemp(res.data.value);
                         km.dsTotaldataTemp(res.data.totaldata);

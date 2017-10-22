@@ -79,28 +79,29 @@ lgd.populateProject = function (data) {
 lgd.LoadData = function () {
     lgd.stop();
     app.loading(true);
-    sum.scadaLastUpdate();
 
-    var project = $("#projectId").data("kendoDropDownList").value();
-    var param = { ProjectName: project, Date: maxdate };
+    $.when(sum.scadaLastUpdate()).done(function(){
+        var project = $("#projectId").data("kendoDropDownList").value();
+        var param = { ProjectName: project, Date: maxdate };
 
-    if (project == "Fleet") {
-        lgd.isFleet(true);
-        lgd.isNonFleet(false);
-        $("#div-windiness").hide();
-        $("#div-winddistribution").show();
-    } else {
-        lgd.isFleet(false);
-        lgd.isNonFleet(true);
-        $("#div-windiness").show();
-        $("#div-winddistribution").hide();
-    }
+        if (project == "Fleet") {
+            lgd.isFleet(true);
+            lgd.isNonFleet(false);
+            $("#div-windiness").hide();
+            $("#div-winddistribution").show();
+        } else {
+            lgd.isFleet(false);
+            lgd.isNonFleet(true);
+            $("#div-windiness").show();
+            $("#div-winddistribution").hide();
+        }
 
-    setTimeout(function () {
-        prod.loadData();
-        avail.loadData();
-        sum.loadData();
-    }, 5000);
+        setTimeout(function () {
+            prod.loadData();
+            avail.loadData();
+            sum.loadData();
+        }, 300);
+    });
 }
 
 

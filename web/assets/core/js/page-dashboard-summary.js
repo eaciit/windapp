@@ -60,16 +60,18 @@ vm.dateAsOf(app.currentDateData);
 
 sum.scadaLastUpdate = function(){
     var project = $("#projectId").data("kendoDropDownList").value();
+    sum.paramPeriod = [];
     for(var i=0;i<sum.periodList.length;i++) {
         sum.paramPeriod.push(sum.periodList[i].value);
     }
+    sum.paramAvailPeriod = [];
     for(var i=0;i<lgd.projectAvailList().length;i++) {
         sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
     }
     var param = { ProjectName: project, Date: maxdate};
 
 
-    toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
+    var reqData = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -83,6 +85,7 @@ sum.scadaLastUpdate = function(){
         }
         
     });
+    return reqData
 }
 sum.loadData = function () {
     if (lgd.isSummary()) {
@@ -2456,7 +2459,7 @@ sum.DetailLostEnergy = function(e){
                 },
                 labels: {
                     step: 2,
-                    template: "#: kendo.toString(value/1000, 'n0') #",
+                    template: "#: kendo.toString(value, 'n0') #",
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
@@ -2486,7 +2489,7 @@ sum.DetailLostEnergy = function(e){
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: "#: category #: #: kendo.toString(value/1000, 'n1') # MWh",
+                template: "#: category #: #: kendo.toString(value, 'n1') # MWh",
                 border: {
                     color: "#eee",
                     width: "2px",
