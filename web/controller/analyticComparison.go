@@ -318,11 +318,11 @@ func (m *AnalyticComparisonController) GetData(k *knot.WebContext) interface{} {
 
 			for _, val := range p.Keys {
 				if val == "P50PLF" {
-					result.Set(val, tk.ToFloat64(totP50PLF/tk.ToFloat64(durationMonths, 0, tk.RoundingAuto), 2, tk.RoundingAuto))
+					result.Set(val, tk.ToFloat64(totP50PLF/tk.ToFloat64(durationMonths, 0, tk.RoundingAuto), 2, tk.RoundingAuto)*100)
 				} else if val == "P75PLF" {
-					result.Set(val, tk.ToFloat64(totP75PLF/tk.ToFloat64(durationMonths, 0, tk.RoundingAuto), 2, tk.RoundingAuto))
+					result.Set(val, tk.ToFloat64(totP75PLF/tk.ToFloat64(durationMonths, 0, tk.RoundingAuto), 2, tk.RoundingAuto)*100)
 				} else if val == "P90PLF" {
-					result.Set(val, tk.ToFloat64(totP90PLF/tk.ToFloat64(durationMonths, 0, tk.RoundingAuto), 2, tk.RoundingAuto))
+					result.Set(val, tk.ToFloat64(totP90PLF/tk.ToFloat64(durationMonths, 0, tk.RoundingAuto), 2, tk.RoundingAuto)*100)
 				} else if val == "P50Generation" {
 					result.Set(val, tk.ToFloat64(totP50Generation, 2, tk.RoundingAuto))
 				} else if val == "P75Generation" {

@@ -97,7 +97,8 @@ page.getPowerCurveScatter = function() {
         dateStart: dateStart,
         dateEnd: dateEnd,
         turbine: turbine,
-        project: fa.project,
+        // project: fa.project, // has a bug, always selected Tejuva instead selected project
+        project: $('#projectList').data('kendoDropDownList').value(), // temporary changed
         scatterType: page.scatterType,
         lessValue: parseInt(lessValue,10),
         greaterValue: parseInt(greaterValue,10),

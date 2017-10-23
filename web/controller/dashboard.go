@@ -8,9 +8,10 @@ import (
 	"log"
 	"strings"
 
+	"sync"
+
 	"github.com/eaciit/crowd"
 	"github.com/eaciit/orm"
-	"sync"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -499,7 +500,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			Set("otherdowntime", uDownTime)
 		res := helper.CalcAvailabilityAndPLF(in)
 		val.Set("plf", res.GetFloat64("plf"))
-		val.Set("trueavail", res.GetFloat64("plf"))
+		val.Set("trueavail", res.GetFloat64("totalavailability"))
 
 		val.Set("turbine", data.GetString("turbine"))
 		if listturbine.Has(data.GetString("turbine")) {

@@ -25,7 +25,11 @@ page.deviationVal = ko.observable("20");
 
 page.isDensity = ko.observable(false);
 page.dataAvail = ko.observable(0.0);
+page.dataAvailAll = ko.observable(0.0);
 page.totalAvail = ko.observable(0.0);
+page.totalAvailAll = ko.observable(0.0);
+
+page.totalAvailTurbines = ko.observableArray([]);
 
 // add by ams Aug 11, 2017
 page.deviationOpts = ko.observableArray([
@@ -215,6 +219,8 @@ var Data = {
                 }
 
                 page.totalAvail(res.data.TotalDataAvail);
+                page.totalAvailAll(res.data.TotalDataAvail);
+                page.totalAvailTurbines(res.data.TotalPerTurbine);
 
                 dataTurbine = res.data.Data;
                 localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
@@ -721,6 +727,7 @@ var Data = {
             }
         });
         page.dataAvail((totalDataAvailInProject / totalDataShoulBeInProject));
+        page.dataAvailAll((totalDataAvailInProject / totalDataShoulBeInProject));
     },
     InitDownList: function() {
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdownlist", "", function(res) {
@@ -811,6 +818,39 @@ page.showHideLegend = function(idx) {
     }
     if (idx == $('input[id*=chk-][type=checkbox]').length) {
         idx == 0
+    }
+
+    // check if turbines not all checked
+    if (!$('#showHideAll').is(':checked')) {
+        var chks = $('input[id*=chk-][type=checkbox]:checked');
+        var totalavail = 0;
+        var totalCount = 0;
+        var sampleAvail = 0;
+        var sampleCount = 0;
+        
+        $.each(chks, function(idx, elm){
+            var tbName = $(elm).attr('name');
+            var tbAvail = page.totalAvailTurbines()[tbName];
+            totalavail += tbAvail.avail;
+            totalCount++;
+
+            var elmAvail = $(elm).parent().find('button.wbtn').find('label').text().replace(' %', '');
+            var currElmAvail = parseFloat(elmAvail);
+            sampleAvail += currElmAvail; 
+            sampleCount++;
+        });
+
+        if(totalCount > 0) {
+            var selectedAvail = totalavail / totalCount;
+            page.totalAvail(selectedAvail);
+
+            var selectedSampleAvail = (sampleAvail / 100) / sampleCount;
+            page.dataAvail(selectedSampleAvail);
+        } else {
+            page.totalAvail(page.totalAvailAll());
+            page.dataAvail(page.dataAvailAll());
+
+        }
     }
 
     chart._legendItemClick(idx);

@@ -320,14 +320,18 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
-	if !p.IsPower0 {
-		filter = append(filter, dbox.Gt("power", 0))
-	}
-	if viewSession == "density" {
-		filter = append(filter, dbox.Gt("denadjwindspeed", 3.0))
-	} else {
-		filter = append(filter, dbox.Gte("avgwindspeed", 3.0))
-	}
+
+	//// as per Neeraj Request on Oct 23, 2017
+	// if !p.IsPower0 {
+	// 	filter = append(filter, dbox.Gt("power", 0))
+	// }
+
+	// if viewSession == "density" {
+	// 	filter = append(filter, dbox.Gt("denadjwindspeed", 3.0))
+	// } else {
+	// 	filter = append(filter, dbox.Gte("avgwindspeed", 3.0))
+	// }
+
 	filter = append(filter, dbox.Eq("available", 1))
 
 	// modify by ams, 2017-08-11
@@ -355,14 +359,14 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
-	pipesx = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"colId": colId, "Turbine": "$turbine"}, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
-	pipesx = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+	pipesx = append(pipesx, tk.M{"$group": tk.M{"_id": tk.M{"Turbine": "$turbine"}, "totaldata": tk.M{"$sum": 1}}})
+	pipesx = append(pipesx, tk.M{"$sort": tk.M{"_id": 1}})
 
 	var filterx []*dbox.Filter
-	filterx = append(filterx, dbox.Gte("dateinfo.dateid", tStart))
-	filterx = append(filterx, dbox.Lte("dateinfo.dateid", tEnd))
+	filterx = append(filterx, dbox.Gte("dateinfo.dateid", p.DateStart))
+	filterx = append(filterx, dbox.Lte("dateinfo.dateid", p.DateEnd))
 	filterx = append(filterx, dbox.Eq("projectname", project))
-	filterx = append(filterx, dbox.Eq("available", 1))
+	// filterx = append(filterx, dbox.Eq("available", 1))
 	filterx = append(filterx, dbox.Ne("_id", ""))
 
 	var listAll []tk.M
@@ -382,12 +386,25 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0) + 1
+	totalAllPerTurbines := map[string]tk.M{}
+	// totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0) + 1
+	totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
+	// totalDataShouldBe := totalDays * 144
 	totalDataShouldBe := totalDays * 144
 	totalDataAll := 0
 	if len(listAll) > 0 {
-		for _, l := range listAll {
-			totalDataAll += l.GetInt("totaldata")
+		for _, dt := range listAll {
+			id := dt.Get("_id").(tk.M)
+			turbine := id.GetString("Turbine")
+			totalDataPerTurbine := dt.GetInt("totaldata")
+			totalDataAll += totalDataPerTurbine
+
+			perTurbine := tk.M{
+				"totaldata": totalDataPerTurbine,
+				"avail":     tk.Div(float64(totalDataPerTurbine), totalDataShouldBe),
+			}
+
+			totalAllPerTurbines[turbine] = perTurbine
 		}
 	}
 	totalDataAvail := tk.Div(float64(totalDataAll), (totalDataShouldBe * float64(len(p.Turbine))))
@@ -444,9 +461,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 			datas = append(datas, []float64{idD.GetFloat64("colId"), val.GetFloat64("production")}) //tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))
 		}
 
-		totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
 		turbineData.Set("totaldays", totalDays)
-		totalDataShouldBe := totalDays * 144
 		turbineData.Set("totaldatashouldbe", totalDataShouldBe)
 		turbineData.Set("totaldata", totalDataPerTurbine)
 		turbineData.Set("dataavailpct", tk.Div(float64(totalDataPerTurbine), totalDataShouldBe))
@@ -465,13 +480,15 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 
 	data := struct {
-		Data           []tk.M
-		TotalData      int
-		TotalDataAvail float64
+		Data            []tk.M
+		TotalData       int
+		TotalDataAvail  float64
+		TotalPerTurbine map[string]tk.M
 	}{
-		Data:           dataSeries,
-		TotalData:      totalDataAll,
-		TotalDataAvail: totalDataAvail,
+		Data:            dataSeries,
+		TotalData:       totalDataAll,
+		TotalDataAvail:  totalDataAvail,
+		TotalPerTurbine: totalAllPerTurbines,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1410,8 +1427,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	filter = append(filter, dbox.Lte("timestamp", tEnd))
 	filter = append(filter, dbox.Eq("turbine", turbine))
 	filter = append(filter, dbox.Eq("projectname", project))
-	filter = append(filter, dbox.Gt("power", 0))
-	filter = append(filter, dbox.Gt("avgwindspeed", 0))
+	// filter = append(filter, dbox.Gt("power", 0))
+	// filter = append(filter, dbox.Gt("avgwindspeed", 0))
 	filter = append(filter, dbox.Eq("available", 1))
 
 	// filter = append(filter, dbox.Eq("oktime", 600))
@@ -1456,7 +1473,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaData).TableName()).
 		Where(dbox.And(filter...)).
-		Take(10000).
+		//Take(10000).
 		Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -1483,7 +1500,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 			scatterData = tk.M{}
 			scatterData.Set("WindSpeed", val.AvgWindSpeed)
 			scatterData.Set("Power", val.Power)
-
+			//tk.Println("Dev = ", val.NacelleDeviation)
 			if val.NacelleDeviation < lessDev {
 				scatterDatas1 = append(scatterDatas1, scatterData)
 			}
@@ -1595,10 +1612,12 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		filter = append(filter, dbox.Eq("turbine", turbineX))
 		filter = append(filter, dbox.Eq("projectname", project))
 		filter = append(filter, dbox.Eq("available", 1))
-		if !p.IsPower0 {
-			filter = append(filter, dbox.Gt("power", 0.0))
-		}
-		filter = append(filter, dbox.Gte("avgwindspeed", 3))
+
+		//// as per Neeraj Request Oct 23, 2017
+		// if !p.IsPower0 {
+		// 	filter = append(filter, dbox.Gt("power", 0.0))
+		// }
+		// filter = append(filter, dbox.Gte("avgwindspeed", 3))
 
 		// if !IsDeviation {
 		// 	filter = append(filter, dbox.Gte(colDeviation, dVal))
