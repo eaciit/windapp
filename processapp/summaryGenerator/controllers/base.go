@@ -518,7 +518,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 	if e != nil {
 		return nil, e
 	}
-	tk.Println("DB Connect ", config["host"], " : ", config["database"], " \n")
+	tk.Println("DB Connect ", config["host"], " : ", config["database"])
 	return c, nil
 }
 
