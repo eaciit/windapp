@@ -1089,8 +1089,8 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				}
 
 				d.Lock()
-				if _mp, _cmp := cmaxproc[project]; !_cmp || _mp.UTC().After(maxdate.UTC()) {
-					cmaxproc[project] = _mp
+				if _mp, _cmp := cmaxproc[project]; !_cmp || maxdate.UTC().After(_mp.UTC()) {
+					cmaxproc[project] = maxdate
 				}
 				d.Unlock()
 
@@ -2630,7 +2630,7 @@ func (d *GenScadaSummary) getLastExec(rconn dbox.IConnection, _process, _type st
 			_ilp.Process = _process
 			_ilp.Type = _type
 			_ilp.ProjectName = str
-			_ilp.LastDate = _dtime.AddDate(-1, 0, 0)
+			_ilp.LastDate = _dtime.AddDate(0, 0, -1)
 
 			tkm.Set(str, _ilp.New())
 			d.saveLastExecProject(rconn, _ilp.New())
