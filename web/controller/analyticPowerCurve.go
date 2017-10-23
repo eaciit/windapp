@@ -339,7 +339,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		}
 	}
 	if isClean {
-		filter = append(filter, dbox.Eq("oktime", 600))
+		filter = append(filter, dbox.Eq("isvalidstate", true))
+		// filter = append(filter, dbox.Eq("oktime", 600))
 	}
 
 	csr, e := DB().Connection.NewQuery().
@@ -1610,7 +1611,8 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 			}
 		}
 		if isClean {
-			filter = append(filter, dbox.Eq("oktime", 600))
+			filter = append(filter, dbox.Eq("isvalidstate", true))
+			// filter = append(filter, dbox.Eq("oktime", 600))
 		}
 		filter = append(filter, dbox.Ne("_id", ""))
 
