@@ -407,11 +407,15 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 					countID++
 					// set duration for available datas
 					duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 2, tk.RoundingAuto)
+					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
+					mtx.Unlock()
 					// set duration for unavailable datas
 					countID++
 					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
+					mtx.Unlock()
 					from = oem
 				}
 			} else {
@@ -434,7 +438,9 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 		if hoursGap > 24 {
 			countID++
 			duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+			mtx.Lock()
 			*details = append(*details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, duration, true, countID))
+			mtx.Unlock()
 		}
 
 		// set gap from last data until periodTo
@@ -455,7 +461,6 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 		detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, false, countID))
 	}
 	mtx.Lock()
-
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
@@ -539,11 +544,15 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 					// log.Printf("hrs gap: %v \n", hoursGap)
 					// set duration for available datas
 					duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 2, tk.RoundingAuto)
+					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, "", duration, true, countID))
+					mtx.Unlock()
 					// set duration for unavailable datas
 					countID++
 					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, "", duration, false, countID))
+					mtx.Unlock()
 					from = oem
 				}
 			} else {
@@ -567,7 +576,9 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 		if hoursGap > 24 {
 			countID++
 			duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+			mtx.Lock()
 			*details = append(*details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, "", duration, true, countID))
+			mtx.Unlock()
 		}
 
 		// set gap from last data until periodTo
