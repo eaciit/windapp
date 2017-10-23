@@ -827,11 +827,12 @@ func GetTurbineNameList(project string) (turbineName map[string]string, err erro
 	}
 	turbineName = map[string]string{}
 	for _, val := range turbineList {
-		if project != "" {
-			turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
-		} else {
-			turbineName[toolkit.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
-		}
+		// if project != "" {
+		// 	turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
+		// } else {
+		// 	turbineName[toolkit.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
+		// }
+		turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
 	}
 	return
 }
