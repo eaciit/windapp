@@ -323,6 +323,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if !p.IsPower0 {
 		filter = append(filter, dbox.Gt("power", 0))
 	}
+	if viewSession == "density" {
+		filter = append(filter, dbox.Gt("denadjwindspeed", 3.0))
+	} else {
+		filter = append(filter, dbox.Gte("avgwindspeed", 3.0))
+	}
 	filter = append(filter, dbox.Eq("available", 1))
 
 	// modify by ams, 2017-08-11
@@ -1592,6 +1597,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		if !p.IsPower0 {
 			filter = append(filter, dbox.Gt("power", 0.0))
 		}
+		filter = append(filter, dbox.Gte("avgwindspeed", 3))
 
 		// if !IsDeviation {
 		// 	filter = append(filter, dbox.Gte(colDeviation, dVal))

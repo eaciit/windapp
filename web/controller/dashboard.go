@@ -2532,43 +2532,68 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 	}
 
 	fromDate = p.Date.AddDate(0, -12, 0)
-	pipes = append(pipes, tk.M{
-		"$match": tk.M{
-			"turbine":                p.Turbine,
-			"startdate":              tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()},
-			strings.ToLower(tipe[0]): true,
-		},
-	})
+	tipeDown := "$" + strings.ToLower(tipe[0])
+	tableName := new(ScadaSummaryDaily).TableName()
 	if tipe[1] == "Hours" {
-		pipes = append(pipes,
+		if tipeDown == "$unknown" {
+			tipeDown = "$otherdowntimehours"
+		} else {
+			tipeDown += "hours"
+		}
+		pipes = []tk.M{
 			tk.M{
-				"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc"},
-					"result": tk.M{"$sum": "$duration"},
+				"$match": tk.M{
+					"turbine":         p.Turbine,
+					"dateinfo.dateid": tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()},
 				},
 			},
-		)
+			tk.M{
+				"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc"},
+					"result": tk.M{"$sum": tipeDown},
+				},
+			},
+		}
 	} else if tipe[1] == "Times" {
-		pipes = append(pipes,
+		pipes = []tk.M{
+			tk.M{
+				"$match": tk.M{
+					"turbine":                p.Turbine,
+					"startdate":              tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()},
+					strings.ToLower(tipe[0]): true,
+				},
+			},
 			tk.M{
 				"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc"},
 					"result": tk.M{"$sum": 1},
 				},
 			},
-		)
+		}
+		tableName = new(Alarm).TableName()
 	} else if tipe[1] == "MWh" {
-		pipes = append(pipes,
+		if tipeDown == "$unknown" {
+			tipeDown = "$otherdownloss"
+		} else {
+			tipeDown += "loss"
+		}
+		pipes = []tk.M{
 			tk.M{
-				"$group": tk.M{"_id": tk.M{"id1": "$startdateinfo.monthid", "id2": "$startdateinfo.monthdesc"},
-					"result": tk.M{"$sum": "$powerlost"},
+				"$match": tk.M{
+					"turbine":         p.Turbine,
+					"dateinfo.dateid": tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()},
 				},
 			},
-		)
+			tk.M{
+				"$group": tk.M{"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc"},
+					"result": tk.M{"$sum": tipeDown},
+				},
+			},
+		}
 	}
 
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id1": 1}})
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(Alarm).TableName()).
+		From(tableName).
 		Command("pipe", pipes).
 		Cursor(nil)
 

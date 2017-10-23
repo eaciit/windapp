@@ -24,6 +24,7 @@ const (
 
 type GenScadaSummary struct {
 	*BaseController
+	sync.RWMutex
 }
 
 func daysIn(m time.Month, year int) int {
@@ -718,10 +719,14 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 		}
 
 		projectList, _ := helper.GetProjectList()
-		mapRevenue := map[string]float64{}
+		mapRevenue, arrproject := map[string]float64{}, []string{}
 		for _, v := range projectList {
 			mapRevenue[v.Value] = v.RevenueMultiplier
+			arrproject = append(arrproject, v.ProjectId)
 		}
+
+		_t0 := time.Now().UTC()
+		maxproc, cmaxproc := d.getLastExec(ctx, "summary", "daily", time.Date(_t0.Year(), _t0.Month(), _t0.Day(), 0, 0, 0, 0, _t0.Location()).AddDate(0, 0, -5), arrproject), map[string]time.Time{}
 
 		var wg sync.WaitGroup
 		counter := 0
@@ -734,10 +739,11 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				filter := tk.M{}
 				filter = filter.Set("projectname", tk.M{}.Set("$eq", project))
 				filter = filter.Set("turbine", tk.M{}.Set("$eq", turbineX))
-				// filter = filter.Set("power", tk.M{}.Set("$gte", -200))
 				filter = filter.Set("available", 1)
 
-				dt := d.BaseController.GetLatest("ScadaSummaryDaily", project, turbineX)
+				// dt := d.BaseController.GetLatest("ScadaSummaryDaily", project, turbineX)
+				lep := maxproc.Get(project, new(LastExecProcess)).(*LastExecProcess)
+				dt := lep.LastDate
 
 				if dt.Format("2006") != "0001" {
 					dt = dt.AddDate(0, 0, -1)
@@ -789,6 +795,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				count := 0
 				total := 0
 
+				maxdate := time.Time{}
 				for _, data := range scadaSums {
 					id := data["_id"].(tk.M)
 					project := id.GetString("projectname")
@@ -1067,6 +1074,10 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 					d.BaseController.Ctx.Save(dt)
 
+					if maxdate.IsZero() || maxdate.UTC().Before(dt.DateInfo.DateId) {
+						maxdate = dt.DateInfo.DateId
+					}
+
 					count++
 					total++
 					if count == 1000 {
@@ -1076,6 +1087,13 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 					// break
 				}
+
+				d.Lock()
+				if _mp, _cmp := cmaxproc[project]; !_cmp || maxdate.UTC().After(_mp.UTC()) {
+					cmaxproc[project] = maxdate
+				}
+				d.Unlock()
+
 				d.Log.AddLog(tk.Sprintf("Total processed data %v | %v\n", turbineX, total), sInfo)
 				wg.Done()
 			}(turbine, v.(tk.M).GetString("project"))
@@ -1083,6 +1101,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 			if counter%10 == 0 || len(d.BaseController.RefTurbines) == counter {
 				wg.Wait()
 			}
+		}
+
+		for project, _ := range maxproc {
+			lep := maxproc.Get(project, new(LastExecProcess)).(*LastExecProcess)
+			lep.LastDate = cmaxproc[project]
+			d.saveLastExecProject(ctx, lep)
 		}
 	}
 }
@@ -2577,4 +2601,53 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 			}
 		}
 	}
+}
+
+func (d *GenScadaSummary) getLastExec(rconn dbox.IConnection, _process, _type string, _dtime time.Time, aproject []string) tk.M {
+
+	csr, err := rconn.NewQuery().
+		From(new(LastExecProcess).TableName()).
+		Where(dbox.And(dbox.Eq("process", _process), dbox.Eq("type", _type))).
+		Cursor(nil)
+
+	if err != nil {
+		d.Log.AddLog(tk.Sprintf("Get last exec project found %s", err.Error()), sInfo)
+		return tk.M{}
+	}
+
+	defer csr.Close()
+
+	_alep, tkm := []*LastExecProcess{}, tk.M{}
+
+	_ = csr.Fetch(&_alep, 0, false)
+	for _, _ilep := range _alep {
+		tkm.Set(_ilep.ProjectName, _ilep)
+	}
+
+	for _, str := range aproject {
+		if !tkm.Has(str) {
+			_ilp := new(LastExecProcess)
+			_ilp.Process = _process
+			_ilp.Type = _type
+			_ilp.ProjectName = str
+			_ilp.LastDate = _dtime.AddDate(0, 0, -1)
+
+			tkm.Set(str, _ilp.New())
+			d.saveLastExecProject(rconn, _ilp.New())
+		}
+	}
+
+	return tkm
+}
+
+func (d *GenScadaSummary) saveLastExecProject(rconn dbox.IConnection, lepData *LastExecProcess) {
+	qSave := rconn.NewQuery().
+		From(new(LastExecProcess).TableName()).
+		SetConfig("multiexec", true).
+		Save()
+	defer qSave.Close()
+
+	_ = qSave.Exec(tk.M{}.Set("data", lepData))
+
+	return
 }
