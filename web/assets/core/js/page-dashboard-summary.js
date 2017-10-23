@@ -2654,6 +2654,9 @@ sum.DetailLTPlot = function(project, e){
                     title: { 
                         text: key,
                         font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        margin: {
+                            bottom: -10
+                      },
                     },
                     legend: {
                         position: "top",
