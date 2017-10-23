@@ -1150,7 +1150,7 @@ sum.setMarkers = function(map, turbineInfos,project) {
                 // sum.ToMonitoringProject(obj.name);
                 setTimeout(function(){
                     $("#projectId").data('kendoDropDownList').value(obj.name);
-                    lgd.LoadData();
+                    $("#projectId").data("kendoDropDownList").trigger("change");
                 }, 200);
             }else{
                 sum.ToMonitoringIndividual(project, obj.value);
@@ -2740,9 +2740,25 @@ sum.DetailLTPlot = function(project, e){
 
             $.each(dataSource.datapie, function(key, val){
 
-                var dataPie = dataSource.datapie[key].sort(function (a, b) {
+                var sum = 0;
+                var results = [];
+                $.each(val, function(i, v){
+                    sum += parseFloat( v.value );
+                });
+
+                $.each(val, function(index, res){
+                    var data = {
+                        name : res.name,
+                        value : res.value,
+                        percentage : (res.value / sum) * 100,
+                    }
+                    results.push(data);
+                });
+
+                var dataPie =results.sort(function (a, b) {
                     return a.name.localeCompare( b.name );
                 });
+
 
                 $("#chartLostEnergyByType-"+key).kendoChart({
                     theme: "flat",
@@ -2765,15 +2781,15 @@ sum.DetailLTPlot = function(project, e){
                     },
                     series: [{
                         type: "pie",
-                        field: "value",
+                        field: "percentage",
                         categoryField: "name",
                     }],
                     seriesColors: colorFieldProject,
                     tooltip: {
                         visible: true,
-                        format: "{0:n1}",
+                        // format: "{0:n2}",
                         background: "rgb(255,255,255, 0.9)",
-                        template: "${ category } : ${ kendo.toString(value, 'n2') }",
+                        template: "${ category } : ${ kendo.toString(percentage, 'p2') } <br> Total Loss : ${ kendo.toString(dataItem.value, 'n2') }  MWh",
                         shared: true,
                         color: "#58666e",
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
