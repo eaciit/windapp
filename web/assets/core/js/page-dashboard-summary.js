@@ -1150,7 +1150,7 @@ sum.setMarkers = function(map, turbineInfos,project) {
                 // sum.ToMonitoringProject(obj.name);
                 setTimeout(function(){
                     $("#projectId").data('kendoDropDownList').value(obj.name);
-                    lgd.LoadData();
+                    $("#projectId").data("kendoDropDownList").trigger("change");
                 }, 200);
             }else{
                 sum.ToMonitoringIndividual(project, obj.value);
@@ -2755,7 +2755,6 @@ sum.DetailLTPlot = function(project, e){
                     results.push(data);
                 });
 
-                console.log(sum + "=====>"+ results);
                 var dataPie =results.sort(function (a, b) {
                     return a.name.localeCompare( b.name );
                 });
