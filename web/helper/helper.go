@@ -606,19 +606,20 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			err = errors.New("Date Cannot be Less Than 2013")
 		}
 	} else {
-		iLastDateData := GetLastDateData(r)
+		// iLastDateData := GetLastDateData(r)
 		/*jika memiliki custom date sendiri seperti wind rose yang max date nya 31 Juli 2016*/
 		// customLastDate := r.Session("custom_lastdate")
 
 		// if customLastDate != nil {
 		// 	iLastDateData = customLastDate.(time.Time)
 		// }
-		endDate = iLastDateData
+		// endDate = iLastDateData
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
-		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
-			endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
-				59, 59, 999999999, time.UTC)
-		}
+		// if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
+		// 	endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
+		// 		59, 59, 999999999, time.UTC)
+		// }
+		endDate = currentDate
 
 		switch period {
 		case "last24hours":
