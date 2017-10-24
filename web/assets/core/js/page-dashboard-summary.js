@@ -354,7 +354,7 @@ sum.PLF = function (id,dataSource) {
             visible: false,
         },
         chartArea: {
-            height: 185,
+            height: id === "chartPLFFleet" ? 175 : 185,
             background: "transparent",
             padding: 0,
         },
@@ -914,7 +914,7 @@ sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
-            height: 185,
+            height: 175,
             background: "transparent",
             padding: 0,
             margin: {
@@ -1703,11 +1703,11 @@ sum.MonthlyProject = function (e, tipe) {
         dataSource = res.data;
     });
     var dataSeries = [{
-        name: "Production (MWh)",
+        name: "Production (GWh)",
         field: "production",
         axis: "production"
     }, {
-        name: "Lost Energy (MWh) ",
+        name: "Lost Energy (GWh) ",
         field: "lostenergy",
         axis: "lostenergy"
     }];
@@ -1718,7 +1718,7 @@ sum.MonthlyProject = function (e, tipe) {
             margin: {
                 right: 0
             },
-            text: "Production (MWh)",font: "10px"
+            text: "Production (GWh)",font: "10px"
         },
         line: {
             visible: false
@@ -1739,7 +1739,7 @@ sum.MonthlyProject = function (e, tipe) {
             margin: {
                 left: 0
             },
-            text: "Lost Energy (MWh)",font: "10px"},
+            text: "Lost Energy (GWh)",font: "10px"},
         line: {
             visible: false
         },
