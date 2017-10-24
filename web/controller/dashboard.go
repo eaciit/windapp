@@ -2320,8 +2320,8 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		}
 
 		group := tk.M{
-			"_id": tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
-			// "minutes":       tk.M{"$sum": "$minutes"},
+			"_id":           tk.M{"id1": "$dateinfo.monthid", "id2": "$dateinfo.monthdesc", "id3": "$projectname"},
+			"count":         tk.M{"$sum": 1},
 			"mindate":       tk.M{"$min": "$dateinfo.dateid"},
 			"maxdate":       tk.M{"$max": "$dateinfo.dateid"},
 			"machineResult": tk.M{"$sum": "$machinedownhours"},
@@ -2435,7 +2435,6 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 				scada.Set("machineResult", res.GetFloat64("machineavailability")/100)
 				scada.Set("gridResult", res.GetFloat64("gridavailability")/100)
-
 				// log.Printf(">>> %#v \n", scada)
 
 				// log.Printf("SCADA: %v | %v | %v | %v = %v | %v - %v - %v - %v \n", minutes, res/3600.0, totalTurbine, hourValue, tk.ToFloat64(avail, 2, tk.RoundingAuto), fromDate.UTC().String(), p.Date.UTC().String(), minDate.UTC().String(), maxDate.UTC().String())
@@ -2457,18 +2456,23 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		for _, res := range result {
 			orderNo++
 			ids, _ = tk.ToM(res.Get("_id"))
+			var ima, iga interface{}
+			ima, iga = res.GetFloat64("machineResult"), res.GetFloat64("gridResult")
+			if res.GetFloat64("count") == 0 {
+				ima, iga = nil, nil
+			}
 			machineResult = append(machineResult, tk.M{
 				"DataId":  tk.ToString(ids.GetInt("id1")),
 				"Title":   ids.GetString("id2"),
 				"OrderNo": orderNo,
-				"Value":   res.GetFloat64("machineResult"),
+				"Value":   ima,
 				"Project": ids.GetString("id3"),
 			})
 			gridResult = append(gridResult, tk.M{
 				"DataId":  tk.ToString(ids.GetInt("id1")),
 				"Title":   ids.GetString("id2"),
 				"OrderNo": orderNo,
-				"Value":   res.GetFloat64("gridResult"),
+				"Value":   iga,
 				"Project": ids.GetString("id3"),
 			})
 		}
@@ -3917,6 +3921,10 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 				if lmachineavail == 0 || lmachineavail > tkm.GetFloat64("machineavailfloat") {
 					lmachineavail = tkm.GetFloat64("machineavailfloat")
 					ltkm.Set("lowestmachineavail", formatStringFloat(tk.ToString(lmachineavail*100), 2)+"% ("+tkm.GetString("name")+")")
+				}
+
+				if lmachineavail == 1 {
+					ltkm.Set("lowestmachineavail", "-")
 				}
 
 				if lplf == 0 || lplf > tkm.GetFloat64("plf") {

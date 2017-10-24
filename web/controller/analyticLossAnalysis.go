@@ -1748,3 +1748,58 @@ func (m *AnalyticLossAnalysisController) GetTempTags(k *knot.WebContext) interfa
 
 	return helper.CreateResult(true, tempTags, "success")
 }
+
+func (m *AnalyticLossAnalysisController) GetMaxValTempTags(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type TempMaxValTempPayload struct {
+		FieldList []string
+		Filter    PayloadAnalytic
+	}
+
+	p := new(TempMaxValTempPayload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Filter.Turbine
+	project := p.Filter.Project
+	match := tk.M{}
+	match.Set("dateinfo.dateid", tk.M{}.Set("$lte", tEnd).Set("$gte", tStart))
+	if project != "" {
+		match.Set("projectname", project)
+	}
+	if len(turbine) > 0 {
+		match.Set("turbine", tk.M{}.Set("$in", turbine))
+	}
+
+	group := tk.M{
+		"_id":   "",
+		"total": tk.M{}.Set("$sum", 1),
+	}
+
+	for _, field := range p.FieldList {
+		group.Set(field, tk.M{}.Set("$max", "$"+field))
+	}
+
+	var pipes []tk.M
+	pipes = append(pipes, tk.M{}.Set("$match", match))
+	pipes = append(pipes, tk.M{}.Set("$group", group))
+
+	csr, e := DB().Connection.NewQuery().
+		From("Scada10MinHFD").
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	defer csr.Close()
+	datamax := tk.M{}
+
+	_ = csr.Fetch(&datamax, 1, false)
+
+	return helper.CreateResult(true, datamax, "success")
+}
