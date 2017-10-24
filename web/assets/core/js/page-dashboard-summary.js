@@ -1066,7 +1066,7 @@ sum.ProdCurLast = function (id,dataSource) {
         valueAxes: [{
             line: {
                 visible: false
-            },
+            }, 
             labels: {
                 step: 2,
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
