@@ -282,7 +282,7 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
             }
         },
         chartArea: {
-            height: 185,
+            height: id == "fleetChartTopLossCatEnergyLoss" ? 175 : 185,
             background: "transparent",
             padding: 0,
             margin: {
@@ -336,7 +336,8 @@ avail.TLossCat = function(id, byTotalLostenergy,dataSource,measurement, dataseri
         },
         seriesClick: function (e) {
             if(id == 'fleetChartTopLossCatEnergyLoss'){
-                avail.toDetailDTLELevel1(e, id);
+                avail.toDetailDTLELevel1(e, "fleetChartTopLossCatEnergyLoss");
+
             }
         }
     });
@@ -1954,7 +1955,6 @@ avail.toDetailLossEnergyLevel2 = function (e, source) {
 }
 
 avail.toDetailDTLELevel1 = function (e, source) {
-    console.log(e);
     app.loading(true);
     vm.isDashboard(false);
     lgd.isAvailability(false);
@@ -2015,7 +2015,13 @@ avail.toDetailDTLELevel1 = function (e, source) {
         }
     } else { /*chart*/
         monthDetailDT = e.category;
-        $("#projectList").data("kendoDropDownList").select(0);
+
+        if(source == "fleetChartTopLossCatEnergyLoss"){
+            $("#projectList").data("kendoDropDownList").value(e.series.name);
+        }else{
+            $("#projectList").data("kendoDropDownList").select(0);
+        }
+        
         $("#mdTypeListFleet").data("kendoDropDownList").value(monthDetailDT);
         projectSelected = $("#projectList").data("kendoDropDownList").value();
 
