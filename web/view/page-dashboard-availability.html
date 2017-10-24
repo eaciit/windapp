@@ -6,16 +6,17 @@
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability" style="margin-bottom: -15px;">
 						Machine Availability(%) - Last 12 Months
-						<!-- <span class="tools pull-right">
-	                      	<div class="btn-group" data-toggle="buttons">
+						<span class="tools pull-right">
+							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Total time the machines was available"></i>
+	                      	<!-- <div class="btn-group" data-toggle="buttons">
 		                        <label class="btn btn-primary btn-xs prodToTable" onclick="$('#fleetChartMachAvail').kendoChart2Grid('n2')">
 		                            <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
 		                        </label>
 		                        <label class="btn btn-primary btn-xs" onclick="avail.fleetMachAvail(avail.fleetMachAvailData())">
 		                            <input type="radio" name="convert" id="tochart" value="tochart" autofocus="true"><i class="fa fa-bar-chart"></i>
 		                        </label>
-	                      	</div>
-	                  	</span> -->
+	                      	</div> -->
+	                  	</span>
 					</div>
 					<div class="panel-body content-chart">
 						<div class="legend-machine-project text-center"></div>
@@ -28,14 +29,15 @@
 					<div class="panel-heading ph-availability" style="margin-bottom: -15px;">
 						Grid Availability(%) - Last 12 Months
 						<span class="tools pull-right">
-	                      	<div class="btn-group" data-toggle="buttons">
+							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Total time the grid was available"></i>
+	                      	<!-- <div class="btn-group" data-toggle="buttons">
 		                        <label class="btn btn-primary btn-xs prodToTable" onclick="$('#fleetChartGridAvail').kendoChart2Grid('n2')">
 		                            <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
 		                        </label>
 		                        <label class="btn btn-primary btn-xs" onclick="avail.fleetGridAvail(avail.fleetGridAvailData())">
 		                            <input type="radio" name="convert" id="tochart" value="tochart" autofocus="true"><i class="fa fa-bar-chart"></i>
 		                        </label>
-	                      	</div>
+	                      	</div> -->
 	                  	</span>
 					</div>
 					<div class="panel-body content-chart">
@@ -117,7 +119,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">
-					Loss Categories by Frequency - Last 12 Months
+					Loss Categories by Frequency (Times) - Last 12 Months
 					<span class="tools pull-right">
                       	<div class="btn-group" data-toggle="buttons">
 	                        <label class="btn btn-primary btn-xs prodToTable" onclick="$('#fleetChartTopLossCatFreq').kendoChart2Grid('n2')">
@@ -148,7 +150,7 @@
 			</div> -->
 
 			
-			<div class="col-md-4 col-sm-4 hardcore landing">
+<!-- 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Losses (MWh) - Last 12 Months</div>
 					<div class="panel-body content-chart-custom">
@@ -156,7 +158,7 @@
 						<div id="fleetChartTopTurbineLoss"></div>
 					</div>
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 	<div id="availability-project" data-bind="visible:lgd.isNonFleet">
@@ -180,7 +182,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability-project">
-						Lost Energy Downtime Type - Last 12 Months
+						Lost Energy Downtime Type (MWh) - Last 12 Months
 					</div>
 					<div class="panel-body content-chart-project">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
@@ -213,7 +215,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading ph-availability">
-					Loss Categories by Frequency - Last 12 Months
+					Loss Categories by Frequency (Times) - Last 12 Months
 					</div>
 					<div class="panel-body content-chart-loss">
 						<div id="projectChartTopLossCatFreq"></div>
@@ -242,7 +244,7 @@
 			</div>
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Frequency - Last 12 Months</div>
+					<div class="panel-heading ph-availability">Top 10 Turbines Downtime by Frequency (Times) - Last 12 Months</div>
 					<div class="panel-body content-chart-custom">
 						<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>
 						<div id="projectChartDTFrequency"></div>
