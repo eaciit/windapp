@@ -337,9 +337,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	// modify by ams, 2017-08-11
 	if IsDeviation {
 		if DeviationOpr > 0 {
-			filter = append(filter, dbox.Gte(colDeviation, dVal))
+			filter = append(filter, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
 		} else {
-			filter = append(filter, dbox.Lte(colDeviation, dVal))
+			filter = append(filter, dbox.Or(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
 		}
 	}
 	if isClean {
@@ -1385,6 +1385,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	type ScadaMini struct {
 		Power, AvgWindSpeed             float64
 		NacelleDeviation, AvgBladeAngle float64
+		WindDirection                   float64
 	}
 
 	var (
@@ -1501,10 +1502,10 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 			scatterData.Set("WindSpeed", val.AvgWindSpeed)
 			scatterData.Set("Power", val.Power)
 			//tk.Println("Dev = ", val.NacelleDeviation)
-			if val.NacelleDeviation < lessDev {
+			if val.WindDirection < lessDev {
 				scatterDatas1 = append(scatterDatas1, scatterData)
 			}
-			if val.NacelleDeviation > greatDev {
+			if val.WindDirection > greatDev {
 				scatterDatas2 = append(scatterDatas2, scatterData)
 			}
 		}
