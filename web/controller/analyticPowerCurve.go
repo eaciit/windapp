@@ -321,6 +321,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
 
+	// temporary
+	filter = append(filter, dbox.Ne("power", 0.0))
+
 	//// as per Neeraj Request on Oct 23, 2017
 	// if !p.IsPower0 {
 	// 	filter = append(filter, dbox.Gt("power", 0))
@@ -1614,9 +1617,12 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		filter = append(filter, dbox.Eq("projectname", project))
 		filter = append(filter, dbox.Eq("available", 1))
 
+		// temporary
+		filter = append(filter, dbox.Ne("power", 0.0))
+
 		//// as per Neeraj Request Oct 23, 2017
 		// if !p.IsPower0 {
-		// 	filter = append(filter, dbox.Gt("power", 0.0))
+		// filter = append(filter, dbox.Gt("power", 0.0))
 		// }
 		// filter = append(filter, dbox.Gte("avgwindspeed", 3))
 
