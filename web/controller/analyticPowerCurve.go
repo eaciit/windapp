@@ -537,8 +537,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$lt": 10}}, tk.M{"avgwindspeed": tk.M{"$lt": 3}}}},
 		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$gte": 10}}, tk.M{"avgwindspeed": tk.M{"$gte": 3}}}}}})
 
-	// match = append(match, tk.M{"oktime": 600})
-	match = append(match, tk.M{"isvalidstate": true})
+	match = append(match, tk.M{"oktime": 600})
+	// match = append(match, tk.M{"isvalidstate": true})
 	match = append(match, tk.M{"available": 1})
 
 	if project != "" {
