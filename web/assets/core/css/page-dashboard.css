@@ -1,6 +1,10 @@
 	body{
 		background-color: #f0f3f4;
 	}
+	.txt-green{
+		color: #4caf50;
+		font-size: 10px;
+	}
 	.k-state-selected.k-state-focused {
 	    background-color: #ea5b19;
 	}
