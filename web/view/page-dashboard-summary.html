@@ -319,6 +319,7 @@
                   </span>
 					</div>
 					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
 						<div id="chartPLF"></div>
 					</div>
 				</div>
@@ -467,13 +468,13 @@
 	<div class="col-md-12 col-sm-12 ez panel-content" id="divChartDetail">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading"><span data-bind="text:sum.titleDetailLevel1"></span></div>
+				<div class="panel-heading"><span data-bind="text:sum.titleDetailLevel1()"></span></div>
 				<div class="panel-body">
-					<div class="monthly-project-wrapper text-center" data-bind="foreach: lgd.projectList()">
-						<div class="col-md-4 monthly-project-item" data-bind="visible: (value!='Fleet')">
-							<strong><span data-bind="html: text"></span></strong>
+					<div class="monthly-project-wrapper text-center" data-bind="foreach: sum.dataDrilldown">
+						<div class="col-md-4 monthly-project-item">
+							<strong><span data-bind="text: $data"></span></strong>
 							<h5 class="drilldown-custom"><small><center>click on each series to view the drilldown</center></small></h5>
-							<div class="monthlyProjectChart" data-bind="attr: { 'data-project': value }"></div>							
+							<div class="monthlyProjectChart" data-bind="attr: { 'data-project': $data }"></div>							
 						</div>
 					</div>
 

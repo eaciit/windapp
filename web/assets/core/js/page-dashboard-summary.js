@@ -43,6 +43,7 @@ sum.getScadaLastUpdate = ko.observableArray([]);
 sum.detailProjectName = ko.observable();
 sum.DetailAvailabilityData = ko.observableArray([]);
 sum.DetailLostEnergyData = ko.observableArray([]);
+sum.dataDrilldown = ko.observableArray([]);
 
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -354,7 +355,7 @@ sum.PLF = function (id,dataSource) {
             visible: false,
         },
         chartArea: {
-            height: id === "chartPLFFleet" ? 175 : 185,
+            height: 175,
             background: "transparent",
             padding: 0,
         },
@@ -398,13 +399,11 @@ sum.PLF = function (id,dataSource) {
             majorTickType: "none"
         },
         plotAreaClick: function(e) {
-            if(id === "chartPLFFleet") {
-                if (e.originalEvent.type === "contextmenu") {
-                  // Disable browser context menu
-                  e.originalEvent.preventDefault();
-                }
-                sum.MonthlyProject(e, "plf");
+            if (e.originalEvent.type === "contextmenu") {
+              // Disable browser context menu
+              e.originalEvent.preventDefault();
             }
+            sum.MonthlyProject(e, "plf");
         },
         tooltip: {
             visible: true,
@@ -462,7 +461,7 @@ sum.LostEnergy = function (dataSource) {
               // Disable browser context menu
               e.originalEvent.preventDefault();
             }
-            sum.DetailLTPlot("Fleet", e);
+            sum.DetailLTPlot(lgd.projectName(), e);
         },
         valueAxis: {
             // labels: {
@@ -976,14 +975,13 @@ sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
             majorTickType: "none"
         },
         plotAreaClick: function(e) {
-            if(tipe === "fleet") {
-                if (e.originalEvent.type === "contextmenu") {
-                  // Disable browser context menu
-                  e.originalEvent.preventDefault();
-                }
-                // sum.DetailAvailability("Fleet", e, "availability");
-                sum.MonthlyProject(e, "availability");
+            if (e.originalEvent.type === "contextmenu") {
+              // Disable browser context menu
+              e.originalEvent.preventDefault();
             }
+            // sum.DetailAvailability("Fleet", e, "availability");
+            sum.MonthlyProject(e, "availability");
+            
         },
         tooltip: {
             visible: true,
@@ -1692,15 +1690,27 @@ sum.MonthlyProject = function (e, tipe) {
     lgd.isSummary(false);
     sum.isMonthlyProject(true);
 
+    var projects =  ["Tejuva", "Lahori", "Amba"];
+    if(lgd.projectName() !== "Fleet"){
+        projects = [lgd.projectName()];
+    }
+
     var param = {
-        Projects: ["Tejuva", "Lahori", "Amba"],
+        Projects: projects
     };
     var dataSource;
     var dataRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getmonthlyproject", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
+
         dataSource = res.data;
+        var data = [];
+        $.each(dataSource, function(key, value){
+            data.push(key);
+        });
+
+        sum.dataDrilldown(data);  
     });
     var dataSeries = [{
         name: "Production (GWh)",
