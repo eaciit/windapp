@@ -2653,6 +2653,14 @@ sum.DetailLTPlot = function(project, e){
         }
         var dataSource = res.data;
 
+        var data = [];
+        
+        $.each(dataSource.datachart, function(key, value){
+            data.push(key);
+        });
+
+        sum.dataDrilldown(data);  
+
         setTimeout(function(){
             sum.DetailLostEnergyData(dataSource.datachart);
             $.each(dataSource.datachart, function(key, val){

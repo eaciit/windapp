@@ -647,14 +647,14 @@
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">Detail Lost Energy (MWh)&nbsp;&nbsp;</div>
 				<div class="panel-body" >
-					<div class="lostenergy-project-wrapper text-center" data-bind="foreach: lgd.projectList()" style="margin-top: -25px;">
-						<div class="col-md-12 detail-lostenergy-item" data-bind="visible: (value!='Fleet')">
+					<div class="lostenergy-project-wrapper text-center" data-bind="foreach: sum.dataDrilldown">
+						<div class="col-md-12 detail-lostenergy-item">
 							<div class="col-sm-7">
 								<!-- <h5 class="drilldown-custom"><small><center>click on each series to view the drilldown</center></small></h5> -->
-								<div class="detaillostenergy" data-bind="attr: { 'id': 'chartLostEnergyByMonth-'+value}" style="margin-top: -20px;"></div>		
+								<div class="detaillostenergy" data-bind="attr: { 'id': 'chartLostEnergyByMonth-'+$data}" style="margin-top: -20px;"></div>		
 							</div>	
 							<div class="col-sm-5">
-								<div class="detaillostenergy" data-bind="attr: { 'id': 'chartLostEnergyByType-'+value}"></div>		
+								<div class="detaillostenergy" data-bind="attr: { 'id': 'chartLostEnergyByType-'+$data}"></div>		
 							</div>				
 						</div>
 						<div class="clearfix">&nbsp;</div>
