@@ -1106,6 +1106,9 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 	resultPerProject := tk.M{}
 
 	for _, project := range projectList {
+		if p.ProjectName != "Fleet" && project != p.ProjectName {
+			continue
+		}
 		result = []tk.M{}
 		totalLossPerType = []tk.M{}
 		totalLoss = map[string]float64{}
