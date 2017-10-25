@@ -276,3 +276,25 @@ label.summary-number {
 .modal-footer {
 	border-top-color: #ffffff;
 }
+
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+
+#legend-list {
+	text-align: left;
+    padding: 0.5ex;
+    background-color: #ffffff;
+}
+
+#legend-list.legend {
+    margin-top: 0 !important;
+    position: fixed;
+    top: 0;
+    z-index: 10000;
+    border-radius: 0 0 0.5em 0.5em;
+}
