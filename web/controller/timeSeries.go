@@ -244,12 +244,10 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 			match.Set("projectname", projectName)
 		}
 
-		if pageType == "HFD" {
-			// collName = new(ScadaDataHFD).TableName()
+		if pageType == "HFD" || pageType == "MIX" {
 			collName = "Scada10MinHFD"
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
 			match.Set("isnull", false)
-			// match.Set("fast_windspeed_ms_stddev", tk.M{"$lte": 25})
 			match.Set("turbine", turbine)
 			group.Set("_id", "$timestamp")
 			for _, tag := range tags {
@@ -258,7 +256,6 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 		} else if pageType == "OEM" {
 			collName = new(ScadaDataOEM).TableName()
 			match.Set("dateinfo.dateid", tk.M{"$gte": tStart, "$lte": tEnd})
-			// match.Set("denwindspeed", tk.M{"$lte": 25})
 			match.Set("turbine", turbine)
 
 			group = tk.M{
@@ -282,13 +279,6 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 				pipes = append(pipes, tk.M{"$limit": 5})
 			}
 
-			// log.Printf("%v \n", collName)
-			// log.Printf("%v | %v \n", tStart.String(), tEnd.String())
-
-			// for _, p := range pipes {
-			// 	log.Printf(">>>>>> %#v \n", p)
-			// }
-
 			csr, e := DB().Connection.NewQuery().
 				From(collName).
 				Command("pipe", pipes).
@@ -303,6 +293,29 @@ func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 
 		} else {
 			list = getDataLiveNew(projectName, turbine, tStart, p.TagList)
+		}
+
+		if pageType == "MIX" {
+			pipes = []tk.M{}
+			match.Unset("isnull")
+			group = tk.M{
+				"_id":        "$timestamp",
+				"power":      tk.M{"$sum": "$denpower"},
+				"windspeed":  tk.M{"$avg": "$denwindspeed"},
+				"production": tk.M{"$avg": "$energy"},
+			}
+
+			pipes = append(pipes, tk.M{"$match": match})
+			pipes = append(pipes, tk.M{"$group": group})
+
+			if tStart.Year() != 1 && tEnd.Year() != 1 {
+				pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+			} else {
+				pipes = append(pipes, tk.M{"$sort": tk.M{"_id": -1}})
+				pipes = append(pipes, tk.M{"$limit": 5})
+			}
+
+			list = MixDataIfAny(list, pipes, new(ScadaDataOEM).TableName())
 		}
 
 		for _, tag := range tags {
@@ -664,6 +677,69 @@ func (b ByTime) Swap(i, j int) {
 
 func (b ByTime) Less(i, j int) bool {
 	return b[i].Before(b[j])
+}
+
+func MixDataIfAny(ilist []tk.M, pipes []tk.M, tname string) (list []tk.M) {
+	list = ilist
+
+	csr, e := DB().Connection.NewQuery().
+		From(tname).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csr.Close()
+
+	// tk.Println(pipes, ">>>", csr.Count(), tname, e)
+
+	if e != nil {
+		return
+	}
+
+	itkm, skey := map[string]tk.M{}, []string{}
+	for _, val := range ilist {
+		itime := val.Get("_id", time.Time{}).(time.Time).UTC()
+		if itime.IsZero() {
+			continue
+		}
+
+		key := itime.Format("20060102150405")
+		itkm[key] = val
+	}
+
+	icount := 0
+	for {
+		tkm := tk.M{}
+		e = csr.Fetch(&tkm, 1, false)
+		if e != nil {
+			break
+		}
+
+		itime := tkm.Get("_id", time.Time{}).(time.Time).UTC()
+		if itime.IsZero() {
+			continue
+		}
+
+		key := itime.Format("20060102150405")
+		itkm[key] = tkm
+		icount++
+	}
+
+	if icount == 0 {
+		list = ilist
+		return
+	}
+
+	for key, _ := range itkm {
+		skey = append(skey, key)
+	}
+
+	sort.Strings(skey)
+
+	list = []tk.M{}
+	for _, val := range skey {
+		list = append(list, itkm[val])
+	}
+
+	return
 }
 
 // func GetHFDData(project string, turbine string, tStart time.Time, tEnd time.Time, tags []string, secTags []string) (result []tk.M, empty []tk.M, e error) {
