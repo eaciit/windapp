@@ -649,6 +649,10 @@ func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 			break
 		}
 
+		if len(record) > 4 && strings.ToLower(record[4]) != "good" {
+			continue
+		}
+
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", record[0])
 		second := tk.ToInt(timestamp.Format("5"), tk.RoundingAuto)
 		if val := second % 5; val != 0 {
