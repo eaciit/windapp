@@ -31,6 +31,8 @@ km.dsProdTurbinename = ko.observableArray([]);
 km.tempTagsDs = ko.observableArray();
 km.tempTagsList = ko.observableArray();
 
+km.MaxValueTempList = ko.observableArray([]);
+
 km.histogramCols = ko.observableArray([
     { text: "Production", value: "production" },
     { text: "Wind Speed", value: "windspeed" },
@@ -372,7 +374,6 @@ km.getData = function () {
     // fa.getProjectInfo();
     if(fa.LoadData()) {
         app.loading(true);
-
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
 
@@ -383,6 +384,9 @@ km.getData = function () {
             dataSource: km.tempTagsDs(),
             dataValueField: 'colname', 
             dataTextField: 'text',
+            change: function () {  
+                km.setMaxValue();
+            }
         });
 
         var paramFilter = {
@@ -443,27 +447,27 @@ km.getData = function () {
                 });
                 break;
             case "temperature":
-                var parDataTemp = {
-                    MinValue: parseFloat(km.MinValueTemp()),
-                    MaxValue: parseFloat(km.MaxValueTemp()),
-                    BinValue: parseInt(km.BinValueTemp()),
-                    FieldName: $('#sTempTags').data('kendoDropDownList').value(),
-                    Filter: paramFilter,
-                };
-                toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
-                    if (!app.isFine(res)) {
-                        return;
-                    }
-                    if (res.data != null) {
-                        km.dsTempTurbinename(res.data.turbinename);
-                        km.dsCategoryTemp(res.data.category);
-                        km.dsValueTemp(res.data.value);
-                        km.dsTotaldataTemp(res.data.totaldata);
-                        km.createChartTemp(res.data.turbinename);
+                    var parDataTemp = {
+                        MinValue: parseFloat(km.MinValueTemp()),
+                        MaxValue: parseFloat(km.MaxValueTemp()),
+                        BinValue: parseInt(km.BinValueTemp()),
+                        FieldName: $('#sTempTags').data('kendoDropDownList').value(),
+                        Filter: paramFilter,
+                    };
+                    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemphistogramdata", parDataTemp, function (res) {
+                        if (!app.isFine(res)) {
+                            return;
+                        }
+                        if (res.data != null) {
+                            km.dsTempTurbinename(res.data.turbinename);
+                            km.dsCategoryTemp(res.data.category);
+                            km.dsValueTemp(res.data.value);
+                            km.dsTotaldataTemp(res.data.totaldata);
+                            km.createChartTemp(res.data.turbinename);
 
-                        app.loading(false);
-                    }
-                });
+                            app.loading(false);
+                        }
+                    });
                 break;
         }
 
@@ -490,16 +494,98 @@ km.getTempTags = function() {
 }
 
 
+km.getMaxMinValueTemp = function(isRefresh){
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+    var project = $('#projectList').data('kendoDropDownList').value();
+    var tagList = [];
+
+    $.each(km.tempTagsList()[project] , function(key, val){
+        tagList.push(val.colname);
+    });
+
+    var paramFilter = {
+        period: fa.period,
+        Turbine: fa.turbine(),
+        DateStart: dateStart,
+        DateEnd: dateEnd,
+        Project: project
+    };
+
+    var parDataTemp = {
+        FieldList: tagList,
+        MinValue: parseFloat(km.MinValueTemp()),
+        MaxValue: parseFloat(km.MaxValueTemp()),
+        BinValue: parseInt(km.BinValueTemp()),
+        Filter: paramFilter,
+    };
+ 
+    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getmaxvaltemptags", parDataTemp, function (res) {
+        if (res.data != null) {
+            setTimeout(function(){
+                km.MaxValueTempList(res.data);
+                if(isRefresh == true){
+                    km.setMaxValue(true);
+                }
+            },500);
+        }
+    });
+
+}
+
+km.setMaxValue = function(isRefresh){
+    setTimeout(function(){
+        var tagTemp = $('#sTempTags').data('kendoDropDownList').value();
+        var val = km.MaxValueTempList()[tagTemp];
+
+        console.log(tagTemp);
+        var maxValue = (val !== null) ? kendo.toString(val , 'n0') : 100;
+
+
+        if(km.MaxValueTemp(maxValue) && isRefresh == true){
+           km.getData();
+        }else{
+           km.MaxValueTemp(maxValue);
+        }
+
+    },500);
+}
+
+km.changePageView = function() {
+    km.pageView($('#select-page-view').val());
+
+
+
+    setTimeout(function () {
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+          $el.multiselect('deselect', $(this).val());
+        });
+
+        if(fa.turbineList().length > 1){
+            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
+        }
+
+        if(km.pageView() == "temperature"){
+            km.setMaxValue(true);
+        }else{
+            km.getData();
+        }
+        
+    }, 300);
+};
+
 $(document).ready(function () {
     di.getAvailDate();
     
     km.getTempTags();
-
+   
     $('#btnRefresh').on('click', function () {
+        app.loading(true);
         fa.checkTurbine();
-        setTimeout(function () {
-            km.getData();
-        }, 300);
+        $("#sTempTags").data("kendoDropDownList").setDataSource(km.tempTagsDs());
+        $("#sTempTags").data("kendoDropDownList").select(0);
+        km.getMaxMinValueTemp(true);
     });
 
     $('#exportXlsx').on('click', function (e) {
@@ -527,23 +613,10 @@ $(document).ready(function () {
         if(fa.turbineList().length > 1){
             $('#turbineList').multiselect('select', fa.turbineList()[0].value);
         }
+
         km.getData();
+        km.getMaxMinValueTemp();
     }, 800);
 });
-
-km.changePageView = function() {
-    km.pageView($('#select-page-view').val());
-    setTimeout(function () {
-        var $el = $("#turbineList");
-        $('option', $el).each(function(element) {
-          $el.multiselect('deselect', $(this).val());
-        });
-
-        if(fa.turbineList().length > 1){
-            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
-        }
-        km.getData();
-    }, 300);
-};
 
 $(document).bind("kendo:skinChange", km.createChart);
