@@ -5,6 +5,7 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -1300,8 +1301,12 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 	}
 
 	for i := 0; i < (p.BinValue); i++ {
+		catformat := "%.1f"
+		if startcategory == math.Trunc(startcategory) {
+			catformat = "%.0f"
+		}
 		// categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
-		categorywindspeed = append(categorywindspeed, fmt.Sprintf("%.0f", startcategory))
+		categorywindspeed = append(categorywindspeed, fmt.Sprintf(catformat, startcategory))
 		match.Set("avgwindspeed", tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
 		match.Set("available", 1)
 
@@ -1394,8 +1399,11 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 
 	for i := 0; i < (p.BinValue); i++ {
 		// categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory)+" ~ "+fmt.Sprintf("%.0f", (startcategory+interval)))
-
-		categoryproduction = append(categoryproduction, fmt.Sprintf("%.0f", startcategory))
+		catformat := "%.1f"
+		if startcategory == math.Trunc(startcategory) {
+			catformat = "%.0f"
+		}
+		categoryproduction = append(categoryproduction, fmt.Sprintf(catformat, startcategory))
 		match.Set("power", tk.M{}.Set("$lt", (startcategory+(interval*0.5))).Set("$gte", startcategory-(0.5*interval)))
 		match.Set("available", 1)
 
@@ -1479,8 +1487,12 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 	valueMap := tk.M{}
 
 	for i := 0; i < (p.BinValue); i++ {
+		catformat := "%.1f"
+		if startcategory == math.Trunc(startcategory) {
+			catformat = "%.0f"
+		}
 
-		category = append(category, fmt.Sprintf("%.0f", startcategory))
+		category = append(category, fmt.Sprintf(catformat, startcategory))
 
 		// match.Set("isnull", false)
 		go func(p *TempHistoPayload, k *knot.WebContext, valueMap tk.M, totalData *float64, startcategory, interval float64, wg *sync.WaitGroup) {
@@ -1528,12 +1540,17 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				return
 			}
 
+			catformat := "%.1f"
+			if startcategory == math.Trunc(startcategory) {
+				catformat = "%.0f"
+			}
+
 			m.mux.Lock()
 			if len(resultCategory) > 0 {
-				valueMap.Set(fmt.Sprintf("%.0f", startcategory), float64(resultCategory[0]["total"].(int)))
+				valueMap.Set(fmt.Sprintf(catformat, startcategory), float64(resultCategory[0]["total"].(int)))
 				*totalData = *totalData + float64(resultCategory[0]["total"].(int))
 			} else {
-				valueMap.Set(fmt.Sprintf("%.0f", startcategory), 0.0)
+				valueMap.Set(fmt.Sprintf(catformat, startcategory), 0.0)
 			}
 			m.mux.Unlock()
 		}(p, k, valueMap, &totalData, startcategory, interval, &wg)
@@ -1800,6 +1817,12 @@ func (m *AnalyticLossAnalysisController) GetMaxValTempTags(k *knot.WebContext) i
 	datamax := tk.M{}
 
 	_ = csr.Fetch(&datamax, 1, false)
+	for key, _ := range datamax {
+		if key == "_id" || key == "total" {
+			continue
+		}
+		datamax.Set(key, datamax.GetFloat64(key)+10)
+	}
 
 	return helper.CreateResult(true, datamax, "success")
 }
