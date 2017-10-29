@@ -6,7 +6,6 @@ import (
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
 	tk "github.com/eaciit/toolkit"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -25,11 +24,12 @@ func main() {
 	logpath := ""
 	flag.StringVar(&logpath, "log", "", "Log folder place")
 	flag.Parse()
+	config := ReadConfig()
 	if logpath == "" {
-		logpath, _ = os.Getwd()
+		logpath, _ = config["logpath"]
 	}
 	log, _ = tk.NewLog(false, true, logpath, "simpleHFDLog_%s", "20060102")
-	ctx, e := PrepareConnection()
+	ctx, e := PrepareConnection(config)
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
@@ -165,8 +165,7 @@ func getstep(count int) int {
 	return v
 }
 
-func PrepareConnection() (dbox.IConnection, error) {
-	config := ReadConfig()
+func PrepareConnection(config map[string]string) (dbox.IConnection, error) {
 	ci := &dbox.ConnectionInfo{config["host"], config["database"], config["username"], config["password"], nil}
 	c, e := dbox.NewConnection("mongo", ci)
 
