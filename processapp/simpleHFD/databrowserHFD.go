@@ -92,7 +92,7 @@ func main() {
 	wg.Add(totalWorker)
 	for i := 0; i < totalWorker; i++ {
 		go func() {
-			ctxWorker, e := PrepareConnection()
+			ctxWorker, e := PrepareConnection(config)
 			if e != nil {
 				log.AddLog(e.Error(), sError)
 			}
