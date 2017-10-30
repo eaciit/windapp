@@ -6,6 +6,7 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"encoding/csv"
+	"fmt"
 	"io"
 	// "math"
 	"os"
@@ -28,7 +29,7 @@ var (
 	mapField = map[string]MappingColumn{
 		"windspeed":                   MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0, "$avg"},
 		"power":                       MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0 + (2100.0 * 0.10), "$sum"},
-		"production":                  MappingColumn{"Production", "", "kWh", -200, 2100.0, "$sum"},
+		"production":                  MappingColumn{"Production", "Production", "kWh", -200, 2100.0, "$sum"},
 		"winddirection":               MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0, "$avg"},
 		"nacellepos":                  MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0, "$avg"},
 		"rotorrpm":                    MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0, "$avg"},
@@ -75,6 +76,12 @@ var (
 
 type TimeSeriesController struct {
 	App
+}
+
+type RHFDModel struct {
+	HFDModel
+	SValue float64
+	CValue float64
 }
 
 type HFDModel struct {
@@ -633,6 +640,7 @@ func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 		return
 	}
 
+	rawres := make(map[string]RHFDModel, 0)
 	read := csv.NewReader(bufio.NewReader(fr))
 	for {
 		record, err := read.Read()
@@ -641,25 +649,44 @@ func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 			break
 		}
 
+		if len(record) > 4 && strings.ToLower(record[4]) != "good" {
+			continue
+		}
+
 		timestamp, _ := time.Parse("2006-01-02 15:04:05", record[0])
 		second := tk.ToInt(timestamp.Format("5"), tk.RoundingAuto)
-		if second%5 != 0 {
-			continue
+		if val := second % 5; val != 0 {
+			timestamp = timestamp.Add(time.Second * time.Duration(5-val))
 		}
 
 		turbine := record[1]
 		tag := record[2]
 		for _, tg := range tags {
 			if tg == tag {
+				skey := fmt.Sprintf("%s_%s_%s", tag, turbine, timestamp.Format("20060102150405"))
 				value, _ := tk.StringToFloat(record[3])
-				result = append(result, HFDModel{
-					Timestamp: timestamp,
-					Turbine:   turbine,
-					Tag:       tag,
-					Value:     value,
-				})
+
+				_rhfd := rawres[skey]
+				_rhfd.Timestamp = timestamp
+				_rhfd.Turbine = turbine
+				_rhfd.Tag = tag
+				_rhfd.SValue += value
+				_rhfd.CValue += 1
+
+				rawres[skey] = _rhfd
+
 			}
 		}
+	}
+
+	result = []HFDModel{}
+	for _, val := range rawres {
+		result = append(result, HFDModel{
+			Timestamp: val.Timestamp,
+			Turbine:   val.Turbine,
+			Tag:       val.Tag,
+			Value:     tk.Div(val.SValue, val.CValue),
+		})
 	}
 
 	return
