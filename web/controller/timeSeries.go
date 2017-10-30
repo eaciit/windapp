@@ -29,7 +29,7 @@ var (
 	mapField = map[string]MappingColumn{
 		"windspeed":                   MappingColumn{"Wind Speed", "WindSpeed_ms", "m/s", 0.0, 50.0, "$avg"},
 		"power":                       MappingColumn{"Power", "ActivePower_kW", "kW", -200, 2100.0 + (2100.0 * 0.10), "$sum"},
-		"production":                  MappingColumn{"Production", "", "kWh", -200, 2100.0, "$sum"},
+		"production":                  MappingColumn{"Production", "Production", "kWh", -200, 2100.0, "$sum"},
 		"winddirection":               MappingColumn{"Wind Direction", "WindDirection", "Degree", 0.0, 360.0, "$avg"},
 		"nacellepos":                  MappingColumn{"Nacelle Direction", "NacellePos", "Degree", 0.0, 360.0, "$avg"},
 		"rotorrpm":                    MappingColumn{"Rotor RPM", "RotorSpeed_RPM", "RPM", 0.0, 30.0, "$avg"},

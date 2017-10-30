@@ -1421,7 +1421,7 @@ sum.CumProduction = function (dataSource) {
         },
         series: [
         {
-            name: "Budget",
+            name: "Budget P75",
             field: "CumBudget",
             // opacity : 0.5,
             color: "#21c4af",
@@ -1840,7 +1840,7 @@ sum.MonthlyProject = function (e, tipe) {
         chartArea: {
             padding: 10,
             margin: 5,
-            height: 200,
+            height: 225,
         },
         seriesDefaults: {
             type: "column",

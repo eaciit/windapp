@@ -1283,6 +1283,7 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 	categorywindspeed := []string{}
 	valuewindspeed := []float64{}
 	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
+	interval = tk.ToFloat64(interval, 0, tk.RoundingUp)
 	startcategory := p.MinValue
 	totalData := 0.0
 
@@ -1381,6 +1382,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 	categoryproduction := []string{}
 	valueproduction := []float64{}
 	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
+	interval = tk.ToFloat64(interval, 0, tk.RoundingUp)
 	startcategory := p.MinValue
 	totalData := 0.0
 
@@ -1479,6 +1481,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 	category := []string{}
 	value := []float64{}
 	interval := (p.MaxValue - p.MinValue) / float64(p.BinValue)
+	interval = tk.ToFloat64(interval, 0, tk.RoundingUp)
 	startcategory := p.MinValue
 	totalData := 0.0
 
