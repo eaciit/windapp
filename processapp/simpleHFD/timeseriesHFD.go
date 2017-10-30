@@ -222,8 +222,10 @@ func main() {
 					log.AddLog(e.Error(), sError)
 				}
 			}
+			wgProject.Done()
 		}(project.ProjectID)
 	}
+	wgProject.Wait()
 }
 
 func getstep(count int) int {
