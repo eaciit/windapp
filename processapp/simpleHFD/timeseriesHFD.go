@@ -97,7 +97,7 @@ func main() {
 	}
 
 	csrLog, e := ctx.NewQuery().From("log_latestdaterun").
-		Where(dbox.Eq("type", "databrowser")).Cursor(nil)
+		Where(dbox.Eq("type", "timeseries")).Cursor(nil)
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
