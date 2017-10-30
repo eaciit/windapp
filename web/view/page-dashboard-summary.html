@@ -471,7 +471,7 @@
 				<div class="panel-heading"><span data-bind="text:sum.titleDetailLevel1()"></span></div>
 				<div class="panel-body">
 					<div class="monthly-project-wrapper text-center" data-bind="foreach: sum.dataDrilldown">
-						<div class="monthly-project-item" data-bind="attr: {class : sum.dataDrilldown().length > 1 ? 'col-md-4' : 'col-md-8'}">
+						<div class="monthly-project-item" data-bind="attr: {class : sum.dataDrilldown().length > 1 ? 'col-md-4' : 'col-md-9'}, style: { left:  sum.dataDrilldown().length > 1 ? '0%' : '10%' }">
 							<strong><span data-bind="text: $data"></span></strong>
 							<h5 class="drilldown-custom"><small><center>click on each series to view the drilldown</center></small></h5>
 							<div class="monthlyProjectChart" data-bind="attr: { 'data-project': $data }"></div>							
