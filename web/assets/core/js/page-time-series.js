@@ -571,16 +571,17 @@ pg.getDataStockChart = function(param){
         var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
         var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
-        var now = new Date()
 
         if(pg.isFirst() == true){
           fa.period = "custom";
         }
 
         if(pg.pageType() == 'HFD'){
+
+            var beforedate = new Date()
             fa.dateEnd = new Date();
-            fa.dateStart  = new Date(now.setMonth(now.getMonth() - 24));
-            
+            fa.dateStart  = new Date(new Date().setDate(beforedate.getDate()-30));
+
             date1Before = fa.dateStart;
             date2Before = fa.dateEnd;
             hourBefore = Math.abs(date1Before - date2Before) / 36e5;
