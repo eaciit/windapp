@@ -96,6 +96,7 @@ func main() {
 		go func(projectid string) {
 			csrData, e := ctx.NewQuery().From("Scada10MinHFD").Select(tagList...).
 				Where(dbox.And(
+					dbox.Eq("projectname", projectid),
 					dbox.Gte("timestamp", lastDatePerProject[projectid]),
 					dbox.Eq("isnull", false))).
 				Cursor(nil)
