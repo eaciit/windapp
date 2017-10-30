@@ -351,43 +351,19 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 
 	csr, e := ctx.NewQuery().From(tablename).
 		Command("pipe", pipes).Cursor(nil)
-
-	countError := 0
-
-	for {
-		countError++
-		if e != nil {
-			csr, e = ctx.NewQuery().From(tablename).
-				Command("pipe", pipes).Cursor(nil)
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	countError++
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
-
 	defer csr.Close()
 
 	type CustomObject struct {
 		TimeStamp time.Time
 	}
 	list := []CustomObject{}
-
-	for {
-		countError++
-		e = csr.Fetch(&list, 0, false)
-		if e != nil {
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	before := CustomObject{}
@@ -487,42 +463,15 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 	csr, e := ctx.NewQuery().From(tablename).
 		Command("pipe", pipes).Cursor(nil)
 
-	countError := 0
-
-	for {
-		countError++
-		if e != nil {
-			csr, e = ctx.NewQuery().From(tablename).
-				Command("pipe", pipes).Cursor(nil)
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
-	}
-
 	defer csr.Close()
 
 	type Scada10MinHFDCustom struct {
 		TimeStamp time.Time
 	}
 	list := []Scada10MinHFDCustom{}
-
-	for {
-		countError++
-		e = csr.Fetch(&list, 0, false)
-		if e != nil {
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	before := Scada10MinHFDCustom{}
