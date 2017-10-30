@@ -520,13 +520,12 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	project := p.Project
 
 	var (
-		pipes  []tk.M
-		filter []*dbox.Filter
+		pipes      []tk.M
+		filter     []*dbox.Filter
+		prodfilter []*dbox.Filter
 	)
 
 	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 
 	if project != "" {
 		filter = append(filter, dbox.Eq("projectname", project))
@@ -566,6 +565,14 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		}
 
 	}
+
+	prodfilter = append(prodfilter, filter...)
+
+	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
+
+	prodfilter = append(prodfilter, dbox.Gte("timestamp", tStart))
+	prodfilter = append(prodfilter, dbox.Lte("timestamp", tEnd))
 
 	pipes = append(pipes, tk.M{"$group": tk.M{
 		"_id":              "$projectname",
@@ -780,9 +787,47 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	varItem.trueavail = dgrItem.trueavail - scadaItem.trueavail
 	varItem.downtime = dgrItem.downtime - scadaItem.downtime
 
+	//===== GET Data from latest production day
+	pipes = nil
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":        "$projectname",
+		"production": tk.M{"$sum": "$value"},
+		"min":        tk.M{"$min": "$timestamp"},
+		"max":        tk.M{"$max": "$timestamp"},
+	}})
+
+	csr, e = DBRealtime().NewQuery().
+		From("log_latestdataproduction").
+		Command("pipe", pipes).
+		Where(dbox.And(prodfilter...)).
+		Cursor(nil)
+
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	resultprod := []tk.M{}
+	e = csr.Fetch(&resultprod, 0, false)
+	if e != nil {
+		helper.CreateResult(false, nil, e.Error())
+	}
+
+	defer csr.Close()
+
+	tk.Println(">>> ", resultprod)
+	rprod := float64(0)
+	if len(resultprod) > 0 {
+		rprod = resultprod[0].GetFloat64("production")
+		if resultprod[0].GetString("_id") != "Lahori" {
+			rprod = rprod / 1000
+		}
+	}
+	//===== GET Data from latest production day
+
 	result := []tk.M{}
-	result = append(result, tk.M{"desc": "Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
-	result = append(result, tk.M{"desc": "Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power, "ScadaHFD": rprod * 6, "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy, "ScadaHFD": rprod, "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "Avg. Wind Speed (m/s)", "dgr": "N/A", "scada": scadaItem.windspeed, "difference": varItem.windspeed, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "Downtime (Hours)", "dgr": dgrItem.downtime, "scada": scadaItem.downtime, "difference": varItem.downtime, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "PLF", "dgr": dgrItem.plf, "scada": scadaItem.plf, "difference": varItem.plf, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
