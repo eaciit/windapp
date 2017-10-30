@@ -1346,9 +1346,47 @@ func (m *DashboardController) GetDownTimeFleetByDown(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	result.Set("lostenergy", getDownTimeLostEnergy("fleetdowntime", p))
+	result.Set("lostenergy", getDownTimeProjectMonthly("fleetdowntime", p, k))
 
 	return helper.CreateResult(true, result, "success")
+}
+
+func getDownTimeProjectMonthly(tipe string, p *PayloadDashboard, k *knot.WebContext) (result []tk.M) {
+	splitted := strings.Split(p.DateStr, " ")
+	bulanStr := splitted[0]
+	tahunStr := splitted[1]
+	awal := time.Time{}
+	for i := 1; i <= 12; i++ {
+		if time.Month(i).String() == bulanStr {
+			awal = time.Date(tk.ToInt(tahunStr, tk.RoundingAuto), time.Month(i), 01, 0, 0, 0, 0, time.UTC)
+			break
+		}
+	}
+	akhir := awal.AddDate(0, 1, -1)
+	pAnalytic := new(PayloadAnalytic)
+	pAnalytic.Project = p.ProjectName
+	pAnalytic.DateStart = awal
+	pAnalytic.DateEnd = akhir
+	pAnalytic.Period = "custom"
+
+	lossData, _ := getLossDuration("loss", pAnalytic, k)
+	downCause, _ := getMachineDownType()
+	sortedDown := []string{}
+	for key := range downCause {
+		sortedDown = append(sortedDown, key)
+	}
+	sort.Strings(sortedDown)
+	result = []tk.M{}
+	if len(lossData) > 0 {
+		for _, field := range sortedDown {
+			result = append(result, tk.M{
+				"result": lossData[0].GetFloat64(field) / 1000,
+				"type":   downCause[field],
+			})
+		}
+	}
+
+	return
 }
 
 func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
