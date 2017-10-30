@@ -56,105 +56,135 @@ func main() {
 		tagList = append(tagList, strings.ToLower(tags.GetString("realtimefield")))
 	}
 
-	csrLog, e := ctx.NewQuery().From("log_latestdaterun").Select("lastdate").
-		Where(dbox.Eq("_id", "databrowser_hfd")).Cursor(nil)
+	csrLog, e := ctx.NewQuery().From("log_latestdaterun").
+		Where(dbox.Eq("type", "databrowser")).Cursor(nil)
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
 	defer csrLog.Close()
-	lastData := struct {
-		LastDate time.Time
+	lastData := []struct {
+		ProjectName string
+		LastDate    time.Time
 	}{}
-	e = csrLog.Fetch(&lastData, 1, false)
+	e = csrLog.Fetch(&lastData, 0, false)
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
+	lastDatePerProject := map[string]time.Time{}
+	for _, val := range lastData {
+		lastDatePerProject[val.ProjectName] = val.LastDate
+	}
 
-	csrData, e := ctx.NewQuery().From("Scada10MinHFD").Select(tagList...).
-		Where(dbox.And(
-			dbox.Gte("timestamp", lastData.LastDate),
-			dbox.Eq("isnull", false))).
-		Cursor(nil)
+	csrProject, e := ctx.NewQuery().From("ref_project").
+		Where(dbox.Eq("active", true)).Cursor(nil)
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
-	defer csrData.Close()
+	defer csrProject.Close()
+	projectList := []struct {
+		ProjectID   string
+		ProjectName string
+	}{}
+	e = csrProject.Fetch(&projectList, 0, false)
+	if e != nil {
+		log.AddLog(e.Error(), sError)
+	}
+	var wgProject sync.WaitGroup
+	wgProject.Add(len(projectList))
 
-	maxTimeStamp := time.Time{}
-
-	var wg sync.WaitGroup
-	totalData := csrData.Count()
-	totalWorker := runtime.NumCPU() * 2
-	chanData := make(chan tk.M, totalData)
-	step := getstep(totalData)
-	tNow := time.Now()
-
-	wg.Add(totalWorker)
-	for i := 0; i < totalWorker; i++ {
-		go func() {
-			ctxWorker, e := PrepareConnection(config)
+	for _, project := range projectList {
+		go func(projectid string) {
+			csrData, e := ctx.NewQuery().From("Scada10MinHFD").Select(tagList...).
+				Where(dbox.And(
+					dbox.Gte("timestamp", lastDatePerProject[projectid]),
+					dbox.Eq("isnull", false))).
+				Cursor(nil)
 			if e != nil {
 				log.AddLog(e.Error(), sError)
 			}
-			csrSave := ctxWorker.NewQuery().From("DatabrowserHFD").SetConfig("multiexec", true).Save()
-			defer csrSave.Close()
-			for data := range chanData {
-				if data.GetInt("count")%step == 0 {
-					percent := tk.ToInt(tk.Div(float64(data.GetInt("count"))*100.0, float64(totalData)), tk.RoundingUp)
-					log.AddLog(tk.Sprintf("Saving %d of %d (%d percent) in %s\n",
-						data.GetInt("count"), totalData, percent,
+			defer csrData.Close()
+
+			maxTimeStamp := time.Time{}
+
+			var wg sync.WaitGroup
+			totalData := csrData.Count()
+			totalWorker := runtime.NumCPU() * 2
+			chanData := make(chan tk.M, totalData)
+			step := getstep(totalData)
+			tNow := time.Now()
+
+			wg.Add(totalWorker)
+			for i := 0; i < totalWorker; i++ {
+				go func() {
+					ctxWorker, e := PrepareConnection(config)
+					if e != nil {
+						log.AddLog(e.Error(), sError)
+					}
+					csrSave := ctxWorker.NewQuery().From("DatabrowserHFD").SetConfig("multiexec", true).Save()
+					defer csrSave.Close()
+					for data := range chanData {
+						if data.GetInt("count")%step == 0 {
+							percent := tk.ToInt(tk.Div(float64(data.GetInt("count"))*100.0, float64(totalData)), tk.RoundingUp)
+							log.AddLog(tk.Sprintf("Saving %d of %d (%d percent) in %s\n",
+								data.GetInt("count"), totalData, percent,
+								time.Since(tNow).String()), sInfo)
+						}
+						data.Unset("count")
+						csrSave.Exec(tk.M{"data": data})
+					}
+					wg.Done()
+				}()
+			}
+
+			log.AddLog(tk.Sprintf("Processing %d data with %d step using %d CPU since %s",
+				totalData, step, totalWorker, lastDatePerProject[projectid].Format("20060102_150405")), sInfo)
+
+			count := 0
+			_data := tk.M{}
+			currTimeStamp := time.Time{}
+			for {
+				count++
+				_data = tk.M{}
+				e = csrData.Fetch(&_data, 1, false)
+				if e != nil {
+					if !strings.Contains(e.Error(), "Not found") {
+						log.AddLog(e.Error(), sError)
+					}
+					break
+				}
+				currTimeStamp = _data.Get("timestamp", time.Time{}).(time.Time).UTC()
+				if currTimeStamp.After(maxTimeStamp) {
+					maxTimeStamp = currTimeStamp
+				}
+
+				_data.Set("count", count)
+				chanData <- _data
+
+				if count%step == 0 {
+					log.AddLog(tk.Sprintf("Processing %d of %d in %s\n",
+						count, totalData,
 						time.Since(tNow).String()), sInfo)
 				}
-				data.Unset("count")
-				csrSave.Exec(tk.M{"data": data})
 			}
-			wg.Done()
-		}()
-	}
+			close(chanData)
+			wg.Wait()
 
-	log.AddLog(tk.Sprintf("Processing %d data with %d step using %d CPU since %s",
-		totalData, step, totalWorker, lastData.LastDate.Format("20060102_150405")), sInfo)
-
-	count := 0
-	_data := tk.M{}
-	currTimeStamp := time.Time{}
-	for {
-		count++
-		_data = tk.M{}
-		e = csrData.Fetch(&_data, 1, false)
-		if e != nil {
-			if !strings.Contains(e.Error(), "Not found") {
-				log.AddLog(e.Error(), sError)
+			if maxTimeStamp.Year() > 1 {
+				e = ctx.NewQuery().From("log_latestdaterun").Save().
+					Exec(tk.M{"data": tk.M{
+						"_id":         "databrowser_hfd_" + projectid,
+						"lastdate":    maxTimeStamp,
+						"projectname": projectid,
+						"type":        "databrowser",
+					}})
+				if e != nil {
+					log.AddLog(e.Error(), sError)
+				}
 			}
-			break
-		}
-		currTimeStamp = _data.Get("timestamp", time.Time{}).(time.Time).UTC()
-		if currTimeStamp.After(maxTimeStamp) {
-			maxTimeStamp = currTimeStamp
-		}
-
-		_data.Set("count", count)
-		chanData <- _data
-
-		if count%step == 0 {
-			log.AddLog(tk.Sprintf("Processing %d of %d in %s\n",
-				count, totalData,
-				time.Since(tNow).String()), sInfo)
-		}
+			wgProject.Done()
+		}(project.ProjectID)
 	}
-	close(chanData)
-	wg.Wait()
-
-	if maxTimeStamp.Year() > 1 {
-		e = ctx.NewQuery().From("log_latestdaterun").Save().
-			Exec(tk.M{"data": tk.M{
-				"_id":      "databrowser_hfd",
-				"lastdate": maxTimeStamp,
-			}})
-		if e != nil {
-			log.AddLog(e.Error(), sError)
-		}
-	}
+	wgProject.Wait()
 }
 
 func getstep(count int) int {
