@@ -53,9 +53,13 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		csrBudget.Close()
 
 		for _, budget := range budgets {
-			mapbudget[tk.Sprintf("%s_%d", budget.ProjectName, budget.MonthNo)] = budget.P75NetGenMWH
+			mapbudget[tk.Sprintf("%s_%d_75", budget.ProjectName, budget.MonthNo)] = budget.P75NetGenMWH
+			mapbudget[tk.Sprintf("%s_%d_50", budget.ProjectName, budget.MonthNo)] = budget.P50NetGenMWH
+			mapbudget[tk.Sprintf("%s_%d_90", budget.ProjectName, budget.MonthNo)] = budget.P90NetGenMWH
 			if inprojectactive(budget.ProjectName) {
-				mapbudget[tk.Sprintf("fleet_%d", budget.MonthNo)] = budget.P75NetGenMWH
+				mapbudget[tk.Sprintf("fleet_%d_75", budget.MonthNo)] = budget.P75NetGenMWH
+				mapbudget[tk.Sprintf("fleet_%d_50", budget.MonthNo)] = budget.P50NetGenMWH
+				mapbudget[tk.Sprintf("fleet_%d_90", budget.MonthNo)] = budget.P90NetGenMWH
 			}
 		}
 
@@ -103,12 +107,24 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					maxTimeStamp := datas[0].Get("timestamp", time.Time{}).(time.Time).UTC()
 
 					var budgetCurrMonthDaily float64
+					var budgetCurrMonthDaily50 float64
+					var budgetCurrMonthDaily90 float64
 
 					_id := tk.Sprintf("%s_%d", projectName, dateId.Month())
-					if val, cond := mapbudget[_id]; cond {
+					if val, cond := mapbudget[_id+"_75"]; cond {
 						budgetCurrMonths := val * 1000.0
 						noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
 						budgetCurrMonthDaily = tk.Div(budgetCurrMonths, noOfDay)
+					}
+					if val, cond := mapbudget[_id+"_50"]; cond {
+						budgetCurrMonths := val * 1000.0
+						noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
+						budgetCurrMonthDaily50 = tk.Div(budgetCurrMonths, noOfDay)
+					}
+					if val, cond := mapbudget[_id+"_90"]; cond {
+						budgetCurrMonths := val * 1000.0
+						noOfDay := float64(daysIn(dateId.Month(), dateId.Year()))
+						budgetCurrMonthDaily90 = tk.Div(budgetCurrMonths, noOfDay)
 					}
 
 					mdl := new(ScadaLastUpdate).New()
@@ -240,6 +256,8 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					dateData := dateId
 					cummProd := 0.0
 					cummBudget := 0.0
+					cummBudget50 := 0.0
+					cummBudget90 := 0.0
 					for _, data := range scadas {
 						dateData = data["_id"].(time.Time)
 						var last30 Last30Days
@@ -248,6 +266,8 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 						currProd := 0.0
 						currBudget := budgetCurrMonthDaily // 565160.32
+						currBudget50 := budgetCurrMonthDaily50
+						currBudget90 := budgetCurrMonthDaily90
 						if data != nil {
 							ipower := data["totalpower"]
 							power := 0.0
@@ -258,10 +278,16 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 						}
 						cummProd = cummProd + currProd
 						cummBudget = cummBudget + currBudget
+						cummBudget50 += currBudget50
+						cummBudget90 += currBudget90
 
 						last30.CurrBudget = currBudget
+						last30.CurrBudget50 = currBudget50
+						last30.CurrBudget90 = currBudget90
 						last30.CurrProduction = currProd
 						last30.CumBudget = cummBudget / 1000000
+						last30.CumBudget50 = cummBudget50 / 1000000
+						last30.CumBudget90 = cummBudget90 / 1000000
 						last30.CumProduction = cummProd / 1000000
 
 						item30s = append(item30s, last30)
