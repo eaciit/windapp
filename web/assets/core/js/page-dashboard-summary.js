@@ -1840,7 +1840,7 @@ sum.MonthlyProject = function (e, tipe) {
         chartArea: {
             padding: 10,
             margin: 5,
-            height: 200,
+            height: 225,
         },
         seriesDefaults: {
             type: "column",
