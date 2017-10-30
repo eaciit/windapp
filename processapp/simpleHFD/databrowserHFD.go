@@ -126,8 +126,8 @@ func main() {
 					for data := range chanData {
 						if data.GetInt("count")%step == 0 {
 							percent := tk.ToInt(tk.Div(float64(data.GetInt("count"))*100.0, float64(totalData)), tk.RoundingUp)
-							log.AddLog(tk.Sprintf("Saving %d of %d (%d percent) in %s\n",
-								data.GetInt("count"), totalData, percent,
+							log.AddLog(tk.Sprintf("[%s] Saving %d of %d (%d percent) in %s\n",
+								strings.ToUpper(projectid), data.GetInt("count"), totalData, percent,
 								time.Since(tNow).String()), sInfo)
 						}
 						data.Unset("count")
@@ -137,8 +137,8 @@ func main() {
 				}()
 			}
 
-			log.AddLog(tk.Sprintf("Processing %d data with %d step using %d CPU since %s",
-				totalData, step, totalWorker, lastDatePerProject[projectid].Format("20060102_150405")), sInfo)
+			log.AddLog(tk.Sprintf("Processing %d data [%s] with %d step using %d CPU since %s",
+				totalData, strings.ToUpper(projectid), step, totalWorker, lastDatePerProject[projectid].Format("20060102_150405")), sInfo)
 
 			count := 0
 			_data := tk.M{}
@@ -161,11 +161,11 @@ func main() {
 				_data.Set("count", count)
 				chanData <- _data
 
-				if count%step == 0 {
-					log.AddLog(tk.Sprintf("Processing %d of %d in %s\n",
-						count, totalData,
-						time.Since(tNow).String()), sInfo)
-				}
+				// if count%step == 0 {
+				// 	log.AddLog(tk.Sprintf("Processing %d of %d in %s\n",
+				// 		count, totalData,
+				// 		time.Since(tNow).String()), sInfo)
+				// }
 			}
 			close(chanData)
 			wg.Wait()
@@ -189,7 +189,7 @@ func main() {
 }
 
 func getstep(count int) int {
-	v := count / 20
+	v := count / 5
 	if v == 0 {
 		return 1
 	}
@@ -208,6 +208,6 @@ func PrepareConnection(config map[string]string) (dbox.IConnection, error) {
 	if e != nil {
 		return nil, e
 	}
-	log.AddLog(tk.Sprintf("DB Connect %s : %s", config["host"], config["database"]), sInfo)
+	// log.AddLog(tk.Sprintf("DB Connect %s : %s", config["host"], config["database"]), sInfo)
 	return c, nil
 }

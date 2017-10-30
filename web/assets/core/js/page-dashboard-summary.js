@@ -1421,7 +1421,7 @@ sum.CumProduction = function (dataSource) {
         },
         series: [
         {
-            name: "Budget",
+            name: "Budget P75",
             field: "CumBudget",
             // opacity : 0.5,
             color: "#21c4af",
