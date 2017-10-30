@@ -351,7 +351,6 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 
 	csr, e := ctx.NewQuery().From(tablename).
 		Command("pipe", pipes).Cursor(nil)
-	countError++
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
