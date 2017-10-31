@@ -1,5 +1,6 @@
 'use strict';
 
+
 viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 
@@ -225,7 +226,8 @@ var Data = {
                 dataTurbine = res.data.Data;
                 localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
                 page.dtLineChart(res.data.Data);
-                
+            
+
                 $('#powerCurve').html("");
                 $("#powerCurve").kendoChart({
                     pdf: {
@@ -344,9 +346,16 @@ var Data = {
                         },
                     },
                     // zoomable: true,
+                    pannable: {
+                        lock: "y"
+                    },
                     zoomable: {
+                        mousewheel: {
+                            lock: "y"
+                        },
                         selection: {
                             lock: "y",
+                            key: "none",
                         }
                     }
                 });
