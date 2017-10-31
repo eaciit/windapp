@@ -8,7 +8,7 @@ import (
 	// "time"
 
 	tk "github.com/eaciit/toolkit"
-
+	"strings"
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 )
@@ -749,16 +749,16 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 
 		availdate.Set("dgr", []time.Time{minDate, maxDate})
 
-		aduration := (duration * float64(len(turbine))) - dgr.GetFloat64("egscheduled") - dgr.GetFloat64("egunscheduled") - dgr.GetFloat64("fmenvironmental") - dgr.GetFloat64("fmtheft") - dgr.GetFloat64("rowignonoem") - dgr.GetFloat64("rowmcnonoem")
-		gdown := dgr.GetFloat64("igscheduled") + dgr.GetFloat64("igunscheduled") + dgr.GetFloat64("pssscheduled") + dgr.GetFloat64("pssunscheduled") + dgr.GetFloat64("rowigoem")
-		mdown := dgr.GetFloat64("wtgscheduled") + dgr.GetFloat64("wtgunscheduled") + dgr.GetFloat64("rowmcoem") + dgr.GetFloat64("aor")
+		// aduration := (duration * float64(len(turbine))) - dgr.GetFloat64("egscheduled") - dgr.GetFloat64("egunscheduled") - dgr.GetFloat64("fmenvironmental") - dgr.GetFloat64("fmtheft") - dgr.GetFloat64("rowignonoem") - dgr.GetFloat64("rowmcnonoem")
+		// gdown := dgr.GetFloat64("igscheduled") + dgr.GetFloat64("igunscheduled") + dgr.GetFloat64("pssscheduled") + dgr.GetFloat64("pssunscheduled") + dgr.GetFloat64("rowigoem")
+		// mdown := dgr.GetFloat64("wtgscheduled") + dgr.GetFloat64("wtgunscheduled") + dgr.GetFloat64("rowmcoem") + dgr.GetFloat64("aor")
 
 		sEnergy = dgr.GetFloat64("genkwhday") / 1000
-		sDowntime = dgr.GetFloat64("downtimehours")
+		// sDowntime = dgr.GetFloat64("downtimehours")
 
-		sGridavail = tk.Div((aduration-gdown), aduration) * 100
-		sPlf = (sEnergy / (turbinecapacity * duration)) * 100
-		sMachineavail = tk.Div((aduration-mdown), aduration) * 100
+		// sGridavail = tk.Div((aduration-gdown), aduration) * 100
+		// sPlf = (sEnergy / (turbinecapacity * duration)) * 100
+		// sMachineavail = tk.Div((aduration-mdown), aduration) * 100
 
 		sOktime = dgr.GetFloat64("generationhours")
 		sPower = sEnergy * 6
@@ -768,13 +768,64 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		dgrDataAvailable = false
 	}
 
+	query = append(query, tk.M{"category": tk.M{"$ne": ""}})
+	downGroupClause := tk.M{
+		"_id" : "$category",
+		"sumbreakdownhours" : tk.M{"$sum": "$breakdownhours"},
+	}
+	pipes = nil
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
+	pipes = append(pipes, tk.M{"$group": downGroupClause})
+
+	csr, e = DB().Connection.NewQuery().
+		From("rpt_downtime").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	downList := []tk.M{}
+	e = csr.Fetch(&downList, 0, false)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	totalhours := float64( len(turbine) * 24 * daysDiff(tEnd, tStart) )
+
+	tmpA := 0.0
+	for _, down := range downList{
+		category := strings.ToUpper(down.GetString("_id"))
+		if !strings.Contains(category, "LOAD"){
+			sDowntime += down.GetFloat64("sumbreakdownhours")
+		}
+
+		switch category{
+			case "S-M/C", "U-M/C", "ROW(M/C)-OEM", "AOR":
+				sMachineavail += down.GetFloat64("sumbreakdownhours")
+				break
+			case "S-EG", "U-EG":
+				tmpA += down.GetFloat64("sumbreakdownhours")
+				sGridavail += down.GetFloat64("sumbreakdownhours")
+				break
+			case "ROW(IG)-NONOEM", "ROW(M/C)-NONOEM", "FM-ENV", "FM-THEFT" :
+				tmpA += down.GetFloat64("sumbreakdownhours")
+				break
+		}
+		
+	}
+
+	sPlf = tk.Div(sEnergy, totalhours * getturbinemw(project)) * 100
+	A := totalhours - tmpA
 	dgrItem.power = sPower
 	dgrItem.energy = sEnergy
 	dgrItem.downtime = sDowntime
 	dgrItem.windspeed = sWindspeed
 	dgrItem.plf = sPlf
-	dgrItem.gridavail = sGridavail
-	dgrItem.machineavail = sMachineavail
+	dgrItem.gridavail = tk.Div(totalhours - sGridavail, totalhours) * 100
+	dgrItem.machineavail = tk.Div(A - sMachineavail, A) * 100
 	dgrItem.trueavail = sTrueavail
 
 	var varItem DataItem
@@ -857,7 +908,7 @@ func getturbinedgr(iproject string) (tkm tk.M) {
 	tkm = tk.M{}
 
 	csr, e := DB().Connection.NewQuery().
-		Select("turbineid", "turbinedgr").
+		Select("turbineid", "turbinedgr",).
 		From("ref_turbine").
 		Where(dbox.Eq("project", iproject)).
 		Cursor(nil)
@@ -874,4 +925,55 @@ func getturbinedgr(iproject string) (tkm tk.M) {
 	}
 
 	return
+}
+
+func getturbinemw(iproject string) (mw float64) {
+	mw = 0.0
+
+	csr, e := DB().Connection.NewQuery().
+		Select("capacitymw",).
+		From("ref_turbine").
+		Where(dbox.Eq("project", iproject)).
+		Cursor(nil)
+	defer csr.Close()
+
+	res := []tk.M{}
+	e = csr.Fetch(&res, 0, false)
+	if e != nil {
+		return
+	}
+
+	if len(res) > 0{
+		mw  = res[0].GetFloat64("capacitymw")
+	}
+
+	return
+}
+
+func lastDayOfYear(t time.Time) time.Time {
+	return time.Date(t.Year(), 12, 31, 0, 0, 0, 0, t.Location())
+}
+
+func firstDayOfNextYear(t time.Time) time.Time {
+	return time.Date(t.Year()+1, 1, 1, 0, 0, 0, 0, t.Location())
+}
+
+// a - b in days
+func daysDiff(a, b time.Time) (days int) {
+	cur := b
+	for cur.Year() < a.Year() {
+		// add 1 to count the last day of the year too.
+		days += lastDayOfYear(cur).YearDay() - cur.YearDay() + 1
+		cur = firstDayOfNextYear(cur)	
+	}
+	days += a.YearDay() - cur.YearDay()
+	if b.AddDate(0, 0, days).After(a) {
+		days -= 1
+	}
+	days += 1
+	if days < 0 {
+		return -days
+	}
+
+	return days
 }
