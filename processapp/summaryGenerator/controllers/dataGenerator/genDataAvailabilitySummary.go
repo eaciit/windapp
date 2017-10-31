@@ -764,8 +764,8 @@ func GetTurbineNameListAll(project string) (turbineNameData map[string]string, e
 	}
 	query := ctx.NewQuery().From("ref_turbine")
 	if project != "" && project != "Fleet" {
-		pipes := []toolkit.M{
-			toolkit.M{"$match": toolkit.M{"project": project}},
+		pipes := []tk.M{
+			tk.M{"$match": tk.M{"project": project}},
 		}
 		query = query.Command("pipe", pipes)
 	}
@@ -774,7 +774,7 @@ func GetTurbineNameListAll(project string) (turbineNameData map[string]string, e
 		return
 	}
 	defer csrTurbine.Close()
-	turbineList := []toolkit.M{}
+	turbineList := []tk.M{}
 	err = csrTurbine.Fetch(&turbineList, 0, false)
 	if err != nil {
 		return
@@ -784,7 +784,7 @@ func GetTurbineNameListAll(project string) (turbineNameData map[string]string, e
 		if project != "" {
 			turbineNameData[val.GetString("turbineid")] = val.GetString("turbinename")
 		} else {
-			turbineNameData[toolkit.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
+			turbineNameData[tk.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
 		}
 	}
 	return
