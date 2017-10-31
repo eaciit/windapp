@@ -558,8 +558,18 @@ var Data = {
                         }
                     },
                 },
-                pannable: true,
-                zoomable: true
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
+                        lock: "y"
+                    },
+                    selection: {
+                        lock: "y",
+                        key: "none",
+                    }
+                }
             });
 
             app.loading(false);

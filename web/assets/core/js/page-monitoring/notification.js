@@ -19,6 +19,10 @@ vm.breadcrumb([
 
 var intervalTurbine = null;
 
+mn.typeList = ko.observableArray([]);
+mn.typeVal = ko.observable("");
+mn.typeListData = ko.observableArray([]);
+
 mn.UpdateProjectList = function(project) {
     setTimeout(function(){
         $('#projectList').data('kendoDropDownList').value(project);
@@ -36,14 +40,26 @@ mn.UpdateTurbineList = function(turbineList) {
 }
 mn.LoadData = function() {
     app.loading(true);
+
     $.when(fa.LoadData()).done(function () {
+        var project = fa.project
+        if(project == "") {
+            project = "Tejuva";
+        }
+        mn.typeList(mn.typeListData()[project]);
+        var typeList =  $('#typeList').data('kendoDropDownList').text();
+        if(typeList == "") {
+            typeList = "Curtailment Of Power"
+        }
+        var colnameType = _.find(mn.typeList(), function(num){ return num.text == typeList; }).colname;
+
         var param = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
             turbine: fa.turbine(),
             project: fa.project,
-            tipe: "alarm",
+            tipe: colnameType,
         };
 
         mn.LoadDataAvail(param.project, "alarm");
@@ -243,10 +259,22 @@ $(document).ready(function(){
         }, 100);
     });
     
+    setTimeout(function () {
+        $("#typeList").data("kendoDropDownList").value("CurtailmentOfPower");
+    }, 300);
+
     $('#projectList').kendoDropDownList({
         change: function () {  
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
+            mn.typeList(mn.typeListData()[project]);
         }
+    });
+
+    $('#typeList').on("change", function() {
+        fa.checkTurbine();
+        setTimeout(function() {
+            mn.LoadData();
+        }, 100);
     });
 });
