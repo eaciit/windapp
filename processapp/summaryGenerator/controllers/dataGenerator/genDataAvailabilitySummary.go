@@ -48,6 +48,7 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 			if e != nil {
 				ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 			}
+			wgProject.Done()
 		}(projectData.ProjectId)
 	}
 	wgProject.Wait()
