@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
+	"eaciit/wfdemo-git/web/helper"
 	"os"
 	"sync"
 
@@ -19,7 +20,8 @@ const (
 )
 
 var (
-// projectName = "Tejuva"
+	// projectName = "Tejuva"
+	turbineName map[string]string
 )
 
 type DataAvailabilitySummary struct {
@@ -30,31 +32,77 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	ev.BaseController = base
 	tk.Println("===================== Start process Data Availability Summary...")
 
-	// mtx.Lock()
+	var wgProject sync.WaitGroup
+	wgProject.Add(len(ev.BaseController.ProjectList))
+	var muxProject sync.Mutex
+	turbineName = map[string]string{}
+	var e error
+	for _, projectData := range ev.BaseController.ProjectList {
+		go func(projectid string) {
+			turbineData, e := helper.GetTurbineNameList(projectid)
+			for key, val := range turbineData {
+				muxProject.Lock()
+				turbineName[tk.Sprintf("%s_%s", projectid, key)] = val
+				muxProject.Unlock()
+			}
+			if e != nil {
+				ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
+			}
+			wgProject.Done()
+		}(projectData.ProjectId)
+	}
+	wgProject.Wait()
+
+	var wg sync.WaitGroup
+	wg.Add(5)
+
+	availOEM := new(DataAvailability)
+	availHFD := new(DataAvailability)
+	availMet := new(DataAvailability)
+	availOEMProject := new(DataAvailability)
+	availHFDProject := new(DataAvailability)
+
 	// OEM
-	availOEM := ev.scadaOEMSummary()
+	go func() {
+		availOEM = ev.scadaOEMSummary()
+		wg.Done()
+	}()
 	// HFD
-	availHFD := ev.scadaHFDSummary()
+	go func() {
+		availHFD = ev.scadaHFDSummary()
+		wg.Done()
+	}()
 	// Met Tower
-	availMet := ev.metTowerSummary()
+	go func() {
+		availMet = ev.metTowerSummary()
+		wg.Done()
+	}()
 	// OEM PROJECT
-	availOEMProject := ev.scadaOEMSummaryProject()
+	go func() {
+		availOEMProject = ev.scadaOEMSummaryProject()
+		wg.Done()
+	}()
 	// HFD PROJECT
-	availHFDProject := ev.scadaHFDSummaryProject()
+	go func() {
+		availHFDProject = ev.scadaHFDSummaryProject()
+		wg.Done()
+	}()
+
+	wg.Wait()
 
 	ev.Ctx.DeleteMany(new(DataAvailability), nil)
 
-	e := ev.Ctx.Insert(availOEM)
+	e = ev.Ctx.Insert(availOEM)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	e = ev.Ctx.Insert(availHFD)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	/* ============== PROJECT LEVEL ============== */
 	availMet.ID = availMet.ID + "_PROJECT"
@@ -62,18 +110,16 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	availMet.Name = availMet.Name + " PROJECT"
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	e = ev.Ctx.Insert(availOEMProject)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	e = ev.Ctx.Insert(availHFDProject)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
-
-	// mtx.Unlock()
 
 	tk.Println("===================== End process Data Availability Summary...")
 }
@@ -337,11 +383,10 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 func workerTurbine(t, projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
-	now := time.Now().UTC()
+	now := time.Now().UTC() /* bulan ini */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) /* sampai 6 bulan ke belakang */
 
-	detail := []DataAvailabilityDetail{}
 	start := time.Now()
 
 	pipes := []tk.M{}
@@ -351,68 +396,56 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 
 	csr, e := ctx.NewQuery().From(tablename).
 		Command("pipe", pipes).Cursor(nil)
-
-	countError := 0
-
-	for {
-		countError++
-		if e != nil {
-			csr, e = ctx.NewQuery().From(tablename).
-				Command("pipe", pipes).Cursor(nil)
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
-
 	defer csr.Close()
 
 	type CustomObject struct {
 		TimeStamp time.Time
 	}
 	list := []CustomObject{}
-
-	for {
-		countError++
-		e = csr.Fetch(&list, 0, false)
-		if e != nil {
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
-	before := CustomObject{}
-	from := CustomObject{}
+	before := CustomObject{} /* untuk penentuan awal durasi unavailable */
+	from := CustomObject{}   /* untuk penentuan awal durasi available */
 	latestData := CustomObject{}
 	hoursGap := 0.0
 	duration := 0.0
-	countID := 0
+	countID := 0 /* buat index ordering saat data udah disimpan di DB */
+	/* detail adalah additional detail untuk unavailable data jika ada gap di :
+	1. mulai dari awal timestamp defined sampai awal timestamp dari DB
+	2. mulai dari latest timestamp dari DB sampai akhir timestamp defined
+	*/
+	detail := []DataAvailabilityDetail{}
+
+	/* ============================ LOGIC ========================
+		unavailable => jika oem - before > 24 jam
+		available => adalah before - from
+	===============================================================*/
 
 	if len(list) > 0 {
+		/* ============= START looping data dari DB ============== */
 		for idx, oem := range list {
 			if idx > 0 {
 				before = list[idx-1]
 				hoursGap = oem.TimeStamp.UTC().Sub(before.TimeStamp.UTC()).Hours()
 
-				if hoursGap > 24 {
+				if hoursGap > 24 { /* ketika ketemu yang unavailable lagi */
 					countID++
 					// set duration for available datas
 					duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 2, tk.RoundingAuto)
+					/* durasi available mulai dari data from yang terakhir tersimpan sampai data index-1 */
 					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
 					mtx.Unlock()
 					// set duration for unavailable datas
 					countID++
 					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+					/* durasi unavailable mulai dari data index-1 sampai data index saat ini */
 					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
 					mtx.Unlock()
@@ -421,20 +454,24 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 			} else {
 				from = oem
 
-				// set gap from stardate until first data in db
+				// set gap from stardate defined by us until actual first data in db
 				hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
 				if hoursGap > 24 {
 					countID++
-					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto) /* dibuat per hari */
+					/* dianggap false (not avail) karena gap startdate defined dengan startdate actual DB > 24 jam */
 					detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
 				}
 			}
 
 			latestData = oem
 		}
+		/* =============  END OF looping data dari DB ============== */
 
 		hoursGap = latestData.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()
-
+		/* jika data terakhir dikurangi data from yang terakhir tersimpan > 24 jam
+		maka dianggap AVAILABLE karena data ini bisa jadi belum ter plot
+		karena jika oem-before < 24 jam akan dilewati pada logic di dalam looping di atas */
 		if hoursGap > 24 {
 			countID++
 			duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
@@ -445,17 +482,21 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 
 		// set gap from last data until periodTo
 		hoursGap = periodTo.UTC().Sub(latestData.TimeStamp.UTC()).Hours()
+		/* jika gap dari time.Now - latestData > 24 jam maka set sebagai UNAVAILABLE
+		karena bisa jadi latestData yang tersimpan di DB tidak sampai time.Now */
 		if hoursGap > 24 {
 			countID++
 			duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
 			detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
 		}
+		/* jika tidak ada additional detail sama sekali maka data dianggap FULL AVAILABLE selam 6 bulan */
 		if len(detail) == 0 {
 			countID++
 			duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
 			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
 		}
 	} else {
+		/* jika list data di DB tidak ada maka di set FULL UNAVAILABLE selama 6 bulan*/
 		countID++
 		duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
 		detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, false, countID))
@@ -464,9 +505,7 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
-	// defer wg.Done()
 
-	csr.Close()
 	wg.Done()
 }
 
@@ -486,22 +525,8 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 
 	csr, e := ctx.NewQuery().From(tablename).
 		Command("pipe", pipes).Cursor(nil)
-
-	countError := 0
-
-	for {
-		countError++
-		if e != nil {
-			csr, e = ctx.NewQuery().From(tablename).
-				Command("pipe", pipes).Cursor(nil)
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	defer csr.Close()
@@ -510,19 +535,9 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 		TimeStamp time.Time
 	}
 	list := []Scada10MinHFDCustom{}
-
-	for {
-		countError++
-		e = csr.Fetch(&list, 0, false)
-		if e != nil {
-			ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		} else {
-			break
-		}
-
-		if countError == 5 {
-			break
-		}
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
 	before := Scada10MinHFDCustom{}
@@ -605,7 +620,6 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", projectName, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
 
-	csr.Close()
 	wg.Done()
 }
 
@@ -745,6 +759,7 @@ func setDataAvailDetail(from time.Time, to time.Time, project string, turbine st
 		ID:          id,
 		ProjectName: project,
 		Turbine:     turbine,
+		TurbineName: turbineName[tk.Sprintf("%s_%s", project, turbine)],
 		Start:       from.UTC(),
 		StartInfo:   GetDateInfo(from.UTC()),
 		End:         to.UTC(),
