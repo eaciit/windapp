@@ -545,7 +545,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		diffPercent := 0.0
 		collTypeParent := collType + "_PROJECT"
 		datas := getParentData(project, collTypeParent)
-		turbineName, e := helper.GetTurbineNameList(p)
+		turbineName, e := helper.GetTurbineNameList(project)
 		if e != nil {
 			tk.Println("error get turbine name", e.Error())
 			return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}

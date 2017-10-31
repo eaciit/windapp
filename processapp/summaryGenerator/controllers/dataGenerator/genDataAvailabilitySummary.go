@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
-	"eaciit/wfdemo-git/web/helper"
 	"os"
 	"sync"
 
@@ -32,26 +31,13 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	ev.BaseController = base
 	tk.Println("===================== Start process Data Availability Summary...")
 
-	var wgProject sync.WaitGroup
-	wgProject.Add(len(ev.BaseController.ProjectList))
-	var muxProject sync.Mutex
 	turbineName = map[string]string{}
 	var e error
-	for _, projectData := range ev.BaseController.ProjectList {
-		go func(projectid string) {
-			turbineData, e := helper.GetTurbineNameList(projectid)
-			for key, val := range turbineData {
-				muxProject.Lock()
-				turbineName[tk.Sprintf("%s_%s", projectid, key)] = val
-				muxProject.Unlock()
-			}
-			if e != nil {
-				ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
-			}
-			wgProject.Done()
-		}(projectData.ProjectId)
+
+	turbineName, e = GetTurbineNameListAll("")
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
-	wgProject.Wait()
 
 	var wg sync.WaitGroup
 	wg.Add(5)
@@ -769,4 +755,37 @@ func setDataAvailDetail(from time.Time, to time.Time, project string, turbine st
 	}
 
 	return res
+}
+
+func GetTurbineNameListAll(project string) (turbineNameData map[string]string, err error) {
+	ctx, err := PrepareConnection()
+	if err != nil {
+		return
+	}
+	query := ctx.NewQuery().From("ref_turbine")
+	if project != "" && project != "Fleet" {
+		pipes := []tk.M{
+			tk.M{"$match": tk.M{"project": project}},
+		}
+		query = query.Command("pipe", pipes)
+	}
+	csrTurbine, err := query.Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csrTurbine.Close()
+	turbineList := []tk.M{}
+	err = csrTurbine.Fetch(&turbineList, 0, false)
+	if err != nil {
+		return
+	}
+	turbineNameData = map[string]string{}
+	for _, val := range turbineList {
+		if project != "" {
+			turbineNameData[val.GetString("turbineid")] = val.GetString("turbinename")
+		} else {
+			turbineNameData[tk.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
+		}
+	}
+	return
 }
