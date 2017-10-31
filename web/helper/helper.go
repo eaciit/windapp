@@ -772,6 +772,8 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 			"text":    _data.GetString("tagsdesc"),
 			"colname": _data.GetString("tags"),
 		})
+
+		indexCount++
 	}
 	if lastProject != "" {
 		result.Set(lastProject, tagList)

@@ -20,7 +20,7 @@ vm.breadcrumb([
 var intervalTurbine = null;
 
 mn.typeList = ko.observableArray([]);
-mn.typeVal = ko.observable(1);
+mn.typeVal = ko.observable("");
 mn.typeListData = ko.observableArray([]);
 
 mn.UpdateProjectList = function(project) {
@@ -259,6 +259,10 @@ $(document).ready(function(){
         }, 100);
     });
     
+    setTimeout(function () {
+        $("#typeList").data("kendoDropDownList").value("CurtailmentOfPower");
+    }, 300);
+
     $('#projectList').kendoDropDownList({
         change: function () {  
             var project = $('#projectList').data("kendoDropDownList").value();
