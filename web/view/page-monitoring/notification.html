@@ -18,7 +18,18 @@
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <div class="col-md-12">
-                         <div id="notificationGrid"></div>
+                        <div class="col-md-12">
+                            <div class="col-md-8">
+                            </div>
+                            <div class="col-md-4">
+                                <span><b class="colBlack">Select Tag</b></span>&nbsp;&nbsp;
+                                <select class="typeList dropdownType" id="typeList" name="table" data-bind="kendoDropDownList: { data: mn.typeList, dataValueField: 'value', dataTextField: 'text', value:mn.typeVal, suggest: true }">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div id="notificationGrid"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -28,4 +39,5 @@
 
 <script>
     fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+    mn.typeListData({{.AlarmTagList}});
 </script>

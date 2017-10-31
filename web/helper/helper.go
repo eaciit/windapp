@@ -734,6 +734,52 @@ func GetTemperatureList() (result toolkit.M, e error) {
 	return
 }
 
+func GetAlarmTagsList() (result toolkit.M, e error) {
+	csr, e := DBRealtime().NewQuery().
+		From("ref_alarmtaglist").
+		Where(dbox.Eq("enable", true)).
+		Order("projectname", "tagsdesc").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	_data := toolkit.M{}
+	lastProject := ""
+	currProject := ""
+	indexCount := 1
+	tagList := []toolkit.M{}
+	result = toolkit.M{}
+	for {
+		_data = toolkit.M{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		currProject = _data.GetString("projectname")
+		if lastProject != currProject {
+			if lastProject != "" {
+				result.Set(lastProject, tagList)
+				indexCount = 1
+				tagList = []toolkit.M{}
+			}
+			lastProject = currProject
+		}
+		tagList = append(tagList, toolkit.M{
+			"value":   indexCount,
+			"text":    _data.GetString("tagsdesc"),
+			"colname": _data.GetString("tags"),
+		})
+	}
+	if lastProject != "" {
+		result.Set(lastProject, tagList)
+	}
+
+	return
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	pipes := []toolkit.M{
 		toolkit.M{"$match": toolkit.M{"active": true}},
