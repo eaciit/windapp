@@ -517,7 +517,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		pipes = append(pipes, tk.M{"$match": match})
 	}
 
-	pipes = append(pipes, tk.M{"$sort": tk.M{"turbine": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(DataAvailability).TableName()).
@@ -545,18 +545,14 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		diffPercent := 0.0
 		collTypeParent := collType + "_PROJECT"
 		datas := getParentData(project, collTypeParent)
-		turbineName := map[string]string{}
-		latestProject := ""
+		turbineName, e := helper.GetTurbineNameList(p)
+		if e != nil {
+			tk.Println("error get turbine name", e.Error())
+			return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
+		}
 
 		for _, dt := range list {
 			p := dt.GetString("project")
-			if latestProject != p {
-				turbineName, e = helper.GetTurbineNameList(p)
-				if e != nil {
-					tk.Println("error get turbine name", e.Error())
-					return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
-				}
-			}
 			t := turbineName[dt.GetString("turbine")]
 			_ = p
 			pTo := dt.Get("periodTo").(time.Time)
