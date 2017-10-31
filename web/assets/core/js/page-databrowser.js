@@ -683,7 +683,7 @@ $(document).ready(function() {
         dbr.ResetFlagLoaded();
         Data.LoadData();
     });
-
+    
     setTimeout(function() {
         dbsh.ColumnList([]);
         $.each(dbsh.AllProjectColumnList(), function(idx, val) {
