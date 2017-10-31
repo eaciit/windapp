@@ -81,7 +81,7 @@ func (b *BaseController) GetProjectList() {
 	ErrorHandler(e, "get project master")
 	csrt.Close()
 
-	b.ProjectList = []ProjectOut{}
+	b.ProjectList = projectData
 
 	logDuration := time.Now().Sub(logStart).Seconds()
 	tk.Printf("\nGetting project list data about %v secs\n", logDuration)

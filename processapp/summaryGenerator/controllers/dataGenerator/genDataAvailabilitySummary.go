@@ -110,15 +110,15 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	availMet.Name = availMet.Name + " PROJECT"
 	e = ev.Ctx.Insert(availMet)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	e = ev.Ctx.Insert(availOEMProject)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 	e = ev.Ctx.Insert(availHFDProject)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 
 	tk.Println("===================== End process Data Availability Summary...")
