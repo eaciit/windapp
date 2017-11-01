@@ -62,7 +62,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 	}
 	defer csr.Close()
 
-	latesttime := time.Time{}
+	latesttime := make(map[string]time.Time, 0)
+
 	for {
 		mdl = new(LatestDataPeriod)
 		e = csr.Fetch(mdl, 1, false)
@@ -70,21 +71,9 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 			break
 		}
 
-		if latesttime.IsZero() || latesttime.UTC().Before(mdl.Data[1].UTC()) {
-			latesttime = mdl.Data[1].UTC()
-		}
+		latesttime[mdl.ProjectName] = mdl.Data[1].UTC()
 	}
 
-	stime := time.Date(latesttime.Year(), latesttime.Month(), 1, 0, 0, 0, 0, latesttime.Location())
-
-	query, pipes := []tk.M{}, []tk.M{}
-	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
-	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": stime}})
-	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": latesttime}})
-	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
-	query = append(query, tk.M{"available": tk.M{"$eq": 1}})
-
-	iquery := []tk.M{}
 	qSave := conn.NewQuery().
 		From("rpt_winddistributioncurrentmonth").
 		SetConfig("multiexec", true).
@@ -104,14 +93,23 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 			Exec(nil)
 		// ==========================================
 
+		_ltime := time.Now().UTC()
+		if _, ishas := latesttime[proj]; ishas {
+			_ltime = latesttime[proj]
+		}
+
 		_data := []tk.M{}
-		pipes = []tk.M{}
+		query, pipes := []tk.M{}, []tk.M{}
+		query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+		query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": _ltime.AddDate(-1, 0, 0)}})
+		query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": _ltime}})
+		query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
+		query = append(query, tk.M{"available": tk.M{"$eq": 1}})
+		query = append(query, tk.M{"projectname": proj})
 
 		tmpResult := []MiniScada{}
 
-		iquery = query
-		iquery = append(iquery, tk.M{"projectname": proj})
-		pipes = append(pipes, tk.M{"$match": tk.M{"$and": iquery}})
+		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 		pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
 		pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
 

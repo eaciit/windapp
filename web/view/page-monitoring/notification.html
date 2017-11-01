@@ -14,18 +14,24 @@
             <div class="panel ez no-padding hardcore">
                 <div class="panel-body">
                     <div class="date-info" style="margin-left: 5px;">
-                        Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
+                       Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <div class="col-md-12">
-                         <div id="notificationGrid"></div>
+                        <span><b class="colBlack">Select Tag</b></span>&nbsp;&nbsp;
+                        <select class="typeList dropdownType" id="typeList" name="table" data-bind="kendoDropDownList: { data: mn.typeList, value: mn.typeVal(), dataValueField: 'colname', dataTextField: 'text',  suggest: true }"></select>
+                    </div>
+                    <div class="clearfix">&nbsp;</div>
+                    <div class="col-md-12">
+                        <div id="notificationGrid"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 <script>
     fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+    mn.typeListData({{.AlarmTagList}});
+    mn.typeVal("CurtailmentOfPower");
 </script>

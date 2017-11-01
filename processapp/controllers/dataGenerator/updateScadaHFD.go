@@ -98,61 +98,174 @@ func (c *UpdateScadaHFD) DoUpdateTurbineStateForScadaData(base *BaseController) 
 			os.Exit(0)
 		}
 
-		tstart, _ := time.Parse("2006-01-02", "2017-10-01")
-		tend, _ := time.Parse("2006-01-02", "2017-10-10")
-		csr, e := ctx.NewQuery().From("Scada10MinHFD").Where(dbox.And(dbox.Eq("projectname", "Tejuva"), dbox.Gte("dateinfo.dateid", tstart), dbox.Lte("dateinfo.dateid", tend))).Cursor(nil)
+		validState := tk.M{
+			"Tejuva": tk.M{
+				"10": true,
+				"11": true,
+			},
+			"Lahori": tk.M{
+				"7": true,
+			},
+			"Amba": tk.M{
+				"100": true,
+			},
+		}
 
-		defer csr.Close()
+		dtAlarmBrakes := []tk.M{}
+		csrAb, e := ctx.NewQuery().From("ref_turbinestate").Order("projectname").Cursor(nil)
+		e = csrAb.Fetch(&dtAlarmBrakes, 0, false)
 
-		counter := 0
-		countData := csr.Count()
-		tk.Println("Total data will processed :", countData)
-		isDone := false
-		countPerProcess := 1000
-
-		for !isDone && countData > 0 {
-			scadas := []*ScadaDataHFD{}
-
-			startTimeFetch := time.Now()
-
-			e = csr.Fetch(&scadas, countPerProcess, false)
-			ErrorHandler(e, funcName)
-
-			if len(scadas) < countPerProcess {
-				isDone = true
-			}
-
-			durationFetch := time.Now().Sub(startTimeFetch).Seconds()
-			tk.Printf("Fetch %v data about %v sec(s)\n", len(scadas), durationFetch)
-
-			wg.Add(1)
-			go func(datas []*ScadaDataHFD, counter int) {
-				startTimeGo := time.Now()
-				tk.Println("start process ", countPerProcess*(counter+1))
-				for _, d := range datas {
-					hmtx.Lock()
-
-					dId := d.ID
-					projectname := d.ProjectName
-					timestamp := d.TimeStamp
-					turbine := d.Turbine
-					turbineState := d.TurbineState
-					tk.Printf("Updating data for ID = %v Project = %v Turbine = %v Turb. State = %v\n", dId, projectname, turbine, turbineState)
-					e = ctx.NewQuery().Update().From("ScadaData").
-						Where(dbox.And(dbox.Eq("timestamp", timestamp), dbox.Eq("turbine", turbine), dbox.Eq("projectname", projectname))).
-						Exec(tk.M{}.Set("data", tk.M{}.Set("turbinestate", turbineState)))
-					ErrorHandler(e, funcName)
-
-					hmtx.Unlock()
+		defer csrAb.Close()
+		alarmBrakes := make(map[string]map[int]string)
+		if len(dtAlarmBrakes) > 0 {
+			for _, dt := range dtAlarmBrakes {
+				project := dt.GetString("projectname")
+				turbineState := dt.GetInt("turbinestate")
+				turbineStateDesc := dt.GetString("description")
+				if _, ok := alarmBrakes[project]; !ok {
+					alarmBrakes[project] = make(map[int]string)
 				}
-				durationGo := time.Now().Sub(startTimeGo).Seconds()
-				tk.Printf("end process %v data about %v sec(s) \n", countPerProcess*(counter+1), durationGo)
-				wg.Done()
-			}(scadas, counter)
+				alarmBrakes[project][turbineState] = turbineStateDesc
+			}
+		}
 
-			counter++
-			if counter%10 == 0 || isDone {
-				wg.Wait()
+		// get min max ts per project
+		var pipes []tk.M
+		// timeMaxFilter, _ := time.Parse("2006-01-02 15:04:05", "2017-11-01 00:00:00")
+		pipes = append(pipes, tk.M{
+			// "$match": tk.M{
+			// 	"timestamp": tk.M{"$lte": timeMaxFilter},
+			// },
+			"$group": tk.M{
+				"_id": "$projectname",
+				"minTs": tk.M{
+					"$min": "$timestamp",
+				},
+				"maxTs": tk.M{
+					"$max": "$timestamp",
+				},
+			},
+		})
+		csrts, e := ctx.NewQuery().From("ScadaData").Command("pipe", pipes).Cursor(nil)
+		ErrorHandler(e, "Getting min max TS")
+
+		dataTs := []tk.M{}
+		e = csrts.Fetch(&dataTs, 0, false)
+		defer csrts.Close()
+
+		tk.Printf("%#v\n", dataTs)
+
+		ErrorHandler(e, "Fetching data min max TS")
+
+		dayToProcess := 7
+		if len(dataTs) > 0 {
+			for _, dt := range dataTs {
+				projectname := dt.GetString("_id")
+				tmin := dt.Get("minTs").(time.Time)
+				tmax := dt.Get("maxTs").(time.Time)
+				tstart := tmin
+				isFinish := false
+
+				for {
+					tend := tstart.Add(time.Duration(dayToProcess) * 24 * time.Hour)
+					// tk.Printf("tend = %#v\n", tend.Format("2006-01-02 15:04:05"))
+					if tend.Sub(tmax) > 0 {
+						isFinish = true
+					}
+
+					// process updating data
+					tk.Printf("Start processing %v from %v to %v\n", projectname, tstart.Format("2006-01-02 15:04:05"), tend.Format("2006-01-02 15:04:05"))
+					csr, e := ctx.NewQuery().From("ScadaData").Where(dbox.And(dbox.Eq("projectname", projectname), dbox.Gte("timestamp", tstart), dbox.Lte("timestamp", tend))).Cursor(nil)
+
+					defer csr.Close()
+
+					counter := 0
+					countData := csr.Count()
+					tk.Println("Total data will processed :", countData)
+					isDone := false
+					countPerProcess := 1000
+
+					for !isDone && countData > 0 {
+						scadas := []*tk.M{}
+
+						startTimeFetch := time.Now()
+
+						e = csr.Fetch(&scadas, countPerProcess, false)
+						ErrorHandler(e, funcName)
+
+						if len(scadas) < countPerProcess {
+							isDone = true
+						}
+
+						durationFetch := time.Now().Sub(startTimeFetch).Seconds()
+						tk.Printf("Fetch %v data about %v sec(s)\n", len(scadas), durationFetch)
+
+						wg.Add(1)
+						go func(datas []*tk.M, counter int) {
+							startTimeGo := time.Now()
+							tk.Println("start process ", countPerProcess*(counter+1))
+							countupdate := 0
+							for _, d := range datas {
+								hmtx.Lock()
+
+								dId := d.GetString("_id")
+								timestamp, _ := time.Parse("2006-01-02T15:04:05Z07:00", d.GetString("timestamp"))
+								timestamp = timestamp.UTC().Add(7 * time.Hour) // this add by 7 because run in local
+								turbine := d.GetString("turbine")
+
+								turbineState := -999997
+								turbineStateDesc := ""
+								isvalidstate := false
+
+								dtsource := []tk.M{}
+								csrTs, e := ctx.NewQuery().From("Scada10MinHFD").
+									Where(dbox.And(dbox.Eq("turbine", turbine), dbox.Eq("timestamp", timestamp))).
+									Cursor(nil)
+								e = csrTs.Fetch(&dtsource, 1, false)
+								csrTs.Close()
+
+								if len(dtsource) > 0 {
+									turbineState = tk.ToInt(dtsource[0].GetFloat64("turbinestate"), tk.RoundingAuto)
+								}
+
+								// getting turbine state from alarm
+								if validState.Has(projectname) {
+									dtVs := validState.Get(projectname).(tk.M)
+									if dtVs.Has(tk.ToString(turbineState)) {
+										isvalidstate = true
+									}
+								}
+
+								if desc, ok := alarmBrakes[projectname][turbineState]; ok {
+									turbineStateDesc = desc
+								}
+
+								e = ctx.NewQuery().Update().From("ScadaData").
+									Where(dbox.Eq("_id", dId)).
+									Exec(tk.M{}.Set("data", tk.M{}.Set("turbinestate", turbineState).Set("statedescription", turbineStateDesc).Set("isvalidstate", isvalidstate)))
+								ErrorHandler(e, "Update scada data")
+
+								countupdate++
+
+								hmtx.Unlock()
+							}
+							durationGo := time.Now().Sub(startTimeGo).Seconds()
+							tk.Printf("\nEnd of process %v data about %v sec(s) \n", countPerProcess*(counter+1), durationGo)
+							wg.Done()
+						}(scadas, counter)
+
+						counter++
+						if counter%10 == 0 || isDone {
+							wg.Wait()
+						}
+					}
+
+					if isFinish {
+						break
+					}
+					tstart = tend
+					// tk.Printf("tend = %#v\n", tstart.Format("2006-01-02 15:04:05"))
+				}
 			}
 		}
 	}

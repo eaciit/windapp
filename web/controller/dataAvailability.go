@@ -472,9 +472,10 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 	)
 	group := tk.M{
 		"_id": tk.M{
-			"name":    "$name",
-			"project": "$details.projectname",
-			"turbine": "$details.turbine",
+			"name":        "$name",
+			"project":     "$details.projectname",
+			"turbine":     "$details.turbine",
+			"turbinename": "$details.turbinename",
 		},
 		"periodTo":   tk.M{"$max": "$periodto"},
 		"periodFrom": tk.M{"$min": "$periodfrom"},
@@ -490,12 +491,13 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 	}
 
 	projection := tk.M{
-		"name":       "$_id.name",
-		"project":    "$_id.project",
-		"turbine":    "$_id.turbine",
-		"periodTo":   1,
-		"periodFrom": 1,
-		"list":       1,
+		"name":        "$_id.name",
+		"project":     "$_id.project",
+		"turbine":     "$_id.turbine",
+		"turbinename": "$_id.turbinename",
+		"periodTo":    1,
+		"periodFrom":  1,
+		"list":        1,
 	}
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"type": tk.M{"$eq": collType}}})
@@ -517,7 +519,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		pipes = append(pipes, tk.M{"$match": match})
 	}
 
-	pipes = append(pipes, tk.M{"$sort": tk.M{"turbine": 1}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
 
 	csr, e := DB().Connection.NewQuery().
 		From(new(DataAvailability).TableName()).
@@ -545,20 +547,9 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 		diffPercent := 0.0
 		collTypeParent := collType + "_PROJECT"
 		datas := getParentData(project, collTypeParent)
-		turbineName := map[string]string{}
-		latestProject := ""
 
 		for _, dt := range list {
-			p := dt.GetString("project")
-			if latestProject != p {
-				turbineName, e = helper.GetTurbineNameList(p)
-				if e != nil {
-					tk.Println("error get turbine name", e.Error())
-					return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
-				}
-			}
-			t := turbineName[dt.GetString("turbine")]
-			_ = p
+			t := dt.GetString("turbinename")
 			pTo := dt.Get("periodTo").(time.Time)
 			pFrom := dt.Get("periodFrom").(time.Time)
 
