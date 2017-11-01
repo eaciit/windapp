@@ -73,7 +73,10 @@ func (b *BaseController) GetProjectList() {
 	logStart := time.Now()
 
 	projectData := []ProjectOut{}
-	csrt, e := b.Ctx.Connection.NewQuery().From(new(ProjectMaster).TableName()).Order("projectid").Cursor(nil)
+	csrt, e := b.Ctx.Connection.NewQuery().
+		From(new(ProjectMaster).TableName()).
+		Where(dbox.Eq("active", true)).
+		Order("projectid").Cursor(nil)
 
 	tk.Println("Get project")
 
