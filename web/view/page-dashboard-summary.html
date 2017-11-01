@@ -85,208 +85,117 @@
 </script>
 
 <div data-bind="visible:lgd.isSummary">
-	<div class="col-md-8 col-sm-8">
-		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
-			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-					Latest Production (kWh)
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs prodToTable" onclick="$('#chartProduction').kendoChart2Grid('n2')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.ProductionChart(sum.dataSource().Productions)">
-                              <input type="radio" name="convert" id="tochart" value="tochart" autofocus="true"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
-				</div>
-				<div class="panel-body content-chart">
-					<div id="chartProductionCustomTooltip"></div>
-					<div id="chartProduction"></div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
-			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-					Controller Generation (GWh) - Last 12 Months
-					<span class="tools pull-right">
-					  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Controller Generation"></i>
-	                  <div class="btn-group" data-toggle="buttons">
-	                      <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonthFleet').kendoChart2Grid('n2')">
-	                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-	                      </label>
-	                      <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonthFleet',sum.dataSourceScadaAvailability())">
-	                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-	                      </label>
-	                  </div>
-	              </span>
-				</div>
-				<div class="panel-body content-chart">
-					<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
-					<div id="chartProdMonthFleet"></div>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6 col-sm-6 hardcore landing">
-			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-					Availability (%) - Last 12 Months &nbsp;
-					<!-- <span data-bind='visible: lgd.isFleet'>
-						<select type="text" id="projectAvail" class="ddlAvailability" data-bind="kendoDropDownList: { value: lgd.projectAvailSelected, data: lgd.projectAvailList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateAvailability, suggest: true}"></select>
-					</span> -->
-        			<span class="tools pull-right">
-						<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Total Av. Impacted by MD and GD"></i>
-						<div class="btn-group" data-toggle="buttons">
-						  <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
-						      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-						  </label>
-						  <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.availData(),sum.availSeries())">
-						      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-						  </label>
-						</div>
-                  	</span>
-				</div>
-				<div class="panel-body content-chart">
-					<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
-					<div id="chartAbility"></div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
-			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-					Cumulative Production (GWh) - Month to Date
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid('n1','dd-MMM-yyyy')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.CumProduction(sum.dataSource().CummulativeProductions)">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
-				</div>
-				<div class="panel-body content-chart">
-					<!--<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>-->
-					<div id="chartCumProduction"></div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
-			<div class="panel ez no-padding hardcore plf-div">
-				<div class="panel-heading">
-				PLF (%) - Last 12 Months
-				<span class="tools pull-right">
-                  <div class="btn-group" data-toggle="buttons">
-                      <label class="btn btn-primary btn-xs" onclick="$('#chartPLFFleet').kendoChart2Grid('n0')">
-                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                      </label>
-                      <label class="btn btn-primary btn-xs" onclick="sum.PLF('chartPLFFleet', sum.dataSourceScada())">
-                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                      </label>
-                  </div>
-              </span>
-				</div>
-				<div class="panel-body content-chart">
-					<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
-					<div id="chartPLFFleet"></div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6 col-sm-6 hardcore landing">
-			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-				Lost Energy (GWh) - Last 12 Months
-				<span class="tools pull-right">
-					 <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Lost Energy"></i>
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartLostEnergy').kendoChart2Grid('n2')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.LostEnergy(sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
-				</div>
-				<div class="panel-body content-chart">
-					<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
-					<!-- <div id="chartDTLostEnergyCustomTooltip"></div> -->
-					<div id="chartLostEnergy"></div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-sm-4 col-sm-4">
-		<div class="col-md-3 col-sm-4 no-padding">
-			<div class="pad box-pane-right bg-white col-summary">
-				<div class="description-block">
-					<div class="sparkbar pad" data-color="#fff">No. of Sites</div>
-					<h4 class="description-header first-city" data-bind="text:sum.noOfProjectsExFleet">0</h4>
-				</div>
-				<div class="description-block">
-					<div class="sparkbar pad" data-color="#fff">No. of Turbines</div>
-					<h4 class="description-header first-city" data-bind="text:sum.noOfTurbines">0</h4>
-				</div>
-				<div class="description-block margin-bottom">
-					<div class="sparkbar pad" data-color="#fff">Total Max. Capacity</div>
-					<h4 class="description-header first-city" data-bind="text:sum.totalMaxCapacity">0</h4>
-				</div>
-				<div class="description-block">
-					<div class="sparkbar pad" data-color="#fff">Currently Down</div>
-					<h4 class="description-header third-city" data-bind="text:sum.currentDown">0</h4>
-				</div>
-				<div class="description-block margin-bottom">
-					<div class="sparkbar pad" data-color="#fff">Down More Than 2 Days</div>
-					<h4 class="description-header third-city" data-bind="text:sum.twoDaysDown">0</h4>
-				</div>
-				<div class="description-block hidden">
-					<div class="sparkbar pad" data-color="#fff">Performance vs Budget</div>
-					<h4 class="description-header second-city">0%</h4>
-				</div>
-				<div class="description-block margin-bottom hidden">
-					<div class="sparkbar pad" data-color="#fff">Achievement vs Annual Budget</div>
-					<h4 class="description-header second-city">0%</h4>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-9 col-sm-8 no-padding">
-			<div class="pad">
-				<div id="india-map" style="height: 446.5px;"></div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-12 col-sm-12 no-padding">
-		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
-				<div class="panel ez no-padding hardcore prod-div">
+    <div class="row-fluid" data-bind="visible:lgd.projectName() == 'Fleet'">
+    	<div class="col-md-8" style="padding: 0" id="chart-fleet-part">
+    		<div class="col-md-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
-					Controller Generation (GWh) - Last 12 Months
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonth').kendoChart2Grid('n2')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonth',sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+						Controller Generation (GWh) - Last 12 Months
+						<span class="tools pull-right">
+						  <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Controller Generation"></i>
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonthFleet').kendoChart2Grid('n2')">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonthFleet',sum.dataSourceScadaAvailability())">
+		                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              </span>
 					</div>
 					<div class="panel-body content-chart">
 						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
-						<div id="chartProdMonth"></div>
+						<div id="chartProdMonthFleet"></div>
 					</div>
 				</div>
 			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
+			<div class="col-md-6 hardcore landing">
+				<div class="panel ez no-padding hardcore plf-div">
+					<div class="panel-heading">
+					PLF (%) - Last 12 Months
+					<span class="tools pull-right">
+		              <div class="btn-group" data-toggle="buttons">
+		                  <label class="btn btn-primary btn-xs" onclick="$('#chartPLFFleet').kendoChart2Grid('n0')">
+		                      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                  </label>
+		                  <label class="btn btn-primary btn-xs" onclick="sum.PLF('chartPLFFleet', sum.dataSourceScada())">
+		                      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                  </label>
+		              </div>
+		          </span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<div id="chartPLFFleet"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
-						Controller Generation (GWh) - Current Year & Last Year
+						Availability (%) - Last 12 Months &nbsp;
+						<!-- <span data-bind='visible: lgd.isFleet'>
+							<select type="text" id="projectAvail" class="ddlAvailability" data-bind="kendoDropDownList: { value: lgd.projectAvailSelected, data: lgd.projectAvailList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateAvailability, suggest: true}"></select>
+						</span> -->
+		    			<span class="tools pull-right">
+							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Total Av. Impacted by MD and GD"></i>
+							<div class="btn-group" data-toggle="buttons">
+							  <label class="btn btn-primary btn-xs" onclick="$('#chartAbilityFleet').kendoChart2Grid('n1')">
+							      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+							  </label>
+							  <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.availData(),sum.availSeries())">
+							      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+							  </label>
+							</div>
+		              	</span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<div id="chartAbilityFleet"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+					Lost Energy (GWh) - Last 12 Months
+					<span class="tools pull-right">
+						 <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Lost Energy"></i>
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs" onclick="$('#chartLostEnergyFleet').kendoChart2Grid('n2')">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.LostEnergy(sum.dataSourceScada())">
+		                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              </span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<!-- <div id="chartDTLostEnergyCustomTooltip"></div> -->
+						<div id="chartLostEnergyFleet"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4" style="padding: 0">
+			<div class="col-md-12 hardcore landing">
+				<div class="panel ez no-padding hardcore summary-div">
+					<div class="panel-heading">
+					Summary Data for Last 12 Months
+					</div>
+					<div class="panel-body panel-summary gridSummaryData" id="grid-summary-fleet">
+						<div id="gridSummaryDataFleet"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-12" style="padding: 0">
+			<div class="col-md-4 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Controller Gen. (GWh) - Curr Year & Last Year
 						<span class="tools pull-right">
 		                  <div class="btn-group" data-toggle="buttons">
 		                      <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLastFleet').kendoChart2Grid('n2')">
@@ -303,63 +212,20 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
-				<div class="panel ez no-padding hardcore plf-div">
-					<div class="panel-heading">
-					PLF (%) - Last 12 Months
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartPLF').kendoChart2Grid('n0')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.PLF('chartPLF',sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
-					</div>
-					<div class="panel-body content-chart">
-						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
-						<div id="chartPLF"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing" id="div-windiness">
-				<div class="panel ez no-padding hardcore windiness-div">
-					<div class="panel-heading">
-					Windiness (m/s) - Last 12 Months
-					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindiness').kendoChart2Grid()">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.Windiness(sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
-					</div>
-					<div class="panel-body content-chart">
-						<div id="chartWindinessCustomTooltip"></div>
-						<div id="chartWindiness"></div>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing" id="div-winddistribution">
+			<div class="col-md-8 hardcore landing">
 				<div class="panel ez no-padding hardcore winddistribution-div">
 					<div class="panel-heading">
 					Wind Distribution - Last 12 Months
-						<!--<select type="text" id="periodType" class="ddlWindDistPeriod" data-bind="kendoDropDownList: { value: sum.periodSelected, data: sum.periodList, dataTextField: 'text', dataValueField: 'value', change:sum.UpdateWindDist, suggest: true}"></select> -->
 						<span class="tools pull-right">
-	                      <div class="btn-group" data-toggle="buttons">
-	                          <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
-	                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-	                          </label>
-	                          <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
-	                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-	                          </label>
-	                      </div>
-	                  	</span>
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs" onclick="$('#chartWindDistribution').kendoChart2Grid()">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.WindDistribution(sum.dataSourceWindDistribution())">
+		                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              	</span>
 					</div>
 					<div class="panel-body content-chart">
 						<div id="chartWindDistributionCustomTooltip"></div>
@@ -367,56 +233,191 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() == 'Fleet'">
+		</div>
+	</div>
+	<div class="row-fluid" data-bind="visible:lgd.projectName() != 'Fleet'">
+		<div class="col-md-8" style="padding: 0" id="chart-part">
+			<div class="col-md-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
-						Turbines currently down (Hrs)
+						Latest Production (kWh)
+						<span class="tools pull-right">
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs prodToTable" onclick="$('#chartProduction').kendoChart2Grid('n2')">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.ProductionChart(sum.dataSource().Productions)">
+		                          <input type="radio" name="convert" id="tochart" value="tochart" autofocus="true"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              </span>
 					</div>
-					<div class="panel-body content-chart" id="dtturbines" style="overflow-y: auto;"></div>
+					<div class="panel-body content-chart">
+						<div id="chartProductionCustomTooltip"></div>
+						<div id="chartProduction"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Cumulative Production (GWh) - Month to Date
+						<span class="tools pull-right">
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid('n1','dd-MMM-yyyy')">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.CumProduction(sum.dataSource().CummulativeProductions)">
+		                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              </span>
+					</div>
+					<div class="panel-body content-chart">
+						<!--<h5 class="label-drilldown"><small><center>click on each series to view the drilldown</center></small></h5>-->
+						<div id="chartCumProduction"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
+				<div class="panel ez no-padding hardcore prod-div">
+					<div class="panel-heading">
+					Controller Generation (GWh) - Last 12 Months
+					<span class="tools pull-right">
+		              <div class="btn-group" data-toggle="buttons">
+		                  <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonth').kendoChart2Grid('n2')">
+		                      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                  </label>
+		                  <label class="btn btn-primary btn-xs" onclick="sum.ProdMonth('chartProdMonth',sum.dataSourceScada())">
+		                      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                  </label>
+		              </div>
+		          </span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<div id="chartProdMonth"></div>
+					</div>
+				</div>
+			</div>		
+			<div class="col-md-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
+				<div class="panel ez no-padding hardcore plf-div">
+					<div class="panel-heading">
+					PLF (%) - Last 12 Months
+					<span class="tools pull-right">
+		              <div class="btn-group" data-toggle="buttons">
+		                  <label class="btn btn-primary btn-xs" onclick="$('#chartPLF').kendoChart2Grid('n0')">
+		                      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                  </label>
+		                  <label class="btn btn-primary btn-xs" onclick="sum.PLF('chartPLF',sum.dataSourceScada())">
+		                      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                  </label>
+		              </div>
+		          </span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<div id="chartPLF"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+						Availability (%) - Last 12 Months &nbsp;
+		    			<span class="tools pull-right">
+							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Total Av. Impacted by MD and GD"></i>
+							<div class="btn-group" data-toggle="buttons">
+							  <label class="btn btn-primary btn-xs" onclick="$('#chartAbility').kendoChart2Grid('n1')">
+							      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+							  </label>
+							  <label class="btn btn-primary btn-xs" onclick="sum.AvailabilityChart(sum.availData(),sum.availSeries())">
+							      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+							  </label>
+							</div>
+		              	</span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<div id="chartAbility"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-heading">
+					Lost Energy (GWh) - Last 12 Months
+					<span class="tools pull-right">
+						 <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Lost Energy"></i>
+		                  <div class="btn-group" data-toggle="buttons">
+		                      <label class="btn btn-primary btn-xs" onclick="$('#chartLostEnergy').kendoChart2Grid('n2')">
+		                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                      </label>
+		                      <label class="btn btn-primary btn-xs" onclick="sum.LostEnergy(sum.dataSourceScada())">
+		                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                      </label>
+		                  </div>
+		              </span>
+					</div>
+					<div class="panel-body content-chart">
+						<h5 class="label-drilldown"><small><center>click to view the drilldown</center></small></h5>
+						<!-- <div id="chartDTLostEnergyCustomTooltip"></div> -->
+						<div id="chartLostEnergy"></div>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-12 col-sm-12 ez panel-content" data-bind="visible:lgd.projectName() == 'Fleet'">
-			<div class="col-md-12 col-sm-12 hardcore landing">
+		<div class="col-md-4" style="padding: 0">
+			<div class="col-md-12 hardcore landing">
 				<div class="panel ez no-padding hardcore summary-div">
 					<div class="panel-heading">
 					Summary Data for Last 12 Months
 					</div>
-					<div class="panel-body panel-summary gridSummaryData" style="height: 185px;">
-						<div id="gridSummaryDataFleet"></div>
+					<div class="panel-body panel-summary gridSummaryData" id="grid-summary-non">
+						<div id="gridSummaryData"></div>
 					</div>
 				</div>
 			</div>
 		</div>
-
-		<div class="col-md-12 col-sm-12 ez panel-content" data-bind="visible:lgd.projectName() != 'Fleet'">
-			<div class="col-md-4 col-sm-4 hardcore landing">
+		<div class="col-md-12" style="padding: 0">
+			<div class="col-md-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
-					Controller Generation (GWh) - Current Year & Last Year
+					Controller Gen.(GWh) - Curr Year & Last Year
 					<span class="tools pull-right">
-                      <div class="btn-group" data-toggle="buttons">
-                          <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLast').kendoChart2Grid('n2')">
-                              <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                          </label>
-                          <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast('chartCurrLast',sum.dataSourceScada())">
-                              <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                          </label>
-                      </div>
-                  </span>
+		              <div class="btn-group" data-toggle="buttons">
+		                  <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLast').kendoChart2Grid('n2')">
+		                      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                  </label>
+		                  <label class="btn btn-primary btn-xs" onclick="sum.ProdCurLast('chartCurrLast',sum.dataSourceScada())">
+		                      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                  </label>
+		              </div>
+		          </span>
 					</div>
 					<div class="panel-body content-chart">
 						<div id="chartCurrLast"></div>
 					</div>
 				</div>
 			</div>
-			<div class="col-md-8 col-sm-8 hardcore landing">
-				<div class="panel ez no-padding hardcore summary-div">
+			<div class="col-md-8 hardcore landing" id="div-windiness">
+				<div class="panel ez no-padding hardcore windiness-div">
 					<div class="panel-heading">
-					Summary Data for Last 12 Months
+					Windiness (m/s) - Last 12 Months
+					<span class="tools pull-right">
+		              <div class="btn-group" data-toggle="buttons">
+		                  <label class="btn btn-primary btn-xs" onclick="$('#chartWindiness').kendoChart2Grid()">
+		                      <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+		                  </label>
+		                  <label class="btn btn-primary btn-xs" onclick="sum.Windiness(sum.dataSourceScada())">
+		                      <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+		                  </label>
+		              </div>
+		          </span>
 					</div>
-					<div class="panel-body panel-summary gridSummaryData" style="height: 185px;">
-						<div id="gridSummaryData"></div>
+					<div class="panel-body content-chart">
+						<div id="chartWindinessCustomTooltip"></div>
+						<div id="chartWindiness"></div>
 					</div>
 				</div>
 			</div>
@@ -691,8 +692,5 @@
 		</div>
 	</div>
 </div>
-
-
-
 
 

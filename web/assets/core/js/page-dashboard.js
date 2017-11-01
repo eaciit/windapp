@@ -89,11 +89,15 @@ lgd.LoadData = function () {
             lgd.isNonFleet(false);
             $("#div-windiness").hide();
             $("#div-winddistribution").show();
+            var height = $("#chart-fleet-part").height();
+            $("#grid-summary-fleet").height(height-65);
         } else {
             lgd.isFleet(false);
             lgd.isNonFleet(true);
             $("#div-windiness").show();
             $("#div-winddistribution").hide();
+            var height = $("#chart-part").height();
+            $("#grid-summary-non").height(height-65);
         }
 
         setTimeout(function () {
@@ -106,15 +110,15 @@ lgd.LoadData = function () {
 
 
 lgd.start = function() {  // use a one-off timer
-    mapIndia =  setInterval(function() {
-       var project =  $("#projectId").data("kendoDropDownList").value();
-       sum.indiaMap(project);
-    }, 5000);
+    // mapIndia =  setInterval(function() {
+    //    var project =  $("#projectId").data("kendoDropDownList").value();
+    //    sum.indiaMap(project);
+    // }, 5000);
 };
 
 lgd.stop = function(){
-    clearInterval(mapIndia);
-    return false;
+    // clearInterval(mapIndia);
+    // return false;
 };
 
 lgd.createDonutChart = function (param) {
@@ -182,7 +186,7 @@ $(function () {
         lgd.projectName("Fleet");
 
         lgd.LoadData();
-        google.maps.event.addDomListener(window, 'load', sum.initialize());
+        // google.maps.event.addDomListener(window, 'load', sum.initialize());
 
     },500);
 
