@@ -69,6 +69,8 @@ mn.LoadData = function() {
 
 
 mn.generateGrid = function(param){
+    var nameFile = "Monitoring Notification_"+ moment(new Date()).format("Y-M-D")+"_"+time;
+
     $("#notificationGrid").html('');
     $("#notificationGrid").kendoGrid({
         dataSource: {
@@ -113,6 +115,12 @@ mn.generateGrid = function(param){
             sort: [ { field: "TimeStart", dir: "desc" }, { field: "TimeEnd", dir: "asc" } ],
         },
         sortable: true,
+        toolbar: ["excel"],
+        excel: {
+            fileName: nameFile+".xlsx",
+            filterable: true,
+            allPages: true
+        },
         pageable: {
             refresh: true,
             pageSizes: true,
