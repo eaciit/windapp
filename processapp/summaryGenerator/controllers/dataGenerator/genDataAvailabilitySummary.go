@@ -139,7 +139,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 
 	details := []DataAvailabilityDetail{}
 
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAOEM")
@@ -191,7 +191,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 	details := []DataAvailabilityDetail{}
 
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD")
@@ -245,7 +245,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 
 	details := []DataAvailabilityDetail{}
 
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_METTOWER")
@@ -294,7 +294,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 
 	details := []DataAvailabilityDetail{}
 
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAOEM_PROJECT")
@@ -344,7 +344,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 	details := []DataAvailabilityDetail{}
 
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD_PROJECT")
@@ -379,7 +379,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 func workerTurbine(t, projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
-	now := time.Now().UTC() /* bulan ini */
+	now := getTimeNow() /* bulan ini */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) /* sampai 6 bulan ke belakang */
 
@@ -507,7 +507,7 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 
 func workerProject(projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
-	now := time.Now().UTC()
+	now := getTimeNow()
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
 
@@ -628,7 +628,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD_DAILY_PROJECT")
@@ -711,7 +711,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailabili
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-	now := time.Now().UTC()
+	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD_DAILY")
@@ -836,7 +836,7 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 		mtx.Unlock()
 	}
 
-	now := time.Now().UTC() /* ganti dengan time.Now India */
+	now := getTimeNow() /* time.Now India */
 	periodTo, _ = time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom = GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
 	before := time.Time{}
@@ -1060,5 +1060,19 @@ func GetTurbineNameListAll(project string) (turbineNameData map[string]string, e
 			turbineNameData[tk.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
 		}
 	}
+	return
+}
+
+func getTimeNow() (tNow time.Time) {
+	config := ReadConfig()
+	loc, err := time.LoadLocation(config["ReadTimeLoc"])
+	_Now := time.Now().UTC().Add(-time.Minute * 330)
+	if err != nil {
+		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
+	} else {
+		_Now = time.Now().In(loc)
+	}
+
+	tNow = time.Date(_Now.Year(), _Now.Month(), _Now.Day(), _Now.Hour(), _Now.Minute(), _Now.Second(), _Now.Nanosecond(), time.UTC)
 	return
 }
