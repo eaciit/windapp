@@ -816,25 +816,25 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 	countID := 1
 	periodFrom := time.Time{}
 	periodTo := time.Time{}
-	if len(data) > 0 {
-		for _, datum := range data {
-			ids = datum.Get("_id", tk.M{}).(tk.M)
-			periodFrom = ids.Get("tanggal", time.Time{}).(time.Time)
-			periodTo = periodFrom
-			duration = tk.Div(datum.GetFloat64("totaldata"), maxDataPerDay)
-			if duration >= 0.5 {
-				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
-					datum.GetString("turbine"), duration, true, countID))
-			} else {
-				detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
-					datum.GetString("turbine"), duration, false, countID))
-			}
-			countID++
-		}
-		mtx.Lock()
-		*details = append(*details, detail...)
-		mtx.Unlock()
-	}
+	// if len(data) > 0 {
+	// 	for _, datum := range data {
+	// 		ids = datum.Get("_id", tk.M{}).(tk.M)
+	// 		periodFrom = ids.Get("tanggal", time.Time{}).(time.Time)
+	// 		periodTo = periodFrom
+	// 		duration = tk.Div(datum.GetFloat64("totaldata"), maxDataPerDay)
+	// 		if duration >= 0.5 {
+	// 			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
+	// 				datum.GetString("turbine"), duration, true, countID))
+	// 		} else {
+	// 			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
+	// 				datum.GetString("turbine"), duration, false, countID))
+	// 		}
+	// 		countID++
+	// 	}
+	// 	mtx.Lock()
+	// 	*details = append(*details, detail...)
+	// 	mtx.Unlock()
+	// }
 
 	now := getTimeNow() /* time.Now India */
 	periodTo, _ = time.Parse("20060102_150405", now.Format("20060102_")+"000000")
@@ -844,8 +844,6 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 	latestTimeStamp := time.Time{}
 	currTimeStamp := time.Time{}
 	detail = []DataAvailabilityDetail{}
-	duration = 0.0
-	countID = 0
 	hoursGap := 0.0
 	project := ""
 	turbine := ""
