@@ -67,6 +67,7 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	// HFD Daily
 	go func() {
 		availHFDDaily = ev.scadaHFDSummaryDailyTurbine()
+		wg.Done()
 	}()
 	// OEM PROJECT
 	go func() {
