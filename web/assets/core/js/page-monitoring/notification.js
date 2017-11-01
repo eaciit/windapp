@@ -275,6 +275,6 @@ $(document).ready(function(){
         fa.checkTurbine();
         setTimeout(function() {
             mn.LoadData();
-        }, 100);
+        }, 300);
     });
 });
