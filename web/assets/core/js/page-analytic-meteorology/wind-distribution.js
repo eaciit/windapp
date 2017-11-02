@@ -70,17 +70,9 @@ wd.ChartWindDistributon =  function () {
         }
 
         if (wd.turbine().length == 0) {
-            var turbine = []
-            for (var i=0;i<res.data.Data.length;i++) {
-                if ($.inArray( res.data.Data[i].Turbine, turbine ) == -1){
-                    turbine.push(res.data.Data[i].Turbine);
-                }
-            }
             wd.turbineList([]);
 
-            var sortTurbineList = turbine.sort();
-            
-            $.each(sortTurbineList, function (i, val) {
+            $.each(res.data.TurbineList, function (i, val) {
                 var data = {
                     color: color[i],
                     turbine: val
@@ -99,7 +91,7 @@ wd.ChartWindDistributon =  function () {
             dataSource: {
                 data: data,
                 group: { field: "Turbine" },
-                sort: { field: "Category", dir: 'asc' }
+                // sort: { field: "Category", dir: 'asc' }
             },
             theme: "flat",
             title: {
@@ -170,6 +162,32 @@ wd.ChartWindDistributon =  function () {
         });
 
         wd.InitRightTurbineList();
+
+        /* hanya untuk mengembalikan Met Tower ke urutan pertama
+        entah kenapa setelah di grouping oleh kendo otomatis melakukan sorting based on series name nya */
+        var seriesCurrent = $("#windDistribution").data("kendoChart").options.series;
+        var seriesMet = [];
+        var seriesScada = [];
+        var colorList = [];
+
+        // ambil warnanya terlebih dahulu
+        seriesCurrent.forEach(function(val, idx){
+            colorList.push(val.color);
+        });
+        seriesCurrent.forEach(function(val, idx){
+            if(val.name == "Met Tower") {
+                seriesMet.push(val);
+            } else {
+                seriesScada.push(val);
+            }
+        });
+        var seriesNew = seriesMet.concat(seriesScada);
+        seriesNew.forEach(function(val, idx){
+            seriesNew[idx].color = colorList[idx];
+        });
+
+        $("#windDistribution").data("kendoChart").options.series = seriesNew;
+
 
         // app.loading(false);
         $("#windDistribution").data("kendoChart").refresh();
