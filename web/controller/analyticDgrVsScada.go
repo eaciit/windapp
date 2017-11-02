@@ -776,7 +776,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	pipes = nil
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": downGroupClause})
-
+	tk.Println("match", query)
 	csr, e = DB().Connection.NewQuery().
 		From("rpt_downtime").
 		Command("pipe", pipes).

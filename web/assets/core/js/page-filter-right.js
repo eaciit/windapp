@@ -17,6 +17,7 @@ var keys = [
     { "value": "P75 PLF", "text": "P75 PLF", "unit": "%h" },
     { "value": "P90 Generation", "text": "P90 Generation", "unit": "MWh" },
     { "value": "P90 PLF", "text": "P90 PLF", "unit": "%" },
+    { "value": "DGR", "text": "DGR", "unit": "MWh" },
 ];
 fr.key1 = ko.observableArray([]);
 fr.key2 = ko.observableArray([]);

@@ -18,6 +18,7 @@ var keys = [
 	{ "value": "P90Generation", "text": "P90 Gen.", "status": false, "unit": "MWh" },
 	{ "value": "P90PLF", "text": "P90 PLF", "status": false, "unit": "%" },
 	{ "value": "Revenue", "text": "Revenue", "status": true, "unit": "Rupee", "altUnit": "Lacs" },
+	{ "value": "DGR", "text": "DGR", "status": false, "unit": "MWh",  },
 ];
 
 page.turbineList = ko.observableArray([]);
