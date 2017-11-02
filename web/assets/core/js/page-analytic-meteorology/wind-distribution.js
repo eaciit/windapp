@@ -91,7 +91,7 @@ wd.ChartWindDistributon =  function () {
             dataSource: {
                 data: data,
                 group: { field: "Turbine" },
-                // sort: { field: "Category", dir: 'asc' }
+                sort: { field: "Category", dir: 'asc' }
             },
             theme: "flat",
             title: {
