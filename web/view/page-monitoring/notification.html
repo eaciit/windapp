@@ -17,6 +17,11 @@
                         Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>&nbsp;&nbsp;|&nbsp;&nbsp;
                         <span><b class="colBlack">Select Tag</b></span>&nbsp;&nbsp;
                         <select class="typeList" id="typeList" name="table" data-bind="kendoDropDownList: { data: mn.typeList, dataValueField: 'colname', dataTextField: 'text',  suggest: true }"></select>
+                        <div class="pull-right">
+                            <div class="etoExcel">
+                                 <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel"><i class="fa fa-file-excel-o" onclick="mn.exportToExcel()"></i></button>   
+                            </div>
+                        </div>
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <div class="col-md-12">
