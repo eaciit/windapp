@@ -752,6 +752,13 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 	indexCount := 1
 	tagList := []toolkit.M{}
 	result = toolkit.M{}
+	allType := []toolkit.M{
+		toolkit.M{
+			"value":   0,
+			"text":    "All Types",
+			"colname": "alltypes",
+		},
+	}
 	for {
 		_data = toolkit.M{}
 		e = csr.Fetch(&_data, 1, false)
@@ -776,6 +783,7 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 		indexCount++
 	}
 	if lastProject != "" {
+		tagList = append(allType, tagList...)
 		result.Set(lastProject, tagList)
 	}
 

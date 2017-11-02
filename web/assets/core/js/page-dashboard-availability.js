@@ -521,7 +521,7 @@ avail.DTLostEnergy = function (dataSource) {
             }
         },
         chartArea: {
-            height: 185,
+            height: 170,
             background: "transparent",
             padding: 0,
             margin: {

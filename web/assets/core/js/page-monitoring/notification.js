@@ -20,7 +20,6 @@ vm.breadcrumb([
 var intervalTurbine = null;
 
 mn.typeList = ko.observableArray([]);
-mn.typeVal = ko.observable("");
 mn.typeListData = ko.observableArray([]);
 
 mn.UpdateProjectList = function(project) {
@@ -47,11 +46,7 @@ mn.LoadData = function() {
             project = "Tejuva";
         }
         mn.typeList(mn.typeListData()[project]);
-        var typeList =  $('#typeList').data('kendoDropDownList').text();
-        if(typeList == "") {
-            typeList = "Curtailment Of Power"
-        }
-        var colnameType = _.find(mn.typeList(), function(num){ return num.text == typeList; }).colname;
+        var colnameType = $('#typeList').data('kendoDropDownList').value();
 
         var param = {
             period: fa.period,
@@ -268,7 +263,9 @@ $(document).ready(function(){
     });
     
     setTimeout(function () {
-        $("#typeList").data("kendoDropDownList").value("CurtailmentOfPower");
+        $("#typeList").data("kendoDropDownList").value("alltypes");
+        var dropdownlist = $("#typeList").data("kendoDropDownList");
+        dropdownlist.list.width("auto");
     }, 300);
 
     $('#projectList').kendoDropDownList({
