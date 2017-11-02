@@ -810,7 +810,7 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 		},
 		"totaldata": tk.M{"$sum": 1},
 	}*/
-	ids := tk.M{}
+	// ids := tk.M{}
 	maxDataPerDay := 6.0 * 24.0 * totalTurbine /* dalam 1 jam ada 6 data karena per 10 menit dikalikan 24 karena 1 hari ada 24 jam*/
 	duration := 0.0
 	countID := 1
