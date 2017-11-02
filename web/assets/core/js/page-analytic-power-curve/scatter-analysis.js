@@ -39,11 +39,11 @@ page.ExportIndividualMonthPdf = function() {
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
     { "value": "deviation", "text": "Nacelle Deviation" },
-    // { "value": "temp", "text": "Nacelle Temperature" },
+    { "value": "temp", "text": "Nacelle Temperature" },
     { "value": "pitch", "text": "Pitch Angle" },
-    // { "value": "ambient", "text": "Ambient Temperature" },
-    /*{ "value": "power", "text": "Temperature Analysis" },
-    { "value": "grid", "text": "Temperature Analysis" },*/
+    { "value": "ambient", "text": "Ambient Temperature" },
+    { "value": "windspeed_dev", "text": "Wind Speed Std. Dev." },
+    { "value": "windspeed_ti", "text": "TI Wind Speed" },
 ]);
 
 vm.currentMenu('Scatter with Filter');
@@ -65,13 +65,43 @@ page.LoadData = function() {
 
 page.refreshChart = function() {
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
-    if(page.scatterType == 'pitch') {
-        $("#txtLessVal").val(0);
-        $('#txtGreaterVal').val(0);
-    } else {
-        $("#txtLessVal").val(20);
-        $('#txtGreaterVal').val(20);
+    switch(page.scatterType) {
+        case 'pitch':
+            $("#txtLessVal").val(0);
+            $('#txtGreaterVal').val(0);
+            break;
+        case 'ambient':
+            $("#txtLessVal").val(20);
+            $('#txtGreaterVal').val(20);
+            break;
+        case 'temp':
+            $("#txtLessVal").val(35);
+            $('#txtGreaterVal').val(35);
+            break;
+        case 'deviation':
+            $("#txtLessVal").val(5);
+            $('#txtGreaterVal').val(5);
+            break;
+        case 'windspeed_dev':
+            $("#txtLessVal").val(1);
+            $('#txtGreaterVal').val(1);
+            break;
+        case 'windspeed_ti':
+            $("#txtLessVal").val(0.2);
+            $('#txtGreaterVal').val(0.2);
+            break;
+        default:
+            $("#txtLessVal").val(0);
+            $('#txtGreaterVal').val(0);
+            break;
     }
+    // if(page.scatterType == 'pitch') {
+    //     $("#txtLessVal").val(0);
+    //     $('#txtGreaterVal').val(0);
+    // } else {
+    //     $("#txtLessVal").val(20);
+    //     $('#txtGreaterVal').val(20);
+    // }
     page.LoadData();
 }
 
@@ -100,8 +130,10 @@ page.getPowerCurveScatter = function() {
         // project: fa.project, // has a bug, always selected Tejuva instead selected project
         project: $('#projectList').data('kendoDropDownList').value(), // temporary changed
         scatterType: page.scatterType,
-        lessValue: parseInt(lessValue,10),
-        greaterValue: parseInt(greaterValue,10),
+        // lessValue: parseInt(lessValue,10),
+        // greaterValue: parseInt(greaterValue,10),
+        lessValue: parseFloat(lessValue),
+        greaterValue: parseFloat(greaterValue),
         lessColor: lessColor,
         greaterColor: greaterColor,
         lessMarker: lessMarker, 
