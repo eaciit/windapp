@@ -247,29 +247,24 @@ sum.loadData = function () {
             // });
         }
 
-        // $.when(sum.indiaMap(project),ajax2, ajax3).done(function(){
-        //     setTimeout(function(){
-        //         if(project == "Fleet"){
-        //             map.setCenter({
-        //                 lat : 23.334166,
-        //                 lng : 75.037611
-        //             }); 
-        //             map.setZoom(5);
-        //             app.loading(false);
-        //         }else{
-        //             map.setCenter({
-        //                 lat : turbines[0].coords[0],
-        //                 lng : turbines[0].coords[1]
-        //             }); 
-        //             map.setZoom(10);
-                    
-        //         }
-        //         lgd.start();
-        //         app.loading(false);
-        //     },1000);
-        // });
-        $.when(ajax2, ajax3).done(function(){
+        $.when(sum.indiaMap(project),ajax2, ajax3).done(function(){
             setTimeout(function(){
+                if(project == "Fleet"){
+                    map.setCenter({
+                        lat : 23.334166,
+                        lng : 75.037611
+                    }); 
+                    map.setZoom(5);
+                    app.loading(false);
+                }else{
+                    map.setCenter({
+                        lat : turbines[0].coords[0],
+                        lng : turbines[0].coords[1]
+                    }); 
+                    map.setZoom(10);
+                    
+                }
+                lgd.start();
                 app.loading(false);
             },1000);
         });
@@ -281,16 +276,9 @@ sum.loadData = function () {
 sum.SummaryData = function (id,project) {
     var param = {project: project};
     var ajax1 = toolkit.ajaxPost(viewModel.appName + "dashboard/getsummarydata", param, function (result) {
-
-        var height = $("#chart-part").height() - 70;
-        if(project == "Fleet"){
-            height = $("#chart-fleet-part").height() - 70;
-        }
-        
-
         $('#'+id).html("");
         $('#'+id).kendoGrid({
-            height: height,
+            height: 155,
             theme: "flat",
             dataSource: {
                 // serverPaging: true,
@@ -315,10 +303,9 @@ sum.SummaryData = function (id,project) {
             serverPaging: true,
             serverSorting: true,
             pageable: {
-                pageSize: 20,
+                pageSize: 2,
                 input: true, 
             },
-            scrollable : true, 
             columns: [
                 { title: "Project Name", width:100, field: "name", headerAttributes: { style: "text-align:left;" }, attributes: { style: "text-align:center;" } },
                 { title: "No. of WTG", width:90, field: "noofwtg", format: "{0:n0}", headerAttributes: { style: "text-align:center;" }, attributes: { style: "text-align:center;" } },
@@ -435,14 +422,8 @@ sum.PLF = function (id,dataSource) {
 }
 
 sum.LostEnergy = function (dataSource) {
-    var id = "chartLostEnergyFleet";
-
-    if(lgd.projectName() !== "Fleet"){
-        id= "chartLostEnergy"
-    }
-
-    $("#"+id).replaceWith('<div id="'+id+'"></div>');
-    $("#"+id).kendoChart({
+    $("#chartLostEnergy").replaceWith('<div id="chartLostEnergy"></div>');
+    $("#chartLostEnergy").kendoChart({
         dataSource: {
             data: dataSource,
             sort: { field: "DateInfo.MonthId", dir: 'asc' }
@@ -758,13 +739,13 @@ sum.ProdMonthFleet = function (id, dataSource) {
         },
         series: series,
         // seriesColors: colorField,
-        // seriesClick: function (e) {
-        //     setTimeout(function(){
-        //         // lgd.stop();
-        //         sum.DetailProdByProject(e);
-        //     },500);
+        seriesClick: function (e) {
+            setTimeout(function(){
+                lgd.stop();
+                sum.DetailProdByProject(e);
+            },500);
             
-        // },
+        },
         valueAxes: [{
             name: "Production",
             line: {
@@ -917,14 +898,8 @@ sum.ProdMonth = function (id, dataSource) {
 //     }, 300);
 // }
 sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
-    var id = "chartAbilityFleet";
-
-    if(lgd.projectName() !== "Fleet"){
-        id= "chartAbility"
-    }
-
-    $("#"+id).replaceWith('<div id="'+id+'"></div>');
-    $("#"+id).kendoChart({
+    $("#chartAbility").replaceWith('<div id="chartAbility"></div>');
+    $("#chartAbility").kendoChart({
         dataSource: {
             data: dataSource,
             sort: { field: "DateInfo.MonthId", dir: 'asc' }
@@ -2976,7 +2951,7 @@ sum.DetailLTPlotLevel2 = function(project, e){
 
 }
 sum.backToDashboard = function () {
-    // lgd.start();
+    lgd.start();
     vm.isDashboard(true);
     lgd.isSummary(true);
     sum.isDetailProd(false);
