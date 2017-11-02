@@ -232,7 +232,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             pageSize: 10,
             sort: defaultsort,
         },
-        toolbar: ["excel"],
+        // toolbar: ["excel"],
         excel: {
             fileName: nameFile+".xlsx",
             filterable: true,
@@ -321,6 +321,10 @@ ma.ToByProject = function(){
             window.location = viewModel.appName + "page/monitoringbyproject";
         }
     },1500);
+}
+
+ma.exportToExcel = function(id){
+    $("#"+id).getKendoGrid().saveAsExcel();
 }
 
 $(document).ready(function(){

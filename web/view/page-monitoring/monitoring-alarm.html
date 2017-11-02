@@ -5,17 +5,23 @@
 <script src="{{BaseUrl}}res/core/js/page-monitoring/monitoring-alarm.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-monitoring/monitoring.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-filter-analytic.css">
-
+<style type="text/css">
+    .etoExcel{
+        margin-right: 0px;
+    }
+</style>
 <div class="row">
     {{template "_filter-analytic.html"}}
 
     <div class="col-md-12 col-sm-12 ez panel-content">
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore">
-                <div class="panel-body">
+                <div class="panel-body" style="margin-right: 0px">
                     <div class="date-info" style="margin-left: 5px;">
                         Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
-                        <div class="pull-right"><a href="#"  onclick="ma.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a></div>
+                        <div class="pull-right">
+                            <a href="#"  onclick="ma.ToByProject()" class="pull-right"><i class="fa fa-mail-reply"></i> Go to project</a>
+                        </div>
                     </div>
                     <div class="clearfix">&nbsp;</div>
                     <div class="col-md-12">
@@ -36,17 +42,29 @@
                         </ul>
                         <div class="tab-content">
                             <div role="tabpanel" class="tab-pane active" id="alarm">
-                                <div>
+                                <div class="tab-pane-content">
+                                    <div class="etoExcel">
+                                         <button type="button" class="btn btn-xs btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="ma.exportToExcel('alarmGrid')"><i class="fa fa-file-excel-o"></i></button>   
+                                    </div>
+                                    <div class="clearfix">&nbsp;</div>
                                     <div id="alarmGrid"></div>
                                 </div>
                             </div>
-                            <div role="tabpanel" class="tab-pane" id="warning">
-                                <div>
+                             <div role="tabpanel" class="tab-pane" id="warning">
+                                <div class="tab-pane-content">
+                                    <div class="etoExcel">
+                                         <button type="button" class="btn btn-xs btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="ma.exportToExcel('warningGrid')"><i class="fa fa-file-excel-o"></i></button>   
+                                    </div>
+                                    <div class="clearfix">&nbsp;</div>
                                     <div id="warningGrid"></div>
                                 </div>
                             </div>
-                            <div role="tabpanel" class="tab-pane" id="alarmraw">
-                                <div>
+                             <div role="tabpanel" class="tab-pane" id="alarmraw">
+                                <div class="tab-pane-content">
+                                    <div class="etoExcel">
+                                         <button type="button" class="btn btn-xs btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="ma.exportToExcel('alarmRawGrid')"><i class="fa fa-file-excel-o"></i></button>   
+                                    </div>
+                                    <div class="clearfix">&nbsp;</div>
                                     <div id="alarmRawGrid"></div>
                                 </div>
                             </div>

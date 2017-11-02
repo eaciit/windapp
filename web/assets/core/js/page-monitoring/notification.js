@@ -268,8 +268,6 @@ $(document).ready(function(){
     
     setTimeout(function () {
         $("#typeList").data("kendoDropDownList").value("alltypes");
-        var dropdownlist = $("#typeList").data("kendoDropDownList");
-        dropdownlist.list.width("auto");
     }, 300);
 
     $('#projectList').kendoDropDownList({
