@@ -40,14 +40,14 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(5)
 
 	availOEM := new(DataAvailability)
 	availHFD := new(DataAvailability)
 	availMet := new(DataAvailability)
-	availHFDDaily := new(DataAvailability)
 	availOEMProject := new(DataAvailability)
 	availHFDProject := new(DataAvailability)
+	// availHFDDaily := new(DataAvailability)
 
 	// OEM
 	go func() {
@@ -64,11 +64,6 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 		availMet = ev.metTowerSummary()
 		wg.Done()
 	}()
-	// HFD Daily
-	go func() {
-		availHFDDaily = ev.scadaHFDSummaryDailyTurbine()
-		wg.Done()
-	}()
 	// OEM PROJECT
 	go func() {
 		availOEMProject = ev.scadaOEMSummaryProject()
@@ -79,6 +74,11 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 		availHFDProject = ev.scadaHFDSummaryProject()
 		wg.Done()
 	}()
+	// HFD Daily
+	// go func() {
+	// 	availHFDDaily = ev.scadaHFDSummaryDailyTurbine()
+	// 	wg.Done()
+	// }()
 
 	wg.Wait()
 
@@ -96,10 +96,10 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
-	e = ev.Ctx.Insert(availHFDDaily)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
-	}
+	// e = ev.Ctx.Insert(availHFDDaily)
+	// if e != nil {
+	// 	ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
+	// }
 	/* ============== PROJECT LEVEL ============== */
 	availMet.ID = availMet.ID + "_PROJECT"
 	availMet.Type = availMet.Type + "_PROJECT"
@@ -697,7 +697,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 	wg.Wait()
 
 	availabilityDaily.Details = detailsDaily
-	ev.Log.AddLog(tk.Sprintf(">> DONE SCADA HFD DAILY"), sInfo)
+	ev.Log.AddLog(tk.Sprintf(">> DONE SCADA HFD DAILY PROJECT LEVEL"), sInfo)
 
 	return availabilityDaily
 }
@@ -706,11 +706,6 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailabili
 	tk.Println("===================== SCADA DATA HFD DAILY TURBINE LEVEL...")
 	var wg sync.WaitGroup
 
-	ctx, e := PrepareConnection()
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
-		os.Exit(0)
-	}
 	now := getTimeNow()
 
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
@@ -726,23 +721,68 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailabili
 	availabilityDaily.PeriodFrom = periodFrom
 	availabilityDaily.PeriodTo = periodTo
 
+	countx := 0
+	maxPar := 5
+
+	detailsDaily := []DataAvailabilityDetail{}
+
+	for currTurbine, turbineVal := range ev.BaseController.RefTurbines {
+		wg.Add(1)
+		value, _ := tk.ToM(turbineVal)
+		currProject := value.GetString("project")
+		go func(project, turbine string) {
+			defer wg.Done()
+			ev.workerDailyTurbine(project, turbine, &detailsDaily)
+		}(currProject, currTurbine)
+
+		countx++
+
+		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
+			// wg.Wait()
+		}
+	}
+	wg.Wait()
+
+	availabilityDaily.Details = detailsDaily
+	ev.Log.AddLog(tk.Sprintf(">> DONE SCADA HFD DAILY"), sInfo)
+
+	return availabilityDaily
+}
+
+func (ev *DataAvailabilitySummary) workerDailyTurbine(project, turbine string, details *[]DataAvailabilityDetail) {
+	detail := []DataAvailabilityDetail{}
+	start := time.Now()
+
+	totalTurbine := 1.0
+	maxDataPerDay := 6.0 * 24.0 * totalTurbine /* dalam 1 jam ada 6 data karena per 10 menit dikalikan 24 karena 1 hari ada 24 jam*/
+	duration := 0.0
+	countID := 1
+
+	now := getTimeNow() /* time.Now India */
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
+	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
+
+	ctx, e := PrepareConnection()
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
+		os.Exit(0)
+	}
+
 	matches := []tk.M{
+		tk.M{"projectname": project},
+		tk.M{"turbine": turbine},
 		tk.M{"dateinfo.dateid": tk.M{"$gte": periodFrom}},
 		tk.M{"isnull": false},
 	}
 	groups := tk.M{
 		"_id": tk.M{
-			"projectname": "$projectname",
-			"turbine":     "$turbine",
-			"tanggal":     "$dateinfo.dateid",
+			"tanggal": "$dateinfo.dateid",
 		},
 		"totaldata": tk.M{"$sum": 1},
 	}
 	projection := tk.M{
-		"projectname": "$_id.projectname",
-		"turbine":     "$_id.turbine",
-		"tanggal":     "$_id.tanggal",
-		"totaldata":   1,
+		"tanggal":   "$_id.tanggal",
+		"totaldata": 1,
 	}
 
 	pipes := []tk.M{}
@@ -757,117 +797,40 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailabili
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 	}
 
-	_data := tk.M{}
-	dataPerturbine := map[string][]tk.M{} /* for appending data per project per turbine */
-	currProject := ""
-	currTurbine := ""
-	keys := ""
+	type ObjectFetch struct {
+		Tanggal   time.Time
+		TotalData float64
+	}
+	data := []ObjectFetch{}
+	_data := ObjectFetch{}
 	for {
-		_data = tk.M{}
+		_data = ObjectFetch{}
 		e = csr.Fetch(&_data, 1, false)
 		if e != nil {
 			break
 		}
-		currProject = _data.GetString("projectname")
-		currTurbine = _data.GetString("turbine")
-		keys = tk.Sprintf("%s_%s", currProject, currTurbine)
-		dataPerturbine[keys] = append(dataPerturbine[keys], _data)
+		data = append(data, _data)
 	}
 	csr.Close()
 
-	countx := 0
-	maxPar := 5
-
-	detailsDaily := []DataAvailabilityDetail{}
-
-	wg.Add(len(ev.BaseController.RefTurbines))
-	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		value, _ := tk.ToM(turbineVal)
-		currProject = value.GetString("project")
-		keys = tk.Sprintf("%s_%s", currProject, turbine)
-		go workerDaily(dataPerturbine[keys], 1.0, &detailsDaily, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
-	}
-
-	availabilityDaily.Details = detailsDaily
-	ev.Log.AddLog(tk.Sprintf(">> DONE SCADA HFD DAILY"), sInfo)
-
-	return availabilityDaily
-}
-
-func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityDetail, wg *sync.WaitGroup) {
-	detail := []DataAvailabilityDetail{}
-	/*groups := tk.M{
-		"_id": tk.M{
-			"projectname": "$projectname",
-			"turbine":     "$turbine", // kalo untuk project level ya gak di group per turbine
-			"tanggal":     "$dateinfo.dateid",
-		},
-		"totaldata": tk.M{"$sum": 1},
-	}*/
-	// ids := tk.M{}
-	maxDataPerDay := 6.0 * 24.0 * totalTurbine /* dalam 1 jam ada 6 data karena per 10 menit dikalikan 24 karena 1 hari ada 24 jam*/
-	duration := 0.0
-	countID := 1
-	periodFrom := time.Time{}
-	periodTo := time.Time{}
-	// if len(data) > 0 {
-	// 	for _, datum := range data {
-	// 		ids = datum.Get("_id", tk.M{}).(tk.M)
-	// 		periodFrom = ids.Get("tanggal", time.Time{}).(time.Time)
-	// 		periodTo = periodFrom
-	// 		duration = tk.Div(datum.GetFloat64("totaldata"), maxDataPerDay)
-	// 		if duration >= 0.5 {
-	// 			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
-	// 				datum.GetString("turbine"), duration, true, countID))
-	// 		} else {
-	// 			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, datum.GetString("projectname"),
-	// 				datum.GetString("turbine"), duration, false, countID))
-	// 		}
-	// 		countID++
-	// 	}
-	// 	mtx.Lock()
-	// 	*details = append(*details, detail...)
-	// 	mtx.Unlock()
-	// }
-
-	now := getTimeNow() /* time.Now India */
-	periodTo, _ = time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodFrom = GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
 	before := time.Time{}
-	// from := time.Time{}
 	latestTimeStamp := time.Time{}
 	currTimeStamp := time.Time{}
 	detail = []DataAvailabilityDetail{}
 	hoursGap := 0.0
-	project := ""
-	turbine := ""
+	var mux sync.Mutex
 
 	if len(data) > 0 {
 		/* ============= START looping data dari DB ============== */
 		for idx, hfd := range data {
-			currTimeStamp = hfd.Get("tanggal", time.Time{}).(time.Time).UTC()
+			currTimeStamp = hfd.Tanggal.UTC()
 			if idx > 0 {
-				before = data[idx-1].Get("tanggal", time.Time{}).(time.Time).UTC()
+				before = data[idx-1].Tanggal.UTC()
 				hoursGap = currTimeStamp.UTC().Sub(before.UTC()).Hours()
 
 				if hoursGap > 24 { /* jika timestamp saat ini dibanding timestamp sebelumnya lebih dari 1 hari maka otomatis unavailable */
-					// countID++
-					// set duration for available datas
-					// duration = tk.ToFloat64(before.UTC().Sub(from.UTC()).Hours()/24, 2, tk.RoundingAuto)
-					/* durasi available mulai dari data from yang terakhir tersimpan sampai data index-1 */
-					// mtx.Lock()
-					// *details = append(*details, setDataAvailDetail(from, before, project,
-					// 	turbine, duration, true, countID))
-					// mtx.Unlock()
 					// set duration for unavailable datas
 					countID++
-					// duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
 					duration = 24 // duration langsung diset 24 jam
 					mulai := before
 				perDayLoop:
@@ -876,41 +839,34 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 						if mulai.After(currTimeStamp.AddDate(0, 0, -1)) {
 							break perDayLoop
 						}
-						mtx.Lock()
+						mux.Lock()
 						*details = append(*details, setDataAvailDetail(mulai, mulai, project,
 							turbine, duration, false, countID))
-						mtx.Unlock()
+						mux.Unlock()
 						mulai = mulai.AddDate(0, 0, 1)
 
 					}
-					/* durasi unavailable mulai dari data index-1 sampai data index saat ini */
-					// from = currTimeStamp
 				} else {
-					duration = tk.Div(hfd.GetFloat64("totaldata"), maxDataPerDay)
+					duration = tk.Div(hfd.TotalData, maxDataPerDay)
 					if duration >= 0.5 { /* dianggap available karena durasi >= setengah hari */
 						countID++
-						mtx.Lock()
+						mux.Lock()
 						*details = append(*details, setDataAvailDetail(currTimeStamp, currTimeStamp, project,
 							turbine, duration, true, countID))
-						mtx.Unlock()
+						mux.Unlock()
 					} else { /* dianggap not available karena durasi < setengah hari */
 						countID++
-						mtx.Lock()
+						mux.Lock()
 						*details = append(*details, setDataAvailDetail(currTimeStamp, currTimeStamp, project,
 							turbine, duration, false, countID))
-						mtx.Unlock()
+						mux.Unlock()
 					}
 				}
 			} else {
-				project = hfd.GetString("projectname")
-				turbine = hfd.GetString("turbine")
-				// from = currTimeStamp
-
 				// set gap from stardate defined by us until actual first data in db
 				hoursGap = currTimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
 				if hoursGap > 24 {
 					countID++
-					// duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto) /* dibuat per hari */
 					duration = 24 // duration langsung diset 24 jam
 					mulai := periodFrom
 				perDayLoopFirst:
@@ -925,7 +881,7 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 
 					}
 				} else {
-					duration = tk.Div(hfd.GetFloat64("totaldata"), maxDataPerDay)
+					duration = tk.Div(hfd.TotalData, maxDataPerDay)
 					if duration >= 0.5 { /* dianggap available karena durasi >= setengah hari */
 						countID++
 						detail = append(detail, setDataAvailDetail(currTimeStamp, currTimeStamp, project,
@@ -941,19 +897,6 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 			latestTimeStamp = currTimeStamp
 		}
 		/* =============  END OF looping data dari DB ============== */
-
-		// hoursGap = latestTimeStamp.UTC().Sub(from.UTC()).Hours()
-		/* jika data terakhir dikurangi data from yang terakhir tersimpan > 24 jam
-		maka dianggap AVAILABLE karena data ini bisa jadi belum ter plot
-		karena jika hfd-before < 24 jam akan dilewati pada logic di dalam looping di atas */
-		// if hoursGap > 24 {
-		// 	countID++
-		// 	duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
-		// 	mtx.Lock()
-		// 	*details = append(*details, setDataAvailDetail(from, latestTimeStamp, project,
-		// 		turbine, duration, true, countID))
-		// 	mtx.Unlock()
-		// }
 
 		// set gap from last data until periodTo
 		hoursGap = periodTo.Sub(latestTimeStamp).Hours()
@@ -1006,8 +949,10 @@ func workerDaily(data []tk.M, totalTurbine float64, details *[]DataAvailabilityD
 
 		}
 	}
-
-	wg.Done()
+	mux.Lock()
+	*details = append(*details, detail...)
+	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", turbine, len(data), time.Now().Sub(start).Seconds()), sInfo)
+	mux.Unlock()
 }
 
 func setDataAvailDetail(from time.Time, to time.Time, project string, turbine string, duration float64, isAvail bool, id int) DataAvailabilityDetail {
