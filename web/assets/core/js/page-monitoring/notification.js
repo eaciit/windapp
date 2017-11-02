@@ -110,7 +110,7 @@ mn.generateGrid = function(param){
             sort: [ { field: "TimeStart", dir: "desc" }, { field: "TimeEnd", dir: "asc" } ],
         },
         sortable: true,
-        toolbar: ["excel"],
+        // toolbar: ["excel"],
         excel: {
             fileName: nameFile+".xlsx",
             filterable: true,
@@ -221,6 +221,10 @@ mn.LoadDataAvail = function(projectname, gridType){
     });
 }
 
+mn.exportToExcel = function(){
+    $("#notificationGrid").getKendoGrid().saveAsExcel();
+}
+
 mn.checkCompleteDate = function () {
     var currentDateData = moment.utc(mn.maxDatetemp).format('YYYY-MM-DD');
     var prevDateData = moment.utc(mn.minDatetemp).format('YYYY-MM-DD');
@@ -273,6 +277,7 @@ $(document).ready(function(){
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
             mn.typeList(mn.typeListData()[project]);
+            $("#typeList").data("kendoDropDownList").value("alltypes");
         }
     });
 

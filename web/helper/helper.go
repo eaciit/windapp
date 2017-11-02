@@ -768,6 +768,7 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 		currProject = _data.GetString("projectname")
 		if lastProject != currProject {
 			if lastProject != "" {
+				tagList = append(allType, tagList...)
 				result.Set(lastProject, tagList)
 				indexCount = 1
 				tagList = []toolkit.M{}
