@@ -333,10 +333,10 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 		}()
 		wg.Wait()
 		dataSeries = append(dataMetTower, dataScada...)
+		turbineAvail = append(turbineAvail, turbineAvailTemp...)
 	} else {
 		dataSeries, turbineAvail = GetScadaData(turbineName, turbineNameSorted, queryT, p.BreakDown)
 	}
-	turbineAvail = append(turbineAvail, turbineAvailTemp...)
 
 	data := struct {
 		Data        []ScadaAnalyticsWDData
