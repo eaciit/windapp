@@ -60,7 +60,8 @@ wd.ChartWindDistributon =  function () {
         dateStart: fa.dateStart,
         dateEnd: fa.dateEnd,
         turbine: fa.turbine(),
-        project: fa.project
+        project: fa.project,
+        breakdown: "avgwindspeed",
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwinddistribution/getlist", param, function (res) {
