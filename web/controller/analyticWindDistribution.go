@@ -42,6 +42,7 @@ func CreateAnalyticWindDistributionController() *AnalyticWindDistributionControl
 var (
 	windCats    []float64
 	nacelleCats []float64
+	colorList   []string
 )
 
 func getWindDistrCategory(windValue float64) float64 {
@@ -63,8 +64,8 @@ type ScadaAnalyticsWDData struct {
 	Contribute float64
 }
 
-func setContribution(turbine, tipe string, dataCatCount map[string]float64, countPerWSCat float64) (results []ScadaAnalyticsWDData) {
-	results = []ScadaAnalyticsWDData{}
+func setContribution(turbine, tipe string, dataCatCount map[string]float64, countPerWSCat float64) (results []float64) {
+	results = []float64{}
 	category := []float64{}
 	switch tipe {
 	case "nacelledeviation":
@@ -74,17 +75,29 @@ func setContribution(turbine, tipe string, dataCatCount map[string]float64, coun
 	}
 
 	for _, val := range category {
-		results = append(results, ScadaAnalyticsWDData{
-			Turbine:    turbine,
-			Category:   val,
-			Contribute: tk.Div(dataCatCount[tk.ToString(val)], countPerWSCat),
-		})
+		results = append(results, tk.Div(dataCatCount[tk.ToString(val)], countPerWSCat))
 	}
 	return
 }
 
-func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []ScadaAnalyticsWDData {
-	dataSeries := []ScadaAnalyticsWDData{}
+func setSeries(turbinename, color string, index int, data []float64) tk.M {
+	return tk.M{
+		"name":  turbinename,
+		"color": color,
+		"style": "smooth",
+		"width": 2,
+		"type":  "line",
+		"index": index,
+		"data":  data,
+		"markers": tk.M{
+			"visible": false,
+			"size":    3,
+		},
+	}
+}
+
+func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
+	dataSeries := []tk.M{}
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 
@@ -134,12 +147,13 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []ScadaAnalyticsWDD
 		dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 	}
 	csrData.Close()
-	dataSeries = append(dataSeries, setContribution("Met Tower", "avgwindspeed", dataCatCount, countPerWSCat)...)
+	dataSeriesVal := setContribution("Met Tower", "avgwindspeed", dataCatCount, countPerWSCat)
+	dataSeries = append(dataSeries, setSeries("Met Tower", colorList[0], 0, dataSeriesVal))
 
 	return dataSeries
 }
 
-func GetScadaData(turbineName map[string]string, turbineNameSorted []string, queryT []*dbox.Filter, tipe string) ([]ScadaAnalyticsWDData, []string) {
+func GetScadaData(turbineName map[string]string, turbineNameSorted []string, queryT []*dbox.Filter, tipe string, withMet bool) ([]tk.M, []string) {
 	var e error
 	fieldName := ""
 	maxStep := 0.0
@@ -169,8 +183,8 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 	dataCatCount := map[string]float64{}
 	category := 0.0
 	modus := 0.0
-	dataSeries := []ScadaAnalyticsWDData{}
-	dataSeriesTempMap := map[string][]ScadaAnalyticsWDData{}
+	dataSeries := []tk.M{}
+	dataSeriesPerTurbine := map[string][]float64{}
 	_data := tk.M{}
 	for {
 		_data = tk.M{}
@@ -181,7 +195,7 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 		_turbine = turbineName[_data.GetString("turbine")]
 		if lastTurbine != _turbine {
 			if lastTurbine != "" {
-				dataSeriesTempMap[lastTurbine] = setContribution(lastTurbine, tipe, dataCatCount, countPerWSCat)
+				dataSeriesPerTurbine[lastTurbine] = setContribution(lastTurbine, tipe, dataCatCount, countPerWSCat)
 			}
 			dataCatCount = map[string]float64{}
 			lastTurbine = _turbine
@@ -201,14 +215,19 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 		dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 	}
 	if lastTurbine != "" {
-		dataSeriesTempMap[lastTurbine] = setContribution(lastTurbine, tipe, dataCatCount, countPerWSCat)
+		dataSeriesPerTurbine[lastTurbine] = setContribution(lastTurbine, tipe, dataCatCount, countPerWSCat)
 	}
 	csrData.Close()
 	turbineAvail := []string{}
+	index := 0
+	if withMet {
+		index = 1
+	}
 	for _, _turbinename := range turbineNameSorted {
-		if dataSeriesVal, hasKey := dataSeriesTempMap[_turbinename]; hasKey {
-			dataSeries = append(dataSeries, dataSeriesVal...)
+		if dataSeriesVal, hasKey := dataSeriesPerTurbine[_turbinename]; hasKey {
+			dataSeries = append(dataSeries, setSeries(_turbinename, colorList[index], index, dataSeriesVal))
 			turbineAvail = append(turbineAvail, _turbinename)
+			index++
 		}
 	}
 
@@ -218,12 +237,15 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	dataSeries := []ScadaAnalyticsWDData{}
+	dataSeries := []tk.M{}
 
 	p := new(PayloadAnalytic)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
+	}
+	for _, color := range p.Color {
+		colorList = append(colorList, tk.ToString(color))
 	}
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
@@ -232,6 +254,8 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
+
+	category := []float64{}
 	switch p.BreakDown {
 	case "nacelledeviation":
 		nacelleCats = []float64{}
@@ -243,6 +267,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 			nacelleCats = append(nacelleCats, start)
 			start += stepNacelle
 		}
+		category = nacelleCats
 		query = append(query, tk.M{"nacelledeviation": tk.M{"$gte": -180}})
 	case "avgwindspeed":
 		windCats = []float64{}
@@ -254,6 +279,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 			windCats = append(windCats, start)
 			start += stepWS
 		}
+		category = windCats
 		query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
 	}
 	query = append(query, tk.M{"available": 1})
@@ -319,8 +345,8 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	turbineAvailTemp := []string{}
 
 	if p.Project == "Tejuva" && p.BreakDown == "avgwindspeed" {
-		dataMetTower := []ScadaAnalyticsWDData{}
-		dataScada := []ScadaAnalyticsWDData{}
+		dataMetTower := []tk.M{}
+		dataScada := []tk.M{}
 		var wg sync.WaitGroup
 		wg.Add(2)
 		go func() {
@@ -328,22 +354,24 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 			wg.Done()
 		}()
 		go func() {
-			dataScada, turbineAvailTemp = GetScadaData(turbineName, turbineNameSorted, queryT, p.BreakDown)
+			dataScada, turbineAvailTemp = GetScadaData(turbineName, turbineNameSorted, queryT, p.BreakDown, true)
 			wg.Done()
 		}()
 		wg.Wait()
 		dataSeries = append(dataMetTower, dataScada...)
 		turbineAvail = append(turbineAvail, turbineAvailTemp...)
 	} else {
-		dataSeries, turbineAvail = GetScadaData(turbineName, turbineNameSorted, queryT, p.BreakDown)
+		dataSeries, turbineAvail = GetScadaData(turbineName, turbineNameSorted, queryT, p.BreakDown, false)
 	}
 
 	data := struct {
-		Data        []ScadaAnalyticsWDData
+		Data        []tk.M
 		TurbineList []string
+		Categories  []float64
 	}{
 		Data:        dataSeries,
 		TurbineList: turbineAvail,
+		Categories:  category,
 	}
 
 	return helper.CreateResult(true, data, "success")
