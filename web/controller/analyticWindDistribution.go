@@ -45,19 +45,6 @@ var (
 	colorList   []string
 )
 
-func getWindDistrCategory(windValue float64) float64 {
-	var datas float64
-
-	for _, val := range windCats {
-		if val >= windValue {
-			datas = val
-			return datas
-		}
-	}
-
-	return datas
-}
-
 type ScadaAnalyticsWDData struct {
 	Turbine    string
 	Category   float64
@@ -101,10 +88,6 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
 
 	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 
-	type MiniMetTower struct {
-		VHubWS90mAvg float64
-	}
-
 	queryT := []*dbox.Filter{}
 	queryT = append(queryT, dbox.Gte("dateinfo.dateid", tStart))
 	queryT = append(queryT, dbox.Lte("dateinfo.dateid", tEnd))
@@ -126,22 +109,22 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
 	dataCatCount := map[string]float64{}
 	category := 0.0
 	modus := 0.0
-	_data := MiniMetTower{}
+	_data := tk.M{}
 	for {
-		_data = MiniMetTower{}
+		_data = tk.M{}
 		e = csrData.Fetch(&_data, 1, false)
 		if e != nil {
 			break
 		}
 		countPerWSCat++
-		if _data.VHubWS90mAvg > maxWS {
-			_data.VHubWS90mAvg = maxWS
+		if _data.GetFloat64("vhubws90mavg") > maxWS {
+			_data.Set("vhubws90mavg", maxWS)
 		}
-		modus = math.Mod(_data.VHubWS90mAvg, stepWS)
+		modus = math.Mod(_data.GetFloat64("vhubws90mavg"), stepWS)
 		if modus == 0 {
-			category = _data.VHubWS90mAvg
+			category = _data.GetFloat64("vhubws90mavg")
 		} else {
-			category = _data.VHubWS90mAvg - modus + stepWS
+			category = _data.GetFloat64("vhubws90mavg") - modus + stepWS
 		}
 		groupKey = tk.ToString(category)
 		dataCatCount[groupKey] = dataCatCount[groupKey] + 1
