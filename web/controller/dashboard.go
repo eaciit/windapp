@@ -3167,7 +3167,7 @@ func setMapData() (result tk.M) {
 
 	waitingForWsProject := 0
 	dataNa := 0
-	dataDowns := 0
+	dataDowns, greyDowns := 0, 0
 	_tTurbine := ""
 	_tProject := ""
 	isDataComing := false
@@ -3175,7 +3175,7 @@ func setMapData() (result tk.M) {
 	keys := ""
 	lastProject := ""
 	turbineStatus := map[string]string{}
-	turbineDownList := []tk.M{}
+	turbineDownList, turbineDownListByProject := []tk.M{}, []tk.M{}
 	turbineName := map[string]string{}
 	currentDate := getTimeNow()
 	downPerProject := map[string]int{}
@@ -3188,6 +3188,19 @@ func setMapData() (result tk.M) {
 		_tProject = ids.GetString("projectname")
 		if lastProject != _tProject {
 			if lastProject != "" {
+
+				if len(turbineName) == dataNa {
+					dataDowns = 0
+					turbineDownListByProject = []tk.M{}
+					downPerProject[lastProject] = 0
+				} else {
+					dataNa = dataNa - greyDowns
+				}
+
+				if len(turbineDownListByProject) > 0 {
+					turbineDownList = append(turbineDownList, turbineDownListByProject...)
+				}
+
 				result.Set(lastProject, tk.M{
 					"grey":        dataNa,
 					"orange":      waitingForWsProject,
@@ -3200,8 +3213,8 @@ func setMapData() (result tk.M) {
 			lastProject = _tProject
 			turbineStatus = map[string]string{}
 			waitingForWsProject = 0
-			dataNa = 0
-			dataDowns = 0
+			dataNa, dataDowns, greyDowns = 0, 0, 0
+			turbineDownListByProject = []tk.M{}
 		}
 		turbineStatus[_tTurbine] = "green"
 		if t0.Sub(tstamp).Minutes() <= 5 || servt0.Sub(servtstamp).Minutes() <= 5 {
@@ -3214,16 +3227,24 @@ func setMapData() (result tk.M) {
 		keys = _tProject + "_" + _tTurbine
 
 		if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
-			if _idt.Status == 0 && isDataComing {
+			if _idt.Status == 0 {
 				downHours := currentDate.UTC().Sub(_idt.DateStart.UTC()).Hours()
 				dtDown := tk.M{
 					"_id":    turbineName[_idt.Turbine],
 					"result": downHours,
 					"isdown": true,
+					"color":  "red",
 				}
-				downPerProject[_tProject]++
-				turbineDownList = append(turbineDownList, dtDown)
 				turbineStatus[_tTurbine] = "red"
+
+				if !isDataComing {
+					turbineStatus[_tTurbine] = "grey"
+					greyDowns++
+					dtDown.Set("color", "grey")
+				}
+
+				downPerProject[_tProject]++
+				turbineDownListByProject = append(turbineDownListByProject, dtDown)
 				dataDowns++
 			} else if waitingForWs.Has(keys) && isDataComing {
 				turbineStatus[_tTurbine] = "orange"
@@ -3231,7 +3252,21 @@ func setMapData() (result tk.M) {
 			}
 		}
 	}
+
 	if lastProject != "" {
+
+		if len(turbineName) == dataNa {
+			dataDowns = 0
+			turbineDownListByProject = []tk.M{}
+			downPerProject[lastProject] = 0
+		} else {
+			dataNa = dataNa - greyDowns
+		}
+
+		if len(turbineDownListByProject) > 0 {
+			turbineDownList = append(turbineDownList, turbineDownListByProject...)
+		}
+
 		result.Set(lastProject, tk.M{
 			"grey":        dataNa,
 			"orange":      waitingForWsProject,
