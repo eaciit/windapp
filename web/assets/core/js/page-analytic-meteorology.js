@@ -123,6 +123,10 @@ pm.resetStatus= function(){
     pm.isFirstEnergy(true);
     pm.isFirstTwelve(true);
     pm.isFirstWindRoseComparison(true);
+
+    // reset for turbulence intensity
+    pm.ShowScatter(false);
+    $('#wCbScatter').find('input[type=checkbox]').removeAttr('checked');
 }
 pm.showFilter = function(){
     $("#periodList").closest(".k-widget").show();
