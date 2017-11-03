@@ -52,6 +52,7 @@ pm.isMet = ko.observable(false);
 pm.isFirstAverage = ko.observable(true);
 pm.isFirstWindRose = ko.observable(true);
 pm.isFirstWindDis = ko.observable(true);
+pm.isFirstNacelleDis = ko.observable(true);
 pm.isFirstTurbulence = ko.observable(true);
 pm.isFirstTemperature = ko.observable(true);
 pm.isFirstTurbine = ko.observable(true);
@@ -117,6 +118,7 @@ pm.resetStatus= function(){
     pm.isFirstAverage(true);
     pm.isFirstWindRose(true);
     pm.isFirstWindDis(true);
+    pm.isFirstNacelleDis(true);
     pm.isFirstTurbulence(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
