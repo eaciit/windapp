@@ -20,13 +20,8 @@ type AnalyticWindDistributionController struct {
 	App
 }
 
-type ScadaAnalyticsWDDataGroup struct {
-	Turbine  string
-	Category float64
-}
-
 const (
-	minWS       = 0.5
+	minWS       = 1.0
 	maxWS       = 15.0
 	stepWS      = 0.5
 	minNacelle  = -180.0
@@ -40,21 +35,15 @@ func CreateAnalyticWindDistributionController() *AnalyticWindDistributionControl
 }
 
 var (
-	windCats    []float64
-	nacelleCats []float64
-	colorList   []string
+	windCats    []float64 /* step nya muncul 1, 1.5, 2, 2.5, 3, ... dst */
+	nacelleCats []float64 /* step nya muncul -180, -165, -150, -135, -120, ... dst */
+	colorList   []string  /* color list dari UI supaya sinkron */
 )
-
-type ScadaAnalyticsWDData struct {
-	Turbine    string
-	Category   float64
-	Contribute float64
-}
 
 func setContribution(turbine, tipe string, dataCatCount map[string]float64, countPerWSCat float64) (results []float64) {
 	results = []float64{}
 	category := []float64{}
-	switch tipe {
+	switch tipe { /* pemilihan category sesuai tipe nya */
 	case "nacelledeviation":
 		category = nacelleCats
 	case "avgwindspeed":
@@ -91,7 +80,7 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
 	queryT := []*dbox.Filter{}
 	queryT = append(queryT, dbox.Gte("dateinfo.dateid", tStart))
 	queryT = append(queryT, dbox.Lte("dateinfo.dateid", tEnd))
-	queryT = append(queryT, dbox.Gte("vhubws90mavg", 0.5))
+	queryT = append(queryT, dbox.Gt("vhubws90mavg", 0.5))
 
 	if p.Project != "" {
 		queryT = append(queryT, dbox.Eq("projectname", p.Project))
@@ -189,9 +178,9 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 			_data.Set(fieldName, maxStep)
 		}
 		modus = math.Mod(_data.GetFloat64(fieldName), step)
-		if modus == 0 {
+		if modus == 0 { /* jika habis dibagi step maka value itu sendiri yang di assign*/
 			category = _data.GetFloat64(fieldName)
-		} else {
+		} else { /* jika tidak habis dibagi step maka diikutkan value + step setelahnya */
 			category = _data.GetFloat64(fieldName) - modus + step
 		}
 		groupKey = tk.ToString(category)
@@ -263,7 +252,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 			start += stepWS
 		}
 		category = windCats
-		query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
+		query = append(query, tk.M{"avgwindspeed": tk.M{"$gt": 0.5}})
 	}
 	query = append(query, tk.M{"available": 1})
 	if p.Project != "" {
@@ -317,7 +306,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	case "nacelledeviation":
 		queryT = append(queryT, dbox.Gte("nacelledeviation", -180))
 	case "avgwindspeed":
-		queryT = append(queryT, dbox.Gte("avgwindspeed", 0.5))
+		queryT = append(queryT, dbox.Gt("avgwindspeed", 0.5))
 	}
 	queryT = append(queryT, dbox.Eq("available", 1))
 	if p.Project != "" {

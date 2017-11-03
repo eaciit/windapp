@@ -57,6 +57,10 @@ nd.ChartNacelleDistributon =  function () {
         $('#nacelleDistribution').html("");
         var categories = res.data.Categories;
         var dataSeries = res.data.Data;
+        var crossingValue = categories.length/2; /* supaya yAxis bisa pas di tengah */
+        if (dataSeries.length == 0) {
+            crossingValue -= 0.5; /* entah kenapa jika tidak ada data, maka akan bergeser 0.5 point makanya dikurangi 0.5 */
+        }
 
         $("#nacelleDistribution").kendoChart({
             theme: "flat",
@@ -90,7 +94,7 @@ nd.ChartNacelleDistributon =  function () {
                 majorGridLines: {
                     visible: false
                 },
-                axisCrossingValue: Math.round(categories.length/2),
+                axisCrossingValue: crossingValue,
                 labels: {
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     // rotation: 25
