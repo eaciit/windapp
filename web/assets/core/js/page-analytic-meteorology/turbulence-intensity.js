@@ -328,14 +328,14 @@ var ti = {
 			});
 			ti.GetScatter(-1);
 		} else {
-			$('#showHideAllturbulence').prop('checked', true);
-			$('#showHideAllturbulence').prop('disabled', false);
-			var cbs = $('#right-turbine-turbulence').find('input[type=checkbox]');
-			$.each(cbs, function(idx, elm){
-				$(elm).parent().find('button').find('i').removeAttr('style');
-				$(elm).prop('checked', true);
-				$("#chartTI").data("kendoChart").options.series[idx].visible = true;
-			});
+			// $('#showHideAllturbulence').prop('checked', true);
+			// $('#showHideAllturbulence').prop('disabled', false);
+			// var cbs = $('#right-turbine-turbulence').find('input[type=checkbox]');
+			// $.each(cbs, function(idx, elm){
+			// 	$(elm).parent().find('button').find('i').removeAttr('style');
+			// 	$(elm).prop('checked', true);
+			// 	$("#chartTI").data("kendoChart").options.series[idx].visible = true;
+			// });
 			app.loading(true);
 			ti.RefreshchartTI();
 		}
