@@ -406,6 +406,7 @@ var Data = {
         }
 
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
+        console.log(dtLine);
 
         app.loading(true);
 
@@ -719,7 +720,7 @@ var Data = {
     },
     InitRightTurbineList: function() {
         page.turbineList([]);
-        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
+        var dtTurbines = JSON.parse(localStorage.getItem("dataTurbine"));
 
         if (page.turbine().length > 1) {
             $("#showHideChk").html('<label>' +
@@ -739,8 +740,8 @@ var Data = {
                 totalDataShoulBeInProject += val.totaldatashouldbe;
                 totalDataAvailInProject += val.totaldata;
                 $("#right-turbine-list").append('<div class="btn-group">' +
-                '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
-                '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + val.idxseries + '" hidden>' +
+                '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
+                '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + idx + '" hidden>' +
                 '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + ' <label class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ val.name +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
                 '</div>');
             }
@@ -788,14 +789,16 @@ page.showHideAllLegend = function(e) {
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
         $.each(dtTurbines, function(i, val) {
-            if(val.idxseries > 0){
+            val.idxseries = val.idxseries - 1;
+            if(val.name !== "Power Curve"){
                 $("#powerCurve").data("kendoChart").options.series[val.idxseries].visible = true;
             }
         });
         $('#labelShowHide b').text('Select All');
     } else {
         $.each(dtTurbines, function(i, val) {
-            if(val.idxseries > 0){
+            val.idxseries = val.idxseries - 1;
+            if(val.name !== "Power Curve"){
                 $("#powerCurve").data("kendoChart").options.series[val.idxseries].visible = false;
             }
         });
@@ -878,7 +881,7 @@ page.showHideLegend = function(idx) {
 page.ShowHideAfterInitChart = function() {
     var len = $('input[id*=chk-][type=checkbox]').length;
     var chart = $("#powerCurve").data("kendoChart");
-    for (var i = 1; i <= len; i++) {
+    for (var i = 0; i < len; i++) {
         if (!$('#chk-' + i).is(':checked')) {
             // console.log(chart.options);
             chart.options.series[i].visible = false;

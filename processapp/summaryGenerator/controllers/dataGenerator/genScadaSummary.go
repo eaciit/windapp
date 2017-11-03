@@ -755,6 +755,8 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Set("then", 1).
 					Set("else", 0)}
 
+				_ValidPCDev := PopulateValidPCDev(ctx, filter)
+
 				pipe := []tk.M{}
 				pipe = append(pipe, tk.M{}.Set("$match", filter))
 				pipe = append(pipe, tk.M{}.Set("$group", tk.M{}.
@@ -824,6 +826,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.Revenue = power * revenueMultiplier
 					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
 					dt = dt.New()
+
+					//only using valid data
+					dt.PCDeviation = _ValidPCDev.GetFloat64(dt.ID)
 
 					dt.TotalRows = data.GetFloat64("totalrows")
 
@@ -2648,6 +2653,44 @@ func (d *GenScadaSummary) saveLastExecProject(rconn dbox.IConnection, lepData *L
 	defer qSave.Close()
 
 	_ = qSave.Exec(tk.M{}.Set("data", lepData))
+
+	return
+}
+
+func PopulateValidPCDev(iconn dbox.IConnection, filter tk.M) (res tk.M) {
+	res = tk.M{}
+
+	filter.Set("isvalidstate", true)
+
+	pipe := []tk.M{}
+	pipe = append(pipe, tk.M{}.Set("$match", filter))
+	pipe = append(pipe, tk.M{}.Set("$group", tk.M{}.
+		Set("_id", tk.M{}.Set("projectname", "$projectname").Set("turbine", "$turbine").Set("dateid", "$dateinfo.dateid")).
+		Set("pcdeviation", tk.M{}.Set("$sum", "$pcdeviation"))))
+
+	csr, err := iconn.NewQuery().
+		Command("pipe", pipe).
+		From(new(ScadaData).TableName()).
+		Cursor(nil)
+
+	if err != nil {
+		return
+	}
+	defer csr.Close()
+
+	rawres := []tk.M{}
+	err = csr.Fetch(&rawres, 0, false)
+	if err != nil {
+		return
+	}
+
+	for _, raw := range rawres {
+		id := raw["_id"].(tk.M)
+		dateId := id.Get("dateid", time.Time{}).(time.Time)
+		key := tk.Sprintf("%s_%s_%s", id.GetString("projectname"), id.GetString("turbine"), dateId.UTC().Format("20060102"))
+
+		res.Set(key, raw.GetFloat64("pcdeviation"))
+	}
 
 	return
 }

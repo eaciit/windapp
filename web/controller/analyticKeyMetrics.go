@@ -131,9 +131,10 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	totalTurbine := tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
 	// }
 	isExpPValue := false
-
+	
 	for i, key := range keys {
 		list = []tk.M{}
+		series := tk.M{}
 		if tk.HasMember(keyList, key) {
 			csrPValue, e := DB().Connection.NewQuery().
 				From(new(ExpPValueModel).TableName()).
@@ -149,6 +150,46 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				return helper.CreateResult(false, nil, e.Error())
 			}
 			isExpPValue = true
+		}else if key == "DGR"{
+			dateClause := tk.M{
+				"$gte" : tStart,
+				"$lte" : tEnd,
+			}
+			matchClause := tk.M{}
+			matchClause.Set("dateinfo.dateid", dateClause)
+			matchClause.Set("turbine", tk.M{"$in" : turbines})
+			matchClause.Set("chosensite", projectName)
+			groupClause := tk.M{}
+			groupClause.Set("_id",  p.Misc.GetString("breakdown"))
+			groupClause.Set("total", tk.M{"$sum": "$genkwhday"})
+			sortClause := tk.M{
+				"_id" : 1,
+			}
+			pipes := []tk.M{}
+			pipes = append(pipes, tk.M{"$match" : matchClause})
+			pipes = append(pipes, tk.M{"$group" : groupClause})
+			pipes = append(pipes, tk.M{"$sort" : sortClause})
+
+			csr, e := DB().Connection.NewQuery().
+				From(new(DGRModel).TableName()).
+				Command("pipe", pipes).
+				Cursor(nil)
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
+			// results := []tk.M{}
+			e = csr.Fetch(&list, 0, false)
+			// add by ams, 2016-10-07
+			csr.Close()
+			if e != nil {
+				return helper.CreateResult(false, nil, e.Error())
+			}
+			// var tmp []float64
+			// for _, res := range results {
+			// 	tmp = append(tmp, tk.Div(res.GetFloat64("total"), 1000))
+			// }
+			// series.Set("data", tmp)
+			isExpPValue = true		
 		} else {
 			p.Misc.Set("knot_data", k)
 			filter, e := p.ParseFilter()
@@ -204,14 +245,14 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			isExpPValue = false
 			// tk.Printf("breakDown : %s \n", breakDown)
 		}
-		series := tk.M{}
+		
 		measurement = "%"
 		if i == 0 {
 			series.Set("name", key)
 			series.Set("type", "column")
 			series.Set("axis", "Key1")
 			series.Set("gap", 0.7)
-			if key == "Actual Production" || strings.Contains(key, "Generation") {
+			if key == "Actual Production" || strings.Contains(key, "Generation") || key == "DGR" {
 				measurement = "MWh"
 			}
 			series.Set("satuan", measurement)
@@ -223,7 +264,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			series.Set("width", 2)
 			series.Set("axis", "Key2")
 			minKey2 = 100.00
-			if key == "Actual Production" || strings.Contains(key, "Generation") {
+			if key == "Actual Production" || strings.Contains(key, "Generation") || key == "DGR" {
 				minKey2 = 99999999.99
 				measurement = "MWh"
 			}
@@ -286,6 +327,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				values += checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
 			case "P90 PLF":
 				values += val.GetFloat64("p90plf")
+			case "DGR":
+				values = tk.Div(val.GetFloat64("total"), 1000)
 			}
 
 			// plf = energy / (totalTurbine * hourValue * 2.1) * 100
@@ -308,6 +351,10 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					minKey2 = values
 				}
 			}
+			if key == "DGR" {
+				continue	
+			}
+				
 
 			if isExpPValue {
 				if strings.Contains(breakDown, "dateid") {
@@ -430,6 +477,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				listOfCatTitles["biasa"] = catTitle
 			}
 		}
+
+
 		if i > 0 {
 			if measurement == "MWh" {
 				penambah := maxMinValue(maxKey2, 1.0)

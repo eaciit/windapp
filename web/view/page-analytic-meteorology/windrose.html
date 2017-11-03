@@ -1,4 +1,5 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/windrose.js?ANTI_CACHE={{.AntiCache}}"></script>
+
 <div class="col-md-12 list">
 	<div class="col-md-3 col-xs-12 sector-part">
 		<label class="control-label keyA-label">Sectors</label>
@@ -14,9 +15,18 @@
 		</div>
 	</div>
 
+	<div class="panel-heading">
+		<span class="tools pull-right">
+			<!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
+			<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="wr.getPDF('.windrose-part')">
+		    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+		  	</button>
+      	</span>
+	</div>
+
 </div>
 
-<div class="col-md-12" data-bind="foreach: wr.dataWindroseEachTurbine">
+<div class="col-md-12 windrose-part" data-bind="foreach: wr.dataWindroseEachTurbine">
 	<div class="col-md-3 col-xs-12 windrose-item">
 		<i class="fa fa-search-plus tooltipster tooltipstered btn-zoom" onclick="wr.ZoomChart(this.id)" data-bind="attr:{id: 'btn-zoom-' + Name}" title="Zoom Chart" style="cursor: pointer;"></i>
 		<div data-bind="attr:{id: 'chart-' + Name}"></div>

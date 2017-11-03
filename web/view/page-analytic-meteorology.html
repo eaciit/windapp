@@ -27,14 +27,23 @@
                         </div>
                         <div class="clearfix">&nbsp;</div>
 						<ul class="nav nav-tabs " role="tablist">
-							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="aw.AverageWindSpeed()" class="tab-custom">Average Wind Speed</a></li>
+							<li id="avgwindspeedTab" role="presentation" class="active"><a href="#avgwindspeed" aria-controls="Average Wind Speed" role="tab" data-toggle="tab" onclick="aw.AverageWindSpeed()" class="tab-custom">Avg. Wind Speed</a></li>
 							<li id="windroseTab" role="presentation"><a href="#windrose" aria-controls="Wind Rose" role="tab" onclick="wr.WindRose()" data-toggle="tab" class="tab-custom">Wind Rose</a></li>
+
 							<li id="windroseComparisonTab" role="presentation"><a href="#windrosecomparison" aria-controls="Wind Rose" role="tab" onclick="wrb.WindRoseComparison()" data-toggle="tab" class="tab-custom">Wind Rose Comparison</a></li>
+
 							<li id="winddistributionTab" role="presentation"><a onclick="wd.WindDis()" href="#winddistribution" aria-controls="Wind Distribution" role="tab" data-toggle="tab" class="tab-custom">Wind Distribution</a></li>
+
+							<li id="nacelledistributionTab" role="presentation"><a onclick="nd.NacelleDis()" href="#nacelledistribution" aria-controls="Nacelle Distribution" role="tab" data-toggle="tab" class="tab-custom">Nacelle Dist</a></li>
+
 							<li id="turbulenceintencityTab" role="presentation"><a onclick="ti.RefreshData()" href="#turbulenceintencity" aria-controls="Turbulence Intensity" role="tab" data-toggle="tab" class="tab-custom">Turbulence Intensity</a></li>
-							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temperature and Season Plots</a></li>
+
+							<li id="temperatureTab" role="presentation"><a href="#temperature" aria-controls="Temperature and Season Plots" role="tab" data-toggle="tab" class="tab-custom">Temp. and Season Plots</a></li>
+
 							<li id="turbineCorrelationTab" role="presentation" onclick="tc.TurbineCorrelation()"><a href="#turbineCorrelation" aria-controls="Windspeed Correlation" role="tab" data-toggle="tab" class="tab-custom">Windspeed Correlation</a></li>
+
 							<li id="table1224Tab" role="presentation"><a href="#table1224" aria-controls="1224 Table" role="tab" onclick="tb.Table()" data-toggle="tab" class="tab-custom">12/24 Table</a></li>
+
 							<li id="energyCorrelationTab" role="presentation" onclick="ec.EnergyCorrelation()"><a href="#energyCorrelation" aria-controls="Energy Correlation" role="tab" data-toggle="tab" class="tab-custom">Energy Correlation</a></li>
 						</ul>
 
@@ -50,6 +59,9 @@
 							</div>
 							<div role="tabpanel" class="tab-pane" id="winddistribution">
 								{{template "wind-distribution.html"}}
+							</div>
+							<div role="tabpanel" class="tab-pane" id="nacelledistribution">
+								{{template "nacelle-distribution.html"}}
 							</div>
 							<div role="tabpanel" class="tab-pane" id="turbulenceintencity">
 								{{template "turbulence-intensity.html"}}

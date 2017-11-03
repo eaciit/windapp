@@ -402,7 +402,8 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			dataCount = 0.0
 		}
 		dataCount++
-		calibratedWindDir = _data.WindDirection
+		// calibratedWindDir = _data.WindDirection
+		calibratedWindDir = 0
 		dirNo, dirDesc := getDirection(_data.NacelDirection+calibratedWindDir, section)
 		wsNo, wsDesc := getWsCategory(_data.AvgWindSpeed)
 		groupKey = _turbine + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
@@ -736,7 +737,8 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 					break loopFetchData
 				}
 				dataCount++
-				calibratedWindDir = _data.GetFloat64("winddirection")
+				// calibratedWindDir = _data.GetFloat64("winddirection")
+				calibratedWindDir = 0
 				dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
 				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
 				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1

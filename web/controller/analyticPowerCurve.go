@@ -1903,11 +1903,15 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 					datas.Set("WindSpeed", val.DenWindSpeed)
 					datas.Set("Power", val.Power)
 
-					if math.Abs(val.DenDeviationPct) <= dVal {
-						// datas.Set("valueColor", colordeg[selArr])
-						datas.Set("valueColor", colors[selArr])
+					if IsDeviation {
+						if math.Abs(val.DenDeviationPct) <= dVal {
+							// datas.Set("valueColor", colordeg[selArr])
+							datas.Set("valueColor", colors[selArr])
+						} else {
+							datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
+						}
 					} else {
-						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
+						datas.Set("valueColor", colors[selArr])
 					}
 
 					arrDatas = append(arrDatas, datas)
@@ -1925,11 +1929,15 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 
 					datas.Set("WindSpeed", val.AvgWindSpeed)
 					datas.Set("Power", val.Power)
-					if math.Abs(val.DeviationPct) <= dVal {
-						// datas.Set("valueColor", colordeg[selArr])
-						datas.Set("valueColor", colors[selArr])
+					if IsDeviation {
+						if math.Abs(val.DeviationPct) <= dVal {
+							// datas.Set("valueColor", colordeg[selArr])
+							datas.Set("valueColor", colors[selArr])
+						} else {
+							datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
+						}
 					} else {
-						datas.Set("valueColor", colorFieldDegradation[colorIndex[tk.ToString(colors[selArr])]])
+						datas.Set("valueColor", colors[selArr])
 					}
 
 					arrDatas = append(arrDatas, datas)

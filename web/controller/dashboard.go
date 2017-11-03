@@ -10,7 +10,6 @@ import (
 
 	"sync"
 
-	"github.com/eaciit/crowd"
 	"github.com/eaciit/orm"
 
 	"gopkg.in/mgo.v2/bson"
@@ -2686,197 +2685,6 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 	return helper.CreateResult(true, result, "success")
 }
 
-type ScadaAnalyticsWDDataX struct {
-	Project  string
-	Category float64
-	Minutes  float64
-}
-
-func (m *DashboardController) GetWindDistribution(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	var dataSeries []tk.M
-
-	type PayloadWindDist struct {
-		ProjectName string
-		Date        time.Time
-		PeriodList  []string
-	}
-
-	p := new(PayloadWindDist)
-	e := k.GetPayload(&p)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	project, e := getProject()
-
-	// log.Printf(">> %#v \n", project)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	dateStart := p.Date.AddDate(0, -11, 0).UTC()
-	dateStartCurMonth := time.Date(p.Date.Year(), p.Date.Month(), 1, 0, 0, 0, 0, time.UTC)
-
-	tEnd := p.Date.UTC()
-	tStart, _ := time.Parse("20060102_150405", dateStart.Format("20060102")+"_000000")
-	tStartCurMonth, _ := time.Parse("20060102_150405", dateStartCurMonth.Format("20060102")+"_000000")
-	tStart = tStart.UTC()
-
-	query := []tk.M{}
-	pipes := []tk.M{}
-	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
-	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
-	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
-	query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
-	query = append(query, tk.M{"available": tk.M{"$eq": 1}})
-
-	type ScadaAnalyticsWDDataGroup struct {
-		Project  string
-		Category float64
-	}
-
-	type MiniScada struct {
-		AvgWindSpeed float64
-		Project      string
-		Count        int
-	}
-	tmpResult := []MiniScada{}
-	result := tk.M{}
-
-	for _, period := range p.PeriodList {
-		dataSeries = []tk.M{}
-		queryT := []tk.M{}
-
-		if period == "currentmonth" {
-			query[1] = tk.M{"dateinfo.dateid": tk.M{"$gte": tStartCurMonth}}
-		}
-		for _, proj := range project {
-			_data := []tk.M{}
-			pipes = []tk.M{}
-			tmpResult = []MiniScada{}
-			queryT = query
-			queryT = append(queryT, tk.M{"projectname": proj})
-			pipes = append(pipes, tk.M{"$match": tk.M{"$and": queryT}})
-			pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
-			pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
-			csr, _ := DB().Connection.NewQuery().
-				From(new(ScadaData).TableName()).
-				Command("pipe", pipes).Cursor(nil)
-
-			e = csr.Fetch(&_data, 0, false)
-			if e != nil {
-				break
-			}
-			csr.Close()
-
-			// log.Printf("> %v | %v \n", tStart.UTC().String(), tEnd.UTC().String())
-
-			// for _, vx := range queryT {
-			// 	log.Printf("> %#v \n", vx)
-			// }
-
-			for _, v := range _data {
-				id := v.Get("_id").(tk.M)
-				tmpResult = append(tmpResult, MiniScada{
-					AvgWindSpeed: id.GetFloat64("avgwindspeed"),
-					Project:      id.GetString("projectname"),
-					Count:        v.GetInt("count"),
-				})
-			}
-
-			if len(tmpResult) > 0 {
-				totalCount := 0
-				datas := crowd.From(&tmpResult).Apply(func(x interface{}) interface{} {
-					dt := x.(MiniScada)
-
-					var di ScadaAnalyticsWDDataX
-					di.Project = dt.Project
-					di.Category = getWindDistrCategory(dt.AvgWindSpeed)
-					di.Minutes = float64(10 * dt.Count)
-					totalCount += dt.Count
-
-					return di
-				}).Exec().Group(func(x interface{}) interface{} {
-					dt := x.(ScadaAnalyticsWDDataX)
-
-					var dig ScadaAnalyticsWDDataGroup
-					dig.Project = dt.Project
-					dig.Category = dt.Category
-
-					return dig
-				}, nil).Exec()
-
-				dts := datas.Apply(func(x interface{}) interface{} {
-					kv := x.(crowd.KV)
-					keys := kv.Key.(ScadaAnalyticsWDDataGroup)
-					vs := kv.Value.([]ScadaAnalyticsWDDataX)
-					total := 0.0
-
-					for _, v := range vs {
-						total += v.Minutes
-					}
-
-					var di ScadaAnalyticsWDDataX
-					di.Project = keys.Project
-					di.Category = keys.Category
-					di.Minutes = total
-
-					return di
-				}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
-
-				totalMinutes := float64(totalCount * 10)
-
-				// if len(dts) > 0 {
-				// 	totalMinutes = crowd.From(&dts).Sum(func(x interface{}) interface{} {
-				// 		dt := x.(ScadaAnalyticsWDDataX)
-				// 		return dt.Minutes
-				// 	}).Exec().Result.Sum
-				// }
-
-				for _, wc := range windCats {
-					exist := crowd.From(&dts).Where(func(x interface{}) interface{} {
-						y := x.(ScadaAnalyticsWDDataX)
-						Project := y.Project == proj
-						Category := y.Category == wc
-						return Project && Category
-					}).Exec().Result.Data().([]ScadaAnalyticsWDDataX)
-
-					distHelper := tk.M{}
-
-					if len(exist) > 0 {
-						distHelper.Set("Project", proj)
-						distHelper.Set("Category", wc)
-
-						Minute := crowd.From(&exist).Sum(func(x interface{}) interface{} {
-							dt := x.(ScadaAnalyticsWDDataX)
-							return dt.Minutes
-						}).Exec().Result.Sum
-
-						distHelper.Set("Contribute", Minute/totalMinutes)
-					} else {
-						distHelper.Set("Project", proj)
-						distHelper.Set("Category", wc)
-						distHelper.Set("Contribute", -0.0)
-					}
-
-					dataSeries = append(dataSeries, distHelper)
-				}
-			}
-		}
-		result[period] = dataSeries
-	}
-	data := struct {
-		Data tk.M
-	}{
-		Data: result,
-	}
-
-	return helper.CreateResult(true, data, "success")
-}
-
 func (m *DashboardController) GetWindDistributionRev(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -3167,7 +2975,7 @@ func setMapData() (result tk.M) {
 
 	waitingForWsProject := 0
 	dataNa := 0
-	dataDowns := 0
+	dataDowns, greyDowns := 0, 0
 	_tTurbine := ""
 	_tProject := ""
 	isDataComing := false
@@ -3175,7 +2983,7 @@ func setMapData() (result tk.M) {
 	keys := ""
 	lastProject := ""
 	turbineStatus := map[string]string{}
-	turbineDownList := []tk.M{}
+	turbineDownList, turbineDownListByProject := []tk.M{}, []tk.M{}
 	turbineName := map[string]string{}
 	currentDate := getTimeNow()
 	downPerProject := map[string]int{}
@@ -3188,6 +2996,19 @@ func setMapData() (result tk.M) {
 		_tProject = ids.GetString("projectname")
 		if lastProject != _tProject {
 			if lastProject != "" {
+
+				if len(turbineName) == dataNa {
+					dataDowns = 0
+					turbineDownListByProject = []tk.M{}
+					downPerProject[lastProject] = 0
+				} else {
+					dataNa = dataNa - greyDowns
+				}
+
+				if len(turbineDownListByProject) > 0 {
+					turbineDownList = append(turbineDownList, turbineDownListByProject...)
+				}
+
 				result.Set(lastProject, tk.M{
 					"grey":        dataNa,
 					"orange":      waitingForWsProject,
@@ -3200,8 +3021,8 @@ func setMapData() (result tk.M) {
 			lastProject = _tProject
 			turbineStatus = map[string]string{}
 			waitingForWsProject = 0
-			dataNa = 0
-			dataDowns = 0
+			dataNa, dataDowns, greyDowns = 0, 0, 0
+			turbineDownListByProject = []tk.M{}
 		}
 		turbineStatus[_tTurbine] = "green"
 		if t0.Sub(tstamp).Minutes() <= 5 || servt0.Sub(servtstamp).Minutes() <= 5 {
@@ -3214,16 +3035,24 @@ func setMapData() (result tk.M) {
 		keys = _tProject + "_" + _tTurbine
 
 		if _idt, _cond := arrturbinestatus[_tTurbine]; _cond {
-			if _idt.Status == 0 && isDataComing {
+			if _idt.Status == 0 {
 				downHours := currentDate.UTC().Sub(_idt.DateStart.UTC()).Hours()
 				dtDown := tk.M{
 					"_id":    turbineName[_idt.Turbine],
 					"result": downHours,
 					"isdown": true,
+					"color":  "red",
 				}
-				downPerProject[_tProject]++
-				turbineDownList = append(turbineDownList, dtDown)
 				turbineStatus[_tTurbine] = "red"
+
+				if !isDataComing {
+					turbineStatus[_tTurbine] = "grey"
+					greyDowns++
+					dtDown.Set("color", "grey")
+				}
+
+				downPerProject[_tProject]++
+				turbineDownListByProject = append(turbineDownListByProject, dtDown)
 				dataDowns++
 			} else if waitingForWs.Has(keys) && isDataComing {
 				turbineStatus[_tTurbine] = "orange"
@@ -3231,7 +3060,21 @@ func setMapData() (result tk.M) {
 			}
 		}
 	}
+
 	if lastProject != "" {
+
+		if len(turbineName) == dataNa {
+			dataDowns = 0
+			turbineDownListByProject = []tk.M{}
+			downPerProject[lastProject] = 0
+		} else {
+			dataNa = dataNa - greyDowns
+		}
+
+		if len(turbineDownListByProject) > 0 {
+			turbineDownList = append(turbineDownList, turbineDownListByProject...)
+		}
+
 		result.Set(lastProject, tk.M{
 			"grey":        dataNa,
 			"orange":      waitingForWsProject,
