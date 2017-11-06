@@ -52,12 +52,16 @@ pm.isMet = ko.observable(false);
 pm.isFirstAverage = ko.observable(true);
 pm.isFirstWindRose = ko.observable(true);
 pm.isFirstWindDis = ko.observable(true);
+pm.isFirstNacelleDis = ko.observable(true);
 pm.isFirstTurbulence = ko.observable(true);
 pm.isFirstTemperature = ko.observable(true);
 pm.isFirstTurbine = ko.observable(true);
 pm.isFirstEnergy = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
+pm.projectName = ko.observable();
+pm.dateEnd = ko.observable();
+pm.dateStart = ko.observable();
 
 
 pm.getAvailDate = function(){
@@ -117,12 +121,17 @@ pm.resetStatus= function(){
     pm.isFirstAverage(true);
     pm.isFirstWindRose(true);
     pm.isFirstWindDis(true);
+    pm.isFirstNacelleDis(true);
     pm.isFirstTurbulence(true);
     pm.isFirstTemperature(true);
     pm.isFirstTurbine(true);
     pm.isFirstEnergy(true);
     pm.isFirstTwelve(true);
     pm.isFirstWindRoseComparison(true);
+
+    // reset for turbulence intensity
+    pm.ShowScatter(false);
+    $('#wCbScatter').find('input[type=checkbox]').removeAttr('checked');
 }
 pm.showFilter = function(){
     $("#periodList").closest(".k-widget").show();
@@ -138,12 +147,45 @@ pm.hideFilter = function(){
     $(".control-label:contains('Period')").hide();
     $(".control-label:contains('to')").hide();
 }
+
+pm.addslashes = function ( str ) {
+    var slash = "\\‍";
+
+    var string = "["+slash+"\""+str+slash+"\"]"
+    // console.log(string);
+    return string;
+}
+pm.sortObject = function(o) {
+    var sorted = {},
+    key, a = [];
+
+    for (key in o) {
+        if (o.hasOwnProperty(key)) {
+            a.push(key);
+        }
+    }
+
+    a.sort();
+
+    for (key = 0; key < a.length; key++) {
+        sorted[a[key]] = o[a[key]];
+    }
+    return sorted;
+}
 $(function(){
     pm.getAvailDate();
 
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         pm.resetStatus();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+        var project = $('#projectList').data("kendoDropDownList").value();
+
+        pm.dateEnd(dateEnd);
+        pm.dateStart(dateStart);
+        pm.projectName(project);
+
         $('.nav').find('li.active').find('a').trigger( "click" );
     });
 
@@ -163,6 +205,13 @@ $(function(){
     setTimeout(function () {
         pm.loadData();
         aw.AverageWindSpeed();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+        var project = $('#projectList').data("kendoDropDownList").value();
+
+        pm.dateEnd(dateEnd);
+        pm.dateStart(dateStart);
+        pm.projectName(project);
 
         $('#projectList').kendoDropDownList({
             change: function () {  
@@ -170,6 +219,9 @@ $(function(){
                 pm.getAvailDate();
                 var project = $('#projectList').data("kendoDropDownList").value();
                 fa.populateTurbine(project);
+                pm.projectName(project);
+
+
             }
         });
 

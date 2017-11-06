@@ -43,6 +43,7 @@ sum.getScadaLastUpdate = ko.observableArray([]);
 sum.detailProjectName = ko.observable();
 sum.DetailAvailabilityData = ko.observableArray([]);
 sum.DetailLostEnergyData = ko.observableArray([]);
+sum.dataDrilldown = ko.observableArray([]);
 
 sum.periodList = [
     // {"text": "Last 12 Months", "value": "last12months"},
@@ -60,16 +61,18 @@ vm.dateAsOf(app.currentDateData);
 
 sum.scadaLastUpdate = function(){
     var project = $("#projectId").data("kendoDropDownList").value();
+    sum.paramPeriod = [];
     for(var i=0;i<sum.periodList.length;i++) {
         sum.paramPeriod.push(sum.periodList[i].value);
     }
+    sum.paramAvailPeriod = [];
     for(var i=0;i<lgd.projectAvailList().length;i++) {
         sum.paramAvailPeriod.push(lgd.projectAvailList()[i].value);
     }
     var param = { ProjectName: project, Date: maxdate};
 
 
-    toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
+    var reqData = toolkit.ajaxPost(viewModel.appName + "dashboard/getscadalastupdate", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -83,6 +86,7 @@ sum.scadaLastUpdate = function(){
         }
         
     });
+    return reqData
 }
 sum.loadData = function () {
     if (lgd.isSummary()) {
@@ -351,7 +355,7 @@ sum.PLF = function (id,dataSource) {
             visible: false,
         },
         chartArea: {
-            height: 185,
+            height: 175,
             background: "transparent",
             padding: 0,
         },
@@ -395,13 +399,11 @@ sum.PLF = function (id,dataSource) {
             majorTickType: "none"
         },
         plotAreaClick: function(e) {
-            if(id === "chartPLFFleet") {
-                if (e.originalEvent.type === "contextmenu") {
-                  // Disable browser context menu
-                  e.originalEvent.preventDefault();
-                }
-                sum.MonthlyProject(e, "plf");
+            if (e.originalEvent.type === "contextmenu") {
+              // Disable browser context menu
+              e.originalEvent.preventDefault();
             }
+            sum.MonthlyProject(e, "plf");
         },
         tooltip: {
             visible: true,
@@ -451,15 +453,15 @@ sum.LostEnergy = function (dataSource) {
             // opacity : 0.7,
         }],
         seriesColors: colorField,
-        seriesClick: function (e) {
-            sum.DetailLostEnergy(e);
-        },
+        // seriesClick: function (e) {
+        //     sum.DetailLostEnergy(e);
+        // },
         plotAreaClick: function(e) {
             if (e.originalEvent.type === "contextmenu") {
               // Disable browser context menu
               e.originalEvent.preventDefault();
             }
-            sum.DetailLTPlot("Fleet", e);
+            sum.DetailLTPlot(lgd.projectName(), e);
         },
         valueAxis: {
             // labels: {
@@ -836,9 +838,9 @@ sum.ProdMonth = function (id, dataSource) {
             color: "#ff9933",
         }],
         // seriesColors: colorField,
-        seriesClick: function (e) {
-            sum.DetailProd(e);
-        },
+        // seriesClick: function (e) {
+        //     sum.DetailProd(e);
+        // },
         plotAreaClick: function(e) {
             if (e.originalEvent.type === "contextmenu") {
               // Disable browser context menu
@@ -911,7 +913,7 @@ sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         chartArea: {
-            height: 185,
+            height: 175,
             background: "transparent",
             padding: 0,
             margin: {
@@ -973,14 +975,13 @@ sum.AvailabilityChart = function (dataSource, dataSeries, tipe) {
             majorTickType: "none"
         },
         plotAreaClick: function(e) {
-            if(tipe === "fleet") {
-                if (e.originalEvent.type === "contextmenu") {
-                  // Disable browser context menu
-                  e.originalEvent.preventDefault();
-                }
-                // sum.DetailAvailability("Fleet", e, "availability");
-                sum.MonthlyProject(e, "availability");
+            if (e.originalEvent.type === "contextmenu") {
+              // Disable browser context menu
+              e.originalEvent.preventDefault();
             }
+            // sum.DetailAvailability("Fleet", e, "availability");
+            sum.MonthlyProject(e, "availability");
+            
         },
         tooltip: {
             visible: true,
@@ -1063,7 +1064,7 @@ sum.ProdCurLast = function (id,dataSource) {
         valueAxes: [{
             line: {
                 visible: false
-            },
+            }, 
             labels: {
                 step: 2,
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -1147,7 +1148,7 @@ sum.setMarkers = function(map, turbineInfos,project) {
                 // sum.ToMonitoringProject(obj.name);
                 setTimeout(function(){
                     $("#projectId").data('kendoDropDownList').value(obj.name);
-                    lgd.LoadData();
+                    $("#projectId").data("kendoDropDownList").trigger("change");
                 }, 200);
             }else{
                 sum.ToMonitoringIndividual(project, obj.value);
@@ -1420,7 +1421,7 @@ sum.CumProduction = function (dataSource) {
         },
         series: [
         {
-            name: "Budget",
+            name: "Budget P75",
             field: "CumBudget",
             // opacity : 0.5,
             color: "#21c4af",
@@ -1689,22 +1690,34 @@ sum.MonthlyProject = function (e, tipe) {
     lgd.isSummary(false);
     sum.isMonthlyProject(true);
 
+    var projects =  ["Tejuva", "Lahori", "Amba"];
+    if(lgd.projectName() !== "Fleet"){
+        projects = [lgd.projectName()];
+    }
+
     var param = {
-        Projects: ["Tejuva", "Lahori", "Amba"],
+        Projects: projects
     };
     var dataSource;
     var dataRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getmonthlyproject", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
+
         dataSource = res.data;
+        var data = [];
+        $.each(dataSource, function(key, value){
+            data.push(key);
+        });
+
+        sum.dataDrilldown(data);  
     });
     var dataSeries = [{
-        name: "Production (MWh)",
+        name: "Production (GWh)",
         field: "production",
         axis: "production"
     }, {
-        name: "Lost Energy (MWh) ",
+        name: "Lost Energy (GWh) ",
         field: "lostenergy",
         axis: "lostenergy"
     }];
@@ -1715,7 +1728,7 @@ sum.MonthlyProject = function (e, tipe) {
             margin: {
                 right: 0
             },
-            text: "Production (MWh)",font: "10px"
+            text: "Production (GWh)",font: "10px"
         },
         line: {
             visible: false
@@ -1736,7 +1749,7 @@ sum.MonthlyProject = function (e, tipe) {
             margin: {
                 left: 0
             },
-            text: "Lost Energy (MWh)",font: "10px"},
+            text: "Lost Energy (GWh)",font: "10px"},
         line: {
             visible: false
         },
@@ -1827,7 +1840,7 @@ sum.MonthlyProject = function (e, tipe) {
         chartArea: {
             padding: 10,
             margin: 5,
-            height: 200,
+            height: 225,
         },
         seriesDefaults: {
             type: "column",
@@ -2456,7 +2469,7 @@ sum.DetailLostEnergy = function(e){
                 },
                 labels: {
                     step: 2,
-                    template: "#: kendo.toString(value/1000, 'n0') #",
+                    template: "#: kendo.toString(value, 'n0') #",
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
                 line: {
@@ -2486,7 +2499,7 @@ sum.DetailLostEnergy = function(e){
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: "#: category #: #: kendo.toString(value/1000, 'n1') # MWh",
+                template: "#: category #: #: kendo.toString(value, 'n1') # MWh",
                 border: {
                     color: "#eee",
                     width: "2px",
@@ -2640,6 +2653,14 @@ sum.DetailLTPlot = function(project, e){
         }
         var dataSource = res.data;
 
+        var data = [];
+        
+        $.each(dataSource.datachart, function(key, value){
+            data.push(key);
+        });
+
+        sum.dataDrilldown(data);  
+
         setTimeout(function(){
             sum.DetailLostEnergyData(dataSource.datachart);
             $.each(dataSource.datachart, function(key, val){
@@ -2651,6 +2672,9 @@ sum.DetailLTPlot = function(project, e){
                     title: { 
                         text: key,
                         font: 'bold 12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        margin: {
+                            bottom: -10
+                      },
                     },
                     legend: {
                         position: "top",
@@ -2734,9 +2758,25 @@ sum.DetailLTPlot = function(project, e){
 
             $.each(dataSource.datapie, function(key, val){
 
-                var dataPie = dataSource.datapie[key].sort(function (a, b) {
+                var sum = 0;
+                var results = [];
+                $.each(val, function(i, v){
+                    sum += parseFloat( v.value );
+                });
+
+                $.each(val, function(index, res){
+                    var data = {
+                        name : res.name,
+                        value : res.value,
+                        percentage : (res.value / sum) * 100,
+                    }
+                    results.push(data);
+                });
+
+                var dataPie =results.sort(function (a, b) {
                     return a.name.localeCompare( b.name );
                 });
+
 
                 $("#chartLostEnergyByType-"+key).kendoChart({
                     theme: "flat",
@@ -2759,15 +2799,15 @@ sum.DetailLTPlot = function(project, e){
                     },
                     series: [{
                         type: "pie",
-                        field: "value",
+                        field: "percentage",
                         categoryField: "name",
                     }],
                     seriesColors: colorFieldProject,
                     tooltip: {
                         visible: true,
-                        format: "{0:n1}",
+                        // format: "{0:n2}",
                         background: "rgb(255,255,255, 0.9)",
-                        template: "${ category } : ${ kendo.toString(value, 'n2') }",
+                        template: "${ category } : ${ kendo.toString(percentage, 'p2') } <br> Total Loss : ${ kendo.toString(dataItem.value, 'n2') }  MWh",
                         shared: true,
                         color: "#58666e",
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',

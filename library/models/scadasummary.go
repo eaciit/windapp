@@ -41,8 +41,12 @@ type Last30Days struct {
 	DateId         time.Time
 	CurrProduction float64
 	CurrBudget     float64
+	CurrBudget50   float64
+	CurrBudget90   float64
 	CumProduction  float64
 	CumBudget      float64
+	CumBudget50    float64
+	CumBudget90    float64
 }
 
 func (m *ScadaLastUpdate) New() *ScadaLastUpdate {

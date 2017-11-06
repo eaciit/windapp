@@ -14,15 +14,11 @@ ec.getCss = function(index, da){
     var fontColor = "#333";
     var css = {"background":rgba, "color":fontColor};
 
-
     if(ec.newData().length != 0){
         if (da in ec.newData()[index]){
             color = ec.newData()[index][da].Color;
             opacity = ec.newData()[index][da].Opacity;
-
-            // if(opacity > 0.5){
-            //     fontColor = "#fff";
-            // }
+            
 
             if(color == "red") { 
                 // rgba = 'rgba(255,0,0,'+opacity+')';
@@ -36,10 +32,11 @@ ec.getCss = function(index, da){
 
             // css = {"background":rgba, "font-weight":"bold","color":fontColor};
             css = {"background":rgba, "color":fontColor};
+
+            return css;
         }
     }
     
-    return css;
 }
 
 // Turbine Correlation
@@ -56,7 +53,7 @@ ec.EnergyCorrelation = function(){
                 turbine: fa.turbine(),
                 project: fa.project
             };
-            var dataSource;
+            var dataSource = [];
             var columns;
             var heat;
             var turbineName;
@@ -66,20 +63,49 @@ ec.EnergyCorrelation = function(){
                     app.loading(false);
                     return;
                 }
-                dataSource = res.data.Data;
-                columns = res.data.Column;
-                heat = res.data.Heat;
-                turbineName = res.data.TurbineName;
 
-                ec.datas(dataSource);
+                heat = res.data.Heat;
                 ec.newData(heat);
+
+                $.each(ec.newData(), function(index, val){
+                    var a = JSON.stringify(ec.newData()[index]);
+                    a=a.replace(/\\\"/g, '');
+                    ec.newData()[index] = $.parseJSON(a);  
+                });
+
+
+    
+                dataSource = res.data.Data;
+                
+                turbineName = pm.sortObject(res.data.TurbineName);
+
+                ec.datas(turbineName);
+
+                var temp = [];
+                columns = ["Turbine"];
+                $.each(ec.datas(), function(key, value) {
+                    temp.push({v:value, k: key});
+                });
+
+                temp.sort(function(a,b){
+                   if(a.v > b.v){ return 1}
+                    if(a.v < b.v){ return -1}
+                      return 0;
+                });
+
+                $.each(temp, function(key, value) {
+                    columns.push(value.k);
+                });
+                
                 ec.Column(columns);
 
                 var schemaModel = {};
                 var columnArray = [];
 
                 $.each(columns, function (index, da) {
-                    schemaModel[da] = {type: (da == "Turbine" ? "string" : "int")};
+
+                    schemaModel[da] = {type: (da == "\"Turbine\"" ? "string" : "int")};
+
                     judul = da
                     if(da != "Turbine" && da != "MetTower") {
                         judul = turbineName[da];
@@ -87,10 +113,11 @@ ec.EnergyCorrelation = function(){
 
                     var column = {
                         title: judul,
-                        field: da,
+                        field: pm.addslashes(da),
                         locked: (da == "Turbine" ? true : false),
                         headerAttributes: {
                             style: "text-align: center;",
+                            turbine: da,
                         },
                         attributes: {
                             style: "text-align:center",
@@ -98,11 +125,20 @@ ec.EnergyCorrelation = function(){
                             index: index,
                         },
                         width: 70,
-                        template:( da != "Turbine" ? "#= kendo.toString("+da+", 'n2') #" : "#= kendo.toString("+da+") #")
+                        template: function(e){
+                            if(da == "\"Turbine\""){
+                                return kendo.toString(e[da]);
+                            }else{
+                                 return kendo.toString(e["\""+da+"\""],'n2');
+                            }
+                           
+                        }
                     }
 
                     columnArray.push(column);
                 });
+
+                
 
                 var schemaModelNew = kendo.data.Model.define({
                     id: "Turbine",
@@ -115,6 +151,7 @@ ec.EnergyCorrelation = function(){
                         model: schemaModelNew
                     }
                 });
+
                 $("#gridEnergyCorrelation").html("");
                 $("#gridEnergyCorrelation").kendoGrid({
                     dataSource: knownOutagesDataSource,
@@ -126,10 +163,13 @@ ec.EnergyCorrelation = function(){
                         var ini = this.wrapper;
                         $.each(ec.Column(), function(i, col){
                             var columns = e.sender.columns;
-                            var columnIndex = ini.find(".k-grid-header [data-field=" + col + "]").index();
+
+                            var columnIndex = ini.find(".k-grid-header [turbine=" + col + "]").index();
+                           
 
                             // iterate the data items and apply row styles where necessary
                             var dataItems = e.sender.dataSource.view();
+                         
                             for (var j = 0; j < dataItems.length; j++) {
 
                                 var units = dataItems[j].get(col);
@@ -138,7 +178,7 @@ ec.EnergyCorrelation = function(){
                                 var cell = row.children().eq(columnIndex);
 
                                 cell.css(ec.getCss(j,col));
-                            }
+                            } 
                         });
 
 

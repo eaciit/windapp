@@ -365,7 +365,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	}
 	query = append(query, toolkit.M{"turbine": toolkit.M{"$in": turbine}})
 
-	_data := MiniScada{}
+	_data := toolkit.M{}
 	dataDirNoDesc := map[string]float64{}
 	dataPerTurbine := toolkit.M{}
 	calibratedWindDir := 0.0
@@ -390,24 +390,28 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	}
 
 	for {
+		_data = toolkit.M{}
 		e = csrData.Fetch(&_data, 1, false)
 		if e != nil {
 			break
 		}
-		_turbine = _data.Turbine
+		_turbine = _data.GetString("turbine")
 		if lastTurbine != _turbine {
 			dataPerTurbine.Set(lastTurbine, setDataWS(dataDirNoDesc, &tkMaxVal, dataCount, divider))
 			dataDirNoDesc = map[string]float64{}
 			lastTurbine = _turbine
 			dataCount = 0.0
 		}
-		dataCount++
-		calibratedWindDir = _data.WindDirection
-		dirNo, dirDesc := getDirection(_data.NacelDirection+calibratedWindDir, section)
-		wsNo, wsDesc := getWsCategory(_data.AvgWindSpeed)
-		groupKey = _turbine + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
-			"_" + toolkit.ToString(wsNo) + "_" + wsDesc
-		dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+		if _data.Has("naceldirection") {
+			dataCount++ /* total frequency per turbine */
+			// calibratedWindDir = _data.GetFloat64("winddirection")
+			calibratedWindDir = 0
+			dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
+			wsNo, wsDesc := getWsCategory(_data.GetFloat64("avgwindspeed"))
+			groupKey = _turbine + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
+				"_" + toolkit.ToString(wsNo) + "_" + wsDesc
+			dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+		}
 	}
 	if lastTurbine != "" {
 		dataPerTurbine.Set(lastTurbine, setDataWS(dataDirNoDesc, &tkMaxVal, dataCount, divider))
@@ -448,7 +452,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			groupdata.Set("Name", turbineVal)
 
 			queryMet := query[0:3]
-			_dataMetTower := MiniMetTower{}
+			_dataMetTower := toolkit.M{}
 
 			pipes = []toolkit.M{}
 			pipes = append(pipes, toolkit.M{"$match": toolkit.M{"$and": queryMet}})
@@ -463,21 +467,24 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			dataMetTower := toolkit.M{}
 
 			for {
+				_dataMetTower = toolkit.M{}
 				e = csrMet.Fetch(&_dataMetTower, 1, false)
 				if e != nil {
 					break
 				}
-				dataCount++
-				if _dataMetTower.TimeStamp.UTC().Before(calibrateTime.UTC()) {
-					calibratedWindDir = _dataMetTower.DHubWD88mAvg + 300
-				} else {
-					calibratedWindDir = _dataMetTower.DHubWD88mAvg
+				if _dataMetTower.Has("dhubwd88mavg") {
+					dataCount++
+					if _dataMetTower.Get("timestamp", time.Time{}).(time.Time).UTC().Before(calibrateTime.UTC()) {
+						calibratedWindDir = _dataMetTower.GetFloat64("dhubwd88mavg") + 300
+					} else {
+						calibratedWindDir = _dataMetTower.GetFloat64("dhubwd88mavg")
+					}
+					dirNo, dirDesc := getDirection(calibratedWindDir, section)
+					wsNo, wsDesc := getWsCategory(_dataMetTower.GetFloat64("vhubws90mavg"))
+					groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
+						"_" + toolkit.ToString(wsNo) + "_" + wsDesc
+					dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 				}
-				dirNo, dirDesc := getDirection(calibratedWindDir, section)
-				wsNo, wsDesc := getWsCategory(_dataMetTower.VHubWS90mAvg)
-				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
-					"_" + toolkit.ToString(wsNo) + "_" + wsDesc
-				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 			}
 			dataMetTower.Set(turbineVal, setDataWS(dataDirNoDesc, &tkMaxVal, dataCount, divider))
 			csrMet.Close()
@@ -735,11 +742,14 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				if e != nil {
 					break loopFetchData
 				}
-				dataCount++
-				calibratedWindDir = _data.GetFloat64("winddirection")
-				dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
-				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
-				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+				if _data.Has("naceldirection") {
+					dataCount++
+					// calibratedWindDir = _data.GetFloat64("winddirection")
+					calibratedWindDir = 0
+					dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
+					groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+					dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+				}
 			}
 			hasil := setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider)
 			csrData.Close()
@@ -785,11 +795,13 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 				if e != nil {
 					break
 				}
-				dataCount++
-				calibratedWindDir = _dataMetTower.GetFloat64("dhubwd88mavg") + 300
-				dirNo, dirDesc := getDirection(calibratedWindDir, section)
-				groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
-				dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+				if _dataMetTower.Has("dhubwd88mavg") {
+					dataCount++
+					calibratedWindDir = _dataMetTower.GetFloat64("dhubwd88mavg") + 300
+					dirNo, dirDesc := getDirection(calibratedWindDir, section)
+					groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+					dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
+				}
 			}
 			hasil := setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider)
 			csrMet.Close()

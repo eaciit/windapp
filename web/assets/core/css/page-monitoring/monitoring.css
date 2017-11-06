@@ -8,6 +8,11 @@
     to   { background: default; }
 }
 
+.etoExcel{
+    text-align: right;
+    margin-right: 25px;
+}
+
 .table > thead > tr > th{
   vertical-align: middle;
 }
@@ -1081,4 +1086,8 @@ ul#date_timeview.k-list.k-reset{
 }
 .k-datetimepicker{
     width: 150px;
+}
+
+#notificationGrid{
+  margin-right: 20px;
 }

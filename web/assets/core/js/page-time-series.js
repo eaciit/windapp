@@ -221,7 +221,7 @@ pg.createStockChart = function(y){
                     DateStart: date1,
                     DateEnd: date2,
                     Project: fa.project,
-                    PageType: pg.pageType(),
+                    PageType: (pg.pageType() == 'OEM' ? 'MIX' : pg.pageType()),
                     DataType: pg.dataType() ,
                     TagList : pg.TagList(),
                     IsHour : true,
@@ -571,16 +571,17 @@ pg.getDataStockChart = function(param){
         var maxDate =  new Date(Date.UTC(max.getFullYear(), max.getMonth(), max.getDate(), 0, 0, 0));
         var minDate =  new Date(Date.UTC(min.getFullYear(), min.getMonth(), min.getDate(), 0, 0, 0));
 
-        var now = new Date()
 
         if(pg.isFirst() == true){
           fa.period = "custom";
         }
 
         if(pg.pageType() == 'HFD'){
-            fa.dateEnd = new Date();
-            fa.dateStart  = new Date(now.setMonth(now.getMonth() - 24));
-            
+
+            // var beforedate = new Date()
+            // fa.dateEnd = new Date();
+            // fa.dateStart  = new Date(new Date().setDate(beforedate.getDate()-30));
+
             date1Before = fa.dateStart;
             date2Before = fa.dateEnd;
             hourBefore = Math.abs(date1Before - date2Before) / 36e5;
@@ -594,7 +595,7 @@ pg.getDataStockChart = function(param){
             DateStart: dateStart,
             DateEnd: dateEnd,
             Project: project,
-            PageType: pg.pageType(),
+            PageType: (pg.pageType() == 'OEM' ? 'MIX' : pg.pageType()),
             DataType: pg.dataType() ,
             TagList : pg.TagList(),
             IsHour : IsHour,
@@ -604,6 +605,7 @@ pg.getDataStockChart = function(param){
         
         var request;
         if(pg.live() == false){
+            pg.hideFilterDate(false);
             request = toolkit.ajaxPost(viewModel.appName + url, paramX, function (res) {
                 if (!app.isFine(res)) {
                     return;
@@ -638,6 +640,7 @@ pg.getDataStockChart = function(param){
                 pg.createStockChart();
             });
         }else{
+            pg.hideFilterDate(true);
             pg.createLiveChart(IsHour);
         }
 
@@ -1019,17 +1022,26 @@ pg.ToByProject = function(){
     },1500);
 }
 
-
-$(document).ready(function () {
-    di.getAvailDate();
-    newyAxis = yAxis;
-    if(pg.pageType() === "HFD"){
+pg.hideFilterDate = function(status){
+    if(status == true){
         $("#periodList").closest(".k-widget").hide();
         $("#dateStart").closest(".k-widget").hide();
         $("#dateEnd").closest(".k-widget").hide();
         $(".label-filters:contains('Period')").hide();
         $(".label-filters:contains('to')").hide();
+    }else{
+        $("#periodList").closest(".k-widget").show();
+        $("#dateStart").closest(".k-widget").show();
+        $("#dateEnd").closest(".k-widget").show();
+        $(".label-filters:contains('Period')").show();
+        $(".label-filters:contains('to')").show();
     }
+}
+
+$(document).ready(function () {
+    di.getAvailDate();
+    newyAxis = yAxis;
+
 
     $('#btnRefresh').on('click', function () {
         $("#option1").prop("checked", true);

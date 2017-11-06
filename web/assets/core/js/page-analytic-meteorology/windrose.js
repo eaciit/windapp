@@ -20,6 +20,28 @@ wr.ExportWindRose = function () {
     });
 }
 
+wr.getPDF = function(selector){
+    app.loading(true);
+    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+    var project = $("#projectList").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, "Windrose_for_"+project+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 wr.showHideLegendWR = function (index) {
     var idName = "btn" + index;
     listOfButton[idName] = !listOfButton[idName];
@@ -358,3 +380,20 @@ wr.WindRose = function(){
         }
     }
 }
+
+function sticky_relocate() {
+    var window_top = $(window).scrollTop();
+    var div_top = $('#legend-anchor').offset().top;
+    if (window_top > div_top) {
+        $('#legend-list').addClass('legend');
+        $('#legend-anchor').height($('#legend-list').outerHeight());
+    } else {
+        $('#legend-list').removeClass('legend');
+        $('#legend-anchor').height(0);
+    }
+}
+
+$(function() {
+    $(window).scroll(sticky_relocate);
+    sticky_relocate();
+});

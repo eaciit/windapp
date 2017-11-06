@@ -606,19 +606,20 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			err = errors.New("Date Cannot be Less Than 2013")
 		}
 	} else {
-		iLastDateData := GetLastDateData(r)
+		// iLastDateData := GetLastDateData(r)
 		/*jika memiliki custom date sendiri seperti wind rose yang max date nya 31 Juli 2016*/
 		// customLastDate := r.Session("custom_lastdate")
 
 		// if customLastDate != nil {
 		// 	iLastDateData = customLastDate.(time.Time)
 		// }
-		endDate = iLastDateData
+		// endDate = iLastDateData
 		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
-		if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
-			endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
-				59, 59, 999999999, time.UTC)
-		}
+		// if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
+		// 	endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
+		// 		59, 59, 999999999, time.UTC)
+		// }
+		endDate = currentDate
 
 		switch period {
 		case "last24hours":
@@ -733,6 +734,63 @@ func GetTemperatureList() (result toolkit.M, e error) {
 	return
 }
 
+func GetAlarmTagsList() (result toolkit.M, e error) {
+	csr, e := DBRealtime().NewQuery().
+		From("ref_alarmtaglist").
+		Where(dbox.Eq("enable", true)).
+		Order("projectname", "tagsdesc").
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	_data := toolkit.M{}
+	lastProject := ""
+	currProject := ""
+	indexCount := 1
+	tagList := []toolkit.M{}
+	result = toolkit.M{}
+	allType := []toolkit.M{
+		toolkit.M{
+			"value":   0,
+			"text":    "All Types",
+			"colname": "alltypes",
+		},
+	}
+	for {
+		_data = toolkit.M{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		currProject = _data.GetString("projectname")
+		if lastProject != currProject {
+			if lastProject != "" {
+				tagList = append(allType, tagList...)
+				result.Set(lastProject, tagList)
+				indexCount = 1
+				tagList = []toolkit.M{}
+			}
+			lastProject = currProject
+		}
+		tagList = append(tagList, toolkit.M{
+			"value":   indexCount,
+			"text":    _data.GetString("tagsdesc"),
+			"colname": _data.GetString("tags"),
+		})
+
+		indexCount++
+	}
+	if lastProject != "" {
+		tagList = append(allType, tagList...)
+		result.Set(lastProject, tagList)
+	}
+
+	return
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	pipes := []toolkit.M{
 		toolkit.M{"$match": toolkit.M{"active": true}},
@@ -809,7 +867,10 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 func GetTurbineNameList(project string) (turbineName map[string]string, err error) {
 	query := DBRealtime().NewQuery().From("ref_turbine")
 	if project != "" && project != "Fleet" {
-		query = query.Where(dbox.Eq("project", project))
+		pipes := []toolkit.M{
+			toolkit.M{"$match": toolkit.M{"project": project}},
+		}
+		query = query.Command("pipe", pipes)
 	}
 	csrTurbine, err := query.Cursor(nil)
 	if err != nil {
@@ -823,6 +884,11 @@ func GetTurbineNameList(project string) (turbineName map[string]string, err erro
 	}
 	turbineName = map[string]string{}
 	for _, val := range turbineList {
+		// if project != "" {
+		// 	turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
+		// } else {
+		// 	turbineName[toolkit.Sprintf("%s_%s", val.GetString("project"), val.GetString("turbineid"))] = val.GetString("turbinename")
+		// }
 		turbineName[val.GetString("turbineid")] = val.GetString("turbinename")
 	}
 	return

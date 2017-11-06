@@ -1,5 +1,6 @@
 'use strict';
 
+
 viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 
@@ -16,7 +17,7 @@ page.detailEndDate = ko.observable("");
 
 page.isSpecific = ko.observable(true);
 page.isClean = ko.observable(true);
-page.isPower0 = ko.observable(true); // to show all data, even power less than 0
+page.isPower0 = ko.observable(false); // to show all data, even power less than 0
 page.idName = ko.observable("");
 page.isDeviation = ko.observable(true);
 page.sScater = ko.observable(false);
@@ -25,6 +26,12 @@ page.deviationVal = ko.observable("20");
 
 page.isDensity = ko.observable(false);
 page.dataAvail = ko.observable(0.0);
+page.dataAvailAll = ko.observable(0.0);
+page.totalAvail = ko.observable(0.0);
+page.totalAvailAll = ko.observable(0.0);
+page.viewName = ko.observable();
+
+page.totalAvailTurbines = ko.observableArray([]);
 
 // add by ams Aug 11, 2017
 page.deviationOpts = ko.observableArray([
@@ -38,6 +45,8 @@ page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+page.dateStart = ko.observable();
+page.dateEnd = ko.observable();
 page.ss_airdensity = ko.observable(0.0);
 page.std_airdensity = ko.observable(0.0);
 var lastParam;
@@ -67,22 +76,44 @@ page.populateTurbine = function() {
         page.turbine(fa.turbine());
     }
 }
+
+page.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, "PowerCurve_for_"+project+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
+
 page.ExportPowerCurvePdf = function() {
     var chart = $("#powerCurve").getKendoChart();
     var container = $('<div />').css({
         position: 'absolute',
         top: 0,
-        left: -1500
+        left: -1500,
       }).appendTo('body');
-
-
+    
       var dateStart = moment(lastParam.dateStart).format("DD MMM YYYY");
       var dateEnd = moment(lastParam.dateEnd).format("DD MMM YYYY");
 
       var options = chart.options;
 
       var exportOptions ={
-            // Custom settings for export
+            // Custom settings for export            
             legend: {
               visible: true
             },
@@ -94,7 +125,6 @@ page.ExportPowerCurvePdf = function() {
                 height: 500,
             },
             transitions: false,
-
             // Cleanup
             render: function(e){
               setTimeout(function(){
@@ -105,8 +135,10 @@ page.ExportPowerCurvePdf = function() {
       }
 
       var options2 = $.extend(true, options, exportOptions);
+      
       container.kendoChart(options2);
-
+      
+console.log("container", $(container).getKendoChart())
       $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
@@ -213,10 +245,15 @@ var Data = {
                     return;
                 }
 
+                page.totalAvail(res.data.TotalDataAvail);
+                page.totalAvailAll(res.data.TotalDataAvail);
+                page.totalAvailTurbines(res.data.TotalPerTurbine);
+
                 dataTurbine = res.data.Data;
                 localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
                 page.dtLineChart(res.data.Data);
-                
+            
+
                 $('#powerCurve').html("");
                 $("#powerCurve").kendoChart({
                     pdf: {
@@ -335,9 +372,16 @@ var Data = {
                         },
                     },
                     // zoomable: true,
+                    pannable: {
+                        lock: "y"
+                    },
                     zoomable: {
+                        mousewheel: {
+                            lock: "y"
+                        },
                         selection: {
                             lock: "y",
+                            key: "none",
                         }
                     }
                 });
@@ -447,7 +491,6 @@ var Data = {
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
                 theme: "flat",
-                // renderAs: "canvas",
                 pdf: {
                   fileName: "DetailPowerCurve.pdf",
                 },
@@ -540,8 +583,18 @@ var Data = {
                         }
                     },
                 },
-                pannable: true,
-                zoomable: true
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
+                        lock: "y"
+                    },
+                    selection: {
+                        lock: "y",
+                        key: "none",
+                    }
+                }
             });
 
             app.loading(false);
@@ -691,7 +744,7 @@ var Data = {
     },
     InitRightTurbineList: function() {
         page.turbineList([]);
-        var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
+        var dtTurbines = JSON.parse(localStorage.getItem("dataTurbine"));
 
         if (page.turbine().length > 1) {
             $("#showHideChk").html('<label>' +
@@ -711,13 +764,14 @@ var Data = {
                 totalDataShoulBeInProject += val.totaldatashouldbe;
                 totalDataAvailInProject += val.totaldata;
                 $("#right-turbine-list").append('<div class="btn-group">' +
-                '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + val.idxseries + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + val.idxseries + '"></i></button>' +
-                '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + val.idxseries + '" hidden>' +
+                '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
+                '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + idx + '" hidden>' +
                 '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + ' <label class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ val.name +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
                 '</div>');
             }
         });
         page.dataAvail((totalDataAvailInProject / totalDataShoulBeInProject));
+        page.dataAvailAll((totalDataAvailInProject / totalDataShoulBeInProject));
     },
     InitDownList: function() {
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdownlist", "", function(res) {
@@ -759,14 +813,16 @@ page.showHideAllLegend = function(e) {
     if (e.checked == true) {
         $('.fa-check').css("visibility", 'visible');
         $.each(dtTurbines, function(i, val) {
-            if(val.idxseries > 0){
+            val.idxseries = val.idxseries - 1;
+            if(val.name !== "Power Curve"){
                 $("#powerCurve").data("kendoChart").options.series[val.idxseries].visible = true;
             }
         });
         $('#labelShowHide b').text('Select All');
     } else {
         $.each(dtTurbines, function(i, val) {
-            if(val.idxseries > 0){
+            val.idxseries = val.idxseries - 1;
+            if(val.name !== "Power Curve"){
                 $("#powerCurve").data("kendoChart").options.series[val.idxseries].visible = false;
             }
         });
@@ -810,13 +866,46 @@ page.showHideLegend = function(idx) {
         idx == 0
     }
 
+    // check if turbines not all checked
+    if (!$('#showHideAll').is(':checked')) {
+        var chks = $('input[id*=chk-][type=checkbox]:checked');
+        var totalavail = 0;
+        var totalCount = 0;
+        var sampleAvail = 0;
+        var sampleCount = 0;
+        
+        $.each(chks, function(idx, elm){
+            var tbName = $(elm).attr('name');
+            var tbAvail = page.totalAvailTurbines()[tbName];
+            totalavail += tbAvail.avail;
+            totalCount++;
+
+            var elmAvail = $(elm).parent().find('button.wbtn').find('label').text().replace(' %', '');
+            var currElmAvail = parseFloat(elmAvail);
+            sampleAvail += currElmAvail; 
+            sampleCount++;
+        });
+
+        if(totalCount > 0) {
+            var selectedAvail = totalavail / totalCount;
+            page.totalAvail(selectedAvail);
+
+            var selectedSampleAvail = (sampleAvail / 100) / sampleCount;
+            page.dataAvail(selectedSampleAvail);
+        } else {
+            page.totalAvail(page.totalAvailAll());
+            page.dataAvail(page.dataAvailAll());
+
+        }
+    }
+
     chart._legendItemClick(idx);
 }
 
 page.ShowHideAfterInitChart = function() {
     var len = $('input[id*=chk-][type=checkbox]').length;
     var chart = $("#powerCurve").data("kendoChart");
-    for (var i = 1; i <= len; i++) {
+    for (var i = 0; i < len; i++) {
         if (!$('#chk-' + i).is(':checked')) {
             // console.log(chart.options);
             chart.options.series[i].visible = false;
@@ -879,7 +968,7 @@ page.getSelectedFilter = function(){
         var delim = "";
         $('input[name="filter"]:checked').each(function() {
             if(this.value == "Deviation"){
-                $("#selectedFilter").append(delim + this.value + " < " + deviationVal + " % ");
+                $("#selectedFilter").append(delim + this.value + ($("#deviationOpr").val()=="0"?" < ":" > ") + deviationVal + " % ");
             }else if(this.value == "Specific"){
                  var value = "Site Specific PW"
                  $("#selectedFilter").append(delim + value + " ");
@@ -915,13 +1004,20 @@ $(document).ready(function() {
             $("#selectedFilter").empty();
             page.getSelectedFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
             var isValid = fa.LoadData();
             if(isValid) {
                 app.loading(true);
                 page.resetFilter();
                 Data.InitLinePowerCurve();
             }
+
             page.project(project);
+            page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             var getAd = _.find(page.projectList(), function(p) {
                 return p.ProjectId == project
             });
@@ -935,8 +1031,15 @@ $(document).ready(function() {
     setTimeout(function() {
         $(".label-filter:contains('Turbine')" ).hide();
         $('.multiselect-native-select').hide();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
         page.currProject(fa.project);
+
         page.project(fa.project);
+        page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+        page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+        page.viewName($('input[name=isAvg]:checked').parent('label').text());
 
         var getAd = _.find(page.projectList(), function(p) {
             return p.ProjectId == fa.project
@@ -960,7 +1063,7 @@ $(document).ready(function() {
         // }else{
         //     $('#isSpecific').removeAttr('disabled');
         // }
-
+        page.viewName($('input[name=isAvg]:checked').parent('label').text());
         page.isSpecific(true);
         $('#pc-filter-density').toggle();
         if(this.id == "sitespesific"){
@@ -983,7 +1086,7 @@ $(document).ready(function() {
     });
 
     $('#isPower0').on('click', function() {
-        var isPower0 = $('#isPower0').prop('checked');
+        var isPower0 = $('#isPower0').is(':checked');
         page.isPower0(isPower0);
         page.getSelectedFilter();
         Data.InitLinePowerCurve();

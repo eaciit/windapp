@@ -1,6 +1,10 @@
 	body{
 		background-color: #f0f3f4;
 	}
+	.txt-green{
+		color: #4caf50;
+		font-size: 10px;
+	}
 	.k-state-selected.k-state-focused {
 	    background-color: #ea5b19;
 	}
@@ -245,22 +249,15 @@
 	.prod-div{
 		margin-right: 1.5px;
 	}
-	.plf-div {
-	    margin-left: -1.5px;
-	    margin-right: 3.5px;
-	}
-	.windiness-div{
-	    margin-left: -3px;
-	    margin-right: -5px;
+
+	.fleet-summary{
+		margin-bottom: -100px;
 	}
 	.prodCur-div{
 		margin-left: -6px;
 		padding-right: 4px;
 	}
-	.summary-div{
-		margin-left: -1.5px;
-		margin-right: -5px;
-	}
+
 
 	 #chartProductionCustomTooltip {
 	 	margin-top: -175px !important;
@@ -432,4 +429,8 @@
 
 	.monthly-project-item {
 		margin-bottom: 20px;
+	}
+	.btn-grey {
+		background: #BDBDBD;
+    	border-color: #BDBDBD;
 	}

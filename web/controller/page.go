@@ -34,10 +34,12 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 		projectList, _ := helper.GetProjectList()
 		turbineList, _ := helper.GetTurbineList(nil)
 		temperatureList, _ := helper.GetTemperatureList()
+		alarmTagList, _ := helper.GetAlarmTagsList()
 
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
 		w.Params.Set("TemperatureList", temperatureList)
+		w.Params.Set("AlarmTagList", alarmTagList)
 	}
 
 	r.Writer.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -276,6 +278,7 @@ func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
 		"page-analytic-meteorology/windrose.html",
 		"page-analytic-meteorology/windrose-comparison.html",
 		"page-analytic-meteorology/wind-distribution.html",
+		"page-analytic-meteorology/nacelle-distribution.html",
 		"page-analytic-meteorology/average-windspeed.html",
 		"page-analytic-meteorology/turbine-correlation.html",
 		"page-analytic-meteorology/energy-correlation.html",

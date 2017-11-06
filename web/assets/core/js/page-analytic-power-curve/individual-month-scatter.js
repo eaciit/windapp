@@ -4,6 +4,7 @@ viewModel.AnalyticPowerCurve = new Object();
 var page = viewModel.AnalyticPowerCurve;
 
 page.dataPCEachTurbine = ko.observableArray([]);
+page.PrintPdf = ko.observable(false);
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [];
@@ -41,10 +42,13 @@ vm.breadcrumb([{
 
 
 page.getPDF = function(selector){
+    var title = fa.project + " | "+ kendo.toString($('#dateStart').data('kendoDatePicker').value(), 'MMM-yyyy');
     app.loading(true);
+    page.PrintPdf(true);
+    $("#illusion-month").append($(".individual-month").html());
+    $("#pdf-title").text(title);
     var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
     var project = $("#projectList").data("kendoDropDownList").value();
-
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
             paperSize: "auto",
@@ -57,6 +61,8 @@ page.getPDF = function(selector){
         });
       kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
         setTimeout(function(){
+            $("#illusion-month").empty();
+            page.PrintPdf(false);
             app.loading(false);
         },2000)
     });

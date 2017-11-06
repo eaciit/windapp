@@ -230,7 +230,28 @@ page.createView = function(){
 
 }
 
+function sticky_relocate() {
+    var window_top = $(window).scrollTop();
+
+    $("#header-fixed").html("");
+    var tableOffset = $("#table-dataavailability").offset().top;
+	var $header = $("#table-dataavailability > thead").clone();
+	var $fixedHeader = $("#header-fixed").append($header);
+
+    var offset = $(window).scrollTop();
+
+    if (offset >= tableOffset && $fixedHeader.is(":hidden")) {
+        $fixedHeader.show();
+    }
+    else if (offset < tableOffset) {
+        $fixedHeader.hide();
+    }
+}
+
 $(function () {
+    $(window).scroll(sticky_relocate);
+    sticky_relocate();
+    
 	$('#btnRefresh').on('click', function () {
 		app.loading(true);
 		fa.checkTurbine();

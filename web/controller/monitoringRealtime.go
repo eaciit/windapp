@@ -2459,6 +2459,9 @@ func (c *MonitoringRealtimeController) GetDataNotification(k *knot.WebContext) i
 
 	dfilter := []*dbox.Filter{}
 	dfilter = append(dfilter, dbox.Eq("projectname", project))
+	if p.Tipe != "alltypes" && p.Tipe != "" {
+		dfilter = append(dfilter, dbox.Eq("gtags", p.Tipe))
+	}
 	orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
 		dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
 		dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)),

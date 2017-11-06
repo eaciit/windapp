@@ -15,149 +15,162 @@
     } #
 </script>
 
-    <div class="row">
-        {{template "_filter-analytic.html"}}
-        <div class="col-md-12 col-sm-12 ez panel-content">
-            <div class="col-md-12 col-sm-12 hardcore landing">
-                <div class="panel ez no-padding hardcore">
-                    <div class="panel-body">
-                      {{template "_dateinfo.html"}}
-                      <div class="clearfix">&nbsp;</div>
-                      <div class="col-md-9 no-padding">
-                          <label class="control-label col-md-1 no-padding">Histogram For : </label>
-                          <div class="col-md-2">
-                            <select id="select-page-view" data-bind="options:km.histogramCols,optionsText:'text',optionsValue:'value',value:km.pageView(),event : { change:function(){ km.changePageView() } }" class="form-control input-sm"></select>
+<div class="row">
+    {{template "_filter-analytic.html"}}
+    <div class="col-md-12 col-sm-12 ez panel-content">
+        <div class="col-md-12 col-sm-12 hardcore landing">
+            <div class="panel ez no-padding hardcore">
+                <div class="panel-body">
+                  {{template "_dateinfo.html"}}
+                  <div class="clearfix">&nbsp;</div>
+                  <div class="col-md-12 no-padding">
+                      <div class="input-group input-group-sm ez width-80">
+                          <span class="input-group-addon width-100 align-right">Histogram For :</span>
+                          <select id="select-page-view" data-bind="options:km.histogramCols,optionsText:'text',optionsValue:'value',value:km.pageView(),event : { change:function(){ km.changePageView() } }" class="form-control input-sm" style="width: 110px;"></select>
+                      </div>
+                      <section data-bind="visible:(km.pageView()=='windspeed')">
+                        <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Min. Value</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.MinValueWindSpeed">
                           </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Max. Value</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.MaxValueWindSpeed">
+                          </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Number of Bin.</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.BinValueWindSpeed">
+                          </div>
+                          <button type="button" id="btnRefresh" class="btn btn-sm btn-primary buttonrefresh" onClick='km.SubmitValues()'><i class="fa fa-refresh"></i>&nbsp;Submit</button>
+                          <br>
+                          <div class="clearfix">&nbsp;</div>
+                      </section>
+                      <section data-bind="visible:(km.pageView()=='production')">
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Min. Value</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.MinValue">
+                          </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Max. Value</span>
+                              <input type="text" class="form-control width-50 input-number align-right" id="maxValue" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.MaxValue">
+                          </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Number of Bin.</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.BinValue">
+                          </div>
+                          <button type="button" id="btnRefresh" class="btn btn-sm btn-primary buttonrefresh" onClick='km.SubmitValues()'><i class="fa fa-refresh"></i>&nbsp;Submit</button>
+                            <br>
+                            <div class="clearfix">&nbsp;</div>
+                      </section>
+                      <section data-bind="visible:(km.pageView()=='temperature')">
+                          <div class="input-group input-group-sm ez width-80">
+                                <span class="input-group-addon width-100 align-right">Col. Name</span>
+                                <select id="sTempTags" class="form-control" style="width: 130px;"></select>
+                          </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Min. Value</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.MinValueTemp">
+                          </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Max. Value</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.MaxValueTemp">
+                          </div>
+                          <div class="input-group input-group-sm ez width-80">
+                              <span class="input-group-addon width-100 align-right">Number of Bin.</span>
+                              <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
+                                  placeholder="Type Value" data-bind="value: km.BinValueTemp">
+                          </div>
+                           <button type="button" id="btnRefresh" class="btn btn-sm btn-primary buttonrefresh" onClick='km.SubmitValues()'><i class="fa fa-refresh"></i>&nbsp;Submit</button>
+                            <br>
+                            <div class="clearfix">&nbsp;</div>
+                      </section>
+                  </div>
+                  <div class="col-md-12" id="wrap-windspeed" data-bind="visible:(km.pageView()=='windspeed')">
+                      <div class="col-md-12 title-label">
+                          <strong>Wind Speed (m/s)</strong>
+                          <span id="turbineListTitle"></span> <br />
+                          <span id="totalCountData"></span>
+                      </div>
+                      <div class="col-md-12">
+                        <span class="tools pull-right">
+                            <div class="btn-group" data-toggle="buttons">
+                                <label class="btn btn-primary btn-xs" onclick="$('#dh-chart').kendoChart2Grid()">
+                                    <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                                </label>
+                                <label class="btn btn-primary btn-xs" onclick="km.createChart(km.dsWindTurbinename())">
+                                    <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                                </label>
+                            </div>
+                        </span>
                       </div>
                       <div class="clearfix">&nbsp;</div>
-                      <div class="clearfix">&nbsp;</div>
-                        <div class="col-md-12" id="wrap-windspeed" data-bind="visible:(km.pageView()=='windspeed')">
-                            <div class="col-md-12 title-label">
-                                Wind Speed (m/s) 
-                                <span id="turbineListTitle"></span> <br />
-                                <span id="totalCountData"></span>
-                            </div>
-                            <div class="col-md-12 histogramvalue">
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Min. Value</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MinValueWindSpeed">
-                              </div>
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Max. Value</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MaxValueWindSpeed">
-                              </div>
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Number of Bin.</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.BinValueWindSpeed">
-                              </div>
-                              <button type="button" id="btnRefresh" class="btn btn-sm btn-primary buttonrefresh" onClick='km.SubmitValues()'><i class="fa fa-refresh"></i>&nbsp;Submit</button>
-                              <span class="tools pull-right">
-                                  <div class="btn-group" data-toggle="buttons">
-                                      <label class="btn btn-primary btn-xs" onclick="$('#dh-chart').kendoChart2Grid()">
-                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                                      </label>
-                                      <label class="btn btn-primary btn-xs" onclick="km.createChart()">
-                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                                      </label>
-                                  </div>
-                              </span>
-                                <br>
-                                <div class="clearfix">&nbsp;</div>
-                                <div id="dh-chart"></div>
-                            </div>
-                        </div>
-                        <div class="col-md-12" id="wrap-production" data-bind="visible:(km.pageView()=='production')">
-                          <div class="col-md-12 title-label">
-                                Production (MWH)
-                                <span id="turbineListProd"></span> <br />
-                                <span id="totalCountProd"></span>
-                            </div>
-                            <div class="col-md-12 histogramvalue">
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Min. Value</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MinValue">
-                              </div>
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Max. Value</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MaxValue">
-                              </div>
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Number of Bin.</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.BinValue">
-                              </div>
-                              <button type="button" id="btnRefresh" class="btn btn-sm btn-primary buttonrefresh" onClick='km.SubmitValues()'><i class="fa fa-refresh"></i>&nbsp;Submit</button>
-                              <span class="tools pull-right">
-                                  <div class="btn-group" data-toggle="buttons">
-                                      <label class="btn btn-primary btn-xs" onclick="$('#dhprod-chart').kendoChart2Grid()">
-                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                                      </label>
-                                      <label class="btn btn-primary btn-xs" onclick="km.createChartProduction()">
-                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                                      </label>
-                                  </div>
-                              </span>
-                                <br>
-                                <div class="clearfix">&nbsp;</div>
-                                <div id="dhprod-chart"></div>
-                            </div>
-                        </div>
+                      <div class="col-md-12 text-center" id="dh-chart-div">
+                        <div id="dh-chart"></div>
                         <div class="clearfix">&nbsp;</div>
-                        <div class="col-md-12" id="wrap-temperature" data-bind="visible:(km.pageView()=='temperature')">
-                          <div class="col-md-12 title-label">
-                                Temperature
-                                <span id="turbineListProd"></span> <br />
-                                <span id="totalCountProd"></span>
+                      </div>
+                  </div>
+                  <div class="col-md-12" id="wrap-production" data-bind="visible:(km.pageView()=='production')">
+                      <div class="col-md-12 title-label">
+                          <strong>Production (MWH)</strong>
+                          <span id="turbineListProd"></span> <br />
+                          <span id="totalCountProd"></span>
+                      </div>
+                      <div class="col-md-12">
+                        <span class="tools pull-right">
+                            <div class="btn-group" data-toggle="buttons">
+                                <label class="btn btn-primary btn-xs" onclick="$('#dhprod-chart').kendoChart2Grid()">
+                                    <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                                </label>
+                                <label class="btn btn-primary btn-xs" onclick="km.createChartProduction(km.dsProdTurbinename())">
+                                    <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                                </label>
                             </div>
-                            <div class="col-md-12 histogramvalue">
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Min. Value</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MinValueTemp">
-                              </div>
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Max. Value</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.MaxValueTemp">
-                              </div>
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Number of Bin.</span>
-                                  <input type="text" class="form-control width-50 input-number align-right" required="" data-required-msg="cannot be empty"
-                                      placeholder="Type Value" data-bind="value: km.BinValueTemp">
-                              </div>
-                              <div class="clearfix">&nbsp;</div><br />
-                              <div class="input-group input-group-sm ez width-80">
-                                  <span class="input-group-addon width-100 align-right">Col. Name</span>
-                                  <select id="sTempTags" class="form-control" style="width: 195px;"></select>
-                              </div>
-                              <button type="button" id="btnRefresh" class="btn btn-sm btn-primary buttonrefresh" onClick='km.SubmitValues()'><i class="fa fa-refresh"></i>&nbsp;Submit</button>
-                              <span class="tools pull-right">
-                                  <div class="btn-group" data-toggle="buttons">
-                                      <label class="btn btn-primary btn-xs" onclick="$('#dhtemp-chart').kendoChart2Grid()">
-                                          <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
-                                      </label>
-                                      <label class="btn btn-primary btn-xs" onclick="km.createChartTemp()">
-                                          <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
-                                      </label>
-                                  </div>
-                              </span>
-                                <br>
-                                <div class="clearfix">&nbsp;</div>
-                                <div id="dhtemp-chart"></div>
-                            </div>
-                        </div>
-                        <div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+                        </span>
+                      </div>
+                    <div class="clearfix">&nbsp;</div>
+                    <div class="col-md-12">
+                      <div id="dhprod-chart"></div>
+                      <div class="clearfix">&nbsp;</div>
                     </div>
+                  </div>
+                  <div class="col-md-12" id="wrap-temperature" data-bind="visible:(km.pageView()=='temperature')">
+                      <div class="col-md-12 title-label">
+                        <strong>Temperature</strong>
+                        <span id="turbineListTemp"></span> <br />
+                        <span id="totalCountTemp"></span>
+                    </div>
+                    <div class="col-md-12">
+                      <span class="tools pull-right">
+                          <div class="btn-group" data-toggle="buttons">
+                              <label class="btn btn-primary btn-xs" onclick="$('#dhtemp-chart').kendoChart2Grid()">
+                                  <input type="radio" name="convert" id="totable" value="totable" ><i class="fa fa-table"></i>
+                              </label>
+                              <label class="btn btn-primary btn-xs" onclick="km.createChartTemp(km.dsTempTurbinename())">
+                                  <input type="radio" name="convert" id="tochart" value="tochart"><i class="fa fa-bar-chart"></i>
+                              </label>
+                          </div>
+                      </span>
+                    </div>
+                    <div class="clearfix">&nbsp;</div>
+                      <div class="col-md-12">
+                        <div id="dhtemp-chart"></div>
+                        <div class="clearfix">&nbsp;</div>
+                      </div>
+                  </div>
+                  <div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
                 </div>
             </div>
         </div>
     </div>
-<div class="clearfix"></div>
+</div>
 <script>
 	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
 </script>

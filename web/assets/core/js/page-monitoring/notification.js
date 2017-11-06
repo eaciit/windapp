@@ -19,6 +19,9 @@ vm.breadcrumb([
 
 var intervalTurbine = null;
 
+mn.typeList = ko.observableArray([]);
+mn.typeListData = ko.observableArray([]);
+
 mn.UpdateProjectList = function(project) {
     setTimeout(function(){
         $('#projectList').data('kendoDropDownList').value(project);
@@ -36,14 +39,22 @@ mn.UpdateTurbineList = function(turbineList) {
 }
 mn.LoadData = function() {
     app.loading(true);
+
     $.when(fa.LoadData()).done(function () {
+        var project = fa.project
+        if(project == "") {
+            project = "Tejuva";
+        }
+        mn.typeList(mn.typeListData()[project]);
+        var colnameType = $('#typeList').data('kendoDropDownList').value();
+
         var param = {
             period: fa.period,
             dateStart: fa.dateStart,
             dateEnd: fa.dateEnd,
             turbine: fa.turbine(),
             project: fa.project,
-            tipe: "alarm",
+            tipe: colnameType,
         };
 
         mn.LoadDataAvail(param.project, "alarm");
@@ -53,6 +64,8 @@ mn.LoadData = function() {
 
 
 mn.generateGrid = function(param){
+    var nameFile = "Monitoring Notification_"+ moment(new Date()).format("Y-M-D")+"_"+time;
+
     $("#notificationGrid").html('');
     $("#notificationGrid").kendoGrid({
         dataSource: {
@@ -97,6 +110,12 @@ mn.generateGrid = function(param){
             sort: [ { field: "TimeStart", dir: "desc" }, { field: "TimeEnd", dir: "asc" } ],
         },
         sortable: true,
+        // toolbar: ["excel"],
+        excel: {
+            fileName: nameFile+".xlsx",
+            filterable: true,
+            allPages: true
+        },
         pageable: {
             refresh: true,
             pageSizes: true,
@@ -202,6 +221,10 @@ mn.LoadDataAvail = function(projectname, gridType){
     });
 }
 
+mn.exportToExcel = function(){
+    $("#notificationGrid").getKendoGrid().saveAsExcel();
+}
+
 mn.checkCompleteDate = function () {
     var currentDateData = moment.utc(mn.maxDatetemp).format('YYYY-MM-DD');
     var prevDateData = moment.utc(mn.minDatetemp).format('YYYY-MM-DD');
@@ -243,10 +266,23 @@ $(document).ready(function(){
         }, 100);
     });
     
+    setTimeout(function () {
+        $("#typeList").data("kendoDropDownList").value("alltypes");
+    }, 300);
+
     $('#projectList').kendoDropDownList({
         change: function () {  
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
+            mn.typeList(mn.typeListData()[project]);
+            $("#typeList").data("kendoDropDownList").value("alltypes");
         }
+    });
+
+    $('#typeList').on("change", function() {
+        fa.checkTurbine();
+        setTimeout(function() {
+            mn.LoadData();
+        }, 300);
     });
 });

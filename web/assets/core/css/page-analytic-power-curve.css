@@ -239,7 +239,7 @@
     border: 1px solid #E0E0DF;
     background: rgba(255,255,255,0.7);
     padding: 4px 10px;
-    width: 114px;
+    width: 148px;
 }
 #dataavail_info {
     position: absolute;
@@ -249,5 +249,39 @@
     border: 1px solid #E0E0DF;
     background: rgba(255,255,255,0.7);
     padding: 4px 10px;
-    width: 114px;
+    width: 148px;
+}
+#totaldataavail_info {
+    position: absolute;
+    top: 88px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+
+.template-pdf{
+    display: none;
+}
+
+.k-pdf-export .title-pdf{
+    margin-top: -30px;
+    font-size: 12px !important;
+    margin-bottom: 30px;
+}
+
+.k-pdf-export #airdensity_info{
+    top: 80px;
+}
+.k-pdf-export #dataavail_info{
+    top: 105px;
+}
+.k-pdf-export #totaldataavail_info{
+    top: 130px;
+}
+
+.k-pdf-export .template-pdf {
+    display: block;
 }

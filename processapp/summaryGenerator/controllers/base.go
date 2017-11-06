@@ -68,6 +68,28 @@ type BaseController struct {
 	Log                  *tk.LogEngine
 }
 
+func (b *BaseController) GetProjectList() {
+	tk.Println("Getting data project list")
+	logStart := time.Now()
+
+	projectData := []ProjectOut{}
+	csrt, e := b.Ctx.Connection.NewQuery().
+		From(new(ProjectMaster).TableName()).
+		Where(dbox.Eq("active", true)).
+		Order("projectid").Cursor(nil)
+
+	tk.Println("Get project")
+
+	e = csrt.Fetch(&projectData, 0, false)
+	ErrorHandler(e, "get project master")
+	csrt.Close()
+
+	b.ProjectList = projectData
+
+	logDuration := time.Now().Sub(logStart).Seconds()
+	tk.Printf("\nGetting project list data about %v secs\n", logDuration)
+}
+
 func (b *BaseController) GetTurbineScada() {
 	tk.Println("Getting Turbine from Scada Data Collection")
 	logStart := time.Now()
@@ -518,7 +540,7 @@ func PrepareConnection() (dbox.IConnection, error) {
 	if e != nil {
 		return nil, e
 	}
-	tk.Println("DB Connect ", config["host"], " : ", config["database"], " \n")
+	tk.Println("DB Connect ", config["host"], " : ", config["database"])
 	return c, nil
 }
 

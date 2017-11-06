@@ -531,6 +531,15 @@ dbr.showColumn = function() {
     $('#modalShowHide').modal("hide");
 }
 
+function secondsToHmsDatabrowser(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+    var res = (h > 0 ? (h < 10 ? "0" + h : h) : "00") + ":" + (m > 0 ? (m < 10 ? "0" + m : m) : "00") + ":" + (s > 0 ? s : "00")
+    return res;
+}
+
 function secondsToHms(d) {
     // d = Number(d);
     // var h = Math.floor(d / 3600);
@@ -674,7 +683,7 @@ $(document).ready(function() {
         dbr.ResetFlagLoaded();
         Data.LoadData();
     });
-
+    
     setTimeout(function() {
         dbsh.ColumnList([]);
         $.each(dbsh.AllProjectColumnList(), function(idx, val) {

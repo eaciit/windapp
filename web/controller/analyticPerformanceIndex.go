@@ -115,6 +115,7 @@ func (m *AnalyticPerformanceIndexController) GetPerformanceIndex(k *knot.WebCont
 		}
 
 		query = append(query, tk.M{"available": 1})
+		query = append(query, tk.M{"isvalidstate": true})
 
 		pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 		group = tk.M{

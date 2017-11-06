@@ -7,6 +7,56 @@ page.dataPCEachTurbine = ko.observableArray([]);
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [];
+page.PrintPdf = ko.observable(false);
+    // "<div class='col-md-12 col-xs-12'>"+
+    // "<div id='legend-anchor'></div>"+
+    // "<div id='legend-list' class='col-md-12 col-sm-12 pl15'>"+
+    // "</div></div>"+
+page.getPDF = function(selector){
+    var title = fa.project;
+    // app.loading(true);
+    page.PrintPdf(true);
+    var asd = "<div class='col-md-12 col-sm-12 hardcore landing'>"+
+    "<div class='panel ez no-padding hardcore'><div class='panel-heading'>"+
+    "<span class='tools pull-right'><i class='fa fa-question-circle tooltipster tooltipstered' aria-hidden='true' title='Power curves shown till last month for valid data only'></i>"+
+    "<button type='button' class='btn btn-primary btn-xs tooltipster tooltipstered' title='Export to Pdf' onclick='page.getPDF('.tobeprint')''>"+
+    "<i class='fa fa-file-pdf-o' aria-hidden='true'></i></button></span></div>"+
+    "<div class='panel-body'>"+
+    "<div class='date-info'>"+
+    $(".date-info").html()+
+    "</div>"+
+    "<div class='col-md-12 list'>"+
+    $("#legend-wrapper").html()+
+    "</div>"+
+    "<div class='clearfix'>&nbsp;</div>"+
+    "<div class='col-md-12'>"+
+    $(".individual-month").html()+
+    "</div>"+
+    "</div></div>";
+
+
+    $("#illusion").append(asd);
+    $("#pdf-title").text(title);
+    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+    var project = $("#projectList").data("kendoDropDownList").value();
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "10mm",
+                top    : "10mm",
+                right  : "10mm",
+                bottom : "10mm"
+            }
+        });
+      kendo.drawing.pdf.saveAs(group, "PC_Individual_Month.pdf");
+        setTimeout(function(){
+            $("#illusion").empty();
+            page.PrintPdf(false);
+            app.loading(false);
+        },2000)
+    });
+}
 
 page.ExportIndividualMonthPdf = function() {
     kendo.drawing.drawDOM($(".individual-month"))
