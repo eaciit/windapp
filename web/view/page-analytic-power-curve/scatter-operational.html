@@ -5,38 +5,113 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/scatter-operational.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
 
-<div class="row">
-	{{template "page-filter-scatter.html"}}
+<div class="row mt15">
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-<!-- 					<div class="scatter-comparison pull-right">
-						<span><label class="label-scatter">Scatter Comparison</label></span>
-						<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
-		                </select>
-					</div> -->
-				</div>
 				<div class="panel-body">
-					<!-- <a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportIndividualMonthPdf">
-						<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-					</a> -->
 					<div class="date-info">
-						{{template "_dateinfo.html"}}
+						<div class="date-info">
+		                      Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+						</div>
                     </div>
 					<div class="clearfix">&nbsp;</div>
 
-					<div class="col-md-9 scatter">
+					<div class="col-md-8 scatter">
 						<div class="scatter-chart">
 							<div id="scatterChart"></div>
 						</div>
 					</div>
-					<div class="col-md-3">
-						<div class="scatter-chart">
-							<div class="scatter-comparison">
-								<span><label class="label-scatter">Scatter Comparison</label></span>
-								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
-		                </select>
+					<div class="col-md-4">
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Scatter Comparison</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }"></select>
+							</div>
+						</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Project</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="project-list" id="projectList1" name="table" data-bind="kendoDropDownList: { data:  page.projectList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
+			                	</select>
+							</div>
+						</div>
+
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding" >Turbine 1</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="turbine-list" id="turbineList1" name="table" data-bind="kendoDropDownList: { data: page.turbineList, dataValueField: 'value', dataTextField: 'label', suggest: true }">
+				                </select>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Period</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: page.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {page.showHidePeriod()} }">
+			               		</select>
+
+			               		<span class="show_hide custom-period">
+			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
+			                    <label class="control-label no-padding" style="width:40px;">&nbsp;&nbsp;to</label>
+			                    <div class="period-nwline">&nbsp;</div>
+			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
+			                    &nbsp;
+			                	</span>
+
+							</div>
+						</div>
+
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding"> </label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<h5><b> VS </b></h5>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Turbine 2</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: page.turbineList, dataValueField: 'value', dataTextField: 'label',  suggest: true }">
+				                </select>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Period</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="period-list" id="periodList2" name="table" data-bind="kendoDropDownList: { data: page.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {page.showHidePeriod2()} }">
+			               		</select>
+
+			               		<span class="show_hide2 custom-period">
+			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
+			                    <label class="control-label no-padding" style="width:40px;">&nbsp;&nbsp;to</label>
+			                    <div class="period-nwline">&nbsp;</div>
+			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
+			                    &nbsp;
+			                	</span>
+
+							</div>
+						</div>
+						<br>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding"></label>
+							</div>
+							<div class="col-md-2 no-padding">
+								<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
 							</div>
 						</div>
 					</div>
@@ -47,5 +122,5 @@
 </div>
 <div class="clearfix"></div>
 <script>
-	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+	page.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
 </script>

@@ -1,35 +1,44 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/windrose.js?ANTI_CACHE={{.AntiCache}}"></script>
 
-<div class="col-md-12 list">
-	<div class="col-md-3 col-xs-12 sector-part">
-		<label class="control-label keyA-label">Sectors</label>
-		<select id="nosection" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.ChangeSector }"
-			style="width:50px;">
-        </select>&nbsp;
-		<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
-	</div>
 
-	<div class="col-md-6 col-xs-12 list">
-		<div id="legend-anchor"></div>
-		<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+<div class="col-md-12 div-template">
+	<div class="panel-heading template-pdf">
+		<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+		<div class="col-md-12 text-center title-pdf">
+			<span data-bind="text:pm.projectName"></span> | <span data-bind="text: moment(new Date(pm.dateStart())).format('DD-MMM-YYYY')"></span> until <span data-bind="text:moment(new Date(pm.dateEnd())).format('DD-MMM-YYYY')"></span><br>
+			Wind Rose
 		</div>
 	</div>
+	<div class="col-md-12 list">
+		<div class="col-md-3 col-xs-12 sector-part">
+			<label class="control-label keyA-label">Sectors</label>
+			<select id="nosection" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: wr.ChangeSector }"
+				style="width:50px;">
+	        </select>&nbsp;
+			<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
+		</div>
 
-	<div class="panel-heading">
-		<span class="tools pull-right">
-			<!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
-			<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="wr.getPDF('.windrose-part')">
-		    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
-		  	</button>
-      	</span>
+		<div class="col-md-6 col-xs-12 list div-legend">
+			<div id="legend-anchor"></div>
+			<div id="legend-list" class="col-md-12 col-sm-12 pl15">
+			</div>
+		</div>
+
+		<div class="panel-heading">
+			<span class="tools pull-right">
+				<!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
+				<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="wr.getPDF('.div-template')">
+			    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+			  	</button>
+	      	</span>
+		</div>
+
 	</div>
-
-</div>
-
-<div class="col-md-12 windrose-part" data-bind="foreach: wr.dataWindroseEachTurbine">
-	<div class="col-md-3 col-xs-12 windrose-item">
-		<i class="fa fa-search-plus tooltipster tooltipstered btn-zoom" onclick="wr.ZoomChart(this.id)" data-bind="attr:{id: 'btn-zoom-' + Name}" title="Zoom Chart" style="cursor: pointer;"></i>
-		<div data-bind="attr:{id: 'chart-' + Name}"></div>
+	<div class="col-md-12 windrose-part" data-bind="foreach: wr.dataWindroseEachTurbine">
+		<div class="col-md-3 col-xs-12 windrose-item">
+			<i class="fa fa-search-plus tooltipster tooltipstered btn-zoom" onclick="wr.ZoomChart(this.id)" data-bind="attr:{id: 'btn-zoom-' + Name}" title="Zoom Chart" style="cursor: pointer;"></i>
+			<div data-bind="attr:{id: 'chart-' + Name}"></div>
+		</div>
 	</div>
+	<div class="clearfix">&nbsp;</div>
 </div>
-<div class="clearfix">&nbsp;</div>

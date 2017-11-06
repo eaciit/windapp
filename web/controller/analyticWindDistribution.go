@@ -132,7 +132,7 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 	step := 0.0
 	switch tipe {
 	case "nacelledeviation":
-		fieldName = "nacelledeviation"
+		fieldName = "winddirection"
 		maxStep = maxNacelle
 		step = stepNacelle
 	case "avgwindspeed":
@@ -240,7 +240,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 			start += stepNacelle
 		}
 		category = nacelleCats
-		query = append(query, tk.M{"nacelledeviation": tk.M{"$gte": -180}})
+		query = append(query, tk.M{"winddirection": tk.M{"$gte": -180}})
 	case "avgwindspeed":
 		windCats = []float64{}
 		start := minWS
@@ -304,7 +304,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	queryT = append(queryT, dbox.Lte("dateinfo.dateid", tEnd))
 	switch p.BreakDown {
 	case "nacelledeviation":
-		queryT = append(queryT, dbox.Gte("nacelledeviation", -180))
+		queryT = append(queryT, dbox.Gte("winddirection", -180))
 	case "avgwindspeed":
 		queryT = append(queryT, dbox.Gt("avgwindspeed", 0.5))
 	}

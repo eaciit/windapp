@@ -1765,7 +1765,7 @@ avail.DTTurbines = function (turbineDownList) {
     } else {
         $.each(turbineDownList, function (idx, val) {
 
-            var btn = "btn-primary";
+            var btn = "btn-grey";
             var turbine = val._id;
             var value = val.result.toFixed(2);
 
@@ -1773,7 +1773,7 @@ avail.DTTurbines = function (turbineDownList) {
                 btn = "btn-danger";
             }
 
-            $("#dtturbines").append('<div class="btn-group" role="group">' +
+            $("#dtturbines").append('<div class="btn-group" role="group" style="margin: 3px;">' +
                 '<button type="button" class="btn btn-sm ' + btn + '" style="width: 70px !important;">' + turbine + '</button>' +
                 '<button type="button" class="btn btn-sm btn-warning" style="width: 40px !important;">' + value + '</button>' +
                 '</div>');

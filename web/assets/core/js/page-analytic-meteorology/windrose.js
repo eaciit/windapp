@@ -29,11 +29,11 @@ wr.getPDF = function(selector){
         group.options.set("pdf", {
             paperSize: "auto",
             margin: {
-                left   : "10mm",
-                top    : "10mm",
-                right  : "10mm",
-                bottom : "10mm"
-            }
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
         });
       kendo.drawing.pdf.saveAs(group, "Windrose_for_"+project+".pdf");
         setTimeout(function(){

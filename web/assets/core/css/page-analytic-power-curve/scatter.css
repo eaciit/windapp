@@ -59,3 +59,18 @@
     z-index: 10000;
     border-radius: 0 0 0.5em 0.5em;
 }
+.mgb10{
+margin-bottom: 2px;
+}
+.mt15{
+    margin-top: 2.5%;
+}
+.turbine-list{
+    width: 150px;
+}
+.project-list{
+    width: 150px;
+}
+.period-list{
+    width: 75px;
+}
