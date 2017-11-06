@@ -406,6 +406,7 @@ var Data = {
         }
 
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
+        console.log(dtLine);
 
         app.loading(true);
 

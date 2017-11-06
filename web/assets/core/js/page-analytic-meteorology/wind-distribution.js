@@ -4,35 +4,8 @@ viewModel.WindDistribution = new Object();
 var wd = viewModel.WindDistribution;
 
 wd.turbineList = ko.observableArray([]);
-wd.turbine = ko.observableArray([]);
-
-wd.populateTurbine = function(){
-    wd.turbine([]);
-    if(fa.turbine().length == 0){
-        $.each(fa.turbineList(), function(i, val){
-            if (i > 0){
-                wd.turbine.push(val.text);
-            }
-        });
-    }else{
-        wd.turbine(fa.turbine());
-    }
-
-}
 
 wd.InitRightTurbineList= function () {
-    if (wd.turbine().length > 0) {
-        wd.turbineList([]);
-        $.each(wd.turbine(), function (i, val) {
-            var data = {
-                color: color[i],
-                turbine: val
-            }
-
-            wd.turbineList.push(data);
-        });
-    }
-
     if (wd.turbineList().length > 1) {
         $("#showHideChk").html('<label>' +
             '<input type="checkbox" id="showHideAll" checked onclick="wd.showHideAllLegend(this)" >' +
@@ -62,6 +35,7 @@ wd.ChartWindDistributon =  function () {
         turbine: fa.turbine(),
         project: fa.project,
         breakdown: "avgwindspeed",
+        color: color,
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwinddistribution/getlist", param, function (res) {
@@ -70,30 +44,21 @@ wd.ChartWindDistributon =  function () {
             return;
         }
 
-        if (wd.turbine().length == 0) {
-            wd.turbineList([]);
+        wd.turbineList([]);
+        $.each(res.data.TurbineList, function (i, val) {
+            var data = {
+                color: color[i],
+                turbine: val
+            }
 
-            $.each(res.data.TurbineList, function (i, val) {
-                var data = {
-                    color: color[i],
-                    turbine: val
-                }
-
-                wd.turbineList.push(data);
-            });
-
-
-        }
+            wd.turbineList.push(data);
+        });
+        var categories = res.data.Categories;
+        var dataSeries = res.data.Data;
 
         $('#windDistribution').html("");
-        var data = res.data.Data;
 
         $("#windDistribution").kendoChart({
-            dataSource: {
-                data: data,
-                group: { field: "Turbine" },
-                sort: { field: "Category", dir: 'asc' }
-            },
             theme: "flat",
             title: {
                 text: ""
@@ -105,17 +70,7 @@ wd.ChartWindDistributon =  function () {
             chartArea: {
                 height: 360
             },
-            series: [{
-                type: "line",
-                style: "smooth",
-                field: "Contribute",
-                // opacity : 0.7,
-                markers: {
-                    visible: false,
-                    size: 3,
-                }
-            }],
-            seriesColors: color,
+            series: dataSeries,
             valueAxis: {
                 labels: {
                     format: "{0:p0}",
@@ -132,7 +87,7 @@ wd.ChartWindDistributon =  function () {
                 }
             },
             categoryAxis: {
-                field: "Category",
+                categories: categories,
                 majorGridLines: {
                     visible: false
                 },
@@ -163,34 +118,6 @@ wd.ChartWindDistributon =  function () {
         });
 
         wd.InitRightTurbineList();
-
-        /* hanya untuk mengembalikan Met Tower ke urutan pertama
-        entah kenapa setelah di grouping oleh kendo otomatis melakukan sorting based on series name nya */
-        var seriesCurrent = $("#windDistribution").data("kendoChart").options.series;
-        var seriesMet = [];
-        var seriesScada = [];
-        var colorList = [];
-
-        // ambil warnanya terlebih dahulu
-        seriesCurrent.forEach(function(val, idx){
-            colorList.push(val.color);
-        });
-        seriesCurrent.forEach(function(val, idx){
-            if(val.name == "Met Tower") {
-                seriesMet.push(val);
-            } else {
-                seriesScada.push(val);
-            }
-        });
-        var seriesNew = seriesMet.concat(seriesScada);
-        seriesNew.forEach(function(val, idx){
-            seriesNew[idx].color = colorList[idx];
-        });
-
-        $("#windDistribution").data("kendoChart").options.series = seriesNew;
-
-
-        // app.loading(false);
         $("#windDistribution").data("kendoChart").refresh();
     });
 }
@@ -204,7 +131,6 @@ wd.showHideAllLegend = function (e) {
                 $("#windDistribution").data("kendoChart").options.series[i].visible = true;
             }
         });
-        /*$('#labelShowHide b').text('Untick All Turbines');*/
         $('#labelShowHide b').text('Select All');
     } else {
         $.each(wd.turbineList(), function (i, val) {
@@ -213,7 +139,6 @@ wd.showHideAllLegend = function (e) {
             }  
         });
         $('.fa-check-winddist').css("visibility", 'hidden');
-        /*$('#labelShowHide b').text('Tick All Turbines');*/
         $('#labelShowHide b').text('Select All');
     }
     $('.chk-option-winddist').not(e).prop('checked', e.checked);
@@ -252,16 +177,13 @@ wd.WindDis = function(){
     var isValid = fa.LoadData();
     if(isValid) {
         pm.showFilter();
+        $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
+        $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
         if(pm.isFirstWindDis() === true){
             app.loading(true);
-            // wd.populateTurbine();
             wd.ChartWindDistributon();
-            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
         }else{
             app.loading(false);
-            $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
-            $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
             setTimeout(function () {
                 $('#windDistribution').data('kendoChart').refresh();
                 app.loading(false);

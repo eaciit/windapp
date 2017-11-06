@@ -145,6 +145,11 @@ label.summary-number {
 	margin-left: -18px;
 }
 
+#showHideChkNacelle, #isCleanDiv{
+	margin-top: -5px;
+	margin-left: -18px;
+}
+
 .radio-filter {
 	width: 100px !important;
 	margin-bottom: 2px !important;

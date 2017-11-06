@@ -278,6 +278,7 @@ func (w *PageController) AnalyticMeteorology(r *knot.WebContext) interface{} {
 		"page-analytic-meteorology/windrose.html",
 		"page-analytic-meteorology/windrose-comparison.html",
 		"page-analytic-meteorology/wind-distribution.html",
+		"page-analytic-meteorology/nacelle-distribution.html",
 		"page-analytic-meteorology/average-windspeed.html",
 		"page-analytic-meteorology/turbine-correlation.html",
 		"page-analytic-meteorology/energy-correlation.html",

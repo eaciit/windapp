@@ -1764,11 +1764,12 @@ avail.DTTurbines = function (turbineDownList) {
         $("#dtturbinesAvail").html("<center><h2>NONE</h2></center>");
     } else {
         $.each(turbineDownList, function (idx, val) {
-            var btn = "btn-success";
+
+            var btn = "btn-primary";
             var turbine = val._id;
             var value = val.result.toFixed(2);
 
-            if (val.isdown == true) {
+            if (val.color == "red") {
                 btn = "btn-danger";
             }
 
