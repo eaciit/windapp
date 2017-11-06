@@ -2,6 +2,7 @@
     app.currentDateData = '{{.CurrentDateData}}';
 	vm.menu({{.Menus}});
 </script>
+
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/individual-month-scatter.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
 <div>
@@ -13,12 +14,12 @@
 					<div class="panel-heading">
 						<span class="tools pull-right">
 							<!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
-							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="page.getPDF('.scatter-content')">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="page.getPDF('.tobeprint')">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
 	                  	</span>
 					</div>
-					<div class="panel-body">
+					<div class="panel-body tobeprint">
 						{{template "_dateinfo.html"}}
                         <div id="legend-wrapper" class="col-md-12 list">
 							<div class="col-md-12 col-xs-12">
@@ -28,10 +29,28 @@
 							</div>
 						</div>
 						<div class="clearfix">&nbsp;</div>
-
-						<div class="col-md-12 individual-month" data-bind="foreach: page.dataPCEachTurbine">
-							<div class="col-md-4 col-xs-12 power-curve-item">
-								<div data-bind="attr:{id: 'chart-' + Name}"></div>
+						<div class="col-md-12" id="illusion-month">
+							
+						</div>
+						<div class="col-md-12 tobeprint">
+							<div class="col-md-12" data-bind="visible: page.PrintPdf">
+								<img src="/web/res/img/ostro-logo.svg" class="navbar-brand">
+								<span class="navbar-brand" style="padding: 15px 0px;font-size: 24px;">
+									ENERGY
+								</span>
+							</div>
+							<div class="col-md-12" style="text-align: center;font-size: 18px;margin-bottom: 15px;" data-bind="visible: page.PrintPdf">
+								<label id="pdf-title">ASD</label>
+								<br>
+								<label>Monthly Scatter</label>
+							</div>
+							<div style="margin-bottom: 15px;" data-bind="visible:page.PrintPdf">
+								{{template "_dateinfo.html"}}
+							</div>
+							<div class="individual-month" data-bind="foreach: page.dataPCEachTurbine">
+								<div class="col-md-4 col-xs-12 power-curve-item">
+									<div data-bind="attr:{id: 'chart-' + Name}"></div>
+								</div>
 							</div>
 						</div>
 					</div>

@@ -7,15 +7,34 @@
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
+		<div id="illusion" class="col-md-12 col-sm-12 ez panel-content">
+
+		</div>
+		
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
 						<span class="tools pull-right">
 							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month for valid data only"></i>
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="page.getPDF('.tobeprint')">
+						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+						  	</button>
 	                  	</span>
 					</div>
-					<div class="panel-body">
+
+					<div class="panel-body tobeprint">
+						<div class="col-md-12" data-bind="visible: page.PrintPdf">
+							<img src="/web/res/img/ostro-logo.svg" class="navbar-brand">
+							<span class="navbar-brand" style="padding: 15px 0px;font-size: 24px;">
+								ENERGY
+							</span>
+						</div>
+						<div class="col-md-12" style="text-align: center;font-size: 18px;margin-bottom: 15px;" data-bind="visible: page.PrintPdf">
+							<label id="pdf-title">Tejuva</label>
+							<br>
+							<label>Individual Month Power Curve</label>
+						</div>
 						{{template "_dateinfo.html"}}
                         <div id="legend-wrapper" class="col-md-12 list">
 							<div class="col-md-12 col-xs-12">
