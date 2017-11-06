@@ -303,3 +303,25 @@ label.summary-number {
     z-index: 10000;
     border-radius: 0 0 0.5em 0.5em;
 }
+
+.template-pdf{
+    display: none;
+}
+
+.k-pdf-export .title-pdf{
+    margin-top: -30px;
+    font-size: 12px !important;
+    margin-bottom: 10px;
+}
+
+.k-pdf-export .sector-part, .k-pdf-export .pull-right{
+	display: none;
+}
+.k-pdf-export .div-legend{
+    left: 27%;
+    margin-bottom: 30px;
+}
+
+.k-pdf-export .template-pdf {
+    display: block;
+}
