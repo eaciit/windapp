@@ -29,6 +29,7 @@ page.dataAvail = ko.observable(0.0);
 page.dataAvailAll = ko.observable(0.0);
 page.totalAvail = ko.observable(0.0);
 page.totalAvailAll = ko.observable(0.0);
+page.viewName = ko.observable();
 
 page.totalAvailTurbines = ko.observableArray([]);
 
@@ -44,6 +45,8 @@ page.turbine = ko.observableArray([]);
 page.powerCurveOptions = ko.observable();
 page.currProject = ko.observable();
 page.project = ko.observable();
+page.dateStart = ko.observable();
+page.dateEnd = ko.observable();
 page.ss_airdensity = ko.observable(0.0);
 page.std_airdensity = ko.observable(0.0);
 var lastParam;
@@ -73,6 +76,29 @@ page.populateTurbine = function() {
         page.turbine(fa.turbine());
     }
 }
+
+page.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, "PowerCurve_for_"+project+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
+
 page.ExportPowerCurvePdf = function() {
     var chart = $("#powerCurve").getKendoChart();
     var container = $('<div />').css({
@@ -406,7 +432,6 @@ var Data = {
         }
 
         var dtLine = JSON.parse(localStorage.getItem("dataTurbine"));
-        console.log(dtLine);
 
         app.loading(true);
 
@@ -980,13 +1005,20 @@ $(document).ready(function() {
             $("#selectedFilter").empty();
             page.getSelectedFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
             var isValid = fa.LoadData();
             if(isValid) {
                 app.loading(true);
                 page.resetFilter();
                 Data.InitLinePowerCurve();
             }
+
             page.project(project);
+            page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             var getAd = _.find(page.projectList(), function(p) {
                 return p.ProjectId == project
             });
@@ -1000,8 +1032,15 @@ $(document).ready(function() {
     setTimeout(function() {
         $(".label-filter:contains('Turbine')" ).hide();
         $('.multiselect-native-select').hide();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
         page.currProject(fa.project);
+
         page.project(fa.project);
+        page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+        page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+        page.viewName($('input[name=isAvg]:checked').parent('label').text());
 
         var getAd = _.find(page.projectList(), function(p) {
             return p.ProjectId == fa.project
@@ -1025,7 +1064,7 @@ $(document).ready(function() {
         // }else{
         //     $('#isSpecific').removeAttr('disabled');
         // }
-
+        page.viewName($('input[name=isAvg]:checked').parent('label').text());
         page.isSpecific(true);
         $('#pc-filter-density').toggle();
         if(this.id == "sitespesific"){

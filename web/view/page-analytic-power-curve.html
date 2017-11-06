@@ -19,10 +19,10 @@
                             <div class="nav-power-curve">
 								<div class="btn-group" data-toggle="buttons" style="z-index: 10;">
 									<label class="btn btn-sm btn-primary active radio-filter">
-                                        <input type="radio" name="isAvg" id="sitespesific" autocomplete="off" value="Spesific"> Site Specific
+                                        <input type="radio" name="isAvg" id="sitespesific" autocomplete="off" value="Spesific" checked> Site Specific
                                     </label>
-									<label class="btn btn-sm btn-primary active radio-filter hidden">
-                                        <input type="radio" name="isAvg" id="avg" autocomplete="off" value="true" checked> Not Corrected
+									<label class="btn btn-sm btn-primary radio-filter hidden">
+                                        <input type="radio" name="isAvg" id="avg" autocomplete="off" value="true"> Not Corrected
                                     </label>
 									<label class="btn btn-sm btn-primary radio-filter hidden">
                                         <input type="radio" name="isAvg" id="adj" autocomplete="off" value="false"> Adj Wind Speed
@@ -40,7 +40,7 @@
 							<div class="col-md-8" style="margin-top: -30px;">
 								<div class="filters">
 									<div class="tools btn-group pull-right btn-pdf">
-										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportPowerCurvePdf">
+										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp')}">
 									    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 									  	</button>
 									</div>
@@ -50,18 +50,28 @@
 									  </button>
 									</div>
 								</div>
-								<div class="power-curve-chart">
-									<div id="airdensity_info">
-										<span data-bind="html: (page.isSpecific()?'Site ':'Std ') + 'AD : <b>' + (page.isSpecific()?page.ss_airdensity():page.std_airdensity()) + '</b>'"></span>
+								<div class="div-temp">
+									<div class="panel-heading template-pdf">
+										<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+										<div class="col-md-12 text-center title-pdf">
+											<span data-bind="text:page.project()"></span> | <span data-bind="text:page.dateStart()"></span> until <span data-bind="text:page.dateEnd()"></span><br>
+											<span data-bind="text:page.viewName()"></span> Power Curve
+										</div>
 									</div>
-									<div id="dataavail_info">
-										<span data-bind="html: 'Sample Data Av : <b>' + kendo.toString(page.dataAvail(), 'p1') + '</b>'"></span>
+									<div class="power-curve-chart">
+										<div id="airdensity_info">
+											<span data-bind="html: (page.isSpecific()?'Site ':'Std ') + 'AD : <b>' + (page.isSpecific()?page.ss_airdensity():page.std_airdensity()) + '</b>'"></span>
+										</div>
+										<div id="dataavail_info">
+											<span data-bind="html: 'Sample Data Av : <b>' + kendo.toString(page.dataAvail(), 'p1') + '</b>'"></span>
+										</div>
+										<div id="totaldataavail_info">
+											<span data-bind="html: 'Total Data Av : <b>' + kendo.toString(page.totalAvail(), 'p1') + '</b>'"></span>
+										</div>
+										<div id="powerCurve"></div>
 									</div>
-									<div id="totaldataavail_info">
-										<span data-bind="html: 'Total Data Av : <b>' + kendo.toString(page.totalAvail(), 'p1') + '</b>'"></span>
-									</div>
-									<div id="powerCurve"></div>
 								</div>
+
 								<div class="clearfix">&nbsp;</div>
 								<div class="col-md-12 selected-filter">
 									<div class="text-center">
@@ -176,7 +186,7 @@
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">Detail Power Curve <span class="fa fa-angle-double-right"></span> Turbine <strong><span data-bind="text:page.detailTitle"></span></strong>						(For period from <span data-bind="text:page.detailStartDate"></span> to <span data-bind="text:page.detailEndDate"></span>)
-						<a class="tools pull-right tooltipster tooltipstered detPc" title="Export to Pdf" data-bind="click: page.ExportPowerCurveDetailPdf">
+						<a class="tools pull-right tooltipster tooltipstered detPc" title="Export to Pdf">
 							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
 						</a>
 					</div>
@@ -189,6 +199,7 @@
 	</div>
 </div>
 <div class="clearfix"></div>
+
 <script>
 	page.projectList({{.ProjectList}});
 	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
