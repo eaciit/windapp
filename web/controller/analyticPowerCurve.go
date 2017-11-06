@@ -1009,11 +1009,13 @@ func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resW
 
 		resWSvsPower = append(resWSvsPower, dataWSvsPower)
 
-		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
-		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
-		dataWSvsTipe.Set("valueColor", colorField[2])
+		if val.Has(field) {
+			dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
+			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+			dataWSvsTipe.Set("valueColor", colorField[2])
 
-		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+			resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+		}
 	}
 	return
 }
