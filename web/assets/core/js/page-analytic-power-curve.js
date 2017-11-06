@@ -78,17 +78,16 @@ page.ExportPowerCurvePdf = function() {
     var container = $('<div />').css({
         position: 'absolute',
         top: 0,
-        left: -1500
+        left: -1500,
       }).appendTo('body');
-
-
+    
       var dateStart = moment(lastParam.dateStart).format("DD MMM YYYY");
       var dateEnd = moment(lastParam.dateEnd).format("DD MMM YYYY");
 
       var options = chart.options;
 
       var exportOptions ={
-            // Custom settings for export
+            // Custom settings for export            
             legend: {
               visible: true
             },
@@ -100,7 +99,6 @@ page.ExportPowerCurvePdf = function() {
                 height: 500,
             },
             transitions: false,
-
             // Cleanup
             render: function(e){
               setTimeout(function(){
@@ -111,8 +109,10 @@ page.ExportPowerCurvePdf = function() {
       }
 
       var options2 = $.extend(true, options, exportOptions);
+      
       container.kendoChart(options2);
-
+      
+console.log("container", $(container).getKendoChart())
       $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
@@ -465,7 +465,6 @@ var Data = {
             $('#powerCurve').html("");
             $("#powerCurve").kendoChart({
                 theme: "flat",
-                // renderAs: "canvas",
                 pdf: {
                   fileName: "DetailPowerCurve.pdf",
                 },
