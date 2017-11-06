@@ -353,213 +353,200 @@ page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
 
-    //  var param = {
-    //     PC1Period       : $('#periodList').data('kendoDropDownList').value(),
-    //     PC1Project      : $("#projectList1").data("kendoDropDownList").value(),
-    //     PC1Turbine      : $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
-    //     PC1DateStart    : p1DateStart,
-    //     PC1DateEnd      : p1DateEnd,
+    var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
+        p1DateStart = new Date(Date.UTC(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0));
 
-    //     PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-    //     PC2Project      : $("#projectList1").data("kendoDropDownList").value(),
-    //     PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
-    //     PC2DateStart    : p2DateStart,
-    //     PC2DateEnd      : p2DateEnd
+    var p1DateEnd  = $('#dateEnd').data('kendoDatePicker').value();
+        p1DateEnd = new Date(Date.UTC(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0));
 
-    // };
-        var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
-            p1DateStart = new Date(Date.UTC(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0));
+    var p2DateStart = $('#dateStart2').data('kendoDatePicker').value();
+        p2DateStart = new Date(Date.UTC(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0));
 
-        var p1DateEnd  = $('#dateEnd').data('kendoDatePicker').value();
-            p1DateEnd = new Date(Date.UTC(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0));
+    var p2DateEnd  = $('#dateEnd2').data('kendoDatePicker').value();
+        p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
 
-        var p2DateStart = $('#dateStart2').data('kendoDatePicker').value();
-            p2DateStart = new Date(Date.UTC(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0));
+    if (p1DateStart - p1DateEnd > 25200000) {
+        toolkit.showError("Invalid Date Range Selection for Filter 1");
+    } else if(p2DateStart - p2DateEnd > 25200000) {
+        toolkit.showError("Invalid Date Range Selection for Filter 2");
+    } else {
 
-        var p2DateEnd  = $('#dateEnd2').data('kendoDatePicker').value();
-            p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
+        var param1 = {
+            Period       : $('#periodList').data('kendoDropDownList').value(),
+            Project      : $("#projectList1").data("kendoDropDownList").value(),
+            Turbine      : $("#turbineList1").data('kendoDropDownList').value(),
+            DateStart    : p1DateStart,
+            DateEnd      : p1DateEnd,
+            ScatterType  : page.scatterType,
+        };
+        var param2 = {
+            Period       : $('#periodList2').data('kendoDropDownList').value(),
+            Project      : $("#projectList1").data("kendoDropDownList").value(),
+            Turbine      : $("#turbineList2").data('kendoDropDownList').value(),
+            DateStart    : p2DateStart,
+            DateEnd      : p2DateEnd,
+            ScatterType  : page.scatterType,
+        };
+        var param = [param1, param2];        
 
-        if (p1DateStart - p1DateEnd > 25200000) {
-            toolkit.showError("Invalid Date Range Selection for Filter 1");
-        } else if(p2DateStart - p2DateEnd > 25200000) {
-            toolkit.showError("Invalid Date Range Selection for Filter 2");
-        } else {
-
-            var param = {
-                PC1Period       : $('#periodList').data('kendoDropDownList').value(),
-                PC1Project      : $("#projectList1").data("kendoDropDownList").value(),
-                PC1Turbine      : $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
-                PC1DateStart    : p1DateStart,
-                PC1DateEnd      : p1DateEnd,
-
-                PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-                PC2Project      : $("#projectList1").data("kendoDropDownList").value(),
-                PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
-                PC2DateStart    : p2DateStart,
-                PC2DateEnd      : p2DateEnd,
-                scatterType     : page.scatterType,
-            };
+        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteroperational", param, function(res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            var dtSeries = res.data.Data;
             
-            
-
-            toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteroperational", param, function(res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                var dtSeries = res.data.Data;
-                
-                var minAxisY = res.data.MinAxisY;
-                var maxAxisY = res.data.MaxAxisY;
-                var minAxisX = res.data.MinAxisX;
-                var maxAxisX = res.data.MaxAxisX;
-                var name = '';
-                var title = '';
-                var xAxis = {};
-                var measurement = '';
-                var format = 'N0'
-                if(maxAxisX - minAxisX < 7) {
-                    format = 'N2'
-                }
-                switch(page.scatterType) {
-                    case "pitch":
-                        name = 'pitchAxis'
-                        title = 'Angle (Degree)'
-                        measurement = String.fromCharCode(176)
-                        break;
-                    case "rotor":
-                        name = "rotorAxis"
-                        title = "Revolutions per Minute (RPM)";
-                        measurement = 'rpm'
-                        break;
-                    case "generatorrpm":
-                        name = "generatorAxis"
-                        title = "Generator per Minute (RPM)";
-                        measurement = 'rpm'
-                        break;
-                    case "windspeed":
-                        name = "windspeedAxis"
-                        title = "Avg. Wind Speed (m/s)";
-                        measurement = 'm/s'
-                        break;
-                }
-                xAxis = {
-                    name: name,
-                    title: {
-                        text: title,
+            var minAxisY = res.data.MinAxisY;
+            var maxAxisY = res.data.MaxAxisY;
+            var minAxisX = res.data.MinAxisX;
+            var maxAxisX = res.data.MaxAxisX;
+            var name = '';
+            var title = '';
+            var xAxis = {};
+            var measurement = '';
+            var format = 'N0'
+            if(maxAxisX - minAxisX < 7) {
+                format = 'N2'
+            }
+            switch(page.scatterType) {
+                case "pitch":
+                    name = 'pitchAxis'
+                    title = 'Angle (Degree)'
+                    measurement = String.fromCharCode(176)
+                    break;
+                case "rotor":
+                    name = "rotorAxis"
+                    title = "Revolutions per Minute (RPM)";
+                    measurement = 'rpm'
+                    break;
+                case "generatorrpm":
+                    name = "generatorAxis"
+                    title = "Generator per Minute (RPM)";
+                    measurement = 'rpm'
+                    break;
+                case "windspeed":
+                    name = "windspeedAxis"
+                    title = "Avg. Wind Speed (m/s)";
+                    measurement = 'm/s'
+                    break;
+            }
+            xAxis = {
+                name: name,
+                title: {
+                    text: title,
+                    visible: true,
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                labels: {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    format: format
+                },
+                line: {
+                    visible: false
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                crosshair: {
+                    visible: true,
+                    tooltip: {
                         visible: true,
-                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                    },
-                    labels: {
-                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        format: format
-                    },
-                    line: {
-                        visible: false
-                    },
-                    axisCrossingValue: -10,
-                    majorGridLines: {
-                        visible: true,
-                        color: "#eee",
-                        width: 0.8,
-                    },
-                    crosshair: {
-                        visible: true,
-                        tooltip: {
-                            visible: true,
-                            format: "N2",
-                            template: "#= kendo.toString(value, 'n2') # " + measurement,
-                            background: "rgb(255,255,255, 0.9)",
-                            color: "#58666e",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            border: {
-                                color: "#eee",
-                                width: "2px",
-                            },
-                        }
-                    },
-                    // majorUnit: 0.5,
-                    min: minAxisX,
-                    max: maxAxisX,
-                }
-                var yAxis = {};
-                yAxis = {
-                    name: "powerAxis",
-                    title: {
-                        text: "Generation (KW)",
-                        visible: true,
-                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                    },
-                    labels: {
-                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                    },
-                    line: {
-                        visible: false
-                    },
-                    axisCrossingValue: -10,
-                    majorGridLines: {
-                        visible: true,
-                        color: "#eee",
-                        width: 0.8,
-                    },
-                    crosshair: {
-                        visible: true,
-                        tooltip: {
-                            visible: true,
-                            format: "N2",
-                            template: "#= kendo.toString(value, 'n2') # kWh",
-                            background: "rgb(255,255,255, 0.9)",
-                            color: "#58666e",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            border: {
-                                color: "#eee",
-                                width: "2px",
-                            },
-                        }
-                    },
-                    // majorUnit: 0.5,
-                    min: minAxisY,
-                    max: maxAxisY,
-                }
-
-                $('#scatterChart').html("");
-                $("#scatterChart").kendoChart({
-                    theme: "flat",
-                    pdf: {
-                      fileName: "DetailPowerCurve.pdf",
-                    },
-                    title: {
-                        // text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
-                         text: "Scatter Power Curves",
-                        visible: false,
-                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                    },
-                    legend: {
-                        position: "bottom",
-                        labels: {
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        }
-                    },
-                    seriesDefaults: {
-                        type: "scatterLine",
-                        style: "smooth",
-                    },
-                    series: dtSeries,
-                    categoryAxis: {
-                        labels: {
-                            step: 1
+                        format: "N2",
+                        template: "#= kendo.toString(value, 'n2') # " + measurement,
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
                         },
+                    }
+                },
+                // majorUnit: 0.5,
+                min: minAxisX,
+                max: maxAxisX,
+            }
+            var yAxis = {};
+            yAxis = {
+                name: "powerAxis",
+                title: {
+                    text: "Generation (KW)",
+                    visible: true,
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                labels: {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                line: {
+                    visible: false
+                },
+                axisCrossingValue: -10,
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                crosshair: {
+                    visible: true,
+                    tooltip: {
+                        visible: true,
+                        format: "N2",
+                        template: "#= kendo.toString(value, 'n2') # kWh",
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    }
+                },
+                // majorUnit: 0.5,
+                min: minAxisY,
+                max: maxAxisY,
+            }
+
+            $('#scatterChart').html("");
+            $("#scatterChart").kendoChart({
+                theme: "flat",
+                pdf: {
+                  fileName: "DetailPowerCurve.pdf",
+                },
+                title: {
+                    // text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
+                     text: "Scatter Power Curves",
+                    visible: false,
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    }
+                },
+                seriesDefaults: {
+                    type: "scatterLine",
+                    style: "smooth",
+                },
+                series: dtSeries,
+                categoryAxis: {
+                    labels: {
+                        step: 1
                     },
-                    valueAxis: [{
-                        labels: {
-                            format: "N2",
-                        }
-                    }],
-                    xAxis: xAxis,
-                    yAxes: yAxis
-                });
-                app.loading(false);
+                },
+                valueAxis: [{
+                    labels: {
+                        format: "N2",
+                    }
+                }],
+                xAxis: xAxis,
+                yAxes: yAxis
             });
-        }
+            app.loading(false);
+        });
+    }
 }
 
 page.setProjectTurbine = function(projects, turbines, selected){
