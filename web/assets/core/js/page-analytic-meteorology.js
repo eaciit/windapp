@@ -59,6 +59,9 @@ pm.isFirstTurbine = ko.observable(true);
 pm.isFirstEnergy = ko.observable(true);
 pm.isFirstTwelve = ko.observable(true);
 pm.isFirstWindRoseComparison = ko.observable(true);
+pm.projectName = ko.observable();
+pm.dateEnd = ko.observable();
+pm.dateStart = ko.observable();
 
 
 pm.getAvailDate = function(){
@@ -175,6 +178,14 @@ $(function(){
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         pm.resetStatus();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+        var project = $('#projectList').data("kendoDropDownList").value();
+
+        pm.dateEnd(dateEnd);
+        pm.dateStart(dateStart);
+        pm.projectName(project);
+
         $('.nav').find('li.active').find('a').trigger( "click" );
     });
 
@@ -194,6 +205,13 @@ $(function(){
     setTimeout(function () {
         pm.loadData();
         aw.AverageWindSpeed();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+        var project = $('#projectList').data("kendoDropDownList").value();
+
+        pm.dateEnd(dateEnd);
+        pm.dateStart(dateStart);
+        pm.projectName(project);
 
         $('#projectList').kendoDropDownList({
             change: function () {  
@@ -201,6 +219,9 @@ $(function(){
                 pm.getAvailDate();
                 var project = $('#projectList').data("kendoDropDownList").value();
                 fa.populateTurbine(project);
+                pm.projectName(project);
+
+
             }
         });
 
