@@ -1009,11 +1009,13 @@ func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resW
 
 		resWSvsPower = append(resWSvsPower, dataWSvsPower)
 
-		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
-		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
-		dataWSvsTipe.Set("valueColor", colorField[2])
+		if val.Has(field) {
+			dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
+			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+			dataWSvsTipe.Set("valueColor", colorField[2])
 
-		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+			resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+		}
 	}
 	return
 }
@@ -1101,7 +1103,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		filter = append(filter, dbox.Eq("available", 1))
 
 		csr, e = DB().Connection.NewQuery().
-			Select("power", "avgwindspeed", "avgbladeangle", "nacelletemperature", "nacelledeviation", "ambienttemperature").
+			Select("power", "avgwindspeed", "avgbladeangle", "nacelletemperature", "winddirection", "ambienttemperature").
 			From(new(ScadaData).TableName()).
 			Where(dbox.And(filter...)).
 			Take(10000).
@@ -1152,7 +1154,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature")
 		seriesData = setScatterData("Nacelle Temperature", "WindSpeed", "NacelleTemperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "deviation":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "nacelledeviation")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "winddirection")
 		seriesData = setScatterData("Nacelle Deviation", "WindSpeed", "NacelleDeviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "pitch":
 		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle")
@@ -1389,7 +1391,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 
 	type ScadaMini struct {
 		Power, AvgWindSpeed               float64
-		NacelleDeviation, AvgBladeAngle   float64
+		AvgBladeAngle                     float64
 		WindDirection, NacelleTemperature float64
 		AmbientTemperature                float64
 	}
