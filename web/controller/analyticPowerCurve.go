@@ -539,7 +539,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$gte": 10}}, tk.M{"avgwindspeed": tk.M{"$gte": 3}}}}}})
 
 	match = append(match, tk.M{"oktime": 600})
-	// match = append(match, tk.M{"isvalidstate": true})
+	match = append(match, tk.M{"isvalidstate": true})
 	match = append(match, tk.M{"available": 1})
 
 	if project != "" {
@@ -729,10 +729,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	match := []tk.M{}
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
-	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
+	//match = append(match, tk.M{"power": tk.M{"$gt": 0}})
 	//match = append(match, tk.M{"oktime": 600})
 	match = append(match, tk.M{"isvalidstate": true})
-	match = append(match, tk.M{"available": 1})
+	//match = append(match, tk.M{"available": 1})
 
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
@@ -763,6 +763,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	var datas [][]float64
 	results := []tk.M{}
 	sortTurbines := []string{}
+
+	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0)
+	totalDataShouldBe := totalDays * 144
 
 	resData := tk.M{}
 	for _, tkm := range alltkm {
@@ -811,9 +814,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		dataSeries = append(dataSeries, monthData)
 
 		turbineData := tk.M{
-			"NameID": turbineX,
-			"Name":   turbineName[turbineX],
-			"Data":   dataSeries,
+			"NameID":           turbineX,
+			"Name":             turbineName[turbineX],
+			"Data":             dataSeries,
+			"DataAvailability": tk.Div(float64(len(datas)), totalDataShouldBe),
+			"DataTotal":        len(datas),
+			"TotalDays":        totalDays,
+			"TotalShouldBe":    totalDataShouldBe,
 		}
 		results = append(results, turbineData)
 	}
