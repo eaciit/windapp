@@ -5,6 +5,8 @@ var page = viewModel.AnalyticPowerCurve;
 
 page.dataPCEachTurbine = ko.observableArray([]);
 page.PrintPdf = ko.observable(false);
+page.dataAvail = ko.observable();
+
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [];
@@ -127,6 +129,7 @@ page.InitLinePowerCurve = function() {
     listOfChart = [];
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name
+        var idDataAvailability = "#dataAv-" + dataTurbine.Name
         var idChart = "#chart-" + dataTurbine.Name
         listOfChart.push(idChart);
         var rotation = 300;
@@ -152,6 +155,8 @@ page.InitLinePowerCurve = function() {
             $(".power-curve-item").removeClass("col-md-4");
         }
         
+        $(idDataAvailability).html(kendo.toString(dataTurbine.DataAvailability,'p1'));
+
         $(idChart).html("");
         $(idChart).kendoChart({
             pdf: {
