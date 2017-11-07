@@ -1193,14 +1193,6 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	type ScadaMini struct {
-		Power         float64
-		RotorRPM      float64
-		GeneratorRPM  float64
-		AvgWindSpeed  float64
-		AvgBladeAngle float64
-	}
-
 	type PayloadOperational struct {
 		Period      string
 		Project     string
@@ -1221,11 +1213,16 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	maxAxisY := 0.0
 	dataSeries := []tk.M{}
 
+	turbineName, e := helper.GetTurbineNameList(payload[0].Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	var mux sync.Mutex
 	for idx, p := range payload {
 		idx++
 		func(p *PayloadOperational, dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int) {
-			list := []ScadaMini{}
+			list := []tk.M{}
 			tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 			if e != nil {
 				return
@@ -1253,9 +1250,9 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			if e != nil {
 				return
 			}
-			_list := ScadaMini{}
+			_list := tk.M{}
 			for {
-				_list = ScadaMini{}
+				_list = tk.M{}
 				e = csr.Fetch(&_list, 1, false)
 				if e != nil {
 					break
@@ -1268,133 +1265,63 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			data := tk.M{}
 			datas := []tk.M{}
 			seriesData := tk.M{}
-			switch p.ScatterType {
-			case "rotor":
-				for _, val := range list {
-					data = tk.M{}
-					if val.RotorRPM < *minAxisX {
-						mux.Lock()
-						*minAxisX = val.RotorRPM
-						mux.Unlock()
-					}
-					if val.RotorRPM > *maxAxisX {
-						mux.Lock()
-						*maxAxisX = val.RotorRPM
-						mux.Unlock()
-					}
-					if val.Power < *minAxisY {
-						mux.Lock()
-						*minAxisY = val.Power
-						mux.Unlock()
-					}
-					if val.Power > *maxAxisY {
-						mux.Lock()
-						*maxAxisY = val.Power
-						mux.Unlock()
-					}
-
-					data.Set("Rotor", val.RotorRPM)
-					data.Set("Power", val.Power)
-					data.Set("valueColor", colorField[index])
-
-					datas = append(datas, data)
-				}
-				seriesData = setScatterData("Rotor RPM", "Rotor", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			case "pitch":
-				for _, val := range list {
-					data = tk.M{}
-					if val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120 {
-						if val.AvgBladeAngle < *minAxisX {
-							mux.Lock()
-							*minAxisX = val.AvgBladeAngle
-							mux.Unlock()
-						}
-						if val.AvgBladeAngle > *maxAxisX {
-							mux.Lock()
-							*maxAxisX = val.AvgBladeAngle
-							mux.Unlock()
-						}
-						if val.Power < *minAxisY {
-							mux.Lock()
-							*minAxisY = val.Power
-							mux.Unlock()
-						}
-						if val.Power > *maxAxisY {
-							mux.Lock()
-							*maxAxisY = val.Power
-							mux.Unlock()
-						}
-						data.Set("Power", val.Power)
-						data.Set("Pitch", val.AvgBladeAngle)
-						data.Set("valueColor", colorField[index])
-						datas = append(datas, data)
-					}
-				}
-				seriesData = setScatterData("Pitch Angle", "Pitch", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			case "generatorrpm":
-				for _, val := range list {
-					data = tk.M{}
-					if val.GeneratorRPM < *minAxisX {
-						mux.Lock()
-						*minAxisX = val.GeneratorRPM
-						mux.Unlock()
-					}
-					if val.GeneratorRPM > *maxAxisX {
-						mux.Lock()
-						*maxAxisX = val.GeneratorRPM
-						mux.Unlock()
-					}
-					if val.Power < *minAxisY {
-						mux.Lock()
-						*minAxisY = val.Power
-						mux.Unlock()
-					}
-					if val.Power > *maxAxisY {
-						mux.Lock()
-						*maxAxisY = val.Power
-						mux.Unlock()
-					}
-
-					data.Set("Generator", val.GeneratorRPM)
-					data.Set("Power", val.Power)
-					data.Set("valueColor", colorField[index])
-
-					datas = append(datas, data)
-				}
-				seriesData = setScatterData("Generator RPM", "Generator", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			case "windspeed":
-				for _, val := range list {
-					data = tk.M{}
-					if val.AvgWindSpeed < *minAxisX {
-						mux.Lock()
-						*minAxisX = val.AvgWindSpeed
-						mux.Unlock()
-					}
-					if val.AvgWindSpeed > *maxAxisX {
-						mux.Lock()
-						*maxAxisX = val.AvgWindSpeed
-						mux.Unlock()
-					}
-					if val.Power < *minAxisY {
-						mux.Lock()
-						*minAxisY = val.Power
-						mux.Unlock()
-					}
-					if val.Power > *maxAxisY {
-						mux.Lock()
-						*maxAxisY = val.Power
-						mux.Unlock()
-					}
-
-					data.Set("WindSpeed", val.AvgWindSpeed)
-					data.Set("Power", val.Power)
-					data.Set("valueColor", colorField[index])
-
-					datas = append(datas, data)
-				}
-				seriesData = setScatterData("Wind Speed", "WindSpeed", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
+			typeDetail := map[string]tk.M{
+				"rotor": tk.M{
+					"field":      "rotorrpm",
+					"seriesname": "Rotor RPM",
+					"xfieldname": "Rotor",
+				},
+				"pitch": tk.M{
+					"field":      "avgbladeangle",
+					"seriesname": "Pitch Angle",
+					"xfieldname": "Pitch",
+				},
+				"generatorrpm": tk.M{
+					"field":      "generatorrpm",
+					"seriesname": "Generator RPM",
+					"xfieldname": "Generator",
+				},
+				"windspeed": tk.M{
+					"field":      "avgwindspeed",
+					"seriesname": "Wind Speed",
+					"xfieldname": "WindSpeed",
+				},
 			}
-			seriesData.Unset("name")
+			typeSelected := typeDetail[p.ScatterType]
+			fieldName := typeSelected.GetString("field")
+			seriesName := typeSelected.GetString("seriesname")
+			xFieldName := typeSelected.GetString("xfieldname")
+			for _, val := range list {
+				data = tk.M{}
+				if val.GetFloat64(fieldName) < *minAxisX {
+					mux.Lock()
+					*minAxisX = val.GetFloat64(fieldName)
+					mux.Unlock()
+				}
+				if val.GetFloat64(fieldName) > *maxAxisX {
+					mux.Lock()
+					*maxAxisX = val.GetFloat64(fieldName)
+					mux.Unlock()
+				}
+				if val.GetFloat64("power") < *minAxisY {
+					mux.Lock()
+					*minAxisY = val.GetFloat64("power")
+					mux.Unlock()
+				}
+				if val.GetFloat64("power") > *maxAxisY {
+					mux.Lock()
+					*maxAxisY = val.GetFloat64("power")
+					mux.Unlock()
+				}
+
+				data.Set(xFieldName, val.GetFloat64(fieldName))
+				data.Set("Power", val.GetFloat64("power"))
+				data.Set("valueColor", colorField[index])
+
+				datas = append(datas, data)
+			}
+			seriesData = setScatterData(seriesName, xFieldName, "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
+			seriesData.Set("name", turbineName[turbine]+" ("+p.DateStart.Format("02-Jan-2006")+"  to "+p.DateEnd.Format("02-Jan-2006")+")")
 			mux.Lock()
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()

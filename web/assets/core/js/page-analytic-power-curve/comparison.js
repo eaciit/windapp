@@ -148,13 +148,6 @@ pc.populateTurbine = function (selected) {
     } else {
         var datavalue = [];
         var dataturbine = [];
-        // var allturbine = {}
-        // $.each(pc.rawturbine(), function (key, val) {
-        //     turbineval.push(val);
-        // });
-        // allturbine.value = "All Turbine";
-        // allturbine.text = "All Turbines";
-        // datavalue.push(allturbine);
 
         if (selected==""){
             selected = pc.rawproject()[0].Value;
@@ -725,6 +718,12 @@ pc.getScatter = function(paramLine, dtLine) {
 pc.setProjectTurbine = function(projects, turbines, selected){
 	pc.rawproject(projects);
     pc.rawturbine(turbines);
+    var sortedTurbine = pc.rawturbine().sort(function(a, b){
+        var a1= a.Turbine.toLowerCase(), b1= b.Turbine.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
+    pc.rawturbine(sortedTurbine);
 	pc.populateProject(selected);
 };
 
