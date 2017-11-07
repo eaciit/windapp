@@ -1,3 +1,8 @@
+.label-to{
+    width:40px;
+    text-align: center;
+    margin-left: -5px;
+}
 .Epdf{
     margin-top: -30px;
     margin-right: 20px;
@@ -73,4 +78,15 @@ margin-bottom: 2px;
 }
 .period-list{
     width: 75px;
+}
+.dataavail_info {
+    position: absolute;
+    top: 43px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 100px;
+    font-size: 10px;
 }

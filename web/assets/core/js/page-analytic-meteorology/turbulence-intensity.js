@@ -390,11 +390,13 @@ var ti = {
 	            ViewSession: ''
 	        };
 	        
-	        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", param, function(res) {
+	        toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/getturbulenceintensityscatter", param, function(res) {
 	            if (!app.isFine(res)) {
 	                app.loading(false);
 	                return;
-	            }
+				}
+				
+				console.log(res);
 
 	            var dataPowerCurves = res.data.Data;
 	            $.each(dataPowerCurves, function(idx, val){
@@ -538,7 +540,8 @@ var ti = {
 		                    //         },
 		                    //     }
 		                    // },
-		                    yAxisType: 'Secondary',
+							yAxisType: 'Secondary',
+							visible: false,
 		                }
 	                ],
 	                pannable: {

@@ -39,3 +39,8 @@ margin-bottom: 2px;
 .paddingLeft-60{
     padding-left: 60px;
 }
+.label-to{
+    width:40px;
+    text-align: center;
+    margin-left: -5px;
+}

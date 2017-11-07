@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/eaciit/crowd"
+	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 	// "time"
@@ -203,6 +204,138 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	results = tk.M{
 		"Data":        datas,
 		"ChartSeries": dataSeries,
+	}
+
+	return results
+}
+
+/// getting scatter for TI
+func (m *AnalyticMeteorologyController) GetTurbulenceIntensityScatter(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadAnalytic)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	var (
+		filtermet []*dbox.Filter
+		results   tk.M
+		datas     []tk.M
+	)
+
+	metTowers := make([]tk.M, 0)
+
+	colors := p.Color
+	turbines := p.Turbine
+	project := p.Project
+
+	if project != "" {
+		filtermet = append(filtermet, dbox.Eq("projectname", project))
+	}
+
+	filtermet = append(filtermet, dbox.Gte("timestamp", tStart))
+	filtermet = append(filtermet, dbox.Lte("timestamp", tEnd))
+	filtermet = append(filtermet, dbox.Gte("windspeedbin", 0))
+	filtermet = append(filtermet, dbox.Gte("windspeedbin", 25))
+
+	csrt, e := DB().Connection.NewQuery().
+		From(new(MetTower).TableName()).Where(dbox.And(filtermet...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	e = csrt.Fetch(&metTowers, 0, false)
+
+	csrt.Close()
+
+	for _, m := range metTowers {
+		iDs := m.Get("_id").(tk.M)
+		turbine := "Met Tower" //iDs.GetString("turbine")
+		windspeedbin := iDs.GetInt("windspeedbin")
+		avgws := m.GetFloat64("avgws")
+		avgwsstddev := m.GetFloat64("avgwsstddev")
+		datas = append(datas, tk.M{
+			"turbine":     turbine,
+			"binws":       windspeedbin,
+			"avgws":       avgws,
+			"avgwsstddev": avgwsstddev,
+			"tivalue":     tk.Div(avgwsstddev, avgws),
+		})
+	}
+
+	selArr := 0
+	for _, t := range turbines {
+		currColor := colors[selArr]
+
+		var filter []*dbox.Filter
+		var scadaHfds []tk.M
+
+		tb := t.(string)
+
+		filter = append(filter, dbox.Eq("projectname", project))
+		filter = append(filter, dbox.Eq("turbine", tb))
+		filter = append(filter, dbox.Gte("timestamp", tStart))
+		filter = append(filter, dbox.Lte("timestamp", tEnd))
+		filter = append(filter, dbox.Gte("windspeed_ms_bin", 0))
+		filter = append(filter, dbox.Lte("windspeed_ms_bin", 25))
+
+		csr, e := DB().Connection.NewQuery().
+			From("Scada10MinHFD").Where(dbox.And(filter...)).
+			Cursor(nil)
+
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		e = csr.Fetch(&scadaHfds, 0, false)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		csr.Close()
+
+		item := tk.M{}
+		item.Set("colorField", "valueColor")
+		item.Set("markers", tk.M{}.Set("size", 2))
+		item.Set("name", "Scatter-"+tb)
+		item.Set("type", "scatter")
+		item.Set("xField", "WindSpeed")
+		item.Set("yField", "TurbulenceIntensity")
+
+		dataItem := []tk.M{}
+		for _, m := range scadaHfds {
+			ws := m.GetFloat64("windspeed_ms")
+			wsBin := m.GetFloat64("windspeed_ms_bin")
+			wsStdDev := m.GetFloat64("windspeed_ms_stddev")
+			tiVal := tk.Div(wsStdDev, ws)
+
+			dt := tk.M{}
+			dt.Set("valueColor", currColor)
+			dt.Set("WindSpeed", ws)
+			dt.Set("WindSpeedBin", wsBin)
+			dt.Set("WindSpeedStdDev", wsStdDev)
+			dt.Set("TurbulenceIntensity", tiVal)
+
+			dataItem = append(dataItem, dt)
+		}
+		item.Set("data", dataItem)
+
+		datas = append(datas, item)
+
+		selArr++
+	}
+
+	results = tk.M{
+		"data":    tk.M{"Data": datas},
+		"message": "success",
+		"success": true,
 	}
 
 	return results
