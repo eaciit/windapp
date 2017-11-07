@@ -89,13 +89,6 @@ page.populateTurbine = function (selected) {
     } else {
         var datavalue = [];
         var dataturbine = [];
-        // var allturbine = {}
-        // $.each(page.rawturbine(), function (key, val) {
-        //     turbineval.push(val);
-        // });
-        // allturbine.value = "All Turbine";
-        // allturbine.text = "All Turbines";
-        // datavalue.push(allturbine);
 
         if (selected==""){
             selected = page.rawproject()[0].Value;
@@ -553,6 +546,12 @@ page.getPowerCurveScatter = function() {
 page.setProjectTurbine = function(projects, turbines, selected){
     page.rawproject(projects);
     page.rawturbine(turbines);
+    var sortedTurbine = page.rawturbine().sort(function(a, b){
+        var a1= a.Turbine.toLowerCase(), b1= b.Turbine.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
+    page.rawturbine(sortedTurbine);
     page.populateProject(selected);
 };
 
