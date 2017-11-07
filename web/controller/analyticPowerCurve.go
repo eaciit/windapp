@@ -1387,7 +1387,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 				}
 				seriesData = setScatterData("Wind Speed", "WindSpeed", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
 			}
-			seriesData.Unset("name")
+			seriesData.Set("name", turbine+" ("+p.DateStart.Format("02-Jan-2006")+"  to "+p.DateEnd.Format("02-Jan-2006")+")")
 			mux.Lock()
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()

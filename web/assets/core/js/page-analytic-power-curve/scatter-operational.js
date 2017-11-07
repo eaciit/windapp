@@ -522,6 +522,7 @@ page.getPowerCurveScatter = function() {
                 },
                 legend: {
                     position: "bottom",
+                    offsetX: 40,
                     labels: {
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     }
@@ -571,11 +572,10 @@ $(document).ready(function() {
          }
     });
 
-    $.when(page.getAvailDate()).done(function() {
+    $.when(page.InitDefaultValue()).done(function() {
         setTimeout(function(){
-            page.InitDefaultValue();
             page.LoadData();
-        },500);
+        },200);
        
     });
 });
