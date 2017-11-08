@@ -755,8 +755,6 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Set("then", 1).
 					Set("else", 0)}
 
-				_ValidPCDev := PopulateValidPCDev(ctx, filter)
-
 				pipe := []tk.M{}
 				pipe = append(pipe, tk.M{}.Set("$match", filter))
 				pipe = append(pipe, tk.M{}.Set("$group", tk.M{}.
@@ -798,6 +796,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 				total := 0
 
 				maxdate := time.Time{}
+
+				_ValidPCDev := PopulateValidPCDev(ctx, filter)
+
 				for _, data := range scadaSums {
 					id := data["_id"].(tk.M)
 					project := id.GetString("projectname")
