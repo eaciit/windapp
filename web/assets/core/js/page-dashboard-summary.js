@@ -157,26 +157,28 @@ sum.loadData = function () {
                 for(var key in availDatas){
                     var availData = availDatas[key];
                     var seriesObj = {};
-                    for(var i=0;i<availData.length;i++){
-                        if(projectCount < 1) {
-                            var availObject = {
-                                "DateInfo": availData[i].DateInfo
+                    if(availData !== null){
+                        for(var i=0;i<availData.length;i++){
+                            if(projectCount < 1) {
+                                var availObject = {
+                                    "DateInfo": availData[i].DateInfo
+                                }
+                                availObject[key] = availData[i].TrueAvail;
+                                availabilityData.push(availObject);
+                            } else {
+                                var availObject = availabilityData[i]
+                                availObject[key] = availData[i].TrueAvail;
+                                availabilityData[i] = availObject;
                             }
-                            availObject[key] = availData[i].TrueAvail;
-                            availabilityData.push(availObject);
-                        } else {
-                            var availObject = availabilityData[i]
-                            availObject[key] = availData[i].TrueAvail;
-                            availabilityData[i] = availObject;
                         }
+                        seriesObj["name"] = key;
+                        seriesObj["field"] = key;
+                        seriesObj["color"] = colorFieldProject[projectCount];
+                        seriesObj["missingValues"]= "gap";
+                        availabilitySeries.push(seriesObj);
+                        projectCount++;
                     }
-                    seriesObj["name"] = key;
-                    seriesObj["field"] = key;
-                    seriesObj["color"] = colorFieldProject[projectCount];
-                    seriesObj["missingValues"]= "gap";
-                    availabilitySeries.push(seriesObj);
-                    projectCount++;
-                }
+                 }
 
                 sum.availData(availabilityData);
                 sum.availSeries(availabilitySeries);
