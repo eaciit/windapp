@@ -20,6 +20,7 @@ type TurbineMaster struct {
 	TotalTurbine   int
 	Active         bool
 	TopCorrelation []string
+	Engine         string
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
@@ -48,6 +49,7 @@ type ProjectMaster struct {
 	City              string
 	SS_AirDensity     float64
 	STD_AirDensity    float64
+	Engine            []string
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -69,6 +71,7 @@ type TurbineOut struct {
 	Value    string
 	Capacity float64
 	Feeder   string
+	Engine   string
 	Coords   []float64
 }
 
@@ -83,4 +86,5 @@ type ProjectOut struct {
 	TotalMaxCapacity  float64
 	SS_AirDensity     float64
 	STD_AirDensity    float64
+	Engine            []string
 }

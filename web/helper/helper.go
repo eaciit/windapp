@@ -820,6 +820,7 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			City:              val.City,
 			SS_AirDensity:     val.SS_AirDensity,
 			STD_AirDensity:    val.STD_AirDensity,
+			Engine:            val.Engine,
 		})
 	}
 
@@ -857,6 +858,7 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 			Value:    val.TurbineId,
 			Capacity: val.CapacityMW,
 			Feeder:   val.Feeder,
+			Engine:   val.Engine,
 			Coords:   []float64{val.Latitude, val.Longitude},
 		})
 	}
