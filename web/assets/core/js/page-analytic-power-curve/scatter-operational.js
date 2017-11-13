@@ -536,7 +536,19 @@ page.getPowerCurveScatter = function() {
                     }
                 }],
                 xAxis: xAxis,
-                yAxes: yAxis
+                yAxes: yAxis,
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
+                        lock: "y"
+                    },
+                    selection: {
+                        lock: "y",
+                        key: "none",
+                    }
+                }
             });
             app.loading(false);
         });
