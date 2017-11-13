@@ -520,8 +520,18 @@ pc.initChart = function() {
                             width: "2px",
                         },
                     },
-                    pannable: false,
-                    zoomable: false
+                    pannable: {
+                        lock: "y"
+                    },
+                    zoomable: {
+                        mousewheel: {
+                            lock: "y"
+                        },
+                        selection: {
+                            lock: "y",
+                            key: "none",
+                        }
+                    }
                 });
                 app.loading(false);
                 if (pc.sScater()) {

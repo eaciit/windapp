@@ -235,7 +235,19 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxes: yAxes
+            yAxes: yAxes,
+            pannable: {
+                lock: "y"
+            },
+            zoomable: {
+                mousewheel: {
+                    lock: "y"
+                },
+                selection: {
+                    lock: "y",
+                    key: "none",
+                }
+            }
         });
         app.loading(false);
     });

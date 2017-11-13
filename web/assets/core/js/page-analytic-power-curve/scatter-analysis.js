@@ -274,7 +274,19 @@ page.createChart = function(dtSeries){
                         },
                     }
                 },
-            }
+            },
+            pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
+                        lock: "y"
+                    },
+                    selection: {
+                        lock: "y",
+                        key: "none",
+                    }
+                }
         });
 }
 
