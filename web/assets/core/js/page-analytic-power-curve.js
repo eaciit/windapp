@@ -188,6 +188,9 @@ vm.breadcrumb([{
     title: "KPI's",
     href: '#'
 },{
+    title: "Power Curve",
+    href: '#'
+},{
     title: 'Power Curve',
     href: viewModel.appName + 'page/analyticpowercurve'
 }]);
@@ -197,210 +200,205 @@ var dataTurbine
 
 var Data = {
     LoadData: function() {
-        var isValid = fa.LoadData();
-        // fa.getProjectInfo();
-        if(isValid) {
-            page.populateTurbine();
-            this.InitLinePowerCurve();
-            this.InitRightTurbineList();
-        }
+        page.populateTurbine();
+        this.InitLinePowerCurve();
+        this.InitRightTurbineList();
     },
     InitLinePowerCurve: function() {
-        var isValid = fa.LoadData();
         page.getSelectedFilter();
-        if(isValid) {
-            page.deviationOpr($("#deviationOpr").val());
-            page.deviationVal($("#deviationValue").val());
+        
+        page.deviationOpr($("#deviationOpr").val());
+        page.deviationVal($("#deviationValue").val());
 
-            var link = "analyticpowercurve/getlistpowercurvescada"
+        var link = "analyticpowercurve/getlistpowercurvescada"
 
-            app.loading(true);
+        app.loading(true);
 
-            var dateStart = $('#dateStart').data('kendoDatePicker').value();
-            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
 
-            var param = {
-                period: fa.period,
-                dateStart: dateStart,
-                dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
-                turbine: fa.turbine(),
-                project: fa.project,
-                isClean: page.isClean,
-                isSpecific: page.isSpecific,
-                isDeviation: page.isDeviation,
-                isPower0: page.isPower0,
-                DeviationVal: page.deviationVal,
-                DeviationOpr: page.deviationOpr,
-                ViewSession: page.viewSession,
-                Engine: fa.engine,
-            };
-            lastParam = param;
+        var param = {
+            period: fa.period,
+            dateStart: dateStart,
+            dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
+            turbine: $("#turbineList").val(),
+            project: fa.project,
+            isClean: page.isClean,
+            isSpecific: page.isSpecific,
+            isDeviation: page.isDeviation,
+            isPower0: page.isPower0,
+            DeviationVal: page.deviationVal,
+            DeviationOpr: page.deviationOpr,
+            ViewSession: page.viewSession,
+            Engine: fa.engine,
+        };
+        lastParam = param;
 
-            toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
-                if (!app.isFine(res)) {
-                    app.loading(false);
-                    return;
-                }
+        toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
+            if (!app.isFine(res)) {
+                app.loading(false);
+                return;
+            }
 
-                page.totalAvail(res.data.TotalDataAvail);
-                page.totalAvailAll(res.data.TotalDataAvail);
-                page.totalAvailTurbines(res.data.TotalPerTurbine);
+            page.totalAvail(res.data.TotalDataAvail);
+            page.totalAvailAll(res.data.TotalDataAvail);
+            page.totalAvailTurbines(res.data.TotalPerTurbine);
 
-                dataTurbine = res.data.Data;
-                localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
-                page.dtLineChart(res.data.Data);
-            
+            dataTurbine = res.data.Data;
+            localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
+            page.dtLineChart(res.data.Data);
+        
 
-                $('#powerCurve').html("");
-                $("#powerCurve").kendoChart({
-                    pdf: {
-                      fileName: "DetailPowerCurve.pdf",
-                    },
-                    theme: "flat",
-                    title: {
-                        text: "Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+            $('#powerCurve').html("");
+            $("#powerCurve").kendoChart({
+                pdf: {
+                  fileName: "DetailPowerCurve.pdf",
+                },
+                theme: "flat",
+                title: {
+                    text: "Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("("))+""+$(".date-info").text(),
+                    visible: false,
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+                legend: {
+                    position: "bottom",
+                    visible: false,
+                },
+                chartArea: {
+                    height: 425,
+                },
+                seriesDefaults: {
+                    type: "scatterLine",
+                    style: "smooth",
+                    dashType: "longDash",
+                    markers: {
                         visible: false,
-                        font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                        size: 4,
                     },
-                    legend: {
-                        position: "bottom",
-                        visible: false,
-                    },
-                    chartArea: {
-                        height: 425,
-                    },
-                    seriesDefaults: {
-                        type: "scatterLine",
-                        style: "smooth",
-                        dashType: "longDash",
-                        markers: {
-                            visible: false,
-                            size: 4,
-                        },
-                    },
-                    seriesColors: colorField,
-                    series: dataTurbine,
-                    categoryAxis: {
-                        labels: {
-                            step: 1
-                        }
-                    },
-                    valueAxis: [{
-                        labels: {
-                            format: "N0",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        }
-                    }],
-                    xAxis: {
-                        majorUnit: 1,
-                        title: {
-                            text: "Wind Speed (m/s)",
-                            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            color: "#585555",
-                            visible: true,
-                        },
-                        labels: {
-                            format: "N0",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        },
-                        crosshair: {
-                            visible: true,
-                            tooltip: {
-                                visible: true,
-                                format: "N2",
-                                background: "rgb(255,255,255, 0.9)",
-                                color: "#58666e",
-                                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                                border: {
-                                    color: "#eee",
-                                    width: "2px",
-                                },
-                            }
-                        },
-                        majorGridLines: {
-                            visible: true,
-                            color: "#eee",
-                            width: 0.8,
-                        },
-                        max: 25
-                    },
-                    yAxis: {
-                        title: {
-                            text: "Generation (KW)",
-                            font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                            color: "#585555"
-                        },
-                        labels: {
-                            format: "N0",
-                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        },
-                        axisCrossingValue: -5,
-                        majorGridLines: {
-                            visible: true,
-                            color: "#eee",
-                            width: 0.8,
-                        },
-                        crosshair: {
-                            visible: true,
-                            tooltip: {
-                                visible: true,
-                                format: "N1",
-                                background: "rgb(255,255,255, 0.9)",
-                                color: "#58666e",
-                                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                                border: {
-                                    color: "#eee",
-                                    width: "2px",
-                                },
-                            }
-                        },
-                    },
-                    tooltip: {
-                        visible: true,
-                        format: "{1}in {0} minutes",
-                        template: "#= series.name #",
-                        shared: true,
-                        background: "rgb(255,255,255, 0.9)",
-                        color: "#58666e",
+                },
+                seriesColors: colorField,
+                series: dataTurbine,
+                categoryAxis: {
+                    labels: {
+                        step: 1
+                    }
+                },
+                valueAxis: [{
+                    labels: {
+                        format: "N0",
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        border: {
-                            color: "#eee",
-                            width: "2px",
-                        },
+                    }
+                }],
+                xAxis: {
+                    majorUnit: 1,
+                    title: {
+                        text: "Wind Speed (m/s)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        color: "#585555",
+                        visible: true,
                     },
-                    // zoomable: true,
-                    pannable: {
+                    labels: {
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    crosshair: {
+                        visible: true,
+                        tooltip: {
+                            visible: true,
+                            format: "N2",
+                            background: "rgb(255,255,255, 0.9)",
+                            color: "#58666e",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            border: {
+                                color: "#eee",
+                                width: "2px",
+                            },
+                        }
+                    },
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    max: 25
+                },
+                yAxis: {
+                    title: {
+                        text: "Generation (KW)",
+                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        color: "#585555"
+                    },
+                    labels: {
+                        format: "N0",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    },
+                    axisCrossingValue: -5,
+                    majorGridLines: {
+                        visible: true,
+                        color: "#eee",
+                        width: 0.8,
+                    },
+                    crosshair: {
+                        visible: true,
+                        tooltip: {
+                            visible: true,
+                            format: "N1",
+                            background: "rgb(255,255,255, 0.9)",
+                            color: "#58666e",
+                            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                            border: {
+                                color: "#eee",
+                                width: "2px",
+                            },
+                        }
+                    },
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{1}in {0} minutes",
+                    template: "#= series.name #",
+                    shared: true,
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
+                    },
+                },
+                // zoomable: true,
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
                         lock: "y"
                     },
-                    zoomable: {
-                        mousewheel: {
-                            lock: "y"
-                        },
-                        selection: {
-                            lock: "y",
-                            key: "none",
-                        }
+                    selection: {
+                        lock: "y",
+                        key: "none",
                     }
-                });
-                app.loading(false);
-                $("#powerCurve").data("kendoChart").refresh();
-                
-                if (page.sScater()) {
-                    $('#showDownTime').removeAttr("disabled");
-                } else {
-                    Data.InitRightTurbineList();
-                    $('#showDownTime').attr('checked', false);
-                    $('#showDownTime').attr("disabled", "disabled");
-                    $('#downtime-list').hide();
-                    page.showDownTime(false);
                 }
-                if (page.sScater()) {
-                    Data.getPowerCurve();
-                }
-                page.powerCurveOptions($("#powerCurve").getKendoChart().options);
-                page.ShowHideAfterInitChart();
             });
-        }
+            app.loading(false);
+            $("#powerCurve").data("kendoChart").refresh();
+            
+            if (page.sScater()) {
+                $('#showDownTime').removeAttr("disabled");
+            } else {
+                Data.InitRightTurbineList();
+                $('#showDownTime').attr('checked', false);
+                $('#showDownTime').attr("disabled", "disabled");
+                $('#downtime-list').hide();
+                page.showDownTime(false);
+            }
+            if (page.sScater()) {
+                Data.getPowerCurve();
+            }
+            page.powerCurveOptions($("#powerCurve").getKendoChart().options);
+            page.ShowHideAfterInitChart();
+        });
+        
     },
     getPowerCurve: function() {
         page.deviationVal($("#deviationValue").val());
@@ -1045,7 +1043,7 @@ $(document).ready(function() {
             page.ss_airdensity(getAd.SS_AirDensity);
             page.std_airdensity(getAd.STD_AirDensity);
         }
-        
+        fa.LoadData();
         Data.LoadData();
     }, 1000);
 
