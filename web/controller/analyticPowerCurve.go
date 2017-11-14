@@ -61,7 +61,7 @@ func (m *AnalyticPowerCurveController) GetList(k *knot.WebContext) interface{} {
 	isClean := p.IsClean
 	isAverage := p.IsAverage
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -174,7 +174,7 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 	// isClean := p.IsClean
 	// isAverage := p.IsAverage
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -306,7 +306,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		issitespecific = true
 	}
 
-	pcData, e := getPCData(project, issitespecific)
+	pcData, e := getPCData(project, p.Engine, issitespecific)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -641,7 +641,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	sort.Strings(sortTurbines)
 
 	selArr := 0
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -752,7 +752,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		tEnd = tEnd.AddDate(0, 0, 1)
 	}
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -920,7 +920,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
-	PC1Data, e := getPCData(PC1project, true)
+	// Hardcode first
+	engine := ""
+	if PC1project == "Dewas" {
+		engine = "S-97"
+	}
+
+	PC1Data, e := getPCData(PC1project, engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1111,6 +1117,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		DateEnd     time.Time
 		Turbine     string
 		Project     string
+		Engine      string
 		ScatterType string
 	}
 
@@ -1129,7 +1136,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	}
 	turbine := p.Turbine
 	project := p.Project
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1401,6 +1408,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		DateEnd       time.Time
 		Turbine       string
 		Project       string
+		Engine        string
 		ScatterType   string
 		LessValue     float64
 		GreaterValue  float64
@@ -1435,7 +1443,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 	turbine := p.Turbine
 	project := p.Project
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -2092,7 +2100,7 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 	project := p.Project
 	colors := p.Color
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -2147,10 +2155,20 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 	return helper.CreateResult(true, data, "success")
 }
 
-func getPCData(project string, issitespecific bool) (pcData tk.M, e error) {
+func getPCData(project string, engine string, issitespecific bool) (pcData tk.M, e error) {
 	powerCurve := []PowerCurveModel{}
 
-	csr, e := DB().Connection.NewQuery().From(new(PowerCurveModel).TableName()).Where(dbox.Eq("model", project)).Order("windspeed").Cursor(nil)
+	filter := dbox.Eq("model", project)
+	if engine != "" {
+		filter = dbox.And(filter, dbox.Eq("engine", engine))
+	}
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(PowerCurveModel).
+			TableName()).
+		Where(filter).
+		Order("windspeed").
+		Cursor(nil)
 	if e != nil {
 		return
 	}

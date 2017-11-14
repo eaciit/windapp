@@ -85,10 +85,10 @@ page.showHideLegend = function (index) {
 }
 
 page.LoadData = function() {
-    fa.LoadData();
     app.loading(true);
     setTimeout(function () {
         var param = {
+            engine : fa.engine,
             turbine: fa.turbine(),
             project: fa.project,
             datestart: $('#dateStart').data('kendoDatePicker').value(),
@@ -102,26 +102,10 @@ page.LoadData = function() {
                 page.dataPCEachTurbine(res.data.Data);
                 page.InitLinePowerCurve();
             }
-            // if (res.data.Category != null) {
-            //     listOfCategory = res.data.Category;
-            //     $("#legend-list").html("");
-            //     listOfButton = {};
-            //     $.each(listOfCategory, function (idx, val) {
-            //         if(idx > 0) {
-            //             var idName = "btn" + idx;
-            //             listOfButton[idName] = true;
-            //             $("#legend-list").append(
-            //                 '<button id="' + idName + 
-            //                 '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
-            //                 val.color + ';background-color:' + val.color + ';"></button>' +
-            //                 '<span class="span-legend">' + val.category + '</span>'
-            //             );
-            //         }
-            //     });
-            // }
             app.loading(false);
-        })
-    }, 300);
+        });
+        
+    }, 500);
 }
 
 page.InitLinePowerCurve = function() {
@@ -296,12 +280,6 @@ $(function() {
     $(window).scroll(sticky_relocate);
     sticky_relocate();
 
-    di.getAvailDate();
-    setTimeout(function(){
-        $("#periodList").data("kendoDropDownList").value("monthly");
-        $("#periodList").data("kendoDropDownList").trigger("change");
-    },200);
-
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         page.LoadData();
@@ -322,10 +300,18 @@ $(function() {
             fa.currentFilter().project = this._old;
             fa.checkFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
-            fa.populateTurbine(project);
+            fa.project = project;
+            fa.populateEngine(project);
             di.getAvailDate();
          }
     });
 
-    page.LoadData();
+    di.getAvailDate();
+    setTimeout(function(){
+        $("#periodList").data("kendoDropDownList").value("monthly");
+        $("#periodList").data("kendoDropDownList").trigger("change");
+        fa.LoadData();
+        page.LoadData();
+    },500);
+    
 });
