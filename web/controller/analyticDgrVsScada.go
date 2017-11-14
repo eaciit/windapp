@@ -7,10 +7,11 @@ import (
 	"time"
 	// "time"
 
-	tk "github.com/eaciit/toolkit"
 	"strings"
+
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
+	tk "github.com/eaciit/toolkit"
 )
 
 type AnalyticDgrScadaController struct {
@@ -659,6 +660,39 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	scadaItem.machineavail = sMachineavail
 	scadaItem.trueavail = sTrueavail
 
+	if len(resultScada) > 0 {
+		sfilter := append(filter, dbox.Gte("power", 0))
+		spipes := []tk.M{tk.M{"$group": tk.M{
+			"_id":   "$projectname",
+			"power": tk.M{"$sum": "$power"},
+		}}}
+
+		scsr, se := DB().Connection.NewQuery().
+			From(new(ScadaData).TableName()).
+			Command("pipe", spipes).
+			Where(dbox.And(sfilter...)).
+			Cursor(nil)
+
+		if se != nil {
+			helper.CreateResult(false, nil, e.Error())
+		}
+		defer scsr.Close()
+
+		_scada := []tk.M{}
+		e = scsr.Fetch(&_scada, 0, false)
+		if e != nil {
+			helper.CreateResult(false, nil, e.Error())
+		}
+
+		defer csr.Close()
+
+		if len(_scada) > 0 {
+			scada := _scada[0]
+			scadaItem.power = scada.GetFloat64("power") / 1000
+			scadaItem.energy = scadaItem.power / 6
+		}
+	}
+
 	// ========================================================= DGR
 
 	query := []tk.M{}
@@ -770,13 +804,13 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 
 	query = append(query, tk.M{"category": tk.M{"$ne": ""}})
 	downGroupClause := tk.M{
-		"_id" : "$category",
-		"sumbreakdownhours" : tk.M{"$sum": "$breakdownhours"},
+		"_id":               "$category",
+		"sumbreakdownhours": tk.M{"$sum": "$breakdownhours"},
 	}
 	pipes = nil
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": downGroupClause})
-	tk.Println("match", query)
+	// tk.Println("match", query)
 	csr, e = DB().Connection.NewQuery().
 		From("rpt_downtime").
 		Command("pipe", pipes).
@@ -793,39 +827,39 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	totalhours := float64( len(turbine) * 24 * daysDiff(tEnd, tStart) )
+	totalhours := float64(len(turbine) * 24 * daysDiff(tEnd, tStart))
 
 	tmpA := 0.0
-	for _, down := range downList{
+	for _, down := range downList {
 		category := strings.ToUpper(down.GetString("_id"))
-		if !strings.Contains(category, "LOAD"){
+		if !strings.Contains(category, "LOAD") {
 			sDowntime += down.GetFloat64("sumbreakdownhours")
 		}
 
-		switch category{
-			case "S-M/C", "U-M/C", "ROW(M/C)-OEM", "AOR":
-				sMachineavail += down.GetFloat64("sumbreakdownhours")
-				break
-			case "S-EG", "U-EG":
-				tmpA += down.GetFloat64("sumbreakdownhours")
-				sGridavail += down.GetFloat64("sumbreakdownhours")
-				break
-			case "ROW(IG)-NONOEM", "ROW(M/C)-NONOEM", "FM-ENV", "FM-THEFT" :
-				tmpA += down.GetFloat64("sumbreakdownhours")
-				break
+		switch category {
+		case "S-M/C", "U-M/C", "ROW(M/C)-OEM", "AOR":
+			sMachineavail += down.GetFloat64("sumbreakdownhours")
+			break
+		case "S-EG", "U-EG":
+			tmpA += down.GetFloat64("sumbreakdownhours")
+			sGridavail += down.GetFloat64("sumbreakdownhours")
+			break
+		case "ROW(IG)-NONOEM", "ROW(M/C)-NONOEM", "FM-ENV", "FM-THEFT":
+			tmpA += down.GetFloat64("sumbreakdownhours")
+			break
 		}
-		
+
 	}
 
-	sPlf = tk.Div(sEnergy, totalhours * getturbinemw(project)) * 100
+	sPlf = tk.Div(sEnergy, totalhours*getturbinemw(project)) * 100
 	A := totalhours - tmpA
 	dgrItem.power = sPower
 	dgrItem.energy = sEnergy
 	dgrItem.downtime = sDowntime
 	dgrItem.windspeed = sWindspeed
 	dgrItem.plf = sPlf
-	dgrItem.gridavail = tk.Div(totalhours - sGridavail, totalhours) * 100
-	dgrItem.machineavail = tk.Div(A - sMachineavail, A) * 100
+	dgrItem.gridavail = tk.Div(totalhours-sGridavail, totalhours) * 100
+	dgrItem.machineavail = tk.Div(A-sMachineavail, A) * 100
 	dgrItem.trueavail = sTrueavail
 
 	var varItem DataItem
@@ -866,7 +900,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 
 	defer csr.Close()
 
-	tk.Println(">>> ", resultprod)
+	// tk.Println(">>> ", resultprod)
 	rprod := float64(0)
 	if len(resultprod) > 0 {
 		rprod = resultprod[0].GetFloat64("production")
@@ -877,8 +911,8 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	//===== GET Data from latest production day
 
 	result := []tk.M{}
-	result = append(result, tk.M{"desc": "Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power, "ScadaHFD": rprod * 6, "diffdgrhfd": "N/A"})
-	result = append(result, tk.M{"desc": "Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy, "ScadaHFD": rprod, "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Export Power (MW)", "dgr": dgrItem.power, "scada": scadaItem.power, "difference": varItem.power, "ScadaHFD": rprod * 6, "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Export Energy (MWh)", "dgr": dgrItem.energy, "scada": scadaItem.energy, "difference": varItem.energy, "ScadaHFD": rprod, "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "Avg. Wind Speed (m/s)", "dgr": "N/A", "scada": scadaItem.windspeed, "difference": varItem.windspeed, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "Downtime (Hours)", "dgr": dgrItem.downtime, "scada": scadaItem.downtime, "difference": varItem.downtime, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "PLF", "dgr": dgrItem.plf, "scada": scadaItem.plf, "difference": varItem.plf, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
@@ -908,7 +942,7 @@ func getturbinedgr(iproject string) (tkm tk.M) {
 	tkm = tk.M{}
 
 	csr, e := DB().Connection.NewQuery().
-		Select("turbineid", "turbinedgr",).
+		Select("turbineid", "turbinedgr").
 		From("ref_turbine").
 		Where(dbox.Eq("project", iproject)).
 		Cursor(nil)
@@ -931,7 +965,7 @@ func getturbinemw(iproject string) (mw float64) {
 	mw = 0.0
 
 	csr, e := DB().Connection.NewQuery().
-		Select("capacitymw",).
+		Select("capacitymw").
 		From("ref_turbine").
 		Where(dbox.Eq("project", iproject)).
 		Cursor(nil)
@@ -943,8 +977,8 @@ func getturbinemw(iproject string) (mw float64) {
 		return
 	}
 
-	if len(res) > 0{
-		mw  = res[0].GetFloat64("capacitymw")
+	if len(res) > 0 {
+		mw = res[0].GetFloat64("capacitymw")
 	}
 
 	return
@@ -964,7 +998,7 @@ func daysDiff(a, b time.Time) (days int) {
 	for cur.Year() < a.Year() {
 		// add 1 to count the last day of the year too.
 		days += lastDayOfYear(cur).YearDay() - cur.YearDay() + 1
-		cur = firstDayOfNextYear(cur)	
+		cur = firstDayOfNextYear(cur)
 	}
 	days += a.YearDay() - cur.YearDay()
 	if b.AddDate(0, 0, days).After(a) {
