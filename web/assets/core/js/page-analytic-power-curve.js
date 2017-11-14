@@ -138,7 +138,6 @@ page.ExportPowerCurvePdf = function() {
       
       container.kendoChart(options2);
       
-console.log("container", $(container).getKendoChart())
       $("#powerCurve").kendoChart($.extend(true, options, {legend: {visible: false},title:{visible: false},chartArea: { height: 425 }, render: function(e){return false}}));
 }
 page.ExportPowerCurveDetailPdf = function() {
@@ -188,10 +187,7 @@ vm.currentTitle('Power Curve');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
-}, {
-    title: 'Power Curve',
-    href: '#'
-}, {
+},{
     title: 'Power Curve',
     href: viewModel.appName + 'page/analyticpowercurve'
 }]);
@@ -235,7 +231,8 @@ var Data = {
                 isPower0: page.isPower0,
                 DeviationVal: page.deviationVal,
                 DeviationOpr: page.deviationOpr,
-                ViewSession: page.viewSession
+                ViewSession: page.viewSession,
+                Engine: fa.engine,
             };
             lastParam = param;
 
@@ -1029,8 +1026,8 @@ $(document).ready(function() {
     });
 
     setTimeout(function() {
-        $(".label-filter:contains('Turbine')" ).hide();
-        $('.multiselect-native-select').hide();
+        // $(".label-filter:contains('Turbine')" ).hide();
+        // $('.multiselect-native-select').hide();
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
 
@@ -1151,7 +1148,10 @@ $(document).ready(function() {
                 var project = $('#projectList').data("kendoDropDownList").value();
                 var lastProject = page.currProject();
 
-                fa.populateTurbine(project);
+                // fa.populateTurbine(project);
+                var projectName = $('#projectList').data("kendoDropDownList").dataItem().value;
+
+                fa.populateEngine(projectName);
 
                 di.getAvailDate();
                 if(project != lastProject){
