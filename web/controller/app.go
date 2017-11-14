@@ -49,6 +49,7 @@ type Payload struct {
 type PayloadAnalytic struct {
 	Period     string
 	Project    string
+	Engine     string
 	Turbine    []interface{}
 	DateStart  time.Time
 	DateEnd    time.Time
@@ -89,6 +90,7 @@ type PayloadAnalyticPC struct {
 	IsDownTime   bool
 	BreakDown    string
 	ViewSession  string
+	Engine       string
 }
 
 type PayloadKPI struct {

@@ -14,6 +14,7 @@ type PowerCurveModel struct {
 	WindSpeed     float64
 	Power1        float64
 	Standard      float64
+	Engine        string
 }
 
 func (m *PowerCurveModel) New() *PowerCurveModel {
