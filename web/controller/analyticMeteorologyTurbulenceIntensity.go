@@ -27,6 +27,8 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02T15:04:05Z"))
+
 	// tStart, _ = time.Parse("2006-01-02 15:04:05", "2016-08-21 00:00:00")
 	// tEnd, _ = time.Parse("2006-01-02 15:04:05", "2016-08-23 00:00:00")
 
@@ -60,6 +62,9 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	query = append(query, tk.M{"windspeed_ms_bin": tk.M{"$lte": 25}})
 	query = append(query, tk.M{"windspeed_ms": tk.M{"$gte": -200}})
 	query = append(query, tk.M{"windspeed_ms_stddev": tk.M{"$gte": -200}})
+
+	query = append(query, tk.M{"windspeed_ms": tk.M{"$ne": nil}})
+	query = append(query, tk.M{"activepower_kw": tk.M{"$ne": nil}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{
@@ -286,6 +291,11 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensityScatter(k *knot.We
 		filter = append(filter, dbox.Lte("timestamp", tEnd))
 		filter = append(filter, dbox.Gte("windspeed_ms_bin", 0))
 		filter = append(filter, dbox.Lte("windspeed_ms_bin", 25))
+		filter = append(filter, dbox.Gte("windspeed_ms", -200))
+		filter = append(filter, dbox.Gte("windspeed_ms_stddev", -200))
+
+		filter = append(filter, dbox.Ne("windspeed_ms", nil))
+		filter = append(filter, dbox.Ne("activepower_kw", nil))
 
 		csr, e := DB().Connection.NewQuery().
 			From("Scada10MinHFD").Where(dbox.And(filter...)).
@@ -300,6 +310,8 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensityScatter(k *knot.We
 			return helper.CreateResult(false, nil, e.Error())
 		}
 		csr.Close()
+
+		tk.Println("Scada HFD Length", len(scadaHfds))
 
 		item := tk.M{}
 		item.Set("colorField", "valueColor")
