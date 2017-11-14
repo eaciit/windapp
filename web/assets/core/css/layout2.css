@@ -691,6 +691,8 @@ form.k-filter-menu.k-popup.k-group.k-reset.k-state-border-down {
     margin-top: 0px;
     border-radius: 5px;
     margin-left: -5px;
+    padding-top: 63px;
+    padding-bottom: 63px;
 }
 
 .label-filter {

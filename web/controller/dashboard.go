@@ -3082,6 +3082,7 @@ func setMapData() (result tk.M) {
 			"turbineList": turbineStatus,
 		})
 	}
+
 	result.Set("turbineDownList", turbineDownList)
 	result.Set("downAll", len(turbineDownList))
 	result.Set("downPerProject", downPerProject)
@@ -3115,7 +3116,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	resultMap := []tk.M{}
 	projectTurbineStatus := setMapData()
 	projectVal := tk.M{}
-	turbineCount := 0
+	turbineCount, turbinena := 0, 0
 	turbineStatus := map[string]string{}
 
 	for _, project := range projects {
@@ -3154,12 +3155,17 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 				"status": stsProj,
 			})
 		}
+
+		if projectVal.GetInt("grey") != turbineCount {
+			turbinena += projectVal.GetInt("grey")
+		}
 	}
 
 	results := tk.M{}
 	results.Set("resultMap", resultMap)
 	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
 	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
+	results.Set("totalNAFleet", turbinena)
 	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
 
 	// probably its temporary solution to handle fatal error: concurrent map writes

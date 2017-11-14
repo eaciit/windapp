@@ -121,6 +121,7 @@ page.getPowerCurveScatter = function() {
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
 
     var param = {
+        engine: fa.engine,
         period: fa.period,
         dateStart: dateStart,
         dateEnd: dateEnd,
@@ -235,7 +236,19 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxes: yAxes
+            yAxes: yAxes,
+            pannable: {
+                lock: "y"
+            },
+            zoomable: {
+                mousewheel: {
+                    lock: "y"
+                },
+                selection: {
+                    lock: "y",
+                    key: "none",
+                }
+            }
         });
         app.loading(false);
     });
@@ -254,7 +267,7 @@ $(document).ready(function() {
         setTimeout(function(){
             fa.LoadData();
             page.LoadData();
-        },500);
+        },600);
         
     });
 });

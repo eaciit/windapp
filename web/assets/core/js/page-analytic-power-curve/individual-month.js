@@ -104,12 +104,12 @@ page.showHideLegend = function (index) {
 }
 
 page.LoadData = function() {
-    fa.LoadData();
     app.loading(true);
     setTimeout(function () {
         var param = {
             turbine: fa.turbine(),
             project: fa.project,
+            engine: fa.engine,
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getlistpowercurvemonthly", param, function (res) {
             if (!app.isFine(res)) {
@@ -330,10 +330,16 @@ $(function() {
             fa.currentFilter().project = this._old;
             fa.checkFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
-            fa.populateTurbine(project);
+            fa.project = project;
+            fa.populateEngine(project);
             di.getAvailDate();
          }
     });
+
     di.getAvailDate();
-    page.LoadData();
+    setTimeout(function(){
+        fa.LoadData();
+        page.LoadData();
+    },600)
+
 });

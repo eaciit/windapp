@@ -29,6 +29,7 @@ sum.noOfProjectsExFleet = ko.observable();
 sum.noOfTurbines = ko.observable();
 sum.totalMaxCapacity = ko.observable();
 sum.currentDown = ko.observable();
+sum.totalNAFleet = ko.observable();
 sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
@@ -89,6 +90,7 @@ sum.scadaLastUpdate = function(){
     return reqData
 }
 sum.loadData = function () {
+    lgd.stop();
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
         var param = { ProjectName: project, Date: maxdate};
@@ -1233,6 +1235,7 @@ sum.indiaMap = function (project) {
         sum.removeMarkers();
         var jsonObj = res.data.resultMap;
 
+        sum.totalNAFleet(res.data.totalNAFleet);
         if(project === "Fleet") {
             sum.currentDown(res.data.totalDownFleet);
             avail.DTTurbines(res.data.turbineDownList);
