@@ -182,6 +182,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		var dts [][]float64
 		turbineData := tk.M{}
 		turbineData.Set("name", turbineName[turbineX])
+		turbineData.Set("turbineid", turbineX)
 		turbineData.Set("type", "scatterLine")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
