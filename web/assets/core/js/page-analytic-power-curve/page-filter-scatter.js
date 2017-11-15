@@ -46,7 +46,13 @@ fa.populateTurbine = function (selected) {
             }
         });
 
-        fa.turbineList(datavalue);
+        var data = datavalue.sort(function(a, b){
+            var a1= a.label.toLowerCase(), b1= b.label.toLowerCase();
+            if(a1== b1) return 0;
+            return a1> b1? 1: -1;
+        });
+        
+        fa.turbineList(data);
     }
 
     setTimeout(function () {
