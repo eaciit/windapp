@@ -242,7 +242,7 @@ var ti = {
 			$.each(pm.ChartSeriesturbulence(), function (idx, val) {
 	        $("#right-turbine-turbulence").append('<div class="btn-group">' +
 				'<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="ti.showHideLegend(' + (idx) + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check fa-check-turbulence" id="icon-turbulence' + (idx) + '"></i></button>' +
-				'<input class="chk-option-turbulence" type="checkbox" name="' + val.name + '" checked id="chk-turbulence' + (idx) + '" hidden>' +
+				'<input class="chk-option-turbulence" type="checkbox" name="' + val.turbineid + '" checked id="chk-turbulence' + (idx) + '" hidden>' +
 				'<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="ti.showHideLegend(' + (idx) + ')" type="button">' + val.name + '</button>' +
 				'</div>');
 			});
@@ -363,7 +363,7 @@ var ti = {
         	$.each(cbsChecked, function(idx, elm){
         		var turbineName = $(elm).prop('name');
         		var dtChartSeries = _.find(dtLineSrc, function(nm) {
-	                return nm.name == turbineName
+	                return nm.turbineid == turbineName
 	            });
 	            dtLine.push(dtChartSeries);
         		turbines.push(turbineName);
@@ -401,7 +401,7 @@ var ti = {
 	            var dataPowerCurves = res.data.Data;
 	            $.each(dataPowerCurves, function(idx, val){
 	            	var xnew = val;
-	            	xnew.yAxis = "power";
+	            	//xnew.yAxis = "power";
 	            	dataPowerCurves[idx] = xnew;
 	            });
 
@@ -510,7 +510,7 @@ var ti = {
 		                    },
 	                	},
 	                	{
-	                		name: "power",
+	                		name: "tivalue",
 		                    title: {
 		                        text: "Generation (KW)",
 		                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',

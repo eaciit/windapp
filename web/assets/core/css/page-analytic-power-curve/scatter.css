@@ -65,10 +65,10 @@
     border-radius: 0 0 0.5em 0.5em;
 }
 .mgb10{
-margin-bottom: 2px;
+    margin-bottom: 7px;
 }
 .mt15{
-    margin-top: 2.5%;
+    margin-top: 15px;
 }
 .turbine-list{
     width: 150px;
@@ -89,4 +89,7 @@ margin-bottom: 2px;
     padding: 4px 10px;
     width: 100px;
     font-size: 10px;
+}
+.form-part{
+    padding-left: 10px;
 }
