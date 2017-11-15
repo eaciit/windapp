@@ -401,7 +401,7 @@ var ti = {
 	            var dataPowerCurves = res.data.Data;
 	            $.each(dataPowerCurves, function(idx, val){
 	            	var xnew = val;
-	            	xnew.yAxis = "power";
+	            	//xnew.yAxis = "power";
 	            	dataPowerCurves[idx] = xnew;
 	            });
 
@@ -510,7 +510,7 @@ var ti = {
 		                    },
 	                	},
 	                	{
-	                		name: "power",
+	                		name: "tivalue",
 		                    title: {
 		                        text: "Generation (KW)",
 		                        font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
