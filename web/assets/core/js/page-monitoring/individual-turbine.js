@@ -85,7 +85,14 @@ it.populateTurbine = function (project, turbine, isChange) {
                 }
             });
         }
-        it.turbineList(turbinevalue);
+
+        var data = turbinevalue.sort(function(a, b){
+            var a1= a.label.toLowerCase(), b1= b.label.toLowerCase();
+            if(a1== b1) return 0;
+            return a1> b1? 1: -1;
+        });
+
+        it.turbineList(data);
 
         if(isChange) {
             setTimeout(function () {
