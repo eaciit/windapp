@@ -397,6 +397,7 @@ var Data = {
             }
             page.powerCurveOptions($("#powerCurve").getKendoChart().options);
             page.ShowHideAfterInitChart();
+            Data.InitRefreshValueAvailability();
         });
         
     },
@@ -761,12 +762,22 @@ var Data = {
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
                 '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + idx + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + ' <label class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ val.name +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + ' <label id="dataavailpct-'+val.turbineid+'" class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ val.name +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
                 '</div>');
             }
         });
         page.dataAvail((totalDataAvailInProject / totalDataShoulBeInProject));
         page.dataAvailAll((totalDataAvailInProject / totalDataShoulBeInProject));
+    },
+    InitRefreshValueAvailability : function(){
+        var dtTurbines = JSON.parse(localStorage.getItem("dataTurbine"));
+        $.each(dtTurbines, function(idx, val) {
+            var elm = $("#right-turbine-list").find($("#dataavailpct-"+val.turbineid));
+
+            if(elm.length > 0){
+                elm.text(kendo.toString(val.dataavailpct, 'p1'));
+            }
+        });
     },
     InitDownList: function() {
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getdownlist", "", function(res) {
