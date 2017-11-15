@@ -321,6 +321,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
 	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.In("turbine", turbine...))
 
 	// temporary
 	filter = append(filter, dbox.Ne("power", 0.0))
@@ -378,6 +379,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filterx = append(filterx, dbox.Eq("available", 1))
 	filterx = append(filterx, dbox.Ne("turbine", ""))
 	filterx = append(filterx, dbox.Ne("_id", ""))
+	filterx = append(filterx, dbox.In("turbine", turbine...))
 
 	// if IsDeviation {
 	// 	if DeviationOpr > 0 {
@@ -434,7 +436,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if len(p.Turbine) == 0 {
 		for _, listVal := range list {
 			exist := false
-			for _, val := range turbine {
+			for _, val := range p.Turbine {
 				if listVal["_id"].(tk.M)["Turbine"] == val {
 					exist = true
 				}
@@ -558,7 +560,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
 	match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
-	match = append(match, tk.M{"power": tk.M{"$ne": 0}})
+	match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
+	match = append(match, tk.M{"power": tk.M{"$ne": nil}})
+	match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
 	//match = append(match, tk.M{"power": tk.M{"$gte": 0}})
 	//match = append(match, tk.M{"$or": []tk.M{
 	//		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$lt": 10}}, tk.M{"avgwindspeed": tk.M{"$lt": 3}}}},
