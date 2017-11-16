@@ -173,18 +173,20 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 			lastTurbine = _turbine
 			countPerWSCat = 0.0
 		}
-		countPerWSCat++
-		if _data.GetFloat64(fieldName) > maxStep {
-			_data.Set(fieldName, maxStep)
+		if _data.Has(fieldName) {
+			countPerWSCat++
+			if _data.GetFloat64(fieldName) > maxStep { /* jika datanya melebihi max step, maka ubah menjadi max step*/
+				_data.Set(fieldName, maxStep)
+			}
+			modus = math.Mod(_data.GetFloat64(fieldName), step)
+			if modus == 0 { /* jika habis dibagi step maka value itu sendiri yang di assign*/
+				category = _data.GetFloat64(fieldName)
+			} else { /* jika tidak habis dibagi step maka diikutkan value + step setelahnya */
+				category = _data.GetFloat64(fieldName) - modus + step
+			}
+			groupKey = tk.ToString(category)
+			dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 		}
-		modus = math.Mod(_data.GetFloat64(fieldName), step)
-		if modus == 0 { /* jika habis dibagi step maka value itu sendiri yang di assign*/
-			category = _data.GetFloat64(fieldName)
-		} else { /* jika tidak habis dibagi step maka diikutkan value + step setelahnya */
-			category = _data.GetFloat64(fieldName) - modus + step
-		}
-		groupKey = tk.ToString(category)
-		dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 	}
 	if lastTurbine != "" {
 		dataSeriesPerTurbine[lastTurbine] = setContribution(lastTurbine, tipe, dataCatCount, countPerWSCat)
