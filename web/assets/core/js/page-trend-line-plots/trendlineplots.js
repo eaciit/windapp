@@ -195,7 +195,8 @@ tlp.initChart = function() {
                 visible: true,
                 format: "{0:n1}",
                 background: "rgb(255,255,255, 0.9)",
-                shared: true,
+                template: "#= series.name # : #= kendo.toString(value,'n2')#",
+                shared: false,
                 color: "#58666e",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 border: {
