@@ -13,22 +13,35 @@
 	<div class="pull-right" style="margin-top:-30px">
 		<span><strong>Select Comparison :</strong></span>
 		<div class="checkbox chk-custom" data-bind="visible:pm.isMet() == false, foreach:tb.TurbineColumn()">
-			 <label>
-                <input type="checkbox" name="chk-column-turbine" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e,'chk-column-turbine')}}}" >
+			 <label data-bind="attr:{id:'turbineChk-'+_id}">
+                <input type="checkbox" data-id="turbine" name="chk-column-turbine" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e,'chk-column-turbine')}}}" >
                 <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
                 <span class="colRed" data-bind="text:text"></span>
             </label>
 		</div>
 		<div class="checkbox chk-custom" data-bind="{visible:pm.isMet() == true, foreach:tb.MetTowerColumn()}">
-                <label>
-                    <input type="checkbox" name="chk-column-met" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e, 'chk-column-met')}}}" >
+                <label data-bind="attr:{id:'turbineChk-'+_id}">
+                    <input type="checkbox" data-id="turbine" name="chk-column-met" data-bind="{checked:value, attr:{id: _id}, event:{change:function(e){tb.hideShowColumn(e, 'chk-column-met')}}}" >
                     <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
                     <span class="colRed" data-bind="text:text"></span>
                 </label>
 		</div>
+		<span class="tools pull-right" style="margin-left: 10px;margin-top: -5px;">
+		  <div class="btn-group" data-toggle="buttons">
+		      <label class="btn btn-primary btn-xs active prodToTable">
+		          <input type="radio" name="convertTable" id="gridDineural" value="true" autocomplete="off" checked ><i class="fa fa-table"></i>
+		      </label>
+		      <label class="btn btn-primary btn-xs">
+		          <input type="radio" name="convertTable" id="chartDineural" value="false" autocomplete="off" onclick="return false"><i class="fa fa-bar-chart"></i>
+		      </label>
+		  </div>
+		</span>
 	</div>
 </div>
 <div class="clearfix">&nbsp;</div>
-<div class="col-md-12">
+<div class="col-md-12" data-bind="visible:!(tb.isGraph())">
 	<div id="gridTable1224"></div>
+</div>
+<div class="col-md-12" data-bind="visible:tb.isGraph()" style="margin-bottom: 20px;">
+	<div id="chartTable1224"></div>
 </div>

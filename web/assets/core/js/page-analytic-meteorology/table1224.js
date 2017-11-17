@@ -3,7 +3,10 @@
 viewModel.Table1224 = new Object();
 var tb = viewModel.Table1224;
 
+tb.isGraph = ko.observable(false);
 tb.dataSourceTable = ko.observableArray();
+tb.dataSourceGraphTurbine = ko.observableArray();
+tb.dataSourceGraphMetTower = ko.observableArray();
 tb.MetTowerColumn = ko.observableArray([
     {value: true, text: "Wind Speed (m/s)", _id:"metWs", index:0 },
     {value: true, text: "Temp (°C)", _id:"metTemp", index: 1},
@@ -16,13 +19,137 @@ tb.TurbineColumn = ko.observableArray([
     {_id: "turbinePower", text: "Power (kWH)", value: true, index:2},
 ]);
 
+tb.generateGraph = function(serie){
+    app.loading(true);
+    tb.isGraph(true);
+
+    var dataSource,buttonType,nameChk;
+
+    if($("#met").is(':checked')) {
+        dataSource = tb.dataSourceGraphMetTower();
+        buttonType = tb.MetTowerColumn()[0]._id;
+        nameChk = "chk-column-met"
+    } else {
+        dataSource = tb.dataSourceGraphTurbine();
+        buttonType = tb.TurbineColumn()[0]._id;
+        nameChk = "chk-column-turbine"
+    }
+
+    if(serie == undefined){
+        if($("input[name="+nameChk+"]:checked").length > 1){
+            $("input[name="+nameChk+"]").prop("checked",false);
+            $('#'+buttonType).prop('checked', true);
+        }
+    }
+
+
+    var series = $("input[name="+nameChk+"]:checked").attr("id");
+    var seriesName = $("#met").is(':checked') == true ? series.substr(3).toLowerCase() : series.substr(7).toLowerCase();
+    var idParent = $("input[name="+nameChk+"]:checked").closest('label').attr('id'); 
+
+
+    var title = $("#"+idParent).find(".colRed").text();
+
+    var dataGraph = new kendo.data.DataSource({
+        data: dataSource,
+        group: {
+            field: "time"
+        },
+
+        sort: [{
+            field: "hours",
+            dir: "asc"
+        },{
+            field: "time",
+            dir: "asc"
+        }],
+    });
+
+
+    $("#chartTable1224").html("");
+    $("#chartTable1224").kendoChart({
+        title: { text: "" },
+        dataSource: dataGraph,
+        seriesColors: colorField,
+        series: [{
+            type: "line",
+            style: "smooth",
+            field: seriesName,
+            categoryField: "hours",
+            name: "#= group.value #",
+            markers: {
+                visible: false
+            }
+        }],
+        legend: {
+            position: "top"
+        },
+        valueAxis: {
+            labels: {
+                format: "n0",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            line: {
+                visible: false
+            },
+            title: { 
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                text: title
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            }
+        },
+        categoryAxis: {
+            field: "hours",
+            majorGridLines: {
+                visible: false
+            },
+            labels: {
+                format: "MMM",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            majorTickType: "none"
+        },
+        tooltip: {
+            visible: true,
+            background: "rgb(255,255,255, 0.9)",
+            template: "#= series.name # : #= kendo.toString(value,'n2')#",
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
+
+        },
+        dataBound : function(){
+            app.loading(false);
+        }
+    });
+
+}
 // 12/24 table 
 tb.generateGridTable = function (datatype) {
     app.loading(true);
+    tb.isGraph(false);
     $('#gridTable1224').html('');
 
     var dataSource = [];
     var total = [];
+
+    if(datatype == undefined || datatype == ''){
+        if($("#met").is(':checked')) {
+            datatype = 'met';
+        } else {
+            datatype = 'turbine';
+        }
+    }else{
+        datatype = datatype;
+    }
 
     if(datatype == "turbine") {
         dataSource = tb.dataSourceTable().DataTurbine;
@@ -114,26 +241,42 @@ tb.generateGridTable = function (datatype) {
 }
 
 tb.hideShowColumn = function(i, type){
-    var grid = $("#gridTable1224").data("kendoGrid");  
-    var columns = grid.columns;
+    if($("#gridDineural").is(':checked')) {
+        var grid = $("#gridTable1224").data("kendoGrid");  
+        var columns = grid.columns;
 
-    if($('[name='+type+']:checked').length < 1){
-        toolkit.showError("Grid must show at least one column");
-        $('#'+i._id).prop('checked', true);
-        return false;    
-    }else{
-        $.each(columns, function(index, val){
-            if(index > 0){
-                var col = grid.columns[index].columns[i.index];
-                if (col.hidden) {
-                  grid.showColumn(col.field);
-                } else {
-                  grid.hideColumn(col.field);
+        if($('[name='+type+']:checked').length < 1){
+            toolkit.showError("Grid must show at least one column");
+            $('#'+i._id).prop('checked', true);
+            return false;    
+        }else{
+            $.each(columns, function(index, val){
+                if(index > 0){
+                    var col = grid.columns[index].columns[i.index];
+                    if (col.hidden) {
+                      grid.showColumn(col.field);
+                    } else {
+                      grid.hideColumn(col.field);
+                    } 
                 } 
-            } 
-        });
+            });
+        }
+    }else{
+        tb.checkboxGraph(i);
+        tb.generateGraph(i._id);
+    }
+}
+
+tb.checkboxGraph = function(i){
+    var nameChk ="";
+    if($("#met").is(':checked')) {
+        nameChk = "chk-column-met"
+    }else{
+        nameChk = "chk-column-turbine"
     }
 
+    $("input[name="+nameChk+"]").prop("checked",false);
+    $('#'+i._id).prop('checked', true);
 }
 
 tb.getObjects = function(obj, key, val){
@@ -196,12 +339,12 @@ tb.Table = function(){
                 Project: fa.project,
             };
 
-            toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
+            var req1 = toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/table1224", param, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
+                
                 tb.dataSourceTable(res.data);
-                tb.generateGridTable(datatype);
                 pm.isFirstTwelve(false); 
                 if($("#met").is(':checked')) {
                     $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
@@ -211,9 +354,32 @@ tb.Table = function(){
                     $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
                 }
             });
+
+
+            var req2 = toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/graph1224", {Turbine: fa.turbine(),Project: fa.project,Data : "turbine"}, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                tb.dataSourceGraphTurbine(res.data);
+            });
+
+            var req3 = toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/graph1224", {Turbine: fa.turbine(),Project: fa.project,Data : "mettower"}, function (res) {
+                if (!app.isFine(res)) {
+                    return;
+                }
+                tb.dataSourceGraphMetTower(res.data);
+            });
+
+            $.when(req1, req2, req3).done(function(){
+                if($("#gridDineural").is(':checked')) {
+                    tb.generateGridTable(datatype);
+                } else {
+                    tb.generateGraph();
+                }
+            });
+
         }else{
             setTimeout(function(){
-                tb.refreshTable(datatype);
                 if($("#met").is(':checked')) {
                     pm.isMet(true);
                     $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
@@ -222,6 +388,12 @@ tb.Table = function(){
                      pm.isMet(false);
                     $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
                     $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+                }
+
+                if($("#gridDineural").is(':checked')) {
+                    tb.refreshTable(datatype);
+                } else {
+                    tb.generateGraph();
                 }
             },300);
         }
