@@ -121,6 +121,7 @@ tlp.initChart = function() {
                 if(data.data.length == nullCount) {
                     datatlp[idxTlp].data = undefined;
                 }
+                datatlp[idxTlp]["missingValues"] = "gap";
             }
         });
 
