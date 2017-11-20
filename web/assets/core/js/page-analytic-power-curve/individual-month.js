@@ -117,7 +117,7 @@ page.LoadData = function() {
                 return;
             }
             if (res.data.Data != null) {
-                page.dataPCEachTurbine(res.data.Data);
+                page.dataPCEachTurbine(_.sortBy(res.data.Data, 'Name'));
                 page.InitLinePowerCurve();
             }
             if (res.data.Category != null) {

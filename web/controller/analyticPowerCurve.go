@@ -272,7 +272,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if tEnd.Sub(tNow).Hours() > 0.0 {
 		tEnd, _ = time.Parse("20060102", tNow.Format("20060102"))
 	}
-	tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02 15:04:05"))
+	// tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02 15:04:05"))
 	turbine := p.Turbine
 	filter = nil
 	project := p.Project

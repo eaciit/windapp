@@ -353,7 +353,7 @@ wr.WindRose = function(){
                     if (res.data.WindRose != null) {
                         var metData = res.data.WindRose;
                         maxValue = res.data.MaxValue;
-                        wr.dataWindroseEachTurbine(metData);
+                        wr.dataWindroseEachTurbine(_.sortBy(metData, 'Name'));
                         wr.initChart();
                     }
 

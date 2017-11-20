@@ -112,7 +112,7 @@ aw.AverageWindSpeed = function() {
                 if (!app.isFine(res)) {
                     return;
                 }
-                aw.dataSourceAverage(res.data.Data.turbine);
+                aw.dataSourceAverage(_.sortBy(res.data.Data.turbine, 'turbine'));
                 aw.generateGridAverage();
                 app.loading(false);
                 pm.isFirstAverage(false);

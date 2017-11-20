@@ -81,7 +81,7 @@ var Data = {
                         var summary = res.data.Summary;
 
                         page.summary(summary);
-                        return res.data.Data;
+                        return _.sortBy(res.data.Data, 'Turbine');
                     },
                     total: function (res) {
                         if (res.data.Data == undefined) {
