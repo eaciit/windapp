@@ -53,14 +53,14 @@ tb.generateGraph = function(serie){
     var dataGraph = new kendo.data.DataSource({
         data: dataSource,
         group: {
-            field: "time"
+            field: "timeint"
         },
 
         sort: [{
             field: "hours",
             dir: "asc"
         },{
-            field: "time",
+            field: "timeint",
             dir: "asc"
         }],
     });
@@ -82,7 +82,11 @@ tb.generateGraph = function(serie){
             }
         }],
         legend: {
-            position: "top"
+            position: "top",
+            labels: {
+                template: "#= moment(text).format('MMM YYYY') #",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
         },
         valueAxis: {
             labels: {
@@ -117,7 +121,7 @@ tb.generateGraph = function(serie){
         tooltip: {
             visible: true,
             background: "rgb(255,255,255, 0.9)",
-            template: "#= series.name # : #= kendo.toString(value,'n2')#",
+            template: "#= moment(series.name).format('MMM YYYY') # : #= kendo.toString(value,'n2')#",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             border: {
