@@ -1021,6 +1021,7 @@ func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.
 		sMonthDesc := strings.Split(id.GetString("monthdesc"), " ")
 		if len(sMonthDesc) > 1 {
 			_dt.Set("time", strings.ToUpper(sMonthDesc[0][:3])+" "+sMonthDesc[1])
+			_dt.Set("timeint", id.GetInt("monthid"))
 		}
 
 		_dt.Set("hours", id.GetString("hours"))
