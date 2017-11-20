@@ -255,8 +255,8 @@ sum.loadData = function () {
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({
-                        lat : 23.334166,
-                        lng : 75.037611
+                        lat : 20.7679,
+                        lng : 76.037611
                     }); 
                     map.setZoom(5);
                     app.loading(false);
@@ -1126,7 +1126,6 @@ sum.ProdCurLast = function (id,dataSource) {
 
 sum.setMarkers = function(map, turbineInfos,project) {
     turbineInfos.forEach(function (obj, idx) {
-        
         var imgUrl ="../res/img/turb-"+obj.status+".png";
 
 

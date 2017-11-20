@@ -190,7 +190,12 @@ $(function(){
     });
 
     $("input[name=isMet]").on("change", function() {
-        tb.generateGridTable(this.id);
+        if($("#gridDineural").is(':checked')) {
+            tb.generateGridTable(this.id);
+        } else {
+            tb.generateGraph();
+        }
+        
         if($("#met").is(':checked')) {
             pm.isMet(true);
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartmet + '</strong> until: ');
@@ -199,6 +204,14 @@ $(function(){
              pm.isMet(false);
             $('#availabledatestart').html('Data Available from: <strong>' + availDateList.availabledatestartscada + '</strong> until: ');
             $('#availabledateend').html('<strong>' + availDateList.availabledateendscada + '</strong>');
+        }
+    });
+
+    $("input[name=convertTable]").on("change", function() {
+        if($("#gridDineural").is(':checked')) {
+            tb.generateGridTable();
+        } else {
+            tb.generateGraph();
         }
     });
 

@@ -90,13 +90,24 @@ fa.populateProject = function (selected) {
 fa.showHidePeriod = function (callback) {
     var period = $('#periodList').data('kendoDropDownList').value();
 
+    var date = new Date(); 
+    
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
-    var endMonthDate = new Date(app.getDateMax(maxDateData));
+    // var endMonthDate;
+
     var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
     var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
     var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+    var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+
+    if(moment(new Date()).get('year') ==  moment(maxDateData).get('year') && new Date(date).getMonthName() == new Date(maxDateData).getMonthName()){
+        var endMonthDate = new Date(app.getDateMax(maxDateData));
+    }else{
+        var endMonthDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    }
+
 
     if (period == "custom") {
         $(".show_hide").show();
@@ -110,24 +121,33 @@ fa.showHidePeriod = function (callback) {
             depth: "month",
             format: 'dd-MMM-yyyy'
         });
-        $('#dateStart').data('kendoDatePicker').value(startMonthDate);
+
+        fa.dateStart = startDate;
+        fa.dateEnd = endMonthDate;
+
+        $('#dateStart').data('kendoDatePicker').value(startDate);
         $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
+        
     } else {
         var today = new Date();
         if (period == "monthly") {
             $('#dateStart').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMM yyyy",
+                format: "MMM-yyyy",
             });
             $('#dateEnd').data('kendoDatePicker').setOptions({
                 start: "year",
                 depth: "year",
-                format: "MMM yyyy",
+                format: "MMM-yyyy",
             });
 
-            $('#dateStart').data('kendoDatePicker').value(startMonthDate);
-            $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
+
+            fa.dateStart = startMonthDate;
+            fa.dateEnd = endMonthDate;
+
+            $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
+            $('#dateEnd').data('kendoDatePicker').value(fa.dateEnd);
 
             $(".show_hide").show();
         } else if (period == "annual") {
@@ -164,6 +184,7 @@ fa.showHidePeriod = function (callback) {
         callback;
     }, 50);
 }
+
 
 fa.LoadData = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -205,10 +226,22 @@ fa.InitDefaultValue = function () {
 }
 
 fa.DateChange = function () {
-    fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
-    fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
-    fa.dateStart = new Date(Date.UTC(fa.dateStart.getFullYear(), fa.dateStart.getMonth(), fa.dateStart.getDate(), 0, 0, 0));
-    fa.dateEnd = new Date(Date.UTC(fa.dateEnd.getFullYear(), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), 0, 0, 0));
+    var period = $('#periodList').data('kendoDropDownList').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var endMonthDate;
+
+    if(period == "monthly" && new Date(dateEnd).getMonthName() == new Date(maxDateData).getMonthName()){
+         $('#dateEnd').data('kendoDatePicker').value(new Date(app.getDateMax(maxDateData)))
+    }else{
+        $('#dateEnd').data('kendoDatePicker').value(new Date(dateEnd.getFullYear(), dateEnd.getMonth() + 1, 0));
+    }
+
+    var start = $('#dateStart').data('kendoDatePicker').value();
+    var end = $('#dateEnd').data('kendoDatePicker').value();
+
+    fa.dateStart = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0));
+    fa.dateEnd = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(), 0, 0, 0));
 }
 
 fa.checkCompleteDate = function () {
