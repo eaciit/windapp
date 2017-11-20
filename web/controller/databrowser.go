@@ -10,7 +10,7 @@ import (
 
 	// "fmt"
 	"os"
-	"strconv"
+	// "strconv"
 	"time"
 
 	"github.com/eaciit/dbox"
@@ -83,14 +83,14 @@ func GetCustomFieldList() []tk.M {
 		atkm = append(atkm, tkm)
 	}
 
-	for i, str := range _amettower_field {
+	/*for i, str := range _amettower_field {
 		tkm := tk.M{}.
 			Set("_id", str).
 			Set("label", _amettower_label[i]).
 			Set("source", "MetTower")
 
 		atkm = append(atkm, tkm)
-	}
+	}*/
 
 	return atkm
 }
@@ -125,7 +125,7 @@ func GetHFDCustomFieldList() []tk.M {
 		val.Set("_id", strings.ToLower(val.GetString("realtimefield")))
 		val.Unset("fieldname")
 	}
-	startIndex := len(atkm)
+	/*startIndex := len(atkm)
 	for i, str := range _amettower_field {
 		startIndex++
 		tkm := tk.M{}.
@@ -135,7 +135,7 @@ func GetHFDCustomFieldList() []tk.M {
 			Set("order", startIndex)
 
 		atkm = append(atkm, tkm)
-	}
+	}*/
 
 	return atkm
 }
@@ -156,7 +156,7 @@ func CheckData(tmpResult []tk.M, filter []*dbox.Filter, header map[string]string
 	for idx, val := range tmpResult {
 		for field, dataType := range header {
 			lowerField = strings.ToLower(field)
-			if val[lowerField] != nil {
+			if val.Has(lowerField) {
 				switch lowerField {
 				case "timestamp", "timestamputc", "timestart", "timeend":
 					if tipe != "custom" {
@@ -553,14 +553,14 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	tablename := "Scada10MinHFD"
 	arrscadaoem := []string{"_id"}
 	source := "ScadaDataHFD"
-	timestamp := "timestamp"
+	// timestamp := "timestamp"
 	var val1 reflect.Value
 	switch tipe {
 	case "ScadaOEM":
 		tablename = new(ScadaDataOEM).TableName()
 		arrscadaoem = append(arrscadaoem, "timestamputc")
 		source = "ScadaDataOEM"
-		timestamp = "timestamputc"
+		// timestamp = "timestamputc"
 		obj1 := ScadaDataOEM{}
 		val1 = reflect.Indirect(reflect.ValueOf(obj1))
 	case "ScadaHFD":
@@ -568,7 +568,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 
 	istimestamp := false
-	arrmettower := []string{}
+	// arrmettower := []string{}
 	ids := ""
 	projection := map[string]int{}
 	if p.Custom.Has("ColumnList") {
@@ -581,9 +581,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 				if ids == "timestamp" {
 					istimestamp = true
 				}
-			} else if _tkm.GetString("source") == "MetTower" {
-				arrmettower = append(arrmettower, ids)
 			}
+			/*else if _tkm.GetString("source") == "MetTower" {
+				arrmettower = append(arrmettower, ids)
+			}*/
 		}
 	}
 	matches := []tk.M{}
@@ -624,7 +625,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	arrmettowercond := []interface{}{}
+	// arrmettowercond := []interface{}{}
 
 	config := lh.ReadConfig()
 
@@ -638,21 +639,21 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
 			itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
 				strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
-			arrmettowercond = append(arrmettowercond, itime)
+			// arrmettowercond = append(arrmettowercond, itime)
 			val.Set("timestamputc", itime)
 			results[i] = val
 		}
 		if istimestamp {
 			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
-			if tipe == "ScadaHFD" {
+			/*if tipe == "ScadaHFD" {
 				arrmettowercond = append(arrmettowercond, itime)
-			}
+			}*/
 			val.Set("timestamp", itime)
 			results[i] = val
 		}
 	}
 
-	tkmmet := tk.M{}
+	/*tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
 		arrmettower = append(arrmettower, "timestamp")
 		queryMet := DB().Connection.NewQuery().
@@ -698,7 +699,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			val.Unset("timestamputc")
 			results[i] = val
 		}
-	}
+	}*/
 
 	countAll := 0.0 //jangan dibaca dengan lantang, nanti pada gempar
 	totalPower := 0.0
@@ -774,11 +775,11 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 
 	allFieldRequested := arrscadaoem
-	allFieldRequested = append(allFieldRequested, arrmettower...)
+	// allFieldRequested = append(allFieldRequested, arrmettower...)
 	allHeader := map[string]string{}
 	header := map[string]string{}
-	obj2 := MetTower{}
-	val2 := reflect.Indirect(reflect.ValueOf(obj2))
+	/*obj2 := MetTower{}
+	val2 := reflect.Indirect(reflect.ValueOf(obj2))*/
 	fieldName := ""
 	switch tipe {
 	case "ScadaOEM":
@@ -786,10 +787,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			fieldName = strings.ToLower(val1.Type().Field(i).Name)
 			allHeader[fieldName] = val1.Field(i).Type().Name()
 		}
-		for i := 0; i < val2.Type().NumField(); i++ {
+		/*for i := 0; i < val2.Type().NumField(); i++ {
 			fieldName = strings.ToLower(val2.Type().Field(i).Name)
 			allHeader[fieldName] = val2.Field(i).Type().Name()
-		}
+		}*/
 		for _, val := range allFieldRequested {
 			header[val] = allHeader[val]
 		}
@@ -1014,11 +1015,11 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 
 	istimestamp := false
 	arrscadaoem := []string{"_id"}
-	arrmettower := []string{}
+	// arrmettower := []string{}
 	headerList := []string{}
 	fieldList := []string{}
 	source := "ScadaDataHFD"
-	timestamp := "timestamp"
+	// timestamp := "timestamp"
 	// tablename := new(ScadaDataHFD).TableName()
 	tablename := "Scada10MinHFD"
 	ids := ""
@@ -1027,7 +1028,7 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 		tablename = new(ScadaDataOEM).TableName()
 		source = "ScadaDataOEM"
 		arrscadaoem = append(arrscadaoem, "timestamputc")
-		timestamp = "timestamputc"
+		// timestamp = "timestamputc"
 	}
 
 	if p.Custom.Has("ColumnList") {
@@ -1039,9 +1040,10 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 				if ids == "timestamp" {
 					istimestamp = true
 				}
-			} else if _tkm.GetString("source") == "MetTower" {
-				arrmettower = append(arrmettower, _tkm.GetString("_id"))
 			}
+			/*else if _tkm.GetString("source") == "MetTower" {
+				arrmettower = append(arrmettower, _tkm.GetString("_id"))
+			}*/
 			headerList = append(headerList, _tkm.GetString("label"))
 			fieldList = append(fieldList, _tkm.GetString("_id"))
 		}
@@ -1076,7 +1078,7 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	arrmettowercond := []interface{}{}
+	// arrmettowercond := []interface{}{}
 
 	config := lh.ReadConfig()
 	loc, err := time.LoadLocation(config["ReadTimeLoc"])
@@ -1089,21 +1091,21 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
 			itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
 				strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
-			arrmettowercond = append(arrmettowercond, itime)
+			// arrmettowercond = append(arrmettowercond, itime)
 			val.Set("timestamputc", itime)
 			results[i] = val
 		}
 		if istimestamp {
 			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
-			if typeExcel == "ScadaHFD" {
+			/*if typeExcel == "ScadaHFD" {
 				arrmettowercond = append(arrmettowercond, itime)
-			}
+			}*/
 			val.Set("timestamp", itime)
 			results[i] = val
 		}
 	}
 
-	tkmmet := tk.M{}
+	/*tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
 		arrmettower = append(arrmettower, "timestamp")
 		queryMet := DB().Connection.NewQuery().Select(arrmettower...).From("MetTower")
@@ -1146,7 +1148,7 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			val.Unset("timestamputc")
 			results[i] = val
 		}
-	}
+	}*/
 
 	var pathDownload string
 	TimeCreate := time.Now().Format("2006-01-02_150405")
@@ -1202,7 +1204,7 @@ func DeserializeData(data []tk.M, typeExcel, CreateDateTime string, header, fiel
 
 	file := x.NewFile()
 	sheet, _ := file.AddSheet("Sheet1")
-	floatString := ""
+	// floatString := ""
 	dataType := ""
 
 	for i, each := range data {
@@ -1221,7 +1223,7 @@ func DeserializeData(data []tk.M, typeExcel, CreateDateTime string, header, fiel
 			if idx > 0 {
 				cell = rowContent.AddCell()
 			}
-			if each[field] != nil {
+			if each.Has(field) {
 				switch field {
 				case "timestamp", "timestamputc", "timestart", "timeend":
 					cell.Value = each[field].(time.Time).UTC().Format("2006-01-02 15:04:05")
@@ -1231,24 +1233,33 @@ func DeserializeData(data []tk.M, typeExcel, CreateDateTime string, header, fiel
 					dataType = reflect.Indirect(reflect.ValueOf(each[field])).Type().Name()
 					switch dataType {
 					case "float64":
-						floatString = tk.Sprintf("%.2f", each.GetFloat64(field))
+						/*floatString = tk.Sprintf("%.2f", each.GetFloat64(field))
 						if each.GetFloat64(field) == -999999 {
 							floatString = "-"
 						}
 						if floatString != "-" {
 							floatString = FormatThousandSeparator(floatString)
 						}
-						cell.Value = floatString
+						cell.Value = floatString*/
+						value := each.GetFloat64(field)
+						if value != -999999 {
+							cell.SetFloat(value)
+						}
 					case "int":
-						floatString = tk.Sprintf("%d", each.GetInt(field))
+						/*floatString = tk.Sprintf("%d", each.GetInt(field))
 						if each.GetInt(field) == -999999 {
 							floatString = "-"
 						}
-						cell.Value = floatString
+						cell.Value = floatString*/
+						value := each.GetInt(field)
+						if value != -999999 {
+							cell.SetInt(value)
+						}
 					case "string":
 						cell.Value = each.GetString(field)
 					case "bool":
-						cell.Value = strconv.FormatBool(each[field].(bool))
+						// cell.Value = strconv.FormatBool(each[field].(bool))
+						cell.SetBool(each[field].(bool))
 					}
 				}
 			}
