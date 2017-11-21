@@ -319,6 +319,10 @@ label.summary-number {
 .k-pdf-export .sector-part, .k-pdf-export .pull-right{
 	display: none;
 }
+
+.k-pdf-export .btn-zoom{
+	display: none;
+}
 .k-pdf-export .div-legend{
     left: 27%;
     margin-bottom: 30px;
