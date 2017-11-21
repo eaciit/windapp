@@ -102,6 +102,19 @@ tlp.initChart = function() {
             app.loading(false);
             return;
         }
+        var tempData = [];
+        var firstData = [];
+
+        if(res.data.Data.length > 1) {
+            firstData.push(res.data.Data[0]);
+            tempData = res.data.Data.slice(1);
+            if (res.data.Data[1].name == "Met Tower") {
+                firstData.push(res.data.Data[1]);
+                tempData = res.data.Data.slice(2);
+            }
+            tempData = _.sortBy(tempData, 'name');
+        }
+        res.data.Data = firstData.concat(tempData);
 
         var datatlp = res.data.Data;
         var categories = res.data.Categories;

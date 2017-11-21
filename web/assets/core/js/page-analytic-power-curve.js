@@ -245,7 +245,7 @@ var Data = {
             page.totalAvailTurbines(res.data.TotalPerTurbine);
 
             dataTurbine = res.data.Data;
-            localStorage.setItem("dataTurbine", JSON.stringify(res.data.Data));
+            localStorage.setItem("dataTurbine", JSON.stringify(_.sortBy(res.data.Data, 'name')));
             page.dtLineChart(res.data.Data);
         
 

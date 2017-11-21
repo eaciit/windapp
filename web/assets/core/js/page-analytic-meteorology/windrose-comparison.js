@@ -175,6 +175,8 @@ wrb.WindRoseComparison = function(){
                         return;
                     }
                     if (res.data != null) {
+                        var tempData = _.sortBy(res.data.Data, 'name');
+                        res.data.Data = tempData;
                         wrb.dataWindroseComparison(res.data);
                         wrb.initChartWRC();
                     }

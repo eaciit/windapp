@@ -55,6 +55,8 @@ var ti = {
 
 			var width = $(".main-header").width()
 	        // var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
+	        var tempData = _.sortBy(data.ChartSeries, 'name');
+	        data.ChartSeries = tempData;
 	        pm.ChartSeriesturbulence(data.ChartSeries)
 	        pm.DtTurbulence(data)
 
@@ -395,8 +397,6 @@ var ti = {
 	                app.loading(false);
 	                return;
 				}
-				
-				console.log(res);
 
 	            var dataPowerCurves = res.data.Data;
 	            $.each(dataPowerCurves, function(idx, val){
