@@ -20,7 +20,7 @@ page.ExportIndividualMonthPdf = function() {
             margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" }
         });
     })
-    .done(function(data) {
+    .done(function() {
         // Save the PDF file
         kendo.saveAs({
             dataURI: data,
@@ -114,6 +114,7 @@ page.InitLinePowerCurve = function() {
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name
         var idDataAvailability = "#dataAv-" + dataTurbine.Name
+        var idTotalAvailability = "#totalAv-" + dataTurbine.Name
         var idChart = "#chart-" + dataTurbine.Name
         listOfChart.push(idChart);
         var rotation = 300;
@@ -139,7 +140,8 @@ page.InitLinePowerCurve = function() {
             $(".power-curve-item").removeClass("col-md-4");
         }
         
-        $(idDataAvailability).html(kendo.toString(dataTurbine.DataAvailability,'p1'));
+        $(idDataAvailability).html(kendo.toString(dataTurbine.DataAvailability,'p1'));        
+        $(idTotalAvailability).html(kendo.toString(dataTurbine.DataTotalAvailability,'p1'));
 
         $(idChart).html("");
         $(idChart).kendoChart({
