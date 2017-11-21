@@ -79,9 +79,20 @@
 .period-list{
     width: 75px;
 }
-.dataavail_info {
+.totalavail_info {
     position: absolute;
     top: 43px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 100px;
+    font-size: 10px;
+}
+.dataavail_info {
+    position: absolute;
+    top: 66px;
     right: 14px;
     z-index: 1001;
     border: 1px solid #E0E0DF;
