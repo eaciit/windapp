@@ -1008,6 +1008,7 @@ func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.
 	}
 	defer csr.Close()
 
+	listmonth, listhour, listall := tk.M{}, tk.M{}, tk.M{}
 	for {
 		list := tk.M{}
 		err := csr.Fetch(&list, 1, false)
@@ -1029,11 +1030,30 @@ func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.
 		_dt.Set("temp", list.GetFloat64("temp"))
 		_dt.Set("power", 0)
 
+		listhour.Set(id.GetString("hours"), 1)
+		listmonth.Set(_dt.GetString("time"), _dt.GetString("timeint"))
+		listall.Set(tk.Sprintf("%s_%s", _dt.GetString("time"), id.GetString("hours")), 1)
+
 		if dataType == "turbine" {
 			_dt.Set("power", list.GetFloat64("power")/1000)
 		}
 
 		data = append(data, _dt)
+	}
+
+	for month, _ := range listmonth {
+		for hour, _ := range listhour {
+			if !listall.Has(tk.Sprintf("%s_%s", month, hour)) {
+				_dt := tk.M{}
+				_dt.Set("time", month)
+				_dt.Set("timeint", listmonth.GetString(month))
+				_dt.Set("hours", hour)
+				_dt.Set("ws", nil)
+				_dt.Set("temp", nil)
+				_dt.Set("power", nil)
+				data = append(data, _dt)
+			}
+		}
 	}
 
 	return
