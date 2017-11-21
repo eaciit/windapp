@@ -177,6 +177,9 @@ wrb.WindRoseComparison = function(){
                     if (res.data != null) {
                         var tempData = _.sortBy(res.data.Data, 'name');
                         res.data.Data = tempData;
+                        res.data.Data.forEach(function(val, idx){
+                            res.data.Data[idx].idxseries = idx;
+                        });
                         wrb.dataWindroseComparison(res.data);
                         wrb.initChartWRC();
                     }

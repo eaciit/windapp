@@ -244,8 +244,13 @@ var Data = {
             page.totalAvailAll(res.data.TotalDataAvail);
             page.totalAvailTurbines(res.data.TotalPerTurbine);
 
+            res.data.Data = _.sortBy(res.data.Data, 'name')
+            res.data.Data.forEach(function(val, idx){
+                res.data.Data[idx].idxseries = idx;
+            });          
+
             dataTurbine = res.data.Data;
-            localStorage.setItem("dataTurbine", JSON.stringify(_.sortBy(res.data.Data, 'name')));
+            localStorage.setItem("dataTurbine", JSON.stringify(dataTurbine));
             page.dtLineChart(res.data.Data);
         
 

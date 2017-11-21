@@ -765,7 +765,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
 	//match = append(match, tk.M{"power": tk.M{"$gt": 0}})
-	match = append(match, tk.M{"power": tk.M{"$ne": 0}})
+	match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
 	//match = append(match, tk.M{"oktime": 600})
 	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
 	//match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
@@ -773,6 +773,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	match = append(match, tk.M{"projectname": project})
 	match = append(match, tk.M{"isvalidstate": true})
 	match = append(match, tk.M{"available": 1})
+	match = append(match, tk.M{"power": tk.M{"$ne": nil}})
+	match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
 
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
@@ -801,6 +803,44 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	e = csr.Fetch(&alltkm, 0, false)
 	defer csr.Close()
 
+	// getting all turbines total availability
+	match = []tk.M{}
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
+	match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
+	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
+	match = append(match, tk.M{"projectname": project})
+	match = append(match, tk.M{"available": 1})
+	// match = append(match, tk.M{"power": tk.M{"$ne": nil}})
+	// match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
+
+	if len(p.Turbine) > 0 {
+		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+	}
+
+	//tk.Printf("%#v\n", match)
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":       "$turbine",
+		"totaldata": tk.M{"$sum": 1},
+	}})
+
+	//tk.Printf("%#v\n", pipes)
+
+	csrta, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	allta := []tk.M{}
+	e = csrta.Fetch(&allta, 0, false)
+	defer csrta.Close()
+
 	var datas [][]float64
 	results := []tk.M{}
 	sortTurbines := []string{}
@@ -828,6 +868,12 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		lfloat64[ws] = pwr
 		resData.Set(sturbine, lfloat64)
 	}
+	//tk.Printf("%#v\n", allta)
+	resAllTa := tk.M{}
+	for _, ta := range allta {
+		resAllTa.Set(ta.GetString("_id"), ta.GetInt("totaldata"))
+	}
+	//tk.Printf("%#v\n", resAllTa)
 
 	for _, turX := range p.Turbine {
 		sortTurbines = append(sortTurbines, tk.ToString(turX))
@@ -863,14 +909,25 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 
 		totalPerTurbine := resTotal.GetInt(turbineX)
 
+		totalDataTurbine := 0
+		totalDataAvail := 0.0
+		if resAllTa.Has(turbineX) {
+			totalDataTurbine = resAllTa.GetInt(turbineX)
+			if totalDataTurbine > 0 {
+				totalDataAvail = tk.Div(float64(totalDataTurbine), totalDataShouldBe)
+			}
+		}
+
 		turbineData := tk.M{
-			"NameID":           turbineX,
-			"Name":             turbineName[turbineX],
-			"Data":             dataSeries,
-			"DataAvailability": tk.Div(float64(totalPerTurbine), totalDataShouldBe),
-			"DataTotal":        totalPerTurbine,
-			"TotalDays":        totalDays,
-			"TotalShouldBe":    totalDataShouldBe,
+			"NameID":                turbineX,
+			"Name":                  turbineName[turbineX],
+			"Data":                  dataSeries,
+			"DataTotalAvailability": totalDataAvail,
+			"DataTotalAll":          totalDataTurbine,
+			"DataAvailability":      tk.Div(float64(totalPerTurbine), totalDataShouldBe),
+			"DataTotal":             totalPerTurbine,
+			"TotalDays":             totalDays,
+			"TotalShouldBe":         totalDataShouldBe,
 		}
 		results = append(results, turbineData)
 	}

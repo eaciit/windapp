@@ -165,6 +165,9 @@ tlp.initChart = function() {
             tempData = _.sortBy(tempData, 'name');
         }
         res.data.Data = firstData.concat(tempData);
+        res.data.Data.forEach(function(val, idx){
+            res.data.Data[idx].idxseries = idx;
+        });
 
 
         var datatlp = res.data.Data;
