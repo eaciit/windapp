@@ -40,7 +40,53 @@ tlp.deviation= ko.observable(2);
 tlp.deviationList = ko.observableArray([1,2,3,4,5]);
 tlp.isDeviation = ko.observable(false);
 tlp.compTempVal = ko.observable(1);
+tlp.project = ko.observable();
+tlp.dateStart = ko.observable();
+tlp.dateEnd = ko.observable();
+var origWidth;
+var origTransitions;
+var seriesIndex;
 
+function seriesHover(e){
+    origWidth = e.series.width;
+    origTransitions = e.sender.options.transitions;
+    seriesIndex = e.series.index;
+    e.sender.unbind("seriesHover", seriesHover);
+
+    e.series.width = 5;
+    e.sender.options.transitions = false;
+    e.sender.redraw();
+
+    setTimeout(function(){
+        var chart = $("#charttlp").data("kendoChart");
+
+        chart.options.series[seriesIndex].width = origWidth;
+        chart.redraw();
+        chart.options.transitions = origTransitions;
+        chart.bind("seriesHover", seriesHover);
+    },1000);
+}
+
+tlp.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, "TrendlinePlots_for_"+project+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 tlp.getAvailDate = function(){
     app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
@@ -76,7 +122,7 @@ tlp.initChart = function() {
     tlp.compTemp(tlp.temperatureList()[project]);    
 
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
-    var ddldeviation = $('#ddldeviation').data('kendoDropDownList').value()
+    var ddldeviation = $('#deviationValue').val()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
     // var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -94,6 +140,9 @@ tlp.initChart = function() {
     };
 
 
+    fa.dateStart = dateStart;
+    fa.dateEnd = dateEnd ;
+
     var link = "trendlineplots/getlist"
 
 
@@ -102,6 +151,7 @@ tlp.initChart = function() {
             app.loading(false);
             return;
         }
+
         var tempData = [];
         var firstData = [];
 
@@ -115,6 +165,10 @@ tlp.initChart = function() {
             tempData = _.sortBy(tempData, 'name');
         }
         res.data.Data = firstData.concat(tempData);
+        res.data.Data.forEach(function(val, idx){
+            res.data.Data[idx].idxseries = idx;
+        });
+
 
         var datatlp = res.data.Data;
         var categories = res.data.Categories;
@@ -156,6 +210,9 @@ tlp.initChart = function() {
             legend: {
                 position: "bottom",
                 visible: false,
+                labels : {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                }
             },
             chartArea: {
                 height: 400,
@@ -204,6 +261,12 @@ tlp.initChart = function() {
                     font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
                 },
                 majorTickType: "none",
+            }, 
+            seriesHover : seriesHover,
+            plotAreaHover : function(e){
+                e.series.width = 2;
+                e.sender.options.transitions = false;
+                e.sender.redraw();
             },
             tooltip: {
                 visible: true,
@@ -217,14 +280,13 @@ tlp.initChart = function() {
                     color: "#eee",
                     width: "2px",
                 },
-            }
+            },
             // pannable: true,
             // zoomable: true
         });
 
         app.loading(false);
         $("#charttlp").data("kendoChart").refresh();
-
         tlp.InitRightTurbineList(res.data.TurbineName);
         
     });
@@ -313,11 +375,18 @@ tlp.showHideLegend = function(idx){
     chart._legendItemClick(idx);
 }
 
+
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         setTimeout(function() {
             if(fa.LoadData()) {
+                var project = $('#projectList').data("kendoDropDownList").value();
+                var dateStart = $('#dateStart').data('kendoDatePicker').value();
+                var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+                tlp.project(project);
+                tlp.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+                tlp.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
                 tlp.initChart();
             }
         }, 300);
@@ -327,26 +396,38 @@ $(document).ready(function() {
         fa.checkTurbine();
         setTimeout(function() {
             if(fa.LoadData()) {
-                tlp.initChart();
+                // tlp.initChart();
+                $.when(tlp.initChart()).done(function(){
+                    $("#charttlp").data("kendoChart").bind("seriesHover", seriesHover);
+                });
             }
         }, 300);
     });
 
     $('#projectList').kendoDropDownList({
-		change: function () {
+        change: function () {
             var project = $('#projectList').data("kendoDropDownList").value();
-			fa.populateTurbine(project);
+            fa.populateTurbine(project);
             fa.project = project;
             tlp.getAvailDate();
             tlp.compTemp(tlp.temperatureList()[project]);
-		}
-	});
+        }
+    });
 
     setTimeout(function() {
+
         if(fa.LoadData()) {
             tlp.getAvailDate();
             fa.checkTurbine();
             tlp.initChart();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+
+            tlp.project(fa.project);
+            tlp.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            tlp.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
         }
+
     }, 300);
 });
