@@ -427,8 +427,6 @@ fa.DateChange = function () {
 
     if(period == "monthly" && new Date(dateEnd).getMonthName() == new Date(maxDateData).getMonthName()){
          $('#dateEnd').data('kendoDatePicker').value(new Date(app.getDateMax(maxDateData)))
-    }else{
-        $('#dateEnd').data('kendoDatePicker').value(new Date(dateEnd.getFullYear(), dateEnd.getMonth() + 1, 0));
     }
 
     var start = $('#dateStart').data('kendoDatePicker').value();
