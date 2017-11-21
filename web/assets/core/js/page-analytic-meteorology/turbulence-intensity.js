@@ -56,6 +56,9 @@ var ti = {
 			var width = $(".main-header").width()
 	        // var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
 	        var tempData = _.sortBy(data.ChartSeries, 'name');
+	        tempData.forEach(function(val, idx){
+	        	tempData[idx].idxseries = idx;
+	        });
 	        data.ChartSeries = tempData;
 	        pm.ChartSeriesturbulence(data.ChartSeries)
 	        pm.DtTurbulence(data)
