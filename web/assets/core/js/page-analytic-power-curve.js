@@ -244,10 +244,23 @@ var Data = {
             page.totalAvailAll(res.data.TotalDataAvail);
             page.totalAvailTurbines(res.data.TotalPerTurbine);
 
-            res.data.Data = _.sortBy(res.data.Data, 'name')
+            var tempData = [];
+            var powerCurveData;
             res.data.Data.forEach(function(val, idx){
-                res.data.Data[idx].idxseries = idx+1;
-            });          
+                if(val.name != "Power Curve") {
+                    tempData.push(val);
+                } else {
+                    powerCurveData = val;
+                }
+            });
+
+            tempData = _.sortBy(tempData, 'name')
+            tempData.forEach(function(val, idx){
+                tempData[idx].idxseries = idx+1;
+            });
+            tempData.push(powerCurveData);
+            res.data.Data = tempData;
+
 
             dataTurbine = res.data.Data;
             localStorage.setItem("dataTurbine", JSON.stringify(dataTurbine));
