@@ -246,7 +246,7 @@ var Data = {
 
             res.data.Data = _.sortBy(res.data.Data, 'name')
             res.data.Data.forEach(function(val, idx){
-                res.data.Data[idx].idxseries = idx;
+                res.data.Data[idx].idxseries = idx+1;
             });          
 
             dataTurbine = res.data.Data;
