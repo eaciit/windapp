@@ -80,6 +80,8 @@ page.populateTurbine = function() {
 page.getPDF = function(selector){
     app.loading(true);
     var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
 
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
@@ -91,7 +93,7 @@ page.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group, "PowerCurve_for_"+project+".pdf");
+      kendo.drawing.pdf.saveAs(group, project+"PowerCurve"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -396,7 +398,18 @@ var Data = {
                         lock: "y",
                         key: "none",
                     }
-                }
+                },
+                dataBound : function(){
+                    var chart = $("#powerCurve").data("kendoChart");
+                    var viewModel = kendo.observable({
+                      series: chart.options.series,
+                      markerColor: function(e) {
+                        return e.get("visible") ? e.color : "grey";
+                      }
+                    });
+
+                    kendo.bind($("#legend"), viewModel);
+                },
             });
             app.loading(false);
             $("#powerCurve").data("kendoChart").refresh();
@@ -608,7 +621,18 @@ var Data = {
                         lock: "y",
                         key: "none",
                     }
-                }
+                },                
+                dataBound : function(){
+                    var chart = $("#powerCurve").data("kendoChart");
+                    var viewModel = kendo.observable({
+                      series: chart.options.series,
+                      markerColor: function(e) {
+                        return e.get("visible") ? e.color : "grey";
+                      }
+                    });
+
+                    kendo.bind($("#legend"), viewModel);
+                },
             });
 
             app.loading(false);
