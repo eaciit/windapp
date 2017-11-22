@@ -4,7 +4,6 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-trend-line-plots/trendlineplots.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/trend-line-plots/trendlineplots.css">
-
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -34,11 +33,18 @@
 									<div class="panel-heading template-pdf" style="margin-top: -10px">
 										<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
 										<div class="col-md-12 text-center title-pdf">
-											Trend Line Plots |<span data-bind="text:tlp.project()"></span> | <span data-bind="text:tlp.dateStart()"></span> until <span data-bind="text:tlp.dateEnd()"></span>
+											<span data-bind="text:tlp.project()"></span> | Trend Line Plots |<span data-bind="text:tlp.dateStart()"></span> until <span data-bind="text:tlp.dateEnd()"></span>
 											
 										</div>
 									</div>
 									<div id="charttlp"></div>
+									<script id="legendItemTemplate" type="text/kendo">
+								    	<span class="legend-item">
+									        <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+									        <span>#:name#</span>
+									     </span>
+								    </script>
+								    <div data-bind="source:series" data-template="legendItemTemplate" id="legend"></div>
 								</div>
 							</div>
 							<div class="col-md-3">

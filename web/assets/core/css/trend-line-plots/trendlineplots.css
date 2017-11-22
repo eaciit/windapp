@@ -112,14 +112,38 @@ label.control-label {
     padding: 5px;
     text-align: center;
 }
+
+#legend{
+    margin-top: 20px;
+    padding-left: 20px;
+    display: none;
+}
+.legend-item
+  {
+    font: 12px 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;  
+    margin: 2px;
+    cursor:pointer;  
+  }
+  .legend-item .legend-marker
+  {
+    display:inline-block;
+    width:8px;
+    height:8px;
+  }
+
 .template-pdf{
     display: none;
 }
+
 .k-pdf-export .title-pdf{
     margin-top: -30px;
     font-size: 12px !important;
     margin-bottom: 30px;
 }
 .k-pdf-export .template-pdf {
-    display: block;
+    display: block; 
 }
+.k-pdf-export #legend {
+    display: block; 
+}
+
