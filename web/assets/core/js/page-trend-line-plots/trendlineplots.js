@@ -70,6 +70,8 @@ function seriesHover(e){
 tlp.getPDF = function(selector){
     app.loading(true);
     var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
 
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
@@ -81,7 +83,7 @@ tlp.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group, "TrendlinePlots_for_"+project+".pdf");
+      kendo.drawing.pdf.saveAs(group, project+"TrendlinePlots"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -211,7 +213,8 @@ tlp.initChart = function() {
                 position: "bottom",
                 visible: false,
                 labels : {
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    // template: kendo.template($("#legendItemTemplate").html()),
                 }
             },
             chartArea: {
@@ -244,7 +247,7 @@ tlp.initChart = function() {
                 axisCrossingValue: -10,
                 majorGridLines: {
                     visible: true,
-                    color: "#eee",
+                    color: "#bdbdbd",
                     width: 0.8,
                 },
                 // majorUnit: 0.5,
@@ -263,10 +266,16 @@ tlp.initChart = function() {
                 majorTickType: "none",
             }, 
             seriesHover : seriesHover,
-            plotAreaHover : function(e){
-                e.series.width = 2;
-                e.sender.options.transitions = false;
-                e.sender.redraw();
+            dataBound : function(){
+                var chart = $("#charttlp").data("kendoChart");
+                var viewModel = kendo.observable({
+                  series: chart.options.series,
+                  markerColor: function(e) {
+                    return e.get("visible") ? e.color : "grey";
+                  }
+                });
+
+                kendo.bind($("#legend"), viewModel);
             },
             tooltip: {
                 visible: true,
@@ -430,4 +439,5 @@ $(document).ready(function() {
         }
 
     }, 300);
+
 });

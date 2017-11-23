@@ -262,7 +262,24 @@
     width: 148px;
 }
 
+.legend-item
+{
+    font: 12px 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;  
+    margin: 2px;
+    cursor:pointer;  
+    }
+.legend-item .legend-marker
+{
+    display:inline-block;
+    width:8px;
+    height:8px;
+}
 .template-pdf{
+    display: none;
+}
+#legend{
+    margin-top: 20px;
+    padding-left: 20px;
     display: none;
 }
 
@@ -284,4 +301,8 @@
 
 .k-pdf-export .template-pdf {
     display: block;
+}
+
+.k-pdf-export #legend {
+    display: block; 
 }

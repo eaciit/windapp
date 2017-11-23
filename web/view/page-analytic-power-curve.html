@@ -68,6 +68,13 @@
 											<span data-bind="html: 'Total Data Av : <b>' + kendo.toString(page.totalAvail(), 'p1') + '</b>'"></span>
 										</div>
 										<div id="powerCurve"></div>
+										<script id="legendItemTemplate" type="text/kendo">
+									    	<span class="legend-item">
+										        <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+										        <span>#:name#</span>
+										     </span>
+									    </script>
+									    <div data-bind="source:series" data-template="legendItemTemplate" id="legend"></div>
 									</div>
 								</div>
 
