@@ -269,10 +269,10 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 						currBudget50 := budgetCurrMonthDaily50
 						currBudget90 := budgetCurrMonthDaily90
 						if data != nil {
-							ipower := data["totalpower"]
+							ipower := data.GetFloat64("totalpower")
 							power := 0.0
 							if ipower != nil {
-								power = ipower.(float64)
+								power = ipower
 							}
 							currProd = power / 6
 						}
