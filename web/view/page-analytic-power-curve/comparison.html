@@ -19,7 +19,20 @@
                     <div class="clearfix">&nbsp;</div>
 
 					<div class="col-md-8">
-						<div id="chartPCcomparison"></div>
+						<div class="tools btn-group pull-right btn-pdf">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){pc.getPDF('.div-comparison')}">
+						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+						  	</button>
+						</div>
+						<div class="div-comparison">
+							<div class="panel-heading template-pdf" style="margin-top: -10px">
+								<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+								<div class="col-md-12 text-center title-pdf">
+									<span data-bind="text:pc.project()"></span> | Power Curve Comparison
+								</div>
+							</div>
+							<div id="chartPCcomparison"></div>
+						</div>
 					</div>
 
 				<!--</div>

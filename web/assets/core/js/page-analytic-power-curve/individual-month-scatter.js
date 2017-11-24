@@ -47,26 +47,41 @@ page.getPDF = function(selector){
     var title = fa.project + " | "+ kendo.toString($('#dateStart').data('kendoDatePicker').value(), 'MMM-yyyy');
     app.loading(true);
     page.PrintPdf(true);
-    $("#illusion-month").append($(".individual-month").html());
-    $("#pdf-title").text(title);
-    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
-    var project = $("#projectList").data("kendoDropDownList").value();
-    kendo.drawing.drawDOM($(selector)).then(function(group){
-        group.options.set("pdf", {
-            paperSize: "auto",
-            margin: {
-                left   : "10mm",
-                top    : "10mm",
-                right  : "10mm",
-                bottom : "10mm"
-            }
-        });
-      kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
-        setTimeout(function(){
-            $("#illusion-month").empty();
-            page.PrintPdf(false);
-            app.loading(false);
-        },2000)
+    // $("#illusion-month").append($(".individual-month").html());
+    // $("#pdf-title").text(title);
+    // var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+    // var project = $("#projectList").data("kendoDropDownList").value();
+    // kendo.drawing.drawDOM($(selector)).then(function(group){
+    //     group.options.set("pdf", {
+    //         paperSize: "a4",
+    //         margin: {
+    //             left   : "10mm",
+    //             top    : "10mm",
+    //             right  : "10mm",
+    //             bottom : "10mm"
+    //         },
+    //         multiPages: true,
+    //     });
+    //   kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
+    //     setTimeout(function(){
+    //         $("#illusion-month").empty();
+    //         page.PrintPdf(false);
+    //         app.loading(false);
+    //     },2000)
+    // });
+    kendo.drawing.drawDOM(selector, {
+      paperSize: "A3",
+      margin: {
+        left   : "10mm",
+        top    : "10mm",
+        right  : "10mm",
+        bottom : "10mm"
+      },
+      landscape: true,
+      scale: 0.5,
+
+    }).then(function(group){
+      kendo.drawing.pdf.saveAs(group, "test.pdf");
     });
 }
 
@@ -309,11 +324,11 @@ $(function() {
     });
 
     di.getAvailDate();
+    fa.LoadData();
     setTimeout(function(){
         $("#periodList").data("kendoDropDownList").value("monthly");
         $("#periodList").data("kendoDropDownList").trigger("change");
-        fa.LoadData();
         page.LoadData();
-    },500);
+    },700);
     
 });
