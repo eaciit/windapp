@@ -38,11 +38,7 @@ wr.getPDF = function(selector){
     var project = $("#projectList").data("kendoDropDownList").value();
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
-    var list 
 
-    $('#project-pdf').html(project);
-    $('#dateStart-pdf').html(moment($('#dateStart').data('kendoDatePicker').value()).format("DD-MMM-YYYY"));
-    $('#dateEnd-pdf').html();
 
     kendo.drawing.drawDOM(selector, {
         paperSize: "A3",
