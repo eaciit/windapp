@@ -20,27 +20,55 @@ wr.ExportWindRose = function () {
     });
 }
 
+wr.getColor = function(color) {
+    var c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(color)){
+        c= color.substring(1).split('');
+        if(c.length== 3){
+            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c= '0x'+c.join('');
+        return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+    }
+    throw new Error('Bad Hex');
+}
+
 wr.getPDF = function(selector){
     app.loading(true);
-    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
     var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+    var list 
 
-    kendo.drawing.drawDOM($(selector)).then(function(group){
-        group.options.set("pdf", {
-            paperSize: "auto",
-            margin: {
-                left   : "5mm",
-                top    : "5mm",
-                right  : "5mm",
-                bottom : "5mm"
-            },
-        });
-      kendo.drawing.pdf.saveAs(group, "Windrose_for_"+project+".pdf");
+    $('#project-pdf').html(project);
+    $('#dateStart-pdf').html(moment($('#dateStart').data('kendoDatePicker').value()).format("DD-MMM-YYYY"));
+    $('#dateEnd-pdf').html();
+
+    kendo.drawing.drawDOM(selector, {
+        paperSize: "A3",
+        margin: {
+            bottom: 50,
+            left: 20,
+            right: 20,
+            top: 50
+        },
+        landscape: true,
+        scale: 0.5,
+        template: kendo.template($("#page-template").html())(
+        {
+            project: project,
+            dateStart: moment($('#dateStart').data('kendoDatePicker').value()).format("DD-MMM-YYYY"),
+            dateEnd: moment($('#dateEnd').data('kendoDatePicker').value()).format("DD-MMM-YYYY"),
+            legend : listOfCategory,
+        })
+    }).then(function(group){
+        kendo.drawing.pdf.saveAs(group, project+"WindRose"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
     });
 }
+
 
 wr.showHideLegendWR = function (index) {
     var idName = "btn" + index;
@@ -366,6 +394,8 @@ wr.WindRose = function(){
             var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
             $('#availabledatestart').html(metDate);
             $('#availabledateend').html(scadaDate);
+
+
         }else{
             var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
             var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'

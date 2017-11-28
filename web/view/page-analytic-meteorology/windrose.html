@@ -1,14 +1,30 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/windrose.js?ANTI_CACHE={{.AntiCache}}"></script>
 
-
+<style type="text/css">
+	.page-template > * {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        font-size: 90%;
+        margin-bottom: 50px;
+    }
+    .template-pdf {
+        position:absolute; 
+        top:10px; 
+        left:20px; 
+        width:100%; 
+        font-size:18px;
+        margin-bottom: 100px;
+    }
+</style>
 <div class="col-md-12 div-template">
-	<div class="panel-heading template-pdf">
+	<!-- <div class="panel-heading template-pdf">
 		<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
 		<div class="col-md-12 text-center title-pdf">
 			<span data-bind="text:pm.projectName"></span> | <span data-bind="text: moment(new Date(pm.dateStart())).format('DD-MMM-YYYY')"></span> until <span data-bind="text:moment(new Date(pm.dateEnd())).format('DD-MMM-YYYY')"></span><br>
 			Wind Rose
 		</div>
-	</div>
+	</div> -->
 	<div class="col-md-12 list">
 		<div class="col-md-3 col-xs-12 sector-part">
 			<label class="control-label keyA-label">Sectors</label>
@@ -18,10 +34,9 @@
 			<label class="txtWar" data-bind="text: '&nbsp;&nbsp;Sector width : ' + wr.sectorDerajat() + ' °'">&nbsp;</label>
 		</div>
 
-		<div class="col-md-6 col-xs-12 list div-legend">
+		<div class="col-md-6 col-xs-12 list div-legend normal-legend">
 			<div id="legend-anchor"></div>
-			<div id="legend-list" class="col-md-12 col-sm-12 pl15">
-			</div>
+			<div id="legend-list" class="col-md-12 col-sm-12 pl15"></div>
 		</div>
 
 		<div class="panel-heading">
@@ -34,6 +49,23 @@
 		</div>
 
 	</div>
+	<script type="x/kendo-template" id="page-template">
+		<div class="page-template" style="position:absolute; top:0; left:0; width:100%; height:100%">
+			<div class="panel-heading template-pdf">
+				<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+				<div class="col-md-12 text-center title-pdf">
+					<span id="project-pdf">#: project #</span> | Wind Rose |<span id="dateStart-pdf">#: dateStart #</span> until <span id="dateEnd-pdf"> #: dateEnd #</span>
+				</div>
+				<div class="col-md-12 col-xs-12 list div-legend legend-pdf">
+					<div id="legend-list" class="col-md-12 pl15">
+						  # for (var i = 0; i < legend.length; i++) { #
+						  	<button class="btn btn-default btn-sm btn-legend" type="button" id="#=legend[i].id #" style="background:#= wr.getColor(legend[i].color)#;border-color:#= wr.getColor(legend[i].color)#;"></button> <span class="span-legend"> #: legend[i].category #</span>
+						  # } #
+	                </div>
+				</div>
+			</div>
+		</div>
+	</script>
 	<div class="col-md-12 windrose-part" data-bind="foreach: wr.dataWindroseEachTurbine">
 		<div class="col-md-3 col-xs-12 windrose-item">
 			<i class="fa fa-search-plus tooltipster tooltipstered btn-zoom" onclick="wr.ZoomChart(this.id)" data-bind="attr:{id: 'btn-zoom-' + Name}" title="Zoom Chart" style="cursor: pointer;"></i>

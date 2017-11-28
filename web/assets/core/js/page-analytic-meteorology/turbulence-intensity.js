@@ -4,9 +4,38 @@ pm.turbineturbulence = ko.observableArray([]);
 pm.ChartSeriesturbulence = ko.observableArray([]);
 pm.DtTurbulence = ko.observableArray([]);
 pm.ShowScatter = ko.observable(false);
+pm.project = ko.observable();
+pm.dateStart = ko.observable();
+pm.dateEnd = ko.observable();
+
 pm.ShowScatter.subscribe(function(){ 
 	ti.ShowScatter(); 
 });
+
+
+pm.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"TurbulenceInstensity"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 
 var ti = {
 	// RefreshchartTI: function(){
@@ -25,12 +54,24 @@ var ti = {
 		        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
 		        $('#availabledatestart').html(metDate);
 		        $('#availabledateend').html(scadaDate);
+		        var project = $('#projectList').data("kendoDropDownList").value();
+	            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+	            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+	            pm.project(project);
+	            pm.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+	            pm.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
 
 		    }else{
 		        var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
 		        var scadaDate = ' | (<strong>SCADA HFD</strong>) from: <strong>' + availDateList.startScadaHFD + '</strong> until: <strong>' + availDateList.endScadaHFD + '</strong>'
 		        $('#availabledatestart').html(metDate);
 		        $('#availabledateend').html(scadaDate);
+		        var project = $('#projectList').data("kendoDropDownList").value();
+	            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+	            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+	            pm.project(project);
+	            pm.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+	            pm.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
 		        setTimeout(function(){
 		            $("#chartTI").data("kendoChart").refresh();
 		            app.loading(false);
@@ -162,6 +203,20 @@ var ti = {
                         width: "2px",
                     },
                 },
+	            dataBound: function(){
+	                app.loading(false);
+	                pm.isFirstNacelleDis(false);
+
+	                var chart = $("#chartTI").data("kendoChart");
+	                var viewModel = kendo.observable({
+	                  series: chart.options.series,
+	                  markerColor: function(e) {
+	                    return e.get("visible") ? e.color : "grey";
+	                  }
+	                });
+
+	                kendo.bind($("#legendTurbulence"), viewModel);
+	            }
 			});
 			setTimeout(function() {
 				ti.InitRightList();
@@ -558,7 +613,21 @@ var ti = {
 	                        lock: "y",
 	                        key: "none",
 	                    }
-	                }
+	                },
+	               	dataBound: function(){
+		                app.loading(false);
+		                pm.isFirstNacelleDis(false);
+
+		                var chart = $("#chartTI").data("kendoChart");
+		                var viewModel = kendo.observable({
+		                  series: chart.options.series,
+		                  markerColor: function(e) {
+		                    return e.get("visible") ? e.color : "grey";
+		                  }
+		                });
+
+		                kendo.bind($("#legendTurbulence"), viewModel);
+		            }
 	            });
 
 				// var series = $("#chartTI").data("kendoChart").options.series;
