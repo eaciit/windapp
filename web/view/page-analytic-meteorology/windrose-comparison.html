@@ -1,29 +1,64 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/windrose-comparison.js?ANTI_CACHE={{.AntiCache}}"></script>
-<!-- <div class="col-md-12 list">
-	<div class="col-md-3 col-xs-12">
-		<label class="control-label keyA-label">Sectors</label>
-		<select id="nosectionComparison" name="table" data-bind="kendoDropDownList: { data: pm.sectionsBreakdownList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: pm.WindRoseComparison }"
-			style="width:50px;">
-        </select>&nbsp;
-		<label class="txtWarComparison" data-bind="text: '&nbsp;&nbsp;Sector width : ' + pm.sectorDerajatComparison() + ' °'">&nbsp;</label>
-	</div>
-
-	<div class="col-md-6 col-xs-12">
-		<div id="legend-list-comparison" class="col-md-12 col-sm-12 pl15">
+<style type="text/css">
+.legend-windrose
+{
+    font: 12px 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;  
+    margin: 2px;
+    cursor:pointer;  
+    }
+.legend-windrose .legend-windrose-marker
+{
+    display:inline-block;
+    width:8px;
+    height:8px;
+}
+#legendWindrose{
+    margin-top: 20px;
+    padding-left: 20px;
+    display: none;
+}
+.k-pdf-export #WRChartComparison {
+   margin-top: -30px !important;
+}
+.k-pdf-export #legendWindrose {
+    display: block; 
+}
+.btn-pdf{
+	z-index: 9999;
+}
+</style>
+<div class="col-sm-12">
+	<div class="col-md-9 windrose-part">
+		<div class="tools btn-group pull-right btn-pdf">
+			<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){wrb.getPDF('.div-temp')}">
+		    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+		  	</button>
 		</div>
-	</div>
-</div> -->
-
-<div class="col-md-9 windrose-part">
-	<div class="panel panel-default">
-		<div class="panel-body">
-			<div id="WRChartComparison" class="windrose-item-comparison"></div>
+		<div class="div-temp">
+			<div class="panel-heading template-pdf">
+				<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+				<div class="col-md-12 text-center title-pdf">
+					<span data-bind="text:wrb.project()"></span> | Wind Rose Comparison | <span data-bind="text:wrb.dateStart()"></span> until <span data-bind="text:wrb.dateEnd()"></span><br>
+				</div>
+			</div>
+			<div class="windrose-comp-chart">
+				<div id="WRChartComparison" class="windrose-item-comparison"></div>
+				<script id="legendItemTemplate" type="text/kendo">
+			    	<span class="legend-windrose">
+				        <span class="legend-windrose-marker" data-bind="style:{background: markerColor}"></span>
+				        <span>#:name#</span>
+				     </span>
+			    </script>
+			    <div data-bind="source:series" data-template="legendItemTemplate" id="legendWindrose"></div>
+			</div>
 		</div>
+		
+		<div class="clearfix">&nbsp;</div>
+		<div class="clearfix">&nbsp;</div>
 	</div>
-	<!-- <div class="clearfix">&nbsp;</div> -->
-</div>
-<div class="col-md-3 turList">
-	<!-- <div class="clearfix">&nbsp;</div> -->
-	<div class="checkbox" id="checkAllCompare"></div>
-	<div class="col-md-12 col-sm-12" id="turbine-list-compare"></div>
+	<div class="col-md-3 turList">
+		<!-- <div class="clearfix">&nbsp;</div> -->
+		<div class="checkbox" id="checkAllCompare"></div>
+		<div class="col-md-12 col-sm-12" id="turbine-list-compare"></div>
+	</div>
 </div>

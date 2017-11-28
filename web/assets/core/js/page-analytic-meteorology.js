@@ -30,12 +30,12 @@ pm.sectionsBreakdownList = ko.observableArray([
 // var colorFieldsWR = ["#000292", "#005AFD", "#25FEDF", "#EBFE14", "#FF4908", "#9E0000", "#ff0000"];
 var colorFieldsWR = ["#224373","#186baa","#25FEDF", "#f5a265","#eb5b19", "#9E0000","#e4cc37"];
 var listOfCategory = [
-    { "category": "0 to 4m/s", "color": colorFieldsWR[0] },
-    { "category": "4 to 8m/s", "color": colorFieldsWR[1] },
-    { "category": "8 to 12m/s", "color": colorFieldsWR[2] },
-    { "category": "12 to 16m/s", "color": colorFieldsWR[3] },
-    { "category": "16 to 20m/s", "color": colorFieldsWR[4] },
-    { "category": "20m/s and above", "color": colorFieldsWR[5] },
+    { "category": "0 to 4m/s", "color": colorFieldsWR[0] , "id" : "wr1" },
+    { "category": "4 to 8m/s", "color": colorFieldsWR[1], "id" : "wr2"},
+    { "category": "8 to 12m/s", "color": colorFieldsWR[2], "id" : "wr3"},
+    { "category": "12 to 16m/s", "color": colorFieldsWR[3],"id" : "wr4"},
+    { "category": "16 to 20m/s", "color": colorFieldsWR[4],"id" : "wr5"},
+    { "category": "20m/s and above", "color": colorFieldsWR[5],"id" : "wr6"},
 ];
 
 pm.valueCategory = ko.observableArray([

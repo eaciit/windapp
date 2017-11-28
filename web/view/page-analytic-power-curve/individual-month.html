@@ -4,6 +4,26 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/individual-month.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
+<style type="text/css">
+	.page-template > * {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        font-size: 90%;
+        margin-bottom: 50px;
+    }
+    .template-pdf {
+        position:absolute; 
+        top:10px; 
+        left:20px; 
+        width:100%; 
+        font-size:18px;
+        margin-bottom: 100px;
+    }
+    .k-pdf-export .individual-month{
+		margin-top: 75px;
+	}
+</style>
 <div>
 	<div class="row">
 		{{template "_filter-powercurve.html"}}
@@ -16,25 +36,13 @@
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">
 						<span class="tools pull-right">
-							<i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month for valid data only"></i>
-							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="page.getPDF('.tobeprint')">
+							<!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="page.getPDF('.div-template')">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
-	                  	</span>
+				      	</span>
 					</div>
-
 					<div class="panel-body tobeprint">
-						<div class="col-md-12" data-bind="visible: page.PrintPdf">
-							<img src="/web/res/img/ostro-logo.svg" class="navbar-brand">
-							<span class="navbar-brand" style="padding: 15px 0px;font-size: 24px;">
-								ENERGY
-							</span>
-						</div>
-						<div class="col-md-12" style="text-align: center;font-size: 18px;margin-bottom: 15px;" data-bind="visible: page.PrintPdf">
-							<label id="pdf-title">Tejuva</label>
-							<br>
-							<label>Individual Month Power Curve</label>
-						</div>
 						{{template "_dateinfo.html"}}
                         <div id="legend-wrapper" class="col-md-12 list">
 							<div class="col-md-12 col-xs-12">
@@ -44,12 +52,31 @@
 							</div>
 						</div>
 						<div class="clearfix">&nbsp;</div>
-
-						<div class="col-md-12 individual-month" data-bind="foreach: page.dataPCEachTurbine">
-							<div class="col-md-4 col-xs-12 power-curve-item">
-								<div data-bind="attr:{id: 'chart-' + Name}"></div>
+						<script type="x/kendo-template" id="page-template">
+							<div class="page-template" style="position:absolute; top:0; left:0; width:100%; height:100%">
+								<div class="panel-heading template-pdf">
+									<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+									<div class="col-md-12 text-center title-pdf">
+										<span id="project-pdf">#: project #</span> | Individual Month |<span id="dateStart-pdf">#: dateStart #</span> until <span id="dateEnd-pdf"> #: dateEnd #</span>
+									</div>
+									<div class="col-md-12 col-xs-12 list div-legend legend-pdf">
+										<div id="legend-list" class="col-md-12 pl15">
+											  # for (var i = 0; i < legend.length; i++) { #
+											  	<button class="btn btn-default btn-sm btn-legend" type="button" style="background:#= page.getColor(legend[i].color)#;border-color:#= page.getColor(legend[i].color)#;"></button> <span class="span-legend"> #: legend[i].category #</span>
+											  # } #
+						                </div>
+									</div>
+								</div>
+							</div>
+						</script>
+						<div class="div-template">
+							<div class="col-md-12 individual-month" data-bind="foreach: page.dataPCEachTurbine">
+								<div class="col-md-4 col-xs-12 power-curve-item">
+									<div data-bind="attr:{id: 'chart-' + Name}"></div>
+								</div>
 							</div>
 						</div>
+						<div class="clearfix">&nbsp;</div>
 					</div>
 				</div>
 			</div>

@@ -18,16 +18,25 @@
 					</div> -->
 				</div>
 				<div class="panel-body">
-					<!-- <a class="tools pull-right tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click: page.ExportIndividualMonthPdf">
-						<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-					</a> -->
 					<div class="date-info">
 						{{template "_dateinfo.html"}}
                     </div>
 					<div class="clearfix">&nbsp;</div>
 
 					<div class="col-md-9 scatter">
+						<div class="tools btn-group pull-right btn-pdf">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.scatter-chart')}">
+						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+						  	</button>
+						</div>
 						<div class="scatter-chart">
+							<div class="panel-heading template-pdf" style="margin-top: -10px">
+								<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+								<div class="col-md-12 text-center title-pdf">
+									<span data-bind="text:page.project()"></span> | Power Curve Scatter |<span data-bind="text:page.dateStart()"></span> until <span data-bind="text:page.dateEnd()"></span>
+									
+								</div>
+							</div>
 							<div id="scatterChart"></div>
 							<div class="text-center" style="margin-top: -5px"><strong><span id="turbineName"></span></strong></div>
 						</div>

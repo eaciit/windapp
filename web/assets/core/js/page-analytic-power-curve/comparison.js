@@ -34,6 +34,7 @@ pc.dateEnd = ko.observable();
 pc.turbine = ko.observableArray([]);
 pc.project = ko.observable();
 pc.sScater = ko.observable(false);
+pc.project = ko.observable();
 
 pc.rawturbine = ko.observableArray([]);
 pc.rawproject = ko.observableArray([]);
@@ -105,6 +106,27 @@ var turbineval = [];
         pc.project = $("#projectList").data("kendoDropDownList").value();
     });
 }*/
+
+pc.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList1").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"PCComparison.pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 pc.getAvailDate = function(){
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
@@ -741,6 +763,9 @@ $(document).ready(function () {
     
     $('#btnRefresh').on('click', function() {
         setTimeout(function() {
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            pc.project(project);
+
             pc.initChart();
         }, 300);
     });
@@ -761,6 +786,8 @@ $(document).ready(function () {
     app.loading(true);
     pc.InitDefaultValue();
     setTimeout(function() {
+        var project = $('#projectList1').data("kendoDropDownList").value();
+        pc.project(project);
         pc.initChart();
     }, 500);
 });

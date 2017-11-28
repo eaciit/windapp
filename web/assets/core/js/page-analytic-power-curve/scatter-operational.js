@@ -39,6 +39,7 @@ page.dateEnd = ko.observable();
 page.turbine = ko.observableArray([]);
 page.project = ko.observable();
 page.sScater = ko.observable(false);
+page.project = ko.observable();
 
 
 page.rawturbine = ko.observableArray([]);
@@ -46,6 +47,27 @@ page.rawproject = ko.observableArray([]);
 
 var lastPeriod = "";
 var turbineval = [];
+
+page.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList1").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"OPPowerCurve.pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 page.getAvailDate = function(){
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
@@ -571,6 +593,9 @@ page.setProjectTurbine = function(projects, turbines, selected){
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            page.project(project);
+
             page.LoadData();
         }, 300);
     });
@@ -585,6 +610,9 @@ $(document).ready(function() {
 
     $.when(page.InitDefaultValue()).done(function() {
         setTimeout(function(){
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            page.project(project);
+
             page.LoadData();
         },200);
        

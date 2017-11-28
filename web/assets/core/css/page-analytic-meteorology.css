@@ -306,6 +306,7 @@ label.summary-number {
     border-radius: 0 0 0.5em 0.5em;
 }
 
+
 .template-pdf{
     display: none;
 }
@@ -323,11 +324,71 @@ label.summary-number {
 .k-pdf-export .btn-zoom{
 	display: none;
 }
-.k-pdf-export .div-legend{
-    left: 27%;
-    margin-bottom: 30px;
+.k-pdf-export .legend-pdf{
+    left: 25% !important;
+    margin-bottom: 20px;
 }
 
 .k-pdf-export .template-pdf {
     display: block;
 }
+
+.k-pdf-export .windrose-part{
+	margin-top: 50px;
+}
+.k-pdf-export .normal-legend{
+	display: none;
+}
+
+.k-pdf-export #ws1{
+   border-color: #224373 !important;
+   background-color: #224373 !important; 
+}
+.k-pdf-export #ws2{
+   border-color: #186baa !important;
+   background-color: #186baa !important; 
+}
+.k-pdf-export #ws3{
+   border-color: #25FEDF !important;
+   background-color: #25FEDF !important;
+}
+.k-pdf-export #ws4{
+   border-color: #f5a265 !important;
+   background-color: #f5a265 !important;
+}
+.k-pdf-export #ws5{
+   border-color: #eb5b19 !important;
+   background-color: #eb5b19 !important;
+}
+.k-pdf-export #ws6{
+   border-color: #9E0000 !important;
+   background-color: #9E0000 !important;
+}
+
+.legend-windis, .legend-nd, .legend-turbulence
+{
+    font: 12px 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;  
+    margin: 2px;
+    cursor:pointer;  
+    }
+.legend-windis .legend-windis-marker, .legend-nd .legend-nd-marker, .legend-turbulence .legend-turbulence-marker
+{
+    display:inline-block;
+    width:8px;
+    height:8px;
+}
+#legendWindis,#legendNd,#legendTurbulence{
+    margin-top: 20px;
+    padding-left: 20px;
+    display: none;
+}
+.k-pdf-export #windDistribution, .k-pdf-export #nacelleDistribution, .k-pdf-export #chartTI {
+   margin-top: -30px !important;
+}
+.k-pdf-export #legendWindis, .k-pdf-export #legendTurbulence {
+    display: block; 
+}
+.btn-pdf{
+	z-index: 9999;
+}
+

@@ -44,7 +44,6 @@
                 </div>
 
                 <div class="panel-body cusmon-wrapper">
-
                     <div class="cusmon-projects" data-bind="foreach: bpc.projectList">
                         <div class="col-md-2 col-xs-6" style="max-width: 185px;">
                             <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }">
@@ -77,41 +76,24 @@
                                         </strong>
                                     </div>
                                 </div>
-<!--                                 <div class="cusmon-project-row w-forecast">
-                                    <div class="col-md-6 col-xs-6 text-center pos-relative">
-                                        <img src="{{BaseUrl}}res/img/compass.png" class="img-wd-forecast pos-absolute" width="40px" />
-                                        <span class="wd-forecast hidden">0</span>
-                                        <span class="ws-forecast pos-absolute">0</span>
-                                    </div>
-                                    <div class="col-md-6 col-xs-6 text-center pos-relative">
-                                        <span>Turbines Status</span><br>
-                                        <strong>
-                                            <span class="t-up fa-green" data-bind="attr: { 'data-id': ProjectId }">0</span> / 
-                                            <span class="t-down fa-red" data-bind="attr: { 'data-id': ProjectId }">0</span> /
-                                            <span class="t-wait fa-mustard" data-bind="attr: { 'data-id': ProjectId }">0</span> / 
-                                            <span class="t-na fa-grey" data-bind="attr: { 'data-id': ProjectId }">0</span>
-                                        </strong>
-                                    </div>
-                                </div> -->
                                 <br class="clear" />
                             </div>    
                         </div>
                     </div>
                     <br class="clear" />
-
-                    <div id="sortable" data-bind="foreach: bpc.projectList">
-                        <div class="ui-state-default col-md-3 col-xs-6">
-                            <div class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }"> 
+                    <div class="col-md-12 allfarms">
+                        <article id="sortable" data-bind="foreach: bpc.projectList">
+                          <section class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }">
                                 <h4 class="cusmon-title text-left" data-bind="click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}">
                                     <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
                                     <!-- <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span> -->
                                      <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="attr: {id:'timemax_'+ProjectId}"></span>
                                 </h4>    
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' },attr: { 'id': 'cusmon-turbine-' + ProjectId }"></div>
-                            </div>
-                        </div>
-
+                          </section>
+                        </article>
                     </div>
+
                     <div class="col-md-12 notes">
                         <b>Notes :</b> &nbsp;&nbsp;&nbsp;
                         <i class="fa fa-square fa-green"></i>&nbsp;&nbsp;Turbine Up&nbsp;&nbsp;&nbsp;

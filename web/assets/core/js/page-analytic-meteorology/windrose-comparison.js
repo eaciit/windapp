@@ -6,6 +6,9 @@ var wrb = viewModel.WindRoseComparison;
 // WIND ROSE COMPARISON
 wrb.sectorDerajatComparison = ko.observable(0);
 wrb.dataWindroseComparison = ko.observableArray([]);
+wrb.project = ko.observable();
+wrb.dateStart = ko.observable();
+wrb.dateEnd = ko.observable();
 var listOfChartComparison = [];
 var listOfButtonComparison = {};
 /*wrb.showHideLegendComparison = function (index) {
@@ -23,6 +26,29 @@ var listOfButtonComparison = {};
         }
     });
 }*/
+
+wrb.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"WindRoseComparison"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 wrb.InitTurbineListCompare = function () {
     if (wrb.dataWindroseComparison().Data.length > 1) {
@@ -114,8 +140,16 @@ wrb.initChartWRC = function () {
             font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             visible: false
         },
+        chartArea : {
+            height : 350
+        },
         legend: {
-            visible: false
+            position: "bottom",
+            visible: false,
+            labels : {
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                // template: kendo.template($("#legendItemTemplate").html()),
+            }
         },
         series: dataSeries,
         xAxis: {
@@ -132,6 +166,7 @@ wrb.initChartWRC = function () {
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
         },
+
         tooltip: {
             visible: true,
             template: "#= series.name # : #= dataItem.DirectionDesc #"+String.fromCharCode(176)+
@@ -145,6 +180,19 @@ wrb.initChartWRC = function () {
             },
         }
     });
+
+    setTimeout(function(){
+        var chart = $("#WRChartComparison").data("kendoChart");
+        var viewModel = kendo.observable({
+          series: chart.options.series,
+          markerColor: function(e) {
+            return e.get("visible") ? e.color : "grey";
+          }
+        });
+
+        kendo.bind($("#legendWindrose"), viewModel);
+    },300);
+
     wrb.InitTurbineListCompare();
     // $('#WRChartComparison').data('kendoChart').options.chartArea.width = $('#WRChartComparison').height() + ($('#WRChartComparison').height()/4);
     // $('#WRChartComparison').data('kendoChart').refresh();
@@ -193,11 +241,27 @@ wrb.WindRoseComparison = function(){
             var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
             $('#availabledatestart').html(metDate);
             $('#availabledateend').html(scadaDate);
+
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+            wrb.project(project);
+            wrb.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            wrb.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
         }else{
             var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
             var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
             $('#availabledatestart').html(metDate);
             $('#availabledateend').html(scadaDate);
+
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+            wrb.project(project);
+            wrb.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            wrb.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             setTimeout(function(){
                 $.each(listOfChartComparison, function(idx, elem){
                     $(elem).data("kendoChart").refresh();

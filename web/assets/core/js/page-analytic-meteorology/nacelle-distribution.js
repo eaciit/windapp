@@ -5,6 +5,34 @@ var nd = viewModel.NacelleDistribution;
 
 nd.turbineList = ko.observableArray([]);
 nd.turbine = ko.observableArray([]);
+nd.project = ko.observable();
+nd.dateStart = ko.observable();
+nd.dateEnd = ko.observable();
+
+
+nd.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"NDDistribution"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 
 nd.InitRightTurbineList= function () {
     if (nd.turbineList().length > 1) {
@@ -118,6 +146,16 @@ nd.ChartNacelleDistributon =  function () {
             dataBound: function(){
                 app.loading(false);
                 pm.isFirstNacelleDis(false);
+
+                var chart = $("#nacelleDistribution").data("kendoChart");
+                var viewModel = kendo.observable({
+                  series: chart.options.series,
+                  markerColor: function(e) {
+                    return e.get("visible") ? e.color : "grey";
+                  }
+                });
+
+                kendo.bind($("#legendNd"), viewModel);
             }
         });
 
@@ -186,10 +224,22 @@ nd.NacelleDis = function(){
         if(pm.isFirstNacelleDis() === true){
             app.loading(true);
             nd.ChartNacelleDistributon();
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+            nd.project(project);
+            nd.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            nd.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
         }else{
             app.loading(false);
             setTimeout(function () {
                 $('#nacelleDistribution').data('kendoChart').refresh();
+                var project = $('#projectList').data("kendoDropDownList").value();
+                var dateStart = $('#dateStart').data('kendoDatePicker').value();
+                var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+                nd.project(project);
+                nd.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+                nd.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
                 app.loading(false);
             }, 100);
         }
