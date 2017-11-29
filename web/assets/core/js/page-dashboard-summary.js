@@ -270,7 +270,7 @@ sum.loadData = function () {
                 }
                 lgd.start();
                 app.loading(false);
-            },1000);
+            },1500);
         });
 
     }
@@ -1168,7 +1168,7 @@ sum.initialize = function() {
         componentRestrictions: {country: "in"},
         // center: (projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
         // center: center,
-        center: new google.maps.LatLng(23.334166, 75.037611) ,
+        center: new google.maps.LatLng(20.7679, 76.037611) ,
         // zoom: (project == 'Fleet' ? 4 : 10),
         zoom: 5,
         styles: [
