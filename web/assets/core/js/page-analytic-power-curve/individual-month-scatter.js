@@ -6,6 +6,9 @@ var page = viewModel.AnalyticPowerCurve;
 page.dataPCEachTurbine = ko.observableArray([]);
 page.PrintPdf = ko.observable(false);
 page.dataAvail = ko.observable();
+page.project = ko.observable();
+page.dateStart = ko.observable();
+page.dateEnd = ko.observable();
 
 var listOfChart = [];
 var listOfButton = {};
@@ -29,8 +32,8 @@ page.ExportIndividualMonthPdf = function() {
     });
 }
 
-vm.currentMenu('Individual Month Scatter');
-vm.currentTitle('Individual Month Scatter');
+vm.currentMenu('Monthly Scatter');
+vm.currentTitle('Monthly Scatter');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
@@ -38,50 +41,40 @@ vm.breadcrumb([{
     title: 'Power Curve',
     href: '#'
 }, {
-    title: 'Individual Month Scatter',
+    title: 'Monthly Scatter',
     href: viewModel.appName + 'page/analyticpcmonthlyscatter'
 }]);
 
 
 page.getPDF = function(selector){
     var title = fa.project + " | "+ kendo.toString($('#dateStart').data('kendoDatePicker').value(), 'MMM-yyyy');
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
     app.loading(true);
     page.PrintPdf(true);
-    // $("#illusion-month").append($(".individual-month").html());
-    // $("#pdf-title").text(title);
-    // var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
-    // var project = $("#projectList").data("kendoDropDownList").value();
-    // kendo.drawing.drawDOM($(selector)).then(function(group){
-    //     group.options.set("pdf", {
-    //         paperSize: "a4",
-    //         margin: {
-    //             left   : "10mm",
-    //             top    : "10mm",
-    //             right  : "10mm",
-    //             bottom : "10mm"
-    //         },
-    //         multiPages: true,
-    //     });
-    //   kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
-    //     setTimeout(function(){
-    //         $("#illusion-month").empty();
-    //         page.PrintPdf(false);
-    //         app.loading(false);
-    //     },2000)
-    // });
-    kendo.drawing.drawDOM(selector, {
-      paperSize: "A3",
-      margin: {
-        left   : "10mm",
-        top    : "10mm",
-        right  : "10mm",
-        bottom : "10mm"
-      },
-      landscape: true,
-      scale: 0.5,
-
-    }).then(function(group){
-      kendo.drawing.pdf.saveAs(group, "test.pdf");
+    $("#illusion-month").append($(".individual-month").html());
+    $("#pdf-title").text(title);
+    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+    var project = $("#projectList").data("kendoDropDownList").value();
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "10mm",
+                top    : "10mm",
+                right  : "10mm",
+                bottom : "10mm"
+            },
+            multiPages: true,
+        });
+     kendo.drawing.pdf.saveAs(group, project+"PCMonthlyScatter"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            $("#illusion-month").empty();
+            page.PrintPdf(false);
+            app.loading(false);
+        },2000)
     });
 }
 

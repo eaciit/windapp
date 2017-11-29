@@ -400,15 +400,7 @@ var Data = {
                     }
                 },
                 dataBound : function(){
-                    var chart = $("#powerCurve").data("kendoChart");
-                    var viewModel = kendo.observable({
-                      series: chart.options.series,
-                      markerColor: function(e) {
-                        return e.get("visible") ? e.color : "grey";
-                      }
-                    });
-
-                    kendo.bind($("#legend"), viewModel);
+                    page.getLegendActive();
                 },
             });
             app.loading(false);
@@ -623,15 +615,7 @@ var Data = {
                     }
                 },                
                 dataBound : function(){
-                    var chart = $("#powerCurve").data("kendoChart");
-                    var viewModel = kendo.observable({
-                      series: chart.options.series,
-                      markerColor: function(e) {
-                        return e.get("visible") ? e.color : "grey";
-                      }
-                    });
-
-                    kendo.bind($("#legend"), viewModel);
+                    page.getLegendActive();
                 },
             });
 
@@ -856,6 +840,17 @@ var Data = {
 
 };
 
+page.getLegendActive = function(){
+    var chart = $("#powerCurve").data("kendoChart");
+    var viewModel = kendo.observable({
+      series: chart.options.series,
+      markerColor: function(e) {
+        return e.get("visible") ? e.color : "grey";
+      }
+    });
+
+    kendo.bind($("#legend"), viewModel);
+}
 page.showHideAllLegend = function(e) {
     var dtTurbines = _.sortBy(JSON.parse(localStorage.getItem("dataTurbine")), 'name');
     if (e.checked == true) {
@@ -879,6 +874,7 @@ page.showHideAllLegend = function(e) {
     }
     $('.chk-option').not(e).prop('checked', e.checked);
     $("#powerCurve").data("kendoChart").redraw();
+    page.getLegendActive();
 }
 
 page.showHideLegend = function(idx) {
@@ -948,6 +944,7 @@ page.showHideLegend = function(idx) {
     }
 
     chart._legendItemClick(idx);
+    page.getLegendActive();
 }
 
 page.ShowHideAfterInitChart = function() {
@@ -960,6 +957,7 @@ page.ShowHideAfterInitChart = function() {
         }
     }
     $("#powerCurve").data("kendoChart").redraw();
+    page.getLegendActive();
 }
 
 page.hideAll = function() {
