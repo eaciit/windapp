@@ -295,11 +295,11 @@ ul#date_timeview.k-list.k-reset{
 
 
 .allfarms > article {
- -moz-column-width: 250px;
- -webkit-column-width: 250px;
+ -moz-column-width: 300px!important;
+ -webkit-column-width: 300px!important;
   
 }
-    
+
 .allfarms > article > section {
  display: inline-block;
  margin:  0.25rem;
