@@ -538,7 +538,6 @@ km.setMaxValue = function(isRefresh){
         var tagTemp = $('#sTempTags').data('kendoDropDownList').value();
         var val = km.MaxValueTempList()[tagTemp];
 
-        console.log(tagTemp);
         var maxValue = (val !== null) ? kendo.toString(val , 'n0') : 100;
 
 

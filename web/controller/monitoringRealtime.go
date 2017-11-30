@@ -1352,7 +1352,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	// 	tk.M{"$sort": tk.M{"turbine": 1, "timestamp": -1}},
 	// }
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		// Command("pipe", pipes).Cursor(nil)
+		// Command("pipe", pipes).
+		//Cursor(nil)
 		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
 		Where(dbox.Eq("projectname", project)).
 		Order("turbine", "-timestamp").Cursor(nil)
@@ -2378,6 +2379,16 @@ func getReffTurbineState(project string, rconn dbox.IConnection) (tkm tk.M) {
 
 func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 	tkm = tk.M{}
+
+	switch project {
+	case "Lahori":
+		project = "Lahori"
+	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
+		project = "Tejuva"
+	case "Amba", "Sattigeri":
+		project = "Amba"
+	}
+
 	csr, err := rconn.NewQuery().
 		Select("alarmindex", "alarmname").
 		From("AlarmBrake").

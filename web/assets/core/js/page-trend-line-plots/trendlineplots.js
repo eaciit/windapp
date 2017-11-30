@@ -267,15 +267,7 @@ tlp.initChart = function() {
             }, 
             seriesHover : seriesHover,
             dataBound : function(){
-                var chart = $("#charttlp").data("kendoChart");
-                var viewModel = kendo.observable({
-                  series: chart.options.series,
-                  markerColor: function(e) {
-                    return e.get("visible") ? e.color : "grey";
-                  }
-                });
-
-                kendo.bind($("#legend"), viewModel);
+                tlp.getActiveLegend();
             },
             tooltip: {
                 visible: true,
@@ -301,6 +293,17 @@ tlp.initChart = function() {
     });
 }
 
+tlp.getActiveLegend = function(){
+    var chart = $("#charttlp").data("kendoChart");
+    var viewModel = kendo.observable({
+      series: chart.options.series,
+      markerColor: function(e) {
+        return e.get("visible") ? e.color : "grey";
+      }
+    });
+
+    kendo.bind($("#legend"), viewModel);
+}
 tlp.InitRightTurbineList = function(turbinename){
     tlp.turbineList([]);
     
@@ -358,6 +361,7 @@ tlp.showHideAllLegend = function(e){
     }
     $('.chk-option').not(e).prop('checked', e.checked);
     $("#charttlp").data("kendoChart").redraw();
+    tlp.getActiveLegend();
 }
 tlp.showHideLegend = function(idx){
 
@@ -382,6 +386,7 @@ tlp.showHideLegend = function(idx){
     // }
 
     chart._legendItemClick(idx);
+    tlp.getActiveLegend();
 }
 
 
