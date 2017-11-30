@@ -134,53 +134,55 @@ wrb.initChartWRC = function () {
     }
 
     $("#WRChartComparison").html("");
-    $("#WRChartComparison").kendoChart({
-        theme: "flat",
-        title: {
-            text: "Wind Rose Comparison",
-            font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            visible: false
-        },
-        chartArea : {
-            height : 350
-        },
-        legend: {
-            position: "bottom",
-            visible: false,
-            labels : {
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                // template: kendo.template($("#legendItemTemplate").html()),
-            }
-        },
-        series: dataSeries,
-        xAxis: {
-        	majorUnit: 30,
-        	startAngle: 90,
-        	reverse: true,
-        	labels: {
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+    setTimeout(function(){
+        $("#WRChartComparison").kendoChart({
+            theme: "flat",
+            title: {
+                text: "Wind Rose Comparison",
+                font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: false
             },
-        },
-        yAxis: {
-        	labels: {
-        		template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            chartArea : {
+                height : 350
             },
-        },
+            legend: {
+                position: "bottom",
+                visible: false,
+                labels : {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    // template: kendo.template($("#legendItemTemplate").html()),
+                }
+            },
+            series: dataSeries,
+            xAxis: {
+                majorUnit: 30,
+                startAngle: 90,
+                reverse: true,
+                labels: {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+            },
+            yAxis: {
+                labels: {
+                    template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+            },
 
-        tooltip: {
-            visible: true,
-            template: "#= series.name # : #= dataItem.DirectionDesc #"+String.fromCharCode(176)+
-            			" (#= kendo.toString(dataItem.Contribution, 'n2') #%) for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
-            },
-        }
-    });
+            tooltip: {
+                visible: true,
+                template: "#= series.name # : #= dataItem.DirectionDesc #"+String.fromCharCode(176)+
+                            " (#= kendo.toString(dataItem.Contribution, 'n2') #%) for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            }
+        });
+    }, 100);
 
     setTimeout(function(){
         var chart = $("#WRChartComparison").data("kendoChart");
