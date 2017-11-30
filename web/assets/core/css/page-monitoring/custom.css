@@ -282,12 +282,24 @@ ul#date_timeview.k-list.k-reset{
 
 
 
-.allfarms > article {
- -moz-column-width: 20em;
- -webkit-column-width: 20em;
-  
+
+
+@media(max-width: 1280){
+    .allfarms > article {
+     -moz-column-width: 20em;
+     -webkit-column-width: 20em;
+      
+    }
 }
 
+
+
+.allfarms > article {
+ -moz-column-width: 250px;
+ -webkit-column-width: 250px;
+  
+}
+    
 .allfarms > article > section {
  display: inline-block;
  margin:  0.25rem;
