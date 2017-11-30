@@ -133,6 +133,7 @@ wrb.initChartWRC = function () {
         majorUnit = 5;
     }
 
+    $("#WRChartComparison").html("");
     $("#WRChartComparison").kendoChart({
         theme: "flat",
         title: {
