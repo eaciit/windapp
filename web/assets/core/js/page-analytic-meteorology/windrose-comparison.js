@@ -133,6 +133,7 @@ wrb.initChartWRC = function () {
         majorUnit = 5;
     }
 
+    $("#WRChartComparison").html("");
     $("#WRChartComparison").kendoChart({
         theme: "flat",
         title: {
@@ -223,7 +224,18 @@ wrb.WindRoseComparison = function(){
                         return;
                     }
                     if (res.data != null) {
-                        var tempData = _.sortBy(res.data.Data, 'name');
+                        var metData;
+                        var isMetExist = false;
+                        var scadaData = res.data.Data;
+                        if(res.data.Data[0].name == "Met Tower") {
+                            isMetExist = true;
+                            metData = res.data.Data[0];
+                            scadaData = res.data.Data.slice(1);
+                        }
+                        var tempData = _.sortBy(scadaData, 'name');
+                        if(isMetExist) {
+                            tempData.unshift(metData);
+                        }
                         res.data.Data = tempData;
                         res.data.Data.forEach(function(val, idx){
                             res.data.Data[idx].idxseries = idx;
