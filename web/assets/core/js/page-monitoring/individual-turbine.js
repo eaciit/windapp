@@ -41,6 +41,15 @@ it.colorStatus = ko.observable();
 //     },500);
 // }
 
+it.checkVisible = function(){
+    if(it.project() == 'Amba' || it.project() == 'Sattigeri'){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
 it.populateProject = function (data) {
     if (data.length == 0) {
         data = [];;

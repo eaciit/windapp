@@ -827,36 +827,36 @@
     <circle class="cls-67" cx="123.01" cy="8.47" r="4"/>
     <polyline class="cls-68" points="117.01 175.12 95.3 8.49 119.03 8.49"/>
     <text class="cls-69" data-bind="text:it.pitch_angle()" transform="translate(130.95 14.57)"></text>
-    <text class="table-header" transform="translate(131.82 38.85)" data-bind="visible:it.project() != 'Amba'">Blade</text>
-     <text class="table-header" transform="translate(170.82 38.85)" data-bind="visible:it.project() != 'Amba'">Pitch Agl</text>
-    <text class="table-header" transform="translate(225.82 38.85)" data-bind="visible:it.project() != 'Amba'">Volt Batt</text>
-    <text class="table-header" transform="translate(280.82 38.85)" data-bind="visible:it.project() != 'Amba'">Curr Mtr</text>
+    <text class="table-header" transform="translate(131.82 38.85)" data-bind="visible:!(it.checkVisible())">Blade</text>
+     <text class="table-header" transform="translate(170.82 38.85)" data-bind="visible:!(it.checkVisible())">Pitch Agl</text>
+    <text class="table-header" transform="translate(225.82 38.85)" data-bind="visible:!(it.checkVisible())">Volt Batt</text>
+    <text class="table-header" transform="translate(280.82 38.85)" data-bind="visible:!(it.checkVisible())">Curr Mtr</text>
     <!-- <text class="table-header" transform="translate(330.82 38.85)">Mtr Temp.</text> -->
-    <text class="table-header" transform="translate(330.82 38.85)" data-bind="visible:it.project() != 'Amba'">Int Conv Temp.</text>
+    <text class="table-header" transform="translate(330.82 38.85)" data-bind="visible:!(it.checkVisible())">Int Conv Temp.</text>
 
 
-    <polyline class="table-line-header" points="131 50 403 50" data-bind="visible:it.project() != 'Amba'"/>
-    <text class="cls-70" transform="translate(143.82 70)" data-bind="visible:it.project() != 'Amba'">1</text>
-     <text data-bind="text:it.blade_angle1(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(172 70)"></text>
-    <text data-bind="text:it.volt_battery1(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(227 70)"></text>
-    <text data-bind="text:it.cur_pitch_motor1(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(283 70)"></text>
+    <polyline class="table-line-header" points="131 50 403 50" data-bind="visible:!(it.checkVisible())"/>
+    <text class="cls-70" transform="translate(143.82 70)" data-bind="visible:!(it.checkVisible())">1</text>
+     <text data-bind="text:it.blade_angle1(),visible:!(it.checkVisible())" class="cls-70" transform="translate(172 70)"></text>
+    <text data-bind="text:it.volt_battery1(),visible:!(it.checkVisible())" class="cls-70" transform="translate(227 70)"></text>
+    <text data-bind="text:it.cur_pitch_motor1(),visible:!(it.checkVisible())" class="cls-70" transform="translate(283 70)"></text>
     <!-- <text data-bind="text:it.pitch_motor_temp1()" class="cls-70" transform="translate(332 70)"></text> -->
-      <text data-bind="text:it.pitch_conv_tempblade1(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(332 70)"></text>
-    <polyline class="table-line-item" points="131 83 403 83" data-bind="visible:it.project() != 'Amba'"/>
-    <text class="cls-70" transform="translate(143.82 103)" data-bind="visible:it.project() != 'Amba'">2</text>
-     <text data-bind="text:it.blade_angle2(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(172 103)"></text>
-    <text data-bind="text:it.volt_battery2(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(227 103)"></text>
-    <text data-bind="text:it.cur_pitch_motor2(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(283 103)"></text>
+      <text data-bind="text:it.pitch_conv_tempblade1(),visible:!(it.checkVisible())" class="cls-70" transform="translate(332 70)"></text>
+    <polyline class="table-line-item" points="131 83 403 83" data-bind="visible:!(it.checkVisible())"/>
+    <text class="cls-70" transform="translate(143.82 103)" data-bind="visible:!(it.checkVisible())">2</text>
+     <text data-bind="text:it.blade_angle2(),visible:!(it.checkVisible())" class="cls-70" transform="translate(172 103)"></text>
+    <text data-bind="text:it.volt_battery2(),visible:!(it.checkVisible())" class="cls-70" transform="translate(227 103)"></text>
+    <text data-bind="text:it.cur_pitch_motor2(),visible:!(it.checkVisible())" class="cls-70" transform="translate(283 103)"></text>
     <!-- <text data-bind="text:it.pitch_motor_temp2()" class="cls-70" transform="translate(332 103)"></text> -->
-    <text data-bind="text:it.pitch_conv_tempblade2(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(332 103)"></text>
-    <polyline class="table-line-item" points="131 116 403 116" data-bind="visible:it.project() != 'Amba'"/>
-    <text class="cls-70" transform="translate(143.82 136)" data-bind="visible:it.project() != 'Amba'">3</text>
-     <text data-bind="text:it.blade_angle3(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(172 136)"></text>
-    <text data-bind="text:it.volt_battery3(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(227 136)"></text>
-    <text data-bind="text:it.cur_pitch_motor3(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(283 136)"></text>
+    <text data-bind="text:it.pitch_conv_tempblade2(),visible:!(it.checkVisible())" class="cls-70" transform="translate(332 103)"></text>
+    <polyline class="table-line-item" points="131 116 403 116" data-bind="visible:!(it.checkVisible())"/>
+    <text class="cls-70" transform="translate(143.82 136)" data-bind="visible:!(it.checkVisible())">3</text>
+     <text data-bind="text:it.blade_angle3(),visible:!(it.checkVisible())" class="cls-70" transform="translate(172 136)"></text>
+    <text data-bind="text:it.volt_battery3(),visible:!(it.checkVisible())" class="cls-70" transform="translate(227 136)"></text>
+    <text data-bind="text:it.cur_pitch_motor3(),visible:!(it.checkVisible())" class="cls-70" transform="translate(283 136)"></text>
     <!-- <text data-bind="text:it.pitch_motor_temp3()" class="cls-70" transform="translate(332 136)"></text> -->
-    <text data-bind="text:it.pitch_conv_tempblade3(),visible:it.project() != 'Amba'" class="cls-70" transform="translate(332 136)"></text>
-    <polyline class="table-line-item" points="131 149 403 149" data-bind="visible:it.project() != 'Amba'"/>
+    <text data-bind="text:it.pitch_conv_tempblade3(),visible:!(it.checkVisible())" class="cls-70" transform="translate(332 136)"></text>
+    <polyline class="table-line-item" points="131 149 403 149" data-bind="visible:!(it.checkVisible())"/>
 
   <!-- ROTOR PART -->
   <circle class="cls-67" cx="55.6" cy="135.6" r="4"/>
