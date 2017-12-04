@@ -371,7 +371,7 @@ label.summary-number {
     margin: 2px;
     cursor:pointer;  
     }
-.legend-windis .legend-windis-marker, .legend-nd .legend-nd-marker, .legend-turbulence .legend-turbulence-marker
+.legend-windis .legend-windis-marker, .legend-nd .legend-nd-marker, .legend-turbulence .legend-turbulence-marker, 
 {
     display:inline-block;
     width:8px;
@@ -385,7 +385,7 @@ label.summary-number {
 .k-pdf-export #windDistribution, .k-pdf-export #nacelleDistribution, .k-pdf-export #chartTI {
    margin-top: -30px !important;
 }
-.k-pdf-export #legendWindis, .k-pdf-export #legendTurbulence {
+.k-pdf-export #legendWindis, .k-pdf-export #legendTurbulence, .k-pdf-export #legendNd {
     display: block; 
 }
 .btn-pdf{
