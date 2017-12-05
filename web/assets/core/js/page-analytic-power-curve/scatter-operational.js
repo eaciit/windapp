@@ -55,10 +55,11 @@ page.getPDF = function(selector){
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
             paperSize: "auto",
+            scale: 0.5,
             margin: {
                 left   : "5mm",
                 top    : "5mm",
-                right  : "5mm",
+                right  : "10mm",
                 bottom : "5mm"
             },
         });
@@ -529,6 +530,10 @@ page.getPowerCurveScatter = function() {
                 pdf: {
                   fileName: "DetailPowerCurve.pdf",
                 },
+                chartArea: {
+                    background: "transparent",
+                    padding: 0,
+                },
                 title: {
                     // text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
                      text: "Scatter Power Curves",
@@ -537,10 +542,15 @@ page.getPowerCurveScatter = function() {
                 },
                 legend: {
                     position: "bottom",
-                    offsetX: 40,
+                    visible: true,
+                    align: "center",
+                    offsetX : 50,
                     labels: {
+                        margin: {
+                            right : 20
+                        },
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    }
+                    },
                 },
                 seriesDefaults: {
                     type: "scatterLine",

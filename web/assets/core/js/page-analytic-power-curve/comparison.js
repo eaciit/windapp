@@ -117,7 +117,7 @@ pc.getPDF = function(selector){
             margin: {
                 left   : "5mm",
                 top    : "5mm",
-                right  : "5mm",
+                right  : "10mm",
                 bottom : "5mm"
             },
         });
@@ -436,8 +436,12 @@ pc.initChart = function() {
                     legend: {
                         position: "bottom",
                         visible: true,
-                        offsetX: 50,
+                        align: "center",
+                        offsetX : 50,
                         labels: {
+                            margin: {
+                                right : 20
+                            },
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         },
                     },
@@ -645,8 +649,12 @@ pc.getScatter = function(paramLine, dtLine) {
             legend: {
                 position: "bottom",
                 visible: true,
-                offsetX: 50,
+                align: "center",
+                offsetX : 50,
                 labels: {
+                    margin: {
+                        right : 20
+                    },
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
             },
