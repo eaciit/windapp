@@ -3,7 +3,7 @@ sudo pkill wfdemo-git-oem
 git reset --hard
 
 rm wfdemo-git-oem
-sudo rm nohup.out
+sudo mv nohup.out /mnt/data/ostrorealtime/applog/log_oem_$(date +"%Y%m%d_%H%M%S")
 
 git pull
 
