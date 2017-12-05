@@ -17,21 +17,11 @@
 						<div class="date-info">
                             <div class="nav-power-curve">
 								<div class="btn-group" data-toggle="buttons" style="z-index: 10;">
-									<label class="btn btn-sm btn-primary active radio-filter">
-                                        <input type="radio" name="isAvg" id="sitespesific" autocomplete="off" value="Spesific" checked> Site Specific
-                                    </label>
-									<label class="btn btn-sm btn-primary radio-filter hidden">
-                                        <input type="radio" name="isAvg" id="avg" autocomplete="off" value="true"> Not Corrected
-                                    </label>
-									<label class="btn btn-sm btn-primary radio-filter hidden">
-                                        <input type="radio" name="isAvg" id="adj" autocomplete="off" value="false"> Adj Wind Speed
-                                    </label>
-									<label class="btn btn-sm btn-primary radio-filter hidden">
-                                        <input type="radio" name="isAvg" id="density" autocomplete="off" value="false" onclick="return false;"> Density Corrected
-                                    </label>
-									<label class="btn btn-sm btn-primary radio-filter">
-                                        <input type="radio" name="isAvg" id="standardpc" autocomplete="off" value="true"> Standard Power Curve
-                                    </label>
+									<label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="isAvg" id="sitespesific" autocomplete="off" value="Spesific" checked>Site Specific</label>
+									<label class="btn btn-sm btn-primary radio-filter hidden"><input type="radio" name="isAvg" id="avg" autocomplete="off" value="true">Not Corrected</label>
+									<label class="btn btn-sm btn-primary radio-filter hidden"><input type="radio" name="isAvg" id="adj" autocomplete="off" value="false">Adj Wind Speed</label>
+									<label class="btn btn-sm btn-primary radio-filter hidden"><input type="radio" name="isAvg" id="density" autocomplete="off" value="false" onclick="return false;">Density Corrected </label>
+									<label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="isAvg" id="standardpc" autocomplete="off" value="true">Standard Power Curve</label>
 								</div>
 							</div>
                         </div>
@@ -54,7 +44,7 @@
 										<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
 										<div class="col-md-12 text-center title-pdf">
 											<span data-bind="text:page.project()"></span> | <span data-bind="text:page.dateStart()"></span> until <span data-bind="text:page.dateEnd()"></span><br>
-											<span data-bind="text:page.viewName()"></span> Power Curve
+											<span data-bind="text: (page.viewName() == 'Standard Power Curve' ? 'Standard Power Curve' : page.viewName() +' Power Curve')"></span>
 										</div>
 									</div>
 									<div class="power-curve-chart">
