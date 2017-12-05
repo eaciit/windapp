@@ -3,6 +3,7 @@ package gocore
 import (
 	"errors"
 	"os"
+	"time"
 
 	"github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/dbox"
@@ -51,6 +52,8 @@ func InitialSetDatabase() error {
 	if err = acl.SetDb(conn_acl); err != nil {
 		return err
 	}
+
+	acl.SetExpiredDuration(time.Hour * 240)
 
 	conn_ostro, err := PrepareConnection(CONF_DB_OSTRO)
 	if err != nil {
