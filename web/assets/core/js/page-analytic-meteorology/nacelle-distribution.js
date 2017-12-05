@@ -146,16 +146,8 @@ nd.ChartNacelleDistributon =  function () {
             dataBound: function(){
                 app.loading(false);
                 pm.isFirstNacelleDis(false);
+                nd.getLegendList();
 
-                var chart = $("#nacelleDistribution").data("kendoChart");
-                var viewModel = kendo.observable({
-                  series: chart.options.series,
-                  markerColor: function(e) {
-                    return e.get("visible") ? e.color : "grey";
-                  }
-                });
-
-                kendo.bind($("#legendNd"), viewModel);
             }
         });
 
@@ -164,8 +156,19 @@ nd.ChartNacelleDistributon =  function () {
     });
 }
 
-nd.showHideAllNacelleLegend = function (e) {
+nd.getLegendList = function(){
+    var chart = $("#nacelleDistribution").data("kendoChart");
+    var viewModel = kendo.observable({
+      series: chart.options.series,
+      markerColor: function(e) {
+        return e.get("visible") ? e.color : "grey";
+      }
+    });
 
+    kendo.bind($("#legendNd"), viewModel);
+}
+nd.showHideAllNacelleLegend = function (e) {
+    nd.getLegendList();
     if (e.checked == true) {
         $('.fa-check-nacelledist').css("visibility", 'visible');
         $.each(nd.turbineList(), function (i, val) {
@@ -213,6 +216,7 @@ nd.showHideNacelleLegend = function (idx) {
         $("#nacelleDistribution").data("kendoChart").options.series[idx].visible = false
     }
     $("#nacelleDistribution").data("kendoChart").redraw();
+    nd.getLegendList();
 }
 
 nd.NacelleDis = function(){
