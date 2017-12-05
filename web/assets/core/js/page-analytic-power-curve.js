@@ -77,12 +77,15 @@ page.populateTurbine = function() {
     }
 }
 
-page.getPDF = function(selector){
+page.getPDF = function(selector, detail){
     app.loading(true);
     var project = $("#projectList").data("kendoDropDownList").value();
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
-
+    var title = project+"PowerCurve"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf";
+    if(detail == true){
+        title = project+"_"+page.detailTitle()+"DetailPowerCurve"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf";
+    }
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
             paperSize: "auto",
@@ -93,7 +96,7 @@ page.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group, project+"PowerCurve"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+      kendo.drawing.pdf.saveAs(group, title);
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -520,7 +523,9 @@ var Data = {
                 },
                 legend: {
                     visible: false,
-                    position: "bottom"
+                    align: "center",
+                    position: "bottom",
+
                 },
                 seriesDefaults: {
                     type: "scatterLine",
@@ -756,6 +761,17 @@ var Data = {
                             },
                         }
                     },
+                },
+                dataBound : function(){
+                    var chart = $("#powerCurveDetail").data("kendoChart");
+                    var viewModel = kendo.observable({
+                      series: chart.options.series,
+                      markerColor: function(e) {
+                        return e.get("visible") ? e.color : "grey";
+                      }
+                    });
+
+                    kendo.bind($("#legendPowerCurveDetail"), viewModel);
                 }
             });
             app.loading(false);

@@ -29,7 +29,7 @@
 							<div class="col-md-8" style="margin-top: -30px;">
 								<div class="filters">
 									<div class="tools btn-group pull-right btn-pdf">
-										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp')}">
+										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp', false)}">
 									    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 									  	</button>
 									</div>
@@ -182,12 +182,32 @@
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">Detail Power Curve <span class="fa fa-angle-double-right"></span> Turbine <strong><span data-bind="text:page.detailTitle"></span></strong>						(For period from <span data-bind="text:page.detailStartDate"></span> to <span data-bind="text:page.detailEndDate"></span>)
-						<a class="tools pull-right tooltipster tooltipstered detPc" title="Export to Pdf">
-							<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-						</a>
+						<div class="tools btn-group pull-right btn-pdf">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp-detail',true)}">
+						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+						  	</button>
+						</div>
 					</div>
 					<div class="panel-body">
-						<div id="powerCurveDetail" class="powerDet"></div>
+						<div class="div-temp-detail">
+							<div class="panel-heading template-pdf">
+								<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+								<div class="col-md-12 text-center title-pdf">
+									<span data-bind="text:page.project()"></span> | <span data-bind="text:page.detailTitle()"></span> | <span data-bind="text:page.dateStart()"></span> until <span data-bind="text:page.dateEnd()"></span><br>
+									<span> Detail Power Curve</span>
+								</div>
+							</div>
+							<div class="power-curve-chart">
+								<div id="powerCurveDetail" class="powerDet"></div>
+								<script id="legendItemTemplateDetail" type="text/kendo">
+							    	<span class="legend-item">
+								        <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+								        <span>#:name#</span>
+								     </span>
+							    </script>
+							    <div data-bind="source:series" data-template="legendItemTemplate" id="legendPowerCurveDetail" class="text-center"></div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
