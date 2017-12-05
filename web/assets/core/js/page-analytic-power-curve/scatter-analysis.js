@@ -221,9 +221,15 @@ page.createChart = function(dtSeries){
             },
             legend: {
                 position: "bottom",
+                visible: true,
+                align: "center",
+                offsetX : 50,
                 labels: {
+                    margin: {
+                        right : 20
+                    },
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                }
+                },
             },
             seriesDefaults: {
                 type: "scatterLine",
