@@ -62,6 +62,7 @@ func init() {
 	app.Register(controller.CreateAnalyticHistogramController())
 	app.Register(controller.CreateHelperController())
 	app.Register(controller.CreateUserPreferencesController())
+	app.Register(controller.CreateClusterWiseGenerationController())
 
 	app.Register(controller.CreateDataEntryPowerCurveController())
 	app.Register(controller.CreateDataEntryTurbineController())
