@@ -21,6 +21,7 @@ type TurbineMaster struct {
 	Active         bool
 	TopCorrelation []string
 	Engine         string
+	Cluster        float64
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
@@ -73,6 +74,7 @@ type TurbineOut struct {
 	Feeder   string
 	Engine   string
 	Coords   []float64
+	Cluster  float64
 }
 
 type ProjectOut struct {

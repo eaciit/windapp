@@ -860,6 +860,7 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 			Feeder:   val.Feeder,
 			Engine:   val.Engine,
 			Coords:   []float64{val.Latitude, val.Longitude},
+			Cluster:  val.Cluster,
 		})
 	}
 
