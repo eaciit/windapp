@@ -375,9 +375,26 @@ wr.WindRose = function(){
                         return;
                     }
                     if (res.data.WindRose != null) {
-                        var metData = res.data.WindRose;
                         maxValue = res.data.MaxValue;
-                        wr.dataWindroseEachTurbine(_.sortBy(metData, 'Name'));
+                        
+                        var metData;
+                        var isMetExist = false;
+                        var scadaData = res.data.WindRose;
+                        if(res.data.WindRose[0].Name == "MetTower") {
+                            isMetExist = true;
+                            metData = res.data.WindRose[0];
+                            scadaData = res.data.WindRose.slice(1);
+                        }
+                        var tempData = _.sortBy(scadaData, 'Name');
+                        if(isMetExist) {
+                            tempData.unshift(metData);
+                        }
+                        res.data.WindRose = tempData;
+                        res.data.WindRose.forEach(function(val, idx){
+                            res.data.WindRose[idx].idxseries = idx;
+                        });
+
+                        wr.dataWindroseEachTurbine(res.data.WindRose);
                         wr.initChart();
                     }
 
