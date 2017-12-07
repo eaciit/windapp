@@ -266,9 +266,6 @@ tlp.initChart = function() {
                 majorTickType: "none",
             }, 
             seriesHover : seriesHover,
-            dataBound : function(){
-                tlp.getActiveLegend();
-            },
             tooltip: {
                 visible: true,
                 format: "{0:n1}",
@@ -289,6 +286,7 @@ tlp.initChart = function() {
         app.loading(false);
         $("#charttlp").data("kendoChart").refresh();
         tlp.InitRightTurbineList(res.data.TurbineName);
+        tlp.getActiveLegend();
         
     });
 }
