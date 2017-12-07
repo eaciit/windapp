@@ -220,6 +220,14 @@ func (w *PageController) AnalyticPCScatterOperational(r *knot.WebContext) interf
 	return w.GetParams(r, true)
 }*/
 
+func (w *PageController) ClusterWiseGeneration(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-cluster-wise-generation.html"
+
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) AnalyticKeyMetrics(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
