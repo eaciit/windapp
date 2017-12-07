@@ -157,7 +157,15 @@ page.generateChart = function(dataSource){
         },
         tooltip: {
             visible: true,
-            template: "#= series.name #: #= value #"
+            background: "rgb(255,255,255, 0.9)",
+            shared: true,
+            sharedTemplate: kendo.template($("#template").html()),
+            color: "#58666e",
+            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            border: {
+                color: "#eee",
+                width: "2px",
+            },
         }
     });
 }

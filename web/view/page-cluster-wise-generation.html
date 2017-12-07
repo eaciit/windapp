@@ -4,6 +4,18 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-generation.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-key-metrics.css">
+
+<script id="template" type="text/x-kendo-template">
+  <div><b>#: category #</b></div>
+  # for (var i = 0; i < points.length; i++) {
+       if(points[i].series.axis == 'avail') { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value * 100, 'n0')# </span></div>
+  #     } else { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')#</span></div>
+  #     }
+    } #
+</script>
+
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
