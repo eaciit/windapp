@@ -1112,7 +1112,7 @@ $(document).ready(function() {
         }
         fa.LoadData();
         Data.LoadData();
-    }, 1000);
+    }, 1500);
 
     $('.keep-open').click(function (e) {
       e.stopPropagation()

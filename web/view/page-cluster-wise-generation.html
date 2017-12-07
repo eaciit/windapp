@@ -2,18 +2,8 @@
     app.currentDateData = '{{.CurrentDateData}}';
 	vm.menu({{.Menus}});
 </script>
-<script src="{{BaseUrl}}res/core/js/page-analytic-key-metrics.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-power-generation.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-key-metrics.css">
-<script id="template" type="text/x-kendo-template">
-  <div><b>#: category #</b></div>
-  # for (var i = 0; i < points.length; i++) {
-        if(i==1) { #
-            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# #: points[i].series.satuan#</span></div>
-  #     } else { #
-            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# #: points[i].series.satuan#</span></div>
-  #     }
-    } #
-</script>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -25,15 +15,13 @@
 					</div> -->
 					<div class="panel-body">
 						{{template "_dateinfo.html"}}
-						<div class="col-md-9">
-							<a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf" data-bind="click: km.ExportKeyMetrics" style="margin-top: -45px;margin-right: 20px;cursor:pointer">
+						<div class="col-md-12">
+							<!-- <a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf"  style="margin-top: -45px;margin-right: 20px;cursor:pointer">
 								<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-							</a>
-							<div id="km-chart"></div>
+							</a> -->
+							<div id="cw-chart"></div>
 							<div class="clearfix">&nbsp;</div>
 						</div>
-						<br><br>
-						{{template "_filter-right.html"}}
 					</div>
 				</div>
 			</div>
