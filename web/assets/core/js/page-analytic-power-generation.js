@@ -95,7 +95,7 @@ page.generateChart = function(dataSource){
                 visible: false,
             },
         },{
-            name: "Average of Ext.GA (%)",
+            name: "Average of GA (%)",
             axis : "avail",
             categoryField: "turbine",
             field : "averageGa",
@@ -109,7 +109,7 @@ page.generateChart = function(dataSource){
         valueAxes: [{
             name: "generation",
             title: {
-                text: "Generation (kWh)",
+                text: "Generation (MWh)",
                 visible: true,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
             },
@@ -140,6 +140,7 @@ page.generateChart = function(dataSource){
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             max: 1,
+            min: 0.8,
         }],
         categoryAxis: {
             majorGridLines: {
