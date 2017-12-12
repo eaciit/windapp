@@ -52,7 +52,17 @@ ko.bindingHandlers.singleOrDoubleClick = {
     }
 };
 
+bpc.getShorterName = function(str){
 
+    var strSplit =  str.split('(', 2);
+    if(strSplit[0].length > 10) {
+        str = str.substring(0,7) + ".. ("+strSplit[1] ;
+    }else{
+        str = str;
+    }
+
+    return str;
+}
 
 // get the weather forecast
 bpc.getWeather = function() {
