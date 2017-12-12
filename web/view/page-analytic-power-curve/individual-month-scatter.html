@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
 <div>
 	<div class="row scatter-content">
-		{{template "_filter-analytic.html"}}
+		{{template "_filter-powercurve.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
@@ -49,6 +49,12 @@
 							</div>
 							<div class="individual-month" data-bind="foreach: page.dataPCEachTurbine">
 								<div class="col-md-4 col-xs-12 power-curve-item">
+									<div class="totalavail_info">
+										<span>Total DA : <strong data-bind="attr:{id: 'totalAv-' + Name}"></strong></span>
+									</div>
+									<div class="dataavail_info">
+										<span>Valid DA : <strong data-bind="attr:{id: 'dataAv-' + Name}"></strong></span>
+									</div>
 									<div data-bind="attr:{id: 'chart-' + Name}"></div>
 								</div>
 							</div>

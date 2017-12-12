@@ -50,7 +50,7 @@ sv.getChartView = function(gData){
             }
         },
         chartArea :{
-            height: 200, 
+            height: 250, 
             margin : 0,
             padding: 0,
             width: (screen.width * 0.89),
@@ -83,7 +83,7 @@ sv.getChartView = function(gData){
             field: "Id",
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                rotation : rotation,
+                rotation : "auto",
             },
             justified: true,
             majorGridLines: {
@@ -122,7 +122,7 @@ sv.getChartView = function(gData){
             }
         },
         chartArea :{
-            height: 200, 
+            height: 250, 
             margin : 0,
             padding: 0,
             background: "transparent",
@@ -163,7 +163,7 @@ sv.getChartView = function(gData){
             field: "Id",
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                rotation : rotation,
+                rotation : "auto",
             },
             justified: true,
             majorGridLines: {
@@ -202,7 +202,7 @@ sv.getChartView = function(gData){
             }
         },
         chartArea :{
-            height: 200, 
+            height: 250, 
             margin : 0,
             padding: 0,
             background: "transparent",
@@ -244,7 +244,7 @@ sv.getChartView = function(gData){
             field: "Id",
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                rotation : rotation,
+                rotation : "auto",
             },
             justified: true,
             majorGridLines: {

@@ -709,6 +709,73 @@ func (c *AnalyticMeteorologyController) Table1224(k *knot.WebContext) interface{
 	return helper.CreateResult(true, result, "success")
 }
 
+func (c *AnalyticMeteorologyController) Graph1224(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	type PayloadGraph struct {
+		Project string
+		Turbine []interface{}
+		Data    string
+	}
+
+	p := new(PayloadGraph)
+	e := k.GetPayload(&p)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	now := time.Now()
+	last := time.Now().AddDate(0, -12, 0)
+
+	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
+	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+
+	var (
+		data []tk.M
+		err  error
+	)
+
+	match := []tk.M{
+		tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}},
+		tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}},
+	}
+
+	if p.Project != "" {
+		match = append(match, tk.M{"projectname": p.Project})
+	}
+
+	dtype := strings.ToLower(p.Data)
+
+	if dtype == "turbine" || dtype == "" {
+		match = append(match, tk.M{"available": 1})
+		if len(p.Turbine) > 0 {
+			match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+		}
+		//
+		group := tk.M{
+			"windspeed": tk.M{"$avg": "$avgwindspeed"},
+			"temp":      tk.M{"$avg": "$nacelletemperature"},
+			"power":     tk.M{"$sum": "$power"},
+		}
+
+		data, err = processGraphData(group, tk.M{"$and": match}, new(ScadaData).TableName(), "turbine")
+
+	} else {
+		group := tk.M{
+			"windspeed": tk.M{"$avg": "$vhubws90mavg"},
+			"temp":      tk.M{"$avg": "$thubhhubtemp855mavg"},
+		}
+
+		data, err = processGraphData(group, tk.M{"$and": match}, new(MetTower).TableName(), "met")
+	}
+
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interface{} {
 
 	k.Config.OutputType = knot.OutputJson
@@ -912,6 +979,80 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 	for idx := range totalData {
 		if dataType == "turbine" {
 			totalData[idx].Set("power", totalData[idx].GetFloat64("power")/1000)
+		}
+	}
+
+	return
+}
+
+func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.M, e error) {
+	pipes := []tk.M{}
+
+	groupID := tk.M{}                           /*inside _id group*/
+	groupID.Set("monthid", "$dateinfo.monthid") /*for sorting purpose*/
+	groupID.Set("monthdesc", "$dateinfo.monthdesc")
+	groupID.Set("hours", tk.M{"$dateToString": tk.M{"format": "%H:00", "date": "$timestamp"}}) /*to format HH:MM*/
+	group.Set("_id", groupID)
+
+	pipes = append(pipes, tk.M{"$match": match})
+	pipes = append(pipes, tk.M{"$group": group})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1}})
+
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+
+	listmonth, listhour, listall := tk.M{}, tk.M{}, tk.M{}
+	for {
+		list := tk.M{}
+		err := csr.Fetch(&list, 1, false)
+		if err != nil {
+			break
+		}
+
+		_dt := tk.M{}
+
+		id := list.Get("_id").(tk.M)
+		sMonthDesc := strings.Split(id.GetString("monthdesc"), " ")
+		if len(sMonthDesc) > 1 {
+			_dt.Set("time", strings.ToUpper(sMonthDesc[0][:3])+" "+sMonthDesc[1])
+			_dt.Set("timeint", tk.Sprintf("%d01", id.GetInt("monthid")))
+		}
+
+		_dt.Set("hours", id.GetString("hours"))
+		_dt.Set("ws", list.GetFloat64("windspeed"))
+		_dt.Set("temp", list.GetFloat64("temp"))
+		_dt.Set("power", 0)
+
+		listhour.Set(id.GetString("hours"), 1)
+		listmonth.Set(_dt.GetString("time"), _dt.GetString("timeint"))
+		listall.Set(tk.Sprintf("%s_%s", _dt.GetString("time"), id.GetString("hours")), 1)
+
+		if dataType == "turbine" {
+			_dt.Set("power", list.GetFloat64("power")/1000)
+		}
+
+		data = append(data, _dt)
+	}
+
+	for month, _ := range listmonth {
+		for hour, _ := range listhour {
+			if !listall.Has(tk.Sprintf("%s_%s", month, hour)) {
+				_dt := tk.M{}
+				_dt.Set("time", month)
+				_dt.Set("timeint", listmonth.GetString(month))
+				_dt.Set("hours", hour)
+				_dt.Set("ws", nil)
+				_dt.Set("temp", nil)
+				_dt.Set("power", nil)
+				data = append(data, _dt)
+			}
 		}
 	}
 

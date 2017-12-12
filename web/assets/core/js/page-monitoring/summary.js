@@ -52,6 +52,6 @@ summary.abortAll = function(requests) {
 }
 
 $(function() {
-	summary.SelectMode('overall');
+	summary.SelectMode('allfarm');
 });
 

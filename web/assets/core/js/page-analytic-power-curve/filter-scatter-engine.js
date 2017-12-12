@@ -5,7 +5,10 @@ var fa = viewModel.FilterScatter;
 
 fa.turbineList = ko.observableArray([]);
 fa.projectList = ko.observableArray([]);
+fa.engineList = ko.observableArray([]);
 
+
+fa.showEngine = ko.observable(false);
 fa.periodList = ko.observableArray([
     { "value": "last24hours", "text": "Last 24 hours" },
     { "value": "last7days", "text": "Last 7 days" },
@@ -19,6 +22,7 @@ fa.dateEnd = ko.observable();
 fa.turbine = ko.observable();
 fa.project = ko.observable();
 fa.period = ko.observable();
+fa.engine = ko.observable("");
 fa.infoPeriodRange = ko.observable();
 fa.infoPeriodIcon = ko.observable(false);
 fa.rawproject = ko.observableArray([]);
@@ -26,24 +30,39 @@ fa.rawturbine = ko.observableArray([]);
 
 var lastPeriod = "";
 
-fa.populateTurbine = function (selected) {
+fa.populateTurbine = function (selected, engine) {
     if (fa.rawturbine().length == 0) {
-        fa.turbineList([{ value: "", text: "" }]);
+        fa.turbineList([{ value: "", label: "" }]);
     } else {
-        var datavalue = [];
+        var datavalue = [];  
 
         $.each(fa.rawturbine(), function (key, val) {
-            if (selected == "") {
-                var data = {};
-                data.value = val.Value;
-                data.label = val.Turbine;
-                datavalue.push(data);
-            }else if (selected == val.Project){
-                var data = {};
-                data.value = val.Value;
-                data.label = val.Turbine;
-                datavalue.push(data);
+            if(engine !== undefined){
+                if (selected == "" && val.Engine == engine) {
+                    var data = {};
+                    data.value = val.Value;
+                    data.label = val.Turbine;
+                    datavalue.push(data);
+                }else if (selected == val.Project && val.Engine == engine){
+                    var data = {};
+                    data.value = val.Value;
+                    data.label = val.Turbine;
+                    datavalue.push(data);
+                }
+            }else{
+                if (selected == "") {
+                    var data = {};
+                    data.value = val.Value;
+                    data.label = val.Turbine;
+                    datavalue.push(data);
+                }else if (selected == val.Project){
+                    var data = {};
+                    data.value = val.Value;
+                    data.label = val.Turbine;
+                    datavalue.push(data);
+                }
             }
+
         });
 
         var data = datavalue.sort(function(a, b){
@@ -51,14 +70,53 @@ fa.populateTurbine = function (selected) {
             if(a1== b1) return 0;
             return a1> b1? 1: -1;
         });
-        
+
         fa.turbineList(data);
+        setTimeout(function () {
+            $('#turbineList').data('kendoDropDownList').select(0);
+        }, 100);
     }
+};
+fa.populateEngine = function(selected){
+    var list = [];
+    $.each(fa.rawproject(), function(i, val){
+        if(val.ProjectId == selected){
+          if(val.Engine.length > 0){
+            $.each(val.Engine, function(id, engine){
+                var data = {text : engine, value : engine};
+                list.push(data);
+            })
+          }
+        }
+    });
+
+    fa.engineList(list);
 
     setTimeout(function () {
-        $('#turbineList').data('kendoDropDownList').select(0);
-    }, 100);
-};
+        if(fa.engineList().length > 0){
+            fa.showEngine(true);
+            $('#engineList').kendoDropDownList({
+                data: fa.engineList(),
+                dataValueField: 'value',
+                dataTextField: 'text',
+                suggest: true,
+                change: function () { 
+                    fa.populateTurbine(selected,this._old);
+                }
+            });
+
+            $("#engineList").data("kendoDropDownList").select(0);               
+            fa.engine = $("#engineList").data("kendoDropDownList").value();
+            fa.populateTurbine(selected, fa.engine);
+            
+        }else{
+            fa.engine = "";
+            fa.showEngine(false);
+            fa.populateTurbine(selected);
+        }
+    }, 500);
+}
+
 
 fa.populateProject = function (selected) {
     if (fa.rawproject().length == 0) {
@@ -332,7 +390,7 @@ $(document).ready(function () {
         change: function () { 
             var project = $('#projectList').data("kendoDropDownList").value();
             di.getAvailDate();
-            fa.populateTurbine(project);
+            fa.populateEngine(project);
          }
     });
     fa.showHidePeriod();

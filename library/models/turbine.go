@@ -19,6 +19,7 @@ type TurbineModel struct {
 	Capacitymw     float64
 	TopCorrelation []string
 	Routine        string
+	Engine         string
 }
 
 func (m *TurbineModel) New() *TurbineModel {

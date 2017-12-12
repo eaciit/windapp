@@ -421,10 +421,18 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 	arrturbinestatus := GetTurbineStatus(project, "")
 
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"projectname": project}},
+		tk.M{"$sort": tk.M{"turbine": 1}},
+	}
+
 	rconn := DBRealtime()
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		Where(dbox.Eq("projectname", project)).
-		Order("turbine", "-timestamp").Cursor(nil)
+		// Where(dbox.Eq("projectname", project)).
+		// Order("turbine", "-timestamp").
+		Command("pipe", pipes).
+		Cursor(nil)
+
 	if err != nil {
 		tk.Println(err.Error())
 	}
@@ -482,7 +490,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 	dataRealtimeValue := 0.0
 	tags := ""
-	tstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}
+	tstamp, updatetstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
 	for {
@@ -508,6 +516,9 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
+				if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+					_itkm.Set("DataComing", 1)
+				}
 				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
 				alldata = append(alldata, _itkm)
 			}
@@ -516,6 +527,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 			_iTurbine = _tTurbine
 			turbineMp := turbineMap[_tTurbine]
 			iststamp = servertstamp
+			updatetstamp = tstamp
 
 			_itkm = tk.M{}.
 				Set("Turbine", _tTurbine).
@@ -550,6 +562,12 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 			}
 
 		}
+
+		// latest timestamp in turbine
+		if updatetstamp.IsZero() || updatetstamp.UTC().Before(tstamp.UTC()) {
+			updatetstamp = tstamp
+		}
+
 		if _tdata.GetString("tags") == "Total_Prod_Day_kWh" {
 			if tstamp.Truncate(time.Hour * 24).Equal(t0.Truncate(time.Hour * 24)) {
 				if project == "Lahori" {
@@ -603,6 +621,10 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}
 	csr.Close()
 	if _iTurbine != "" {
+		if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+			_itkm.Set("DataComing", 1)
+		}
+
 		colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
 		alldata = append(alldata, _itkm)
 	}
@@ -1347,15 +1369,17 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	arrturbinestatus := GetTurbineStatus(project, "")
 
 	rconn := DBRealtime()
-	// pipes = []tk.M{
-	// 	tk.M{"$match": tk.M{"projectname": project}},
-	// 	tk.M{"$sort": tk.M{"turbine": 1, "timestamp": -1}},
-	// }
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"projectname": project}},
+		tk.M{"$sort": tk.M{"turbine": 1}},
+	}
+
 	csr, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).
-		// Command("pipe", pipes).Cursor(nil)
+		Command("pipe", pipes).
+		Cursor(nil)
 		// Where(dbox.And(dbox.Gte("timestamp", timecond), dbox.Eq("projectname", project))).
-		Where(dbox.Eq("projectname", project)).
-		Order("turbine", "-timestamp").Cursor(nil)
+		// Where(dbox.Eq("projectname", project)).
+		// Order("turbine", "-timestamp").Cursor(nil)
 	if err != nil {
 		tk.Println(err.Error())
 	}
@@ -1365,8 +1389,18 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	reapetedAlarm := tk.M{}
 
 	if pageType == "monitoring" {
+
+		rpipes := []tk.M{
+			tk.M{"$match": tk.M{
+				"$and": []tk.M{
+					tk.M{"project": project},
+					tk.M{"enable": true},
+				}}},
+		}
+
 		csrTemp, err := DBRealtime().NewQuery().From("ref_monitoringnotification").
-			Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
+			// Where(dbox.And(dbox.Eq("project", project), dbox.Eq("enable", true))).
+			Command("pipe", rpipes).
 			Cursor(nil)
 		if err != nil {
 			tk.Println(err.Error())
@@ -1446,7 +1480,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 	dataRealtimeValue := 0.0
 	tags := ""
-	tstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}
+	tstamp, updatetstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
 	ictempout, istempout := float64(0), float64(0)
@@ -1479,6 +1513,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
+
+				if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+					_itkm.Set("DataComing", 1)
+				}
+
 				if pageType == "monitoring" {
 					_itkm.Set("isbordered", false)
 					if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
@@ -1505,6 +1544,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			_iTurbine = _tTurbine
 			turbineMp := turbineMap[_tTurbine]
 			iststamp = servertstamp
+			updatetstamp = tstamp
 
 			if pageType == "monitoring" {
 				_itkm = tk.M{}.
@@ -1568,6 +1608,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 			}
 		}
 
+		// latest timestamp in turbine
+		if updatetstamp.IsZero() || updatetstamp.UTC().Before(tstamp.UTC()) {
+			updatetstamp = tstamp
+		}
+
 		// _iContinue = true
 
 		afield, isexist := arrfield[tags]
@@ -1628,6 +1673,11 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csr.Close()
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
+
+			if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+				_itkm.Set("DataComing", 1)
+			}
+
 			_itkm.Set("isbordered", false)
 			if _itkm.GetInt("DataComing") == 0 && !_itkm.Get("isserverlate", true).(bool) {
 				_itkm.Set("isbordered", true)
@@ -2378,6 +2428,16 @@ func getReffTurbineState(project string, rconn dbox.IConnection) (tkm tk.M) {
 
 func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 	tkm = tk.M{}
+
+	switch project {
+	case "Lahori":
+		project = "Lahori"
+	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
+		project = "Tejuva"
+	case "Amba", "Sattigeri":
+		project = "Amba"
+	}
+
 	csr, err := rconn.NewQuery().
 		Select("alarmindex", "alarmname").
 		From("AlarmBrake").

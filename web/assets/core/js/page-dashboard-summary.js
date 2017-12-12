@@ -29,6 +29,7 @@ sum.noOfProjectsExFleet = ko.observable();
 sum.noOfTurbines = ko.observable();
 sum.totalMaxCapacity = ko.observable();
 sum.currentDown = ko.observable();
+sum.totalNAFleet = ko.observable();
 sum.twoDaysDown = ko.observable();
 sum.dataSource = ko.observable();
 sum.dataSourceScada = ko.observable();
@@ -89,6 +90,7 @@ sum.scadaLastUpdate = function(){
     return reqData
 }
 sum.loadData = function () {
+    lgd.stop();
     if (lgd.isSummary()) {
         var project = $("#projectId").data("kendoDropDownList").value();
         var param = { ProjectName: project, Date: maxdate};
@@ -157,26 +159,28 @@ sum.loadData = function () {
                 for(var key in availDatas){
                     var availData = availDatas[key];
                     var seriesObj = {};
-                    for(var i=0;i<availData.length;i++){
-                        if(projectCount < 1) {
-                            var availObject = {
-                                "DateInfo": availData[i].DateInfo
+                    if(availData !== null){
+                        for(var i=0;i<availData.length;i++){
+                            if(projectCount < 1) {
+                                var availObject = {
+                                    "DateInfo": availData[i].DateInfo
+                                }
+                                availObject[key] = availData[i].TrueAvail;
+                                availabilityData.push(availObject);
+                            } else {
+                                var availObject = availabilityData[i]
+                                availObject[key] = availData[i].TrueAvail;
+                                availabilityData[i] = availObject;
                             }
-                            availObject[key] = availData[i].TrueAvail;
-                            availabilityData.push(availObject);
-                        } else {
-                            var availObject = availabilityData[i]
-                            availObject[key] = availData[i].TrueAvail;
-                            availabilityData[i] = availObject;
                         }
+                        seriesObj["name"] = key;
+                        seriesObj["field"] = key;
+                        seriesObj["color"] = colorFieldProject[projectCount];
+                        seriesObj["missingValues"]= "gap";
+                        availabilitySeries.push(seriesObj);
+                        projectCount++;
                     }
-                    seriesObj["name"] = key;
-                    seriesObj["field"] = key;
-                    seriesObj["color"] = colorFieldProject[projectCount];
-                    seriesObj["missingValues"]= "gap";
-                    availabilitySeries.push(seriesObj);
-                    projectCount++;
-                }
+                 }
 
                 sum.availData(availabilityData);
                 sum.availSeries(availabilitySeries);
@@ -251,8 +255,8 @@ sum.loadData = function () {
             setTimeout(function(){
                 if(project == "Fleet"){
                     map.setCenter({
-                        lat : 23.334166,
-                        lng : 75.037611
+                        lat : 20.7679,
+                        lng : 76.037611
                     }); 
                     map.setZoom(5);
                     app.loading(false);
@@ -266,7 +270,7 @@ sum.loadData = function () {
                 }
                 lgd.start();
                 app.loading(false);
-            },1000);
+            },1500);
         });
 
     }
@@ -1122,7 +1126,6 @@ sum.ProdCurLast = function (id,dataSource) {
 
 sum.setMarkers = function(map, turbineInfos,project) {
     turbineInfos.forEach(function (obj, idx) {
-        
         var imgUrl ="../res/img/turb-"+obj.status+".png";
 
 
@@ -1165,7 +1168,7 @@ sum.initialize = function() {
         componentRestrictions: {country: "in"},
         // center: (projectname == 'Fleet' ? new google.maps.LatLng(22.460533, 79.650879) : center),
         // center: center,
-        center: new google.maps.LatLng(23.334166, 75.037611) ,
+        center: new google.maps.LatLng(20.7679, 76.037611) ,
         // zoom: (project == 'Fleet' ? 4 : 10),
         zoom: 5,
         styles: [
@@ -1231,6 +1234,7 @@ sum.indiaMap = function (project) {
         sum.removeMarkers();
         var jsonObj = res.data.resultMap;
 
+        sum.totalNAFleet(res.data.totalNAFleet);
         if(project === "Fleet") {
             sum.currentDown(res.data.totalDownFleet);
             avail.DTTurbines(res.data.turbineDownList);

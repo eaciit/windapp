@@ -351,7 +351,7 @@ bp.PlotData = function(data) {
             
             if((val.ActivePower / val.Capacity) > 0){
                 comparison = (val.ActivePower / val.Capacity) * 65;
-                var fixCom = (comparison > 100 ? 64 : comparison);
+                var fixCom = (comparison > 64 ? 64 : comparison);
                 $('#statusturbine_'+ turbine).attr('class', colorStatus);
                 $('#statusturbine_'+ turbine).css('width', fixCom + 'px');
             }else{

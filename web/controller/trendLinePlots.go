@@ -68,13 +68,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	listOfYears := []int{}
 
 	colId := "$dateinfo.dateid"
-	/*============================== AVG TLP PART ============================*/
-	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	dataSeries = append(dataSeries, TLPavgData)
-	/*============================== END OF AVG TLP PART ============================*/
 
 	/*==================== CREATING CATEGORY PART ====================*/
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
@@ -139,6 +132,14 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		}
 	}
 	/*==================== END OF CREATING CATEGORY PART ====================*/
+
+	/*============================== AVG TLP PART ============================*/
+	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project, categoryChecker)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	dataSeries = append(dataSeries, TLPavgData)
+	/*============================== END OF AVG TLP PART ============================*/
 
 	/*================================= MET TOWER PART =================================*/
 	metData := tk.M{}
@@ -376,7 +377,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	for _, val := range AvgTlp {
 
-		if val < minValue {
+		if val < minValue && val > -99999.99999 {
 			minValue = val
 		}
 		if val > maxValue {
@@ -411,7 +412,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
  * @return {pcData}
 */
 
-func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, project string) (datas []float64, pcData tk.M, e error) {
+func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, project string, categoryChecker []string) (datas []float64, pcData tk.M, e error) {
 
 	var (
 		pipes []tk.M
@@ -444,10 +445,24 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
-	// var datas []float64
+	dateFound := false
+	for _, tanggal := range categoryChecker {
+		dateFound = false
+	existLoop:
+		for _, val := range list {
+			tgl := val.Get("_id", time.Time{}).(time.Time)
+			tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
+			if tglString == tanggal { /*jika tanggal di dalam aggregate result ada di dalam category date*/
+				dateFound = true
+				colresult := val.GetFloat64("colresult")
 
-	for _, val := range list {
-		datas = append(datas, val.GetFloat64("colresult"))
+				datas = append(datas, colresult)
+				break existLoop
+			}
+		}
+		if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
+			datas = append(datas, -99999.99999)
+		}
 	}
 
 	pcData = tk.M{

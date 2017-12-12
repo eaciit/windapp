@@ -6,24 +6,23 @@
     var turbineList = {{.TurbineList}};
 </script>
 <script src="{{BaseUrl}}res/core/js/page-monitoring/summary.js?ANTI_CACHE={{.AntiCache}}"></script>
-
 <div class="row">
 	<div class="col-md-12" style="padding-left: 10px;">
 		<ul class="nav nav-pills nav-replace-title" role="tablist">
 			<div class="inline-tab">&nbsp;</div>
-			<li role="presentation" class="tab-summary active">
-				<a role="tab" data-toggle="tab" href="#Overall" onclick="summary.SelectMode('overall')">Overall</a>
-			</li>
-			<li role="presentation" class="tab-production">
+			<li role="presentation" class="tab-production active">
 				<a role="tab" data-toggle="tab" href="#AllFarms" onclick="summary.SelectMode('allfarms')">All Farms</a>
+			</li>
+			<li role="presentation" class="tab-summary">
+				<a role="tab" data-toggle="tab" href="#Overall" onclick="summary.SelectMode('overall')">Overall</a>
 			</li>
 			<div class="clearfix"></div>
 			<div class="tab-content">
-			 	<div role="tabpanel" class="tab-pane active" id="Overall">
-					{{template "all-project.html"}}
-			 	</div>
-			 	<div role="tabpanel" class="tab-pane" id="AllFarms">
+				<div role="tabpanel" class="tab-pane active" id="AllFarms">
 			 		{{template "custom.html"}}
+			 	</div>
+			 	<div role="tabpanel" class="tab-pane" id="Overall">
+					{{template "all-project.html"}}
 			 	</div>
 			</div>
 		</ul>

@@ -148,6 +148,7 @@ func (w *PageController) AnalyticPerformanceIndex(r *knot.WebContext) interface{
 func (w *PageController) AnalyticPowerCurve(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = []string{"_filter-powercurve.html"}
 	r.Config.ViewName = "page-analytic-power-curve.html"
 
 	return w.GetParams(r, true)
@@ -189,7 +190,7 @@ func (w *PageController) AnalyticPCScatter(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-power-curve/scatter.html"
-	r.Config.IncludeFiles = []string{"page-analytic-power-curve/page-filter-scatter.html"}
+	r.Config.IncludeFiles = []string{"_filter-scatter.html"}
 
 	return w.GetParams(r, true)
 }
@@ -198,7 +199,7 @@ func (w *PageController) AnalyticPCScatterAnalysis(r *knot.WebContext) interface
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-analytic-power-curve/scatter-analysis.html"
-	r.Config.IncludeFiles = []string{"page-analytic-power-curve/page-filter-scatter.html"}
+	r.Config.IncludeFiles = []string{"_filter-scatter.html"}
 
 	return w.GetParams(r, true)
 }
@@ -218,6 +219,14 @@ func (w *PageController) AnalyticPCScatterOperational(r *knot.WebContext) interf
 	r.Config.ViewName = "page-analytic-dgr-scada.html"
 	return w.GetParams(r, true)
 }*/
+
+func (w *PageController) ClusterWiseGeneration(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-cluster-wise-generation.html"
+
+	return w.GetParams(r, true)
+}
 
 func (w *PageController) AnalyticKeyMetrics(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate

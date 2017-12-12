@@ -4,6 +4,33 @@ viewModel.WindDistribution = new Object();
 var wd = viewModel.WindDistribution;
 
 wd.turbineList = ko.observableArray([]);
+wd.project = ko.observable();
+wd.dateStart = ko.observable();
+wd.dateEnd = ko.observable();
+
+
+wd.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"WindDistribution"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 wd.InitRightTurbineList= function () {
     if (wd.turbineList().length > 1) {
@@ -100,7 +127,7 @@ wd.ChartWindDistributon =  function () {
             tooltip: {
                 visible: true,
                 // template: "Contribution of #= series.name # : #= kendo.toString(value, 'n4')# % at #= category #",
-                template: "#= kendo.toString(value, 'p2')#",
+                template: "#= category # : #= kendo.toString(value, 'p2')#",
                 // shared: true,
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
@@ -114,6 +141,15 @@ wd.ChartWindDistributon =  function () {
             dataBound: function(){
                 app.loading(false);
                 pm.isFirstWindDis(false);
+                var chart = $("#windDistribution").data("kendoChart");
+                var viewModel = kendo.observable({
+                  series: chart.options.series,
+                  markerColor: function(e) {
+                    return e.get("visible") ? e.color : "grey";
+                  }
+                });
+
+                kendo.bind($("#legendWindis"), viewModel);
             }
         });
 
@@ -182,10 +218,24 @@ wd.WindDis = function(){
         if(pm.isFirstWindDis() === true){
             app.loading(true);
             wd.ChartWindDistributon();
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+            wd.project(project);
+            wd.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            wd.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
         }else{
             app.loading(false);
             setTimeout(function () {
                 $('#windDistribution').data('kendoChart').refresh();
+                var project = $('#projectList').data("kendoDropDownList").value();
+                var dateStart = $('#dateStart').data('kendoDatePicker').value();
+                var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+                wd.project(project);
+                wd.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+                wd.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
                 app.loading(false);
             }, 100);
         }

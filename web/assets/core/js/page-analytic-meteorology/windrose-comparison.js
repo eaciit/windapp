@@ -6,6 +6,9 @@ var wrb = viewModel.WindRoseComparison;
 // WIND ROSE COMPARISON
 wrb.sectorDerajatComparison = ko.observable(0);
 wrb.dataWindroseComparison = ko.observableArray([]);
+wrb.project = ko.observable();
+wrb.dateStart = ko.observable();
+wrb.dateEnd = ko.observable();
 var listOfChartComparison = [];
 var listOfButtonComparison = {};
 /*wrb.showHideLegendComparison = function (index) {
@@ -23,6 +26,29 @@ var listOfButtonComparison = {};
         }
     });
 }*/
+
+wrb.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"WindRoseComparison"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 wrb.InitTurbineListCompare = function () {
     if (wrb.dataWindroseComparison().Data.length > 1) {
@@ -107,44 +133,69 @@ wrb.initChartWRC = function () {
         majorUnit = 5;
     }
 
-    $("#WRChartComparison").kendoChart({
-        theme: "flat",
-        title: {
-            text: "Wind Rose Comparison",
-            font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            visible: false
-        },
-        legend: {
-            visible: false
-        },
-        series: dataSeries,
-        xAxis: {
-        	majorUnit: 30,
-        	startAngle: 90,
-        	reverse: true,
-        	labels: {
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+    $("#WRChartComparison").html("");
+    setTimeout(function(){
+        $("#WRChartComparison").kendoChart({
+            theme: "flat",
+            title: {
+                text: "Wind Rose Comparison",
+                font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                visible: false
             },
-        },
-        yAxis: {
-        	labels: {
-        		template: kendo.template("#= kendo.toString(value, 'n0') #%"),
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            chartArea : {
+                height : 350
             },
-        },
-        tooltip: {
-            visible: true,
-            template: "#= series.name # : #= dataItem.DirectionDesc #"+String.fromCharCode(176)+
-            			" (#= kendo.toString(dataItem.Contribution, 'n2') #%) for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
-            background: "rgb(255,255,255, 0.9)",
-            color: "#58666e",
-            font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            border: {
-                color: "#eee",
-                width: "2px",
+            legend: {
+                position: "bottom",
+                visible: false,
+                labels : {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    // template: kendo.template($("#legendItemTemplate").html()),
+                }
             },
-        }
-    });
+            series: dataSeries,
+            xAxis: {
+                majorUnit: 30,
+                startAngle: 90,
+                reverse: true,
+                labels: {
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+            },
+            yAxis: {
+                labels: {
+                    template: kendo.template("#= kendo.toString(value, 'n0') #%"),
+                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+                },
+            },
+
+            tooltip: {
+                visible: true,
+                template: "#= series.name # : #= dataItem.DirectionDesc #"+String.fromCharCode(176)+
+                            " (#= kendo.toString(dataItem.Contribution, 'n2') #%) for #= kendo.toString(dataItem.Hours, 'n2') # Hours",
+                background: "rgb(255,255,255, 0.9)",
+                color: "#58666e",
+                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                border: {
+                    color: "#eee",
+                    width: "2px",
+                },
+            }
+        });
+    }, 100);
+
+    setTimeout(function(){
+        var chart = $("#WRChartComparison").data("kendoChart");
+        var viewModel = kendo.observable({
+          series: chart.options.series,
+          markerColor: function(e) {
+            return e.get("visible") ? e.color : "grey";
+          }
+        });
+
+        kendo.bind($("#legendWindrose"), viewModel);
+    },300);
+
     wrb.InitTurbineListCompare();
     // $('#WRChartComparison').data('kendoChart').options.chartArea.width = $('#WRChartComparison').height() + ($('#WRChartComparison').height()/4);
     // $('#WRChartComparison').data('kendoChart').refresh();
@@ -175,6 +226,22 @@ wrb.WindRoseComparison = function(){
                         return;
                     }
                     if (res.data != null) {
+                        var metData;
+                        var isMetExist = false;
+                        var scadaData = res.data.Data;
+                        if(res.data.Data[0].name == "Met Tower") {
+                            isMetExist = true;
+                            metData = res.data.Data[0];
+                            scadaData = res.data.Data.slice(1);
+                        }
+                        var tempData = _.sortBy(scadaData, 'name');
+                        if(isMetExist) {
+                            tempData.unshift(metData);
+                        }
+                        res.data.Data = tempData;
+                        res.data.Data.forEach(function(val, idx){
+                            res.data.Data[idx].idxseries = idx;
+                        });
                         wrb.dataWindroseComparison(res.data);
                         wrb.initChartWRC();
                     }
@@ -188,11 +255,27 @@ wrb.WindRoseComparison = function(){
             var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
             $('#availabledatestart').html(metDate);
             $('#availabledateend').html(scadaDate);
+
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+            wrb.project(project);
+            wrb.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            wrb.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
         }else{
             var metDate = 'Data Available (<strong>MET</strong>) from: <strong>' + availDateList.availabledatestartmet + '</strong> until: <strong>' + availDateList.availabledateendmet + '</strong>'
             var scadaDate = ' | (<strong>SCADA</strong>) from: <strong>' + availDateList.availabledatestartscada + '</strong> until: <strong>' + availDateList.availabledateendscada + '</strong>'
             $('#availabledatestart').html(metDate);
             $('#availabledateend').html(scadaDate);
+
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+            wrb.project(project);
+            wrb.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            wrb.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             setTimeout(function(){
                 $.each(listOfChartComparison, function(idx, elem){
                     $(elem).data("kendoChart").refresh();

@@ -2984,7 +2984,7 @@ func setMapData() (result tk.M) {
 	lastProject := ""
 	turbineStatus := map[string]string{}
 	turbineDownList, turbineDownListByProject := []tk.M{}, []tk.M{}
-	turbineName := map[string]string{}
+	currturbine, turbineName := tk.M{}, map[string]string{}
 	currentDate := getTimeNow()
 	downPerProject := map[string]int{}
 
@@ -2994,10 +2994,10 @@ func setMapData() (result tk.M) {
 		servtstamp = dt.Get("lasttimeserver", time.Time{}).(time.Time).UTC()
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
+		currturbine.Set(_tTurbine, 1)
 		if lastProject != _tProject {
 			if lastProject != "" {
-
-				if len(turbineName) == dataNa {
+				if len(currturbine) == dataNa {
 					dataDowns = 0
 					turbineDownListByProject = []tk.M{}
 					downPerProject[lastProject] = 0
@@ -3010,12 +3010,15 @@ func setMapData() (result tk.M) {
 				}
 
 				result.Set(lastProject, tk.M{
+					"allna":       len(currturbine) == dataNa,
 					"grey":        dataNa,
 					"orange":      waitingForWsProject,
 					"red":         dataDowns,
 					"turbineList": turbineStatus,
 				})
 			}
+
+			currturbine = tk.M{}
 			downPerProject[_tProject] = 0
 			turbineName, _ = helper.GetTurbineNameList(_tProject)
 			lastProject = _tProject
@@ -3062,8 +3065,7 @@ func setMapData() (result tk.M) {
 	}
 
 	if lastProject != "" {
-
-		if len(turbineName) == dataNa {
+		if len(currturbine) == dataNa {
 			dataDowns = 0
 			turbineDownListByProject = []tk.M{}
 			downPerProject[lastProject] = 0
@@ -3076,12 +3078,14 @@ func setMapData() (result tk.M) {
 		}
 
 		result.Set(lastProject, tk.M{
+			"allna":       len(currturbine) == dataNa,
 			"grey":        dataNa,
 			"orange":      waitingForWsProject,
 			"red":         dataDowns,
 			"turbineList": turbineStatus,
 		})
 	}
+
 	result.Set("turbineDownList", turbineDownList)
 	result.Set("downAll", len(turbineDownList))
 	result.Set("downPerProject", downPerProject)
@@ -3115,7 +3119,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 	resultMap := []tk.M{}
 	projectTurbineStatus := setMapData()
 	projectVal := tk.M{}
-	turbineCount := 0
+	turbineCount, turbinena := 0, 0
 	turbineStatus := map[string]string{}
 
 	for _, project := range projects {
@@ -3138,7 +3142,7 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 			}
 			resultMap = res
 		} else {
-			if projectVal.GetInt("grey") == turbineCount {
+			if projectVal.Get("allna", false).(bool) {
 				stsProj = "grey"
 			} else if projectVal.GetInt("red") == turbineCount {
 				stsProj = "red"
@@ -3154,12 +3158,17 @@ func (m *DashboardController) GetMapData(k *knot.WebContext) interface{} {
 				"status": stsProj,
 			})
 		}
+
+		if projectVal.GetInt("grey") != turbineCount {
+			turbinena += projectVal.GetInt("grey")
+		}
 	}
 
 	results := tk.M{}
 	results.Set("resultMap", resultMap)
 	results.Set("turbineDownList", projectTurbineStatus.Get("turbineDownList"))
 	results.Set("totalDownFleet", projectTurbineStatus.GetInt("downAll"))
+	results.Set("totalNAFleet", turbinena)
 	results.Set("downPerProject", projectTurbineStatus.Get("downPerProject"))
 
 	// probably its temporary solution to handle fatal error: concurrent map writes

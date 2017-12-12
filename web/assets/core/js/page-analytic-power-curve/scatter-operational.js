@@ -39,6 +39,7 @@ page.dateEnd = ko.observable();
 page.turbine = ko.observableArray([]);
 page.project = ko.observable();
 page.sScater = ko.observable(false);
+page.project = ko.observable();
 
 
 page.rawturbine = ko.observableArray([]);
@@ -46,6 +47,28 @@ page.rawproject = ko.observableArray([]);
 
 var lastPeriod = "";
 var turbineval = [];
+
+page.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList1").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            scale: 0.5,
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "10mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"OPPowerCurve.pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
 
 page.getAvailDate = function(){
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
@@ -89,13 +112,6 @@ page.populateTurbine = function (selected) {
     } else {
         var datavalue = [];
         var dataturbine = [];
-        // var allturbine = {}
-        // $.each(page.rawturbine(), function (key, val) {
-        //     turbineval.push(val);
-        // });
-        // allturbine.value = "All Turbine";
-        // allturbine.text = "All Turbines";
-        // datavalue.push(allturbine);
 
         if (selected==""){
             selected = page.rawproject()[0].Value;
@@ -514,6 +530,10 @@ page.getPowerCurveScatter = function() {
                 pdf: {
                   fileName: "DetailPowerCurve.pdf",
                 },
+                chartArea: {
+                    background: "transparent",
+                    padding: 0,
+                },
                 title: {
                     // text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
                      text: "Scatter Power Curves",
@@ -522,9 +542,15 @@ page.getPowerCurveScatter = function() {
                 },
                 legend: {
                     position: "bottom",
+                    visible: true,
+                    align: "center",
+                    offsetX : 50,
                     labels: {
+                        margin: {
+                            right : 20
+                        },
                         font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    }
+                    },
                 },
                 seriesDefaults: {
                     type: "scatterLine",
@@ -542,7 +568,19 @@ page.getPowerCurveScatter = function() {
                     }
                 }],
                 xAxis: xAxis,
-                yAxes: yAxis
+                yAxes: yAxis,
+                pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
+                        lock: "y"
+                    },
+                    selection: {
+                        lock: "y",
+                        key: "none",
+                    }
+                }
             });
             app.loading(false);
         });
@@ -552,6 +590,12 @@ page.getPowerCurveScatter = function() {
 page.setProjectTurbine = function(projects, turbines, selected){
     page.rawproject(projects);
     page.rawturbine(turbines);
+    var sortedTurbine = page.rawturbine().sort(function(a, b){
+        var a1= a.Turbine.toLowerCase(), b1= b.Turbine.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
+    page.rawturbine(sortedTurbine);
     page.populateProject(selected);
 };
 
@@ -559,6 +603,9 @@ page.setProjectTurbine = function(projects, turbines, selected){
 $(document).ready(function() {
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            page.project(project);
+
             page.LoadData();
         }, 300);
     });
@@ -571,11 +618,13 @@ $(document).ready(function() {
          }
     });
 
-    $.when(page.getAvailDate()).done(function() {
+    $.when(page.InitDefaultValue()).done(function() {
         setTimeout(function(){
-            page.InitDefaultValue();
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            page.project(project);
+
             page.LoadData();
-        },500);
+        },200);
        
     });
 });

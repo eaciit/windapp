@@ -4,7 +4,6 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-trend-line-plots/trendlineplots.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/trend-line-plots/trendlineplots.css">
-
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -23,9 +22,30 @@
                         
 						<div class="clearfix">&nbsp;</div>
 
-						<div  class="col-md-12 ">
-							<div class="col-md-9 ">
-								<div id="charttlp"></div>
+						<div  class="col-md-12 " style="margin-bottom: 20px">
+							<div class="col-md-9">
+								<div class="tools btn-group pull-right btn-pdf">
+									<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){tlp.getPDF('.div-trendline')}">
+								    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+								  	</button>
+								</div>
+								<div class="div-trendline">
+									<div class="panel-heading template-pdf" style="margin-top: -10px">
+										<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+										<div class="col-md-12 text-center title-pdf">
+											<span data-bind="text:tlp.project()"></span> | Trend Line Plots |<span data-bind="text:tlp.dateStart()"></span> until <span data-bind="text:tlp.dateEnd()"></span>
+											
+										</div>
+									</div>
+									<div id="charttlp"></div>
+									<script id="legendItemTemplate" type="text/kendo">
+								    	<span class="legend-item">
+									        <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+									        <span>#:name#</span>
+									     </span>
+								    </script>
+								    <div data-bind="source:series" data-template="legendItemTemplate" id="legend"></div>
+								</div>
 							</div>
 							<div class="col-md-3">
 								<span><b class="colBlack">Select</b></span>&nbsp;&nbsp;
@@ -33,18 +53,23 @@
 			               		</select>
 								<div class="checkbox custom-header" id="showHideChk"></div>
 								<div class="col-md-12 col-sm-12 " id="right-turbine-list"></div>
-								<div class="clearfix" style="line-height: 5px">&nbsp;</div>
-			               		<div class="checkbox margin-left-15">
-				               		<label>
-	                                    <input type="checkbox" id="deviation" data-bind="checked: tlp.isDeviation" onchange="tlp.initChart()">
-	                                    <span class="cr" style="margin-top: 5px;"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-	                                </label>
-	                                    <span class="colRed"><b class="colBlack">For deviation ±</span>&nbsp; 
-	                                    <select class="compTemp devDrop" id="ddldeviation" name="table" data-bind="kendoDropDownList: {data: tlp.deviationList, value:tlp.deviation, suggest: true, enabled:tlp.isDeviation,change:function(){ tlp.initChart()}}">
-			               				</select>
-	                                
-                                </div>
-
+								<div class="clearfix">&nbsp;</div>
+                                <div class="form-inline form-group">
+									<div>
+										<div class="checkbox" style="margin-top: 2.5px;">
+											<label>
+			                                    <input type="checkbox" id="deviation" data-bind="checked: tlp.isDeviation" onchange="tlp.initChart()">
+			                                    <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+			                                    <span ><b class="colBlack">For Deviation ±
+			                                    </b></span>
+			                                </label>
+										</div>
+										<label>
+			                                <input type="text" name="txtDeviation" id="deviationValue" class="form-control input-xs txt-deviation" data-bind="enable:tlp.isDeviation,value:tlp.deviation,event: { change:function(){ tlp.initChart()}}">
+			                                &nbsp;
+			                            </label>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

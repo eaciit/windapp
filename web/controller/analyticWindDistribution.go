@@ -51,6 +51,7 @@ func setContribution(turbine, tipe string, dataCatCount map[string]float64, coun
 	}
 
 	for _, val := range category {
+		// tk.Println(val, "=>", dataCatCount[tk.ToString(val)], "/", countPerWSCat)
 		results = append(results, tk.Div(dataCatCount[tk.ToString(val)], countPerWSCat))
 	}
 	return
@@ -85,9 +86,10 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
 	if p.Project != "" {
 		queryT = append(queryT, dbox.Eq("projectname", p.Project))
 	}
+	fieldName := "vhubws90mavg"
 
 	csrData, _ := DB().Connection.NewQuery().
-		Select("vhubws90mavg").
+		Select(fieldName).
 		From(new(MetTower).TableName()).
 		Where(dbox.And(queryT...)).
 		Order("turbine").
@@ -98,6 +100,9 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
 	dataCatCount := map[string]float64{}
 	category := 0.0
 	modus := 0.0
+	step := stepWS
+	bin := step / 2
+	maxStep := maxWS
 	_data := tk.M{}
 	for {
 		_data = tk.M{}
@@ -105,18 +110,32 @@ func GetMetTowerData(p *PayloadAnalytic, k *knot.WebContext) []tk.M {
 		if e != nil {
 			break
 		}
-		countPerWSCat++
-		if _data.GetFloat64("vhubws90mavg") > maxWS {
-			_data.Set("vhubws90mavg", maxWS)
+
+		if _data.Has(fieldName) {
+			countPerWSCat++
+			value := _data.GetFloat64(fieldName)
+			if value > maxStep { /* jika datanya melebihi max step, maka ubah menjadi max step*/
+				_data.Set(fieldName, maxStep)
+			}
+
+			valueBin := value + bin
+
+			if value < 0 {
+				valueBin = value - bin
+			}
+
+			modus = math.Mod(valueBin, step)
+			if modus == 0 {
+				category = valueBin - step
+				if value < 0 {
+					category = valueBin + step
+				}
+			} else {
+				category = valueBin - modus
+			}
+			groupKey = tk.ToString(category)
+			dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 		}
-		modus = math.Mod(_data.GetFloat64("vhubws90mavg"), stepWS)
-		if modus == 0 {
-			category = _data.GetFloat64("vhubws90mavg")
-		} else {
-			category = _data.GetFloat64("vhubws90mavg") - modus + stepWS
-		}
-		groupKey = tk.ToString(category)
-		dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 	}
 	csrData.Close()
 	dataSeriesVal := setContribution("Met Tower", "avgwindspeed", dataCatCount, countPerWSCat)
@@ -157,6 +176,7 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 	modus := 0.0
 	dataSeries := []tk.M{}
 	dataSeriesPerTurbine := map[string][]float64{}
+	bin := step / 2
 	_data := tk.M{}
 	for {
 		_data = tk.M{}
@@ -173,18 +193,48 @@ func GetScadaData(turbineName map[string]string, turbineNameSorted []string, que
 			lastTurbine = _turbine
 			countPerWSCat = 0.0
 		}
-		countPerWSCat++
-		if _data.GetFloat64(fieldName) > maxStep {
-			_data.Set(fieldName, maxStep)
+		if _data.Has(fieldName) {
+			countPerWSCat++
+			value := _data.GetFloat64(fieldName)
+			if value > maxStep { /* jika datanya melebihi max step, maka ubah menjadi max step*/
+				_data.Set(fieldName, maxStep)
+			}
+
+			valueBin := value + bin
+
+			if value < 0 {
+				valueBin = value - bin
+			}
+
+			modus = math.Mod(valueBin, step)
+			if modus == 0 {
+				category = valueBin - step
+				if value < 0 {
+					category = valueBin + step
+				}
+			} else {
+				category = valueBin - modus
+			}
+
+			groupKey = tk.ToString(category)
+			dataCatCount[groupKey] = dataCatCount[groupKey] + 1
+
+			// uncomment following codes to debug if there is wrong plotted value
+			/*if category == 6 {
+				tk.Printf("%f, ", value)
+				if value <= 5.75 && value > 6.25 {
+					tk.Printf("salah plot => %f", value)
+				}
+			} else if category == -15 {
+				if value >= -7.5 && value < -22.5 {
+					tk.Printf("salah plot => %f", value)
+				}
+			} else if category == 15 {
+				if value <= 7.5 && value > 22.5 {
+					tk.Printf("salah plot => %f", value)
+				}
+			}*/
 		}
-		modus = math.Mod(_data.GetFloat64(fieldName), step)
-		if modus == 0 { /* jika habis dibagi step maka value itu sendiri yang di assign*/
-			category = _data.GetFloat64(fieldName)
-		} else { /* jika tidak habis dibagi step maka diikutkan value + step setelahnya */
-			category = _data.GetFloat64(fieldName) - modus + step
-		}
-		groupKey = tk.ToString(category)
-		dataCatCount[groupKey] = dataCatCount[groupKey] + 1
 	}
 	if lastTurbine != "" {
 		dataSeriesPerTurbine[lastTurbine] = setContribution(lastTurbine, tipe, dataCatCount, countPerWSCat)

@@ -272,7 +272,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 							ipower := data["totalpower"]
 							power := 0.0
 							if ipower != nil {
-								power = ipower.(float64)
+								power = data.GetFloat64("totalpower")
 							}
 							currProd = power / 6
 						}

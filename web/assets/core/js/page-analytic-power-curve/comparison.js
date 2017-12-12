@@ -34,6 +34,7 @@ pc.dateEnd = ko.observable();
 pc.turbine = ko.observableArray([]);
 pc.project = ko.observable();
 pc.sScater = ko.observable(false);
+pc.project = ko.observable();
 
 pc.rawturbine = ko.observableArray([]);
 pc.rawproject = ko.observableArray([]);
@@ -106,6 +107,27 @@ var turbineval = [];
     });
 }*/
 
+pc.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList1").data("kendoDropDownList").value();
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "10mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"PCComparison.pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 pc.getAvailDate = function(){
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
         if (!app.isFine(res)) {
@@ -148,13 +170,6 @@ pc.populateTurbine = function (selected) {
     } else {
         var datavalue = [];
         var dataturbine = [];
-        // var allturbine = {}
-        // $.each(pc.rawturbine(), function (key, val) {
-        //     turbineval.push(val);
-        // });
-        // allturbine.value = "All Turbine";
-        // allturbine.text = "All Turbines";
-        // datavalue.push(allturbine);
 
         if (selected==""){
             selected = pc.rawproject()[0].Value;
@@ -421,8 +436,12 @@ pc.initChart = function() {
                     legend: {
                         position: "bottom",
                         visible: true,
-                        offsetX: 50,
+                        align: "center",
+                        offsetX : 50,
                         labels: {
+                            margin: {
+                                right : 20
+                            },
                             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                         },
                     },
@@ -527,8 +546,18 @@ pc.initChart = function() {
                             width: "2px",
                         },
                     },
-                    pannable: false,
-                    zoomable: false
+                    pannable: {
+                        lock: "y"
+                    },
+                    zoomable: {
+                        mousewheel: {
+                            lock: "y"
+                        },
+                        selection: {
+                            lock: "y",
+                            key: "none",
+                        }
+                    }
                 });
                 app.loading(false);
                 if (pc.sScater()) {
@@ -620,8 +649,12 @@ pc.getScatter = function(paramLine, dtLine) {
             legend: {
                 position: "bottom",
                 visible: true,
-                offsetX: 50,
+                align: "center",
+                offsetX : 50,
                 labels: {
+                    margin: {
+                        right : 20
+                    },
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
             },
@@ -725,6 +758,12 @@ pc.getScatter = function(paramLine, dtLine) {
 pc.setProjectTurbine = function(projects, turbines, selected){
 	pc.rawproject(projects);
     pc.rawturbine(turbines);
+    var sortedTurbine = pc.rawturbine().sort(function(a, b){
+        var a1= a.Turbine.toLowerCase(), b1= b.Turbine.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
+    pc.rawturbine(sortedTurbine);
 	pc.populateProject(selected);
 };
 
@@ -732,6 +771,9 @@ $(document).ready(function () {
     
     $('#btnRefresh').on('click', function() {
         setTimeout(function() {
+            var project = $('#projectList1').data("kendoDropDownList").value();
+            pc.project(project);
+
             pc.initChart();
         }, 300);
     });
@@ -752,6 +794,8 @@ $(document).ready(function () {
     app.loading(true);
     pc.InitDefaultValue();
     setTimeout(function() {
+        var project = $('#projectList1').data("kendoDropDownList").value();
+        pc.project(project);
         pc.initChart();
     }, 500);
 });

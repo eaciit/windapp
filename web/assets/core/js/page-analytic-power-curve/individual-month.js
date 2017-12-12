@@ -7,56 +7,57 @@ page.dataPCEachTurbine = ko.observableArray([]);
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [];
+
 page.PrintPdf = ko.observable(false);
     // "<div class='col-md-12 col-xs-12'>"+
     // "<div id='legend-anchor'></div>"+
     // "<div id='legend-list' class='col-md-12 col-sm-12 pl15'>"+
     // "</div></div>"+
 page.getPDF = function(selector){
-    var title = fa.project;
-    // app.loading(true);
-    page.PrintPdf(true);
-    var asd = "<div class='col-md-12 col-sm-12 hardcore landing'>"+
-    "<div class='panel ez no-padding hardcore'><div class='panel-heading'>"+
-    "<span class='tools pull-right'><i class='fa fa-question-circle tooltipster tooltipstered' aria-hidden='true' title='Power curves shown till last month for valid data only'></i>"+
-    "<button type='button' class='btn btn-primary btn-xs tooltipster tooltipstered' title='Export to Pdf' onclick='page.getPDF('.tobeprint')''>"+
-    "<i class='fa fa-file-pdf-o' aria-hidden='true'></i></button></span></div>"+
-    "<div class='panel-body'>"+
-    "<div class='date-info'>"+
-    $(".date-info").html()+
-    "</div>"+
-    "<div class='col-md-12 list'>"+
-    $("#legend-wrapper").html()+
-    "</div>"+
-    "<div class='clearfix'>&nbsp;</div>"+
-    "<div class='col-md-12'>"+
-    $(".individual-month").html()+
-    "</div>"+
-    "</div></div>";
-
-
-    $("#illusion").append(asd);
-    $("#pdf-title").text(title);
-    var dateStart = moment($('#dateStart').data('kendoDatePicker').value()).format("DD MMM YYYY");
+    
+    app.loading(true);
     var project = $("#projectList").data("kendoDropDownList").value();
-    kendo.drawing.drawDOM($(selector)).then(function(group){
-        group.options.set("pdf", {
-            paperSize: "auto",
-            margin: {
-                left   : "10mm",
-                top    : "10mm",
-                right  : "10mm",
-                bottom : "10mm"
-            }
-        });
-      kendo.drawing.pdf.saveAs(group, "PC_Individual_Month.pdf");
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM(selector, {
+        paperSize: "A3",
+        margin: {
+            bottom: 80,
+            left: 20,
+            right: 20,
+            top: 50
+        },
+        landscape: true,
+        scale: 0.5,
+        template: kendo.template($("#page-template").html())(
+        {
+            project: project,
+            dateStart: moment($('#dateStart').data('kendoDatePicker').value()).format("DD-MMM-YYYY"),
+            dateEnd: moment($('#dateEnd').data('kendoDatePicker').value()).format("DD-MMM-YYYY"),
+            legend : listOfCategory,
+        })
+    }).then(function(group){
+        console.log(listOfCategory);
+        kendo.drawing.pdf.saveAs(group, project+"PCIndividualMonth"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
         setTimeout(function(){
-            $("#illusion").empty();
-            page.PrintPdf(false);
             app.loading(false);
-        },2000)
+        },400)
     });
 }
+page.getColor = function(color) {
+    var c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(color)){
+        c= color.substring(1).split('');
+        if(c.length== 3){
+            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c= '0x'+c.join('');
+        return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+    }
+    throw new Error('Bad Hex');
+}
+
 
 page.ExportIndividualMonthPdf = function() {
     kendo.drawing.drawDOM($(".individual-month"))
@@ -104,12 +105,12 @@ page.showHideLegend = function (index) {
 }
 
 page.LoadData = function() {
-    fa.LoadData();
     app.loading(true);
     setTimeout(function () {
         var param = {
             turbine: fa.turbine(),
             project: fa.project,
+            engine: fa.engine,
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getlistpowercurvemonthly", param, function (res) {
             if (!app.isFine(res)) {
@@ -117,7 +118,7 @@ page.LoadData = function() {
                 return;
             }
             if (res.data.Data != null) {
-                page.dataPCEachTurbine(res.data.Data);
+                page.dataPCEachTurbine(_.sortBy(res.data.Data, 'Name'));
                 page.InitLinePowerCurve();
             }
             if (res.data.Category != null) {
@@ -330,10 +331,16 @@ $(function() {
             fa.currentFilter().project = this._old;
             fa.checkFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
-            fa.populateTurbine(project);
+            fa.project = project;
+            fa.populateEngine(project);
             di.getAvailDate();
          }
     });
+
     di.getAvailDate();
-    page.LoadData();
+    setTimeout(function(){
+        fa.LoadData();
+        page.LoadData();
+    },600)
+
 });

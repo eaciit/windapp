@@ -16,6 +16,9 @@ page.greaterValue= ko.observable(20);
 page.lessSelectedMarker = ko.observable("circle");
 page.greaterSelectedMarker = ko.observable("circle");
 page.dtSeries = ko.observableArray([]);
+page.project = ko.observable();
+page.dateStart = ko.observable();
+page.dateEnd = ko.observable();
 
 
 page.ExportIndividualMonthPdf = function() {
@@ -35,6 +38,30 @@ page.ExportIndividualMonthPdf = function() {
         });
     });
 }
+
+page.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"PCScatterWithFilter"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
@@ -123,6 +150,7 @@ page.getPowerCurveScatter = function() {
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
 
     var param = {
+        engine: fa.engine,
         period: fa.period,
         dateStart: dateStart,
         dateEnd: dateEnd,
@@ -137,7 +165,8 @@ page.getPowerCurveScatter = function() {
         lessColor: lessColor,
         greaterColor: greaterColor,
         lessMarker: lessMarker, 
-        greaterMarker: greaterMarker
+        greaterMarker: greaterMarker,
+        
     };
     
     
@@ -192,9 +221,15 @@ page.createChart = function(dtSeries){
             },
             legend: {
                 position: "bottom",
+                visible: true,
+                align: "center",
+                offsetX : 50,
                 labels: {
+                    margin: {
+                        right : 20
+                    },
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                }
+                },
             },
             seriesDefaults: {
                 type: "scatterLine",
@@ -274,7 +309,19 @@ page.createChart = function(dtSeries){
                         },
                     }
                 },
-            }
+            },
+            pannable: {
+                    lock: "y"
+                },
+                zoomable: {
+                    mousewheel: {
+                        lock: "y"
+                    },
+                    selection: {
+                        lock: "y",
+                        key: "none",
+                    }
+                }
         });
 }
 
@@ -282,6 +329,15 @@ $(document).ready(function() {
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+
+
+            page.project(project);
+            page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
            page.LoadData();
         }, 300);
     });
@@ -289,8 +345,17 @@ $(document).ready(function() {
     $.when(di.getAvailDate()).done(function() {
         setTimeout(function(){
             fa.LoadData();
+
+
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+            page.project(fa.project);
+            page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             page.LoadData();
-        },500);
+        },600);
        
     });
 });

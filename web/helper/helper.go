@@ -820,6 +820,7 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			City:              val.City,
 			SS_AirDensity:     val.SS_AirDensity,
 			STD_AirDensity:    val.STD_AirDensity,
+			Engine:            val.Engine,
 		})
 	}
 
@@ -828,18 +829,18 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 }
 
 func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
-	var filter []*dbox.Filter
-
+	query := DB().Connection.NewQuery().From("ref_turbine")
+	pipes := []toolkit.M{}
 	if len(projects) > 0 {
-		filter = append(filter, dbox.In("project", projects...))
+		pipes = []toolkit.M{
+			toolkit.M{"$match": toolkit.M{"project": toolkit.M{"$in": projects}}},
+		}
 	}
+	pipes = append(pipes, toolkit.M{"$sort": toolkit.M{"turbinename": 1}})
 
-	csr, e := DB().Connection.
-		NewQuery().
-		From(new(md.TurbineMaster).TableName()).
-		Where(filter...).
-		Order("feeder, turbinename").
-		// Order("turbinename").
+	query = query.Command("pipe", pipes)
+
+	csr, e := query.
 		Cursor(nil)
 
 	if e != nil {
@@ -857,7 +858,9 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 			Value:    val.TurbineId,
 			Capacity: val.CapacityMW,
 			Feeder:   val.Feeder,
+			Engine:   val.Engine,
 			Coords:   []float64{val.Latitude, val.Longitude},
+			Cluster:  val.Cluster,
 		})
 	}
 

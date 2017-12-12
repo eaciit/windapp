@@ -19,7 +19,7 @@
 </style>
 <div>
 	<div class="row">
-		{{template "page-filter-scatter.html"}}
+		{{template "_filter-scatter.html"}}
 		<div class="col-md-12 col-sm-12 ez panel-content">
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
@@ -35,7 +35,19 @@
 						<div class="clearfix">&nbsp;</div>
 
 						<div class="col-md-9 scatter">
+							<div class="tools btn-group pull-right btn-pdf">
+								<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.scatter-chart')}">
+							    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+							  	</button>
+							</div>
 							<div class="scatter-chart">
+								<div class="panel-heading template-pdf" style="margin-top: -10px">
+									<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+									<div class="col-md-12 text-center title-pdf">
+										<span data-bind="text:page.project()"></span> | Power Curve Scatter |<span data-bind="text:page.dateStart()"></span> until <span data-bind="text:page.dateEnd()"></span>
+										
+									</div>
+								</div>
 								<div id="scatterChart"></div>
 							</div>
 						</div>

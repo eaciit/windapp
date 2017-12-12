@@ -21,6 +21,29 @@ page.ExportIndividualMonthPdf = function() {
     });
 }
 
+page.getPDF = function(selector){
+    app.loading(true);
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "5mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group, project+"PCScatter"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 page.scatterType = ko.observable('');
 page.scatterList = ko.observableArray([
     { "value": "temp", "text": "Nacelle Temperature" },
@@ -45,6 +68,10 @@ vm.breadcrumb([{
     title: 'Scatter',
     href: viewModel.appName + 'page/analyticpcscatter'
 }]);
+
+page.project = ko.observable();
+page.dateStart = ko.observable();
+page.dateEnd = ko.observable();
 
 page.LoadData = function() {
     page.getPowerCurveScatter();
@@ -121,6 +148,7 @@ page.getPowerCurveScatter = function() {
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
 
     var param = {
+        engine: fa.engine,
         period: fa.period,
         dateStart: dateStart,
         dateEnd: dateEnd,
@@ -235,7 +263,19 @@ page.getPowerCurveScatter = function() {
                 },
                 max: 25
             },
-            yAxes: yAxes
+            yAxes: yAxes,
+            pannable: {
+                lock: "y"
+            },
+            zoomable: {
+                mousewheel: {
+                    lock: "y"
+                },
+                selection: {
+                    lock: "y",
+                    key: "none",
+                }
+            }
         });
         app.loading(false);
     });
@@ -245,6 +285,15 @@ $(document).ready(function() {
 
     $('#btnRefresh').on('click', function() {
         setTimeout(function(){
+            var project = $('#projectList').data("kendoDropDownList").value();
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value(); 
+
+
+            page.project(project);
+            page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             page.LoadData();
         }, 300);
     });
@@ -253,8 +302,16 @@ $(document).ready(function() {
     $.when(di.getAvailDate()).done(function() {
         setTimeout(function(){
             fa.LoadData();
+
+            var dateStart = $('#dateStart').data('kendoDatePicker').value();
+            var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
+            page.project(fa.project);
+            page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
+            page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
             page.LoadData();
-        },500);
+        },600);
         
     });
 });

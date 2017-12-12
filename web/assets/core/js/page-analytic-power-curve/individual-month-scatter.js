@@ -5,6 +5,11 @@ var page = viewModel.AnalyticPowerCurve;
 
 page.dataPCEachTurbine = ko.observableArray([]);
 page.PrintPdf = ko.observable(false);
+page.dataAvail = ko.observable();
+page.project = ko.observable();
+page.dateStart = ko.observable();
+page.dateEnd = ko.observable();
+
 var listOfChart = [];
 var listOfButton = {};
 var listOfCategory = [];
@@ -18,7 +23,7 @@ page.ExportIndividualMonthPdf = function() {
             margin: { left: "1cm", top: "1cm", right: "1cm", bottom: "1cm" }
         });
     })
-    .done(function(data) {
+    .done(function() {
         // Save the PDF file
         kendo.saveAs({
             dataURI: data,
@@ -27,8 +32,8 @@ page.ExportIndividualMonthPdf = function() {
     });
 }
 
-vm.currentMenu('Individual Month Scatter');
-vm.currentTitle('Individual Month Scatter');
+vm.currentMenu('Monthly Scatter');
+vm.currentTitle('Monthly Scatter');
 vm.breadcrumb([{
     title: "KPI's",
     href: '#'
@@ -36,13 +41,17 @@ vm.breadcrumb([{
     title: 'Power Curve',
     href: '#'
 }, {
-    title: 'Individual Month Scatter',
+    title: 'Monthly Scatter',
     href: viewModel.appName + 'page/analyticpcmonthlyscatter'
 }]);
 
 
 page.getPDF = function(selector){
     var title = fa.project + " | "+ kendo.toString($('#dateStart').data('kendoDatePicker').value(), 'MMM-yyyy');
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+
     app.loading(true);
     page.PrintPdf(true);
     $("#illusion-month").append($(".individual-month").html());
@@ -57,9 +66,10 @@ page.getPDF = function(selector){
                 top    : "10mm",
                 right  : "10mm",
                 bottom : "10mm"
-            }
+            },
+            multiPages: true,
         });
-      kendo.drawing.pdf.saveAs(group, "PC_Individual_Month_Scatter.pdf");
+     kendo.drawing.pdf.saveAs(group, project+"PCMonthlyScatter"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".pdf");
         setTimeout(function(){
             $("#illusion-month").empty();
             page.PrintPdf(false);
@@ -83,10 +93,10 @@ page.showHideLegend = function (index) {
 }
 
 page.LoadData = function() {
-    fa.LoadData();
     app.loading(true);
     setTimeout(function () {
         var param = {
+            engine : fa.engine,
             turbine: fa.turbine(),
             project: fa.project,
             datestart: $('#dateStart').data('kendoDatePicker').value(),
@@ -97,29 +107,13 @@ page.LoadData = function() {
                 return;
             }
             if (res.data.Data != null) {
-                page.dataPCEachTurbine(res.data.Data);
+                page.dataPCEachTurbine(_.sortBy(res.data.Data, 'Name'));
                 page.InitLinePowerCurve();
             }
-            // if (res.data.Category != null) {
-            //     listOfCategory = res.data.Category;
-            //     $("#legend-list").html("");
-            //     listOfButton = {};
-            //     $.each(listOfCategory, function (idx, val) {
-            //         if(idx > 0) {
-            //             var idName = "btn" + idx;
-            //             listOfButton[idName] = true;
-            //             $("#legend-list").append(
-            //                 '<button id="' + idName + 
-            //                 '" class="btn btn-default btn-sm btn-legend" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + 
-            //                 val.color + ';background-color:' + val.color + ';"></button>' +
-            //                 '<span class="span-legend">' + val.category + '</span>'
-            //             );
-            //         }
-            //     });
-            // }
             app.loading(false);
-        })
-    }, 300);
+        });
+        
+    }, 500);
 }
 
 page.InitLinePowerCurve = function() {
@@ -127,6 +121,8 @@ page.InitLinePowerCurve = function() {
     listOfChart = [];
     $.each(page.dataPCEachTurbine(), function (i, dataTurbine) {
         var name = dataTurbine.Name
+        var idDataAvailability = "#dataAv-" + dataTurbine.Name
+        var idTotalAvailability = "#totalAv-" + dataTurbine.Name
         var idChart = "#chart-" + dataTurbine.Name
         listOfChart.push(idChart);
         var rotation = 300;
@@ -152,6 +148,9 @@ page.InitLinePowerCurve = function() {
             $(".power-curve-item").removeClass("col-md-4");
         }
         
+        $(idDataAvailability).html(kendo.toString(dataTurbine.DataAvailability,'p1'));        
+        $(idTotalAvailability).html(kendo.toString(dataTurbine.DataTotalAvailability,'p1'));
+
         $(idChart).html("");
         $(idChart).kendoChart({
             pdf: {
@@ -291,12 +290,6 @@ $(function() {
     $(window).scroll(sticky_relocate);
     sticky_relocate();
 
-    di.getAvailDate();
-    setTimeout(function(){
-        $("#periodList").data("kendoDropDownList").value("monthly");
-        $("#periodList").data("kendoDropDownList").trigger("change");
-    },200);
-
     $('#btnRefresh').on('click', function() {
         fa.checkTurbine();
         page.LoadData();
@@ -317,10 +310,18 @@ $(function() {
             fa.currentFilter().project = this._old;
             fa.checkFilter();
             var project = $('#projectList').data("kendoDropDownList").value();
-            fa.populateTurbine(project);
+            fa.project = project;
+            fa.populateEngine(project);
             di.getAvailDate();
          }
     });
 
-    page.LoadData();
+    di.getAvailDate();
+    fa.LoadData();
+    setTimeout(function(){
+        $("#periodList").data("kendoDropDownList").value("monthly");
+        $("#periodList").data("kendoDropDownList").trigger("change");
+        page.LoadData();
+    },700);
+    
 });

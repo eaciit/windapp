@@ -61,7 +61,7 @@ func (m *AnalyticPowerCurveController) GetList(k *knot.WebContext) interface{} {
 	isClean := p.IsClean
 	isAverage := p.IsAverage
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -129,7 +129,6 @@ func (m *AnalyticPowerCurveController) GetList(k *knot.WebContext) interface{} {
 		turbineData.Set("color", colorField[selArr])
 
 		for _, val := range list {
-			// tk.Printf("%#v\n", val)
 			datas = append(datas, []float64{val.GetFloat64("_id"), tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))})
 		}
 
@@ -140,8 +139,6 @@ func (m *AnalyticPowerCurveController) GetList(k *knot.WebContext) interface{} {
 		dataSeries = append(dataSeries, turbineData)
 		selArr++
 	}
-
-	// tk.Printf("%#v\n", pipes)
 
 	data := struct {
 		Data []tk.M
@@ -177,7 +174,7 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 	// isClean := p.IsClean
 	// isAverage := p.IsAverage
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -229,7 +226,6 @@ func (m *AnalyticPowerCurveController) GetListDensity(k *knot.WebContext) interf
 		turbineData.Set("color", colorField[selArr])
 
 		for _, val := range list {
-			// tk.Printf("%#v\n", val)
 			datas = append(datas, []float64{val.GetFloat64("_id"), tk.Div(val.GetFloat64("production"), val.GetFloat64("totaldata"))})
 		}
 
@@ -272,6 +268,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	tNow := time.Now()
+	if tEnd.Sub(tNow).Hours() > 0.0 {
+		tEnd, _ = time.Parse("20060102", tNow.Format("20060102"))
+	}
+	// tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02 15:04:05"))
 	turbine := p.Turbine
 	filter = nil
 	project := p.Project
@@ -305,7 +306,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		issitespecific = true
 	}
 
-	pcData, e := getPCData(project, issitespecific)
+	pcData, e := getPCData(project, p.Engine, issitespecific)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -319,9 +320,15 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.In("turbine", turbine...))
 
 	// temporary
 	filter = append(filter, dbox.Ne("power", 0.0))
+
+	filter = append(filter, dbox.Ne("power", nil))
+
+	filter = append(filter, dbox.Ne("avgwindspeed", nil))
 
 	//// as per Neeraj Request on Oct 23, 2017
 	// if !p.IsPower0 {
@@ -341,7 +348,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		if DeviationOpr > 0 {
 			filter = append(filter, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
 		} else {
-			filter = append(filter, dbox.Or(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
+			filter = append(filter, dbox.And(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
 		}
 	}
 	if isClean {
@@ -365,11 +372,26 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	pipesx = append(pipesx, tk.M{"$sort": tk.M{"_id": 1}})
 
 	var filterx []*dbox.Filter
-	filterx = append(filterx, dbox.Gte("dateinfo.dateid", p.DateStart))
-	filterx = append(filterx, dbox.Lte("dateinfo.dateid", p.DateEnd))
+	filterx = append(filterx, dbox.Gte("dateinfo.dateid", tStart))
+	filterx = append(filterx, dbox.Lte("dateinfo.dateid", tEnd))
 	filterx = append(filterx, dbox.Eq("projectname", project))
-	// filterx = append(filterx, dbox.Eq("available", 1))
+	filterx = append(filterx, dbox.Ne("power", 0.0))
+	filterx = append(filterx, dbox.Eq("available", 1))
+	filterx = append(filterx, dbox.Ne("turbine", ""))
 	filterx = append(filterx, dbox.Ne("_id", ""))
+	filterx = append(filterx, dbox.In("turbine", turbine...))
+
+	// if IsDeviation {
+	// 	if DeviationOpr > 0 {
+	// 		filterx = append(filterx, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
+	// 	} else {
+	// 		filterx = append(filterx, dbox.Or(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
+	// 	}
+	// }
+	// if isClean {
+	// 	filterx = append(filterx, dbox.Eq("isvalidstate", true))
+	// 	// filter = append(filter, dbox.Eq("oktime", 600))
+	// }
 
 	var listAll []tk.M
 	csrAll, e := DB().Connection.NewQuery().
@@ -389,9 +411,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	}
 
 	totalAllPerTurbines := map[string]tk.M{}
-	// totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0) + 1
-	totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
-	// totalDataShouldBe := totalDays * 144
+	totalDays := tk.ToInt(tk.Div(tEnd.Sub(tStart).Hours(), 24.0), "0") + 1
 	totalDataShouldBe := totalDays * 144
 	totalDataAll := 0
 	if len(listAll) > 0 {
@@ -402,19 +422,21 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 			totalDataAll += totalDataPerTurbine
 
 			perTurbine := tk.M{
-				"totaldata": totalDataPerTurbine,
-				"avail":     tk.Div(float64(totalDataPerTurbine), totalDataShouldBe),
+				"totaldata":     totalDataPerTurbine,
+				"totalshouldbe": totalDataShouldBe,
+				"totaldays":     totalDays,
+				"avail":         tk.Div(float64(totalDataPerTurbine), float64(totalDataShouldBe)),
 			}
 
 			totalAllPerTurbines[turbine] = perTurbine
 		}
 	}
-	totalDataAvail := tk.Div(float64(totalDataAll), (totalDataShouldBe * float64(len(p.Turbine))))
+	totalDataAvail := tk.Div(float64(totalDataAll), (float64(totalDataShouldBe) * float64(len(p.Turbine))))
 
 	if len(p.Turbine) == 0 {
 		for _, listVal := range list {
 			exist := false
-			for _, val := range turbine {
+			for _, val := range p.Turbine {
 				if listVal["_id"].(tk.M)["Turbine"] == val {
 					exist = true
 				}
@@ -466,7 +488,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		turbineData.Set("totaldays", totalDays)
 		turbineData.Set("totaldatashouldbe", totalDataShouldBe)
 		turbineData.Set("totaldata", totalDataPerTurbine)
-		turbineData.Set("dataavailpct", tk.Div(float64(totalDataPerTurbine), totalDataShouldBe))
+		turbineData.Set("dataavailpct", tk.Div(float64(totalDataPerTurbine), float64(totalDataShouldBe)))
 		if len(datas) > 0 {
 			turbineData.Set("data", datas)
 		}
@@ -484,15 +506,17 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	dataSeries = append(dataSeries, pcData)
 
 	data := struct {
-		Data            []tk.M
-		TotalData       int
-		TotalDataAvail  float64
-		TotalPerTurbine map[string]tk.M
+		Data              []tk.M
+		TotalData         int
+		TotalDataAvail    float64
+		TotalDataShouldBe float64
+		TotalPerTurbine   map[string]tk.M
 	}{
-		Data:            dataSeries,
-		TotalData:       totalDataAll,
-		TotalDataAvail:  totalDataAvail,
-		TotalPerTurbine: totalAllPerTurbines,
+		Data:              dataSeries,
+		TotalData:         totalDataAll,
+		TotalDataAvail:    totalDataAvail,
+		TotalPerTurbine:   totalAllPerTurbines,
+		TotalDataShouldBe: (float64(totalDataShouldBe) * float64(len(p.Turbine))),
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -524,6 +548,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 
 	tStart, _ := time.Parse("20060102", last.Format("200601")+"01")
 	tEnd, _ := time.Parse("20060102", now.Format("200601")+"01")
+	//tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+
+	//tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02T15:04:05Z"))
 
 	colId := "$wsavgforpc"
 	colValue := "$power"
@@ -533,13 +560,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
 	match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
-	match = append(match, tk.M{"power": tk.M{"$gte": 0}})
-	match = append(match, tk.M{"$or": []tk.M{
-		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$lt": 10}}, tk.M{"avgwindspeed": tk.M{"$lt": 3}}}},
-		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$gte": 10}}, tk.M{"avgwindspeed": tk.M{"$gte": 3}}}}}})
+	match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
+	match = append(match, tk.M{"power": tk.M{"$ne": nil}})
+	match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
+	//match = append(match, tk.M{"power": tk.M{"$gte": 0}})
+	//match = append(match, tk.M{"$or": []tk.M{
+	//		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$lt": 10}}, tk.M{"avgwindspeed": tk.M{"$lt": 3}}}},
+	//		tk.M{"$and": []tk.M{tk.M{"power": tk.M{"$gte": 10}}, tk.M{"avgwindspeed": tk.M{"$gte": 3}}}}}})
 
-	match = append(match, tk.M{"oktime": 600})
-	// match = append(match, tk.M{"isvalidstate": true})
+	//match = append(match, tk.M{"oktime": 600})
+	match = append(match, tk.M{"isvalidstate": true})
 	match = append(match, tk.M{"available": 1})
 
 	if project != "" {
@@ -548,8 +578,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
 	}
-
-	//tk.Printf("%#v\n", match)
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 
@@ -617,7 +645,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	sort.Strings(sortTurbines)
 
 	selArr := 0
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -722,17 +750,31 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	tStart, _ := time.Parse("20060102", p.DateStart.Format("200601")+"01")
 	tEnd := tStart.AddDate(0, 1, 0)
 
-	pcData, e := getPCData(project, true)
+	tNow := time.Now()
+	if tEnd.Sub(tNow).Hours() > 0.0 {
+		tEnd, _ = time.Parse("20060102", tNow.Format("20060102"))
+		tEnd = tEnd.AddDate(0, 0, 1)
+	}
+
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
 	match := []tk.M{}
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
-	match = append(match, tk.M{"power": tk.M{"$gt": 0}})
+	//match = append(match, tk.M{"power": tk.M{"$gt": 0}})
+	match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
 	//match = append(match, tk.M{"oktime": 600})
+	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
+	//match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
+	//match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
+	match = append(match, tk.M{"projectname": project})
 	match = append(match, tk.M{"isvalidstate": true})
 	match = append(match, tk.M{"available": 1})
+	match = append(match, tk.M{"power": tk.M{"$ne": nil}})
+	match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
 
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
@@ -745,7 +787,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 			"turbine":      "$turbine",
 			"avgwindspeed": "$avgwindspeed",
 		},
-		"power": tk.M{"$avg": "$power"},
+		"power":     tk.M{"$avg": "$power"},
+		"totaldata": tk.M{"$sum": 1},
 	}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -760,23 +803,77 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	e = csr.Fetch(&alltkm, 0, false)
 	defer csr.Close()
 
+	// getting all turbines total availability
+	match = []tk.M{}
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
+	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
+	match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
+	match = append(match, tk.M{"_id": tk.M{"$ne": ""}})
+	match = append(match, tk.M{"projectname": project})
+	match = append(match, tk.M{"available": 1})
+	// match = append(match, tk.M{"power": tk.M{"$ne": nil}})
+	// match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
+
+	if len(p.Turbine) > 0 {
+		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+	}
+
+	//tk.Printf("%#v\n", match)
+
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
+	pipes = append(pipes, tk.M{"$group": tk.M{
+		"_id":       "$turbine",
+		"totaldata": tk.M{"$sum": 1},
+	}})
+
+	//tk.Printf("%#v\n", pipes)
+
+	csrta, e := DB().Connection.NewQuery().
+		From(new(ScadaData).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	allta := []tk.M{}
+	e = csrta.Fetch(&allta, 0, false)
+	defer csrta.Close()
+
 	var datas [][]float64
 	results := []tk.M{}
 	sortTurbines := []string{}
 
+	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0)
+	totalDataShouldBe := totalDays * 144
+
 	resData := tk.M{}
+	resTotal := tk.M{}
 	for _, tkm := range alltkm {
 		ids, _ := tk.ToM(tkm["_id"])
 		sturbine := ids.GetString("turbine")
+
 		lfloat64 := resData.Get(sturbine, map[float64]float64{}).(map[float64]float64)
 		ws, pwr := tk.ToFloat64(ids.Get("avgwindspeed"), 3, tk.RoundingAuto), tk.ToFloat64(tkm.Get("power"), 3, tk.RoundingAuto)
-		if ws < 3 && pwr > 10 {
-			continue
-		}
+		totalPerRec := tkm.GetInt("totaldata")
+		totalPerTurbine := resTotal.Get(sturbine, 0).(int)
+		totalAllTurbine := totalPerTurbine + totalPerRec
+		resTotal.Set(sturbine, totalAllTurbine)
+
+		// if ws < 3 && pwr > 10 {
+		// 	continue
+		// }
 
 		lfloat64[ws] = pwr
 		resData.Set(sturbine, lfloat64)
 	}
+	//tk.Printf("%#v\n", allta)
+	resAllTa := tk.M{}
+	for _, ta := range allta {
+		resAllTa.Set(ta.GetString("_id"), ta.GetInt("totaldata"))
+	}
+	//tk.Printf("%#v\n", resAllTa)
 
 	for _, turX := range p.Turbine {
 		sortTurbines = append(sortTurbines, tk.ToString(turX))
@@ -810,10 +907,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		monthData.Set("data", datas)
 		dataSeries = append(dataSeries, monthData)
 
+		totalPerTurbine := resTotal.GetInt(turbineX)
+
+		totalDataTurbine := 0
+		totalDataAvail := 0.0
+		if resAllTa.Has(turbineX) {
+			totalDataTurbine = resAllTa.GetInt(turbineX)
+			if totalDataTurbine > 0 {
+				totalDataAvail = tk.Div(float64(totalDataTurbine), totalDataShouldBe)
+			}
+		}
+
 		turbineData := tk.M{
-			"NameID": turbineX,
-			"Name":   turbineName[turbineX],
-			"Data":   dataSeries,
+			"NameID":                turbineX,
+			"Name":                  turbineName[turbineX],
+			"Data":                  dataSeries,
+			"DataTotalAvailability": totalDataAvail,
+			"DataTotalAll":          totalDataTurbine,
+			"DataAvailability":      tk.Div(float64(totalPerTurbine), totalDataShouldBe),
+			"DataTotal":             totalPerTurbine,
+			"TotalDays":             totalDays,
+			"TotalShouldBe":         totalDataShouldBe,
 		}
 		results = append(results, turbineData)
 	}
@@ -867,7 +981,13 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	colId := "$wsavgforpc"
 	colValue := "$power"
 
-	PC1Data, e := getPCData(PC1project, true)
+	// Hardcode first
+	engine := ""
+	if PC1project == "Dewas" {
+		engine = "S-97"
+	}
+
+	PC1Data, e := getPCData(PC1project, engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1058,6 +1178,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 		DateEnd     time.Time
 		Turbine     string
 		Project     string
+		Engine      string
 		ScatterType string
 	}
 
@@ -1076,7 +1197,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	}
 	turbine := p.Turbine
 	project := p.Project
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1186,14 +1307,6 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	type ScadaMini struct {
-		Power         float64
-		RotorRPM      float64
-		GeneratorRPM  float64
-		AvgWindSpeed  float64
-		AvgBladeAngle float64
-	}
-
 	type PayloadOperational struct {
 		Period      string
 		Project     string
@@ -1214,11 +1327,16 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	maxAxisY := 0.0
 	dataSeries := []tk.M{}
 
+	turbineName, e := helper.GetTurbineNameList(payload[0].Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
 	var mux sync.Mutex
 	for idx, p := range payload {
 		idx++
 		func(p *PayloadOperational, dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int) {
-			list := []ScadaMini{}
+			list := []tk.M{}
 			tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 			if e != nil {
 				return
@@ -1246,9 +1364,9 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			if e != nil {
 				return
 			}
-			_list := ScadaMini{}
+			_list := tk.M{}
 			for {
-				_list = ScadaMini{}
+				_list = tk.M{}
 				e = csr.Fetch(&_list, 1, false)
 				if e != nil {
 					break
@@ -1261,133 +1379,63 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			data := tk.M{}
 			datas := []tk.M{}
 			seriesData := tk.M{}
-			switch p.ScatterType {
-			case "rotor":
-				for _, val := range list {
-					data = tk.M{}
-					if val.RotorRPM < *minAxisX {
-						mux.Lock()
-						*minAxisX = val.RotorRPM
-						mux.Unlock()
-					}
-					if val.RotorRPM > *maxAxisX {
-						mux.Lock()
-						*maxAxisX = val.RotorRPM
-						mux.Unlock()
-					}
-					if val.Power < *minAxisY {
-						mux.Lock()
-						*minAxisY = val.Power
-						mux.Unlock()
-					}
-					if val.Power > *maxAxisY {
-						mux.Lock()
-						*maxAxisY = val.Power
-						mux.Unlock()
-					}
-
-					data.Set("Rotor", val.RotorRPM)
-					data.Set("Power", val.Power)
-					data.Set("valueColor", colorField[index])
-
-					datas = append(datas, data)
-				}
-				seriesData = setScatterData("Rotor RPM", "Rotor", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			case "pitch":
-				for _, val := range list {
-					data = tk.M{}
-					if val.AvgBladeAngle >= -10.0 && val.AvgBladeAngle <= 120 {
-						if val.AvgBladeAngle < *minAxisX {
-							mux.Lock()
-							*minAxisX = val.AvgBladeAngle
-							mux.Unlock()
-						}
-						if val.AvgBladeAngle > *maxAxisX {
-							mux.Lock()
-							*maxAxisX = val.AvgBladeAngle
-							mux.Unlock()
-						}
-						if val.Power < *minAxisY {
-							mux.Lock()
-							*minAxisY = val.Power
-							mux.Unlock()
-						}
-						if val.Power > *maxAxisY {
-							mux.Lock()
-							*maxAxisY = val.Power
-							mux.Unlock()
-						}
-						data.Set("Power", val.Power)
-						data.Set("Pitch", val.AvgBladeAngle)
-						data.Set("valueColor", colorField[index])
-						datas = append(datas, data)
-					}
-				}
-				seriesData = setScatterData("Pitch Angle", "Pitch", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			case "generatorrpm":
-				for _, val := range list {
-					data = tk.M{}
-					if val.GeneratorRPM < *minAxisX {
-						mux.Lock()
-						*minAxisX = val.GeneratorRPM
-						mux.Unlock()
-					}
-					if val.GeneratorRPM > *maxAxisX {
-						mux.Lock()
-						*maxAxisX = val.GeneratorRPM
-						mux.Unlock()
-					}
-					if val.Power < *minAxisY {
-						mux.Lock()
-						*minAxisY = val.Power
-						mux.Unlock()
-					}
-					if val.Power > *maxAxisY {
-						mux.Lock()
-						*maxAxisY = val.Power
-						mux.Unlock()
-					}
-
-					data.Set("Generator", val.GeneratorRPM)
-					data.Set("Power", val.Power)
-					data.Set("valueColor", colorField[index])
-
-					datas = append(datas, data)
-				}
-				seriesData = setScatterData("Generator RPM", "Generator", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			case "windspeed":
-				for _, val := range list {
-					data = tk.M{}
-					if val.AvgWindSpeed < *minAxisX {
-						mux.Lock()
-						*minAxisX = val.AvgWindSpeed
-						mux.Unlock()
-					}
-					if val.AvgWindSpeed > *maxAxisX {
-						mux.Lock()
-						*maxAxisX = val.AvgWindSpeed
-						mux.Unlock()
-					}
-					if val.Power < *minAxisY {
-						mux.Lock()
-						*minAxisY = val.Power
-						mux.Unlock()
-					}
-					if val.Power > *maxAxisY {
-						mux.Lock()
-						*maxAxisY = val.Power
-						mux.Unlock()
-					}
-
-					data.Set("WindSpeed", val.AvgWindSpeed)
-					data.Set("Power", val.Power)
-					data.Set("valueColor", colorField[index])
-
-					datas = append(datas, data)
-				}
-				seriesData = setScatterData("Wind Speed", "WindSpeed", "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
+			typeDetail := map[string]tk.M{
+				"rotor": tk.M{
+					"field":      "rotorrpm",
+					"seriesname": "Rotor RPM",
+					"xfieldname": "Rotor",
+				},
+				"pitch": tk.M{
+					"field":      "avgbladeangle",
+					"seriesname": "Pitch Angle",
+					"xfieldname": "Pitch",
+				},
+				"generatorrpm": tk.M{
+					"field":      "generatorrpm",
+					"seriesname": "Generator RPM",
+					"xfieldname": "Generator",
+				},
+				"windspeed": tk.M{
+					"field":      "avgwindspeed",
+					"seriesname": "Wind Speed",
+					"xfieldname": "WindSpeed",
+				},
 			}
-			seriesData.Unset("name")
+			typeSelected := typeDetail[p.ScatterType]
+			fieldName := typeSelected.GetString("field")
+			seriesName := typeSelected.GetString("seriesname")
+			xFieldName := typeSelected.GetString("xfieldname")
+			for _, val := range list {
+				data = tk.M{}
+				if val.GetFloat64(fieldName) < *minAxisX {
+					mux.Lock()
+					*minAxisX = val.GetFloat64(fieldName)
+					mux.Unlock()
+				}
+				if val.GetFloat64(fieldName) > *maxAxisX {
+					mux.Lock()
+					*maxAxisX = val.GetFloat64(fieldName)
+					mux.Unlock()
+				}
+				if val.GetFloat64("power") < *minAxisY {
+					mux.Lock()
+					*minAxisY = val.GetFloat64("power")
+					mux.Unlock()
+				}
+				if val.GetFloat64("power") > *maxAxisY {
+					mux.Lock()
+					*maxAxisY = val.GetFloat64("power")
+					mux.Unlock()
+				}
+
+				data.Set(xFieldName, val.GetFloat64(fieldName))
+				data.Set("Power", val.GetFloat64("power"))
+				data.Set("valueColor", colorField[index])
+
+				datas = append(datas, data)
+			}
+			seriesData = setScatterData(seriesName, xFieldName, "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
+			seriesData.Set("name", turbineName[turbine]+" ("+p.DateStart.Format("02-Jan-2006")+"  to "+p.DateEnd.Format("02-Jan-2006")+")")
 			mux.Lock()
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()
@@ -1421,6 +1469,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		DateEnd       time.Time
 		Turbine       string
 		Project       string
+		Engine        string
 		ScatterType   string
 		LessValue     float64
 		GreaterValue  float64
@@ -1455,7 +1504,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 	turbine := p.Turbine
 	project := p.Project
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1592,11 +1641,9 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 			if e != nil {
 				break
 			}
-			// tk.Printf("List 10 min : %#v\n", _list10Min)
 			list10Min = append(list10Min, _list10Min)
 			// countList++
 		}
-		// tk.Printf("%#v\n", list10Min)
 
 		defer csr.Close()
 	}
@@ -1649,7 +1696,6 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 			scatterData = tk.M{}
 			scatterData.Set("WindSpeed", val.AvgWindSpeed)
 			scatterData.Set("Power", val.Power)
-			//tk.Println("Dev = ", val.NacelleDeviation)
 			if val.WindDirection < lessDev {
 				scatterDatas1 = append(scatterDatas1, scatterData)
 			}
@@ -1693,7 +1739,6 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 			windspeed_std_dev := val.GetFloat64("windspeed_ms_stddev")
 			scatterData.Set("WindSpeed", windspeed_ms)
 			scatterData.Set("Power", activepower_kw)
-			//tk.Println("Dev = ", val.NacelleDeviation)
 			if windspeed_std_dev < lessDev {
 				scatterDatas1 = append(scatterDatas1, scatterData)
 			}
@@ -1712,12 +1757,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 			windspeed_ms := val.GetFloat64("windspeed_ms")
 			windspeed_std_dev := val.GetFloat64("windspeed_ms_stddev")
 			windspeed_ti := tk.Div(windspeed_std_dev, windspeed_ms)
-			// tk.Println("ws ms", windspeed_ms)
-			// tk.Println("ws dv", windspeed_std_dev)
-			// tk.Println("ws ti", windspeed_ti)
 			scatterData.Set("WindSpeed", windspeed_ms)
 			scatterData.Set("Power", activepower_kw)
-			//tk.Println("Dev = ", val.NacelleDeviation)
 			if windspeed_ti < lessDev {
 				scatterDatas1 = append(scatterDatas1, scatterData)
 			}
@@ -1733,7 +1774,6 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	// 		scatterData = tk.M{}
 	// 		scatterData.Set("WindSpeed", val.AvgWindSpeed)
 	// 		scatterData.Set("Power", val.Power)
-	// 		//tk.Println("Dev = ", val.NacelleDeviation)
 	// 		if val.WindDirection < lessDev {
 	// 			scatterDatas1 = append(scatterDatas1, scatterData)
 	// 		}
@@ -1832,6 +1872,12 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	tNow := time.Now()
+	if tEnd.Sub(tNow).Hours() > 0.0 {
+		tEnd, _ = time.Parse("20060102", tNow.Format("20060102"))
+	}
+
 	turbine := p.Turbine
 	project := p.Project
 	colors := p.Color
@@ -1862,7 +1908,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurve(k *knot.WebContext) interfa
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	totalDays := tk.Div(p.DateEnd.Sub(p.DateStart).Hours(), 24.0) + 1
+	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0)
 	totalDataShouldBe := totalDays * 144
 
 	selArr := 0
@@ -2115,7 +2161,7 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 	project := p.Project
 	colors := p.Color
 
-	pcData, e := getPCData(project, true)
+	pcData, e := getPCData(project, p.Engine, true)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -2170,10 +2216,20 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 	return helper.CreateResult(true, data, "success")
 }
 
-func getPCData(project string, issitespecific bool) (pcData tk.M, e error) {
+func getPCData(project string, engine string, issitespecific bool) (pcData tk.M, e error) {
 	powerCurve := []PowerCurveModel{}
 
-	csr, e := DB().Connection.NewQuery().From(new(PowerCurveModel).TableName()).Where(dbox.Eq("model", project)).Order("windspeed").Cursor(nil)
+	filter := dbox.Eq("model", project)
+	if engine != "" {
+		filter = dbox.And(filter, dbox.Eq("engine", engine))
+	}
+
+	csr, e := DB().Connection.NewQuery().
+		From(new(PowerCurveModel).
+			TableName()).
+		Where(filter).
+		Order("windspeed").
+		Cursor(nil)
 	if e != nil {
 		return
 	}
@@ -2230,4 +2286,41 @@ func (m *AnalyticPowerCurveController) GetDownList(k *knot.WebContext) interface
 	}
 
 	return helper.CreateResult(true, result, "success")
+}
+
+func getPCFilter(project string, engine string, turbine []interface{}, dateStart time.Time, dateEnd time.Time, isValid bool, isDeviation bool, deviationOpr string, deviationValue string, colDeviation string) []*dbox.Filter {
+	var filter []*dbox.Filter
+
+	if project != "" {
+		filter = append(filter, dbox.Eq("projectname", project))
+	}
+
+	dOpr := tk.ToInt(deviationOpr, tk.RoundingAuto)
+	dVal := (tk.ToFloat64(tk.ToInt(deviationValue, tk.RoundingAuto), 2, tk.RoundingUp) / 100.0)
+
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("dateinfo.dateid", dateStart))
+	filter = append(filter, dbox.Lte("dateinfo.dateid", dateEnd))
+	filter = append(filter, dbox.Ne("turbine", ""))
+	filter = append(filter, dbox.Eq("projectname", project))
+	filter = append(filter, dbox.Eq("available", 1))
+
+	if isValid {
+		filter = append(filter, dbox.Eq("isvalidstate", true))
+	}
+
+	if isDeviation {
+		if dOpr > 0 {
+			filter = append(filter, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
+		} else {
+			filter = append(filter, dbox.And(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
+		}
+	}
+
+	// temporary
+	filter = append(filter, dbox.Ne("power", 0.0))
+	filter = append(filter, dbox.Ne("power", nil))
+	filter = append(filter, dbox.Ne("avgwindspeed", nil))
+
+	return filter
 }

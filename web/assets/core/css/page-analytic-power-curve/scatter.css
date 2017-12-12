@@ -1,3 +1,8 @@
+.label-to{
+    width:40px;
+    text-align: center;
+    margin-left: -5px;
+}
 .Epdf{
     margin-top: -30px;
     margin-right: 20px;
@@ -60,10 +65,10 @@
     border-radius: 0 0 0.5em 0.5em;
 }
 .mgb10{
-margin-bottom: 2px;
+    margin-bottom: 7px;
 }
 .mt15{
-    margin-top: 2.5%;
+    margin-top: 15px;
 }
 .turbine-list{
     width: 150px;
@@ -73,4 +78,45 @@ margin-bottom: 2px;
 }
 .period-list{
     width: 75px;
+}
+.totalavail_info {
+    position: absolute;
+    top: 43px;
+    right: 13px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 4px;
+    width: 85px;
+    font-size: 10px;
+}
+.dataavail_info {
+    position: absolute;
+    top: 66px;
+    right: 13px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 5px;
+    width: 85px;
+    font-size: 10px;
+}
+.form-part{
+    padding-left: 10px;
+}
+
+.template-pdf{
+    display: none;
+}
+
+.k-pdf-export .title-pdf{
+    margin-top: -30px;
+    font-size: 12px !important;
+    margin-bottom: 30px;
+}
+.k-pdf-export .template-pdf {
+    display: block;
+}
+.k-pdf-export #legend {
+    display: block; 
 }

@@ -649,7 +649,7 @@ func ReadHFDFile(path string, tags []string) (result []HFDModel, e error) {
 			break
 		}
 
-		if len(record) > 4 && strings.ToLower(record[4]) != "good" {
+		if len(record) > 4 && strings.ToLower(record[4]) != "good" && strings.ToLower(record[4]) != "" {
 			continue
 		}
 
