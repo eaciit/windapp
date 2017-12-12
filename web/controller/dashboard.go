@@ -2812,9 +2812,6 @@ func getTotalDownTurbine(project string, currentDate time.Time, dayDuration int)
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	rconn := DBRealtime()
-	for _, val := range pipes {
-		tk.Println(val)
-	}
 
 	hasil := []tk.M{}
 	csr, e := rconn.NewQuery().
@@ -2994,7 +2991,6 @@ func setMapData() (result tk.M) {
 		servtstamp = dt.Get("lasttimeserver", time.Time{}).(time.Time).UTC()
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
-		currturbine.Set(_tTurbine, 1)
 		if lastProject != _tProject {
 			if lastProject != "" {
 				if len(currturbine) == dataNa {
@@ -3027,6 +3023,7 @@ func setMapData() (result tk.M) {
 			dataNa, dataDowns, greyDowns = 0, 0, 0
 			turbineDownListByProject = []tk.M{}
 		}
+		currturbine.Set(_tTurbine, 1)
 		turbineStatus[_tTurbine] = "green"
 		if t0.Sub(tstamp).Minutes() <= 5 || servt0.Sub(servtstamp).Minutes() <= 5 {
 			isDataComing = true
