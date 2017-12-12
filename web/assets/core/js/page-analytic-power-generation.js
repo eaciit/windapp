@@ -3,6 +3,10 @@
 viewModel.ClusterWiseGeneration = new Object();
 var page = viewModel.ClusterWiseGeneration;
 
+vm.currentMenu('DGR Cluster');
+vm.currentTitle('DGR Cluster');
+vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'DGR Cluster', href: viewModel.appName + 'page/clusterwisegeneration' }]);
+
 page.dataSource = ko.observableArray([]);
 page.GenerationDetails = {
     Id          : "ClusterWise",
