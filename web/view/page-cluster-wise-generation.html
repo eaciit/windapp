@@ -2,18 +2,42 @@
     app.currentDateData = '{{.CurrentDateData}}';
 	vm.menu({{.Menus}});
 </script>
-<script src="{{BaseUrl}}res/core/js/page-analytic-key-metrics.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-analytic-power-generation.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-key-metrics.css">
+
 <script id="template" type="text/x-kendo-template">
   <div><b>#: category #</b></div>
   # for (var i = 0; i < points.length; i++) {
-        if(i==1) { #
-            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# #: points[i].series.satuan#</span></div>
+       if(points[i].series.axis == 'avail') { #
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n0')# </span></div>
   #     } else { #
-            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')# #: points[i].series.satuan#</span></div>
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')#</span></div>
   #     }
     } #
 </script>
+<style type="text/css">
+	.k-grid tr td {
+	    border: 1px solid #BDBDBD !important;
+	    border-bottom: 1px solid #fff !important;
+	    border-top: 1px solid #fff !important;
+	}
+	#cluster >.k-widget{
+     border-color: #fff !important; 
+	}
+	#cluster > .k-grid tr td:nth-child(1) {
+	    border: 1px solid #fff !important;
+	}
+	#cluster > .k-grid table tbody tr:not(.k-detail-row):hover {
+	    background: #ffffff;
+	    color: #585555;
+	}
+	#cluster > #ClusterWiseGrid > table > tbody > tr{
+		height: 70px;
+		width: 1197px;
+	    margin-top: -25px;
+	    margin-left: -0.5px;
+	}
+</style>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -25,15 +49,14 @@
 					</div> -->
 					<div class="panel-body">
 						{{template "_dateinfo.html"}}
-						<div class="col-md-9">
-							<a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf" data-bind="click: km.ExportKeyMetrics" style="margin-top: -45px;margin-right: 20px;cursor:pointer">
+						<div class="col-md-12" data-bind="with:page.GenerationDetails" id="cluster">
+							<!-- <a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf"  style="margin-top: -45px;margin-right: 20px;cursor:pointer">
 								<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-							</a>
-							<div id="km-chart"></div>
+							</a> -->
+							<div id="ClusterWiseChart" data-bind="visible:!IsLoading()"></div>
+							<div id="ClusterWiseGrid" data-bind="visible:!IsLoading()"></div>
 							<div class="clearfix">&nbsp;</div>
 						</div>
-						<br><br>
-						{{template "_filter-right.html"}}
 					</div>
 				</div>
 			</div>
