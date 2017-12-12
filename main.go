@@ -2,7 +2,7 @@ package main
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	// . "eaciit/wfdemo-git/library/models"
+	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web"
 	. "eaciit/wfdemo-git/web/controller"
 	"eaciit/wfdemo-git/web/helper"
@@ -78,7 +78,7 @@ func main() {
 			return true
 		},
 		"postrequest": func(r *knot.WebContext) interface{} {
-			// WriteLog(r.Session("sessionid", ""), "access", r.Request.URL.String()) // Accident error, try other method
+			WriteLog(r.Session("sessionid", ""), "access", r.Request.URL.String())
 			return true
 		},
 	}
