@@ -876,6 +876,15 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	isDataComing := false
 	var tstamp, servtstamp time.Time
 	keys := ""
+
+	// jika ada beberapa turbine yang belum pernah masuk datanya sama sekali, dianggap NA
+	realTotalTurbine := map[string]int{}
+	for _, val := range dataProjects {
+		realTotalTurbine[val.GetString("projectid")] = val.GetInt("totalturbine")
+	}
+	lastProject := ""
+	turbineCount := 0
+
 	for _, dt := range lastUpdateRealtime {
 		ids, _ := tk.ToM(dt.Get("_id"))
 		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
@@ -883,6 +892,19 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
+
+		// jika ada beberapa turbine yang belum pernah masuk datanya sama sekali, dianggap NA
+		if _tProject != lastProject {
+			if lastProject != "" {
+				diffCount := realTotalTurbine[lastProject] - turbineCount
+				if diffCount > 0 {
+					dataNa[lastProject] = dataNa[lastProject] + diffCount
+				}
+			}
+			turbineCount = 0
+			lastProject = _tProject
+		}
+		turbineCount++
 		if t0.Sub(tstamp.UTC()).Minutes() <= 5 || servt0.Sub(servtstamp.UTC()).Minutes() <= 5 {
 			isDataComing = true
 		} else {
@@ -906,7 +928,13 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				waitingForWsProject[_tProject]++
 			}
 		}
-		dataNa[dt.GetString("_id")] = dt.GetInt("count")
+	}
+
+	if lastProject != "" {
+		diffCount := realTotalTurbine[lastProject] - turbineCount
+		if diffCount > 0 {
+			dataNa[lastProject] = dataNa[lastProject] + diffCount
+		}
 	}
 
 	// make a model for data detail from the realtime data
