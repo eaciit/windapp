@@ -428,7 +428,13 @@ app.runAfter = function () {
 };
 
 app.resetLocalStorage = function(){
+    var SummaryMode = localStorage.getItem('SummaryMode') ; 
+
     localStorage.clear();
+    if(SummaryMode != null){
+        localStorage.setItem('SummaryMode', SummaryMode);
+    }
+    
 }
 
 viewModel.StringExt = new Object();
