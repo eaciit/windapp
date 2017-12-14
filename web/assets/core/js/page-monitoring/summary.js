@@ -12,6 +12,7 @@ vm.breadcrumb([
 
 summary.isFirstOverAll = ko.observable(true);
 summary.isFirstAllFarms = ko.observable(true);
+summary.getMode = ko.observable(localStorage.getItem('SummaryMode'));
 
 var $overAllInterval = false, $allFarmsInterval = false, $intervalTime = 2500;
 
@@ -19,7 +20,7 @@ summary.LoadAllFarms = function(){
 	$.when(bpc.getWeather()).done(function(){
     	bpc.getData();	
     	summary.isFirstAllFarms(false);	
-    	$allFarmsInterval = bpc.refresh();
+    	// $allFarmsInterval = bpc.refresh();
     });
 	
 }
@@ -28,7 +29,7 @@ summary.LoadOverAll = function(){
 	app.loading(true);
 	page.getData();
 	summary.isFirstOverAll(false);
-	$overAllInterval = setInterval(page.getData, $intervalTime);
+	// $overAllInterval = setInterval(page.getData, $intervalTime);
 }
 
 summary.SelectMode = function(type) {
@@ -36,10 +37,12 @@ summary.SelectMode = function(type) {
 	if(type	== 'overall') {
 		clearInterval($allFarmsInterval);
 		$allFarmsInterval = false;
+		localStorage.setItem('SummaryMode', 'Overall');
 		summary.LoadOverAll();
 	} else {
 		clearInterval($overAllInterval)
 		$overAllInterval = false;
+		localStorage.setItem('SummaryMode', 'AllFarms');
 		summary.LoadAllFarms();
 	}
 }
@@ -52,6 +55,10 @@ summary.abortAll = function(requests) {
 }
 
 $(function() {
-	summary.SelectMode('allfarm');
+	if(summary.getMode() == null){
+		summary.SelectMode('allfarm');
+	}else{
+ 		$('.nav-pills a[href="#'+summary.getMode()+'"]').trigger("click");
+	}
 });
 

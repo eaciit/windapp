@@ -252,7 +252,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		tk.M{"isnull": false},
 		tk.M{"timestamp": tk.M{"$gte": tStart}},
 		tk.M{"timestamp": tk.M{"$lte": tEnd}},
+		// TEMPORARY SOLUTION,sampek disemprot mak e gara2 gak ngerti kudu lapho, kita selalu salah di mata wanita
+		tk.M{colName: tk.M{"$lte": 200}},
 	}
+
 	pipes = []tk.M{
 		tk.M{"$match": tk.M{"$and": matches}},
 	}

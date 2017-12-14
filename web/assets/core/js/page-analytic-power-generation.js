@@ -306,9 +306,10 @@ page.RenderGenerationWidget = function(master, isDetail, site){
     categoryCluster.sort(function(a,b){return a-b});
 
     $.each(categoryCluster, function(key, val){
-        var tableSelector = $('#ClusterWiseGrid >table>tbody>tr>td:contains('+val+')');
+        var tableSelector = $('#ClusterWiseGrid >table>tbody>tr>td').filter(function() {
+                                return $(this).text() === val.toString();
+                            })
         var length = tableSelector.length;
-
         $.each(tableSelector, function(i, val){
             if(i < length-1){
                 tableSelector.eq(i).remove();

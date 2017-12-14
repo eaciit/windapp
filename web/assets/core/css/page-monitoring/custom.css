@@ -308,6 +308,10 @@ ul#date_timeview.k-list.k-reset{
  background:  #fff;
 }
 
+.col-md-2{
+    padding-right: 0px;
+}
+
 
 /* layout scheme */
 /*.span-saved-views {
