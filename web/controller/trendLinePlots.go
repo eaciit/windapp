@@ -426,6 +426,8 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		tk.M{"isnull": false},
 		tk.M{"dateinfo.dateid": tk.M{"$gte": DateStart}},
 		tk.M{"dateinfo.dateid": tk.M{"$lte": DateEnd}},
+		// TEMPORARY SOLUTION
+		tk.M{colName: tk.M{"$lte": 200}},
 	}
 	if project != "" {
 		matches = append(matches, tk.M{"projectname": project})
