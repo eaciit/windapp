@@ -20,7 +20,7 @@ summary.LoadAllFarms = function(){
 	$.when(bpc.getWeather()).done(function(){
     	bpc.getData();	
     	summary.isFirstAllFarms(false);	
-    	// $allFarmsInterval = bpc.refresh();
+    	$allFarmsInterval = bpc.refresh();
     });
 	
 }
@@ -29,7 +29,7 @@ summary.LoadOverAll = function(){
 	app.loading(true);
 	page.getData();
 	summary.isFirstOverAll(false);
-	// $overAllInterval = setInterval(page.getData, $intervalTime);
+	$overAllInterval = setInterval(page.getData, $intervalTime);
 }
 
 summary.SelectMode = function(type) {
