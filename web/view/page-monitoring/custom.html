@@ -84,7 +84,7 @@
                     <div class="col-md-12 allfarms">
                         <article id="sortable" data-bind="foreach: bpc.projectList">
                           <section class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }">
-                                <h4 class="cusmon-title text-left" data-bind="click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}">
+                                <h4 class="cusmon-title text-left" data-bind="singleOrDoubleClick:{ click:function(){page.ToByProject(ProjectId)},dblclick : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}}">
                                     <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
                                     <!-- <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span> -->
                                      <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="attr: {id:'timemax_'+ProjectId}"></span>
