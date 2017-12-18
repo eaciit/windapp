@@ -84,7 +84,7 @@ func (w *PageController) DataBrowser(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-databrowser.html"
-	return w.GetParams(r, true).Set("ColumnList", GetCustomFieldList()).Set("HDFColList", GetHFDCustomFieldList())
+	return w.GetParams(r, true).Set("ColumnList", GetCustomFieldList()).Set("HFDColList", GetHFDCustomFieldList())
 }
 
 /*func (w *PageController) DataBrowserNew(r *knot.WebContext) interface{} {
@@ -323,7 +323,14 @@ func (w *PageController) DataEntryTurbine(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-dataentry-turbine.html"
 
-	return w.GetParams(r, false)
+	return w.GetParams(r, true)
+}
+func (w *PageController) DataEntryThreshold(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-strangethreshold.html"
+
+	return w.GetParams(r, true)
 }
 func (w *PageController) Access(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate

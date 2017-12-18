@@ -37,6 +37,30 @@ func (m *TurbineMaster) TableName() string {
 	return "ref_turbine"
 }
 
+
+type StrangethresholdMaster struct {
+	ID             string ` bson:"_id" json:"_id" `
+	Max      	   float64
+	Min    		   float64
+	ProjectName    []string
+	Tags           string
+	Type           string
+}
+
+func (m *StrangethresholdMaster) New() *StrangethresholdMaster {
+	m.ID = m.Type + "_" + m.Tags
+	return m
+}
+
+func (m *StrangethresholdMaster) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *StrangethresholdMaster) TableName() string {
+	return "ref_strangethreshold"
+}
+
+
 type ProjectMaster struct {
 	orm.ModelBase     `bson:"-" json:"-"`
 	ID                bson.ObjectId ` bson:"_id" json:"_id" `
@@ -90,3 +114,14 @@ type ProjectOut struct {
 	STD_AirDensity    float64
 	Engine            []string
 }
+
+
+type StrangethresholdOld struct {
+	StrangethresholdId             string
+	Max      	   float64
+	Min    		   float64
+	ProjectName    []string
+	Tags           string
+	Type           string
+}
+

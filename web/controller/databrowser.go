@@ -112,19 +112,80 @@ func GetHFDCustomFieldList() []tk.M {
 	// 	atkm = append(atkm, tkm)
 	// }
 	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").
-		Where(dbox.Eq("enable", true)).Order("order").Cursor(nil)
+		Order("order").Cursor(nil)
 	if e != nil {
 		tk.Println(e.Error())
 	}
 	defer csr.Close()
-	e = csr.Fetch(&atkm, 0, false)
-	if e != nil {
-		tk.Println(e.Error())
+
+	minMaxTagList := map[string]bool{
+		"windspeed_ms":       true,
+		"activepower_kw":     true,
+		"reactivepower_kvar": true,
+		"rotorspeed_rpm":     true,
+		"genspeed_rpm":       true,
+		"pitchangle":         true,
+		"pitchangle1":        true,
+		"pitchangle2":        true,
+		"pitchangle3":        true,
+		"gridfrequencyhz":    true,
+		"gridppvphaseab":     true,
+		"gridppvphasebc":     true,
+		"gridppvphaseca":     true,
+		"gridcurrent":        true,
+		"nacellepos":         true,
+		"nacelledeviation":   true,
+		"winddirection":      true,
 	}
-	for _, val := range atkm {
-		val.Set("_id", strings.ToLower(val.GetString("realtimefield")))
-		val.Unset("fieldname")
+	minMaxList := []string{"min", "max", "stddev"}
+	lastOrderPerProject := map[string]int{}
+
+	_data := tk.M{}
+	additionalData := []tk.M{}
+	for {
+		_data = tk.M{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break
+		}
+		isTemp := strings.Contains(strings.ToLower(_data.GetString("realtimefield")), "temp")
+		isEnable := _data.Get("enable", false).(bool)
+		if isTemp || isEnable { /* jika tags temperature atau tags yang enable */
+			idLower := strings.ToLower(_data.GetString("realtimefield"))
+			atkm = append(atkm, tk.M{
+				"_id":         idLower,
+				"label":       _data.GetString("label"),
+				"order":       _data.GetInt("order"),
+				"projectname": _data.GetString("projectname"),
+				"source":      _data.GetString("source"),
+			})
+			lastOrderPerProject[_data.GetString("projectname")] = _data.GetInt("order")
+			/* kasih min, max dan stddev buat temperature tags */
+			if isTemp || minMaxTagList[idLower] { /* jika tags temperature atau tags tertentu, tambahkan min, max, stddev */
+				for _, minMaxVal := range minMaxList {
+					additionalData = append(additionalData, tk.M{
+						"_id":         idLower + "_" + minMaxVal,
+						"label":       _data.GetString("label") + " " + strings.Title(minMaxVal),
+						"order":       -999,
+						"projectname": _data.GetString("projectname"),
+						"source":      _data.GetString("source"),
+					})
+				}
+			}
+		}
 	}
+
+	for _, val := range additionalData { /* masukkan order yang benar (agak gak penting sih) */
+		atkm = append(atkm, tk.M{
+			"_id":         val.GetString("_id"),
+			"label":       val.GetString("label"),
+			"order":       lastOrderPerProject[val.GetString("projectname")] + 1,
+			"projectname": val.GetString("projectname"),
+			"source":      val.GetString("source"),
+		})
+		lastOrderPerProject[val.GetString("projectname")]++
+	}
+
 	/*startIndex := len(atkm)
 	for i, str := range _amettower_field {
 		startIndex++
