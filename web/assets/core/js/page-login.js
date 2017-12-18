@@ -141,6 +141,7 @@ $(function () {
 			lg.ErrorMessage(res.message);
 
 			if (res.message == "Login Success") {
+				localStorage.clear();
 				window.location = viewModel.appName + "page/monitoringbyproject";
 			}
 		});

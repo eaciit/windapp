@@ -218,6 +218,7 @@ $(function () {
         });
         // vm.getMenuList();
         // vm.prepareDropDownMenu();
+        localStorage.clear();
         vm.prepareFilterToggle();
         vm.adjustLayout();
         vm.prepareToggleFilter();
