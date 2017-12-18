@@ -323,7 +323,14 @@ func (w *PageController) DataEntryTurbine(r *knot.WebContext) interface{} {
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-dataentry-turbine.html"
 
-	return w.GetParams(r, false)
+	return w.GetParams(r, true)
+}
+func (w *PageController) DataEntryThreshold(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-strangethreshold.html"
+
+	return w.GetParams(r, true)
 }
 func (w *PageController) Access(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
