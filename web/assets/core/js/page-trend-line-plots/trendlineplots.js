@@ -91,7 +91,7 @@ tlp.getPDF = function(selector){
 }
 
 tlp.getAvailDate = function(){
-    app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
+    return app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -426,21 +426,16 @@ $(document).ready(function() {
         }
     });
 
-    setTimeout(function() {
-
+    $.when(tlp.getAvailDate()).done(function(){
+        fa.checkTurbine();
         if(fa.LoadData()) {
-            tlp.getAvailDate();
-            fa.checkTurbine();
-            tlp.initChart();
+            var project = $('#projectList').data("kendoDropDownList").value();
             var dateStart = $('#dateStart').data('kendoDatePicker').value();
             var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
-
-
-            tlp.project(fa.project);
+            tlp.project(project);
             tlp.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             tlp.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+            tlp.initChart();
         }
-
-    }, 300);
-
+    })
 });
