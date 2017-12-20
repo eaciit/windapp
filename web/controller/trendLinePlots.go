@@ -380,10 +380,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	for _, val := range AvgTlp {
 
-		if val < minValue && val < 999999 {
+		if val < minValue && val != 999999 {
 			minValue = val
 		}
-		if val > maxValue {
+		if val > maxValue && val != 999999 {
 			maxValue = val
 		}
 	}
