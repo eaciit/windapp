@@ -225,7 +225,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 			}
 			if !dateFound {
-				datas = append(datas, -99999.99999)
+				datas = append(datas, 999999)
 			}
 		}
 		if deviationStatus {
@@ -380,7 +380,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	for _, val := range AvgTlp {
 
-		if val < minValue && val > -99999.99999 {
+		if val < minValue && val < 999999 {
 			minValue = val
 		}
 		if val > maxValue {
@@ -466,7 +466,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 			}
 		}
 		if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-			datas = append(datas, -99999.99999)
+			datas = append(datas, 999999)
 		}
 	}
 
