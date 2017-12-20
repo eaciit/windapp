@@ -357,7 +357,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 			}
 			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-				datas = append(datas, -99999.99999)
+				datas = append(datas, 999999)
 			}
 		}
 
