@@ -109,7 +109,7 @@ page.LoadData = function(){
         project: project
     };
 
-    toolkit.ajaxPost(viewModel.appName + "clusterwisegeneration/getdata", param, function (res) {
+    toolkit.ajaxPost(viewModel.appName + "clusterwisegeneration/getdatadgr", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -127,6 +127,7 @@ page.LoadData = function(){
                 sumGeneration : kendo.toString(val.sumGeneration.value , 'n2'),
                 averageGa: kendo.toString(val.averageGa.value, 'n2'),
                 averageMa: kendo.toString(val.averageMa.value, 'n2'),
+                averageRa: kendo.toString(val.averageRa.value, 'n2'),
                 
             }
             datas.push(data);
@@ -230,7 +231,17 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             markers: {
                 visible: false,
             },
-        }
+        }// },{
+        //     name: "Average of RA (%)",
+        //     axis : "avail",
+        //     field : "averageRa",
+        //     type: "line",
+        //     color: "#800080",
+        //     width: 3,
+        //     markers: {
+        //         visible: false,
+        //     },
+        // }
     ];
     chart.valueAxes = [{
             name: "generation",
@@ -344,8 +355,10 @@ $(function(){
     });
 
     setTimeout(function(){
-        di.getAvailDate();
-        fa.LoadData();
-        page.LoadData();
+        // di.getAvailDate();
+        $.when(di.getAvailDate()).done(function(){
+            fa.LoadData();
+            page.LoadData();
+        })
     },300);
 });
