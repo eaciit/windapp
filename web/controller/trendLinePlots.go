@@ -147,7 +147,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	metData.Set("type", "line")
 	metData.Set("style", "smooth")
 	metData.Set("dashType", "solid")
-	metData.Set("markers", tk.M{"visible": false})
+	metData.Set("markers", tk.M{"visible": true})
 	metData.Set("width", 2)
 	metData.Set("color", colorFieldTLP[selArr])
 	metData.Set("idxseries", selArr)
@@ -225,7 +225,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 			}
 			if !dateFound {
-				datas = append(datas, -99999.99999)
+				datas = append(datas, 999999)
 			}
 		}
 		if deviationStatus {
@@ -321,7 +321,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		turbineData.Set("type", "line")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
-		turbineData.Set("markers", tk.M{"visible": false})
+		turbineData.Set("markers", tk.M{"visible": true})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorFieldTLP[selArr])
 		turbineData.Set("idxseries", selArr)
@@ -357,7 +357,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 			}
 			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-				datas = append(datas, -99999.99999)
+				datas = append(datas, 999999)
 			}
 		}
 
@@ -380,10 +380,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	for _, val := range AvgTlp {
 
-		if val < minValue && val > -99999.99999 {
+		if val < minValue && val != 999999 {
 			minValue = val
 		}
-		if val > maxValue {
+		if val > maxValue && val != 999999 {
 			maxValue = val
 		}
 	}
@@ -466,7 +466,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 			}
 		}
 		if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-			datas = append(datas, -99999.99999)
+			datas = append(datas, 999999)
 		}
 	}
 
@@ -477,7 +477,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		"dashType":  "longDash",
 		"style":     "smooth",
 		"color":     "#000000",
-		"markers":   tk.M{"visible": false},
+		"markers":   tk.M{"visible": true},
 		"width":     3,
 	}
 
