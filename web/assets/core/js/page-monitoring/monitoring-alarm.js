@@ -351,6 +351,7 @@ $(document).ready(function(){
         change: function () {  
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
+            ma.LoadDataAvail(project, "alarm");
         }
     });
 });
