@@ -905,7 +905,9 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			lastProject = _tProject
 		}
 		turbineCount++
-		if t0.Sub(tstamp.UTC()).Minutes() <= 5 || servt0.Sub(servtstamp.UTC()).Minutes() <= 5 {
+		if ((t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit || servt0.Sub(servtstamp.UTC()).Minutes() <= GAMESALimit) && tk.HasMember(GAMESA, _tProject)) ||
+			((t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= SUZLONLimit) && tk.HasMember(SUZLON, _tProject)) ||
+			((t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= OTHERSLimit) && tk.HasMember(OTHERS, _tProject)) {
 			isDataComing = true
 		} else {
 			isDataComing = false
