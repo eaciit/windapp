@@ -78,11 +78,12 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	for _, val := range months {
 		listMonth = append(listMonth, tk.ToInt(val, tk.RoundingAuto))
 	}
-	sort.Ints(listMonth)
+	// sort.Ints(listMonth)
 	categoryChecker := []string{}
 	lastMonth := 0
 	idxYear := 0
-
+	// tk.Println(":1:", monthDay)
+	// tk.Println(":2:", listMonth)
 	for lm, lMonth := range listMonth {
 		if lm == 0 { /*bulan pertama*/
 			catTitle = tStart.Month().String()

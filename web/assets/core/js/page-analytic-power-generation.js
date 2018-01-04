@@ -200,6 +200,13 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             conf.IsLoading(false);
     };
         
+
+    var categoryTurbine = [];
+    var categoryCluster = [];
+    $.each(page.dataSource(), function(key, val){
+        categoryCluster.push(val.cluster)
+    });
+
     var chart  = page.InitGraph();
     chart.title.text = (site !== undefined) ? site +" "+conf.Title : conf.Title;
     chart.dataSource = master;
@@ -231,17 +238,17 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             markers: {
                 visible: false,
             },
-        }// },{
-        //     name: "Average of RA (%)",
-        //     axis : "avail",
-        //     field : "averageRa",
-        //     type: "line",
-        //     color: "#800080",
-        //     width: 3,
-        //     markers: {
-        //         visible: false,
-        //     },
-        // }
+        },{
+            name: "Average of RA (%)",
+            axis : "avail",
+            field : "averageRa",
+            type: "line",
+            color: "#9c9c9c",
+            width: 4,
+            markers: {
+                visible: false,
+            },
+        }
     ];
     chart.valueAxes = [{
             name: "generation",
@@ -302,17 +309,21 @@ page.RenderGenerationWidget = function(master, isDetail, site){
         $(selectorGrid).kendoGrid(grid);
     }
     
+    chart.legendItemClick = function(e) {
+        setTimeout(function(){
+            page.redrawCategory(categoryCluster);
+        },300);
+    }
 
     $(selectorGraph).kendoChart(chart);
     var chart = $("#ClusterWiseChart").data("kendoChart");
     chart.redraw();
 
-    var categoryTurbine = [];
-    var categoryCluster = [];
-    $.each(page.dataSource(), function(key, val){
-        categoryCluster.push(val.cluster)
-    });
+    page.redrawCategory(categoryCluster);
+}
 
+
+page.redrawCategory = function(categoryCluster){
     categoryCluster = $.unique(categoryCluster);
     categoryCluster.sort(function(a,b){return a-b});
 
@@ -329,8 +340,6 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             }
         });
     });
-
-
 }
 
 

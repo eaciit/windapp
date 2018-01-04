@@ -116,6 +116,38 @@ func setAclDatabase() error {
 	if err := InitialSetDatabase(); err != nil {
 		return err
 	}
+	pipeProject := []toolkit.M{
+		toolkit.M{"$match": toolkit.M{"active": true}},
+		toolkit.M{"$sort": toolkit.M{"projectname": 1}},
+	}
+	csrProject, err := DB().Connection.NewQuery().
+		From("ref_project").
+		Command("pipe", pipeProject).
+		Cursor(nil)
+	defer csrProject.Close()
+
+	if err != nil {
+		return err
+	}
+
+	dataProjects := []toolkit.M{}
+	err = csrProject.Fetch(&dataProjects, 0, false)
+	if err != nil {
+		return err
+	}
+
+	for _, val := range dataProjects {
+		if val.GetString("machinetype") == "Gamesa" {
+			controller.GAMESA = append(controller.GAMESA, val.GetString("projectid"))
+			controller.GAMESALimit = val.GetFloat64("unavailablelimit")
+		} else if val.GetString("machinetype") == "Suzlon" {
+			controller.SUZLON = append(controller.SUZLON, val.GetString("projectid"))
+			controller.SUZLONLimit = val.GetFloat64("unavailablelimit")
+		} else if val.GetString("machinetype") == "Others" {
+			controller.OTHERS = append(controller.OTHERS, val.GetString("projectid"))
+			controller.OTHERSLimit = val.GetFloat64("unavailablelimit")
+		}
+	}
 
 	if err := PrepareDefaultUser(); err != nil {
 		return err
