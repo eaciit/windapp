@@ -2520,8 +2520,8 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 	mrTmp := []tk.M{}
 	grTmp := []tk.M{}
-
-	if len(machineResult) > (len(projects) * 12) {
+	// tk.Println(len(machineResult)," > ",(len(projects) * 12))
+	if len(machineResult) >= (len(projects) * 12) {
 		length := len(machineResult)
 		div := (length / len(projects))
 
