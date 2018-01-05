@@ -347,7 +347,8 @@ avail.fleetMachAvail = function (dataSource) {
     $(".legend-machine-project").html("");
 
     var length = dataSource.length;
-    var height = 160/length;
+    var height = 170/length;
+
     $.each(dataSource, function(i, val){
 
         var chartProject = '<div class="col-md-12" id="chartMachine_'+i+'"></div>';
@@ -356,7 +357,7 @@ avail.fleetMachAvail = function (dataSource) {
 
         if (i === dataSource.length - 1){ 
             legend = true;
-            height = 200/length;
+            height = 350/length;
         }
 
         $("#fleetChartMachAvail").append(chartProject);
@@ -370,7 +371,7 @@ avail.fleetGridAvail = function (dataSource) {
     $(".legend-grid-project").html("");
 
     var length = dataSource.length;
-    var height = 160/length;
+    var height = 170/length;
     $.each(dataSource, function(i, val){
 
         var chartProject = '<div class="col-md-12" id="chartGrid_'+i+'"></div>';
@@ -379,7 +380,7 @@ avail.fleetGridAvail = function (dataSource) {
 
         if (i === dataSource.length - 1){ 
             legend = true;
-            height = 200/length;
+            height = 350/length;
         }
 
         $("#fleetChartGridAvail").append(chartProject);
