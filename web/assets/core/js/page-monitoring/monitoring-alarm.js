@@ -74,7 +74,6 @@ ma.CreateGrid = function(gridType) {
         } else {
             param.turbine = fa.turbine();
             param.project = fa.project;
-            ma.LoadDataAvail(param.project, gridType);
             ma.CreateGridAlarm(gridType, param);
         }
 
@@ -347,6 +346,7 @@ $(document).ready(function(){
         $.when(ma.InitDateValue()).done(function () { 
             setTimeout(function() {
                 ma.CreateGrid("alarm");
+                ma.LoadDataAvail(fa.project, "alarm");
             }, 100);
         });
     //}, 300);
