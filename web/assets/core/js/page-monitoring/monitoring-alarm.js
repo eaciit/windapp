@@ -161,7 +161,7 @@ ma.CreateGridAlarm = function(gridType, param) {
         }, {
             field: "tag",
             title: "Tag",
-             width: 70,
+             width: 120,
              attributes: {
                 style: "text-align:center;"
             },
