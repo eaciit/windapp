@@ -1618,6 +1618,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 						Set("Status", _idt.Status).
 						Set("IsWarning", _idt.IsWarning).
 						Set("AlarmUpdate", _idt.TimeUpdate.UTC())
+
+					if project == "Rajgarh" {
+						_adesc := strings.Split(_idt.AlarmDesc, "|")
+						if len(_adesc) > 1 {
+							_itkm.Set("AlarmCode", _adesc[0])
+						}
+					}
 				}
 
 				if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
@@ -1952,14 +1959,25 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
+
 	for idx, val := range results {
 		results[idx].Set("turbine", turbineName[val.GetString("turbine")])
 		if p.Tipe == "alarmraw" {
 			key := tk.ToString(tk.ToInt(results[idx].GetFloat64("value"), tk.RoundingAuto))
+			if p.Project == "Rajgarh" {
+				key = results[idx].GetString("value")
+			}
+
 			if results[idx].GetString("tag") == "TurbineState" {
 				results[idx].Set("description", reffturbinestate.GetString(key))
 			} else {
 				results[idx].Set("description", reffalarmbrake.GetString(key))
+			}
+		} else if p.Project == "Rajgarh" && p.Tipe == "alarm" {
+			//alarmdesc, alarmcode
+			_adesc := strings.Split(results[idx].GetString("alarmdesc"), "|")
+			if len(_adesc) > 1 {
+				results[idx].Set("alarmcode", _adesc[0])
 			}
 		}
 	}
@@ -2483,10 +2501,12 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Tejuva"
 	case "Amba", "Sattigeri":
 		project = "Amba"
+	case "Rajgarh":
+		project = "Rajgarh"
 	}
 
 	csr, err := rconn.NewQuery().
-		Select("alarmindex", "alarmname").
+		Select("alarmindex", "alarmindexstr", "alarmname").
 		From("AlarmBrake").
 		Where(dbox.Eq("project", project)).
 		Cursor(nil)
@@ -2502,7 +2522,28 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 			break
 		}
 
-		tkm.Set(tk.ToString(result.GetInt("alarmindex")), result.GetString("alarmname"))
+		key := tk.ToString(result.GetInt("alarmindex"))
+		if project == "Rajgarh" {
+			key = result.GetString("alarmindexstr")
+		}
+
+		tkm.Set(key, result.GetString("alarmname"))
+
+		if project == "Rajgarh" {
+			skey := ""
+			for _, str := range strings.Split(key, ":") {
+				_str := strings.TrimLeft(str, "0")
+				if skey != "" {
+					skey += ":"
+				}
+				if _str == "" {
+					_str = "0"
+				}
+				skey += _str
+			}
+
+			tkm.Set(skey, result.GetString("alarmname"))
+		}
 	}
 
 	return
