@@ -146,6 +146,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -198,6 +199,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -252,6 +254,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -301,6 +304,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -351,6 +355,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -382,6 +387,7 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 	now := getTimeNow() /* bulan ini */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) /* sampai 6 bulan ke belakang */
+	periodTo = now
 
 	start := time.Now()
 
@@ -433,14 +439,14 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 				if hoursGap > 24 { /* ketika ketemu yang unavailable lagi */
 					countID++
 					// set duration for available datas
-					duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 2, tk.RoundingAuto)
+					duration = tk.ToFloat64(before.TimeStamp.UTC().Sub(from.TimeStamp.UTC()).Hours()/24, 6, tk.RoundingAuto)
 					/* durasi available mulai dari data from yang terakhir tersimpan sampai data index-1 */
 					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(from.TimeStamp, before.TimeStamp, projectName, t, duration, true, countID))
 					mtx.Unlock()
 					// set duration for unavailable datas
 					countID++
-					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+					duration = tk.ToFloat64(hoursGap/24, 6, tk.RoundingAuto)
 					/* durasi unavailable mulai dari data index-1 sampai data index saat ini */
 					mtx.Lock()
 					*details = append(*details, setDataAvailDetail(before.TimeStamp, oem.TimeStamp, projectName, t, duration, false, countID))
@@ -454,7 +460,7 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 				hoursGap = from.TimeStamp.UTC().Sub(periodFrom.UTC()).Hours()
 				if hoursGap > 24 {
 					countID++
-					duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto) /* dibuat per hari */
+					duration = tk.ToFloat64(hoursGap/24, 6, tk.RoundingAuto) /* dibuat per hari */
 					/* dianggap false (not avail) karena gap startdate defined dengan startdate actual DB > 24 jam */
 					detail = append(detail, setDataAvailDetail(periodFrom, from.TimeStamp, projectName, t, duration, false, countID))
 				}
@@ -470,7 +476,7 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 		karena jika oem-before < 24 jam akan dilewati pada logic di dalam looping di atas */
 		if hoursGap > 24 {
 			countID++
-			duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+			duration = tk.ToFloat64(hoursGap/24, 6, tk.RoundingAuto)
 			mtx.Lock()
 			*details = append(*details, setDataAvailDetail(from.TimeStamp, latestData.TimeStamp, projectName, t, duration, true, countID))
 			mtx.Unlock()
@@ -482,19 +488,19 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 		karena bisa jadi latestData yang tersimpan di DB tidak sampai time.Now */
 		if hoursGap > 24 {
 			countID++
-			duration = tk.ToFloat64(hoursGap/24, 2, tk.RoundingAuto)
+			duration = tk.ToFloat64(hoursGap/24, 6, tk.RoundingAuto)
 			detail = append(detail, setDataAvailDetail(latestData.TimeStamp, periodTo, projectName, t, duration, false, countID))
 		}
 		/* jika tidak ada additional detail sama sekali maka data dianggap FULL AVAILABLE selam 6 bulan */
 		if len(detail) == 0 {
 			countID++
-			duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
+			duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 6, tk.RoundingAuto)
 			detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, true, countID))
 		}
 	} else {
 		/* jika list data di DB tidak ada maka di set FULL UNAVAILABLE selama 6 bulan*/
 		countID++
-		duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 2, tk.RoundingAuto)
+		duration = tk.ToFloat64(periodTo.Sub(periodFrom).Hours()/24, 6, tk.RoundingAuto)
 		detail = append(detail, setDataAvailDetail(periodFrom, periodTo, projectName, t, duration, false, countID))
 	}
 	mtx.Lock()
@@ -510,6 +516,7 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 	now := getTimeNow()
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	detail := []DataAvailabilityDetail{}
 	start := time.Now()
@@ -635,6 +642,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availabilityDaily := new(DataAvailability)
 	availabilityDaily.Name = "Scada Data HFD DAILY PROJECT"
@@ -713,6 +721,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailabili
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availabilityDaily := new(DataAvailability)
 	availabilityDaily.Name = "Scada Data HFD DAILY"
@@ -761,6 +770,7 @@ func (ev *DataAvailabilitySummary) workerRangeTurbine(project, turbine string, d
 	now := getTimeNow() /* time.Now India */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
+	periodTo = now
 
 	ctx, e := PrepareConnection()
 	if e != nil {
@@ -947,6 +957,7 @@ func (ev *DataAvailabilitySummary) workerDailyTurbine(project, turbine string, d
 	now := getTimeNow() /* time.Now India */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
+	periodTo = now
 
 	ctx, e := PrepareConnection()
 	if e != nil {
