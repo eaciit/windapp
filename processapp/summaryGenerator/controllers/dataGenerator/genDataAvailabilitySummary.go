@@ -141,12 +141,12 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAOEM")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -194,12 +194,12 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -249,12 +249,12 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_METTOWER")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -299,12 +299,12 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAOEM_PROJECT")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -350,12 +350,12 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD_PROJECT")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
@@ -385,9 +385,9 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 func workerTurbine(t, projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
 	now := getTimeNow() /* bulan ini */
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) /* sampai 6 bulan ke belakang */
+	periodTo = now
 
 	start := time.Now()
 
@@ -514,9 +514,9 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 func workerProject(projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
 	now := getTimeNow()
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	detail := []DataAvailabilityDetail{}
 	start := time.Now()
@@ -637,12 +637,12 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 	}
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD_DAILY_PROJECT")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availabilityDaily := new(DataAvailability)
 	availabilityDaily.Name = "Scada Data HFD DAILY PROJECT"
@@ -716,12 +716,12 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailabili
 
 	now := getTimeNow()
 
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	id := now.Format("20060102_150405_SCADAHFD_DAILY")
 
 	// latest 6 month
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
+	periodTo = now
 
 	availabilityDaily := new(DataAvailability)
 	availabilityDaily.Name = "Scada Data HFD DAILY"
@@ -768,9 +768,9 @@ func (ev *DataAvailabilitySummary) workerRangeTurbine(project, turbine string, d
 	countID := 1
 
 	now := getTimeNow() /* time.Now India */
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
+	periodTo = now
 
 	ctx, e := PrepareConnection()
 	if e != nil {
@@ -955,9 +955,9 @@ func (ev *DataAvailabilitySummary) workerDailyTurbine(project, turbine string, d
 	countID := 1
 
 	now := getTimeNow() /* time.Now India */
-	//periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
-	periodTo := now
+	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) // latest 6 month
+	periodTo = now
 
 	ctx, e := PrepareConnection()
 	if e != nil {
