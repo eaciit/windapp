@@ -124,10 +124,10 @@ page.LoadData = function(){
             var data = {
                 turbine : val.turbine, 
                 cluster : val.cluster,
-                sumGeneration : kendo.toString(val.sumGeneration.value , 'n2'),
-                averageGa: kendo.toString(val.averageGa.value, 'n2'),
-                averageMa: kendo.toString(val.averageMa.value, 'n2'),
-                averageRa: kendo.toString(val.averageRa.value, 'n2'),
+                sumGeneration : val.sumGeneration.value,
+                averageGa: val.averageGa.value,
+                averageMa: val.averageMa.value,
+                averageRa: val.averageRa.value,
                 
             }
             datas.push(data);
@@ -135,6 +135,7 @@ page.LoadData = function(){
 
         datas =  _.sortBy(datas, ['cluster', 'turbine']);
 
+        console.log(datas);
         
         page.dataSource(data);
         // page.generateChart(data);
