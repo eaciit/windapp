@@ -74,7 +74,7 @@ pg.loadData = function(){
 
 pg.DataCon = function(){
     app.loading(true);
-    if(pg.isFirstDataCon() === true){
+    // if(pg.isFirstDataCon() === true){
 
             var dateStart = $('#dateStart').data('kendoDatePicker').value();
             var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
@@ -167,12 +167,13 @@ pg.DataCon = function(){
                     pg.isFirstDataCon(false);
                 }
             });
-    }else{
-         setTimeout(function(){
-            $("#gridSummaryDgrScada").data("kendoGrid").refresh();
-            app.loading(false);
-        },200);
-    }
+    // }
+    // else{
+    //      setTimeout(function(){
+    //         $("#gridSummaryDgrScada").data("kendoGrid").refresh();
+    //         app.loading(false);
+    //     },200);
+    // }
 }
 pg.Variance = function(){
 
@@ -193,6 +194,7 @@ vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Consistency', href:
 $(function(){
     pg.getAvailDate();
     fa.LoadData();
+
     setTimeout(function(){
         pg.loadData();
         pg.DataCon();
@@ -201,7 +203,9 @@ $(function(){
     $('#btnRefresh').on('click', function () {
         fa.checkTurbine();
         pg.resetStatus();
-        $('.nav').find('li.active').find('a').trigger( "click" );
+
+        pg.DataCon();
+        // $('.nav').find('li.active').find('a').trigger( "click" );
     });
 
     $('#projectList').kendoDropDownList({
