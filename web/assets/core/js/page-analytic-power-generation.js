@@ -359,14 +359,14 @@ $(function(){
         suggest: true,
         change: function () { 
             var project = this._old;
-            di.getAvailDate();
+            di.getAvailDate("DGRData");
             fa.populateTurbine(project);
         }
     });
 
     setTimeout(function(){
         // di.getAvailDate();
-        $.when(di.getAvailDate()).done(function(){
+        $.when(di.getAvailDate("DGRData")).done(function(){
             fa.LoadData();
             page.LoadData();
         })
