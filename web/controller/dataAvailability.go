@@ -440,13 +440,23 @@ func getParentData(project string, collType string) []tk.M {
 
 	datas := []tk.M{}
 
+	type DataStruct struct {
+		Start    time.Time
+		End      time.Time
+		IsAvail  bool
+		Duration float64
+	}
+
 	if len(list) > 0 {
+		turbineDetailsData := []DataStruct{}
+		currTotalDuration := 0.0
 		for _, dt := range list {
 			pTo := dt.Get("periodTo").(time.Time)
 			pFrom := dt.Get("periodFrom").(time.Time)
 
 			from = pFrom.UTC()
 			to = pTo.UTC()
+			totalDurationDays := to.UTC().Sub(from.UTC()).Hours() / 24 /* total hari parent yang ada di database */
 
 			availList := dt.Get("list").([]interface{})
 
@@ -457,8 +467,26 @@ func getParentData(project string, collType string) []tk.M {
 				duration := avail.GetFloat64("duration")
 				isAvail := avail.Get("isavail").(bool)
 
-				datas = append(datas, setDataColumn(start, end, isAvail, duration))
+				/* hitung dulu total durasi detail di database supaya bisa mendekati 100 %
+				untuk jaga2 sapa tau hasil summary generator antara parent dan details berbeda */
+				currTotalDuration += duration
+
+				if (currTotalDuration - totalDurationDays) < 1 { /* jika total kelebihan waktu tidak lebih dari 1 hari */
+					turbineDetailsData = append(turbineDetailsData, DataStruct{
+						start,
+						end,
+						isAvail,
+						duration,
+					})
+				} else { /* [SOLUSI TEMPORARY] jika lebih dari 1 hari maka mungkin kesalahan summary generator nya*/
+					currTotalDuration -= duration
+				}
+				// datas = append(datas, setDataColumn(start, end, isAvail, duration))
 			}
+		}
+		for _, dVal := range turbineDetailsData {
+			datas = append(datas, setDataColumns(dVal.Start, dVal.End,
+				dVal.IsAvail, dVal.Duration, currTotalDuration))
 		}
 
 	}
@@ -541,10 +569,14 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 	res := []tk.M{}
 	name := ""
+	type DataStruct struct {
+		Start    time.Time
+		End      time.Time
+		IsAvail  bool
+		Duration float64
+	}
 
 	if len(list) > 0 {
-		totalPercent := 0.0
-		diffPercent := 0.0
 		collTypeParent := collType + "_PROJECT"
 		datas := getParentData(project, collTypeParent)
 
@@ -555,11 +587,14 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 
 			from = pFrom.UTC()
 			to = pTo.UTC()
+			totalDurationDays := to.UTC().Sub(from.UTC()).Hours() / 24 /* total hari parent yang ada di database */
 
 			name = dt.GetString("name")
 			availList := dt.Get("list").([]interface{})
 
 			turbineDetails := []tk.M{}
+			currTotalDuration := 0.0
+			turbineDetailsData := []DataStruct{}
 
 			// set availability data based on index ordering in collection
 			for index := 1; index <= len(availList); index++ {
@@ -571,19 +606,27 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 						end := avail.Get("end").(time.Time).UTC()
 						duration := avail.GetFloat64("duration")
 						isAvail := avail.Get("isavail").(bool)
+						/* hitung dulu total durasi detail di database supaya bisa mendekati 100 %
+						untuk jaga2 sapa tau hasil summary generator antara parent dan details berbeda */
+						currTotalDuration += duration
 
-						turbineDetails = append(turbineDetails, setDataColumn(start, end, isAvail, duration))
+						if (currTotalDuration - totalDurationDays) < 1 { /* jika total kelebihan waktu tidak lebih dari 1 hari */
+							turbineDetailsData = append(turbineDetailsData, DataStruct{
+								start,
+								end,
+								isAvail,
+								duration,
+							})
+						} else { /* [SOLUSI TEMPORARY] jika lebih dari 1 hari maka mungkin kesalahan summary generator nya*/
+							currTotalDuration -= duration
+						}
 						break breakAvail
 					}
 				}
 			}
-			totalPercent = 0.0
-			for idx, val := range turbineDetails {
-				totalPercent += val.GetFloat64("floatval")
-				if idx == len(turbineDetails)-1 {
-					diffPercent = totalPercent - 100.0
-					turbineDetails[idx].Set("value", tk.ToString(val.GetFloat64("floatval")-diffPercent)+"%")
-				}
+			for _, dVal := range turbineDetailsData {
+				turbineDetails = append(turbineDetails, setDataColumns(dVal.Start, dVal.End,
+					dVal.IsAvail, dVal.Duration, currTotalDuration))
 			}
 
 			turbine := tk.M{"TurbineName": t}
@@ -602,15 +645,7 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 			})
 		}
 
-		if collType != "MET_TOWER" {
-			totalPercent = 0.0
-			for idx, val := range datas { /* jika percentage nya kebablasan */
-				totalPercent += val.GetFloat64("floatval")
-				if idx == len(datas)-1 {
-					diffPercent = totalPercent - 100.0
-					datas[idx].Set("value", tk.ToString(val.GetFloat64("floatval")-diffPercent)+"%")
-				}
-			}
+		if collType != "MET_TOWER" || (collType == "MET_TOWER" && project == "Tejuva") {
 			return tk.M{"Category": name, "Turbine": res, "Data": datas}
 		} else {
 			return tk.M{"Category": name, "Turbine": []tk.M{}, "Data": datas}
@@ -619,6 +654,26 @@ func getAvailCollection(project string, turbines []interface{}, collType string)
 	}
 
 	return tk.M{"Category": "", "Turbine": []tk.M{}, "Data": []tk.M{}}
+}
+
+func setDataColumns(start time.Time, end time.Time, avail bool, durationInDay, totalDurationDays float64) tk.M {
+	res := tk.M{}
+	class := "progress-bar progress-bar-success"
+
+	if !avail {
+		class = "progress-bar progress-bar-red"
+	}
+
+	percentage := durationInDay / totalDurationDays * 100
+
+	res = tk.M{
+		"tooltip":  start.Format("2 Jan 2006") + " until " + end.Format("2 Jan 2006"),
+		"class":    class,
+		"value":    tk.ToString(percentage) + "%",
+		"floatval": tk.ToFloat64(percentage, 6, tk.RoundingAuto),
+	}
+
+	return res
 }
 
 func setDataColumn(start time.Time, end time.Time, avail bool, durationInDay float64) tk.M {

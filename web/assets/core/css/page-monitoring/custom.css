@@ -180,10 +180,10 @@
 .cusmon-turbines .cusmon-name {
     color: #000;
     /*font-size: 1.5vmin;*/
-    font-size: 9px;
+    font-size: 10.5px;
     position: absolute;
-    top: 5px;
-    left: 2.5px;
+    top: 3px;
+    left: 4px;
     /*left: 12.5%;*/
 }
 .cusmon-turbines .col-xs-2, .cusmon-turbines .col-xs-4 {

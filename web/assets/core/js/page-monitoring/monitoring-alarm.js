@@ -136,11 +136,22 @@ ma.CreateGridAlarm = function(gridType, param) {
                 style: "text-align:center;"
             },
             width: 90,
-        }, {
+        },{
             field: "alarmdesc",
             title: "Description",
             width: 330
         }];
+
+    if(gridType == "alarm"){
+        columns.push({
+            field: "reduceavailability",
+            title: "Reduce Avail.",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90,
+        });
+    }
 
     if(gridType == "alarmraw"){
         columns = [{

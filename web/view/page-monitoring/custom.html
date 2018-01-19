@@ -146,10 +146,14 @@
             });
             if(turbineByFeed.length > 0) {
                 $.each(turbineByFeed, function(idx, dt){
+                    var turbname = dt.Turbine
+                    if ( dt.Project == "Rajgarh" ) {
+                        turbname = turbname.replace("KH-", "-")
+                    }
                     newFeeds.push({
                         Project: dt.Project,
                         Id: dt.Value,
-                        Name: dt.Turbine,
+                        Name: turbname,
                         Feeder: dt.Feeder,
                         Capacity: dt.Capacity,
                         IsTurbine: true,

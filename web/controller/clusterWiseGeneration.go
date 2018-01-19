@@ -147,6 +147,27 @@ func (m *ClusterWiseGeneration) GetDataDGR(k *knot.WebContext) interface{} {
 		turbineList, _ = helper.GetTurbineList(nil)
 	}
 
+	_project, _arrturb := p.Project, []interface{}{}
+	for _, aturb := range turbineList {
+		cond := false
+
+		for _, iturb := range p.Turbine {
+			if tk.ToString(iturb) == aturb.Value {
+				cond = true
+				break
+			}
+		}
+
+		if cond {
+			_project = aturb.DgrProject
+			_arrturb = append(_arrturb, aturb.DgrTurbine)
+		}
+	}
+
+	if _project == "" {
+		_project = p.Project
+	}
+
 	dataSeries := []tk.M{}
 
 	reffdgrturb := getturbinedgr(p.Project)
@@ -154,8 +175,8 @@ func (m *ClusterWiseGeneration) GetDataDGR(k *knot.WebContext) interface{} {
 	ids := tk.M{"project": "$chosensite", "turbine": "$turbine"}
 
 	matches := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lte": tEnd}}
-	matches.Set("chosensite", p.Project)
-	matches.Set("turbine", tk.M{}.Set("$in", p.Turbine))
+	matches.Set("chosensite", _project)
+	matches.Set("turbine", tk.M{}.Set("$in", _arrturb))
 
 	pipe := []tk.M{{"$match": matches},
 		{"$group": tk.M{
