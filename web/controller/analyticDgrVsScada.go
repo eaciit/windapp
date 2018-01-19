@@ -539,12 +539,15 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		turbineList, _ = helper.GetTurbineList(nil)
 	}
 
+	dgrturbine, dgrproject := []interface{}{}, p.Project
 	if len(turbine) > 0 {
 		for _, vt := range turbine {
 			for _, v := range turbineList {
 				if vt == v.Value {
 					turbinecapacity += v.Capacity
 					totalTurbine += 1
+					dgrturbine = append(dgrturbine, v.DgrTurbine)
+					dgrproject = v.DgrProject
 				}
 			}
 		}
@@ -700,22 +703,22 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": tEnd}})
 
 	if project != "" {
-		query = append(query, tk.M{"chosensite": project})
+		query = append(query, tk.M{"chosensite": dgrproject})
 	}
 
-	reffdgrturb := getturbinedgr(project)
+	// reffdgrturb := getturbinedgr(project)
 	if len(turbine) != 0 {
-		intturbine := []string{}
-		for _, _turb := range turbine {
-			intturbine = append(intturbine, reffdgrturb.GetString(tk.ToString(_turb)))
-		}
-		query = append(query, tk.M{"turbine": tk.M{"$in": intturbine}})
+		// intturbine := []string{}
+		// for _, _turb := range turbine {
+		// 	intturbine = append(intturbine, reffdgrturb.GetString(tk.ToString(_turb)))
+		// }
+		query = append(query, tk.M{"turbine": tk.M{"$in": dgrturbine}})
 	}
 	// tk.Println(">>> ", query)
 	pipes = nil
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{
-		"_id": "$chosensite",
+		"_id":                 "$chosensite",
 		"genkwhday":           tk.M{"$sum": "$genkwhday"},
 		"lostenergy":          tk.M{"$sum": "$lostenergy"},
 		"gridavailability":    tk.M{"$avg": "$intga"}, //extga
@@ -743,7 +746,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		"wtgunscheduled": tk.M{"$sum": "$wtgunscheduled"},
 		"rowmcoem":       tk.M{"$sum": "$rowmcoem"},
 		"aor":            tk.M{"$sum": "$aor"},
-		"count" : tk.M{"$sum" : 1},
+		"count":          tk.M{"$sum": 1},
 	}})
 
 	csr, e = DB().Connection.NewQuery().
@@ -806,7 +809,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	}
 
 	query = append(query, tk.M{"category": tk.M{"$ne": ""}})
-	query = append(query, tk.M{"subcategory": tk.M{"$nin": []string{"NOR", "Penalty Claim"} } })
+	query = append(query, tk.M{"subcategory": tk.M{"$nin": []string{"NOR", "Penalty Claim"}}})
 	downGroupClause := tk.M{
 		"_id":               "$category",
 		"sumbreakdownhours": tk.M{"$sum": "$breakdownhours"},
