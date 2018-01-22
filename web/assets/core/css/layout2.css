@@ -31,7 +31,7 @@
     height: 50%;
 }
 
-#loginForm {
+.loginForm {
     background: repeating-linear-gradient(45deg, white, white 10px, #fcfcfc 10px, #fcfcfc 20px);
 }
 

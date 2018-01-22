@@ -487,7 +487,7 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}
 
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
-
+	lastproject := ""
 	dataRealtimeValue := 0.0
 	tags := ""
 	tstamp, updatetstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}, time.Time{}
@@ -516,9 +516,12 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
-				if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+				if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastproject)) ||
+					(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastproject)) ||
+					(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastproject)) {
 					_itkm.Set("DataComing", 1)
 				}
+				lastproject = _tdata.GetString("projectname")
 				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
 				alldata = append(alldata, _itkm)
 			}
@@ -547,7 +550,9 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set(afield, defaultValue)
 			}
 
-			if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
+			if (t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, _tdata.GetString("projectname"))) ||
+				(t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, _tdata.GetString("projectname"))) ||
+				(t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, _tdata.GetString("projectname"))) {
 				_itkm.Set("DataComing", 1)
 			}
 
@@ -621,7 +626,9 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}
 	csr.Close()
 	if _iTurbine != "" {
-		if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+		if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastproject)) ||
+			(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastproject)) ||
+			(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastproject)) {
 			_itkm.Set("DataComing", 1)
 		}
 
@@ -876,6 +883,15 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	isDataComing := false
 	var tstamp, servtstamp time.Time
 	keys := ""
+
+	// jika ada beberapa turbine yang belum pernah masuk datanya sama sekali, dianggap NA
+	realTotalTurbine := map[string]int{}
+	for _, val := range dataProjects {
+		realTotalTurbine[val.GetString("projectid")] = val.GetInt("totalturbine")
+	}
+	lastProject := ""
+	turbineCount := 0
+
 	for _, dt := range lastUpdateRealtime {
 		ids, _ := tk.ToM(dt.Get("_id"))
 		tstamp = dt.Get("lastupdated", time.Time{}).(time.Time)
@@ -883,7 +899,22 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 		_tTurbine = ids.GetString("turbine")
 		_tProject = ids.GetString("projectname")
-		if t0.Sub(tstamp.UTC()).Minutes() <= 5 || servt0.Sub(servtstamp.UTC()).Minutes() <= 5 {
+
+		// jika ada beberapa turbine yang belum pernah masuk datanya sama sekali, dianggap NA
+		if _tProject != lastProject {
+			if lastProject != "" {
+				diffCount := realTotalTurbine[lastProject] - turbineCount
+				if diffCount > 0 {
+					dataNa[lastProject] = dataNa[lastProject] + diffCount
+				}
+			}
+			turbineCount = 0
+			lastProject = _tProject
+		}
+		turbineCount++
+		if ((t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit || servt0.Sub(servtstamp.UTC()).Minutes() <= GAMESALimit) && tk.HasMember(GAMESA, _tProject)) ||
+			((t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= SUZLONLimit) && tk.HasMember(SUZLON, _tProject)) ||
+			((t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= OTHERSLimit) && tk.HasMember(OTHERS, _tProject)) {
 			isDataComing = true
 		} else {
 			isDataComing = false
@@ -906,7 +937,13 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 				waitingForWsProject[_tProject]++
 			}
 		}
-		dataNa[dt.GetString("_id")] = dt.GetInt("count")
+	}
+
+	if lastProject != "" {
+		diffCount := realTotalTurbine[lastProject] - turbineCount
+		if diffCount > 0 {
+			dataNa[lastProject] = dataNa[lastProject] + diffCount
+		}
 	}
 
 	// make a model for data detail from the realtime data
@@ -1477,7 +1514,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	//===============
 
 	_iTurbine, _iContinue, _itkm := "", false, tk.M{}
-
+	lastProject := ""
 	dataRealtimeValue := 0.0
 	tags := ""
 	tstamp, updatetstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}, time.Time{}
@@ -1513,8 +1550,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
-
-				if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+				if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastProject)) ||
+					(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastProject)) ||
+					(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastProject)) {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1539,6 +1577,7 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 				}
 				alldata = append(alldata, _itkm)
 			}
+			lastProject = _tdata.GetString("projectname")
 
 			_iContinue = false
 			_iTurbine = _tTurbine
@@ -1567,7 +1606,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					_itkm.Set(afield, defaultValue)
 				}
 
-				if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
+				if (t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, _tdata.GetString("projectname"))) ||
+					(t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, _tdata.GetString("projectname"))) ||
+					(t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, _tdata.GetString("projectname"))) {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1577,6 +1618,13 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 						Set("Status", _idt.Status).
 						Set("IsWarning", _idt.IsWarning).
 						Set("AlarmUpdate", _idt.TimeUpdate.UTC())
+
+					if project == "Rajgarh" {
+						_adesc := strings.Split(_idt.AlarmDesc, "|")
+						if len(_adesc) > 1 {
+							_itkm.Set("AlarmCode", _adesc[0])
+						}
+					}
 				}
 
 				if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
@@ -1588,7 +1636,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("Status", 1).
 					Set("IsWarning", false)
 
-				if t0.Sub(tstamp.UTC()).Minutes() <= 5 {
+				if (t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, _tdata.GetString("projectname"))) ||
+					(t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, _tdata.GetString("projectname"))) ||
+					(t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, _tdata.GetString("projectname"))) {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1673,8 +1723,9 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csr.Close()
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
-
-			if t0.Sub(updatetstamp.UTC()).Minutes() <= 5 {
+			if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastProject)) ||
+				(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastProject)) ||
+				(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastProject)) {
 				_itkm.Set("DataComing", 1)
 			}
 
@@ -1908,14 +1959,25 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
+
 	for idx, val := range results {
 		results[idx].Set("turbine", turbineName[val.GetString("turbine")])
 		if p.Tipe == "alarmraw" {
 			key := tk.ToString(tk.ToInt(results[idx].GetFloat64("value"), tk.RoundingAuto))
+			if p.Project == "Rajgarh" {
+				key = results[idx].GetString("value")
+			}
+
 			if results[idx].GetString("tag") == "TurbineState" {
 				results[idx].Set("description", reffturbinestate.GetString(key))
 			} else {
 				results[idx].Set("description", reffalarmbrake.GetString(key))
+			}
+		} else if p.Project == "Rajgarh" && p.Tipe == "alarm" {
+			//alarmdesc, alarmcode
+			_adesc := strings.Split(results[idx].GetString("alarmdesc"), "|")
+			if len(_adesc) > 1 {
+				results[idx].Set("alarmcode", _adesc[0])
 			}
 		}
 	}
@@ -2077,14 +2139,17 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 			}
 		}
 	}
-	if _idt, _cond := arrturbinestatus[p.Turbine]; _cond {
+	if _idt, _cond := arrturbinestatus[p.Turbine]; _cond { /* nilainya 0 (red) atau 1 (green) */
 		alldata.Set("Turbine Status", _idt.Status)
-	} else {
+	} else { /* jika tidak ada statusnya dianggap N/A */
 		alldata.Set("Turbine Status", -999)
 	}
 
 	t0 := getTimeNow()
-	if t0.Sub(timemax.UTC()).Minutes() > 5 {
+	/* jika ada turbine status tapi timemax nya lebih dari waktu tertentu maka dianggap N/A */
+	if (t0.Sub(timemax.UTC()).Minutes() > GAMESALimit && tk.HasMember(GAMESA, project)) ||
+		(t0.Sub(timemax.UTC()).Minutes() > SUZLONLimit && tk.HasMember(SUZLON, project)) ||
+		(t0.Sub(timemax.UTC()).Minutes() > OTHERSLimit && tk.HasMember(OTHERS, project)) {
 		alldata.Set("Turbine Status", -999)
 	}
 
@@ -2436,10 +2501,12 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Tejuva"
 	case "Amba", "Sattigeri":
 		project = "Amba"
+	case "Rajgarh":
+		project = "Rajgarh"
 	}
 
 	csr, err := rconn.NewQuery().
-		Select("alarmindex", "alarmname").
+		Select("alarmindex", "alarmindexstr", "alarmname").
 		From("AlarmBrake").
 		Where(dbox.Eq("project", project)).
 		Cursor(nil)
@@ -2455,7 +2522,28 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 			break
 		}
 
-		tkm.Set(tk.ToString(result.GetInt("alarmindex")), result.GetString("alarmname"))
+		key := tk.ToString(result.GetInt("alarmindex"))
+		if project == "Rajgarh" {
+			key = result.GetString("alarmindexstr")
+		}
+
+		tkm.Set(key, result.GetString("alarmname"))
+
+		if project == "Rajgarh" {
+			skey := ""
+			for _, str := range strings.Split(key, ":") {
+				_str := strings.TrimLeft(str, "0")
+				if skey != "" {
+					skey += ":"
+				}
+				if _str == "" {
+					_str = "0"
+				}
+				skey += _str
+			}
+
+			tkm.Set(skey, result.GetString("alarmname"))
+		}
 	}
 
 	return

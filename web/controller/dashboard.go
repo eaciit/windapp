@@ -2520,8 +2520,8 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 	mrTmp := []tk.M{}
 	grTmp := []tk.M{}
-
-	if len(machineResult) > (len(projects) * 12) {
+	// tk.Println(len(machineResult)," > ",(len(projects) * 12))
+	if len(machineResult) >= (len(projects) * 12) {
 		length := len(machineResult)
 		div := (length / len(projects))
 
@@ -3025,7 +3025,9 @@ func setMapData() (result tk.M) {
 		}
 		currturbine.Set(_tTurbine, 1)
 		turbineStatus[_tTurbine] = "green"
-		if t0.Sub(tstamp).Minutes() <= 5 || servt0.Sub(servtstamp).Minutes() <= 5 {
+		if ((t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit || servt0.Sub(servtstamp.UTC()).Minutes() <= GAMESALimit) && tk.HasMember(GAMESA, _tProject)) ||
+			((t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= SUZLONLimit) && tk.HasMember(SUZLON, _tProject)) ||
+			((t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= OTHERSLimit) && tk.HasMember(OTHERS, _tProject)) {
 			isDataComing = true
 		} else {
 			turbineStatus[_tTurbine] = "grey"

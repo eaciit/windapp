@@ -91,7 +91,7 @@ tlp.getPDF = function(selector){
 }
 
 tlp.getAvailDate = function(){
-    app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
+    return app.ajaxPost(viewModel.appName + "/analyticlossanalysis/getavaildateall", {}, function(res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -101,6 +101,8 @@ tlp.getAvailDate = function(){
         if(namaproject == "") {
             namaproject = "Tejuva";
         }
+
+        console.log(availDateAll[namaproject]);
         var startDate = kendo.toString(moment.utc(availDateAll[namaproject]["ScadaDataHFD"][0]).format('DD-MMM-YYYY'));
         var endDate = kendo.toString(moment.utc(availDateAll[namaproject]["ScadaDataHFD"][1]).format('DD-MMM-YYYY'));
 
@@ -182,19 +184,17 @@ tlp.initChart = function() {
             if(data.data != undefined && data.data != null) {
                 nullCount = 0
                 data.data.forEach( function(element, idxData) {
-                    if(element == -99999.99999) {
+                    if(element == 999999) {
                         nullCount++
                         datatlp[idxTlp].data[idxData] = null;
                     }
                 });
-                if(data.data.length == nullCount) {
-                    datatlp[idxTlp].data = undefined;
-                }
                 datatlp[idxTlp]["missingValues"] = "gap";
             }
         });
 
         localStorage.setItem("datatlp", JSON.stringify(datatlp));
+
 
         $('#charttlp').html("");
         
@@ -426,21 +426,16 @@ $(document).ready(function() {
         }
     });
 
-    setTimeout(function() {
-
+    $.when(tlp.getAvailDate()).done(function(){
+        fa.checkTurbine();
         if(fa.LoadData()) {
-            tlp.getAvailDate();
-            fa.checkTurbine();
-            tlp.initChart();
+            var project = $('#projectList').data("kendoDropDownList").value();
             var dateStart = $('#dateStart').data('kendoDatePicker').value();
             var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
-
-
-            tlp.project(fa.project);
+            tlp.project(project);
             tlp.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             tlp.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+            tlp.initChart();
         }
-
-    }, 300);
-
+    })
 });

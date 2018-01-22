@@ -74,7 +74,6 @@ ma.CreateGrid = function(gridType) {
         } else {
             param.turbine = fa.turbine();
             param.project = fa.project;
-            ma.LoadDataAvail(param.project, gridType);
             ma.CreateGridAlarm(gridType, param);
         }
 
@@ -137,11 +136,22 @@ ma.CreateGridAlarm = function(gridType, param) {
                 style: "text-align:center;"
             },
             width: 90,
-        }, {
+        },{
             field: "alarmdesc",
             title: "Description",
             width: 330
         }];
+
+    if(gridType == "alarm"){
+        columns.push({
+            field: "reduceavailability",
+            title: "Reduce Avail.",
+            attributes: {
+                style: "text-align:center;"
+            },
+            width: 90,
+        });
+    }
 
     if(gridType == "alarmraw"){
         columns = [{
@@ -162,7 +172,7 @@ ma.CreateGridAlarm = function(gridType, param) {
         }, {
             field: "tag",
             title: "Tag",
-             width: 70,
+             width: 120,
              attributes: {
                 style: "text-align:center;"
             },
@@ -285,10 +295,14 @@ ma.LoadDataAvail = function(projectname, gridType){
                 ma.maxDatetemp = new Date(res.data.Data[1]);
                 app.currentDateData = new Date(res.data.Data[1]);
 
+
                 $('#availabledatestart').html(kendo.toString(moment.utc(ma.minDatetemp).format('DD-MMMM-YYYY')));
                 $('#availabledateend').html(kendo.toString(moment.utc(ma.maxDatetemp).format('DD-MMMM-YYYY')));
 
-                ma.checkCompleteDate()
+                $('#dateStart').data('kendoDatePicker').value( new Date(Date.UTC(moment( ma.maxDatetemp).get('year'),  ma.maxDatetemp.getMonth(),  ma.maxDatetemp.getDate() - 7, 0, 0, 0, 0)));
+                $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(res.data.Data[1]).format('DD-MMM-YYYY')));
+
+                ma.checkCompleteDate();
             }
         }         
     });
@@ -343,6 +357,7 @@ $(document).ready(function(){
         $.when(ma.InitDateValue()).done(function () { 
             setTimeout(function() {
                 ma.CreateGrid("alarm");
+                ma.LoadDataAvail(fa.project, "alarm");
             }, 100);
         });
     //}, 300);
@@ -351,6 +366,7 @@ $(document).ready(function(){
         change: function () {  
             var project = $('#projectList').data("kendoDropDownList").value();
             fa.populateTurbine(project);
+            ma.LoadDataAvail(project, "alarm");
         }
     });
 });

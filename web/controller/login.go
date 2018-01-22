@@ -220,7 +220,7 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
 	r.SetSession("availdate", datePeriod)
-	r.SetSession("availdateall", getLastAvailDateAll())
+	// r.SetSession("availdateall", getLastAvailDateAll())
 
 	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 

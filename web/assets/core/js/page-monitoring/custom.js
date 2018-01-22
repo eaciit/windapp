@@ -23,36 +23,47 @@ var audioElement = document.createElement('audio');
 
 ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-        var singleHandler   = valueAccessor().click,
-            doubleHandler   = valueAccessor().dblclick,
-            delay           = valueAccessor().delay || 1000,
-            clicks          = 0;
+    	var accessor = valueAccessor();
+        var clicks = 0;
+        var timeout = 200;
 
-        $(element).bind('click',function(event) {
-            clicks++;
-            if (clicks === 1) {
-                setTimeout(function() {
-                    if( clicks === 1 ) {
-                        // Call the single click handler - passing viewModel as this 'this' object
-                        // you may want to pass 'this' explicitly
-                        if (singleHandler !== undefined) { 
-                            singleHandler.call(viewModel, bindingContext.$data, event); 
+        var singleHandler   = valueAccessor().click,
+            doubleHandler   = valueAccessor().dblclick;
+            // delay           = valueAccessor().delay || 1000,
+            // clicks          = 0;
+
+        $(element).click(function(event) {
+            if(typeof(accessor) === 'object') {
+                clicks++;
+                if (clicks === 1) {
+                    setTimeout(function() {
+                        if(clicks === 1) {
+                            singleHandler.call(viewModel, bindingContext.$data, event);
+                        } else {
+                            doubleHandler.call(viewModel, bindingContext.$data, event);
                         }
-                    } else {
-                        // Call the double click handler - passing viewModel as this 'this' object
-                        // you may want to pass 'this' explicitly
-                        if (doubleHandler !== undefined) { 
-                            doubleHandler.call(viewModel, bindingContext.$data, event); 
-                        }
-                    }
-                    clicks = 0;
-                }, delay);
+                        clicks = 0;
+                    }, timeout);
+                }
+            } else {
+                accessor.call(viewModel, bindingContext.$data, event);
             }
+            return false;
         });
     }
 };
 
+bpc.getShorterName = function(str){
 
+    var strSplit =  str.split('(', 2);
+    if(strSplit[0].length > 10) {
+        str = str.substring(0,7) + ".. ("+strSplit[1] ;
+    }else{
+        str = str;
+    }
+
+    return str;
+}
 
 // get the weather forecast
 bpc.getWeather = function() {

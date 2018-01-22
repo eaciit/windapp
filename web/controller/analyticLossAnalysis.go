@@ -1734,7 +1734,7 @@ func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interf
 func (m *AnalyticLossAnalysisController) GetAvailDateAll(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	return helper.CreateResult(true, k.Session("availdateall", ""), "success")
+	return helper.CreateResult(true, getLastAvailDateAll(), "success")
 }
 
 func (m *AnalyticLossAnalysisController) GetAvailDate_DRAFT(k *knot.WebContext) interface{} {

@@ -172,6 +172,7 @@ var Data = {
             },
             height: 300,
             scrollable: true,
+            filterable: true,
             sortable: true,
             selectable: "multiple",
             columns: [{
@@ -216,6 +217,7 @@ var Data = {
             height: 300,
             scrollable: true,
             sortable: true,
+            filterable: true,
             selectable: "multiple",
             columns: [{
                 field: "label",

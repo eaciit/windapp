@@ -78,11 +78,12 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	for _, val := range months {
 		listMonth = append(listMonth, tk.ToInt(val, tk.RoundingAuto))
 	}
-	sort.Ints(listMonth)
+	// sort.Ints(listMonth)
 	categoryChecker := []string{}
 	lastMonth := 0
 	idxYear := 0
-
+	// tk.Println(":1:", monthDay)
+	// tk.Println(":2:", listMonth)
 	for lm, lMonth := range listMonth {
 		if lm == 0 { /*bulan pertama*/
 			catTitle = tStart.Month().String()
@@ -147,7 +148,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	metData.Set("type", "line")
 	metData.Set("style", "smooth")
 	metData.Set("dashType", "solid")
-	metData.Set("markers", tk.M{"visible": false})
+	metData.Set("markers", tk.M{"visible": true})
 	metData.Set("width", 2)
 	metData.Set("color", colorFieldTLP[selArr])
 	metData.Set("idxseries", selArr)
@@ -225,7 +226,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 			}
 			if !dateFound {
-				datas = append(datas, -99999.99999)
+				datas = append(datas, 999999)
 			}
 		}
 		if deviationStatus {
@@ -252,7 +253,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		tk.M{"isnull": false},
 		tk.M{"timestamp": tk.M{"$gte": tStart}},
 		tk.M{"timestamp": tk.M{"$lte": tEnd}},
+		// TEMPORARY SOLUTION,sampek disemprot mak e gara2 gak ngerti kudu lapho, kita selalu salah di mata wanita
+		tk.M{colName: tk.M{"$lte": 200}},
 	}
+
 	pipes = []tk.M{
 		tk.M{"$match": tk.M{"$and": matches}},
 	}
@@ -318,7 +322,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		turbineData.Set("type", "line")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
-		turbineData.Set("markers", tk.M{"visible": false})
+		turbineData.Set("markers", tk.M{"visible": true})
 		turbineData.Set("width", 2)
 		turbineData.Set("color", colorFieldTLP[selArr])
 		turbineData.Set("idxseries", selArr)
@@ -354,7 +358,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 			}
 			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-				datas = append(datas, -99999.99999)
+				datas = append(datas, 999999)
 			}
 		}
 
@@ -377,10 +381,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	for _, val := range AvgTlp {
 
-		if val < minValue && val > -99999.99999 {
+		if val < minValue && val != 999999 {
 			minValue = val
 		}
-		if val > maxValue {
+		if val > maxValue && val != 999999 {
 			maxValue = val
 		}
 	}
@@ -423,6 +427,8 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		tk.M{"isnull": false},
 		tk.M{"dateinfo.dateid": tk.M{"$gte": DateStart}},
 		tk.M{"dateinfo.dateid": tk.M{"$lte": DateEnd}},
+		// TEMPORARY SOLUTION
+		tk.M{colName: tk.M{"$lte": 200}},
 	}
 	if project != "" {
 		matches = append(matches, tk.M{"projectname": project})
@@ -461,7 +467,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 			}
 		}
 		if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-			datas = append(datas, -99999.99999)
+			datas = append(datas, 999999)
 		}
 	}
 
@@ -472,7 +478,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		"dashType":  "longDash",
 		"style":     "smooth",
 		"color":     "#000000",
-		"markers":   tk.M{"visible": false},
+		"markers":   tk.M{"visible": true},
 		"width":     3,
 	}
 

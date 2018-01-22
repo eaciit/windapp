@@ -109,7 +109,7 @@ page.LoadData = function(){
         project: project
     };
 
-    toolkit.ajaxPost(viewModel.appName + "clusterwisegeneration/getdata", param, function (res) {
+    toolkit.ajaxPost(viewModel.appName + "clusterwisegeneration/getdatadgr", param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -124,9 +124,10 @@ page.LoadData = function(){
             var data = {
                 turbine : val.turbine, 
                 cluster : val.cluster,
-                sumGeneration : kendo.toString(val.sumGeneration.value , 'n2'),
-                averageGa: kendo.toString(val.averageGa.value, 'n2'),
-                averageMa: kendo.toString(val.averageMa.value, 'n2'),
+                sumGeneration : val.sumGeneration.value,
+                averageGa: val.averageGa.value,
+                averageMa: val.averageMa.value,
+                averageRa: val.averageRa.value,
                 
             }
             datas.push(data);
@@ -134,6 +135,7 @@ page.LoadData = function(){
 
         datas =  _.sortBy(datas, ['cluster', 'turbine']);
 
+        console.log(datas);
         
         page.dataSource(data);
         // page.generateChart(data);
@@ -199,6 +201,13 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             conf.IsLoading(false);
     };
         
+
+    var categoryTurbine = [];
+    var categoryCluster = [];
+    $.each(page.dataSource(), function(key, val){
+        categoryCluster.push(val.cluster)
+    });
+
     var chart  = page.InitGraph();
     chart.title.text = (site !== undefined) ? site +" "+conf.Title : conf.Title;
     chart.dataSource = master;
@@ -227,6 +236,16 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             type: "line",
             color: "#ff7043",
             width: 3,
+            markers: {
+                visible: false,
+            },
+        },{
+            name: "Average of RA (%)",
+            axis : "avail",
+            field : "averageRa",
+            type: "line",
+            color: "#9c9c9c",
+            width: 4,
             markers: {
                 visible: false,
             },
@@ -291,24 +310,29 @@ page.RenderGenerationWidget = function(master, isDetail, site){
         $(selectorGrid).kendoGrid(grid);
     }
     
+    chart.legendItemClick = function(e) {
+        setTimeout(function(){
+            page.redrawCategory(categoryCluster);
+        },300);
+    }
 
     $(selectorGraph).kendoChart(chart);
     var chart = $("#ClusterWiseChart").data("kendoChart");
     chart.redraw();
 
-    var categoryTurbine = [];
-    var categoryCluster = [];
-    $.each(page.dataSource(), function(key, val){
-        categoryCluster.push(val.cluster)
-    });
+    page.redrawCategory(categoryCluster);
+}
 
+
+page.redrawCategory = function(categoryCluster){
     categoryCluster = $.unique(categoryCluster);
     categoryCluster.sort(function(a,b){return a-b});
 
     $.each(categoryCluster, function(key, val){
-        var tableSelector = $('#ClusterWiseGrid >table>tbody>tr>td:contains('+val+')');
+        var tableSelector = $('#ClusterWiseGrid >table>tbody>tr>td').filter(function() {
+                                return $(this).text() === val.toString();
+                            })
         var length = tableSelector.length;
-
         $.each(tableSelector, function(i, val){
             if(i < length-1){
                 tableSelector.eq(i).remove();
@@ -317,8 +341,6 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             }
         });
     });
-
-
 }
 
 
@@ -337,14 +359,16 @@ $(function(){
         suggest: true,
         change: function () { 
             var project = this._old;
-            di.getAvailDate();
+            di.getAvailDate("DGRData");
             fa.populateTurbine(project);
         }
     });
 
     setTimeout(function(){
-        di.getAvailDate();
-        fa.LoadData();
-        page.LoadData();
+        // di.getAvailDate();
+        $.when(di.getAvailDate("DGRData")).done(function(){
+            fa.LoadData();
+            page.LoadData();
+        })
     },300);
 });

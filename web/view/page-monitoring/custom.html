@@ -45,13 +45,13 @@
 
                 <div class="panel-body cusmon-wrapper">
                     <div class="cusmon-projects" data-bind="foreach: bpc.projectList">
-                        <div class="col-md-2 col-xs-6" style="max-width: 185px;">
-                            <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }">
-                                <h4 class="cusmon-title no-move"><span data-bind="text: Name"></span><span class="temp-forecast pull-right">0</span></h4>
+                        <div class="col-md-2 col-xs-6" style="max-width: 135px;">
+                            <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }" style="font-size: 11px">
+                                <h5 class="cusmon-title no-move" style="font-size: 11px"><span data-bind="text: bpc.getShorterName(Name)"></span></h5>
                                 
                                 <div class="cusmon-project-row">
-                                    <div class="col-md-6 col-xs-4 text-left">Power <small>(Mw)</small></div>
-                                    <div class="col-md-6 col-xs-8 text-right">
+                                    <div class="col-md-5 col-xs-3 text-left">Pwr <small>(Mw)</small></div>
+                                    <div class="col-md-7 col-xs-9 text-right">
                                         <span class="power" data-bind="attr: { 'data-id': ProjectId }">0</span>
                                         /
                                         <span class="maxcap" data-bind="text: parseFloat(TotalMaxCapacity).toFixed(1)">0</span>
@@ -59,20 +59,20 @@
                                 </div>
                                 <br class="clear" />
                                 <div class="cusmon-project-row">
-                                    <div class="col-md-6 col-xs-4 text-left">WS <small>(m/s)</small></div>
-                                    <div class="col-md-6 col-xs-8 text-right">
+                                    <div class="col-md-5 col-xs-3 text-left">WS <small>(m/s)</small></div>
+                                    <div class="col-md-7 col-xs-9 text-right">
                                         <span class="ws" data-bind="attr: { 'data-id': ProjectId }">0</span>
                                     </div>
                                 </div>
                                 <br class="clear" />
                                 <div class="cusmon-project-row">
-                                    <div class="col-md-6 col-xs-4 text-left">Turb. Status</div>
-                                    <div class="col-md-6 col-xs-8 text-right">
+                                    <div class="col-md-5 col-xs-3 text-left">TS</div>
+                                    <div class="col-md-7 col-xs-9 text-right">
                                         <strong>
-                                            <span class="t-up fa-green" data-bind="attr: { 'data-id': ProjectId }">0</span> / 
-                                            <span class="t-wait fa-mustard" data-bind="attr: { 'data-id': ProjectId }">0</span> / 
-                                            <span class="t-down fa-red" data-bind="attr: { 'data-id': ProjectId }">0</span> /
-                                            <span class="t-na fa-grey" data-bind="attr: { 'data-id': ProjectId }">0</span>
+                                            <span class="t-up fa-green" data-bind="attr: { 'data-id': ProjectId }">0</span> &nbsp;
+                                            <span class="t-wait fa-mustard" data-bind="attr: { 'data-id': ProjectId }">0</span>  &nbsp;
+                                            <span class="t-down fa-red" data-bind="attr: { 'data-id': ProjectId }">0</span> &nbsp;
+                                            <span class="t-na fa-grey" data-bind="attr: { 'data-id': ProjectId }">0</span>&nbsp;
                                         </strong>
                                     </div>
                                 </div>
@@ -84,7 +84,7 @@
                     <div class="col-md-12 allfarms">
                         <article id="sortable" data-bind="foreach: bpc.projectList">
                           <section class="dropable" data-bind="attr: { 'id': 'cusmon-detail-' + ProjectId }">
-                                <h4 class="cusmon-title text-left" data-bind="click : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}">
+                                <h4 class="cusmon-title text-left" data-bind="singleOrDoubleClick:{ click:function(){page.ToByProject(ProjectId)},dblclick : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}}">
                                     <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
                                     <!-- <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span> -->
                                      <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="attr: {id:'timemax_'+ProjectId}"></span>
@@ -146,10 +146,14 @@
             });
             if(turbineByFeed.length > 0) {
                 $.each(turbineByFeed, function(idx, dt){
+                    var turbname = dt.Turbine
+                    if ( dt.Project == "Rajgarh" ) {
+                        turbname = turbname.replace("KH-", "-")
+                    }
                     newFeeds.push({
                         Project: dt.Project,
                         Id: dt.Value,
-                        Name: dt.Turbine,
+                        Name: turbname,
                         Feeder: dt.Feeder,
                         Capacity: dt.Capacity,
                         IsTurbine: true,

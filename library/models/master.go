@@ -22,6 +22,8 @@ type TurbineMaster struct {
 	TopCorrelation []string
 	Engine         string
 	Cluster        float64
+	ProjectDgr     string
+	TurbineDgr     string
 }
 
 func (m *TurbineMaster) New() *TurbineMaster {
@@ -35,6 +37,28 @@ func (m *TurbineMaster) RecordID() interface{} {
 
 func (m *TurbineMaster) TableName() string {
 	return "ref_turbine"
+}
+
+type StrangethresholdMaster struct {
+	ID          string ` bson:"_id" json:"_id" `
+	Max         float64
+	Min         float64
+	ProjectName []string
+	Tags        string
+	Type        string
+}
+
+func (m *StrangethresholdMaster) New() *StrangethresholdMaster {
+	m.ID = m.Type + "_" + m.Tags
+	return m
+}
+
+func (m *StrangethresholdMaster) RecordID() interface{} {
+	return m.ID
+}
+
+func (m *StrangethresholdMaster) TableName() string {
+	return "ref_strangethreshold"
 }
 
 type ProjectMaster struct {
@@ -67,14 +91,16 @@ func (m *ProjectMaster) TableName() string {
 }
 
 type TurbineOut struct {
-	Project  string
-	Turbine  string
-	Value    string
-	Capacity float64
-	Feeder   string
-	Engine   string
-	Coords   []float64
-	Cluster  float64
+	Project    string
+	Turbine    string
+	Value      string
+	Capacity   float64
+	Feeder     string
+	Engine     string
+	Coords     []float64
+	Cluster    float64
+	DgrProject string
+	DgrTurbine string
 }
 
 type ProjectOut struct {
@@ -89,4 +115,13 @@ type ProjectOut struct {
 	SS_AirDensity     float64
 	STD_AirDensity    float64
 	Engine            []string
+}
+
+type StrangethresholdOld struct {
+	StrangethresholdId string
+	Max                float64
+	Min                float64
+	ProjectName        []string
+	Tags               string
+	Type               string
 }
