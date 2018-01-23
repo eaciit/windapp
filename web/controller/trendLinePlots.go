@@ -341,22 +341,21 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					dateFound = true
 					/*calculation process*/
 					colresult := val.GetFloat64("colresult")
-					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
+					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
 						shownSeries = true
 					}
-
 					datas = append(datas, colresult)
-
+					
 					if colresult < minValue {
 						minValue = colresult
 					}
 					if colresult > maxValue {
 						maxValue = colresult
 					}
-					idxAvgTlp++
 					break existLoop
 				}
 			}
+			idxAvgTlp++
 			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
 				datas = append(datas, 999999)
 			}
