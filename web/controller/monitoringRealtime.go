@@ -493,6 +493,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	tstamp, updatetstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
+	_rednotif, _orangenotif, _blinknotif := getNotificationDataInfo(project)
+
 	for {
 		_tdata = tk.M{}
 		err = csr.Fetch(&_tdata, 1, false)
@@ -523,6 +525,12 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				}
 				lastproject = _tdata.GetString("projectname")
 				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
+
+				if _itkm.GetInt("DataComing") == 0 {
+					_itkm.Set("BulletColor", "fa fa-circle txt-grey")
+					_itkm.Set("TemperatureInfo", "")
+				}
+
 				alldata = append(alldata, _itkm)
 			}
 
@@ -564,6 +572,24 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 			if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
 				_itkm.Set("IsReapeatedAlarm", true)
+			}
+
+			_itkm.Set("BulletColor", "fa fa-circle txt-green")
+			_itkm.Set("TemperatureInfo", "")
+
+			if _blinknotif.Has(_tTurbine) {
+				_itkm.Set("BulletColor", "fa fa-circle txt-blink")
+				_itkm.Set("TemperatureInfo", _blinknotif.GetString(_tTurbine))
+			}
+
+			if _orangenotif.Has(_tTurbine) {
+				_itkm.Set("BulletColor", "fa fa-circle txt-orange")
+				_itkm.Set("TemperatureInfo", _orangenotif.GetString(_tTurbine))
+			}
+
+			if _rednotif.Has(_tTurbine) {
+				_itkm.Set("BulletColor", "fa fa-circle txt-red")
+				_itkm.Set("TemperatureInfo", _rednotif.GetString(_tTurbine))
 			}
 
 		}
@@ -630,6 +656,11 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 			(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastproject)) ||
 			(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastproject)) {
 			_itkm.Set("DataComing", 1)
+		}
+
+		if _itkm.GetInt("DataComing") == 0 {
+			_itkm.Set("BulletColor", "fa fa-circle txt-grey")
+			_itkm.Set("TemperatureInfo", "")
 		}
 
 		colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
@@ -2718,6 +2749,149 @@ func getAverageValue(aVal ...float64) float64 {
 	}
 
 	return defaultValue
+}
+
+func getNotificationDataInfo(project string) (rednotif, orangenotif, blinknotif tk.M) {
+
+	t0 := getTimeNow()
+
+	tempCondition := []tk.M{}
+	temperatureData, tempNormalData := tk.M{}, tk.M{}
+	rednotif, orangenotif, blinknotif = tk.M{}, tk.M{}, tk.M{}
+
+	rpipes := []tk.M{
+		tk.M{"$match": tk.M{
+			"$and": []tk.M{
+				tk.M{"project": project},
+				tk.M{"enable": true},
+			}}},
+	}
+
+	csrTemp, err := DBRealtime().NewQuery().From("ref_monitoringnotification").
+		Command("pipe", rpipes).
+		Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	err = csrTemp.Fetch(&tempCondition, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrTemp.Close()
+
+	temperatureData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+		tk.M{"status": true},
+		tk.M{"projectname": project},
+	}}, true)
+
+	tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+		tk.M{"status": false},
+		tk.M{"projectname": project},
+		tk.M{"timeend": tk.M{"$gte": t0.Add(time.Hour * time.Duration(-4))}},
+	}}, true)
+
+	tagsunits := map[string]string{}
+	for _, tempData := range tempCondition {
+		arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
+		units := tempData.GetString("units")
+		for _, _tag := range arrtags {
+			tagsunits[tk.ToString(_tag)] = units
+		}
+	}
+
+	getUnits := func(tag string) string {
+		if val, cond := tagsunits[tag]; cond {
+			return val
+		}
+		return "&deg;C"
+	}
+
+	for turbine, _intdata := range temperatureData {
+		datatemp, _ := tk.ToM(_intdata)
+		items := datatemp.Get("items", []interface{}{}).([]interface{})
+
+		for _, item := range items {
+			tkItem, _ := tk.ToM(item)
+			units := getUnits(tkItem.GetString("tags"))
+			timestart := time.Time{}
+
+			if tk.TypeName(tkItem.Get("timestart")) == "string" {
+				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timestart")))
+				if err != nil {
+					tk.Println(err.Error())
+				}
+				timestart = timestart.UTC()
+			} else {
+				timestart = tkItem.Get("timestart", time.Time{}).(time.Time).UTC()
+			}
+
+			value := tkItem.GetFloat64("value")
+			notestart := tkItem.GetString("notestart")
+
+			timeString := timestart.Format("02 Jan 06 15:04:05")
+			strinfo := tk.Sprintf("%s : %.2f %s<br />(%s)", tkItem.GetString("tags"), value, units, timeString)
+			if notestart != "" {
+				strinfo = tk.Sprintf("%s : %s %s<br />(%s)", tkItem.GetString("tags"), notestart, units, timeString)
+			}
+
+			if tkItem.Get("error", false).(bool) {
+				allnotif := rednotif.GetString(turbine)
+				if allnotif != "" {
+					allnotif += "<br />"
+				}
+				allnotif += strinfo
+				rednotif.Set(turbine, allnotif)
+			} else {
+				allnotif := orangenotif.GetString(turbine)
+				if allnotif != "" {
+					allnotif += "<br />"
+				}
+				allnotif += strinfo
+				orangenotif.Set(turbine, allnotif)
+			}
+
+		}
+	}
+
+	for turbine, _intdata := range tempNormalData {
+		datatemp, _ := tk.ToM(_intdata)
+		items := datatemp.Get("items", []interface{}{}).([]interface{})
+
+		for _, item := range items {
+			tkItem, _ := tk.ToM(item)
+			units := getUnits(tkItem.GetString("tags"))
+			timestart := time.Time{}
+
+			if tk.TypeName(tkItem.Get("timestart")) == "string" {
+				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timestart")))
+				if err != nil {
+					tk.Println(err.Error())
+				}
+				timestart = timestart.UTC()
+			} else {
+				timestart = tkItem.Get("timestart", time.Time{}).(time.Time).UTC()
+			}
+
+			value := tkItem.GetFloat64("value")
+			notestart := tkItem.GetString("notestart")
+
+			timeString := timestart.Format("02 Jan 06 15:04:05")
+			strinfo := tk.Sprintf("%s : %.2f %s<br />(%s)", tkItem.GetString("tags"), value, units, timeString)
+			if notestart != "" {
+				strinfo = tk.Sprintf("%s : %s %s<br />(%s)", tkItem.GetString("tags"), notestart, units, timeString)
+			}
+
+			allnotif := blinknotif.GetString(turbine)
+			if allnotif != "" {
+				allnotif += "<br />"
+			}
+			allnotif += strinfo
+			blinknotif.Set(turbine, allnotif)
+		}
+	}
+
+	return
 }
 
 /*
