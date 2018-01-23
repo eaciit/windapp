@@ -208,6 +208,13 @@ bpc.plotData = function(project, data) {
 				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
+			if(dt.BulletColor == "fa fa-circle txt-green" || dt.BulletColor == "fa fa-circle txt-grey" ){
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-temp[data-id="icontemp_'+ dt.Turbine +'"]').hide();
+			}else{
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-temp[data-id="icontemp_'+ dt.Turbine +'"]').addClass(dt.BulletColor).attr('data-original-title', dt.TemperatureInfo);
+			}
+
+			
 
 			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Gen. Today (Mwh) : "+ kendo.toString(dt.TotalProduction,'n1'));
 
