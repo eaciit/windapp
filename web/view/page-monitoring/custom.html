@@ -16,7 +16,7 @@
         <div class="total-production" data-bind="attr: { 'data-id': 'total_'+t.Id }">
             <!-- <div class="inner-triangle" data-bind="attr: { 'data-id': t.Id }"></div> -->
             <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': 'icon_'+t.Id }" style="display: none;"></i>
-            <i class="icon-temp" data-bind="attr: { 'data-id': 'icontemp_'+t.Id }" data-toggle="tooltip"></i>
+            <i class="icon-temp" data-bind="attr: { 'data-id': 'icontemp_'+t.Id }" data-toggle="tooltip" data-container="body"></i>
             <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}">
                 <span data-bind="text: t.Name"></span>
             </a>
