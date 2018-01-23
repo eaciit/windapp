@@ -1,3 +1,9 @@
+.icon-temp{
+    font-size: 8px !important;
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+}
 .serverlate {
     -ms-transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
@@ -74,6 +80,14 @@
 }
 .txt-orange {
   color: #EA6020;
+}
+.txt-blink {
+  color: #db1e1e;
+  animation-duration: 1200ms;
+  animation-name: blink;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  -webkit-animation:blink 1200ms infinite;
 }
 .bg-green {
   background-color:#31B445;
