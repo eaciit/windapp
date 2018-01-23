@@ -142,7 +142,7 @@
     <script id="navbarSubTemplate" type="text/html">
         <!-- ko if: $data.submenu.length==0 -->
         <li data-bind="css:{'active': (vm.currentMenu() == $data.title)}">
-            <a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url }">
+            <a class="color-base" data-bind="css: {'active': (vm.currentMenu() == $data.title) }, attr: { href: $data.url , target : $parent._id == 'monitoring' ? '_blank' : '_self'}">
 				<i data-bind="css: vm.menuIcon($data)"></i>
 				<span data-bind="text: $data.title"></span>
 			</a>
