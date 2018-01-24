@@ -9,7 +9,7 @@
   <div><b>#: category #</b></div>
   # for (var i = 0; i < points.length; i++) {
        if(points[i].series.axis == 'avail') { #
-            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n0')# </span></div>
+            <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'p0')# </span></div>
   #     } else { #
             <div style="text-align:left">#: points[i].series.name# : <span style="float:right!important">#: kendo.toString(points[i].value, 'n2')#</span></div>
   #     }

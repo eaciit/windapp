@@ -186,8 +186,10 @@ func (m *ClusterWiseGeneration) GetDataDGR(k *knot.WebContext) interface{} {
 		}},
 		{"$sort": tk.M{"_id.project": 1}}}
 
+	// tk.Println(pipe)
+
 	csr, e := DB().Connection.NewQuery().
-		From(new(DGRModel).TableName()).
+		From("rpt_generation").
 		Command("pipe", pipe).
 		Cursor(nil)
 
@@ -216,7 +218,7 @@ func (m *ClusterWiseGeneration) GetDataDGR(k *knot.WebContext) interface{} {
 			}
 		}
 
-		ds.Set("sumGeneration", tk.M{}.Set("value", tkm.GetFloat64("genkwhday")*6/1000).Set("type", "generation"))
+		ds.Set("sumGeneration", tk.M{}.Set("value", tkm.GetFloat64("genkwhday")/1000).Set("type", "generation"))
 		// ds.Set("averageMa", tk.M{}.Set("value", res.GetFloat64("machineavailability")/100).Set("type", "avail"))
 		// ds.Set("averageGa", tk.M{}.Set("value", res.GetFloat64("gridavailability")/100).Set("type", "avail"))
 
@@ -312,7 +314,7 @@ func (m *ClusterWiseGeneration) GetDataDGR(k *knot.WebContext) interface{} {
 		averageMa := tk.Div(A-sMachineBreak, A) * 100
 		averageRa := tk.Div(A-sRABreak, A) * 100
 
-		_ = sRABreak
+		// _ = sRABreak
 
 		ds.Set("averageMa", tk.M{}.Set("value", averageMa/100).Set("type", "avail"))
 		ds.Set("averageGa", tk.M{}.Set("value", averageGa/100).Set("type", "avail"))
