@@ -386,7 +386,7 @@ km.getData = function () {
             dataValueField: 'colname', 
             dataTextField: 'text',
             change: function () {  
-                km.setMaxValue();
+                km.setMaxValue(true);
             }
         });
 
