@@ -2,6 +2,7 @@
 
 viewModel.KeyMetrics = new Object();
 var km = viewModel.KeyMetrics;
+km.FirstLoad = ko.observable(true);
 km.MinValue = ko.observable(0);
 km.MaxValue = ko.observable(2000);
 km.BinValue = ko.observable(40);
@@ -26,7 +27,6 @@ km.dsTotaldataTemp = ko.observable();
 km.dsWindTurbinename = ko.observableArray([]);
 km.dsTempTurbinename = ko.observableArray([]);
 km.dsProdTurbinename = ko.observableArray([]);
-
 
 km.tempTagsDs = ko.observableArray();
 km.tempTagsList = ko.observableArray();
@@ -372,6 +372,7 @@ vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Histograms',
 
 km.getData = function () {
     // fa.getProjectInfo();
+    // var r = $.Deferred();
     if(fa.LoadData()) {
         app.loading(true);
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -478,17 +479,19 @@ km.getData = function () {
        //      },500);
        //  });
     }
+    // return r;
 }
 
 km.SubmitValues = function () {
     km.getData();
 }
 
-km.getTempTags = function() {
+km.getTempTags = function(callbackAfter) {
     var param = {};
     toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/gettemptags", param, function (res) {
         if (res.data != null) {
             km.tempTagsList(res.data);
+            callbackAfter();
         }
     });
 }
@@ -499,11 +502,11 @@ km.getMaxMinValueTemp = function(isRefresh){
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
     var project = $('#projectList').data('kendoDropDownList').value();
     var tagList = [];
-
-    $.each(km.tempTagsList()[project] , function(key, val){
+    
+    $.each(km.tempTagsList()[project], function(key, val){
         tagList.push(val.colname);
     });
-
+    
     var paramFilter = {
         period: fa.period,
         Turbine: fa.turbine(),
@@ -530,30 +533,33 @@ km.getMaxMinValueTemp = function(isRefresh){
             },500);
         }
     });
-
 }
 
 km.setMaxValue = function(isRefresh){
+    if(isRefresh==undefined) {
+        isRefresh = false;
+    }
     setTimeout(function(){
         var tagTemp = $('#sTempTags').data('kendoDropDownList').value();
         var val = km.MaxValueTempList()[tagTemp];
 
         var maxValue = (val !== null) ? kendo.toString(val , 'n0') : 100;
 
-
         if(km.MaxValueTemp(maxValue) && isRefresh == true){
-           km.getData();
+            if(!km.FirstLoad()) km.getData();
         }else{
            km.MaxValueTemp(maxValue);
         }
-
+        km.FirstLoad(false);
     },500);
 }
 
 km.changePageView = function() {
     km.pageView($('#select-page-view').val());
 
-
+    // if(km.pageView()=="temperature") {
+    //     km.getMaxMinValueTemp(true);
+    // }
 
     setTimeout(function () {
         var $el = $("#turbineList");
@@ -573,12 +579,24 @@ km.changePageView = function() {
         
     }, 300);
 };
+km.callbackTempTags = function() {
+    setTimeout(function () {
+        var $el = $("#turbineList");
+        $('option', $el).each(function(element) {
+        $el.multiselect('deselect', $(this).val());
+        });
+
+        if(fa.turbineList().length > 1){
+            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
+        }
+
+        km.getData();
+        km.getMaxMinValueTemp(true);
+    }, 800);
+};
 
 $(document).ready(function () {
-    di.getAvailDate();
-    
-    km.getTempTags();
-   
+    // init event for each elements needed
     $('#btnRefresh').on('click', function () {
         app.loading(true);
         fa.checkTurbine();
@@ -601,21 +619,11 @@ $(document).ready(function () {
                 $('#turbineList').multiselect('select', fa.turbineList()[0].value);
             }, 100);
 		}
-	});
-
-    setTimeout(function () {
-        var $el = $("#turbineList");
-        $('option', $el).each(function(element) {
-          $el.multiselect('deselect', $(this).val());
-        });
-
-        if(fa.turbineList().length > 1){
-            $('#turbineList').multiselect('select', fa.turbineList()[0].value);
-        }
-
-        km.getData();
-        km.getMaxMinValueTemp();
-    }, 800);
+    });
+    
+    // load functions
+    di.getAvailDate();
+    km.getTempTags(km.callbackTempTags);
 });
 
 $(document).bind("kendo:skinChange", km.createChart);
