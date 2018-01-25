@@ -333,6 +333,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		dateFound := false
 		for _, tanggal := range categoryChecker {
 			dateFound = false
+			idxAvgTlp = 0
 		existLoop:
 			for _, val := range exist {
 				ids := val["_id"].(tk.M)
@@ -342,6 +343,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					dateFound = true
 					/*calculation process*/
 					colresult := val.GetFloat64("colresult")
+					tk.Println(idxAvgTlp)
 					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
 						shownSeries = true
 					}
