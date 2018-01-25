@@ -1882,6 +1882,38 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("TurbineActive", len(_result)-turbinedown)
 	}
 
+	// internet connection availability
+	pipesIntConn := []tk.M{
+		tk.M{"$match": tk.M{"_id": project}},
+	}
+
+	csrIntConn, err := rconn.NewQuery().From(new(InternetConnectionData).TableName()).
+		Command("pipe", pipesIntConn).
+		Cursor(nil)
+	defer csrIntConn.Close()
+	if err != nil {
+		tk.Printf("Error query internet conn. data : %s\n", err.Error())
+	}
+	intConnData := tk.M{}
+	err = csrIntConn.Fetch(&intConnData, 1, false)
+	if err != nil {
+		tk.Printf("Error fetch internet conn. data : %s\n", err.Error())
+	}
+
+	isOpcReachable := false
+	isOpcChecked := false
+	if len(intConnData) > 0 {
+		isOpcChecked = true
+		lastConnUpdate := intConnData.Get("servertimestamp", time.Time{}).(time.Time).UTC()
+		thressholdConn := intConnData.GetFloat64("thresshold")
+
+		if time.Now().UTC().Sub(lastConnUpdate).Seconds() < thressholdConn {
+			isOpcReachable = true
+		}
+	}
+	rtkm.Set("OpcOnline", isOpcReachable)
+	rtkm.Set("OpcCheckerAvailable", isOpcChecked)
+
 	return
 }
 

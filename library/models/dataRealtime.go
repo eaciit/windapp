@@ -1570,3 +1570,48 @@ func (m *AlarmHFD) RecordID() interface{} {
 func (m *AlarmHFD) TableName() string {
 	return "AlarmHFD"
 }
+
+type InternetConnectionData struct {
+	orm.ModelBase   	`bson:"-",json:"-"`
+	Id              	string ` bson:"_id" json:"_id" `
+	TimeStamp       	time.Time
+	ServerTimeStamp 	time.Time
+	Thresshold			float64
+}
+
+func (m *InternetConnectionData) New() *InternetConnectionData {
+	return m
+}
+
+func (m *InternetConnectionData) RecordID() interface{} {
+	return m.Id
+}
+
+func (m *InternetConnectionData) TableName() string {
+	return "InternetConnectionData"
+}
+
+type InternetConnectionDown struct {
+	orm.ModelBase   `bson:"-",json:"-"`
+	Id              bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectName		string
+	TimeStart		time.Time
+	DateInfoStart	DateInfo
+	TimeEnd			time.Time
+	DateInfoEnd		DateInfo
+	Duration		float64
+	DurationHours	float64
+}
+
+func (m *InternetConnectionDown) New() *InternetConnectionDown {
+	m.Id = bson.NewObjectId()
+	return m
+}
+
+func (m *InternetConnectionDown) RecordID() interface{} {
+	return m.Id
+}
+
+func (m *InternetConnectionDown) TableName() string {
+	return "InternetConnectionDown"
+}
