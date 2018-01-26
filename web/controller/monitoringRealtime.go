@@ -746,6 +746,10 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	rtkm.Set("TurbineDown", turbinedown)
 	rtkm.Set("TurbineNotAvail", turbnotavail)
 
+	opcOnline, isOpcInstalled, _ := getOpcAvail(rconn, project)
+	rtkm.Set("OpcOnline", opcOnline)
+	rtkm.Set("OpcCheckerAvailable", isOpcInstalled)
+
 	return
 }
 
@@ -1087,25 +1091,29 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			todayGen = tk.Div(todayGen, 1000)
 		}
 
+		opcOnline, isOpcInstalled, _ := getOpcAvail(rconn, projectId)
+
 		detail := tk.M{
-			"Project":            projectId,
-			"Capacity":           maxCap,
-			"NoOfTurbine":        totalTurbine,
-			"AvgWindSpeed":       avgWs,
-			"LastUpdated":        lastUpdate,
-			"PowerGeneration":    activePower,
-			"PLF":                plf,
-			"TurbineActive":      turbineAvail,
-			"TurbineDown":        turbineDown,
-			"TurbineNotAvail":    turbineNA,
-			"isbordered":         dataIsBordered[projectId],
-			"WaitingForWind":     waitingForWind,
-			"TodayGen":           todayGen,
-			"TodayLost":          tk.Div(todayLost, 1000.0), // convert to mwh
-			"PrevDayGen":         tk.Div(prevGen, 1000.0),   // convert to mwh
-			"PrevDayLost":        tk.Div(prevLost, 1000.0),  // convert to mwh
-			"DefaultColorStatus": defaultColorStatus,
-			"ColorStatus":        colorStatus,
+			"Project":            	projectId,
+			"Capacity":           	maxCap,
+			"NoOfTurbine":        	totalTurbine,
+			"AvgWindSpeed":       	avgWs,
+			"LastUpdated":        	lastUpdate,
+			"PowerGeneration":    	activePower,
+			"PLF":                	plf,
+			"TurbineActive":      	turbineAvail,
+			"TurbineDown":        	turbineDown,
+			"TurbineNotAvail":    	turbineNA,
+			"isbordered":         	dataIsBordered[projectId],
+			"WaitingForWind":     	waitingForWind,
+			"TodayGen":           	todayGen,
+			"TodayLost":          	tk.Div(todayLost, 1000.0), // convert to mwh
+			"PrevDayGen":         	tk.Div(prevGen, 1000.0),   // convert to mwh
+			"PrevDayLost":        	tk.Div(prevLost, 1000.0),  // convert to mwh
+			"DefaultColorStatus": 	defaultColorStatus,
+			"ColorStatus":        	colorStatus,
+			"OpcOnline":		  	opcOnline,
+			"OpcCheckerAvailable":	isOpcInstalled,
 		}
 		details = append(details, detail)
 	}
@@ -1882,37 +1890,44 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("TurbineActive", len(_result)-turbinedown)
 	}
 
-	// internet connection availability
+	isOpcReachable, isOpcChecked, _ := getOpcAvail(rconn, project)
+
+	rtkm.Set("OpcOnline", isOpcReachable)
+	rtkm.Set("OpcCheckerAvailable", isOpcChecked)
+
+	return
+}
+
+func getOpcAvail(conn dbox.IConnection, project string) (opcOnline bool, opcCheckerInstalled bool, err error) {
+	opcOnline = false
+	opcCheckerInstalled = false
+
 	pipesIntConn := []tk.M{
 		tk.M{"$match": tk.M{"_id": project}},
 	}
 
-	csrIntConn, err := rconn.NewQuery().From(new(InternetConnectionData).TableName()).
+	csrIntConn, err := conn.NewQuery().From(new(InternetConnectionData).TableName()).
 		Command("pipe", pipesIntConn).
 		Cursor(nil)
 	defer csrIntConn.Close()
 	if err != nil {
-		tk.Printf("Error query internet conn. data : %s\n", err.Error())
+		return
 	}
 	intConnData := tk.M{}
 	err = csrIntConn.Fetch(&intConnData, 1, false)
 	if err != nil {
-		tk.Printf("Error fetch internet conn. data : %s\n", err.Error())
+		return
 	}
 
-	isOpcReachable := false
-	isOpcChecked := false
 	if len(intConnData) > 0 {
-		isOpcChecked = true
+		opcCheckerInstalled = true
 		lastConnUpdate := intConnData.Get("servertimestamp", time.Time{}).(time.Time).UTC()
 		thressholdConn := intConnData.GetFloat64("thresshold")
 
 		if time.Now().UTC().Sub(lastConnUpdate).Seconds() < thressholdConn {
-			isOpcReachable = true
+			opcOnline = true
 		}
 	}
-	rtkm.Set("OpcOnline", isOpcReachable)
-	rtkm.Set("OpcCheckerAvailable", isOpcChecked)
 
 	return
 }
