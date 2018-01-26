@@ -137,6 +137,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	/*============================== AVG TLP PART ============================*/
 	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project, categoryChecker)
+	tk.Printf("AvgTlp : %#v\n", AvgTlp)
+	tk.Printf("TLPavgData : %#v\n", TLPavgData)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -343,7 +345,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					dateFound = true
 					/*calculation process*/
 					colresult := val.GetFloat64("colresult")
-					tk.Println(idxAvgTlp)
 					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
 						shownSeries = true
 					}
@@ -422,7 +423,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 
 	var (
 		pipes []tk.M
-		list  []tk.M
+		list  tk.M
 	)
 
 	matches := []tk.M{
@@ -450,16 +451,19 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		return
 	}
 
-	contains := func(arr []string, str string) (bool) {
-		for _, a := range arr {
-			if a == str {
-			   return true
-			}
-		 }
-		 return false
-	}
+	// contains := func(arr []string, str string) (bool) {
+	// 	for _, a := range arr {
+	// 		if a == str {
+	// 		   return true
+	// 		}
+	// 	 }
+	// 	 return false
+	// }
+
+	timestartd := time.Now()
 
 	l := tk.M{}
+	list = tk.M{}
 	for {
 		l = tk.M{}
 		e = csr.Fetch(&l, 1, false)
@@ -467,18 +471,17 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 			e = nil
 			break
 		}
+		tk.Printf("L = %#v\n", l)
 		tgl := l.Get("_id", time.Time{}).(time.Time)
 		tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-		if contains(categoryChecker, tglString) {
-			l.Set("datefound", true)
-		} else {
-			l.Set("datefound", false)
-		}
-		list = append(list, l)
+		list[tglString] = l
 	}
 	csr.Close()
+
+	durationd := time.Now().Sub(timestartd).Seconds()
+	tk.Printf("Kondisi 1b : %v\n", durationd)
 	
-	dateFound := false
+	// dateFound := false
 	// for _, tanggal := range categoryChecker {
 	// 	dateFound = false
 	// existLoop:
@@ -498,14 +501,19 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	// 	}
 	// }
 	
-	for _, val := range list {
-		colresult := val.GetFloat64("colresult")
-		dateFound = val.Get("datefound", false).(bool)
-		if !dateFound {
-			colresult = 999999
+	timestartd = time.Now()
+
+	for _, tanggal := range categoryChecker {
+		colresult := 999999.0
+		if list.Has(tanggal) {
+			val := list.Get(tanggal, tk.M{}).(tk.M)
+			colresult = val.GetFloat64("colresult")
 		}
 		datas = append(datas, colresult)
 	}
+
+	durationd = time.Now().Sub(timestartd).Seconds()
+	tk.Printf("Kondisi 2b : %v\n", durationd)
 
 	pcData = tk.M{
 		"name":      "Average",
