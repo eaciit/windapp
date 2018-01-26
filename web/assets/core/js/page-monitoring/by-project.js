@@ -229,6 +229,12 @@ bp.PlotData = function(data) {
     $('#project_turbine_active').text(24);
     $('#project_turbine_down').text(0);
 
+    if(data.OpcCheckerAvailable && !data.OpcOnline) {
+        $('#networkConnection').show();
+    } else {
+        $('#networkConnection').hide();
+    }
+
     var totalPower = 0;
     var totalWs = 0;
     var countWs = 0;
