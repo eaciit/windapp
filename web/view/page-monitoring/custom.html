@@ -48,7 +48,10 @@
                     <div class="cusmon-projects" data-bind="foreach: bpc.projectList">
                         <div class="col-md-2 col-xs-6" style="max-width: 135px;">
                             <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }" style="font-size: 11px">
-                                <h5 class="cusmon-title no-move" style="font-size: 11px"><span data-bind="text: bpc.getShorterName(Name)"></span></h5>
+                                <h5 class="cusmon-title no-move" style="font-size: 11px">
+                                    <span data-bind="text: bpc.getShorterName(Name)"></span>
+                                    <span class="pull-right networkConnection"  data-bind="attr: { 'id': 'networkConnection-' + ProjectId }"  style="display: none;"><i class="fa fa-warning"></i></span>
+                                </h5>
                                 
                                 <div class="cusmon-project-row">
                                     <div class="col-md-5 col-xs-3 text-left">Pwr <small>(Mw)</small></div>
@@ -88,7 +91,11 @@
                                 <h4 class="cusmon-title text-left" data-bind="singleOrDoubleClick:{ click:function(){page.ToByProject(ProjectId)},dblclick : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}}">
                                     <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
                                     <!-- <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span> -->
-                                     <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="attr: {id:'timemax_'+ProjectId}"></span>
+                                     <span data-bind="text: ProjectId"></span>
+                                     <div class="pull-right">
+                                         <span data-bind="attr: {id:'timemax_'+ProjectId}"></span>
+                                         <span data-bind="attr: { 'id': 'networkConnectionDetail-' + ProjectId }" class="tooltipster" style="display: none;margin-left: 5px;" title="OPC Not Online"><i class="fa fa-warning"></i></span>
+                                    </div>
                                 </h4>    
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' },attr: { 'id': 'cusmon-turbine-' + ProjectId }"></div>
                           </section>

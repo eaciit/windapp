@@ -56,8 +56,8 @@ ko.bindingHandlers.singleOrDoubleClick = {
 bpc.getShorterName = function(str){
 
     var strSplit =  str.split('(', 2);
-    if(strSplit[0].length > 10) {
-        str = str.substring(0,7) + ".. ("+strSplit[1] ;
+    if(strSplit[0].length > 9) {
+        str = str.substring(0,5) + ".. ("+strSplit[1] ;
     }else{
         str = str;
     }
@@ -156,6 +156,16 @@ bpc.plotData = function(project, data) {
 	}else{
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').hide();
 	}
+
+	if($data.OpcCheckerAvailable == false){
+		if($data.OpcOnline == false){
+			$('#networkConnection-'+ project).css("display", "block !important");
+			$('#networkConnectionDetail-'+ project).css("display", "block !important");
+		}
+	}else{
+		$('#networkConnection-'+ project).hide();
+		$('#networkConnectionDetail-'+ project).hide();
+	}
 	
 
 
@@ -213,6 +223,8 @@ bpc.plotData = function(project, data) {
 			}else{
 				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-temp[data-id="icontemp_'+ dt.Turbine +'"]').addClass(dt.BulletColor).attr('data-original-title', dt.TemperatureInfo);
 			}
+
+
 
 			
 
@@ -302,6 +314,8 @@ bpc.ToIndividualTurbine = function(data) {
 	}
 }
 
+
+
 // init page
 $(function() {
 	$('#savedViews').kendoDropDownList({
@@ -310,6 +324,19 @@ $(function() {
 		dataTextField: 'text',
 		change: function () {  },
 	});
+
+
+	$('.bstooltip').mouseenter(function(){
+        var that = $(this)
+        that.tooltip('show');
+        setTimeout(function(){
+            that.tooltip('hide');
+        }, 7000);
+    });
+
+    $('.bstooltip').mouseleave(function(){
+        $(this).tooltip('hide');
+    });
 
 	$( "#sortable" ).sortable();
     $( "#sortable" ).disableSelection();
