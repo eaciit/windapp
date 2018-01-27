@@ -167,6 +167,8 @@ bpc.plotData = function(project, data) {
 	// 	$('#networkConnectionDetail-'+ project).hide();
 	// }
 	
+	$('#networkConnection-'+ project).hide();
+	$('#networkConnectionDetail-'+ project).hide();
 	if($data.OpcCheckerAvailable) {
 		if(!$data.OpcOnline) {
 			$('#networkConnection-'+ project).css("display", "block !important");

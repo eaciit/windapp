@@ -107,10 +107,10 @@ page.generateView = function(){
         }
 
         // internet connection availability
+        // $('#networkConnection-'+ val.Project).hide();
         // if(val.OpcCheckerAvailable) {
         //     if(!val.OpcOnline) {
-        //         $('#networkConnection-'+ val.Project).css("display", "block !important");
-        //         console.log($('#networkConnection-'+ val.Project));
+        //         $('#networkConnection-'+ val.Project).show();
         //     }
         // }
     });
