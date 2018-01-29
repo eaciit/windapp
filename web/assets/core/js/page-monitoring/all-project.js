@@ -105,6 +105,14 @@ page.generateView = function(){
             comparison = 0;
             $('#statusproject_'+ val.Project).attr('class', 'lbl');
         }
+
+        // internet connection availability
+        // $('#networkConnection-'+ val.Project).hide();
+        // if(val.OpcCheckerAvailable) {
+        //     if(!val.OpcOnline) {
+        //         $('#networkConnection-'+ val.Project).show();
+        //     }
+        // }
     });
 
     $.when(setView).done(function(){

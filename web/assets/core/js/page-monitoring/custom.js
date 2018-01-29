@@ -157,17 +157,24 @@ bpc.plotData = function(project, data) {
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').hide();
 	}
 
-	if($data.OpcCheckerAvailable == false){
-		if($data.OpcOnline == false){
+	// if($data.OpcCheckerAvailable == false){
+	// 	if($data.OpcOnline == false){
+	// 		$('#networkConnection-'+ project).css("display", "block !important");
+	// 		$('#networkConnectionDetail-'+ project).css("display", "block !important");
+	// 	}
+	// }else{
+	// 	$('#networkConnection-'+ project).hide();
+	// 	$('#networkConnectionDetail-'+ project).hide();
+	// }
+	
+	$('#networkConnection-'+ project).hide();
+	$('#networkConnectionDetail-'+ project).hide();
+	if($data.OpcCheckerAvailable) {
+		if(!$data.OpcOnline) {
 			$('#networkConnection-'+ project).css("display", "block !important");
 			$('#networkConnectionDetail-'+ project).css("display", "block !important");
 		}
-	}else{
-		$('#networkConnection-'+ project).hide();
-		$('#networkConnectionDetail-'+ project).hide();
 	}
-	
-
 
 	// set turbine updates
 	var $detail = $data.Detail;
