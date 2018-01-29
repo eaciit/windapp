@@ -70,7 +70,7 @@
   color: #31B445;
 }
 .txt-red {
-  color: #db1e1e;
+  color: #db1e1e !important;
 }
 .txt-yellow {
   color: #f2d115;
@@ -90,9 +90,6 @@
   -webkit-animation:blink 1200ms infinite;*/
 }
 
-.txt-blinked{
-    color: #db1e1e;
-}
 
 .bg-green {
   background-color:#31B445;

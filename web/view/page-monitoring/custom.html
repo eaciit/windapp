@@ -50,7 +50,7 @@
                             <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }" style="font-size: 11px">
                                 <h5 class="cusmon-title no-move" style="font-size: 11px">
                                     <span data-bind="text: bpc.getShorterName(Name)"></span>
-                                    <span class="pull-right networkConnection tooltipster txt-blink txt-white" title="Internet Connection Not Available"  data-bind="attr: { 'id': 'networkConnection-' + ProjectId }"  style="display: none;"><i class="fa fa-warning"></i></span>
+                                    <span class="pull-right networkConnection tooltipster txt-red txt-white" title="Internet Connection Not Available"  data-bind="attr: { 'id': 'networkConnection-' + ProjectId }"  style="display: none;"><i class="fa fa-warning"></i></span>
                                 </h5>
                                 
                                 <div class="cusmon-project-row">
@@ -94,7 +94,7 @@
                                      <span data-bind="text: ProjectId"></span>
                                      <div class="pull-right">
                                          <span data-bind="attr: {id:'timemax_'+ProjectId}"></span>
-                                         <span data-bind="attr: { 'id': 'networkConnectionDetail-' + ProjectId }" class="tooltipster txt-blink txt-white" style="display: none;margin-left: 5px;" title="Internet Connection Not Available"><i class="fa fa-warning"></i></span>
+                                         <span data-bind="attr: { 'id': 'networkConnectionDetail-' + ProjectId }" class="tooltipster txt-red txt-white" style="display: none;margin-left: 5px;" title="Internet Connection Not Available"><i class="fa fa-warning"></i></span>
                                     </div>
                                 </h4>    
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' },attr: { 'id': 'cusmon-turbine-' + ProjectId }"></div>
