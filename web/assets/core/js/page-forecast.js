@@ -65,127 +65,130 @@ pg.genereateGrid = function(){
 }
 
 pg.genereateChart = function(){
-    $("#chartForecasting").html("");
-    $("#chartForecasting").kendoChart({
-        dataSource: {
-            data: pg.DataDummy(),
-        },
-        title: {
-            text: "Forecasting and Scheduling",
-             font: '18px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-        },
-        chartArea : {
-            height : 500,
-        },
-        legend: {
-            visible: true,
-            position : "top",
-        },
-        seriesDefaults: {
-            type: "line",
-            labels: {
-                visible: false,
-                background: "transparent"
-            },
-            style: "smooth",
-        },
-        series: [{
-            field: "Forecast",
-            name: "Forecast",
-            markers : {
-                visible : false
-            },
-            color: "#3d8dbd",
-            dashType: "longDash",
-            axis: "forecast",
-        },{
-            field: "SchFcast",
-            name: "Sch Fcast (SLDC)",
-            markers : {
-                visible : false
-            },
-            color: "#e91e63",
-            dashType: "longDash",
-            axis: "forecast",
-        },{
-            field: "ExpProd",
-            name: "Exp Prod (Pwr Curv)",
-            markers : {
-                visible : false
-            },
-            color: "#8bc34a",
-            dashType: "solid",
-            axis: "dynamic",
-        },{
-            field: "Actual",
-            name: "Actual Prod",
-            markers : {
-                visible : false
-            },
-            color: "#9c27b0",
-            dashType: "solid",
-            axis: "dynamic",
-        },{
-            field: "FcastWs",
-            name: "Fcast ws (m/s)",
-            markers : {
-                visible : false
-            },
-            color: "#00bcd4",
-            dashType: "longDash",
-            axis: "forecast",
-        },{
-            field: "ActualWs",
-            name: "Actual ws (m/s)",
-            markers : {
-                visible : false
-            },
-            color: "#ff9800",
-            dashType: "solid",
-            axis: "dynamic",
-        }],
-        valueAxes: [{
-            line: {
-                visible: false
-            },
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-            labels: {
-                visible: true,
-            },
-            name: "dynamic",
-        },{
-            line: {
-                visible: false
-            }, 
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                template: "#= kendo.toString(value, 'n2') #",
-            },
-            majorGridLines: {
-                visible: true,
-                color: "#eee",
-                width: 0.8,
-            },
-            name: "forecast",
-        }],
-        categoryAxis: {
-            field: "TimeBlock",
-            axisCrossingValues: [0, 1000],
-            majorGridLines: {
-                visible: false
-            },
-            majorTickType: "none",
-            labels: {
-              rotation: "auto"    
-            }
-        }
-    });
 
-    $("#chartForecasting").data("kendoChart").refresh();
+    setTimeout(function(){
+        $("#chartForecasting").html("");
+        $("#chartForecasting").kendoChart({
+            dataSource: {
+                data: pg.DataDummy(),
+            },
+            title: {
+                text: "Forecasting and Scheduling",
+                 font: '18px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            },
+            chartArea : {
+                height : 500,
+            },
+            legend: {
+                visible: true,
+                position : "top",
+            },
+            seriesDefaults: {
+                type: "line",
+                labels: {
+                    visible: false,
+                    background: "transparent"
+                },
+                style: "smooth",
+            },
+            series: [{
+                field: "Forecast",
+                name: "Forecast",
+                markers : {
+                    visible : false
+                },
+                color: "#3d8dbd",
+                dashType: "longDash",
+                axis: "forecast",
+            },{
+                field: "SchFcast",
+                name: "Sch Fcast (SLDC)",
+                markers : {
+                    visible : false
+                },
+                color: "#e91e63",
+                dashType: "longDash",
+                axis: "forecast",
+            },{
+                field: "ExpProd",
+                name: "Exp Prod (Pwr Curv)",
+                markers : {
+                    visible : false
+                },
+                color: "#8bc34a",
+                dashType: "solid",
+                axis: "dynamic",
+            },{
+                field: "Actual",
+                name: "Actual Prod",
+                markers : {
+                    visible : false
+                },
+                color: "#9c27b0",
+                dashType: "solid",
+                axis: "dynamic",
+            },{
+                field: "FcastWs",
+                name: "Fcast ws (m/s)",
+                markers : {
+                    visible : false
+                },
+                color: "#00bcd4",
+                dashType: "longDash",
+                axis: "forecast",
+            },{
+                field: "ActualWs",
+                name: "Actual ws (m/s)",
+                markers : {
+                    visible : false
+                },
+                color: "#ff9800",
+                dashType: "solid",
+                axis: "dynamic",
+            }],
+            valueAxes: [{
+                line: {
+                    visible: false
+                },
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                labels: {
+                    visible: true,
+                },
+                name: "dynamic",
+            },{
+                line: {
+                    visible: false
+                }, 
+                labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    template: "#= kendo.toString(value, 'n2') #",
+                },
+                majorGridLines: {
+                    visible: true,
+                    color: "#eee",
+                    width: 0.8,
+                },
+                name: "forecast",
+            }],
+            categoryAxis: {
+                field: "TimeBlock",
+                axisCrossingValues: [0, 1000],
+                majorGridLines: {
+                    visible: false
+                },
+                majorTickType: "none",
+                labels: {
+                  rotation: "auto"    
+                }
+            }
+        });
+
+        $("#chartForecasting").data("kendoChart").refresh();
+    },200);
 }
 $(function(){
     setTimeout(function(){
