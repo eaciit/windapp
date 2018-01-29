@@ -799,12 +799,17 @@ var Data = {
         $("#right-turbine-list").html("");
         $.each(dtTurbines, function(idx, val) {
             if(val.name != "Power Curve"){
+                var nameTurbine = val.name;
+                 if ( fa.project == "Rajgarh" ) {
+                    nameTurbine = nameTurbine.replace("KH-", "-")
+                }
+                
                 totalDataShoulBeInProject += val.totaldatashouldbe;
                 totalDataAvailInProject += val.totaldata;
                 $("#right-turbine-list").append('<div class="btn-group">' +
                 '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
                 '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + idx + '" hidden>' +
-                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + val.name + ' <label id="dataavailpct-'+val.turbineid+'" class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ val.name +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
+                '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + nameTurbine + ' <label id="dataavailpct-'+val.turbineid+'" class="label label-default pull-right" data-toggle="tooltip" title="Data available for turbine : '+ nameTurbine +'">'+ kendo.toString(val.dataavailpct, 'p1') +'</label></button>' +
                 '</div>');
             }
         });
