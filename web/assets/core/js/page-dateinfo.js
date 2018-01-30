@@ -38,12 +38,7 @@ di.getAvailDate = function (param) {
         }
         
 
-
-       
-
-        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-
-        $('#dateStart').data('kendoDatePicker').value(startDate);
+        $('#dateStart').data('kendoDatePicker').value(new Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
         $('#dateEnd').data('kendoDatePicker').value(di.maxDatetemp());
     })
     return reqDate;
