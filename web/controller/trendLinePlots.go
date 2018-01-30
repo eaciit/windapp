@@ -460,7 +460,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	// 	 return false
 	// }
 
-	timestartd := time.Now()
+	//timestartd := time.Now()
 
 	l := tk.M{}
 	list = tk.M{}
@@ -478,7 +478,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	}
 	csr.Close()
 
-	durationd := time.Now().Sub(timestartd).Seconds()
+	//durationd := time.Now().Sub(timestartd).Seconds()
 	//tk.Printf("Kondisi 1b : %v\n", durationd)
 
 	// dateFound := false
@@ -501,7 +501,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	// 	}
 	// }
 
-	timestartd = time.Now()
+	//timestartd = time.Now()
 
 	for _, tanggal := range categoryChecker {
 		colresult := 999999.0
@@ -512,7 +512,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		datas = append(datas, colresult)
 	}
 
-	durationd = time.Now().Sub(timestartd).Seconds()
+	//durationd = time.Now().Sub(timestartd).Seconds()
 	//tk.Printf("Kondisi 2b : %v\n", durationd)
 
 	pcData = tk.M{
