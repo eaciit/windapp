@@ -1,0 +1,18 @@
+.nav.nav-tabs {
+    border-bottom: 1px solid #3d8dbd;
+}
+.nav.nav-tabs li.active a {
+    border: 1px solid #3d8dbd;
+    border-bottom: 1px solid transparent;
+    background: #3d8dbd;
+    color: #fff;
+}
+.nav.nav-tabs li a:hover {
+    border: 1px solid #3d8dbd;
+    border-bottom: 1px solid transparent;
+    background: #3d8dbd;
+    color: #fff;
+}
+.nav.nav-tabs li {
+     margin-right: 0px; 
+}

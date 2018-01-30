@@ -1,0 +1,46 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
+</script>
+<script src="{{BaseUrl}}res/core/js/page-forecast.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-forecast.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-body">
+						{{template "_dateinfo.html"}}
+	                    <div class="clearfix">&nbsp;</div>
+						<div class="col-md-10 col-md-offset-1" style="text-align:center">
+	                        <ul class="nav nav-tabs pull-right" role="tablist">
+	                            <li id="gridTab" role="presentation" class="active"><a href="#grid" aria-controls="grid" role="tab" data-toggle="tab" class="tab-custom"><i class="fa fa-table"></i></a></li>
+	                            <li id="chartTab" role="presentation" onclick="pg.genereateChart();"><a href="#chart" aria-controls="chart" role="tab" data-toggle="tab" class="tab-custom"><i class="fa fa-bar-chart"></i></a></li>
+	                        </ul>
+	                        <div class="tab-content">
+	                        	<div class="clearfix">&nbsp;</div>
+	                            <div role="tabpanel" class="tab-pane active" id="grid">
+	                                <div class="tab-pane-content">
+	                                    <div class="clearfix">&nbsp;</div>
+	                                    <div id="gridForecasting"></div>
+	                                </div>
+	                            </div>
+	                             <div role="tabpanel" class="tab-pane" id="chart">
+	                                <div class="tab-pane-content">
+	                                    <div id="chartForecasting"></div>
+	                                </div>
+	                            </div>
+	                        </div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>
