@@ -1320,14 +1320,15 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 			Command("pipe", pipes).
 			Cursor(nil)
 
-		defer csr.Close()
-
 		if e != nil {
 			return helper.CreateResult(false, nil, "Error query : "+e.Error())
 		}
 
+		//timenow := time.Now()
 		resultCategory := []tk.M{}
 		e = csr.Fetch(&resultCategory, 0, false)
+		//duration := time.Now().Sub(timenow).Seconds()
+		//tk.Printf("Kondisi utk bin %v = %v\n", i, duration)
 
 		if len(resultCategory) > 0 {
 			valuewindspeed = append(valuewindspeed, float64(resultCategory[0]["total"].(int)))
@@ -1335,6 +1336,8 @@ func (m *AnalyticLossAnalysisController) GetHistogramData(k *knot.WebContext) in
 		} else {
 			valuewindspeed = append(valuewindspeed, 0.00)
 		}
+
+		csr.Close()
 
 		startcategory = startcategory + interval
 	}
@@ -1418,9 +1421,8 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 			Command("pipe", pipes).
 			Cursor(nil)
 
-		defer csr.Close()
-
 		if e != nil {
+			csr.Close()
 			return helper.CreateResult(false, nil, "Error query : "+e.Error())
 		}
 
@@ -1433,6 +1435,7 @@ func (m *AnalyticLossAnalysisController) GetProductionHistogramData(k *knot.WebC
 		} else {
 			valueproduction = append(valueproduction, 0.00)
 		}
+		csr.Close()
 
 		startcategory = startcategory + interval
 	}
@@ -1529,19 +1532,23 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				Command("pipe", pipes).
 				Cursor(nil)
 
-			defer csr.Close()
-
 			if e != nil {
+				csr.Close()
 				tk.Println("error on cursor go func get temperature histogram", e.Error())
 				return
 			}
 
+			// timenow := time.Now()
 			resultCategory := []tk.M{}
 			e = csr.Fetch(&resultCategory, 0, false)
 			if e != nil {
+				csr.Close()
 				tk.Println("error on fetch go func get temperature histogram", e.Error())
 				return
 			}
+			csr.Close()
+			// duration := time.Now().Sub(timenow).Seconds()
+			// tk.Printf("KOndisi temp %v = %v\n", i, duration)
 
 			catformat := "%.1f"
 			if startcategory == math.Trunc(startcategory) {
@@ -1811,21 +1818,27 @@ func (m *AnalyticLossAnalysisController) GetMaxValTempTags(k *knot.WebContext) i
 	pipes = append(pipes, tk.M{}.Set("$match", match))
 	pipes = append(pipes, tk.M{}.Set("$group", group))
 
+	//timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From("Scada10MinHFD").
 		Command("pipe", pipes).
 		Cursor(nil)
 
-	defer csr.Close()
 	datamax := tk.M{}
-
 	_ = csr.Fetch(&datamax, 1, false)
+	//duration := time.Now().Sub(timenow).Seconds()
+	//tk.Printf("Kondisi 1 = %v\n", duration)
+
+	//timenow = time.Now()
 	for key, _ := range datamax {
 		if key == "_id" || key == "total" {
 			continue
 		}
 		datamax.Set(key, datamax.GetFloat64(key)+10)
 	}
+	//duration = time.Now().Sub(timenow).Seconds()
+	//tk.Printf("Kondisi 2 = %v\n", duration)
+	csr.Close()
 
 	return helper.CreateResult(true, datamax, "success")
 }
