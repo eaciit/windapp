@@ -137,8 +137,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	/*============================== AVG TLP PART ============================*/
 	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project, categoryChecker)
-	tk.Printf("AvgTlp : %#v\n", AvgTlp)
-	tk.Printf("TLPavgData : %#v\n", TLPavgData)
+	//tk.Printf("AvgTlp : %#v\n", AvgTlp)
+	//tk.Printf("TLPavgData : %#v\n", TLPavgData)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -335,7 +335,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		dateFound := false
 		for _, tanggal := range categoryChecker {
 			dateFound = false
-			idxAvgTlp = 0
 		existLoop:
 			for _, val := range exist {
 				ids := val["_id"].(tk.M)
@@ -345,11 +344,12 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					dateFound = true
 					/*calculation process*/
 					colresult := val.GetFloat64("colresult")
+					// tk.Printf("turbine -> colresult = AvgTlp[idxAvgTlp] -> %s - %v = %v - %v\n", turbineX, colresult, AvgTlp[idxAvgTlp], AvgTlp[idxAvgTlp]-colresult)
 					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
 						shownSeries = true
 					}
 					datas = append(datas, colresult)
-					
+
 					if colresult < minValue {
 						minValue = colresult
 					}
@@ -471,7 +471,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 			e = nil
 			break
 		}
-		tk.Printf("L = %#v\n", l)
+		//tk.Printf("L = %#v\n", l)
 		tgl := l.Get("_id", time.Time{}).(time.Time)
 		tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
 		list[tglString] = l
@@ -479,8 +479,8 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	csr.Close()
 
 	durationd := time.Now().Sub(timestartd).Seconds()
-	tk.Printf("Kondisi 1b : %v\n", durationd)
-	
+	//tk.Printf("Kondisi 1b : %v\n", durationd)
+
 	// dateFound := false
 	// for _, tanggal := range categoryChecker {
 	// 	dateFound = false
@@ -500,7 +500,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	// 		datas = append(datas, 999999)
 	// 	}
 	// }
-	
+
 	timestartd = time.Now()
 
 	for _, tanggal := range categoryChecker {
@@ -513,7 +513,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 	}
 
 	durationd = time.Now().Sub(timestartd).Seconds()
-	tk.Printf("Kondisi 2b : %v\n", durationd)
+	//tk.Printf("Kondisi 2b : %v\n", durationd)
 
 	pcData = tk.M{
 		"name":      "Average",
