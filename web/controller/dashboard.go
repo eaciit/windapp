@@ -3029,9 +3029,8 @@ func setMapData() (result tk.M) {
 		}
 		currturbine.Set(_tTurbine, 1)
 		turbineStatus[_tTurbine] = "green"
-		if ((t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit || servt0.Sub(servtstamp.UTC()).Minutes() <= GAMESALimit) && tk.HasMember(GAMESA, _tProject)) ||
-			((t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= SUZLONLimit) && tk.HasMember(SUZLON, _tProject)) ||
-			((t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= OTHERSLimit) && tk.HasMember(OTHERS, _tProject)) {
+		limitVal, hasLimit := NotAvailLimit[_tProject]
+		if hasLimit && (t0.Sub(tstamp.UTC()).Minutes() <= limitVal || servt0.Sub(servtstamp.UTC()).Minutes() <= limitVal) {
 			isDataComing = true
 		} else {
 			turbineStatus[_tTurbine] = "grey"
