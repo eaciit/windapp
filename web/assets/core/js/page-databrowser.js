@@ -288,8 +288,8 @@ dbr.setAvailableDate = function(isFirst) {
             if(isFirst === true){
                 var startDatepicker = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
 
-                $('#dateStart').data('kendoDatePicker').value(startDatepicker);
-                $('#dateEnd').data('kendoDatePicker').value(endDate);
+                // $('#dateStart').data('kendoDatePicker').value(startDatepicker);
+                // $('#dateEnd').data('kendoDatePicker').value(endDate);
             }
         }
 
@@ -367,7 +367,7 @@ dbr.Event = function(id) {
 dbr.Met = function(id) {
     fa.LoadData();
     app.loading(true);
-    dbr.setAvailableDate(br.isMetLoaded());
+    dbr.setAvailableDate(dbr.isMetLoaded());
     if(!dbr.isMetLoaded()) {
         dbr.isMetLoaded(true);
         dbm.InitMet();
