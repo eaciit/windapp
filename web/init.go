@@ -137,16 +137,7 @@ func setAclDatabase() error {
 	}
 
 	for _, val := range dataProjects {
-		if val.GetString("machinetype") == "Gamesa" {
-			controller.GAMESA = append(controller.GAMESA, val.GetString("projectid"))
-			controller.GAMESALimit = val.GetFloat64("unavailablelimit")
-		} else if val.GetString("machinetype") == "Suzlon" {
-			controller.SUZLON = append(controller.SUZLON, val.GetString("projectid"))
-			controller.SUZLONLimit = val.GetFloat64("unavailablelimit")
-		} else if val.GetString("machinetype") == "Others" {
-			controller.OTHERS = append(controller.OTHERS, val.GetString("projectid"))
-			controller.OTHERSLimit = val.GetFloat64("unavailablelimit")
-		}
+		controller.NotAvailLimit[val.GetString("projectid")] = val.GetFloat64("unavailablelimit")
 	}
 
 	if err := PrepareDefaultUser(); err != nil {
