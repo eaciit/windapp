@@ -299,8 +299,8 @@ ma.LoadDataAvail = function(projectname, gridType){
                 $('#availabledatestart').html(kendo.toString(moment.utc(ma.minDatetemp).format('DD-MMMM-YYYY')));
                 $('#availabledateend').html(kendo.toString(moment.utc(ma.maxDatetemp).format('DD-MMMM-YYYY')));
 
-                $('#dateStart').data('kendoDatePicker').value( new Date(Date.UTC(moment( ma.maxDatetemp).get('year'),  ma.maxDatetemp.getMonth(),  ma.maxDatetemp.getDate() - 7, 0, 0, 0, 0)));
-                $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(res.data.Data[1]).format('DD-MMM-YYYY')));
+                // $('#dateStart').data('kendoDatePicker').value( new Date(Date.UTC(moment( ma.maxDatetemp).get('year'),  ma.maxDatetemp.getMonth(),  ma.maxDatetemp.getDate() - 7, 0, 0, 0, 0)));
+                // $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(res.data.Data[1]).format('DD-MMM-YYYY')));
 
                 ma.checkCompleteDate();
             }
