@@ -130,7 +130,7 @@ dbc.InitCustomGrid = function() {
                     }
                     $('#totalturbineCustom').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                     $('#totaldataCustom').html(kendo.toString(res.data.Total, 'n0'));
-                    $('#totalactivepowerCustom').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MWh');
+                    $('#totalactivepowerCustom').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MW');
                     $('#totalprodCustom').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
                     $('#avgwindspeedCustom').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
                     return res.data.Total;
