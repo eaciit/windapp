@@ -654,10 +654,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			val.Field: tk.M{val.Op: val.Value},
 		})
 	}
-	pipes := []tk.M{
-		tk.M{"$match": tk.M{"$and": matches}},
-		tk.M{"$project": projection},
-	}
+	pipes := []tk.M{}
+	// 	tk.M{"$match": tk.M{"$and": matches}},
+	// 	tk.M{"$project": projection},
+	// }
 	sortList := map[string]int{}
 	if len(p.Sort) > 0 {
 		for _, val := range p.Sort {
@@ -669,22 +669,47 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 		pipes = append(pipes, tk.M{"$sort": sortList})
 	}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": projection})
+
 	pipes = append(pipes, []tk.M{
 		tk.M{"$skip": p.Skip},
 		tk.M{"$limit": p.Take},
 	}...)
+	tk.Printf("%#v\n", pipes)
+
+	// timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
+	// defer csr.Close()
+	//	duration := time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 1 = %v\n", duration)
+	// tk.Printf("Total = %v\n", csr.Count())
 
+	// timenow = time.Now()
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
+	// item := tk.M{}
+	// for {
+	// 	item = tk.M{}
+	// 	e = csr.Fetch(&item, 1, false)
+	// 	if e != nil {
+	// 		break
+	// 	}
+	// 	results = append(results, item)
+	// }
+	// tk.Printf("Total = %v\n", len(results))
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	// csr.Close()
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 2 = %v\n", duration)
 
 	// arrmettowercond := []interface{}{}
 
@@ -695,6 +720,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
 	}
 
+	// timenow = time.Now()
 	for i, val := range results {
 		if val.Has("timestamputc") {
 			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
@@ -713,6 +739,8 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			results[i] = val
 		}
 	}
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 3 = %v\n", duration)
 
 	/*tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
@@ -798,16 +826,30 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		tk.M{"$group": groups},
 	}
 
+	tk.Printf("%#v\n", matches)
+	tk.Printf("%#v\n", groups)
+
+	// timenow = time.Now()
 	caggr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 4 = %v\n", duration)
+
 	defer caggr.Close()
+
+	// timenow = time.Now()
 	e = caggr.Fetch(&aggrData, 0, false)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 5 = %v\n", duration)
+
 	totalTurbine = tk.SliceLen(aggrData)
 	switch tipe {
 	case "ScadaOEM":
@@ -872,10 +914,13 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 	}
 
+	// timenow = time.Now()
 	result, e := CheckData(results, filter, header, "custom")
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 6 = %v\n", duration)
 
 	data := struct {
 		Data             []tk.M

@@ -22,12 +22,7 @@ var (
 	CONFIG_PATH   = filepath.Join(AppBasePath, "config")
 	MenuList      = []string{}
 	ServerAddress = ""
-	GAMESA        = []string{}
-	SUZLON        = []string{}
-	OTHERS        = []string{}
-	GAMESALimit   = 0.0
-	SUZLONLimit   = 0.0
-	OTHERSLimit   = 0.0
+	NotAvailLimit = map[string]float64{}
 )
 
 func init() {
