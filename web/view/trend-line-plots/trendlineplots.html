@@ -18,13 +18,18 @@
 		                        Data Available from: <strong><span id="availabledatestarttlp">-</span></strong> until: <strong><span id="availabledateendtlp">-</span></strong>
 		                    </div>
 						</div>
-
                         
 						<div class="clearfix">&nbsp;</div>
 
-						<div  class="col-md-12 " style="margin-bottom: 20px">
+						<div  class="col-md-12 " style="margin-bottom: 20px;">
 							<div class="col-md-9">
-								<div class="tools btn-group pull-right btn-pdf">
+								<div style="text-align: center;">
+									<div class="btn-group" data-toggle="buttons">
+										<label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="isAvg" id="avgRadio" autocomplete="off" value="" checked>Average</label>
+										<label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="isAvg" id="maxRadio" autocomplete="off" value="max">Maximum</label>
+									</div>
+								</div>
+								<div class="tools btn-group pull-right btn-pdf" style="margin-top: -30px;">
 									<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){tlp.getPDF('.div-trendline')}">
 								    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 								  	</button>
