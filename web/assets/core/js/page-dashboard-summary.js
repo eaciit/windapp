@@ -1694,7 +1694,13 @@ sum.MonthlyProject = function (e, tipe) {
     lgd.isSummary(false);
     sum.isMonthlyProject(true);
 
-    var projects =  ["Tejuva", "Lahori", "Amba"];
+    var projects =  [];
+    $.each(lgd.projectItem(), function(key, val){
+        if(val.value !== "Fleet"){
+             projects.push(val.value);
+        }
+    });
+
     if(lgd.projectName() !== "Fleet"){
         projects = [lgd.projectName()];
     }
