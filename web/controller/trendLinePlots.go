@@ -84,6 +84,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	idxYear := 0
 	// tk.Println(":1:", monthDay)
 	// tk.Println(":2:", listMonth)
+
 	for lm, lMonth := range listMonth {
 		if lm == 0 { /*bulan pertama*/
 			catTitle = tStart.Month().String()
@@ -136,6 +137,8 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	/*============================== AVG TLP PART ============================*/
 	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project, categoryChecker)
+	//tk.Printf("AvgTlp : %#v\n", AvgTlp)
+	//tk.Printf("TLPavgData : %#v\n", TLPavgData)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -284,7 +287,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 		}
 		list = append(list, _list)
 	}
-	defer csr.Close()
+	csr.Close()
 
 	if len(p.Turbine) == 0 {
 		for _, listVal := range list {
@@ -341,10 +344,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					dateFound = true
 					/*calculation process*/
 					colresult := val.GetFloat64("colresult")
-					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
+					// tk.Printf("turbine -> colresult = AvgTlp[idxAvgTlp] -> %s - %v = %v - %v\n", turbineX, colresult, AvgTlp[idxAvgTlp], AvgTlp[idxAvgTlp]-colresult)
+					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
 						shownSeries = true
 					}
-
 					datas = append(datas, colresult)
 
 					if colresult < minValue {
@@ -353,10 +356,10 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 					if colresult > maxValue {
 						maxValue = colresult
 					}
-					idxAvgTlp++
 					break existLoop
 				}
 			}
+			idxAvgTlp++
 			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
 				datas = append(datas, 999999)
 			}
@@ -420,7 +423,7 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 
 	var (
 		pipes []tk.M
-		list  []tk.M
+		list  tk.M
 	)
 
 	matches := []tk.M{
@@ -444,32 +447,73 @@ func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, proje
 		From("Scada10MinHFD").
 		Command("pipe", pipes).
 		Cursor(nil)
-
 	if e != nil {
 		return
 	}
-	e = csr.Fetch(&list, 0, false)
-	defer csr.Close()
 
-	dateFound := false
-	for _, tanggal := range categoryChecker {
-		dateFound = false
-	existLoop:
-		for _, val := range list {
-			tgl := val.Get("_id", time.Time{}).(time.Time)
-			tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-			if tglString == tanggal { /*jika tanggal di dalam aggregate result ada di dalam category date*/
-				dateFound = true
-				colresult := val.GetFloat64("colresult")
+	// contains := func(arr []string, str string) (bool) {
+	// 	for _, a := range arr {
+	// 		if a == str {
+	// 		   return true
+	// 		}
+	// 	 }
+	// 	 return false
+	// }
 
-				datas = append(datas, colresult)
-				break existLoop
-			}
+	//timestartd := time.Now()
+
+	l := tk.M{}
+	list = tk.M{}
+	for {
+		l = tk.M{}
+		e = csr.Fetch(&l, 1, false)
+		if e != nil {
+			e = nil
+			break
 		}
-		if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-			datas = append(datas, 999999)
-		}
+		//tk.Printf("L = %#v\n", l)
+		tgl := l.Get("_id", time.Time{}).(time.Time)
+		tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
+		list[tglString] = l
 	}
+	csr.Close()
+
+	//durationd := time.Now().Sub(timestartd).Seconds()
+	//tk.Printf("Kondisi 1b : %v\n", durationd)
+
+	// dateFound := false
+	// for _, tanggal := range categoryChecker {
+	// 	dateFound = false
+	// existLoop:
+	// 	for _, val := range list {
+	// 		tgl := val.Get("_id", time.Time{}).(time.Time)
+	// 		tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
+	// 		if tglString == tanggal { /*jika tanggal di dalam aggregate result ada di dalam category date*/
+	// 			dateFound = true
+	// 			colresult := val.GetFloat64("colresult")
+
+	// 			datas = append(datas, colresult)
+	// 			break existLoop
+	// 		}
+	// 	}
+	// 	if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
+	// 		datas = append(datas, 999999)
+	// 	}
+	// }
+
+	//timestartd = time.Now()
+
+	for _, tanggal := range categoryChecker {
+		colresult := 999999.0
+		if list.Has(tanggal) {
+			val := list.Get(tanggal, tk.M{}).(tk.M)
+			colresult = val.GetFloat64("colresult")
+		}
+		datas = append(datas, colresult)
+	}
+
+	//durationd = time.Now().Sub(timestartd).Seconds()
+	//tk.Printf("Kondisi 2b : %v\n", durationd)
 
 	pcData = tk.M{
 		"name":      "Average",

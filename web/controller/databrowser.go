@@ -113,10 +113,10 @@ func GetHFDCustomFieldList() []tk.M {
 	// }
 	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").
 		Order("order").Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		tk.Println(e.Error())
 	}
-	defer csr.Close()
 
 	minMaxTagList := map[string]bool{
 		"windspeed_ms":       true,
@@ -326,10 +326,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		query = query.Order(arrsort...)
 	}
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	tmpResult := make([]tk.M, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
@@ -340,10 +340,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 
 	queryC := database.NewQuery().From(tablename).Where(dbox.And(filter...))
 	ccount, e := queryC.Cursor(nil)
+	defer ccount.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer ccount.Close()
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
@@ -376,10 +376,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		}
 
 		caggr, e := queryAggr.Cursor(nil)
+		defer caggr.Close()
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
-		defer caggr.Close()
 		e = caggr.Fetch(&aggrData, 0, false)
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
@@ -473,10 +473,10 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 		query = query.Order(arrsort...)
 	}
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	tmpResult := make([]JMR, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
@@ -522,6 +522,7 @@ func (m *DataBrowserController) GetJMRDetails(k *knot.WebContext) interface{} {
 	query := DB().Connection.NewQuery().From(new(JMR).TableName())
 	query.Where(dbox.And(filter...))
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -532,7 +533,6 @@ func (m *DataBrowserController) GetJMRDetails(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	result := make([]JMRSection, 0)
 
@@ -654,10 +654,10 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			val.Field: tk.M{val.Op: val.Value},
 		})
 	}
-	pipes := []tk.M{
-		tk.M{"$match": tk.M{"$and": matches}},
-		tk.M{"$project": projection},
-	}
+	pipes := []tk.M{}
+	// 	tk.M{"$match": tk.M{"$and": matches}},
+	// 	tk.M{"$project": projection},
+	// }
 	sortList := map[string]int{}
 	if len(p.Sort) > 0 {
 		for _, val := range p.Sort {
@@ -669,22 +669,47 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 		pipes = append(pipes, tk.M{"$sort": sortList})
 	}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": projection})
+
 	pipes = append(pipes, []tk.M{
 		tk.M{"$skip": p.Skip},
 		tk.M{"$limit": p.Take},
 	}...)
+	//tk.Printf("%#v\n", pipes)
+
+	// timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
+	// defer csr.Close()
+	//	duration := time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 1 = %v\n", duration)
+	// tk.Printf("Total = %v\n", csr.Count())
 
+	// timenow = time.Now()
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
+	// item := tk.M{}
+	// for {
+	// 	item = tk.M{}
+	// 	e = csr.Fetch(&item, 1, false)
+	// 	if e != nil {
+	// 		break
+	// 	}
+	// 	results = append(results, item)
+	// }
+	// tk.Printf("Total = %v\n", len(results))
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	// csr.Close()
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 2 = %v\n", duration)
 
 	// arrmettowercond := []interface{}{}
 
@@ -695,6 +720,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
 	}
 
+	// timenow = time.Now()
 	for i, val := range results {
 		if val.Has("timestamputc") {
 			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
@@ -713,6 +739,8 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			results[i] = val
 		}
 	}
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 3 = %v\n", duration)
 
 	/*tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
@@ -798,16 +826,30 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		tk.M{"$group": groups},
 	}
 
+	//tk.Printf("%#v\n", matches)
+	//tk.Printf("%#v\n", groups)
+
+	// timenow = time.Now()
 	caggr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer caggr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer caggr.Close()
+
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 4 = %v\n", duration)
+
+	// timenow = time.Now()
 	e = caggr.Fetch(&aggrData, 0, false)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 5 = %v\n", duration)
+
 	totalTurbine = tk.SliceLen(aggrData)
 	switch tipe {
 	case "ScadaOEM":
@@ -872,10 +914,13 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 	}
 
+	// timenow = time.Now()
 	result, e := CheckData(results, filter, header, "custom")
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	// duration = time.Now().Sub(timenow).Seconds()
+	// tk.Printf("Kondisi 6 = %v\n", duration)
 
 	data := struct {
 		Data             []tk.M
@@ -933,10 +978,10 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 	caggr, e := queryAggr.
 		Group("projectname").Where(dbox.And(xFilter...)).
 		Cursor(nil)
+	defer caggr.Close()
 	if e != nil {
 		return 0
 	}
-	defer caggr.Close()
 	e = caggr.Fetch(&tkm, 0, false)
 	if e != nil {
 		return 0
@@ -1033,10 +1078,10 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 	}
 
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	data := make([]tk.M, 0)
 	e = csr.Fetch(&data, 0, false)
@@ -1128,10 +1173,10 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	}
 
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)

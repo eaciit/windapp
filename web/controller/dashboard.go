@@ -2345,11 +2345,12 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 	}
 	sort.Strings(projects)
 
+	// rprojects := tk.M{}
+
 	if p.DateStr == "" {
 		fromDate = p.Date.AddDate(0, -12, 0)
-
-		if fromDate.Format("01") != "01" {
-			fromDate, _ = time.Parse("20060201_150405", fromDate.Format("200602")+"01"+"_000000")
+		if fromDate.Format("20060102")[6:] != "01" {
+			fromDate, _ = time.Parse("20060102_150405", fromDate.Format("200601")+"01"+"_000000")
 		}
 
 		match.Set("dateinfo.dateid", tk.M{"$gte": fromDate.UTC(), "$lte": p.Date.UTC()})
@@ -2394,8 +2395,6 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		}
 
 		// --------------
-
-		// dayInYear := tk.M{}
 		tmpFromDate := fromDate.AddDate(0, 1, 0)
 		dateInfoTo := GetDateInfo(p.Date)
 		for _, project := range projects {
@@ -2520,7 +2519,7 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 
 	mrTmp := []tk.M{}
 	grTmp := []tk.M{}
-	// tk.Println(len(machineResult)," > ",(len(projects) * 12))
+	// tk.Println(len(machineResult), " > ", (len(projects) * 12))
 	if len(machineResult) >= (len(projects) * 12) {
 		length := len(machineResult)
 		div := (length / len(projects))
@@ -2528,6 +2527,11 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 		for i := 1; i < len(projects)+1; i++ {
 			offerX := (div * i) - 12
 			// log.Printf("> %v | %v | %v | %v \n", div, div*i, offerX, offerX+12)
+			// tk.Println(offerX+12, " > ", len(gridResult), " || ", len(machineResult))
+			// if offerX+12 > len(gridResult) || offerX+12 > len(machineResult) {
+			// 	continue
+			// }
+
 			if p.ProjectName != "Fleet" {
 				mrTmp = append(mrTmp, machineResult[offerX:offerX+12]...)
 				grTmp = append(grTmp, gridResult[offerX:offerX+12]...)
@@ -3025,9 +3029,8 @@ func setMapData() (result tk.M) {
 		}
 		currturbine.Set(_tTurbine, 1)
 		turbineStatus[_tTurbine] = "green"
-		if ((t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit || servt0.Sub(servtstamp.UTC()).Minutes() <= GAMESALimit) && tk.HasMember(GAMESA, _tProject)) ||
-			((t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= SUZLONLimit) && tk.HasMember(SUZLON, _tProject)) ||
-			((t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= OTHERSLimit) && tk.HasMember(OTHERS, _tProject)) {
+		limitVal, hasLimit := NotAvailLimit[_tProject]
+		if hasLimit && (t0.Sub(tstamp.UTC()).Minutes() <= limitVal || servt0.Sub(servtstamp.UTC()).Minutes() <= limitVal) {
 			isDataComing = true
 		} else {
 			turbineStatus[_tTurbine] = "grey"

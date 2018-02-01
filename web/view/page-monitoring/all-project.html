@@ -36,7 +36,9 @@
                             </thead>
                             <tbody data-bind="foreach:page.DataDetails">
                                 <tr>
-                                    <td width="2%"><strong><span data-bind="text: Project"></span></strong></td>
+                                    <td width="3.7%"><strong><span data-bind="text: Project"></span></strong>
+                                    <span class="pull-right networkConnection tooltipster tooltipstered txt-red txt-warning" title="Internet Connection Not Available" data-toggle="tooltip" data-bind="attr: { 'id': 'networkConnection-' + Project }, visible: (OpcCheckerAvailable && !OpcOnline)"><i class="fa fa-warning"></i></span>
+                                    </td>
 <!--                                     <td width="6" class="text-center"><span data-bind="text:kendo.toString((PowerGeneration/1000) , 'n2'), attr: { id: 'PowerGeneration_'+ Project }"></span> / <span data-bind="text:kendo.toString(Capacity , 'n2'), attr: { id: 'Capacity_'+ Project }"></span></td> -->
                                     <td width="6%">
                                          <img src="{{BaseUrl}}res/img/triangle.png" class="serverlate" data-bind="visible: isbordered == true"/>

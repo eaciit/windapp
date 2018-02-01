@@ -16,6 +16,7 @@
         <div class="total-production" data-bind="attr: { 'data-id': 'total_'+t.Id }">
             <!-- <div class="inner-triangle" data-bind="attr: { 'data-id': t.Id }"></div> -->
             <i class="icon-remark fa fa-star" data-bind="attr: { 'data-id': 'icon_'+t.Id }" style="display: none;"></i>
+            <i class="icon-temp" data-bind="attr: { 'data-id': 'icontemp_'+t.Id }" data-toggle="tooltip" title="" class="bstooltip" data-container="body" data-html="true"></i>
             <a href="#" class="cusmon-name" data-bind="singleOrDoubleClick:{ dblclick: bpc.OpenTurbineCollaboration(t),click : bpc.ToIndividualTurbine(t)}">
                 <span data-bind="text: t.Name"></span>
             </a>
@@ -47,7 +48,10 @@
                     <div class="cusmon-projects" data-bind="foreach: bpc.projectList">
                         <div class="col-md-2 col-xs-6" style="max-width: 135px;">
                             <div class="cusmon-project-item" data-bind="attr: { 'id': 'cusmon-project-' + ProjectId }" style="font-size: 11px">
-                                <h5 class="cusmon-title no-move" style="font-size: 11px"><span data-bind="text: bpc.getShorterName(Name)"></span></h5>
+                                <h5 class="cusmon-title no-move" style="font-size: 11px">
+                                    <span data-bind="text: bpc.getShorterName(Name)"></span>
+                                    <span class="pull-right networkConnection tooltipster txt-red txt-white" title="Internet Connection Not Available"  data-bind="attr: { 'id': 'networkConnection-' + ProjectId }"  style="display: none;"><i class="fa fa-warning"></i></span>
+                                </h5>
                                 
                                 <div class="cusmon-project-row">
                                     <div class="col-md-5 col-xs-3 text-left">Pwr <small>(Mw)</small></div>
@@ -87,7 +91,11 @@
                                 <h4 class="cusmon-title text-left" data-bind="singleOrDoubleClick:{ click:function(){page.ToByProject(ProjectId)},dblclick : function(){bpc.OpenModal({isProject:true,isTurbine:false, Project : ProjectId})}}">
                                     <i class="fa fa-circle project-remark" data-bind="attr: { 'data-id': ProjectId }" style="display: none" data-toggle="tooltip" data-placement="top" title="Have Remark"></i>&nbsp; 
                                     <!-- <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="text: TotalMaxCapacity + ' MW'">0</span> -->
-                                     <span data-bind="text: ProjectId"></span><span class="pull-right" data-bind="attr: {id:'timemax_'+ProjectId}"></span>
+                                     <span data-bind="text: ProjectId"></span>
+                                     <div class="pull-right">
+                                         <span data-bind="attr: {id:'timemax_'+ProjectId}"></span>
+                                         <span data-bind="attr: { 'id': 'networkConnectionDetail-' + ProjectId }" class="tooltipster txt-red txt-white" style="display: none;margin-left: 5px;" title="Internet Connection Not Available"><i class="fa fa-warning"></i></span>
+                                    </div>
                                 </h4>    
                                 <div class="cusmon-turbines" data-bind="template: { name: 'turbine-template', foreach: _.filter(bpc.feederList(), function(o){ return (o.Project==ProjectId); }), as: 't' },attr: { 'id': 'cusmon-turbine-' + ProjectId }"></div>
                           </section>

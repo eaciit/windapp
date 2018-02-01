@@ -23,30 +23,30 @@ var audioElement = document.createElement('audio');
 
 ko.bindingHandlers.singleOrDoubleClick = {
     init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-    	var accessor = valueAccessor();
-        var clicks = 0;
-        var timeout = 200;
-
         var singleHandler   = valueAccessor().click,
-            doubleHandler   = valueAccessor().dblclick;
-            // delay           = valueAccessor().delay || 1000,
-            // clicks          = 0;
+            doubleHandler   = valueAccessor().dblclick,
+            delay           = valueAccessor().delay || 1000,
+            clicks          = 0;
 
-        $(element).click(function(event) {
-            if(typeof(accessor) === 'object') {
-                clicks++;
-                if (clicks === 1) {
-                    setTimeout(function() {
-                        if(clicks === 1) {
-                            singleHandler.call(viewModel, bindingContext.$data, event);
-                        } else {
-                            doubleHandler.call(viewModel, bindingContext.$data, event);
+        $(element).bind('click',function(event) {
+            clicks++;
+            if (clicks === 1) {
+                setTimeout(function() {
+                    if( clicks === 1 ) {
+                        // Call the single click handler - passing viewModel as this 'this' object
+                        // you may want to pass 'this' explicitly
+                        if (singleHandler !== undefined) { 
+                            singleHandler.call(viewModel, bindingContext.$data, event); 
                         }
-                        clicks = 0;
-                    }, timeout);
-                }
-            } else {
-                accessor.call(viewModel, bindingContext.$data, event);
+                    } else {
+                        // Call the double click handler - passing viewModel as this 'this' object
+                        // you may want to pass 'this' explicitly
+                        if (doubleHandler !== undefined) { 
+                            doubleHandler.call(viewModel, bindingContext.$data, event); 
+                        }
+                    }
+                    clicks = 0;
+                }, delay);
             }
             return false;
         });
@@ -56,8 +56,8 @@ ko.bindingHandlers.singleOrDoubleClick = {
 bpc.getShorterName = function(str){
 
     var strSplit =  str.split('(', 2);
-    if(strSplit[0].length > 10) {
-        str = str.substring(0,7) + ".. ("+strSplit[1] ;
+    if(strSplit[0].length > 9) {
+        str = str.substring(0,5) + ".. ("+strSplit[1] ;
     }else{
         str = str;
     }
@@ -156,8 +156,25 @@ bpc.plotData = function(project, data) {
 	}else{
 		$elmDetail.find('.project-remark[data-id="'+ project +'"]').hide();
 	}
-	
 
+	// if($data.OpcCheckerAvailable == false){
+	// 	if($data.OpcOnline == false){
+	// 		$('#networkConnection-'+ project).css("display", "block !important");
+	// 		$('#networkConnectionDetail-'+ project).css("display", "block !important");
+	// 	}
+	// }else{
+	// 	$('#networkConnection-'+ project).hide();
+	// 	$('#networkConnectionDetail-'+ project).hide();
+	// }
+	
+	$('#networkConnection-'+ project).hide();
+	$('#networkConnectionDetail-'+ project).hide();
+	if($data.OpcCheckerAvailable) {
+		if(!$data.OpcOnline) {
+			$('#networkConnection-'+ project).css("display", "block !important");
+			$('#networkConnectionDetail-'+ project).css("display", "block !important");
+		}
+	}
 
 	// set turbine updates
 	var $detail = $data.Detail;
@@ -208,6 +225,15 @@ bpc.plotData = function(project, data) {
 				// $("#cusmon-turbine-"+project).find(".turbine-detail").find('.inner-triangle[data-id="'+ dt.Turbine +'"]').hide();
 			}
 
+			if(dt.BulletColor == "fa fa-circle txt-green" || dt.BulletColor == "fa fa-circle txt-grey" ){
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-temp[data-id="icontemp_'+ dt.Turbine +'"]').hide();
+			}else{
+				$("#cusmon-turbine-"+project).find(".turbine-detail").find('.icon-temp[data-id="icontemp_'+ dt.Turbine +'"]').addClass(dt.BulletColor).attr('data-original-title', dt.TemperatureInfo);
+			}
+
+
+
+			
 
 			$("#cusmon-turbine-"+project).find(".turbine-detail").find('.total-production[data-id="total_'+ dt.Turbine +'"]').attr("title","Gen. Today (Mwh) : "+ kendo.toString(dt.TotalProduction,'n1'));
 
@@ -295,6 +321,8 @@ bpc.ToIndividualTurbine = function(data) {
 	}
 }
 
+
+
 // init page
 $(function() {
 	$('#savedViews').kendoDropDownList({
@@ -303,6 +331,19 @@ $(function() {
 		dataTextField: 'text',
 		change: function () {  },
 	});
+
+
+	$('.bstooltip').mouseenter(function(){
+        var that = $(this)
+        that.tooltip('show');
+        setTimeout(function(){
+            that.tooltip('hide');
+        }, 7000);
+    });
+
+    $('.bstooltip').mouseleave(function(){
+        $(this).tooltip('hide');
+    });
 
 	$( "#sortable" ).sortable();
     $( "#sortable" ).disableSelection();

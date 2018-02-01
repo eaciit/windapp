@@ -493,6 +493,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	tstamp, updatetstamp, servertstamp, iststamp := time.Time{}, time.Time{}, time.Time{}, time.Time{}
 	_tdata := tk.M{}
 
+	_rednotif, _orangenotif, _blinknotif := getNotificationDataInfo(project)
+
 	for {
 		_tdata = tk.M{}
 		err = csr.Fetch(&_tdata, 1, false)
@@ -516,13 +518,18 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
-				if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastproject)) ||
-					(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastproject)) ||
-					(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastproject)) {
+				limitVal, hasLimit := NotAvailLimit[lastproject]
+				if hasLimit && t0.Sub(updatetstamp.UTC()).Minutes() <= limitVal {
 					_itkm.Set("DataComing", 1)
 				}
 				lastproject = _tdata.GetString("projectname")
 				colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
+
+				if _itkm.GetInt("DataComing") == 0 {
+					_itkm.Set("BulletColor", "fa fa-circle txt-grey")
+					_itkm.Set("TemperatureInfo", "")
+				}
+
 				alldata = append(alldata, _itkm)
 			}
 
@@ -550,9 +557,8 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 				_itkm.Set(afield, defaultValue)
 			}
 
-			if (t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, _tdata.GetString("projectname"))) ||
-				(t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, _tdata.GetString("projectname"))) ||
-				(t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, _tdata.GetString("projectname"))) {
+			limitVal, hasLimit := NotAvailLimit[_tdata.GetString("projectname")]
+			if hasLimit && t0.Sub(tstamp.UTC()).Minutes() <= limitVal {
 				_itkm.Set("DataComing", 1)
 			}
 
@@ -564,6 +570,24 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 
 			if reapetedAlarm.GetFloat64(_tTurbine) >= 3 {
 				_itkm.Set("IsReapeatedAlarm", true)
+			}
+
+			_itkm.Set("BulletColor", "fa fa-circle txt-green")
+			_itkm.Set("TemperatureInfo", "")
+
+			if _blinknotif.Has(_tTurbine) {
+				_itkm.Set("BulletColor", "fa fa-circle txt-blink")
+				_itkm.Set("TemperatureInfo", _blinknotif.GetString(_tTurbine))
+			}
+
+			if _orangenotif.Has(_tTurbine) {
+				_itkm.Set("BulletColor", "fa fa-circle txt-orange")
+				_itkm.Set("TemperatureInfo", _orangenotif.GetString(_tTurbine))
+			}
+
+			if _rednotif.Has(_tTurbine) {
+				_itkm.Set("BulletColor", "fa fa-circle txt-red")
+				_itkm.Set("TemperatureInfo", _rednotif.GetString(_tTurbine))
 			}
 
 		}
@@ -626,10 +650,14 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	}
 	csr.Close()
 	if _iTurbine != "" {
-		if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastproject)) ||
-			(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastproject)) ||
-			(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastproject)) {
+		limitVal, hasLimit := NotAvailLimit[lastproject]
+		if hasLimit && t0.Sub(updatetstamp.UTC()).Minutes() <= limitVal {
 			_itkm.Set("DataComing", 1)
+		}
+
+		if _itkm.GetInt("DataComing") == 0 {
+			_itkm.Set("BulletColor", "fa fa-circle txt-grey")
+			_itkm.Set("TemperatureInfo", "")
 		}
 
 		colorProcess(_tdata, waitingForWsTurbine, curtailmentTurbine, remarkMaps, &_itkm, &turbinedown, &turbnotavail, &turbineWaitingWS)
@@ -714,6 +742,10 @@ func GetMonitoringByFarm(project string, locationTemp float64) (rtkm tk.M) {
 	rtkm.Set("TurbineActive", turbineactive)
 	rtkm.Set("TurbineDown", turbinedown)
 	rtkm.Set("TurbineNotAvail", turbnotavail)
+
+	opcOnline, isOpcInstalled, _ := getOpcAvail(rconn, project)
+	rtkm.Set("OpcOnline", opcOnline)
+	rtkm.Set("OpcCheckerAvailable", isOpcInstalled)
 
 	return
 }
@@ -912,9 +944,8 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			lastProject = _tProject
 		}
 		turbineCount++
-		if ((t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit || servt0.Sub(servtstamp.UTC()).Minutes() <= GAMESALimit) && tk.HasMember(GAMESA, _tProject)) ||
-			((t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= SUZLONLimit) && tk.HasMember(SUZLON, _tProject)) ||
-			((t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit || servt0.Sub(servtstamp.UTC()).Minutes() <= OTHERSLimit) && tk.HasMember(OTHERS, _tProject)) {
+		limitVal, hasLimit := NotAvailLimit[_tProject]
+		if hasLimit && (t0.Sub(tstamp.UTC()).Minutes() <= limitVal || servt0.Sub(servtstamp.UTC()).Minutes() <= limitVal) {
 			isDataComing = true
 		} else {
 			isDataComing = false
@@ -1056,25 +1087,29 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			todayGen = tk.Div(todayGen, 1000)
 		}
 
+		opcOnline, isOpcInstalled, _ := getOpcAvail(rconn, projectId)
+
 		detail := tk.M{
-			"Project":            projectId,
-			"Capacity":           maxCap,
-			"NoOfTurbine":        totalTurbine,
-			"AvgWindSpeed":       avgWs,
-			"LastUpdated":        lastUpdate,
-			"PowerGeneration":    activePower,
-			"PLF":                plf,
-			"TurbineActive":      turbineAvail,
-			"TurbineDown":        turbineDown,
-			"TurbineNotAvail":    turbineNA,
-			"isbordered":         dataIsBordered[projectId],
-			"WaitingForWind":     waitingForWind,
-			"TodayGen":           todayGen,
-			"TodayLost":          tk.Div(todayLost, 1000.0), // convert to mwh
-			"PrevDayGen":         tk.Div(prevGen, 1000.0),   // convert to mwh
-			"PrevDayLost":        tk.Div(prevLost, 1000.0),  // convert to mwh
-			"DefaultColorStatus": defaultColorStatus,
-			"ColorStatus":        colorStatus,
+			"Project":             projectId,
+			"Capacity":            maxCap,
+			"NoOfTurbine":         totalTurbine,
+			"AvgWindSpeed":        avgWs,
+			"LastUpdated":         lastUpdate,
+			"PowerGeneration":     activePower,
+			"PLF":                 plf,
+			"TurbineActive":       turbineAvail,
+			"TurbineDown":         turbineDown,
+			"TurbineNotAvail":     turbineNA,
+			"isbordered":          dataIsBordered[projectId],
+			"WaitingForWind":      waitingForWind,
+			"TodayGen":            todayGen,
+			"TodayLost":           tk.Div(todayLost, 1000.0), // convert to mwh
+			"PrevDayGen":          tk.Div(prevGen, 1000.0),   // convert to mwh
+			"PrevDayLost":         tk.Div(prevLost, 1000.0),  // convert to mwh
+			"DefaultColorStatus":  defaultColorStatus,
+			"ColorStatus":         colorStatus,
+			"OpcOnline":           opcOnline,
+			"OpcCheckerAvailable": isOpcInstalled,
 		}
 		details = append(details, detail)
 	}
@@ -1550,9 +1585,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 
 		if _iTurbine != _tTurbine {
 			if _iTurbine != "" {
-				if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastProject)) ||
-					(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastProject)) ||
-					(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastProject)) {
+				limitVal, hasLimit := NotAvailLimit[lastProject]
+				if hasLimit && t0.Sub(updatetstamp.UTC()).Minutes() <= limitVal {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1606,9 +1640,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					_itkm.Set(afield, defaultValue)
 				}
 
-				if (t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, _tdata.GetString("projectname"))) ||
-					(t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, _tdata.GetString("projectname"))) ||
-					(t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, _tdata.GetString("projectname"))) {
+				limitVal, hasLimit := NotAvailLimit[_tdata.GetString("projectname")]
+				if hasLimit && t0.Sub(tstamp.UTC()).Minutes() <= limitVal {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1636,9 +1669,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 					Set("Status", 1).
 					Set("IsWarning", false)
 
-				if (t0.Sub(tstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, _tdata.GetString("projectname"))) ||
-					(t0.Sub(tstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, _tdata.GetString("projectname"))) ||
-					(t0.Sub(tstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, _tdata.GetString("projectname"))) {
+				limitVal, hasLimit := NotAvailLimit[_tdata.GetString("projectname")]
+				if hasLimit && t0.Sub(tstamp.UTC()).Minutes() <= limitVal {
 					_itkm.Set("DataComing", 1)
 				}
 
@@ -1723,9 +1755,8 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 	csr.Close()
 	if _iTurbine != "" {
 		if pageType == "monitoring" {
-			if (t0.Sub(updatetstamp.UTC()).Minutes() <= GAMESALimit && tk.HasMember(GAMESA, lastProject)) ||
-				(t0.Sub(updatetstamp.UTC()).Minutes() <= SUZLONLimit && tk.HasMember(SUZLON, lastProject)) ||
-				(t0.Sub(updatetstamp.UTC()).Minutes() <= OTHERSLimit && tk.HasMember(OTHERS, lastProject)) {
+			limitVal, hasLimit := NotAvailLimit[lastProject]
+			if hasLimit && t0.Sub(updatetstamp.UTC()).Minutes() <= limitVal {
 				_itkm.Set("DataComing", 1)
 			}
 
@@ -1849,6 +1880,45 @@ func GetMonitoringByProjectV2(project string, locationTemp float64, pageType str
 		rtkm.Set("Detail", alldata)
 		rtkm.Set("TurbineDown", turbinedown)
 		rtkm.Set("TurbineActive", len(_result)-turbinedown)
+	}
+
+	isOpcReachable, isOpcChecked, _ := getOpcAvail(rconn, project)
+
+	rtkm.Set("OpcOnline", isOpcReachable)
+	rtkm.Set("OpcCheckerAvailable", isOpcChecked)
+
+	return
+}
+
+func getOpcAvail(conn dbox.IConnection, project string) (opcOnline bool, opcCheckerInstalled bool, err error) {
+	opcOnline = false
+	opcCheckerInstalled = false
+
+	pipesIntConn := []tk.M{
+		tk.M{"$match": tk.M{"_id": project}},
+	}
+
+	csrIntConn, err := conn.NewQuery().From(new(InternetConnectionData).TableName()).
+		Command("pipe", pipesIntConn).
+		Cursor(nil)
+	defer csrIntConn.Close()
+	if err != nil {
+		return
+	}
+	intConnData := tk.M{}
+	err = csrIntConn.Fetch(&intConnData, 1, false)
+	if err != nil {
+		return
+	}
+
+	if len(intConnData) > 0 {
+		opcCheckerInstalled = true
+		lastConnUpdate := intConnData.Get("servertimestamp", time.Time{}).(time.Time).UTC()
+		thressholdConn := intConnData.GetFloat64("thresshold")
+
+		if time.Now().UTC().Sub(lastConnUpdate).Seconds() < thressholdConn {
+			opcOnline = true
+		}
 	}
 
 	return
@@ -2147,9 +2217,8 @@ func (c *MonitoringRealtimeController) GetDataTurbine(k *knot.WebContext) interf
 
 	t0 := getTimeNow()
 	/* jika ada turbine status tapi timemax nya lebih dari waktu tertentu maka dianggap N/A */
-	if (t0.Sub(timemax.UTC()).Minutes() > GAMESALimit && tk.HasMember(GAMESA, project)) ||
-		(t0.Sub(timemax.UTC()).Minutes() > SUZLONLimit && tk.HasMember(SUZLON, project)) ||
-		(t0.Sub(timemax.UTC()).Minutes() > OTHERSLimit && tk.HasMember(OTHERS, project)) {
+	limitVal, hasLimit := NotAvailLimit[project]
+	if hasLimit && t0.Sub(timemax.UTC()).Minutes() > limitVal {
 		alldata.Set("Turbine Status", -999)
 	}
 
@@ -2499,7 +2568,7 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Lahori"
 	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
 		project = "Tejuva"
-	case "Amba", "Sattigeri":
+	case "Amba", "Sattigeri", "Nimbagallu":
 		project = "Amba"
 	case "Rajgarh":
 		project = "Rajgarh"
@@ -2718,6 +2787,149 @@ func getAverageValue(aVal ...float64) float64 {
 	}
 
 	return defaultValue
+}
+
+func getNotificationDataInfo(project string) (rednotif, orangenotif, blinknotif tk.M) {
+
+	t0 := getTimeNow()
+
+	tempCondition := []tk.M{}
+	temperatureData, tempNormalData := tk.M{}, tk.M{}
+	rednotif, orangenotif, blinknotif = tk.M{}, tk.M{}, tk.M{}
+
+	rpipes := []tk.M{
+		tk.M{"$match": tk.M{
+			"$and": []tk.M{
+				tk.M{"project": project},
+				tk.M{"enable": true},
+			}}},
+	}
+
+	csrTemp, err := DBRealtime().NewQuery().From("ref_monitoringnotification").
+		Command("pipe", rpipes).
+		Cursor(nil)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+
+	err = csrTemp.Fetch(&tempCondition, 0, false)
+	if err != nil {
+		tk.Println(err.Error())
+	}
+	csrTemp.Close()
+
+	temperatureData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+		tk.M{"status": true},
+		tk.M{"projectname": project},
+	}}, true)
+
+	tempNormalData = getDataPerTurbine("_temperaturestart", tk.M{"$and": []tk.M{
+		tk.M{"status": false},
+		tk.M{"projectname": project},
+		tk.M{"timeend": tk.M{"$gte": t0.Add(time.Hour * time.Duration(-4))}},
+	}}, true)
+
+	tagsunits := map[string]string{}
+	for _, tempData := range tempCondition {
+		arrtags := tempData.Get("tags", []interface{}{}).([]interface{})
+		units := tempData.GetString("units")
+		for _, _tag := range arrtags {
+			tagsunits[tk.ToString(_tag)] = units
+		}
+	}
+
+	getUnits := func(tag string) string {
+		if val, cond := tagsunits[tag]; cond {
+			return val
+		}
+		return "&deg;C"
+	}
+
+	for turbine, _intdata := range temperatureData {
+		datatemp, _ := tk.ToM(_intdata)
+		items := datatemp.Get("items", []interface{}{}).([]interface{})
+
+		for _, item := range items {
+			tkItem, _ := tk.ToM(item)
+			units := getUnits(tkItem.GetString("tags"))
+			timestart := time.Time{}
+
+			if tk.TypeName(tkItem.Get("timestart")) == "string" {
+				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timestart")))
+				if err != nil {
+					tk.Println(err.Error())
+				}
+				timestart = timestart.UTC()
+			} else {
+				timestart = tkItem.Get("timestart", time.Time{}).(time.Time).UTC()
+			}
+
+			value := tkItem.GetFloat64("value")
+			notestart := tkItem.GetString("notestart")
+
+			timeString := timestart.Format("02 Jan 06 15:04:05")
+			strinfo := tk.Sprintf("%s : %.2f %s<br />(%s)", tkItem.GetString("tags"), value, units, timeString)
+			if notestart != "" {
+				strinfo = tk.Sprintf("%s : %s %s<br />(%s)", tkItem.GetString("tags"), notestart, units, timeString)
+			}
+
+			if tkItem.Get("error", false).(bool) {
+				allnotif := rednotif.GetString(turbine)
+				if allnotif != "" {
+					allnotif += "<br />"
+				}
+				allnotif += strinfo
+				rednotif.Set(turbine, allnotif)
+			} else {
+				allnotif := orangenotif.GetString(turbine)
+				if allnotif != "" {
+					allnotif += "<br />"
+				}
+				allnotif += strinfo
+				orangenotif.Set(turbine, allnotif)
+			}
+
+		}
+	}
+
+	for turbine, _intdata := range tempNormalData {
+		datatemp, _ := tk.ToM(_intdata)
+		items := datatemp.Get("items", []interface{}{}).([]interface{})
+
+		for _, item := range items {
+			tkItem, _ := tk.ToM(item)
+			units := getUnits(tkItem.GetString("tags"))
+			timestart := time.Time{}
+
+			if tk.TypeName(tkItem.Get("timestart")) == "string" {
+				timestart, err = time.Parse("2006-01-02T15:04:05Z07:00", tk.ToString(tkItem.Get("timestart")))
+				if err != nil {
+					tk.Println(err.Error())
+				}
+				timestart = timestart.UTC()
+			} else {
+				timestart = tkItem.Get("timestart", time.Time{}).(time.Time).UTC()
+			}
+
+			value := tkItem.GetFloat64("value")
+			notestart := tkItem.GetString("notestart")
+
+			timeString := timestart.Format("02 Jan 06 15:04:05")
+			strinfo := tk.Sprintf("%s : %.2f %s<br />(%s)", tkItem.GetString("tags"), value, units, timeString)
+			if notestart != "" {
+				strinfo = tk.Sprintf("%s : %s %s<br />(%s)", tkItem.GetString("tags"), notestart, units, timeString)
+			}
+
+			allnotif := blinknotif.GetString(turbine)
+			if allnotif != "" {
+				allnotif += "<br />"
+			}
+			allnotif += strinfo
+			blinknotif.Set(turbine, allnotif)
+		}
+	}
+
+	return
 }
 
 /*

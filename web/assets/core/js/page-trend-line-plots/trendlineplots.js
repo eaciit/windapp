@@ -46,6 +46,7 @@ tlp.dateEnd = ko.observable();
 var origWidth;
 var origTransitions;
 var seriesIndex;
+var avgMaxValue = "";
 
 function seriesHover(e){
     origWidth = e.series.width;
@@ -102,7 +103,7 @@ tlp.getAvailDate = function(){
             namaproject = "Tejuva";
         }
 
-        console.log(availDateAll[namaproject]);
+        // console.log(availDateAll[namaproject]);
         var startDate = kendo.toString(moment.utc(availDateAll[namaproject]["ScadaDataHFD"][0]).format('DD-MMM-YYYY'));
         var endDate = kendo.toString(moment.utc(availDateAll[namaproject]["ScadaDataHFD"][1]).format('DD-MMM-YYYY'));
 
@@ -128,6 +129,9 @@ tlp.initChart = function() {
     var compTemp =  $('#compTemp').data('kendoDropDownList').text()
     var ddldeviation = $('#deviationValue').val()
     var colnameTemp = _.find(tlp.compTemp(), function(num){ return num.text == compTemp; }).colname;
+    if (avgMaxValue !== "") {
+        colnameTemp += "_" + avgMaxValue
+    }
     // var turb = $("#turbineList").data("kendoMultiSelect").value()[0] == "All Turbine" ? [] : $("#turbineList").data("kendoMultiSelect").value()
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
@@ -403,6 +407,19 @@ $(document).ready(function() {
             }
         }, 300);
     });
+
+    $("input[name=isAvg]").on("change", function() {
+        avgMaxValue = this.value;
+        fa.checkTurbine();
+        setTimeout(function() {
+            if(fa.LoadData()) {
+                // tlp.initChart();
+                $.when(tlp.initChart()).done(function(){
+                    $("#charttlp").data("kendoChart").bind("seriesHover", seriesHover);
+                });
+            }
+        }, 300);
+    })
 
      $('#compTemp').on("change", function() {
         fa.checkTurbine();

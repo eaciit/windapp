@@ -37,14 +37,9 @@ di.getAvailDate = function (param) {
             var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);         
         }
         
-
-
-       
-
-        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-
-        $('#dateStart').data('kendoDatePicker').value(startDate);
-        $('#dateEnd').data('kendoDatePicker').value(di.maxDatetemp());
+         
+        // $('#dateStart').data('kendoDatePicker').value(new Date(Date.UTC(moment(maxDateData).get('year'),  maxDateData.getMonth(),  maxDateData.getDate() - 7, 0, 0, 0, 0)));
+        // $('#dateEnd').data('kendoDatePicker').value(di.maxDatetemp());
     })
     return reqDate;
 };
