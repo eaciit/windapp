@@ -1708,8 +1708,8 @@ sum.MonthlyProject = function (e, tipe) {
     var param = {
         Projects: projects
     };
-    console.log("Ini Param");
-    console.log(param);
+    //console.log("Ini Param");
+    //console.log(param);
     var dataSource;
     var dataRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getmonthlyproject", param, function (res) {
         if (!app.isFine(res)) {
