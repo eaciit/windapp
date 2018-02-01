@@ -1695,7 +1695,7 @@ sum.MonthlyProject = function (e, tipe) {
     sum.isMonthlyProject(true);
 
     var projects =  [];
-    $.each(lgd.projectItem(), function(key, val){
+    $.each(lgd.projectList(), function(key, val){
         if(val.value !== "Fleet"){
              projects.push(val.value);
         }
@@ -1708,6 +1708,8 @@ sum.MonthlyProject = function (e, tipe) {
     var param = {
         Projects: projects
     };
+    console.log("Ini Param");
+    console.log(param);
     var dataSource;
     var dataRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getmonthlyproject", param, function (res) {
         if (!app.isFine(res)) {
@@ -1720,7 +1722,7 @@ sum.MonthlyProject = function (e, tipe) {
             data.push(key);
         });
 
-        sum.dataDrilldown(data);  
+        sum.dataDrilldown(data);
     });
     var dataSeries = [{
         name: "Production (GWh)",
