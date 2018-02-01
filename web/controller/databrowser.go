@@ -113,10 +113,10 @@ func GetHFDCustomFieldList() []tk.M {
 	// }
 	csr, e := DB().Connection.NewQuery().From("ref_databrowsertag").
 		Order("order").Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		tk.Println(e.Error())
 	}
-	defer csr.Close()
 
 	minMaxTagList := map[string]bool{
 		"windspeed_ms":       true,
@@ -326,10 +326,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		query = query.Order(arrsort...)
 	}
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	tmpResult := make([]tk.M, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
@@ -340,10 +340,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 
 	queryC := database.NewQuery().From(tablename).Where(dbox.And(filter...))
 	ccount, e := queryC.Cursor(nil)
+	defer ccount.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer ccount.Close()
 
 	totalPower := 0.0
 	totalPowerLost := 0.0
@@ -376,10 +376,10 @@ func (m *DataBrowserController) GetDataBrowserList(k *knot.WebContext) interface
 		}
 
 		caggr, e := queryAggr.Cursor(nil)
+		defer caggr.Close()
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
-		defer caggr.Close()
 		e = caggr.Fetch(&aggrData, 0, false)
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
@@ -473,10 +473,10 @@ func (m *DataBrowserController) GetJMRList(k *knot.WebContext) interface{} {
 		query = query.Order(arrsort...)
 	}
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	tmpResult := make([]JMR, 0)
 	e = csr.Fetch(&tmpResult, 0, false)
@@ -522,6 +522,7 @@ func (m *DataBrowserController) GetJMRDetails(k *knot.WebContext) interface{} {
 	query := DB().Connection.NewQuery().From(new(JMR).TableName())
 	query.Where(dbox.And(filter...))
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -532,7 +533,6 @@ func (m *DataBrowserController) GetJMRDetails(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	result := make([]JMRSection, 0)
 
@@ -676,7 +676,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		tk.M{"$skip": p.Skip},
 		tk.M{"$limit": p.Take},
 	}...)
-	tk.Printf("%#v\n", pipes)
+	//tk.Printf("%#v\n", pipes)
 
 	// timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
@@ -826,20 +826,20 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		tk.M{"$group": groups},
 	}
 
-	tk.Printf("%#v\n", matches)
-	tk.Printf("%#v\n", groups)
+	//tk.Printf("%#v\n", matches)
+	//tk.Printf("%#v\n", groups)
 
 	// timenow = time.Now()
 	caggr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer caggr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Printf("Kondisi 4 = %v\n", duration)
-
-	defer caggr.Close()
 
 	// timenow = time.Now()
 	e = caggr.Fetch(&aggrData, 0, false)
@@ -978,10 +978,10 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 	caggr, e := queryAggr.
 		Group("projectname").Where(dbox.And(xFilter...)).
 		Cursor(nil)
+	defer caggr.Close()
 	if e != nil {
 		return 0
 	}
-	defer caggr.Close()
 	e = caggr.Fetch(&tkm, 0, false)
 	if e != nil {
 		return 0
@@ -1078,10 +1078,10 @@ func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
 	}
 
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	data := make([]tk.M, 0)
 	e = csr.Fetch(&data, 0, false)
@@ -1173,10 +1173,10 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	}
 
 	csr, e := query.Cursor(nil)
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
