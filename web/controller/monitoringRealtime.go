@@ -2568,7 +2568,7 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Lahori"
 	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
 		project = "Tejuva"
-	case "Amba", "Sattigeri":
+	case "Amba", "Sattigeri", "Nimbagallu":
 		project = "Amba"
 	case "Rajgarh":
 		project = "Rajgarh"
