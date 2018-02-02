@@ -814,20 +814,20 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 	})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
-	timenow := time.Now()
+	// timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
-	duration := time.Now().Sub(timenow).Seconds()
+	//duration := time.Now().Sub(timenow).Seconds()
 	// tk.Println("Duration 1: ", duration)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	timenow = time.Now()
+	//timenow = time.Now()
 	e = csr.Fetch(&scadaOem, 0, false)
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Duration 2: ", duration)
 
 	csr.Close()
@@ -837,7 +837,7 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	timenow = time.Now()
+	// timenow = time.Now()
 	for _, m := range scadaOem {
 		id := turbineName[m.GetString("_id")]
 
@@ -863,7 +863,7 @@ func (c *AnalyticMeteorologyController) GetListMtbf(k *knot.WebContext) interfac
 			"totnooffailure": nooffailures,
 		})
 	}
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Duration 3: ", duration)
 
 	if datas == nil {
@@ -889,12 +889,12 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 	pipes = append(pipes, tk.M{"$group": group})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1}})
 
-	timenow := time.Now()
+	// timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).
 		Command("pipe", pipes).
 		Cursor(nil)
-	duration := time.Now().Sub(timenow).Seconds()
+	// duration := time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisi 1: ", duration)
 	defer csr.Close()
 	if e != nil {
@@ -912,7 +912,7 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 	trim := ""
 	var err error
 
-	timenow = time.Now()
+	// timenow = time.Now()
 	_list := tk.M{}
 	for {
 		_list = tk.M{}
@@ -955,7 +955,7 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 
 		tmpRes.Set(hours, details)
 	}
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisi 2: ", duration)
 
 	hoursList := []string{}
@@ -975,20 +975,20 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 	pipesTotal = append(pipesTotal, tk.M{"$group": group})
 	pipesTotal = append(pipesTotal, tk.M{"$sort": tk.M{"_id": 1}})
 
-	timenow = time.Now()
+	// timenow = time.Now()
 	csrTotal, e := DB().Connection.NewQuery().
 		From(tablename).
 		Command("pipe", pipesTotal).
 		Cursor(nil)
 	tk.Printf("%#v\n", tablename)
 	tk.Printf("%#v\n", pipesTotal)
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisi 3: ", duration)
 	defer csrTotal.Close()
 	if e != nil {
 		return
 	}
-	timenow = time.Now()
+	// timenow = time.Now()
 	totalDataItem := tk.M{}
 	for {
 		totalDataItem = tk.M{}
@@ -1000,19 +1000,19 @@ func processTableData(group, match tk.M, tablename, dataType string) (data []tk.
 		totalData = append(totalData, totalDataItem)
 	}
 	//e = csrTotal.Fetch(&totalData, 0, false)
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisi 4: ", duration)
 	if e != nil {
 		return
 	}
 
-	timenow = time.Now()
+	// timenow = time.Now()
 	for idx := range totalData {
 		if dataType == "turbine" {
 			totalData[idx].Set("power", totalData[idx].GetFloat64("power")/1000)
 		}
 	}
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisi 5: ", duration)
 
 	return
@@ -1031,19 +1031,19 @@ func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.
 	pipes = append(pipes, tk.M{"$group": group})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.monthid": 1}})
 
-	timenow := time.Now()
+	// timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).
 		Command("pipe", pipes).
 		Cursor(nil)
-	duration := time.Now().Sub(timenow).Seconds()
+	// duration := time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisiong 1: ", duration)
 	defer csr.Close()
 	if e != nil {
 		return
 	}
 
-	timenow = time.Now()
+	// timenow = time.Now()
 	listmonth, listhour, listall := tk.M{}, tk.M{}, tk.M{}
 	for {
 		list := tk.M{}
@@ -1076,10 +1076,10 @@ func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.
 
 		data = append(data, _dt)
 	}
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisiong 2: ", duration)
 
-	timenow = time.Now()
+	// timenow = time.Now()
 	for month, _ := range listmonth {
 		for hour, _ := range listhour {
 			if !listall.Has(tk.Sprintf("%s_%s", month, hour)) {
@@ -1094,7 +1094,7 @@ func processGraphData(group, match tk.M, tablename, dataType string) (data []tk.
 			}
 		}
 	}
-	duration = time.Now().Sub(timenow).Seconds()
+	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Println("Kondisiong 3: ", duration)
 
 	return
