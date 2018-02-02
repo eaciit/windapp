@@ -2536,6 +2536,20 @@ func getTimeNow() (tNow time.Time) {
 }
 
 func getReffTurbineState(project string, rconn dbox.IConnection) (tkm tk.M) {
+
+	switch project {
+	case "Lahori":
+		project = "Lahori"
+	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
+		project = "Tejuva"
+	case "Amba", "Sattigeri", "Nimbagallu":
+		project = "Amba"
+	case "Rajgarh":
+		project = "Rajgarh"
+	case "Taralkatti":
+		project = "Taralkatti"
+	}
+
 	tkm = tk.M{}
 	csr, err := rconn.NewQuery().
 		Select("turbinestate", "description").
@@ -2572,6 +2586,8 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Amba"
 	case "Rajgarh":
 		project = "Rajgarh"
+	case "Taralkatti":
+		project = "Taralkatti"
 	}
 
 	csr, err := rconn.NewQuery().
