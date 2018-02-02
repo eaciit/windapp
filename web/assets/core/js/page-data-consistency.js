@@ -127,8 +127,9 @@ pg.DataCon = function(){
                             }
                             
                             var availDate = res.data.availdate;
-                            var dateStartDGR = kendo.toString(moment.utc(new Date(availDate["dgr"][0])).format('DD-MMM-YYYY'));
-                            var dateEndDGR = kendo.toString(moment.utc(availDate["dgr"][1]).format('DD-MMM-YYYY'));
+
+                            var dateStartDGR = (availDate["dgr"] == "N/A") ?  "N/A" : kendo.toString(moment.utc(new Date(availDate["dgr"][0])).format('DD-MMM-YYYY'));
+                            var dateEndDGR = (availDate["dgr"] == "N/A") ?  "N/A" : kendo.toString(moment.utc(availDate["dgr"][1]).format('DD-MMM-YYYY'));
 
                             dataAvailDGR =  dateStartDGR+ " to " +dateEndDGR ;
                             dataAvailScada = dataAvailDGR = kendo.toString(moment.utc(new Date(availDate["scada"][0])).format('DD-MMM-YYYY')) + " to " + kendo.toString(moment.utc(new Date(availDate["scada"][1])).format('DD-MMM-YYYY'));
