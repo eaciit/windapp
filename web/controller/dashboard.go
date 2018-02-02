@@ -3607,7 +3607,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	var _filfrom, _filto time.Time
+	var from, to time.Time
+
 	for _, filt := range p.Filter.Filters {
 		if filt.Field == "dateinfo.dateid" && filt.Op == "gte" {
 			b, err := time.Parse("2006-01-02T15:04:05.000Z", filt.Value.(string))
@@ -3615,7 +3616,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			if err != nil {
 				log.Println(err.Error())
 			} else {
-				_filfrom = t
+				from = t
 			}
 		} else if filt.Field == "dateinfo.dateid" && filt.Op == "lte" {
 			b, err := time.Parse("2006-01-02T15:04:05.000Z", filt.Value.(string))
@@ -3623,12 +3624,12 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			if err != nil {
 				log.Println(err.Error())
 			} else {
-				_filto = t
+				to = t
 			}
 		}
 	}
 
-	totalHours := tk.ToFloat64(_filto.Sub(_filfrom).Hours(), 0, tk.RoundingUp)
+	totalHours := tk.ToFloat64(to.Sub(from).Hours(), 0, tk.RoundingUp)
 
 	filter, _ := p.ParseFilter()
 	fb := DB().Connection.Fb()
@@ -3732,8 +3733,6 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 	}
 
-	// helper.GetDataDateAvailable(collectionName, timestampColumn, where)
-	listavaildate := getAvailDateByCondition("", "ScadaData")
 	listturbine, listcapacity := PopulateTurbines(DB().Connection, projectName), tk.M{}
 
 	listcapacity = PopulateTurbinesCapacity(DB().Connection, projectName)
@@ -3742,23 +3741,6 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	for _, dres := range result {
 		_proj := dres.Get("_id").(tk.M).GetString("id2")
 		_name := dres.Get("_id").(tk.M).GetString("id1")
-
-		//Handle new case in data availability @asp 20180201
-		_availdate := listavaildate.Get(_proj, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
-		daTotalHours := _filto.UTC().Sub(_filfrom.UTC()).Hours()
-		if len(_availdate) > 0 && (_availdate[0].UTC().After(_filfrom.UTC()) || _availdate[1].UTC().Before(_filto.UTC())) {
-			_xfrom, _xto := _filfrom, _filto
-			if _availdate[0].UTC().After(_filfrom.UTC()) {
-				_xfrom = _availdate[0]
-			}
-
-			if _availdate[1].UTC().Before(_filto.UTC()) {
-				_xto = _availdate[1]
-			}
-
-			daTotalHours = _xto.UTC().Sub(_xfrom.UTC()).Hours()
-		}
-		// tk.Println(_proj, " || ", _availdate)
 
 		if _, cond := databyproject[_proj]; !cond {
 			databyproject[_proj] = []tk.M{}
@@ -3797,7 +3779,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		dres.Set("maxcapacity", maxCapacity)
 		dres.Set("plf", (dres.GetFloat64("production")/1000000)/(maxCapacity/1000))
 		dres.Set("totalavail", tk.Div(dres.GetFloat64("oktime")/3600, totalHours))
-		dres.Set("dataavail", tk.Div(dres.GetFloat64("totalrows")/6, daTotalHours))
+		dres.Set("dataavail", tk.Div(dres.GetFloat64("totalrows")/6, totalHours))
 
 		databyproject[_proj] = append(databyproject[_proj], dres)
 	}
@@ -3811,22 +3793,6 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			ltkm.Set("name", proj)
 			noofwtg := float64(len(databyproject[proj]))
 			ltkm.Set("noofwtg", len(databyproject[proj]))
-
-			//Handle new case in data availability @asp 20180201
-			_availdate := listavaildate.Get(proj, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
-			daTotalHours := _filto.UTC().Sub(_filfrom.UTC()).Hours()
-			if len(_availdate) > 0 && (_availdate[0].UTC().After(_filfrom.UTC()) || _availdate[1].UTC().Before(_filto.UTC())) {
-				_xfrom, _xto := _filfrom, _filto
-				if _availdate[0].UTC().After(_filfrom.UTC()) {
-					_xfrom = _availdate[0]
-				}
-
-				if _availdate[1].UTC().Before(_filto.UTC()) {
-					_xto = _availdate[1]
-				}
-
-				daTotalHours = _xto.UTC().Sub(_xfrom.UTC()).Hours()
-			}
 
 			minDate, maxDate := time.Time{}, time.Time{}
 
@@ -3874,7 +3840,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			ltkm.Set("maxcapacity", maxCapacity)
 			ltkm.Set("plf", (ltkm.GetFloat64("production")/1000000)/(maxCapacity/1000))
 			ltkm.Set("totalavail", tk.Div(ltkm.GetFloat64("oktime")/3600, totalHours*noofwtg))
-			ltkm.Set("dataavail", tk.Div(ltkm.GetFloat64("totalrows")/6, daTotalHours*noofwtg))
+			ltkm.Set("dataavail", tk.Div(ltkm.GetFloat64("totalrows")/6, totalHours*noofwtg))
 
 			lasresult = append(lasresult, ltkm)
 		}
@@ -3933,6 +3899,7 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 		From(new(ScadaSummaryByMonth).TableName()).
 		Where(dbox.And(dbox.Ne("projectname", "Fleet"), dbox.Gte("dateinfo.monthid", monthIdFilter))).
 		Order("projectname", "dateinfo.monthid").Cursor(nil)
+
 	defer csrScada.Close()
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
