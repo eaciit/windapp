@@ -3897,13 +3897,12 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 	monthIdFilter := tk.ToInt((tk.ToString(startYear) + LeftPad2Len(tk.ToString(startMonth), "0", 2)), "0")
 	csrScada, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryByMonth).TableName()).
-		Where(dbox.And(dbox.Ne("projectname", "Fleet"), dbox.Gt("dateinfo.monthid", monthIdFilter))).
+		Where(dbox.And(dbox.Ne("projectname", "Fleet"), dbox.Gte("dateinfo.monthid", monthIdFilter))).
 		Order("projectname", "dateinfo.monthid").Cursor(nil)
-
+	defer csrScada.Close()
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrScada.Close()
 
 	results := []tk.M{}
 	e = csrScada.Fetch(&results, 0, false)
