@@ -526,19 +526,31 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							datas = append(datas, values)
 
 							if i == 0 {
-								maxKey1 = values
+								if values > maxKey1 {
+									maxKey1 = values
+								}
 							} else {
-								maxKey2 = values
-								minKey2 = values
+								if values > maxKey2 {
+									maxKey2 = values
+								}
+								if values < minKey2 {
+									minKey2 = values
+								}
 							}
 						} else {
 							newData := tk.Div(values, jumCat)
 							datas = append(datas, newData)
 							if i == 0 {
-								maxKey1 = newData
+								if values > maxKey1 {
+									maxKey1 = values
+								}
 							} else {
-								maxKey2 = newData
-								minKey2 = newData
+								if values > maxKey2 {
+									maxKey2 = values
+								}
+								if values < minKey2 {
+									minKey2 = values
+								}
 							}
 						}
 					}
@@ -554,18 +566,30 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							if strings.Contains(key, "PLF") {
 								datas = append(datas, values)
 								if i == 0 {
-									maxKey1 = values
+									if values > maxKey1 {
+										maxKey1 = values
+									}
 								} else {
-									maxKey2 = values
-									minKey2 = values
+									if values > maxKey2 {
+										maxKey2 = values
+									}
+									if values < minKey2 {
+										minKey2 = values
+									}
 								}
 							} else {
 								datas = append(datas, values)
 								if i == 0 {
-									maxKey1 = values
+									if values > maxKey1 {
+										maxKey1 = values
+									}
 								} else {
-									maxKey2 = values
-									minKey2 = values
+									if values > maxKey2 {
+										maxKey2 = values
+									}
+									if values < minKey2 {
+										minKey2 = values
+									}
 								}
 							}
 						}
@@ -591,10 +615,16 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							datas = append(datas, monthCumm)
 
 							if i == 0 {
-								maxKey1 = monthCumm
+								if monthCumm > maxKey1 {
+									maxKey1 = monthCumm
+								}
 							} else {
-								maxKey2 = monthCumm
-								minKey2 = monthCumm
+								if monthCumm > maxKey2 {
+									maxKey2 = monthCumm
+								}
+								if monthCumm < minKey2 {
+									minKey2 = monthCumm
+								}
 							}
 						}
 					}
@@ -612,20 +642,32 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 								newValues := tk.Div(values, tk.ToFloat64(durationMonths, 0, tk.RoundingAuto))
 								datas = append(datas, newValues)
 								if i == 0 {
-									maxKey1 = newValues
+									if newValues > maxKey1 {
+										maxKey1 = newValues
+									}
 								} else {
-									maxKey2 = newValues
-									minKey2 = newValues
+									if newValues > maxKey2 {
+										maxKey2 = newValues
+									}
+									if newValues < minKey2 {
+										minKey2 = newValues
+									}
 								}
 							} else {
 								/* menggunakan values hasil akumulasi PER HARI */
 								newData := tk.Div(values, turbineDiv)
 								datas = append(datas, newData)
 								if i == 0 {
-									maxKey1 = newData
+									if newData > maxKey1 {
+										maxKey1 = newData
+									}
 								} else {
-									maxKey2 = newData
-									minKey2 = newData
+									if newData > maxKey2 {
+										maxKey2 = newData
+									}
+									if newData < minKey2 {
+										minKey2 = newData
+									}
 								}
 							}
 						}
@@ -654,12 +696,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						catTitle += " (" + tk.ToString(dt.Year()) + ")"
 					}
 				} else if strings.Contains(breakDown, "monthid") {
-					/*id2 := id.(tk.M).GetString("id2")
-					split := strings.Split(id2, " ")
-					combined := split[0][0:3] + " " + split[1][2:]
-					if id2 != "" {
-						categories = append(categories, combined)
-					}*/
 					if listCount == len(list)-1 {
 						datas = []float64{}
 						for _, monthSec := range listOfMonths {
@@ -667,18 +703,30 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							if strings.Contains(key, "PLF") {
 								datas = append(datas, values)
 								if i == 0 {
-									maxKey1 = values
+									if values > maxKey1 {
+										maxKey1 = values
+									}
 								} else {
-									maxKey2 = values
-									minKey2 = values
+									if values > maxKey2 {
+										maxKey2 = values
+									}
+									if values < minKey2 {
+										minKey2 = values
+									}
 								}
 							} else {
 								datas = append(datas, values)
 								if i == 0 {
-									maxKey1 = values
+									if values > maxKey1 {
+										maxKey1 = values
+									}
 								} else {
-									maxKey2 = values
-									minKey2 = values
+									if values > maxKey2 {
+										maxKey2 = values
+									}
+									if values < minKey2 {
+										minKey2 = values
+									}
 								}
 							}
 						}
@@ -698,23 +746,28 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 
 		}
 
-		if i > 0 {
-			if measurement == "MWh" {
-				penambah := maxMinValue(maxKey2, 1.0)
-				pengurang := maxMinValue(minKey2, 2.0)
-
-				maxKey2 += penambah
-				minKey2 -= pengurang
-			} else {
-				maxKey2 += 1
-				minKey2 -= 5
-			}
-		}
-
 		if len(datas) > 0 {
 			series.Set("data", datas)
 		}
 		dataSeries = append(dataSeries, series)
+	}
+	minKey2 = 0.0 /* pake 0 aja deh minimum nya karena hampir gak mungkin generation atau plf di bawah 0 */
+	if maxKey1 > maxKey2 {
+		if measurement == "MWh" { /* generation */
+			penambah := maxMinValue(maxKey1, 1.0)
+			maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+		} else { /* plf which is selalu percentage */
+			maxKey1 += 5 /* hanya ditambah 1 persen biar gak mentok chart */
+		}
+		maxKey2 = maxKey1
+	} else {
+		if measurement == "MWh" { /* generation */
+			penambah := maxMinValue(maxKey2, 1.0)
+			maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+		} else { /* plf which is selalu percentage */
+			maxKey2 += 5 /* hanya ditambah 1 persen biar gak mentok chart */
+		}
+		maxKey1 = maxKey2
 	}
 
 	result := struct {
@@ -729,7 +782,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		Series:     dataSeries,
 		Categories: categories,
 		MinKey1:    0,
-		MaxKey1:    tk.ToInt((maxKey1*2 - (maxKey1 / 4)), tk.RoundingAuto),
+		MaxKey1:    tk.ToInt(maxKey1, tk.RoundingAuto), //tk.ToInt((maxKey1*2 - (maxKey1 / 4)), tk.RoundingAuto),
 		MinKey2:    tk.ToInt(minKey2, tk.RoundingAuto),
 		MaxKey2:    tk.ToInt(maxKey2, tk.RoundingAuto),
 		CatTitle:   catTitle,
