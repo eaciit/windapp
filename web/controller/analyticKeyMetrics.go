@@ -23,6 +23,7 @@ func CreateAnalyticKeyMetricsController() *AnalyticKeyMetrics {
 
 func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
 	tNow := getTimeNow()
+	result := 0.0
 	for yearDay, data := range monthDay {
 		days := data.(tk.M).GetFloat64("days")
 		if tk.ToInt(yearDay[0:4], tk.RoundingAuto) == tNow.Year() &&
@@ -32,10 +33,17 @@ func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
 		}
 		totalInMonth := data.(tk.M).GetFloat64("totalInMonth")
 		if tk.ToInt(yearDay[4:], tk.RoundingAuto) == monthno { /* hanya bulan yang dimaksud yang di return */
-			return value / totalInMonth * days
+			hasil := value / totalInMonth * days
+			/*
+				untuk menghindari jika lintas tahun memiliki bulan yang sama,
+				yang diambil value dari bulan yang paling sedikit harinya
+			*/
+			if hasil < result || result == 0.0 {
+				result = hasil
+			}
 		}
 	}
-	return 0.0
+	return result
 }
 
 func getHourMinute(tStart, tEnd, minDate, maxDate time.Time, minute float64) (hourValue, minutes float64) {
@@ -170,10 +178,12 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	totalTurbinePValue := tk.ToFloat64(len(turbineList), 0, tk.RoundingAuto)
 	// }
 	isExpPValue := false
-	pValueMonth := map[int]float64{}
+	monthAccumulateVal := map[int]float64{}
+	monthAccumPVal := map[int]float64{}
 
 	for i, key := range keys {
-		pValueMonth = map[int]float64{}
+		monthAccumulateVal = map[int]float64{}
+		monthAccumPVal = map[int]float64{}
 		list = []tk.M{}
 		series := tk.M{}
 
@@ -361,37 +371,37 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				values = availPLF.GetFloat64("machineavailability") //tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 				if strings.Contains(breakDown, "monthid") {
 					ids := val.Get("_id", tk.M{}).(tk.M)
-					pValueMonth[ids.GetInt("id1")] = values
+					monthAccumulateVal[ids.GetInt("id1")] = values
 				}
 			case "Grid Availability":
 				values = availPLF.GetFloat64("gridavailability") //tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
 				if strings.Contains(breakDown, "monthid") {
 					ids := val.Get("_id", tk.M{}).(tk.M)
-					pValueMonth[ids.GetInt("id1")] = values
+					monthAccumulateVal[ids.GetInt("id1")] = values
 				}
 			case "Total Availability":
 				values = availPLF.GetFloat64("totalavailability") //tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
 				if strings.Contains(breakDown, "monthid") {
 					ids := val.Get("_id", tk.M{}).(tk.M)
-					pValueMonth[ids.GetInt("id1")] = values
+					monthAccumulateVal[ids.GetInt("id1")] = values
 				}
 			case "Data Availability":
 				values = availPLF.GetFloat64("dataavailability") //tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
 				if strings.Contains(breakDown, "monthid") {
 					ids := val.Get("_id", tk.M{}).(tk.M)
-					pValueMonth[ids.GetInt("id1")] = values
+					monthAccumulateVal[ids.GetInt("id1")] = values
 				}
 			case "Actual PLF":
 				values = availPLF.GetFloat64("plf") //tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
 				if strings.Contains(breakDown, "monthid") {
 					ids := val.Get("_id", tk.M{}).(tk.M)
-					pValueMonth[ids.GetInt("id1")] = values
+					monthAccumulateVal[ids.GetInt("id1")] = values
 				}
 			case "Actual Production":
 				values = val.GetFloat64("powerkw") / 6 / 1000 /*MWh*/
 				if strings.Contains(breakDown, "monthid") {
 					ids := val.Get("_id", tk.M{}).(tk.M)
-					pValueMonth[ids.GetInt("id1")] = values
+					monthAccumulateVal[ids.GetInt("id1")] = values
 				}
 			case "P50 Generation":
 				value := checkPValue(monthDay, val.GetFloat64("p50netgenmwh"), val.GetInt("monthno"))
@@ -401,7 +411,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					values += value
 				}
 				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
-					pValueMonth[val.GetInt("monthno")] = value
+					monthAccumulateVal[val.GetInt("monthno")] = value
+					monthAccumPVal[val.GetInt("monthno")] = val.GetFloat64("p50netgenmwh")
 				}
 			case "P50 PLF":
 				// values += val.GetFloat64("p50plf") * 100
@@ -412,7 +423,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					values += value
 				}
 				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
-					pValueMonth[val.GetInt("monthno")] = value
+					monthAccumulateVal[val.GetInt("monthno")] = value
 				}
 			case "P75 Generation":
 				// values += checkPValue(monthDay, val.GetFloat64("p75netgenmwh"), val.GetInt("monthno"))
@@ -423,7 +434,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					values += value
 				}
 				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
-					pValueMonth[val.GetInt("monthno")] = value
+					monthAccumulateVal[val.GetInt("monthno")] = value
+					monthAccumPVal[val.GetInt("monthno")] = val.GetFloat64("p75netgenmwh")
 				}
 			case "P75 PLF":
 				// values += val.GetFloat64("p75plf") * 100
@@ -434,7 +446,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					values += value
 				}
 				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
-					pValueMonth[val.GetInt("monthno")] = value
+					monthAccumulateVal[val.GetInt("monthno")] = value
 				}
 			case "P90 Generation":
 				// values += checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
@@ -445,7 +457,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					values += value
 				}
 				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
-					pValueMonth[val.GetInt("monthno")] = value
+					monthAccumulateVal[val.GetInt("monthno")] = value
+					monthAccumPVal[val.GetInt("monthno")] = val.GetFloat64("p90netgenmwh")
 				}
 			case "P90 PLF":
 				// values += val.GetFloat64("p90plf") * 100
@@ -456,7 +469,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					values += value
 				}
 				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
-					pValueMonth[val.GetInt("monthno")] = value
+					monthAccumulateVal[val.GetInt("monthno")] = value
 				}
 			case "DGR":
 				values = tk.Div(val.GetFloat64("total"), 1000)
@@ -563,35 +576,26 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					catTitle = "Month"
 
 					if listCount == len(list)-1 {
-						for _, monthSec := range listOfMonthPVal {
-							values = pValueMonth[monthSec]
-							if strings.Contains(key, "PLF") {
-								datas = append(datas, values)
-								if i == 0 {
-									if values > maxKey1 {
-										maxKey1 = values
-									}
-								} else {
-									if values > maxKey2 {
-										maxKey2 = values
-									}
-									if values < minKey2 {
-										minKey2 = values
-									}
+						for idx, monthSec := range listOfMonthPVal {
+							values = monthAccumulateVal[monthSec]
+							if strings.Contains(key, "Generation") {
+								diffYear := tEnd.Year() - ((listOfMonths[idx] - monthSec) / 100)
+								if diffYear > 0 {
+									values = monthAccumPVal[monthSec]
+								}
+							}
+
+							datas = append(datas, values)
+							if i == 0 {
+								if values > maxKey1 {
+									maxKey1 = values
 								}
 							} else {
-								datas = append(datas, values)
-								if i == 0 {
-									if values > maxKey1 {
-										maxKey1 = values
-									}
-								} else {
-									if values > maxKey2 {
-										maxKey2 = values
-									}
-									if values < minKey2 {
-										minKey2 = values
-									}
+								if values > maxKey2 {
+									maxKey2 = values
+								}
+								if values < minKey2 {
+									minKey2 = values
 								}
 							}
 						}
@@ -608,7 +612,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							monthCumm := 0.0
 							listBulan := listMonthPerYearPVal[year] /* bulan apa aja untuk tahun ini */
 							for _, bulan := range listBulan {
-								monthCumm += pValueMonth[bulan] /* total data per bulan selama 1 tahun */
+								monthCumm += monthAccumulateVal[bulan] /* total data per bulan selama 1 tahun */
 							}
 							if strings.Contains(key, "PLF") {
 								monthCumm = tk.Div(monthCumm, tk.ToFloat64(len(listBulan), 0, tk.RoundingAuto))
@@ -701,7 +705,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					if listCount == len(list)-1 {
 						datas = []float64{}
 						for _, monthSec := range listOfMonths {
-							values = pValueMonth[monthSec]
+							values = monthAccumulateVal[monthSec]
 							if strings.Contains(key, "PLF") {
 								datas = append(datas, values)
 								if i == 0 {
@@ -756,7 +760,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	minKey2 = 0.0 /* pake 0 aja deh minimum nya karena hampir gak mungkin generation atau plf di bawah 0 */
 	if maxKey1 > maxKey2 {
 		if measurement == "MWh" { /* generation */
-			penambah := maxMinValue(maxKey1, 1.0)
+			penambah := maxMinValue(maxKey1, 0.1)
 			maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
 		} else { /* plf which is selalu percentage */
 			maxKey1 += 5 /* hanya ditambah 1 persen biar gak mentok chart */
@@ -764,7 +768,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		maxKey2 = maxKey1
 	} else {
 		if measurement == "MWh" { /* generation */
-			penambah := maxMinValue(maxKey2, 1.0)
+			penambah := maxMinValue(maxKey2, 0.1)
 			maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
 		} else { /* plf which is selalu percentage */
 			maxKey2 += 5 /* hanya ditambah 1 persen biar gak mentok chart */
