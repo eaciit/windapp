@@ -124,6 +124,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	listOfMonthPVal := []int{}              /* isinya list bulan dengan format [1 2 3 4 5, dst]*/
 	listOfMonths := []int{}                 /* isinya list bulan dengan format [201801 201802 201803 dst] */
 	listMonthPerYearPVal := map[int][]int{} /* isinya list bulan per tahun map[2017][11 12] map[2018][1 2 3] */
+	/* loop ini hanya untuk mengisi variabel listOfYears sampai listMonthPerYearPVal dan categories month */
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
 		listOfYears = append(listOfYears, i)
 
@@ -348,6 +349,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			val.Set("noofturbine", totalTurbine)
 			val.Set("energy", val.GetFloat64("powerkw")/6/1000)
 			val.Set("totalcapacity", plfDivider)
+			val.Set("oktime", tk.Div(val.GetFloat64("oktime"), 3600.0))
 
 			// machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 			availPLF := helper.CalcAvailabilityAndPLF(val)
