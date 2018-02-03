@@ -121,31 +121,44 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	measurement := ""
 	// totalData := 0
 	listOfYears := []int{}
-	listOfMonths := []int{}
-	listOfMonthYear := []int{}
+	listOfMonthPVal := []int{}              /* isinya list bulan dengan format [1 2 3 4 5, dst]*/
+	listOfMonths := []int{}                 /* isinya list bulan dengan format [201801 201802 201803 dst] */
+	listMonthPerYearPVal := map[int][]int{} /* isinya list bulan per tahun map[2017][11 12] map[2018][1 2 3] */
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
 		listOfYears = append(listOfYears, i)
 
-		if strings.Contains(breakDown, "monthid") {
+		if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
 			if i == tEnd.Year() {
 				if tStart.Year()-tEnd.Year() == 0 {
 					for j := int(tStart.Month()); j <= int(tEnd.Month()); j++ {
-						listOfMonths = append(listOfMonths, j)
-						listOfMonthYear = append(listOfMonthYear, (i*100)+j)
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
 						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
 					}
 				} else {
 					for j := 1; j <= int(tEnd.Month()); j++ {
-						listOfMonths = append(listOfMonths, j)
-						listOfMonthYear = append(listOfMonthYear, (i*100)+j)
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
 						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
 					}
 				}
 			} else {
-				for j := int(tStart.Month()); j <= 12; j++ {
-					listOfMonths = append(listOfMonths, j)
-					listOfMonthYear = append(listOfMonthYear, (i*100)+j)
-					categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+				if i == tStart.Year() {
+					for j := int(tStart.Month()); j <= 12; j++ {
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
+						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+					}
+				} else {
+					for j := 1; j <= 12; j++ {
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
+						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+					}
 				}
 			}
 		}
@@ -381,67 +394,67 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			case "P50 Generation":
 				value := checkPValue(monthDay, val.GetFloat64("p50netgenmwh"), val.GetInt("monthno"))
 				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
-					if strings.Contains(breakDown, "monthid") {
-						pValueMonth[val.GetInt("monthno")] = value
-					}
 					values = value
 				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
 					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					pValueMonth[val.GetInt("monthno")] = value
 				}
 			case "P50 PLF":
 				// values += val.GetFloat64("p50plf") * 100
 				value := val.GetFloat64("p50plf") * 100
 				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
-					if strings.Contains(breakDown, "monthid") {
-						pValueMonth[val.GetInt("monthno")] = value
-					}
 					values = value
 				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
 					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					pValueMonth[val.GetInt("monthno")] = value
 				}
 			case "P75 Generation":
 				// values += checkPValue(monthDay, val.GetFloat64("p75netgenmwh"), val.GetInt("monthno"))
 				value := checkPValue(monthDay, val.GetFloat64("p75netgenmwh"), val.GetInt("monthno"))
 				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
-					if strings.Contains(breakDown, "monthid") {
-						pValueMonth[val.GetInt("monthno")] = value
-					}
 					values = value
 				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
 					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					pValueMonth[val.GetInt("monthno")] = value
 				}
 			case "P75 PLF":
 				// values += val.GetFloat64("p75plf") * 100
 				value := val.GetFloat64("p75plf") * 100
 				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
-					if strings.Contains(breakDown, "monthid") {
-						pValueMonth[val.GetInt("monthno")] = value
-					}
 					values = value
 				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
 					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					pValueMonth[val.GetInt("monthno")] = value
 				}
 			case "P90 Generation":
 				// values += checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
 				value := checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
 				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
-					if strings.Contains(breakDown, "monthid") {
-						pValueMonth[val.GetInt("monthno")] = value
-					}
 					values = value
 				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
 					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					pValueMonth[val.GetInt("monthno")] = value
 				}
 			case "P90 PLF":
 				// values += val.GetFloat64("p90plf") * 100
 				value := val.GetFloat64("p90plf") * 100
 				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
-					if strings.Contains(breakDown, "monthid") {
-						pValueMonth[val.GetInt("monthno")] = value
-					}
 					values = value
 				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
 					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					pValueMonth[val.GetInt("monthno")] = value
 				}
 			case "DGR":
 				values = tk.Div(val.GetFloat64("total"), 1000)
@@ -536,7 +549,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					catTitle = "Month"
 
 					if listCount == len(list)-1 {
-						for _, monthSec := range listOfMonths {
+						for _, monthSec := range listOfMonthPVal {
 							values = pValueMonth[monthSec]
 							if strings.Contains(key, "PLF") {
 								datas = append(datas, values)
@@ -564,55 +577,24 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						}
 						catTitle = "Year"
 					}
-					jumCat := tk.ToFloat64(len(categories), 0, tk.RoundingAuto)
-					/* TEMPORARY SOLUTION FOR YEAR BREAKDOWN */
-					if len(listOfYears) > 1 { /* jika lintas tahun, beda tahun beda akumulasi yang harus di append ke datas */
-						if listCount == len(list)-1 { /* append hanya jika akumulasi terakhir saja */
-							for jc := 1.0; jc <= jumCat; jc++ {
-								if strings.Contains(key, "PLF") {
-									newValues := tk.Div(values, tk.ToFloat64(durationMonths, 0, tk.RoundingAuto))
-									datas = append(datas, newValues)
-
-									if i == 0 {
-										maxKey1 = newValues
-									} else {
-										maxKey2 = newValues
-										minKey2 = newValues
-									}
-								} else {
-									/* menggunakan values hasil akumulasi PER HARI */
-									newData := tk.Div(values, jumCat)
-									datas = append(datas, newData)
-									if i == 0 {
-										maxKey1 = newData
-									} else {
-										maxKey2 = newData
-										minKey2 = newData
-									}
-								}
+					if listCount == len(list)-1 { /* append hanya jika akumulasi terakhir saja */
+						for _, year := range listOfYears {
+							monthCumm := 0.0
+							listBulan := listMonthPerYearPVal[year] /* bulan apa aja untuk tahun ini */
+							for _, bulan := range listBulan {
+								monthCumm += pValueMonth[bulan] /* total data per bulan selama 1 tahun */
 							}
-						}
-					} else { /* jika hanya 1 tahun */
-						if listCount == len(list)-1 { /* append hanya jika akumulasi terakhir saja */
 							if strings.Contains(key, "PLF") {
-								newValues := tk.Div(values, tk.ToFloat64(durationMonths, 0, tk.RoundingAuto))
-								datas = append(datas, newValues)
+								monthCumm = tk.Div(monthCumm, tk.ToFloat64(len(listBulan), 0, tk.RoundingAuto))
+							}
 
-								if i == 0 {
-									maxKey1 = newValues
-								} else {
-									maxKey2 = newValues
-									minKey2 = newValues
-								}
+							datas = append(datas, monthCumm)
+
+							if i == 0 {
+								maxKey1 = monthCumm
 							} else {
-								/* menggunakan values hasil akumulasi PER HARI */
-								datas = append(datas, values)
-								if i == 0 {
-									maxKey1 = values
-								} else {
-									maxKey2 = values
-									minKey2 = values
-								}
+								maxKey2 = monthCumm
+								minKey2 = monthCumm
 							}
 						}
 					}
@@ -680,7 +662,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					}*/
 					if listCount == len(list)-1 {
 						datas = []float64{}
-						for _, monthSec := range listOfMonthYear {
+						for _, monthSec := range listOfMonths {
 							values = pValueMonth[monthSec]
 							if strings.Contains(key, "PLF") {
 								datas = append(datas, values)
