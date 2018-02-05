@@ -344,13 +344,13 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 							kelas = "progress-bar progress-bar-success"
 						}
 
-						percentageDay := tk.ToFloat64(dataPerDay.Get(tk.ToString(idx),0.0).(float64),4, tk.RoundingAuto) * 100
+						percentageTurbine := tk.ToFloat64(dataPerTurbine.Get(tk.ToString(idx) + "_" + turbine,0.0).(float64),4, tk.RoundingAuto) * 100
 
 						turbineDetails = append(turbineDetails, tk.M{
 							"tooltip":  "Day " + tk.ToString(idx),
 							"class":    kelas,
 							"value":    tk.ToString(percentage) + "%",
-							"floatval": percentageDay,
+							"floatval": percentageTurbine,
 							"opacity":  setOpacity(dataPerTurbine.GetFloat64(tk.ToString(idx) + "_" + turbine)),
 						})
 					} else { /* data default jika tidak ada data availability di hari tersebut */
