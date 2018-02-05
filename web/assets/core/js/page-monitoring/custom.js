@@ -207,7 +207,7 @@ bpc.plotData = function(project, data) {
                 }
 			}
 
-			if(defaultColorStatus == "bg-default-red" || ){
+			if(defaultColorStatus == "bg-default-red"){
 				$elmupdate.prop('style', 'width: 100%');
 			}else{
 				$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
