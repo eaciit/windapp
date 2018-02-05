@@ -228,6 +228,11 @@ page.createView = function(){
 		$(this).parent().find(".fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-chevron-right");
 	});
 
+	setTimeout(function(){
+		app.prepareTooltipster();
+		app.loading(false);
+	}, 100);
+
 }
 
 function sticky_relocate() {
