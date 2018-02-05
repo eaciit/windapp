@@ -113,7 +113,7 @@ page.createViewDaily = function(month){
 		var progressData = "";
 		if (value!=null){
 			$.each(value.Data, function(i, val){
-				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+';opacity:'+val.opacity+'"  title = "'+val.tooltip+' : '+ val.floatval + ' %" role="progressbar"></div>'
+				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+';opacity:'+val.opacity+'"  title = "'+val.tooltip+' : '+ kendo.toString(val.floatval,'n2') + ' %" role="progressbar"></div>'
 				
 			});
 
@@ -133,7 +133,7 @@ page.createViewDaily = function(month){
 				var progressDataDetails = "";
 
 				$.each(res.details, function(idx, result){
-					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+';opacity:'+result.opacity+'"  title = "'+result.tooltip+' : '+ result.floatval + ' %" role="progressbar"></div>'
+					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+';opacity:'+result.opacity+'"  title = "'+result.tooltip+' : '+ kendo.toString(result.floatval,'n2') + ' %" role="progressbar"></div>'
 					
 				});
 
