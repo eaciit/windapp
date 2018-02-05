@@ -193,6 +193,9 @@ bpc.plotData = function(project, data) {
 
 			var $oldStatus = $elmupdate.attr('class').split(' ')[1];
 
+
+
+
 			if($oldStatus !== undefined){
 				if($oldStatus == "bg-default-green" && defaultColorStatus == "bg-default-red"){
                     var playPromise = audioElement.play();
@@ -204,12 +207,11 @@ bpc.plotData = function(project, data) {
                 }
 			}
 
-			if(defaultColorStatus != "bg-default-green"){
+			if(defaultColorStatus == "bg-default-red"){
 				$elmupdate.prop('style', 'width: 100%');
 			}else{
 				$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
 			}
-
 
 			if(dt.IsReapeatedAlarm == true){
                 $elmdetail.addClass("reapeat");

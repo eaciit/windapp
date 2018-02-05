@@ -1525,9 +1525,7 @@ sum.CumProduction = function (dataSource) {
         },
         tooltip: {
             visible: true,
-            template: function(e){
-                return sum.templateValue(e);
-            },
+            sharedTemplate: kendo.template($("#templateCum").html()),
             shared: true,
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
