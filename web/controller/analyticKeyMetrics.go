@@ -763,7 +763,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			penambah := maxMinValue(maxKey1, 0.1)
 			maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
 		} else { /* plf which is selalu percentage */
-			maxKey1 += 5 /* hanya ditambah 1 persen biar gak mentok chart */
+			maxKey1 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
 		}
 		maxKey2 = maxKey1
 	} else {
@@ -771,7 +771,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			penambah := maxMinValue(maxKey2, 0.1)
 			maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
 		} else { /* plf which is selalu percentage */
-			maxKey2 += 5 /* hanya ditambah 1 persen biar gak mentok chart */
+			maxKey2 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
 		}
 		maxKey1 = maxKey2
 	}

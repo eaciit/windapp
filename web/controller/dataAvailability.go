@@ -252,11 +252,14 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 				} else {
 					kelas = "progress-bar progress-bar-success"
 				}
+
+				percentageDay := tk.ToFloat64(dataPerDay.Get(tk.ToString(idx),0.0).(float64),4, tk.RoundingAuto) * 100
+
 				datas = append(datas, tk.M{
 					"tooltip":  "Day " + tk.ToString(idx),
 					"class":    kelas,
 					"value":    tk.ToString(percentage) + "%",
-					"floatval": percentage,
+					"floatval": percentageDay,
 					"opacity":  setOpacity(dataPerDay.GetFloat64(tk.ToString(idx))),
 				})
 			} else { /* default value jika tidak ada data availability pada hari tersebut */
@@ -264,7 +267,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 					"tooltip":  "Day " + tk.ToString(idx),
 					"class":    "progress-bar progress-bar-red",
 					"value":    tk.ToString(percentage) + "%",
-					"floatval": percentage,
+					"floatval": 0,
 					"opacity":  1,
 				})
 			}
@@ -340,11 +343,14 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 						} else {
 							kelas = "progress-bar progress-bar-success"
 						}
+
+						percentageTurbine := tk.ToFloat64(dataPerTurbine.Get(tk.ToString(idx) + "_" + turbine,0.0).(float64),4, tk.RoundingAuto) * 100
+
 						turbineDetails = append(turbineDetails, tk.M{
 							"tooltip":  "Day " + tk.ToString(idx),
 							"class":    kelas,
 							"value":    tk.ToString(percentage) + "%",
-							"floatval": percentage,
+							"floatval": percentageTurbine,
 							"opacity":  setOpacity(dataPerTurbine.GetFloat64(tk.ToString(idx) + "_" + turbine)),
 						})
 					} else { /* data default jika tidak ada data availability di hari tersebut */
@@ -352,7 +358,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 							"tooltip":  "Day " + tk.ToString(idx),
 							"class":    "progress-bar progress-bar-red",
 							"value":    tk.ToString(percentage) + "%",
-							"floatval": percentage,
+							"floatval": 0,
 							"opacity":  1,
 						})
 					}
