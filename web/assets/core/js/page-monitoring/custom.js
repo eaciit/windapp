@@ -207,11 +207,13 @@ bpc.plotData = function(project, data) {
                 }
 			}
 
-			if(defaultColorStatus == "bg-default-red"){
-				$elmupdate.prop('style', 'width: 100%');
-			}else{
+			if(defaultColorStatus == "bg-default-green" || defaultColorStatus == "bg-default-greenneon" ){
 				$elmupdate.prop('style', 'width: '+ currPct.toFixed(0) + '%');
+			}else{
+				$elmupdate.prop('style', 'width: 100%');
 			}
+
+			console.log(defaultColorStatus);
 
 			if(dt.IsReapeatedAlarm == true){
                 $elmdetail.addClass("reapeat");
