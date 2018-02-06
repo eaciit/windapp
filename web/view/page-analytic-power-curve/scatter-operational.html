@@ -12,7 +12,7 @@
 				<div class="panel-body">
 					<div class="date-info">
 						<div class="date-info">
-		                      Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
+		                      Data Available <span id="availabledatestartscada"></span><span id="availabledateendscada"></span></strong>
 						</div>
                     </div>
 					<div class="clearfix">&nbsp;</div>
@@ -77,7 +77,6 @@
 			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
 			                    &nbsp;
 			                	</span>
-
 							</div>
 						</div>
 
@@ -89,12 +88,22 @@
 								<h5><b> VS </b></h5>
 							</div>
 						</div>
+
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Project</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="project-list" id="projectList2" name="table" data-bind="kendoDropDownList: { data:  page.projectList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
+			                	</select>
+							</div>
+						</div>
 						<div class="row mgb10">
 							<div class="col-md-2 no-padding">
 								<label class="control-label no-padding">Turbine 2</label>
 							</div>
 							<div class="col-md-10 no-padding">
-								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: page.turbineList, dataValueField: 'value', dataTextField: 'label',  suggest: true }">
+								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: page.turbineList2, dataValueField: 'value', dataTextField: 'label',  suggest: true }">
 				                </select>
 							</div>
 						</div>

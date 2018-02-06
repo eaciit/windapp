@@ -33,14 +33,12 @@ page.periodList = ko.observableArray([
     { "value": "custom", "text": "Custom" },
 ]);
 page.turbineList = ko.observableArray([]);
+page.turbineList2 = ko.observableArray([]);
 page.projectList = ko.observableArray([]);
 page.dateStart = ko.observable();
 page.dateEnd = ko.observable();
-page.turbine = ko.observableArray([]);
 page.project = ko.observable();
 page.sScater = ko.observable(false);
-page.project = ko.observable();
-
 
 page.rawturbine = ko.observableArray([]);
 page.rawproject = ko.observableArray([]);
@@ -50,7 +48,6 @@ var turbineval = [];
 
 page.getPDF = function(selector){
     app.loading(true);
-    var project = $("#projectList1").data("kendoDropDownList").value();
 
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
@@ -63,7 +60,7 @@ page.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group, project+"OPPowerCurve.pdf");
+      kendo.drawing.pdf.saveAs(group, pc.project()+" Operational PC.pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -78,40 +75,52 @@ page.getAvailDate = function(){
 
         var availDateAll = res.data;
         var projectVal = $("#projectList1").data("kendoDropDownList").value();
+        var projectVal2 = $("#projectList2").data("kendoDropDownList").value();
 
-        var namaproject = "";
+        var namaproject = projectVal;
+        var namaproject2 = projectVal2;
 
-        if( projectVal == undefined || projectVal == "") {
-            namaproject = "Tejuva";
-        }else{
-            namaproject= projectVal;
+        if(namaproject == undefined || namaproject == "") {
+            namaproject = pc.rawproject()[0].Value;
+        }
+        if(namaproject2 == undefined || namaproject2 == "") {
+            namaproject2 = pc.rawproject()[0].Value;
         }
 
         
         var minDate  = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
         var maxDate = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+        var minDate2  = (kendo.toString(moment.utc(availDateAll[namaproject2]["ScadaData"][0]).format('DD-MMM-YYYY')));
+        var maxDate2 = (kendo.toString(moment.utc(availDateAll[namaproject2]["ScadaData"][1]).format('DD-MMM-YYYY')));
 
         var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
+        var maxDateData2 = new Date(availDateAll[namaproject2]["ScadaData"][1]);
         var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+        var startDate2 = new Date(Date.UTC(moment(maxDateData2).get('year'), maxDateData2.getMonth(), maxDateData2.getDate() - 7, 0, 0, 0, 0));
 
         $("#periodList").data("kendoDropDownList").value("custom");
         $("#periodList").data("kendoDropDownList").value("custom");
 
         $('#dateStart').data('kendoDatePicker').value(startDate);
         $('#dateEnd').data('kendoDatePicker').value(maxDate);
-        $('#dateStart2').data('kendoDatePicker').value(startDate);
-        $('#dateEnd2').data('kendoDatePicker').value(maxDate);
+        $('#dateStart2').data('kendoDatePicker').value(startDate2);
+        $('#dateEnd2').data('kendoDatePicker').value(maxDate2);
 
-        $('#availabledatestartscada').html(minDate);
-        $('#availabledateendscada').html(maxDate);
+        if(namaproject === namaproject2) {
+            $('#availabledatestartscada').html("from: <strong>" + minDate + "</strong> ");
+            $('#availabledateendscada').html("until: <strong>" + maxDate + "</strong>");
+        } else {
+            $('#availabledatestartscada').html("<strong>(" + namaproject + ")</strong> from: <strong>" + minDate + "</strong> until: <strong>" + maxDate + " | </strong>");
+            $('#availabledateendscada').html("<strong>(" + namaproject2 + ")</strong> from: <strong>" + minDate2 + "</strong> until: <strong>" + maxDate2 + "</strong>");
+        }
     });
 }
-page.populateTurbine = function (selected) {
+page.populateTurbine = function (selected, projectNo) {
     if (page.rawturbine().length == 0) {
         page.turbineList([{ value: "", text: "" }]);
+        page.turbineList2([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
-        var dataturbine = [];
 
         if (selected==""){
             selected = page.rawproject()[0].Value;
@@ -123,17 +132,30 @@ page.populateTurbine = function (selected) {
                 data.value = val.Value;
                 data.label = val.Turbine;
                 datavalue.push(data);
-                dataturbine.push(val);
             }
         });
-        page.turbineList(datavalue);
-        page.turbine(dataturbine);
+        switch(projectNo) {
+            case "1":
+                page.turbineList(datavalue);
+                setTimeout(function () {
+                    $('#turbineList1').data('kendoDropDownList').select(0);
+                }, 50);
+                break;
+            case "2":
+                page.turbineList2(datavalue);
+                setTimeout(function () {
+                    $('#turbineList2').data('kendoDropDownList').select(0);
+                }, 50);
+                break;
+            default:
+                page.turbineList(datavalue);
+                page.turbineList2(datavalue);
+                setTimeout(function () {
+                    $('#turbineList1').data('kendoDropDownList').select(0);
+                    $('#turbineList2').data('kendoDropDownList').select(1);
+                }, 50);
+        } 
     }
-
-    setTimeout(function () {
-        $('#turbineList1').data('kendoDropDownList').select(0);
-        $('#turbineList2').data('kendoDropDownList').select(1);
-    }, 50);
 };
 
 page.populateProject = function (selected) {
@@ -150,7 +172,7 @@ page.populateProject = function (selected) {
         page.projectList(datavalue);
 
         setTimeout(function () {
-            page.populateTurbine(selected);
+            page.populateTurbine(selected, "");
         }, 100);
     }
 };
@@ -312,42 +334,6 @@ page.showHidePeriod2 = function (callback) {
         callback;
     }, 50);
 }
-page.getAvailDate = function(){
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-
-        var availDateAll = res.data;
-        var projectVal = $("#projectList1").data("kendoDropDownList").value();
-
-        var namaproject = "";
-
-        if( projectVal == undefined || projectVal == "") {
-            namaproject = "Tejuva";
-        }else{
-            namaproject= projectVal;
-        }
-
-        
-        var minDate  = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
-        var maxDate = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
-
-        var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
-        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-
-        $("#periodList").data("kendoDropDownList").value("custom");
-        $("#periodList").data("kendoDropDownList").value("custom");
-
-        $('#dateStart').data('kendoDatePicker').value(startDate);
-        $('#dateEnd').data('kendoDatePicker').value(maxDate);
-        $('#dateStart2').data('kendoDatePicker').value(startDate);
-        $('#dateEnd2').data('kendoDatePicker').value(maxDate);
-
-        $('#availabledatestartscada').html(minDate);
-        $('#availabledateendscada').html(maxDate);
-    });
-}
 
 page.InitDefaultValue = function () {
     page.getAvailDate();
@@ -355,6 +341,7 @@ page.InitDefaultValue = function () {
     $("#periodList").data("kendoDropDownList").trigger("change");
 
     $("#periodList2").data("kendoDropDownList").value("custom");
+    // $("#periodList2").data("kendoDropDownList").value("change");
 }
 
 page.LoadData = function() {
@@ -397,7 +384,7 @@ page.getPowerCurveScatter = function() {
         };
         var param2 = {
             Period       : $('#periodList2').data('kendoDropDownList').value(),
-            Project      : $("#projectList1").data("kendoDropDownList").value(),
+            Project      : $("#projectList2").data("kendoDropDownList").value(),
             Turbine      : $("#turbineList2").data('kendoDropDownList').value(),
             DateStart    : p2DateStart,
             DateEnd      : p2DateEnd,
@@ -595,16 +582,27 @@ page.setProjectTurbine = function(projects, turbines, selected){
         if(a1== b1) return 0;
         return a1> b1? 1: -1;
     });
+    var sortedProject = page.rawproject().sort(function(a, b){
+        var a1= a.Value.toLowerCase(), b1= b.Value.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
     page.rawturbine(sortedTurbine);
+    page.rawproject(sortedProject);
     page.populateProject(selected);
 };
 
 
 $(document).ready(function() {
+
     $('#btnRefresh').on('click', function() {
-        setTimeout(function(){
+        setTimeout(function() {
             var project = $('#projectList1').data("kendoDropDownList").value();
             page.project(project);
+            var project2 = $('#projectList2').data("kendoDropDownList").value();
+            if(project !== project2) {
+                page.project(project + " & " + project2)
+            }
 
             page.LoadData();
         }, 300);
@@ -614,7 +612,14 @@ $(document).ready(function() {
         change: function () { 
             var project = $('#projectList1').data("kendoDropDownList").value();
             page.getAvailDate();
-            page.populateTurbine(project);
+            page.populateTurbine(project, "1");
+         }
+    });
+    $('#projectList2').kendoDropDownList({
+        change: function () { 
+            var project = $('#projectList2').data("kendoDropDownList").value();
+            page.getAvailDate();
+            page.populateTurbine(project, "2");
          }
     });
 
@@ -622,9 +627,13 @@ $(document).ready(function() {
         setTimeout(function(){
             var project = $('#projectList1').data("kendoDropDownList").value();
             page.project(project);
+            var project2 = $('#projectList2').data("kendoDropDownList").value();
+            if(project !== project2) {
+                page.project(project + " & " + project2)
+            }
 
             page.LoadData();
-        },200);
+        }, 700);
        
     });
 });
