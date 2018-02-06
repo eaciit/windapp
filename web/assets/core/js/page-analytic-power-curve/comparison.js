@@ -28,13 +28,12 @@ pc.periodList = ko.observableArray([
 ]);
 
 pc.turbineList = ko.observableArray([]);
+pc.turbineList2 = ko.observableArray([]);
 pc.projectList = ko.observableArray([]);
 pc.dateStart = ko.observable();
 pc.dateEnd = ko.observable();
-pc.turbine = ko.observableArray([]);
 pc.project = ko.observable();
 pc.sScater = ko.observable(false);
-pc.project = ko.observable();
 
 pc.rawturbine = ko.observableArray([]);
 pc.rawproject = ko.observableArray([]);
@@ -109,7 +108,7 @@ var turbineval = [];
 
 pc.getPDF = function(selector){
     app.loading(true);
-    var project = $("#projectList1").data("kendoDropDownList").value();
+    // var project = $("#projectList1").data("kendoDropDownList").value();
 
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
@@ -121,7 +120,7 @@ pc.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group, project+"PCComparison.pdf");
+      kendo.drawing.pdf.saveAs(group,  pc.project()+"PCComparison.pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -164,12 +163,12 @@ pc.getAvailDate = function(){
         $('#availabledateendscada').html(maxDate);
     });
 }
-pc.populateTurbine = function (selected) {
+pc.populateTurbine = function (selected, projectNo) {
     if (pc.rawturbine().length == 0) {
         pc.turbineList([{ value: "", text: "" }]);
+        pc.turbineList2([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
-        var dataturbine = [];
 
         if (selected==""){
             selected = pc.rawproject()[0].Value;
@@ -181,17 +180,31 @@ pc.populateTurbine = function (selected) {
                 data.value = val.Value;
                 data.label = val.Turbine;
                 datavalue.push(data);
-                dataturbine.push(val);
             }
         });
-        pc.turbineList(datavalue);
-        pc.turbine(dataturbine);
-    }
 
-    setTimeout(function () {
-        $('#turbineList1').data('kendoDropDownList').select(0);
-        $('#turbineList2').data('kendoDropDownList').select(1);
-    }, 50);
+        switch(projectNo) {
+            case "1":
+                pc.turbineList(datavalue);
+                setTimeout(function () {
+                    $('#turbineList1').data('kendoDropDownList').select(0);
+                }, 50);
+                break;
+            case "2":
+                pc.turbineList2(datavalue);
+                setTimeout(function () {
+                    $('#turbineList2').data('kendoDropDownList').select(0);
+                }, 50);
+                break;
+            default:
+                pc.turbineList(datavalue);
+                pc.turbineList2(datavalue);
+                setTimeout(function () {
+                    $('#turbineList1').data('kendoDropDownList').select(0);
+                    $('#turbineList2').data('kendoDropDownList').select(1);
+                }, 50);
+        } 
+    }
 };
 
 pc.populateProject = function (selected) {
@@ -208,7 +221,7 @@ pc.populateProject = function (selected) {
         pc.projectList(datavalue);
 
         setTimeout(function () {
-            pc.populateTurbine(selected);
+            pc.populateTurbine(selected, "");
         }, 100);
     }
 };
@@ -408,7 +421,7 @@ pc.initChart = function() {
                 PC1DateEnd      : p1DateEnd,
 
                 PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-                PC2Project      : $("#projectList1").data("kendoDropDownList").value(),
+                PC2Project      : $("#projectList2").data("kendoDropDownList").value(),
                 PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
                 PC2DateStart    : p2DateStart,
                 PC2DateEnd      : p2DateEnd
@@ -577,7 +590,11 @@ pc.getScatter = function(paramLine, dtLine) {
     for(idx=1; idx<=2; idx++) {
         turbineList = [];
         kolor = [];
-        kolor.push(dtLine[idx].color);
+        var colorIdx = idx;
+        if(dtLine.length === 4) {
+            colorIdx++;
+        }
+        kolor.push(dtLine[colorIdx].color);
         turbineList.push(paramLine["PC"+idx.toString()+"Turbine"]);
         var dateStart = paramLine["PC"+idx.toString()+"DateStart"];
         var dateEnd = paramLine["PC"+idx.toString()+"DateEnd"];
@@ -773,6 +790,10 @@ $(document).ready(function () {
         setTimeout(function() {
             var project = $('#projectList1').data("kendoDropDownList").value();
             pc.project(project);
+            var project2 = $('#projectList2').data("kendoDropDownList").value();
+            if(project !== project2) {
+                pc.project(project + " & " + project2)
+            }
 
             pc.initChart();
         }, 300);
@@ -787,7 +808,14 @@ $(document).ready(function () {
         change: function () { 
             var project = $('#projectList1').data("kendoDropDownList").value();
             pc.getAvailDate();
-            pc.populateTurbine(project);
+            pc.populateTurbine(project, "1");
+         }
+    });
+    $('#projectList2').kendoDropDownList({
+        change: function () { 
+            var project = $('#projectList2').data("kendoDropDownList").value();
+            pc.getAvailDate();
+            pc.populateTurbine(project, "2");
          }
     });
 
@@ -796,6 +824,10 @@ $(document).ready(function () {
     setTimeout(function() {
         var project = $('#projectList1').data("kendoDropDownList").value();
         pc.project(project);
+        var project2 = $('#projectList2').data("kendoDropDownList").value();
+        if(project !== project2) {
+            pc.project(project + " & " + project2)
+        }
         pc.initChart();
     }, 500);
 });
