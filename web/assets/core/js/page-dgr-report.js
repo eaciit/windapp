@@ -59,7 +59,7 @@ var Data = {
 	      dataSource: {
 	        // serverPaging: true,
 	        // serverSorting: true,
-	        serverFiltering: true,
+	        // serverFiltering: true,
 	        transport: {
 	          read: {
 	            url: viewModel.appName + "analyticdgrreport/getlist",
@@ -134,6 +134,17 @@ $(function (){
 	$('#btnRefresh').on('click', function () {
         // fa.checkTurbine();
         Data.LoadData();
+    });
+
+     $('#projectList').kendoDropDownList({
+        data: fa.projectList,
+        dataValueField: 'value',
+        dataTextField: 'text',
+        suggest: true,
+        change: function () { 
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
+        }
     });
 
 });
