@@ -3,6 +3,11 @@
 viewModel.Forecasting = new Object();
 var pg = viewModel.Forecasting;
 
+vm.currentMenu('Forecasting & Scheduling');
+vm.currentTitle('Forecasting & Scheduling');
+vm.breadcrumb([{ title: 'Forecasting & Scheduling', href: viewModel.appName + 'page/forecasting' }]);
+
+pg.DataSource = ko.observableArray([]);
 
 pg.DataDummy = ko.observableArray([
      {Date : "15/01/18", TimeBlock: "00:00 - 00.15" , AvaCap : 60, Forecast : 11.08, SchFcast : 11.08, ExpProd : 15, Actual : 8, FcastWs : 9.00 , ActualWs : 8, DevFcast : -0.7, DevSchAct: -0.7, DSMPenalty: ""},
@@ -24,19 +29,34 @@ pg.DataDummy = ko.observableArray([
      {Date : "15/01/18", TimeBlock: "04:00 - 04.15" , AvaCap : 60, Forecast : 4.94, SchFcast : 4.94, ExpProd : null, Actual : null, FcastWs : 4.01 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
      {Date : "15/01/18", TimeBlock: "04:15 - 04.30" , AvaCap : 60, Forecast : 4.74, SchFcast : 4.74, ExpProd : null, Actual : null, FcastWs : 3.85 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
      {Date : "15/01/18", TimeBlock: "04:30 - 04.45" , AvaCap : 60, Forecast : 4.64, SchFcast : 4.64, ExpProd : null, Actual : null, FcastWs : 3.77 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
+]);
 
-    ])
+pg.DataSource(pg.DataDummy());
 
-vm.currentMenu('Forecasting & Scheduling');
-vm.currentTitle('Forecasting & Scheduling');
-vm.breadcrumb([{ title: 'Forecasting & Scheduling', href: viewModel.appName + 'page/forecasting' }]);
-
-
+pg.getData = function() {
+    app.loading(true);
+    var url = viewModel.appName + 'forecast/getlist';
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
+    var param = {
+        period: fa.period,
+        dateStart: dateStart,
+        dateEnd: dateEnd,
+        turbine: fa.turbine(),
+        project: fa.project,
+    };
+    var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
+    $.when(getdata).done(function(d){
+        //pg.DataSource(d);
+        pg.genereateGrid();
+        app.loading(false);
+    });
+}
 
 pg.genereateGrid = function(){
     $("#gridForecasting").kendoGrid({
         dataSource: {
-            data: pg.DataDummy(),
+            data: pg.DataSource(),
             pageSize: 20
         },
         height: 550,
@@ -65,12 +85,11 @@ pg.genereateGrid = function(){
 }
 
 pg.genereateChart = function(){
-
     setTimeout(function(){
         $("#chartForecasting").html("");
         $("#chartForecasting").kendoChart({
             dataSource: {
-                data: pg.DataDummy(),
+                data: pg.DataSource(),
             },
             title: {
                 text: "Forecasting and Scheduling",
@@ -190,26 +209,35 @@ pg.genereateChart = function(){
         $("#chartForecasting").data("kendoChart").refresh();
     },200);
 }
-$(function(){
-    setTimeout(function(){
-        app.loading(false);
+
+pg.initLoad = function() {
+    window.setTimeout(function(){
         fa.LoadData();
         di.getAvailDate();
-        pg.genereateGrid();
-    },200);
+        app.loading(false);
 
+        pg.refresh();
+    }, 500);
+}
 
+pg.refresh = function() {
+    fa.checkTurbine();
 
-    $('#btnRefresh').on('click', function () {
-        fa.checkTurbine();
+    pg.getData();
+}
 
-    });
-
+$(function(){
     $('#projectList').kendoDropDownList({
         change: function () {  
             di.getAvailDate();
             var project = $('#projectList').data("kendoDropDownList").value();
+            fa.project = project;
             fa.populateTurbine(project);
         }
     });
+    $('#btnRefresh').on('click', function () {
+        pg.refresh();
+    });
+
+    pg.initLoad();
 })
