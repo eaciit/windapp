@@ -332,6 +332,13 @@ func (w *PageController) DataEntryThreshold(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, true)
 }
+func (w *PageController) DgrReport(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-dgr-report.html"
+
+	return w.GetParams(r, true)
+}
 func (w *PageController) Access(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile

@@ -59,6 +59,23 @@ window.hasOwnProperty("ko") || console.error("knockoutjs is not installed"), win
       a(o, t, n);
     } };return t instanceof FormData && (delete s.config, s.data = t, s.async = !1, s.cache = !1, s.contentType = !1, s.processData = !1), s = $.extend(!0, s, e), $.ajax(s);
 };
+"use strict";toolkit.ajaxPostDeffered = function (o) {
+  var D = $.Deferred();
+  var t = arguments.length <= 1 || void 0 === arguments[1] ? {} : arguments[1],
+      n = arguments.length <= 2 || void 0 === arguments[2] ? toolkit.noop : arguments[2],
+      a = arguments.length <= 3 || void 0 === arguments[3] ? toolkit.noop : arguments[3],
+      e = arguments.length <= 4 || void 0 === arguments[4] ? toolkit.noob : arguments[4],
+      i = (moment(), ko.mapping.toJSON(toolkit.noob));try {
+    i = ko.mapping.toJSON(t);
+  } catch (c) {}var s = { url: o.toLowerCase(), type: "post", dataType: "json", contentType: "application/json charset=utf-8", data: i, success: function success(o) {
+      n(o);
+      D.resolve();
+    }, error: function error(o, t, n) {
+      a(o, t, n);
+      D.resolve();
+    } };return t instanceof FormData && (delete s.config, s.data = t, s.async = !1, s.cache = !1, s.contentType = !1, s.processData = !1), s = $.extend(!0, s, e), $.ajax(s);
+    return D.promise();
+};
 "use strict";toolkit.$ = function (t) {
   return toolkit.typeIs(t, "string") ? $(t) : t;
 };
