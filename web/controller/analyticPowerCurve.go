@@ -1344,17 +1344,23 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	maxAxisY := 0.0
 	dataSeries := []tk.M{}
 
-	turbineName, e := helper.GetTurbineNameList(payload[0].Project)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
 	var mux sync.Mutex
+	var wg sync.WaitGroup
+	wg.Add(2)
 	for idx, p := range payload {
 		idx++
-		func(p *PayloadOperational, dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int) {
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		go func(p *PayloadOperational, dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int,
+			turbineName map[string]string, tStart, tEnd time.Time, wg *sync.WaitGroup) {
+			defer wg.Done()
 			list := []tk.M{}
-			tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 			if e != nil {
 				return
 			}
@@ -1457,8 +1463,9 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()
 
-		}(p, &dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx)
+		}(p, &dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName, tStart, tEnd, &wg)
 	}
+	wg.Wait()
 
 	result := struct {
 		Data     []tk.M
