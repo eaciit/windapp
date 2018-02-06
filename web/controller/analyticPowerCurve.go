@@ -972,11 +972,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	PC1turbine := p.PC1Turbine
 	PC1project := p.PC1Project
 	PC2turbine := p.PC2Turbine
-	// PC2project := ""
-	// if p.PC2Project != "" {
-	// 	anProject := strings.Split(p.PC2Project, "(")
-	// 	PC2project = strings.TrimRight(anProject[0], " ")
-	// }
+	PC2project := p.PC2Project
 
 	colId := "$wsavgforpc"
 	colValue := "$power"
@@ -991,20 +987,41 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
-	// PC2Data, e := getPCData(PC2project)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
-
 	dataSeries = append(dataSeries, PC1Data)
-	// dataSeries = append(dataSeries, PC2Data)
+
+	turbineName1, e := helper.GetTurbineNameList(PC1project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbineName2 := turbineName1
+	legendName1 := turbineName1[p.PC1Turbine] + " (" + PC1tStart.Format("02-Jan-2006") + "  to " + PC1tEnd.Format("02-Jan-2006") + ")"
+	legendName2 := turbineName2[p.PC2Turbine] + " (" + PC2tStart.Format("02-Jan-2006") + "  to " + PC2tEnd.Format("02-Jan-2006") + ")"
+
+	if PC1project != PC2project {
+		engine = ""
+		if PC2project == "Dewas" {
+			engine = "S-97"
+		}
+		PC2Data, e := getPCData(PC2project, engine, true)
+		PC2Data.Set("name", "Power Curve "+PC2project)
+		PC2Data.Set("idxseries", 1)
+		PC2Data.Set("color", colorField[1])
+		dataSeries = append(dataSeries, PC2Data)
+		dataSeries[0].Set("name", "Power Curve "+PC1project)
+
+		turbineName2, e = helper.GetTurbineNameList(PC2project)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		legendName2 = turbineName2[p.PC2Turbine] + " (" + PC2tStart.Format("02-Jan-2006") + "  to " + PC2tEnd.Format("02-Jan-2006") + ")"
+	}
 
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": colId, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
 
 	filter = nil
 	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Eq("projectname", PC1project))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", PC1tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC1tEnd))
 	filter = append(filter, dbox.Eq("turbine", PC1turbine))
@@ -1017,30 +1034,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 		Where(dbox.And(filter...)).
 		Cursor(nil)
 
+	defer csr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	e = csr.Fetch(&list, 0, false)
-	defer csr.Close()
-
-	turbineName, e := helper.GetTurbineNameList(p.PC1Project)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	var datas [][]float64
 	turbineData := tk.M{}
-	// turbineData.Set("name", PC1turbine)
-	turbineData.Set("name", turbineName[p.PC1Turbine]+" ("+PC1tStart.Format("02-Jan-2006")+"  to "+PC1tEnd.Format("02-Jan-2006")+")")
+	turbineData.Set("name", legendName1)
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
 	turbineData.Set("markers", tk.M{"visible": false})
 	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[1])
+	turbineData.Set("color", colorField[4])
 
 	for _, val := range list {
-
 		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
 	}
 
@@ -1052,6 +1066,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 
 	filter = nil
 	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Eq("projectname", PC2project))
 	filter = append(filter, dbox.Gte("dateinfo.dateid", PC2tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", PC2tEnd))
 	filter = append(filter, dbox.Eq("turbine", PC2turbine))
@@ -1064,25 +1079,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 		Where(dbox.And(filter...)).
 		Cursor(nil)
 
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	list = []tk.M{}
 	e = csr.Fetch(&list, 0, false)
-	defer csr.Close()
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	var datasC2 [][]float64
 	turbineData = tk.M{}
-	// turbineData.Set("name", PC2turbine)
-	turbineData.Set("name", turbineName[p.PC2Turbine]+" ("+PC2tStart.Format("02-Jan-2006")+"  to "+PC2tEnd.Format("02-Jan-2006")+")")
+	turbineData.Set("name", legendName2)
 	turbineData.Set("type", "scatterLine")
 	turbineData.Set("style", "smooth")
 	turbineData.Set("dashType", "solid")
 	turbineData.Set("markers", tk.M{"visible": false})
 	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[6])
+	turbineData.Set("color", colorField[7])
 
 	for _, val := range list {
-
 		datasC2 = append(datasC2, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
 	}
 
