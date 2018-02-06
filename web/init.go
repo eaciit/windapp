@@ -86,6 +86,7 @@ func init() {
 	app.Register(controller.CreateMonitoringCustomController())
 
 	app.Register(controller.CreateTurbineCollaborationController())
+	app.Register(controller.CreateForecastController())
 
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")
