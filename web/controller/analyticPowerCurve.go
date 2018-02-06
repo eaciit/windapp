@@ -1347,9 +1347,11 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	var mux sync.Mutex
 	var wg sync.WaitGroup
 	wg.Add(2)
+	turbineNameOrder := []string{} /* for sort the result */
 	for idx, p := range payload {
 		idx++
 		turbineName, e := helper.GetTurbineNameList(p.Project)
+		turbineNameOrder = append(turbineNameOrder, turbineName[p.Turbine])
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
@@ -1458,7 +1460,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 				datas = append(datas, data)
 			}
 			seriesData = setScatterData(seriesName, xFieldName, "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			seriesData.Set("name", turbineName[turbine]+" ("+p.DateStart.Format("02-Jan-2006")+"  to "+p.DateEnd.Format("02-Jan-2006")+")")
+			seriesData.Set("name", turbineName[turbine]+" ("+p.DateStart.Format("02-Jan-2006")+" to "+p.DateEnd.Format("02-Jan-2006")+")")
 			mux.Lock()
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()
@@ -1466,6 +1468,18 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		}(p, &dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName, tStart, tEnd, &wg)
 	}
 	wg.Wait()
+
+	/* sort the dataseries after processing on go routine */
+	tempResult := []tk.M{}
+	for _, val := range turbineNameOrder {
+		for _, dtSeries := range dataSeries {
+			split := strings.Split(dtSeries.GetString("name"), " (")
+			if split[0] == val {
+				tempResult = append(tempResult, dtSeries)
+			}
+		}
+	}
+	dataSeries = tempResult
 
 	result := struct {
 		Data     []tk.M
