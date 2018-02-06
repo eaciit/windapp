@@ -1487,6 +1487,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 	interval = tk.ToFloat64(interval, 0, tk.RoundingUp)
 	startcategory := p.MinValue
 	totalData := 0.0
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
 
 	var wg sync.WaitGroup
 	wg.Add(p.BinValue)
@@ -1499,15 +1500,15 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 		}
 
 		category = append(category, fmt.Sprintf(catformat, startcategory))
+		if e != nil {
+			tk.Println("error on get start end date GetTempHistogramData()", e.Error())
+			return helper.CreateResult(false, nil, e.Error())
+		}
 
 		// match.Set("isnull", false)
-		go func(p *TempHistoPayload, k *knot.WebContext, valueMap tk.M, totalData *float64, startcategory, interval float64, wg *sync.WaitGroup) {
+		go func(p *TempHistoPayload, valueMap tk.M, totalData *float64, startcategory, interval float64,
+			wg *sync.WaitGroup, tStart, tEnd time.Time) {
 			defer wg.Done()
-			tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
-			if e != nil {
-				tk.Println("error on get start end data go func", e.Error())
-				return
-			}
 			turbine := p.Filter.Turbine
 			project := p.Filter.Project
 			match := tk.M{}
@@ -1532,6 +1533,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				Command("pipe", pipes).
 				Cursor(nil)
 
+			defer csr.Close()
 			if e != nil {
 				csr.Close()
 				tk.Println("error on cursor go func get temperature histogram", e.Error())
@@ -1546,7 +1548,6 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				tk.Println("error on fetch go func get temperature histogram", e.Error())
 				return
 			}
-			csr.Close()
 			// duration := time.Now().Sub(timenow).Seconds()
 			// tk.Printf("KOndisi temp %v = %v\n", i, duration)
 
@@ -1563,7 +1564,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				valueMap.Set(fmt.Sprintf(catformat, startcategory), 0.0)
 			}
 			m.mux.Unlock()
-		}(p, k, valueMap, &totalData, startcategory, interval, &wg)
+		}(p, valueMap, &totalData, startcategory, interval, &wg, tStart, tEnd)
 
 		startcategory = startcategory + interval
 	}
