@@ -120,7 +120,7 @@ pc.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group,  pc.project()+"PCComparison.pdf");
+      kendo.drawing.pdf.saveAs(group,  pc.project()+" PC Comparison.pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -135,32 +135,44 @@ pc.getAvailDate = function(){
 
         var availDateAll = res.data;
         var projectVal = $("#projectList1").data("kendoDropDownList").value();
+        var projectVal2 = $("#projectList2").data("kendoDropDownList").value();
 
-        var namaproject = "";
+        var namaproject = projectVal;
+        var namaproject2 = projectVal2;
 
-        if( projectVal == undefined || projectVal == "") {
-            namaproject = "Tejuva";
-        }else{
-            namaproject= projectVal;
+        if(namaproject == undefined || namaproject == "") {
+            namaproject = pc.rawproject()[0].Value;
+        }
+        if(namaproject2 == undefined || namaproject2 == "") {
+            namaproject2 = pc.rawproject()[0].Value;
         }
 
         
         var minDate  = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
         var maxDate = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+        var minDate2  = (kendo.toString(moment.utc(availDateAll[namaproject2]["ScadaData"][0]).format('DD-MMM-YYYY')));
+        var maxDate2 = (kendo.toString(moment.utc(availDateAll[namaproject2]["ScadaData"][1]).format('DD-MMM-YYYY')));
 
         var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
+        var maxDateData2 = new Date(availDateAll[namaproject2]["ScadaData"][1]);
         var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+        var startDate2 = new Date(Date.UTC(moment(maxDateData2).get('year'), maxDateData2.getMonth(), maxDateData2.getDate() - 7, 0, 0, 0, 0));
 
         $("#periodList").data("kendoDropDownList").value("custom");
         $("#periodList").data("kendoDropDownList").value("custom");
 
         $('#dateStart').data('kendoDatePicker').value(startDate);
         $('#dateEnd').data('kendoDatePicker').value(maxDate);
-        $('#dateStart2').data('kendoDatePicker').value(startDate);
-        $('#dateEnd2').data('kendoDatePicker').value(maxDate);
+        $('#dateStart2').data('kendoDatePicker').value(startDate2);
+        $('#dateEnd2').data('kendoDatePicker').value(maxDate2);
 
-        $('#availabledatestartscada').html(minDate);
-        $('#availabledateendscada').html(maxDate);
+        if(namaproject === namaproject2) {
+            $('#availabledatestartscada').html("from: <strong>" + minDate + "</strong> ");
+            $('#availabledateendscada').html("until: <strong>" + maxDate + "</strong>");
+        } else {
+            $('#availabledatestartscada').html("<strong>(" + namaproject + ")</strong> from: <strong>" + minDate + "</strong> until: <strong>" + maxDate + " | </strong>");
+            $('#availabledateendscada').html("<strong>(" + namaproject2 + ")</strong> from: <strong>" + minDate2 + "</strong> until: <strong>" + maxDate2 + "</strong>");
+        }
     });
 }
 pc.populateTurbine = function (selected, projectNo) {
@@ -391,6 +403,7 @@ pc.InitDefaultValue = function () {
     $("#periodList").data("kendoDropDownList").trigger("change");
 
     $("#periodList2").data("kendoDropDownList").value("custom");
+    // $("#periodList2").data("kendoDropDownList").trigger("change");
 }
 pc.initChart = function() {
         var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
@@ -780,7 +793,13 @@ pc.setProjectTurbine = function(projects, turbines, selected){
         if(a1== b1) return 0;
         return a1> b1? 1: -1;
     });
+    var sortedProject = pc.rawproject().sort(function(a, b){
+        var a1= a.Value.toLowerCase(), b1= b.Value.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
     pc.rawturbine(sortedTurbine);
+    pc.rawproject(sortedProject)
 	pc.populateProject(selected);
 };
 
@@ -829,5 +848,5 @@ $(document).ready(function () {
             pc.project(project + " & " + project2)
         }
         pc.initChart();
-    }, 500);
+    }, 700);
 });
