@@ -32,10 +32,7 @@ page.fancyTimeFormat = function(time)
 var Data = {
 	LoadData: function() {
 		app.loading(true);
-		var isValid = fa.LoadData();
-        if(isValid) {
-            this.InitGrid();
-        }
+        this.InitGrid();
 	},
 	InitGrid: function() {
 
@@ -90,6 +87,7 @@ var Data = {
                 { field: "PLF", aggregate: "average" },
                 { field: "ScadaAvail", aggregate: "average" },
                 { field: "OkTime", aggregate: "average" },
+                { field: "DowntimeHours", aggregate: "average" },
             ],
 	      },
 	      sortable: true,
@@ -111,7 +109,7 @@ var Data = {
 	        { title: "PLF (%)", field: "PLF", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:p2}", width: 120,footerTemplate: "#=kendo.toString(average, 'p2')#",footerAttributes: {style: "text-align:center;"}},
 	        { title: "Opr. Hrs. (HH:mm:ss)", field: "OkTime", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, width: 120, template: "#= page.fancyTimeFormat(OkTime) #" ,footerTemplate: "#=page.fancyTimeFormat(average)#",footerAttributes: {style: "text-align:center;"}},
 	        { title: "Lull Hrs. (HH:mm:ss)", field: "LULL", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120,template: "#= page.fancyTimeFormat(0) #" ,footerTemplate: "#=page.fancyTimeFormat(0)#",footerAttributes: {style: "text-align:center;"}},
-	        { title: "Breakdown Hrs. (HH:mm:ss)", field: "LULL", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120,template: "#= page.fancyTimeFormat(0) #" ,footerTemplate: "#=page.fancyTimeFormat(0)#",footerAttributes: {style: "text-align:center;"}},
+	        { title: "Breakdown Hrs. (HH:mm:ss)", field: "DowntimeHours", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:n2}", width: 120,template: "#= page.fancyTimeFormat(DowntimeHours) #" ,footerTemplate: "#=page.fancyTimeFormat(average)#",footerAttributes: {style: "text-align:center;"}},
 	        { title: "Data Avail. (%)", field: "ScadaAvail", headerAttributes: { style:"text-align: center" }, attributes:{ class:"align-center" }, format: "{0:p2}", width: 120,footerTemplate: "#=kendo.toString(average, 'p2')#",footerAttributes: {style: "text-align:center;" }},
 	      ],
 	      dataBound : function(){
@@ -127,6 +125,16 @@ var Data = {
 
 $(function (){
 	setTimeout(function(){
+		fa.LoadData();
+		
+		var date = new Date();
+		    date.setDate(date.getDate() - 1);
+		    $('#dateEnd').data("kendoDatePicker").value(date);
+
+		var date2 = new Date();
+		    date2.setDate(date2.getDate() - 2);
+		    $('#dateStart').data("kendoDatePicker").value(date2);
+
 		Data.LoadData();
 	},500);
 	
