@@ -129,7 +129,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	getscada15minpath := GetConfig("scada15min_path", "")
 	scada15minpath := ""
 	if getscada15minpath == "" || getscada15minpath == nil {
-		scada15minpath = "/Users/masmeka/Works/Windfarm/Ostro/Scada15Min/data/"
+		scada15minpath = "/mnt/data/ostrorealtime/scada15minrev/data"
 	} else {
 		scada15minpath = tk.ToString(getscada15minpath)
 	}
@@ -188,47 +188,49 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	scadaChan := make(chan []tk.M)
 	chanDone := make(chan bool)
 
-	if _, err := os.Stat(scada15minpath); err == nil {
-		dirsToRead := getDirectoriesToRead(tStart, tEnd)
-		if len(dirsToRead) > 0 {
-			dirs := []string{}
-			for _, dir := range dirsToRead {
-				pathLoc := filepath.Join(scada15minpath, strings.ToLower(project), dir)
-				if _, err := os.Stat(pathLoc); err == nil {
-					totalDirs++
-					dirs = append(dirs, pathLoc)
-				}
-			}
-
-			scadaChan = make(chan []tk.M, totalDirs)
-			go func() {
-				for {
-					scs, ok := <-scadaChan
-					if ok {
-						for _, s := range scs {
-							scadaSrc = append(scadaSrc, s)
-						}
-					} else {
-						chanDone <- true
-						return
+	if scada15minpath != "" {
+		if _, err := os.Stat(scada15minpath); err == nil {
+			dirsToRead := getDirectoriesToRead(tStart, tEnd)
+			if len(dirsToRead) > 0 {
+				dirs := []string{}
+				for _, dir := range dirsToRead {
+					pathLoc := filepath.Join(scada15minpath, strings.ToLower(project), dir)
+					if _, err := os.Stat(pathLoc); err == nil {
+						totalDirs++
+						dirs = append(dirs, pathLoc)
 					}
 				}
-			}()
 
-			if totalDirs > 0 {
-				for _, dir := range dirs {
-					wg.Add(1)
-					go readFiles(&wg, scadaChan, dir, project, p.Turbine, pcSrc)
+				scadaChan = make(chan []tk.M, totalDirs)
+				go func() {
+					for {
+						scs, ok := <-scadaChan
+						if ok {
+							for _, s := range scs {
+								scadaSrc = append(scadaSrc, s)
+							}
+						} else {
+							chanDone <- true
+							return
+						}
+					}
+				}()
+
+				if totalDirs > 0 {
+					for _, dir := range dirs {
+						wg.Add(1)
+						go readFiles(&wg, scadaChan, dir, project, p.Turbine, pcSrc)
+					}
 				}
 			}
 		}
-	}
 
-	if totalDirs > 0 {
-		wg.Wait()
+		if totalDirs > 0 {
+			wg.Wait()
+		}
+		close(scadaChan)
+		<-chanDone
 	}
-	close(scadaChan)
-	<-chanDone
 
 	if len(scadaSrc) > 0 {
 		for _, src := range scadaSrc {
