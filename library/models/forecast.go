@@ -21,6 +21,7 @@ type ForecastData struct {
 	TimeBlock    int
 	AvgCapacity  float64
 	SchCapacity  float64
+	SchSdlc      float64
 }
 
 //New instance for ForecastData
