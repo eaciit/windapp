@@ -129,7 +129,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	getscada15minpath := GetConfig("scada15min_path", "")
 	scada15minpath := ""
 	if getscada15minpath == "" || getscada15minpath == nil {
-		scada15minpath = "/Users/masmeka/Works/Windfarm/Ostro/Scada15Min/data/"
+		scada15minpath = "/mnt/data/ostrorealtime/scada15minrev/data"
 	} else {
 		scada15minpath = tk.ToString(getscada15minpath)
 	}
