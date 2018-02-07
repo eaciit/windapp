@@ -8,30 +8,7 @@ vm.currentTitle('Forecasting & Scheduling');
 vm.breadcrumb([{ title: 'Forecasting & Scheduling', href: viewModel.appName + 'page/forecasting' }]);
 
 pg.DataSource = ko.observableArray([]);
-
-pg.DataDummy = ko.observableArray([
-     {Date : "15/01/18", TimeBlock: "00:00 - 00.15" , AvaCap : 60, Forecast : 11.08, SchFcast : 11.08, ExpProd : 15, Actual : 8, FcastWs : 9.00 , ActualWs : 8, DevFcast : -0.7, DevSchAct: -0.7, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "00:15 - 00.30" , AvaCap : 60, Forecast : 10.67, SchFcast : 10.67, ExpProd : 10, Actual : 9, FcastWs : 8.67 , ActualWs : 9, DevFcast : 11.1, DevSchAct: 11.1, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "00:30 - 00.45" , AvaCap : 60, Forecast : 10.17, SchFcast : 10.17, ExpProd : 12, Actual : 9, FcastWs : 8.26 , ActualWs : 9, DevFcast : -1.75, DevSchAct: -1.75, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "00:45 - 01.00" , AvaCap : 60, Forecast : 9.68, SchFcast : 9.68, ExpProd : 10, Actual : 6, FcastWs : 7.86 , ActualWs : 6, DevFcast : -21.0, DevSchAct: -21.0, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "01:00 - 01.15" , AvaCap : 60, Forecast : 9.18, SchFcast : 9.18, ExpProd : 10, Actual : 6, FcastWs : 7.46 , ActualWs : 6, DevFcast : -53.0, DevSchAct: -53.0, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "01:15 - 01.30" , AvaCap : 60, Forecast : 8.68, SchFcast : 8.68, ExpProd : 9, Actual : 5, FcastWs :7.05 , ActualWs : 5, DevFcast : -73.6, DevSchAct: -73.6, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "01:30 - 01.45" , AvaCap : 60, Forecast : 8.21, SchFcast : 8.21, ExpProd : null, Actual : null, FcastWs : 6.67 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "01:45 - 02.00" , AvaCap : 60, Forecast : 7.74, SchFcast : 7.74, ExpProd : null, Actual : null, FcastWs : 6.29 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "02:00 - 02.15" , AvaCap : 60, Forecast : 7.27, SchFcast : 7.27, ExpProd : null, Actual : null, FcastWs : 5.91 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "02:15 - 02.30" , AvaCap : 60, Forecast : 6.79, SchFcast : 6.79, ExpProd : null, Actual : null, FcastWs : 5.52 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "02:30 - 02.45" , AvaCap : 60, Forecast : 6.48, SchFcast : 6.48, ExpProd : null, Actual : null, FcastWs : 5.26 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "02:45 - 03.00" , AvaCap : 60, Forecast : 6.17, SchFcast : 6.17, ExpProd : null, Actual : null, FcastWs : 5.01 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "03:00 - 03.15" , AvaCap : 60, Forecast : 5.86, SchFcast : 5.86, ExpProd : null, Actual : null, FcastWs : 4.76 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "03:15 - 03.30" , AvaCap : 60, Forecast : 5.55, SchFcast : 5.55, ExpProd : null, Actual : null, FcastWs : 4.51 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "03:30 - 03.45" , AvaCap : 60, Forecast : 5.35, SchFcast : 5.35, ExpProd : null, Actual : null, FcastWs : 4.35 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "03:45 - 04.00" , AvaCap : 60, Forecast : 5.14, SchFcast : 5.14, ExpProd : null, Actual : null, FcastWs : 4.18 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "04:00 - 04.15" , AvaCap : 60, Forecast : 4.94, SchFcast : 4.94, ExpProd : null, Actual : null, FcastWs : 4.01 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "04:15 - 04.30" , AvaCap : 60, Forecast : 4.74, SchFcast : 4.74, ExpProd : null, Actual : null, FcastWs : 3.85 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-     {Date : "15/01/18", TimeBlock: "04:30 - 04.45" , AvaCap : 60, Forecast : 4.64, SchFcast : 4.64, ExpProd : null, Actual : null, FcastWs : 3.77 , ActualWs : null, DevFcast : null, DevSchAct: null, DSMPenalty: ""},
-]);
-
-pg.DataSource(pg.DataDummy());
+pg.CurrentTab = ko.observable('grid');
 
 pg.getData = function() {
     app.loading(true);
@@ -47,44 +24,59 @@ pg.getData = function() {
     };
     var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
     $.when(getdata).done(function(d){
-        //pg.DataSource(d);
-        pg.genereateGrid();
+        pg.DataSource(d.data);
+        if(pg.CurrentTab()=='grid')
+            pg.genereateGrid();
+        else
+            pg.genereateChart();
         app.loading(false);
     });
 }
 
 pg.genereateGrid = function(){
-    $("#gridForecasting").kendoGrid({
-        dataSource: {
-            data: pg.DataSource(),
-            pageSize: 20
-        },
-        height: 550,
-        // scrollable: true,
-        sortable: true,
-        filterable: false,
-        pageable: {
-            input: true,
-            numeric: false
-        },
-        columns: [
-            { field: "Date", title: "Date"},
-            { field: "TimeBlock", title: "Time Block" },
-            { field: "AvaCap", title: "Ava Cap"},
-            { field: "Forecast"},
-            { title: "Sch Fcast <br>(SLDC)", field: "SchFcast"},
-            { title: "Exp Prod <br> (Pwr Curv)", field: "ExpProd"},
-            { field: "Actual", title: "Actual Prod"},
-            { field: "FcastWs", title: "Fcast ws <br> (m/s)"},
-            { field: "ActualWs", title: "Actual ws <br> (m/s)"},
-            { field: "DevFcast", title: "% Dev B/W <br> Fcast & Act", template : "#: kendo.toString(DevFcast, 'n0') # %" },
-            { field: "DevSchAct", title: "% Dev B/W <br> Sch & Act", template : "#: kendo.toString(DevSchAct, 'n0') # %" },
-            { field: "DSMPenalty", title: "DSM Penalty"},
-        ]
-    });
+    app.loading(true);
+    setTimeout(function(){ 
+        $("#gridForecasting").html('');
+        $("#gridForecasting").kendoGrid({
+            dataSource: {
+                data: pg.DataSource(),
+                pageSize: 20
+            },
+            height: $('body').height() - 260,
+            // scrollable: true,
+            sortable: true,
+            filterable: false,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "Date", title: "Date"},
+                { field: "TimeBlock", title: "Time Block" },
+                { field: "AvaCap", title: "Ava Cap", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #"},
+                { field: "Forecast", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #"},
+                { title: "Sch Fcast <br>(SLDC)", field: "SchFcast", template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #" },
+                { title: "Exp Prod <br> (Pwr Curv)", field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #" },
+                { field: "Actual", title: "Actual Prod", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #" },
+                { field: "FcastWs", title: "Fcast ws <br> (m/s)", template : "#: (FcastWs==null?'-':kendo.toString(FcastWs, 'n2')) #" },
+                { field: "ActualWs", title: "Actual ws <br> (m/s)", template : "#: (ActualWs==null?'-':kendo.toString(ActualWs, 'n2')) #" },
+                { field: "DevFcast", title: "% Dev B/W <br> Fcast & Act", template : "#: kendo.toString(DevFcast, 'p2') #" },
+                { field: "DevSchAct", title: "% Dev B/W <br> Sch & Act", template : "#: kendo.toString(DevSchAct, 'p2') #" },
+                { field: "DSMPenalty", title: "DSM Penalty"},
+            ]
+        });
+        $("#gridForecasting").data("kendoGrid").refresh();
+        app.loading(false);
+    }, 300);
 }
 
 pg.genereateChart = function(){
+    app.loading(true);
+    var date1 = $('#dateStart').data('kendoDatePicker').value();
+    var date2 = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+    var timeDiff = Math.abs(date2.getTime() - date1.getTime());
+    var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+    var mindays = 2;
     setTimeout(function(){
         $("#chartForecasting").html("");
         $("#chartForecasting").kendoChart({
@@ -96,7 +88,7 @@ pg.genereateChart = function(){
                  font: '18px bold Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             chartArea : {
-                height : 500,
+                height : $('body').height() - 260,
             },
             legend: {
                 visible: true,
@@ -175,6 +167,8 @@ pg.genereateChart = function(){
                     width: 0.8,
                 },
                 labels: {
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    template: "#= kendo.toString(value, 'n0') #",
                     visible: true,
                 },
                 name: "dynamic",
@@ -184,7 +178,7 @@ pg.genereateChart = function(){
                 }, 
                 labels: {
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    template: "#= kendo.toString(value, 'n2') #",
+                    template: "#= kendo.toString(value, 'n0') #",
                 },
                 majorGridLines: {
                     visible: true,
@@ -194,19 +188,24 @@ pg.genereateChart = function(){
                 name: "forecast",
             }],
             categoryAxis: {
-                field: "TimeBlock",
+                field: (diffDays>mindays?'Date':'TimeBlock'),
                 axisCrossingValues: [0, 1000],
                 majorGridLines: {
                     visible: false
                 },
                 majorTickType: "none",
                 labels: {
-                  rotation: "auto"    
+                  rotation: (diffDays>mindays?45:'auto'),
+                  step: (diffDays>mindays?96:4),
                 }
-            }
+            },
+            tooltip: {
+                visible: true,
+                template: "${series.name} on #= moment(dataItem.TimeStamp).format('DD-MM-YYYY HH:mm') # = <b>#= kendo.toString(value, 'n2') #</b>"
+            },
         });
-
         $("#chartForecasting").data("kendoChart").refresh();
+        app.loading(false);
     },200);
 }
 
@@ -217,7 +216,7 @@ pg.initLoad = function() {
         app.loading(false);
 
         pg.refresh();
-    }, 500);
+    }, 200);
 }
 
 pg.refresh = function() {

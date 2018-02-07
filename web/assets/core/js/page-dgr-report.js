@@ -37,7 +37,8 @@ var Data = {
 	InitGrid: function() {
 
 	    var dateStart = $('#dateStart').data('kendoDatePicker').value();
-        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();   
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+        var project = $('#projectList').data('kendoDropDownList').value();   
 
 
 		var param = {
@@ -45,7 +46,7 @@ var Data = {
             dateStart: new Date(moment(dateStart).format('YYYY-MM-DD')),
             dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: fa.turbine(),
-            project: fa.project,
+            project: project,
 		};
 
 
