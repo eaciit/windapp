@@ -334,7 +334,7 @@ func GenerateWindRose(data []MiniScadaHFD, tipe, turbineVal string) tk.M {
 	return result
 }
 
-func (c *MonitoringRealtimeController) GetMonitoringTemperature(k *knot.WebContext) interface{} {
+func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
 
