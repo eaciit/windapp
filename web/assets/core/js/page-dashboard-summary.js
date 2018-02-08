@@ -1137,7 +1137,7 @@ sum.ProdCurLast = function (id,dataSource) {
             name: "production",
         }, {
             line: {
-                visible: false
+                visible: true
             },
             majorGridLines: {
                 visible: true,
@@ -1146,7 +1146,7 @@ sum.ProdCurLast = function (id,dataSource) {
             },
             labels: {
                 format: "{0}%",
-                visible: false,
+                visible: true,
             },
             name: "variance",
         }],
