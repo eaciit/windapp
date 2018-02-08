@@ -180,7 +180,7 @@ page.createView = function(){
 		var progressData = "";
 		if (value!=null){
 			$.each(value.Data, function(i, val){
-				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+'" role="progressbar"></div>'
+				progressData += '<div aria-hidden="true" class="tooltipster tooltipstered '+val.class+'" style = "width:'+val.value+'"  title = "'+val.tooltip+' : '+ kendo.toString(val.floatval,'n2') + ' %" role="progressbar"></div>'
 				
 			});
 
@@ -201,7 +201,7 @@ page.createView = function(){
 				var progressDataDetails = "";
 
 				$.each(res.details, function(idx, result){
-					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+'" role="progressbar"></div>'
+					progressDataDetails += '<div aria-hidden="true" class="tooltipster tooltipstered '+result.class+'" style = "width:'+result.value+'"  title = "'+result.tooltip+' : '+ kendo.toString(result.floatval,'n2') + ' %" role="progressbar"></div>'
 					
 				});
 
