@@ -166,7 +166,7 @@ func GetScadaDataLahori(turbineName map[string]string, turbineNameSorted, turbin
 	timeCount := tStart.UTC()
 	for {
 		timeCount = timeCount.Add(time.Duration(time.Minute) * 10).UTC()
-		if timeCount.After(tEnd) {
+		if timeCount.After(tEnd.UTC()) {
 			break
 		}
 		sortedTimeStamp = append(sortedTimeStamp, timeCount)
