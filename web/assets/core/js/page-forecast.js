@@ -92,7 +92,7 @@ pg.genereateChart = function(){
                 }
             },
             chartArea : {
-                height : 570, // $('body').height() - heightSub + 30,
+                height : 500, // $('body').height() - heightSub + 30,
                 background: "transparent",
             },
             legend: {
@@ -232,6 +232,7 @@ pg.genereateChart = function(){
                     visible: true,
                 },
                 name: "dynamic",
+                axisCrossingValue: [-10],
             },{
                 line: {
                     visible: false
