@@ -51,7 +51,7 @@ func getTimeBlock(currtime time.Time) int {
 
 func get15MinPeriod(tstart time.Time, tend time.Time) []TimePeriodModel {
 	timePeriods := []TimePeriodModel{}
-	tend = tend.Add(time.Duration(15) * time.Minute)
+	tend = tend.Add(time.Duration(10) * time.Minute)
 	if tend.Sub(tstart).Minutes() >= 0 {
 		currTime := tstart
 		dateid, _ := time.Parse("2006-01-02", currTime.Format("2006-01-02"))

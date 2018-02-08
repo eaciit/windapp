@@ -16,3 +16,20 @@
 .nav.nav-tabs li {
      margin-right: 0px; 
 }
+
+.fc-wrapper {
+    position: relative;
+    margin-top: -30px;
+}
+.fc-wrapper .nav.nav-tabs {
+    position: absolute;
+    top: 10px;
+    right: 8px;
+    z-index: 1000;
+}
+.fc-wrapper .k-chart {
+    margin-top: -25px;
+}
+.fc-wrapper .k-content {
+    background:none;
+}
