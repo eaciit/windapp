@@ -34,9 +34,20 @@ pg.getData = function() {
     });
 }
 
+
+pg.getPdfGrid = function(){
+    $("#gridForecasting").getKendoGrid().saveAsExcel();
+     return false;
+}
+
 pg.genereateGrid = function(){
     app.loading(true);
     setTimeout(function(){ 
+        var project = $("#projectList").data("kendoDropDownList").value();
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+        var title = project+"Forecasting"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".xlsx";
+
         $("#gridForecasting").html('');
         $("#gridForecasting").kendoGrid({
             dataSource: {
@@ -50,6 +61,11 @@ pg.genereateGrid = function(){
             pageable: {
                 input: true,
                 numeric: false
+            },
+            excel:{
+                fileName:title,
+                allPages:true, 
+                filterable:true
             },
             columns: [
                 { field: "Date", title: "Date"},

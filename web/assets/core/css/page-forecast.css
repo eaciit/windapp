@@ -33,3 +33,8 @@
 .fc-wrapper .k-content {
     background:none;
 }
+
+.btn-excel{
+    float: right;
+    margin-bottom: 10px;
+}
