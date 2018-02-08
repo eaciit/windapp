@@ -232,6 +232,9 @@ pg.genereateChart = function(){
                     visible: true,
                 },
                 name: "dynamic",
+                title: {
+                    text: "MW",
+                },
                 axisCrossingValue: [-10],
             },{
                 line: {
@@ -250,6 +253,9 @@ pg.genereateChart = function(){
                     width: 0.8,
                 },
                 name: "forecast",
+                title: {
+                    text: "m/s",
+                },
             }],
             categoryAxis: {
                 field: (diffDays>mindays?'Date':'TimeBlock'),
