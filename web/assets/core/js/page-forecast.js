@@ -164,25 +164,25 @@ pg.genereateChart = function(){
             },
             series: [{
                 field: "Forecast",
-                name: "Forecast",
+                name: "Forecast (MW)",
                 markers : {
                     visible : false
                 },
                 color: "#9c27b0",
                 dashType: "longDash",
-                axis: "forecast",
+                axis: "dynamic",
             },{
                 field: "SchFcast",
-                name: "Sch Fcast (SLDC)",
+                name: "Sch Fcast / SLDC (MW)",
                 markers : {
                     visible : false
                 },
                 color: "#e91e63",
                 dashType: "longDash",
-                axis: "forecast",
+                axis: "dynamic",
             },{
                 field: "Actual",
-                name: "Actual Prod",
+                name: "Actual Prod (MW)",
                 markers : {
                     visible : false
                 },
@@ -191,7 +191,7 @@ pg.genereateChart = function(){
                 axis: "dynamic",
             },{
                 field: "ExpProd",
-                name: "Exp Prod (Pwr Curv)",
+                name: "Exp Prod / Pwr Curv (MW)",
                 markers : {
                     visible : false
                 },
@@ -215,7 +215,7 @@ pg.genereateChart = function(){
                 },
                 color: "#ff9800",
                 dashType: "solid",
-                axis: "dynamic",
+                axis: "forecast",
             }],
             valueAxes: [{
                 line: {
