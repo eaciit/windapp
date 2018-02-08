@@ -54,7 +54,7 @@ pg.genereateGrid = function(){
                 data: pg.DataSource(),
                 pageSize: 15
             },
-            height: 520, //$('body').height() - heightSub + 30,
+            height: 535, //$('body').height() - heightSub + 30,
             // scrollable: true,
             sortable: true,
             filterable: false,
@@ -69,16 +69,18 @@ pg.genereateGrid = function(){
             },
             columns: [
                 { field: "Date", title: "Date"},
-                { field: "TimeBlock", title: "Time Block" },
-                { field: "AvaCap", title: "Avg. Capacity<br />(MW)", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #"},
+                { field: "TimeBlock", title: "Time Block", width: 100, },
+                // { field: "TimeBlockInt", title: "Time<br/>Block", width: 50, },
+                { field: "AvaCap", title: "Avg. Cap.<br />(MW)", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #"},
                 { field: "Forecast", title: "Forecast<br />(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #"},
                 { title: "Sch Fcast /<br>SLDC (MW)", field: "SchFcast", template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #" },
                 { field: "Actual", title: "Actual Prod<br/>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #" },
                 { title: "Exp Prod /<br>Pwr Curv (MW)", width: 120, field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #" },
                 { field: "FcastWs", title: "Fcast ws<br>(m/s)", template : "#: (FcastWs==null?'-':kendo.toString(FcastWs, 'n2')) #" },
                 { field: "ActualWs", title: "Actual ws<br>(m/s)", template : "#: (ActualWs==null?'-':kendo.toString(ActualWs, 'n2')) #" },
-                { field: "DevFcast", title: "% Dev B/W<br>Fcast & Act", template : "#: kendo.toString(DevFcast, 'p2') #" },
-                { field: "DevSchAct", title: "% Dev B/W<br>Sch & Act", template : "#: kendo.toString(DevSchAct, 'p2') #" },
+                { field: "DevFcast", title: "% Error<br/>Act / Fcst", template : "#: kendo.toString(DevFcast, 'p2') #" },
+                { field: "DevSchAct", title: "% Error<br/>Act / Schd", template : "#: kendo.toString(DevSchAct, 'p2') #" },
+                { field: "Deviation", title: "Deviation<br />(MW)", template : "#: kendo.toString(Deviation, 'n2') #" },
                 { field: "DSMPenalty", title: "DSM Penalty"},
             ]
         });

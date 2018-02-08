@@ -8,6 +8,7 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -263,6 +264,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		devfcast := 0.0
 		devsch := 0.0
 		dsmpenalty := ""
+		deviation := defaultValue
 
 		if len(dtForecast) > 0 {
 			avacap = dtForecast.GetFloat64("avgcapacity")
@@ -279,18 +281,23 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			expprod = dtScada.GetFloat64("pcstd") / 1000
 		}
 
-		if actual != defaultValue {
-			if fcvalue != defaultValue {
-				devfcast = (actual - fcvalue) / actual
-			} else {
-				devfcast = (actual - 0) / actual
-			}
+		actualsub := 0.0
+		fcvaluesub := 0.0
+		schvalsub := 0.0
+		if fcvalue != defaultValue {
+			fcvaluesub = fcvalue
+		}
+		if schval != defaultValue {
+			schvalsub = schval
+		}
+		if actual >= 0 {
+			actualsub = actual
+		}
+		deviation = math.Abs(actualsub - schvalsub)
 
-			if schval != defaultValue {
-				devsch = (actual - schval) / actual
-			} else {
-				devsch = (actual - 0) / actual
-			}
+		if avacap != defaultValue {
+			devfcast = (actualsub - fcvaluesub) / avacap
+			devsch = (actualsub - schvalsub) / avacap
 		}
 
 		item := tk.M{
@@ -308,6 +315,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			"DevFcast":     devfcast,
 			"DevSchAct":    devsch,
 			"DSMPenalty":   dsmpenalty,
+			"Deviation":    deviation,
 		}
 		if item.GetFloat64("AvaCap") == defaultValue {
 			item.Set("AvaCap", nil)
@@ -329,6 +337,9 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 		if item.GetFloat64("ActualWs") == defaultValue {
 			item.Set("ActualWs", nil)
+		}
+		if item.GetFloat64("Deviation") == defaultValue {
+			item.Set("Deviation", nil)
 		}
 		dataReturn = append(dataReturn, item)
 	}
