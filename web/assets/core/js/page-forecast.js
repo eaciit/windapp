@@ -195,7 +195,7 @@ pg.genereateChart = function(){
                 markers : {
                     visible : false
                 },
-                color: "#8bc34a",
+                color: "#8bc34a", 
                 dashType: "solid",
                 axis: "dynamic",
             },{
