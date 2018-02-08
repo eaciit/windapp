@@ -334,6 +334,24 @@ func GenerateWindRose(data []MiniScadaHFD, tipe, turbineVal string) tk.M {
 	return result
 }
 
+func (c *MonitoringRealtimeController) GetMonitoringTemperature(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	k.Config.NoLog = true
+
+	p := struct {
+		Project string
+	}{}
+
+	err := k.GetPayload(&p)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	results := []tk.M{}
+
+	return helper.CreateResultX(true, results, "success", k)
+}
+
 func (c *MonitoringRealtimeController) GetDataProject(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	k.Config.NoLog = true
@@ -2798,7 +2816,7 @@ func getAverageValue(aVal ...float64) float64 {
 		}
 	}
 
-	if cVal > 0 {
+	if cVal > 0 && sVal != 0 {
 		return tk.Div(sVal, cVal)
 	}
 
