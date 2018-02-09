@@ -346,8 +346,162 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 	if err != nil {
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
+	project := p.Project
 
-	results := []tk.M{}
+	/* get ref turbine data */
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"project": project}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"turbinename": 1}})
+
+	csrTurbine, err := DB().Connection.NewQuery().From("ref_turbine").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrTurbine.Close()
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	refTurbineData := []tk.M{}
+	err = csrTurbine.Fetch(&refTurbineData, 0, false)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+	turbineCluster := map[string]string{}
+	turbineName := map[string]string{}
+	turbineSorted := []string{}
+	turbinePerCluster := map[string][]string{}
+	for _, val := range refTurbineData {
+		_turbine := val.GetString("turbineid")
+		cluster := tk.ToString(val.GetInt("cluster"))
+		turbineCluster[_turbine] = cluster
+		turbineName[_turbine] = val.GetString("turbinename")
+		turbineSorted = append(turbineSorted, _turbine)
+		clusterName := tk.Sprintf("Cluster %s", cluster)
+		turbinePerCluster[clusterName] = append(turbinePerCluster[clusterName], val.GetString("turbinename"))
+	}
+
+	/* get ref monitoring temperature data */
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"projectname": project}})
+	pipes = append(pipes, tk.M{"$sort": tk.M{"abbreviation": 1}})
+
+	csrTemp, err := DBRealtime().NewQuery().From("ref_monitoringtemperature").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrTemp.Close()
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	refTempData := []tk.M{}
+	err = csrTemp.Fetch(&refTempData, 0, false)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+	temperatureList := []string{}
+	abbreviationList := []string{}
+	abbreviationTags := map[string]string{}
+	tempDescList := map[string]string{}
+	for _, val := range refTempData {
+		tags := val.GetString("tags")
+		temperatureList = append(temperatureList, tags)
+		abbreviationTags[tags] = val.GetString("abbreviation")
+		abbreviationList = append(abbreviationList, val.GetString("abbreviation"))
+		tempDescList[tags] = val.GetString("description")
+	}
+
+	/* get scada realtime new data */
+	pipes = []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{
+		"$and": []tk.M{
+			tk.M{"projectname": project},
+			tk.M{"tags": tk.M{"$in": temperatureList}},
+		},
+	},
+	})
+
+	csrRealtime, err := DBRealtime().NewQuery().From("ScadaRealTimeNew").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrRealtime.Close()
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	realtimeData := []tk.M{}
+	err = csrRealtime.Fetch(&realtimeData, 0, false)
+	if err != nil {
+		return helper.CreateResultX(false, nil, err.Error(), k)
+	}
+
+	sumTempPerCluster := map[string]float64{}
+	countTempPerCluster := map[string]float64{}
+	realtimePerTurbine := map[string][]tk.M{}
+	for _, _data := range realtimeData {
+		_turbine := _data.GetString("turbine")
+		tags := _data.GetString("tags")
+		cluster := turbineCluster[_turbine]
+		key := tk.Sprintf("%s_%s", tags, cluster)
+		sumTempPerCluster[key] += _data.GetFloat64("value")
+		countTempPerCluster[key]++
+		realtimePerTurbine[_turbine] = append(realtimePerTurbine[_turbine], _data)
+	}
+	avgTempPerCluster := map[string]float64{}
+	for key, val := range sumTempPerCluster {
+		avgTempPerCluster[key] = tk.Div(val, countTempPerCluster[key])
+	}
+
+	details := []tk.M{}
+	for _, _turbine := range turbineSorted {
+		datas, hasData := realtimePerTurbine[_turbine]
+		cluster := turbineCluster[_turbine]
+		result := tk.M{
+			"turbine": turbineName[_turbine],
+		}
+		if hasData {
+			for _, _data := range datas {
+				tags := _data.GetString("tags")
+				value := _data.GetFloat64("value")
+				abbr := abbreviationTags[tags]
+				descKey := tk.Sprintf("%s_Desc", abbr)
+				colorKey := tk.Sprintf("%s_Color", abbr)
+				/* define color for each temperature */
+				color := "txt-green"
+				keyCluster := tk.Sprintf("%s_%s", tags, cluster)
+				tempAvg := avgTempPerCluster[keyCluster]
+				tempAvg10 := tempAvg + (tempAvg * 0.1)  /* 10 percent from avg value */
+				tempAvg15 := tempAvg + (tempAvg * 0.15) /* 15 percent from avg value */
+				if value > tempAvg10 && value <= tempAvg15 {
+					color = "txt-yellow"
+				} else if value > tempAvg15 {
+					color = "txt-red"
+				}
+
+				lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC()
+				result.Set(abbr, value)
+				result.Set(descKey, tempDescList[tags])
+				result.Set(colorKey, color)
+				result.Set("lastupdated", lastupdated)
+			}
+		} else {
+			for _, tags := range temperatureList {
+				abbr := abbreviationTags[tags]
+				descKey := tk.Sprintf("%s_Desc", abbr)
+				colorKey := tk.Sprintf("%s_Color", abbr)
+				result.Set(abbr, "-")
+				result.Set(descKey, "")
+				result.Set(colorKey, "txt-grey")
+				result.Set("lastupdated", time.Time{})
+			}
+		}
+		details = append(details, result)
+	}
+
+	results := []tk.M{
+		{"ListOfTurbine": turbinePerCluster},
+		{"ColumnList": abbreviationList},
+		{"Detail": details},
+	}
 
 	return helper.CreateResultX(true, results, "success", k)
 }
