@@ -775,6 +775,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Set("avgwindspeed", tk.M{}.Set("$avg", "$avgwindspeed")).
 					Set("sumwindspeed", tk.M{}.Set("$sum", "$avgwindspeed")).
 					Set("countwindspeed", tk.M{}.Set("$sum", countws)).
+					Set("sumlowindtime", tk.M{}.Set("$sum", "$lowindtime")).
 					Set("totalrows", tk.M{}.Set("$sum", 1))))
 
 				pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
@@ -827,6 +828,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.Revenue = power * revenueMultiplier
 					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
 					dt = dt.New()
+
+					//LackOfWind
+					dt.LoWindTime = data.GetFloat64("sumlowindtime")
 
 					//only using valid data
 					dt.PCDeviation = _ValidPCDev.GetFloat64(dt.ID)
