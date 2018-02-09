@@ -261,8 +261,8 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		actual := defaultValue
 		fcastws := defaultValue
 		actualws := defaultValue
-		devfcast := 0.0
-		devsch := 0.0
+		devfcast := defaultValue
+		devsch := defaultValue
 		dsmpenalty := ""
 		deviation := defaultValue
 
@@ -293,11 +293,14 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		if actual >= 0 {
 			actualsub = actual
 		}
-		deviation = math.Abs(actualsub - schvalsub)
 
-		if avacap != defaultValue {
-			devfcast = (actualsub - fcvaluesub) / avacap
-			devsch = (actualsub - schvalsub) / avacap
+		if actual != defaultValue {
+			deviation = math.Abs(actualsub - schvalsub)
+
+			if avacap != defaultValue {
+				devfcast = (actualsub - fcvaluesub) / avacap
+				devsch = (actualsub - schvalsub) / avacap
+			}
 		}
 
 		item := tk.M{
@@ -337,6 +340,12 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 		if item.GetFloat64("ActualWs") == defaultValue {
 			item.Set("ActualWs", nil)
+		}
+		if item.GetFloat64("DevFcast") == defaultValue {
+			item.Set("DevFcast", nil)
+		}
+		if item.GetFloat64("DevSchAct") == defaultValue {
+			item.Set("DevSchAct", nil)
 		}
 		if item.GetFloat64("Deviation") == defaultValue {
 			item.Set("Deviation", nil)
