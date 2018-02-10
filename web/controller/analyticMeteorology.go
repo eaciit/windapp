@@ -425,9 +425,9 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 
 	// log.Printf("X. %#v | %#v", startDate.String(), endDate.String())
 
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
+	// if e != nil {
+	// 	return helper.CreateResult(false, nil, e.Error())
+	// }
 
 	match := tk.M{}
 
@@ -470,13 +470,21 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		Command("pipe", pipes).
 		Cursor(nil)
 
+	defer csr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	e = csr.Fetch(&list, 0, false)
-
-	csr.Close()
+	for {
+		item := tk.M{}
+		e = csr.Fetch(&item, 1, false)
+		if e != nil {
+			break
+		}
+		list = append(list, item)
+	}
+	// e = csr.Fetch(&list, 0, false)
 
 	// log.Printf("scada: %#v \n", list)
 	// wra
@@ -491,13 +499,21 @@ func (c *AnalyticMeteorologyController) AverageWindSpeed(k *knot.WebContext) int
 		Where(dbox.And(filter...)).
 		Cursor(nil)
 
+	defer csr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	e = csr.Fetch(&wraList, 0, false)
-
-	csr.Close()
+	for {
+		item := tk.M{}
+		e = csr.Fetch(&item, 1, false)
+		if e != nil {
+			break
+		}
+		wraList = append(wraList, item)
+	}
+	// e = csr.Fetch(&wraList, 0, false)
 
 	if len(wraList) > 0 {
 		wra = wraList[0]

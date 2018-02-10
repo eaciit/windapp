@@ -27,7 +27,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02T15:04:05Z"))
+	// tk.Printf("TEnd : %#v\n", tEnd.Format("2006-01-02T15:04:05Z"))
 
 	// tStart, _ = time.Parse("2006-01-02 15:04:05", "2016-08-21 00:00:00")
 	// tEnd, _ = time.Parse("2006-01-02 15:04:05", "2016-08-23 00:00:00")
@@ -55,7 +55,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		querymet = append(querymet, tk.M{"projectname": p.Project})
 	}
 
-	query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+	// query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 	query = append(query, tk.M{"timestamp": tk.M{"$gte": tStart}})
 	query = append(query, tk.M{"timestamp": tk.M{"$lte": tEnd}})
 	query = append(query, tk.M{"windspeed_ms_bin": tk.M{"$gte": 0}})
@@ -63,8 +63,8 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	query = append(query, tk.M{"windspeed_ms": tk.M{"$gte": -200}})
 	query = append(query, tk.M{"windspeed_ms_stddev": tk.M{"$gte": -200}})
 
-	query = append(query, tk.M{"windspeed_ms": tk.M{"$ne": nil}})
-	query = append(query, tk.M{"activepower_kw": tk.M{"$ne": nil}})
+	query = append(query, tk.M{"windspeed_ms": tk.M{"$exists": true}})
+	// query = append(query, tk.M{"activepower_kw": tk.M{"$ne": nil}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
 	pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{
@@ -99,8 +99,14 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	e = csr.Fetch(&scadaHfds, 0, false)
-
+	for {
+		item := tk.M{}
+		e = csr.Fetch(&item, 1, false)
+		if e != nil {
+			break
+		}
+		scadaHfds = append(scadaHfds, item)
+	}
 	csr.Close()
 
 	csrt, e := DB().Connection.NewQuery().
@@ -112,8 +118,17 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	e = csrt.Fetch(&metTowers, 0, false)
-
+	//if csrt.Count() > 0 {
+	for {
+		item := tk.M{}
+		e = csrt.Fetch(&item, 1, false)
+		if e != nil {
+			break
+		}
+		metTowers = append(metTowers, item)
+	}
+	// e = csrt.Fetch(&metTowers, 0, false)
+	//}
 	csrt.Close()
 
 	// tk.Printf("metTowers : %s \n", len(metTowers))
@@ -254,13 +269,13 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensityScatter(k *knot.We
 		From(new(MetTower).TableName()).Where(dbox.And(filtermet...)).
 		Cursor(nil)
 
+	defer csrt.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
 	e = csrt.Fetch(&metTowers, 0, false)
-
-	csrt.Close()
 
 	for _, m := range metTowers {
 		iDs := m.Get("_id").(tk.M)
@@ -303,11 +318,17 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensityScatter(k *knot.We
 			Cursor(nil)
 
 		if e != nil {
+			if csr != nil {
+				csr.Close()
+			}
 			return helper.CreateResult(false, nil, e.Error())
 		}
 
 		e = csr.Fetch(&scadaHfds, 0, false)
 		if e != nil {
+			if csr != nil {
+				csr.Close()
+			}
 			return helper.CreateResult(false, nil, e.Error())
 		}
 		csr.Close()

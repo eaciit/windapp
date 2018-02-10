@@ -691,11 +691,11 @@ func GetTemperatureList() (result toolkit.M, e error) {
 		From("ref_databrowsertag").
 		Order("projectname", "label").
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	_data := toolkit.M{}
 	lastProject := ""
@@ -740,11 +740,11 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 		Where(dbox.Eq("enable", true)).
 		Order("projectname", "tagsdesc").
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	_data := toolkit.M{}
 	lastProject := ""
@@ -799,11 +799,11 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 		From(new(md.ProjectMaster).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	data := []md.ProjectMaster{}
 	e = csr.Fetch(&data, 0, false)
@@ -842,11 +842,10 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 
 	csr, e := query.
 		Cursor(nil)
-
+	defer csr.Close()
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	data := []md.TurbineMaster{}
 	e = csr.Fetch(&data, 0, false)
@@ -878,10 +877,10 @@ func GetTurbineNameList(project string) (turbineName map[string]string, err erro
 		query = query.Command("pipe", pipes)
 	}
 	csrTurbine, err := query.Cursor(nil)
+	defer csrTurbine.Close()
 	if err != nil {
 		return
 	}
-	defer csrTurbine.Close()
 	turbineList := []toolkit.M{}
 	err = csrTurbine.Fetch(&turbineList, 0, false)
 	if err != nil {
@@ -913,11 +912,11 @@ func GetProjectTurbineList(projects []interface{}) (result map[string]toolkit.M,
 		From(new(md.TurbineMaster).TableName()).
 		Where(filter...).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	data := []md.TurbineMaster{}
 	e = csr.Fetch(&data, 0, false)
