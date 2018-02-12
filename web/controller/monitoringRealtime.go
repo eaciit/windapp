@@ -465,6 +465,7 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 				abbr := abbreviationTags[tags]
 				descKey := tk.Sprintf("%s_Desc", abbr)
 				colorKey := tk.Sprintf("%s_Color", abbr)
+				dateKey := tk.Sprintf("%s_Date", abbr)
 				/* define color for each temperature */
 				color := "txt-green"
 				keyCluster := tk.Sprintf("%s_%s", tags, cluster)
@@ -477,21 +478,22 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 					color = "txt-red"
 				}
 
-				lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC()
+				lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC().Format("02 Jan 06 15:04:05")
 				result.Set(abbr, value)
 				result.Set(descKey, tempDescList[tags])
 				result.Set(colorKey, color)
-				result.Set("lastupdated", lastupdated)
+				result.Set(dateKey, lastupdated)
 			}
 		} else {
 			for _, tags := range temperatureList {
 				abbr := abbreviationTags[tags]
 				descKey := tk.Sprintf("%s_Desc", abbr)
 				colorKey := tk.Sprintf("%s_Color", abbr)
+				dateKey := tk.Sprintf("%s_Date", abbr)
 				result.Set(abbr, "-")
 				result.Set(descKey, "")
 				result.Set(colorKey, "txt-grey")
-				result.Set("lastupdated", time.Time{})
+				result.Set(dateKey, "-")
 			}
 		}
 		details = append(details, result)
