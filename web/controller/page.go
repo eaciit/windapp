@@ -511,6 +511,20 @@ func (w *PageController) MonitoringAlarm(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) MonitoringTemperature(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-monitoring/temperature.html"
+
+	if r.Session("sessionid", "") == "" {
+		w.mux.Lock()
+		r.SetSession("sessionid", "monitoring-page")
+		w.mux.Unlock()
+	}
+
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) MonitoringNotification(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
