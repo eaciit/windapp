@@ -73,19 +73,7 @@ pg.genereateGrid = function(){
             },
             excelExport: function(e) {
                 app.loading(true);
-                if(!pg.isExport) {
                     //console.log(e);
-                    // replace new line html tag
-                    var cols = e.sender.columns;
-                    $.each(cols, function(i, d){
-                        var t = d.title
-                                    .replace('<br>','\r')
-                                    .replace('<br/>','\r')
-                                    .replace('<br >','\r')
-                                    .replace('<br />','\r');
-                        e.sender.columns[i].title = t;
-                    });
-                    
                     // make all column is wrap : true
                     var ecols = e.workbook.sheets[0].columns;
                     $.each(ecols, function(i, c){
@@ -96,52 +84,46 @@ pg.genereateGrid = function(){
                         e.workbook.sheets[0].columns[i].wrap = true;
                     });
 
-                    var rows = e.workbook.sheets[0].rows;
-                    $.each(rows, function(i, r){
-                        var t = r.type;
-                        if(t!='header') {
-                            var cs = r.cells;
-                            $.each(cs, function(j, c){
-                                if(j>1) {
-                                    if(c.value) {
-                                        if(j==2) {
-                                            e.workbook.sheets[0].rows[i].cells[j].format = '#,##0';
-                                        }
-                                        if(j==9 || j==10) {
-                                            e.workbook.sheets[0].rows[i].cells[j].format = '#,##0.0#%';
-                                        } else {
-                                            e.workbook.sheets[0].rows[i].cells[j].format = '#,##0.0#';
-                                        }
+                    var sheet = e.workbook.sheets[0];
+
+                    for (var rowIndex = 0; rowIndex < sheet.rows.length; rowIndex++) {
+                        var row = sheet.rows[rowIndex];
+                        if(rowIndex == 0){
+                             for (var idx = 0; idx < row.cells.length; idx ++) {
+                                 var title = row.cells[idx].value
+                                 row.cells[idx].value = title.replace(/<br>/g,'\r');
+                             }
+                        }else{
+                            for (var cellIndex = 0; cellIndex < row.cells.length; cellIndex ++) {
+                                if(cellIndex>1) {
+                                    if(cellIndex==2) {
+                                         row.cells[cellIndex].format = '#,##0';
+                                    }
+                                    if(cellIndex==9 || cellIndex==10) {
+                                         row.cells[cellIndex].format = '#,##0.0#%';
+                                    } else {
+                                         row.cells[cellIndex].format = '#,##0.0#';
                                     }
                                 }
-                            });
+                            }
                         }
-                    });
-                    e.preventDefault();
-                    pg.isExport = true;
-                    setTimeout(function () {
-                        e.sender.saveAsExcel();
-                        app.loading(false);
-                    }, 1000);
-                } else {
-                    pg.isExport = false;
-                    app.loading(false);
-                }
+                    }
+                app.loading(false);
             },
             columns: [
                 { field: "Date", title: "Date"},
                 { field: "TimeBlock", title: "Time Block", width: 100, },
                 // { field: "TimeBlockInt", title: "Time<br/>Block", width: 50, },
-                { field: "AvaCap", title: "Avg. Cap.<br />(MW)", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", format: '{0:n0}' },
-                { field: "Forecast", title: "Forecast<br />(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
+                { field: "AvaCap", title: "Avg. Cap.<br>(MW)", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", format: '{0:n0}' },
+                { field: "Forecast", title: "Forecast<br>(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
                 { title: "Sch Fcast /<br>SLDC (MW)", field: "SchFcast", template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #", format: '{0:n2}' },
-                { field: "Actual", title: "Actual Prod<br/>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
+                { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
                 { title: "Exp Prod /<br>Pwr Curv (MW)", width: 120, field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #", format: '{0:n2}' },
                 { field: "FcastWs", title: "Fcast ws<br>(m/s)", template : "#: (FcastWs==null?'-':kendo.toString(FcastWs, 'n2')) #", format: '{0:n2}' },
                 { field: "ActualWs", title: "Actual ws<br>(m/s)", template : "#: (ActualWs==null?'-':kendo.toString(ActualWs, 'n2')) #", format: '{0:n2}' },
-                { field: "DevFcast", title: "% Error<br/>Act / Fcst", template : "#: (DevFcast==null?'-':kendo.toString(DevFcast, 'p2')) #", format: '{0:p2}' },
-                { field: "DevSchAct", title: "% Error<br/>Act / Schd", template : "#: (DevSchAct==null?'-':kendo.toString(DevSchAct, 'p2')) #", format: '{0:p2}' },
-                { field: "Deviation", title: "Deviation<br />(MW)", template : "#: (Deviation==null?'-':kendo.toString(Deviation, 'n2')) #", format: '{0:n2}' },
+                { field: "DevFcast", title: "% Error<br>Act / Fcst", template : "#: (DevFcast==null?'-':kendo.toString(DevFcast, 'p2')) #", format: '#,##0.0#%' },
+                { field: "DevSchAct", title: "% Error<br>Act / Schd", template : "#: (DevSchAct==null?'-':kendo.toString(DevSchAct, 'p2')) #", format: '{0:p2}' },
+                { field: "Deviation", title: "Deviation<br>(MW)", template : "#: (Deviation==null?'-':kendo.toString(Deviation, 'n2')) #", format: '{0:n2}' },
                 { field: "DSMPenalty", title: "DSM Penalty"},
             ]
         });
