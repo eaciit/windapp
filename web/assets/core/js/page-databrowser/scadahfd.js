@@ -146,7 +146,7 @@ dbsh.InitScadaHFDGrid= function() {
                     $('#totaldatahfd').html(kendo.toString(res.data.Total, 'n0'));
                     $('#totalactivepowerhfd').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MW');
                     $('#totalprodhfd').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
-                    $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
+                    $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
                     return res.data.Total;
                 },
             },

@@ -81,7 +81,7 @@ dbs.InitScadaGrid = function() {
                     $('#totaldata').html(kendo.toString(res.data.Total, 'n0'));
                     $('#totalactivepower').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MW');
                     $('#totalprodoem').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
-                    $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n1') + ' m/s');
+                    $('#avgwindspeedoem').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
                     return res.data.Total;
                 }
             },
