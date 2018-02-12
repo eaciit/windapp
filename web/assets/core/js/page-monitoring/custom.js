@@ -213,8 +213,6 @@ bpc.plotData = function(project, data) {
 				$elmupdate.prop('style', 'width: 100%');
 			}
 
-			console.log(defaultColorStatus);
-
 			if(dt.IsReapeatedAlarm == true){
                 $elmdetail.addClass("reapeat");
             }else{
