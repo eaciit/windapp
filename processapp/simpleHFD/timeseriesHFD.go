@@ -90,6 +90,7 @@ func main() {
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
+	defer ctx.Close()
 
 	tagList := []string{"_id", "timestamp", "dateinfo", "projectname", "turbine"}
 	for _, val := range mapField {
@@ -161,6 +162,7 @@ func main() {
 					if e != nil {
 						log.AddLog(e.Error(), sError)
 					}
+					defer ctxWorker.Close()
 					csrSave := ctxWorker.NewQuery().From("TimeSeriesHFD").SetConfig("multiexec", true).Save()
 					defer csrSave.Close()
 					for data := range chanData {

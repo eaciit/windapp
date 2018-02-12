@@ -129,6 +129,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -182,6 +183,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -237,6 +239,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -288,6 +291,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -339,6 +343,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -631,6 +636,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -773,6 +779,7 @@ func (ev *DataAvailabilitySummary) workerRangeTurbine(project, turbine string, d
 	periodTo = now
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -960,6 +967,7 @@ func (ev *DataAvailabilitySummary) workerDailyTurbine(project, turbine string, d
 	periodTo = now
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -1172,6 +1180,7 @@ func setDataAvailDetail(from time.Time, to time.Time, project string, turbine st
 
 func GetTurbineNameListAll(project string) (turbineNameData map[string]string, err error) {
 	ctx, err := PrepareConnection()
+	defer ctx.Close()
 	if err != nil {
 		return
 	}
