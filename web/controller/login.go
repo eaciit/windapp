@@ -54,7 +54,9 @@ func (l *LoginController) CheckCurrentSession(r *knot.WebContext) interface{} {
 
 	if !acl.IsSessionIDActive(toolkit.ToString(sessionid)) {
 		toolkit.Printf(">> CheckCurrentSession - notactive: %#v \v", sessionid)
+		l.mux.Lock()
 		r.SetSession("sessionid", "")
+		l.mux.Unlock()
 		return helper.CreateResult(false, false, "inactive")
 	}
 	return helper.CreateResult(true, true, "active")
@@ -168,18 +170,26 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 		}
 
 		WriteLog(sessid, "realtime login", r.Request.URL.String())
+		l.mux.Lock()
 		r.SetSession("sessionid", sessid)
+		l.mux.Unlock()
+		l.mux.Lock()
 		r.SetSession("menus", menus)
+		l.mux.Unlock()
 		l.mux.Lock()
 		helper.WC = r
 		l.mux.Unlock()
 		MenuList = menus
 
 		datePeriod := getLastAvailDate()
+		l.mux.Lock()
 		r.SetSession("availdate", datePeriod)
+		l.mux.Unlock()
 
 		lastDateData = datePeriod.ScadaData[1].UTC()
+		l.mux.Lock()
 		r.SetSession("lastdate_data", lastDateData)
+		l.mux.Unlock()
 
 		data := toolkit.M{
 			"status":    true,
@@ -210,8 +220,12 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// log.Printf("sessid: %v \n", sessid)
 
 	WriteLog(sessid, "login", r.Request.URL.String())
+	l.mux.Lock()
 	r.SetSession("sessionid", sessid)
+	l.mux.Unlock()
+	l.mux.Lock()
 	r.SetSession("menus", menus)
+	l.mux.Unlock()
 	l.mux.Lock()
 	helper.WC = r
 	l.mux.Unlock()
@@ -219,13 +233,17 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 
 	// Get Available Date All Collection
 	datePeriod := getLastAvailDate()
+	l.mux.Lock()
 	r.SetSession("availdate", datePeriod)
+	l.mux.Unlock()
 	// r.SetSession("availdateall", getLastAvailDateAll())
 
 	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
 
 	lastDateData = datePeriod.ScadaData[1].UTC()
+	l.mux.Lock()
 	r.SetSession("lastdate_data", lastDateData)
+	l.mux.Unlock()
 
 	data := toolkit.M{
 		"status":    true,
@@ -243,7 +261,9 @@ func (l *LoginController) Logout(r *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, err.Error())
 	}
 	WriteLog(r.Session("sessionid", ""), "logout", r.Request.URL.String())
+	l.mux.Lock()
 	r.SetSession("sessionid", "")
+	l.mux.Unlock()
 
 	return helper.CreateResult(true, nil, "Logout Success")
 }
