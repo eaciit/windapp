@@ -1733,12 +1733,6 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 	return helper.CreateResult(true, data, "success")
 }
 
-func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	return helper.CreateResult(true, k.Session("availdate", ""), "success")
-}
-
 func (m *AnalyticLossAnalysisController) GetAvailDateAll(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 

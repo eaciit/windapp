@@ -28,7 +28,7 @@ func CreatePageController(AppName string) *PageController {
 
 func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M {
 	w.Params.Set("AntiCache", toolkit.RandomString(20))
-	w.Params.Set("CurrentDateData", helper.GetLastDateData(r))
+	w.Params.Set("CurrentDateData", GetLastDateData())
 	menus, _ := GetListOfMenu(toolkit.ToString(r.Session("sessionid", "")))
 	w.Params.Set("Menus", menus)
 
@@ -655,7 +655,6 @@ func (w *PageController) WindFarmAnalysis(r *knot.WebContext) interface{} {
 		"page-windfarm-analysis/turbine2.html"}
 
 	params := w.GetParams(r, true)
-	params.Set("AvailableDate", r.Session("availdate"))
 
 	return params
 }
@@ -664,12 +663,8 @@ func (w *PageController) DataAvailability(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-data-availability.html"
-	// r.Config.IncludeFiles = []string{"page-windfarm-analysis/project.html",
-	// 	"page-windfarm-analysis/turbine1.html",
-	// 	"page-windfarm-analysis/turbine2.html"}
 
 	params := w.GetParams(r, true)
-	// params.Set("AvailableDate", r.Session("availdate"))
 
 	return params
 }
