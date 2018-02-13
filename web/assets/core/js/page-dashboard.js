@@ -51,7 +51,7 @@ var projectSelectedLevel2 = '';
 var maxDateData = new Date(app.getUTCDate(app.currentDateData));
 var maxdate = maxDateData;
 // var intervalMap = setInterval(function(){ sum.indiaMap(lgd.projectName())}, 36000);
-var mapIndia;
+var mapIndia = -999;
 
 
 lgd.populateProject = function (data) {
@@ -106,15 +106,21 @@ lgd.LoadData = function () {
 
 
 lgd.start = function() {  // use a one-off timer
-    mapIndia =  setInterval(function() {
-       var project =  $("#projectId").data("kendoDropDownList").value();
-       sum.indiaMap(project);
-    }, 5000);
+    if(mapIndia === -999) {
+        mapIndia =  setInterval(function() {
+           var project =  $("#projectId").data("kendoDropDownList").value();
+           sum.indiaMap(project);
+        }, 10000);
+    }
 };
 
 lgd.stop = function(){
-    clearInterval(mapIndia);
-    return false;
+    if(mapIndia !== -999) {
+        clearInterval(mapIndia);
+        mapIndia = -999;
+        return false;
+    }
+    return true;
 };
 
 lgd.createDonutChart = function (param) {
