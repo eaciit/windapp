@@ -38,3 +38,39 @@
     top: 10px;
     right: 90px;
 }
+.fc-top-info {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    text-align: center;
+}
+.fc-top-info span.highlight {
+    color: #ff0000;
+    font-weight: 600;
+}
+.fc-wrapper .k-header.k-grid-toolbar {
+    height: 0px;
+    border: none;
+    padding: 0;
+}
+.fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes {
+    position: absolute;
+    top: -69px;
+    right: 120px;
+    max-height: 30px;
+    border-radius: 3px;
+    color: #fff;
+    background-color: #00a65a;
+    border-color: #4cae4c;
+
+}
+.fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes span.k-icon {
+    color: #ffffff;
+}
+.fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes:hover {  
+    background: #008d4c;
+}
+.fc-wrapper .alert {
+    margin-bottom: 5px;
+    padding: 5px 10px;
+}
