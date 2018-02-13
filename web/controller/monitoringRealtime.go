@@ -378,11 +378,11 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 		turbineListPerCluster[cluster] = append(turbineListPerCluster[cluster], _turbine)
 		clusterName[cluster] = tk.Sprintf("Cluster %s", cluster)
 	}
-	clusterSorted := []string{}
+	clusterSorted := []int{}
 	for cluster := range clusterName {
-		clusterSorted = append(clusterSorted, cluster)
+		clusterSorted = append(clusterSorted, tk.ToInt(cluster, tk.RoundingAuto))
 	}
-	sort.Strings(clusterSorted)
+	sort.Ints(clusterSorted)
 
 	/* get ref monitoring temperature data */
 	pipes = []tk.M{}
@@ -403,13 +403,13 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 		return helper.CreateResultX(false, nil, err.Error(), k)
 	}
 	temperatureList := []string{}
-	abbreviationList := map[string]string{}
+	abbreviationList := []map[string]string{}
 	abbreviationTags := map[string]string{}
 	for _, val := range refTempData {
 		tags := val.GetString("tags")
 		temperatureList = append(temperatureList, tags)
 		abbreviationTags[tags] = val.GetString("abbreviation")
-		abbreviationList[val.GetString("abbreviation")] = val.GetString("description")
+		abbreviationList = append(abbreviationList, map[string]string{val.GetString("abbreviation"): val.GetString("description")})
 	}
 
 	/* get scada realtime new data */
@@ -456,7 +456,8 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 	turbineDetail := []tk.M{}
 	clusterData := []tk.M{}
 
-	for _, cluster := range clusterSorted {
+	for _, clusterNum := range clusterSorted {
+		cluster := tk.ToString(clusterNum)
 		turbineDetail = []tk.M{}
 		turbineSorted := turbineListPerCluster[cluster]
 		for _, _turbine := range turbineSorted {
