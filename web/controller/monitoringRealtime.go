@@ -370,15 +370,17 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 	turbineListPerCluster := map[string][]string{}
 	turbineName := map[string]string{}
 	clusterName := map[string]string{}
-	clusterSorted := []string{}
 	for _, val := range refTurbineData {
 		_turbine := val.GetString("turbineid")
 		cluster := tk.ToString(val.GetInt("cluster"))
-		clusterSorted = append(clusterSorted, cluster)
 		turbineCluster[_turbine] = cluster
 		turbineName[_turbine] = val.GetString("turbinename")
 		turbineListPerCluster[cluster] = append(turbineListPerCluster[cluster], _turbine)
 		clusterName[cluster] = tk.Sprintf("Cluster %s", cluster)
+	}
+	clusterSorted := []string{}
+	for cluster := range clusterName {
+		clusterSorted = append(clusterSorted, cluster)
 	}
 	sort.Strings(clusterSorted)
 
