@@ -74,3 +74,6 @@
     margin-bottom: 5px;
     padding: 5px 10px;
 }
+.modal-backdrop.in {
+    opacity: 0.1;
+}
