@@ -112,12 +112,6 @@ func CreateTimeSeriesController() *TimeSeriesController {
 	return controller
 }
 
-func (m *TimeSeriesController) GetAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	return helper.CreateResult(true, k.Session("availdate", ""), "success")
-}
-
 func (m *TimeSeriesController) GetDataHFD(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 

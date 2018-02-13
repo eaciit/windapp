@@ -3383,7 +3383,7 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 		dateStr = strings.Split(p.DateStr, " ")
 		date, e = time.Parse("Jan 2006 02 15:04:05", dateStr[0][0:3]+" "+dateStr[1]+" 01 00:00:00")
 	} else {
-		date2 = helper.GetLastDateData(k)
+		date2 = GetLastDateData()
 		date = date2.AddDate(0, -12, 0)
 
 		/*dateStr = strings.Split("Jul 2015", " ")

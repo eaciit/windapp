@@ -64,12 +64,12 @@ var turbineval = [];
 
 page.getData = function () {
 	$.when(
-		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
 			if (!app.isFine(res)) {
 	            return;
 	        }
-	        var minDatetemp = new Date(res.data.ScadaData[0]);
-	        var maxDatetemp = new Date(res.data.ScadaData[1]);
+	        var minDatetemp = new Date(res.data["Tejuva"].ScadaData[0]);
+	        var maxDatetemp = new Date(res.data["Tejuva"].ScadaData[1]);
 	        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
 	        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
 	    })

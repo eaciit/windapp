@@ -243,7 +243,10 @@ func setDataWS(dataDirNoDesc map[string]float64, tkMaxVal *toolkit.M,
 		if !tkMaxVal.Has(maxValKey) {
 			tkMaxVal.Set(maxValKey, diRes.Contribution)
 		} else {
-			tkMaxVal.Set(maxValKey, tkMaxVal.GetFloat64(maxValKey)+diRes.Contribution)
+			if diRes.Contribution > tkMaxVal.GetFloat64(maxValKey) {
+				tkMaxVal.Set(maxValKey, diRes.Contribution)
+			}
+			// tkMaxVal.Set(maxValKey, tkMaxVal.GetFloat64(maxValKey)+diRes.Contribution)
 		}
 
 		wsCategoryList = append(wsCategoryList, splitDirNoDesc[1]+
@@ -521,7 +524,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	}
 
 	switch {
-	case maxValue >= 90 && maxValue <= 100:
+	case maxValue >= 90:
 		maxValue = 100
 	case maxValue >= 80 && maxValue < 90:
 		maxValue = 90
