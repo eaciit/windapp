@@ -279,6 +279,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if project != "" {
 		filter = append(filter, dbox.Eq("projectname", project))
 	}
+
+	//startend treshold for data available
+	listavaildate := getAvailDateByCondition(project, "ScadaData")
+	_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
 	DeviationOpr := tk.ToInt(p.DeviationOpr, tk.RoundingAuto)
@@ -408,6 +413,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if len(_availdate) > 0 {
+		if _availdate[0].UTC().After(tStart.UTC()) {
+			tStart = _availdate[0]
+		}
+
+		if _availdate[1].UTC().Before(tEnd.UTC()) {
+			tEnd = _availdate[1]
+		}
 	}
 
 	totalAllPerTurbines := map[string]tk.M{}
@@ -761,6 +776,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	//startend treshold for data available
+	listavaildate := getAvailDateByCondition(project, "ScadaData")
+	_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+
 	match := []tk.M{}
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
@@ -844,6 +863,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	var datas [][]float64
 	results := []tk.M{}
 	sortTurbines := []string{}
+
+	if len(_availdate) > 0 {
+		if _availdate[0].UTC().After(tStart.UTC()) {
+			tStart = _availdate[0]
+		}
+
+		if _availdate[1].UTC().Before(tEnd.UTC()) {
+			tEnd = _availdate[1]
+		}
+	}
 
 	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0)
 	totalDataShouldBe := totalDays * 144

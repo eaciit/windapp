@@ -86,6 +86,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
 		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
 		"scadaavail":       tk.M{"$avg": "$scadaavail"},
+		"totalrows":        tk.M{"$sum": "$totalrows"},
 		"LossEnergy":       tk.M{"$sum": "$lostenergy"}}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -165,6 +166,26 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		resultJMR[sections.GetString("turbine")] += (contrgen - boenet) / 1000.0
 	}
 	/*======== END OF JMR PART ==================*/
+
+	/*======== Denominator for DATA AVAIL */
+	listavaildate := getAvailDateByCondition(project, "ScadaData")
+	_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+	if len(_availdate) > 0 {
+		if _availdate[0].UTC().After(tStart.UTC()) {
+			tStart = _availdate[0]
+		}
+
+		if _availdate[1].UTC().Before(tEnd.UTC()) {
+			tEnd = _availdate[1]
+		}
+	}
+
+	totalDataShouldBe := tk.ToFloat64(tEnd.UTC().Sub(tStart.UTC()).Hours()/24, 0, tk.RoundingUp) * 144
+
+	tk.Println(tEnd, tStart, totalDataShouldBe)
+
+	/*======== END OF Denominator for DATA AVAIL */
+
 	LossAnalysisResult := []tk.M{}
 	turbineName, e := helper.GetTurbineNameList(p.Project)
 	if e != nil {
@@ -184,7 +205,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 				break
 			}
 		}
-		scadaavail = tk.ToString(val.GetFloat64("scadaavail") * 100)
+		scadaavail = tk.ToString(tk.Div(val.GetFloat64("totalrows"), totalDataShouldBe) * 100)
 		scadaavail = " (" + strings.Split(scadaavail, ".")[0] + "." + strings.Split(scadaavail, ".")[1][0:2] + "%)"
 
 		LossAnalysisResult = append(LossAnalysisResult, tk.M{
