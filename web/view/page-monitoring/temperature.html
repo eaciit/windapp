@@ -16,6 +16,12 @@
 	.txt-yellow {
 	    color: #e2c000;
 	}
+
+	.blinkYellow {
+	 	background-color : rgba(255, 216, 0, 0.7)
+
+	}
+
 </style>
 <div class="row">
 	<div class="row">
@@ -47,7 +53,7 @@
                                        <td data-bind="attr:{colspan: mt.Columns().length}"><strong><span data-bind="text:$parent.title"></span></strong></td>
                                     </tr>
                                     <tr data-bind="foreach:mt.Columns()">
-                                       <td class="text-center">
+                                       <td class="text-center" data-bind="attr:{id: title !== 'Turbine' ?  $parent['Turbine'] + mt.remove(title) : $parent['Turbine']}, css: {blinkYellow : $parent[title+'_Change'] > 0}">
                                             <span data-bind="valueUpdate: 'blur',text: title !== 'Turbine' ? kendo.toString($parent[title],'n2') : $parent[title], attr:{ class: title !== 'Turbine' ?  $parent[title+'_Color'] : 'txt-black',title: title !== 'Turbine' ? $parent[title+'_Date'] : ''}" data-toggle="tooltip"></span>
                                         </td>
                                     </tr>
