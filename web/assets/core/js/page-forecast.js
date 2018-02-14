@@ -10,6 +10,9 @@ vm.breadcrumb([{ title: 'Forecasting & Scheduling', href: viewModel.appName + 'p
 
 pg.DataSource = ko.observableArray([]);
 pg.CurrentTab = ko.observable('grid');
+pg.TurbineDown = ko.observable(0);
+pg.TurbineDownData = ko.observableArray([]);
+pg.EditMode = ko.observable('saved');
 
 pg.getData = function() {
     app.loading(true);
@@ -26,6 +29,7 @@ pg.getData = function() {
     var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
     $.when(getdata).done(function(d){
         pg.DataSource(d.data);
+        pg.TurbineDown(d.data[0].TurbineDown);
         if(pg.CurrentTab()=='grid')
             pg.genereateGrid();
         else
@@ -43,6 +47,32 @@ pg.getPdfGrid = function(){
     return false;
 }
 
+kendo.ui.Grid.fn.editCell = (function (editCell) {
+    return function (cell) {
+        cell = $(cell);
+
+        var that = this,
+            column = that.columns[that.cellIndex(cell)],
+            model = that._modelForContainer(cell),
+            event = {
+                container: cell,
+                model: model,
+                preventDefault: function () {
+                    this.isDefaultPrevented = true;
+                }
+            };
+
+        if (model && typeof this.options.beforeEdit === "function") {
+            this.options.beforeEdit.call(this, event);
+            
+            // don't edit if prevented in beforeEdit
+            if (event.isDefaultPrevented) return;
+        }
+        
+        editCell.call(this, cell);
+    };
+})(kendo.ui.Grid.fn.editCell);
+
 pg.isExport = false;
 pg.genereateGrid = function(){
     app.loading(true);
@@ -54,10 +84,33 @@ pg.genereateGrid = function(){
 
         $("#gridForecasting").html('');
         $("#gridForecasting").kendoGrid({
-            dataSource: {
+            toolbar: ["save"],
+            dataSource: new kendo.data.DataSource({
                 data: pg.DataSource(),
-                pageSize: 15
-            },
+                pageSize: 15,
+                schema: {
+                    model: {
+                        id: "ID",
+                        fields: {
+                            ID: { editable: false },
+                            Date: { editable: false },
+                            TimeBlock: { editable: false },
+                            AvaCap: { editable: false },
+                            Forecast: { editable: false },
+                            Actual: { editable: false },
+                            ExpProd: { editable: false },
+                            FcastWs: { editable: false },
+                            DevFcast: { editable: false },
+                            ActualWs: { editable: false },
+                            Deviation: { editable: false },
+                            DevSchAct: { editable: false },
+                            DSMPenalty: { editable: false },
+                            SchFcast: { type: "number" },
+                        }
+                    }
+                },
+                batch: true,
+            }),
             height: 520, //$('body').height() - heightSub + 30,
             // scrollable: true,
             sortable: true,
@@ -65,6 +118,46 @@ pg.genereateGrid = function(){
             pageable: {
                 input: true,
                 numeric: false
+            },
+            cellClose:  function(e) {
+                console.log('close');
+                console.log(e.type);
+            },
+            saveChanges: function(e) {
+                swal({
+                    title: 'Save all changes now?',
+                    text: "You won't be able to revert this!",
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, save it!'
+                }, function() {
+                    var data = $("#gridForecasting").data("kendoGrid").dataSource.data();
+                    var dirty = $.grep(data, function(item) {
+                        return item.dirty
+                    });
+                    var updatedData = [];
+                    console.log(dirty);
+                    $.each(dirty, function(i, v){
+                        var item = {
+                            id: v.ID,
+                            value: v.SchFcast,
+                        };
+                        updatedData.push(item);
+                    });
+                    var param = {
+                        project: fa.project,
+                        values: updatedData,
+                    };
+                    app.loading(true);
+                    var url = viewModel.appName + 'forecast/updatesldc';
+                    toolkit.ajaxPost(url, param, function(res) {
+                        app.loading(false);
+                    });
+                    return;
+                });
+                e.preventDefault();
             },
             excel:{
                 fileName:title,
@@ -125,7 +218,18 @@ pg.genereateGrid = function(){
                 { field: "DevSchAct", title: "% Error<br>Act / Schd", template : "#: (DevSchAct==null?'-':kendo.toString(DevSchAct, 'p2')) #", format: '{0:p2}' },
                 { field: "Deviation", title: "Deviation<br>(MW)", template : "#: (Deviation==null?'-':kendo.toString(Deviation, 'n2')) #", format: '{0:n2}' },
                 { field: "DSMPenalty", title: "DSM Penalty"},
-            ]
+            ],
+            editable: true,
+            beforeEdit: function(e) {
+                var data = e.model;
+                var schFcast = data.SchFcast;
+                var timeStamp = data.TimeStamp;
+                var timefilter = moment.utc().add(6.5, 'hour');
+                var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
+                if(!isAllowed) {
+                    e.preventDefault();
+                } 
+            },
         });
         $("#gridForecasting").data("kendoGrid").refresh();
         app.loading(false);
@@ -230,7 +334,7 @@ pg.genereateChart = function(){
                     visible : false
                 },
                 color: "#9c27b0",
-                dashType: "longDash",
+                dashType: "solid",
                 axis: "dynamic",
             },{
                 field: "SchFcast",
@@ -239,7 +343,7 @@ pg.genereateChart = function(){
                     visible : false
                 },
                 color: "#e91e63",
-                dashType: "longDash",
+                dashType: "solid",
                 axis: "dynamic",
             },{
                 field: "Actual",
@@ -275,7 +379,7 @@ pg.genereateChart = function(){
                     visible : false
                 },
                 color: "#ff9800",
-                dashType: "solid",
+                dashType: "longDash",
                 axis: "forecast",
             }],
             valueAxes: [{
@@ -356,6 +460,47 @@ pg.refresh = function() {
     pg.getData();
 }
 
+pg.showTurbineDown = function() {
+    $('#modalTurbineDown').modal('show');
+}
+
+pg.toTime = function(s) {
+    return new Date(s * 1e3).toISOString().slice(-13, -5);
+};
+pg.generateGridTurbineDown = function() {
+    $("#grid-turbine-down").html('');
+    $("#grid-turbine-down").kendoGrid({
+        dataSource: {
+            data: pg.TurbineDownData(),
+            pageSize: 10
+        },
+        height: 360, //$('body').height() - heightSub + 30,
+        // scrollable: true,
+        sortable: true,
+        filterable: false,
+        pageable: {
+            input: true,
+            numeric: false
+        },
+        columns: [
+            { field: "turbine", title: "Turbine", width: 80, attributes: { style: "text-align:center;" }, },
+            { field: "timestart", title: "Time Start", template: "#= moment.utc(data.timestart).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.timestart).format('HH:mm:ss')#", width: 140, attributes: { style: "text-align:center;" }, },
+            { field: "timeend", title: "Time End", template: "#= (moment.utc(data.timeend).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : (moment.utc(data.timeend).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.timeend).format('HH:mm:ss')))#", width: 140, attributes: { style: "text-align:center;" },},
+            { field: "duration", title: "Duration (hh:mm:ss)", template: "#= pg.toTime(data.duration) #", width: 140, attributes: { style: "text-align:center;" }, },
+            { field: "alarmcode", title: "Alarm Code", width: 90, attributes: { style: "text-align:center;" }, },
+            { field: "alarmdesc", title: "Alarm Description", width: 270 },
+        ]
+    });
+    $("#grid-turbine-down").data("kendoGrid").refresh();
+}
+pg.editData = function() {
+    pg.EditMode('edited');
+    
+}
+pg.saveData = function() {
+    pg.EditMode('saved');
+}
+
 $(function(){
     $('#projectList').kendoDropDownList({
         change: function () {  
@@ -367,6 +512,22 @@ $(function(){
     });
     $('#btnRefresh').on('click', function () {
         pg.refresh();
+    });
+
+    $('.modal-draggable .modal-content').draggable();
+
+    $('#modalTurbineDown').on('shown.bs.modal', function(e){
+        app.loading(true);
+        var url = viewModel.appName + 'forecast/getlistturbinedown';
+        var param = {
+            project: fa.project,
+        };
+        var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
+        $.when(getdata).done(function(d){
+            pg.TurbineDownData(d.data);
+            pg.generateGridTurbineDown();
+            app.loading(false);
+        });
     });
 
     pg.initLoad();

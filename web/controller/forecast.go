@@ -107,6 +107,80 @@ func getDirectoriesToRead(tstart time.Time, tend time.Time) (dirs []string) {
 	return
 }
 
+func (m *ForecastController) GetListTurbineDown(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Project string
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	dataReturn := []tk.M{}
+	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	dateend, _ := time.Parse("2006-01-02 15:04:05", "0001-01-01 00:00:00")
+	matches := []tk.M{
+		tk.M{"projectname": p.Project},
+		//tk.M{"$or": []tk.M{
+		tk.M{"dateinfostart.dateid": tk.M{"$eq": today}},
+		tk.M{"dateinfoend.dateid": tk.M{"$eq": dateend}},
+		tk.M{"isdeleted": false},
+		//}},
+	}
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+	}
+	csrtd, e := DBRealtime().NewQuery().
+		From("AlarmHFD").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrtd.Close()
+
+	e = csrtd.Fetch(&dataReturn, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	return helper.CreateResult(true, dataReturn, "")
+}
+
+func (m *ForecastController) UpdateSldc(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Item struct {
+		Id    string
+		Value float64
+	}
+	type Payload struct {
+		Project string
+		Values  []Item
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if len(p.Values) > 0 {
+		for _, v := range p.Values {
+			err := DB().Connection.NewQuery().Update().From("ForecastData").Where(dbox.Eq("_id", v.Id)).Exec(tk.M{}.Set("data", tk.M{}.Set("schsdlc", v.Value)))
+			if err != nil {
+				tk.Printf("Update data failed : %s\n", err.Error())
+			}
+		}
+	}
+
+	dataReturn := tk.M{
+		"success": true,
+		"message": "",
+	}
+
+	return helper.CreateResult(true, dataReturn, "")
+}
+
 func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -175,11 +249,12 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		if e != nil {
 			break
 		}
-		timestamp := item.Get("timestamp", time.Time{}).(time.Time)
+		timestamp := item.Get("timestamp", time.Time{}).(time.Time).UTC() //.UTC().Add(time.Duration(330) * time.Minute)
 		if !timestamp.IsZero() {
 			forecast.Set(timestamp.Format("20060102_150405"), item)
 		}
 	}
+	// tk.Printf("%#v\n", forecast)
 
 	// get data scada 15 min
 	scadaSrc := []tk.M{}
@@ -241,11 +316,43 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 	}
 
+	turbineDown := 0
+	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	dateend, _ := time.Parse("2006-01-02 15:04:05", "0001-01-01 00:00:00")
+	matches = []tk.M{
+		tk.M{"projectname": project},
+		//tk.M{"$or": []tk.M{
+		tk.M{"dateinfostart.dateid": tk.M{"$eq": today}},
+		tk.M{"dateinfoend.dateid": tk.M{"$eq": dateend}},
+		tk.M{"isdeleted": false},
+		//}},
+	}
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$group": tk.M{
+			"_id":   "$turbine",
+			"total": tk.M{"$sum": 1},
+		}},
+	}
+	csrtd, e := DBRealtime().NewQuery().
+		From("AlarmHFD").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrtd.Close()
+
+	dtDowns := []tk.M{}
+	e = csrtd.Fetch(&dtDowns, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	if len(dtDowns) > 0 {
+		turbineDown = len(dtDowns) //[0].GetInt("total")
+	}
+
 	defaultValue := -999999.0
 	dataReturn := []tk.M{}
 	for _, tp := range timeperiods {
 		tpkey := tp.TimePeriod.Format("20060102_150405")
-
 		dtForecast := tk.M{}
 		dtScada := tk.M{}
 		if forecast.Has(tpkey) {
@@ -265,7 +372,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		devsch := defaultValue
 		dsmpenalty := ""
 		deviation := defaultValue
-
+		id := tk.Sprintf("%s_%v_%s", project, tp.TimeBlock, tpkey)
 		if len(dtForecast) > 0 {
 			avacap = dtForecast.GetFloat64("avgcapacity")
 			fcvalue = dtForecast.GetFloat64("schcapacity")
@@ -304,6 +411,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 
 		item := tk.M{
+			"ID":           id,
 			"Date":         tp.TimePeriod.Format("02/01/2006"),
 			"TimeBlock":    tp.TimeRange,
 			"TimeStamp":    tp.TimePeriod,
@@ -319,6 +427,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			"DevSchAct":    devsch,
 			"DSMPenalty":   dsmpenalty,
 			"Deviation":    deviation,
+			"TurbineDown":  turbineDown,
 		}
 		if item.GetFloat64("AvaCap") == defaultValue {
 			item.Set("AvaCap", nil)

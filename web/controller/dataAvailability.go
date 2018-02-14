@@ -8,10 +8,11 @@ import (
 
 	"time"
 
+	"sort"
+
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
-	"sort"
 )
 
 var (
@@ -148,7 +149,23 @@ func (m *DataAvailabilityController) GetCurrentDataAvailability(k *knot.WebConte
 		helper.CreateResult(false, 0, e.Error())
 	}
 
-	rturbines := tEnd.UTC().Sub(tStart.UTC()).Hours() * 6
+	if project != "" && project != "Fleet" {
+		listavaildate := getAvailDateByCondition(project, "ScadaData")
+		_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+
+		if len(_availdate) > 0 {
+			if _availdate[0].UTC().After(tStart.UTC()) {
+				tStart = _availdate[0]
+			}
+
+			if _availdate[1].UTC().Before(tEnd.UTC()) {
+				tEnd = _availdate[1]
+			}
+		}
+
+	}
+
+	rturbines := tk.ToFloat64(tEnd.UTC().Sub(tStart.UTC()).Hours()/24, 0, tk.RoundingUp) * 144
 	iturbine, totalrows := float64(0), float64(0)
 	for _, val := range resultScada {
 		iturbine += 1
@@ -253,7 +270,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 					kelas = "progress-bar progress-bar-success"
 				}
 
-				percentageDay := tk.ToFloat64(dataPerDay.Get(tk.ToString(idx),0.0).(float64),4, tk.RoundingAuto) * 100
+				percentageDay := tk.ToFloat64(dataPerDay.Get(tk.ToString(idx), 0.0).(float64), 4, tk.RoundingAuto) * 100
 
 				datas = append(datas, tk.M{
 					"tooltip":  "Day " + tk.ToString(idx),
@@ -344,7 +361,7 @@ func getAvailDaily(project string, turbines []interface{}, monthdesc string) tk.
 							kelas = "progress-bar progress-bar-success"
 						}
 
-						percentageTurbine := tk.ToFloat64(dataPerTurbine.Get(tk.ToString(idx) + "_" + turbine,0.0).(float64),4, tk.RoundingAuto) * 100
+						percentageTurbine := tk.ToFloat64(dataPerTurbine.Get(tk.ToString(idx)+"_"+turbine, 0.0).(float64), 4, tk.RoundingAuto) * 100
 
 						turbineDetails = append(turbineDetails, tk.M{
 							"tooltip":  "Day " + tk.ToString(idx),

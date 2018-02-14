@@ -409,7 +409,7 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 		tags := val.GetString("tags")
 		temperatureList = append(temperatureList, tags)
 		abbreviationTags[tags] = val.GetString("abbreviation")
-		abbreviationList = append(abbreviationList, map[string]string{val.GetString("abbreviation"): val.GetString("description")})
+		abbreviationList = append(abbreviationList, map[string]string{"title": val.GetString("abbreviation"), "desc" : val.GetString("description")})
 	}
 
 	/* get scada realtime new data */
@@ -463,7 +463,7 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 		for _, _turbine := range turbineSorted {
 			datas, hasData := realtimePerTurbine[_turbine]
 			result := tk.M{
-				"turbine": turbineName[_turbine],
+				"Turbine": turbineName[_turbine],
 			}
 			if hasData {
 				for _, _data := range datas {
