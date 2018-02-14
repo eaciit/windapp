@@ -135,13 +135,13 @@ pg.genereateGrid = function(){
             },
             saveChanges: function(e) {
                 swal({
-                    title: 'Save all changes now?',
-                    text: "You won't be able to revert this!",
+                    title: 'Save changes?',
+                    //text: "You won't be able to revert this!",
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, save it!'
+                    confirmButtonText: 'Yes, Save'
                 }, function() {
                     var data = $("#gridForecasting").data("kendoGrid").dataSource.data();
                     var dirty = $.grep(data, function(item) {
