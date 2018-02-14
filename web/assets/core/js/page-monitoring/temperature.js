@@ -16,10 +16,55 @@ mt.projectList = ko.observableArray([]);
 mt.project = ko.observable();
 mt.Columns = ko.observableArray([]);
 mt.Details = ko.observableArray([]);
+mt.logEntries = ko.observableArray([]);
 
 var requests = [];
 var $temperatureInterval = false, $intervalTime = 5000;
 
+ko.subscribable.fn.subscribeChanged = function (callback) {
+    var oldValue;
+    this.subscribe(function (_oldValue) {
+        var value = ko.utils.unwrapObservable(this);
+        if (value != null && value.constructor == Array){
+            oldValue = _oldValue.slice();
+        } else {
+            oldValue = _oldValue;
+        }
+    }, this, 'beforeChange');
+
+    this.subscribe(function (newValue) {
+        callback(newValue, oldValue);
+    });
+};
+
+mt.remove = function(str){ 
+    return str.replace(/[\. ,:-]+/g, "");
+}  
+
+mt.Details.subscribeChanged(function(newValue,oldValue){
+    if(oldValue.length >0){
+        $.each(newValue, function(idx, value){
+            $.each(value.turbines, function(i, val){
+                for(var key in val){
+                   if(key !== "Turbine"){
+                        var detailsNewVal = oldValue[idx].turbines;
+                        detailsNewVal = detailsNewVal[i][key];
+                        if(kendo.toString(detailsNewVal,'n2') != kendo.toString(val[key],'n2')){  
+                            val[key+'_Change'] = 1; 
+                        }else{
+                            val[key+'_Change'] = 0;
+                        }
+                   }  
+                }
+            });
+
+            window.setTimeout(function(){ 
+                $('table').find($('.blinkYellow')).css('background-color', 'transparent'); 
+            }, 750);
+
+        });
+    }
+});
 
 mt.GetData = function(data) {
     // app.loading(true);
@@ -66,10 +111,18 @@ mt.populateProject = function (data) {
 };
 
 mt.abortAll = function(requests) {
-     var length = requests.length;
-     while(length--) {
-         requests[length].abort && requests[length].abort();  // the if is for the first case mostly, where array is still empty, so no abort method exists.
-     }
+    setTimeout(function(){
+        app.loading(true);
+        mt.Columns([]);
+        mt.Details([]);
+        mt.logEntries([]);
+
+         var length = requests.length;
+         while(length--) {
+             requests[length].abort && requests[length].abort();  // the if is for the first case mostly, where array is still empty, so no abort method exists.
+         }
+    },200)
+
 }
 
 mt.GetDataProject = function(project) {
@@ -95,11 +148,8 @@ mt.GetDataProject = function(project) {
    }));
 }
 
-
-
 $(function() {
     app.loading(true);
-    // mt.GetData()
 
     $('#projectList').kendoDropDownList({
         data: mt.projectList,
@@ -114,6 +164,5 @@ $(function() {
             
          }
     });
-
     setInterval(mt.GetData, 5000);
 });
