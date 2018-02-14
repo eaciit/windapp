@@ -167,5 +167,5 @@ $(function() {
             
          }
     });
-    // setInterval(mt.GetData, 5000);
+    setInterval(mt.GetData, 5000);
 });
