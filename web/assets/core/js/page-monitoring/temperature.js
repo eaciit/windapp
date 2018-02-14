@@ -60,7 +60,8 @@ mt.Details.subscribeChanged(function(newValue,oldValue){
 
             window.setTimeout(function(){ 
                 $('table').find($('.blinkYellow')).css('background-color', 'transparent'); 
-            }, 750);
+                $('table').find($('.blinkYellow')).css('transition' , 'background-color 0.5s ease;');
+            }, 1200);
 
         });
     }
@@ -148,8 +149,10 @@ mt.GetDataProject = function(project) {
    }));
 }
 
+
 $(function() {
     app.loading(true);
+    mt.GetData();
 
     $('#projectList').kendoDropDownList({
         data: mt.projectList,
@@ -164,5 +167,5 @@ $(function() {
             
          }
     });
-    setInterval(mt.GetData, 5000);
+    // setInterval(mt.GetData, 5000);
 });
