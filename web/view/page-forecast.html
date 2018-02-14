@@ -33,13 +33,28 @@
 											</div>
 											<div class="clearfix">&nbsp;</div>
 											<div class="alert alert-info" role="alert">
-												To edit / modify Schedule Forecast for SLDC value please click on cell it self, after all finished please click Save Changes button above. 
+												You can edit the SLDC values for time slots 1 hour after the current time. Please click on cell  to edit and Press "Save Changes" button above to save the changes. 
 											</div>
 											<div id="gridForecasting"></div>
 										</div>
 									</div>
 									<div role="tabpanel" class="tab-pane" id="chart">
 										<div class="tab-pane-content">
+											<div class="top-nav-input pull-right">
+												<div class="row">
+													<label class="col-md-4">Set Max. Limit Value for</label>
+													<div class="col-md-3">
+														<select id="field-series" class="form-control" data-bind="options: pg.Series, optionsText: 'name', optionsValue: 'field', value: pg.SelectedSeries, event: { change: function(){ return pg.GetMaxValue(); } }"></select>
+													</div>
+													<div class="col-md-2">
+														<input type="number" id="max-value" class="form-control" data-bind="value: pg.MaxValue, event: { change: function(){ return pg.SetAxis(); } }" />
+													</div>
+													<div class="col-md-3">
+														<input type="checkbox" id="cbAdjust" onclick="pg.Adjusted()" />
+														<label for="cbAdjust">Adjust Another Y Axis</label>
+													</div>
+												</div>
+											</div>
 											<div id="chartForecasting"></div>
 										</div>
 									</div>

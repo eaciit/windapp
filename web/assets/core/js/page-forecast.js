@@ -14,6 +14,15 @@ pg.TurbineDown = ko.observable(0);
 pg.TurbineDownData = ko.observableArray([]);
 pg.EditMode = ko.observable('saved');
 
+pg.Axis1 = ko.observable({min:0,max:0});
+pg.Axis2 = ko.observable({min:0,max:0});
+pg.Series = ko.observableArray([]);
+pg.MaxValue = ko.observable(0);
+pg.SelectedSeries = ko.observable('');
+
+var timefilter = moment.utc().add(6.5, 'hour');
+pg.TimeFilter = ko.observable(timefilter);
+
 pg.getData = function() {
     app.loading(true);
     var url = viewModel.appName + 'forecast/getlist';
@@ -37,7 +46,6 @@ pg.getData = function() {
         app.loading(false);
     });
 }
-
 
 pg.getPdfGrid = function(){
     // app.loading(true);
@@ -73,7 +81,6 @@ kendo.ui.Grid.fn.editCell = (function (editCell) {
     };
 })(kendo.ui.Grid.fn.editCell);
 
-pg.isExport = false;
 pg.genereateGrid = function(){
     app.loading(true);
     setTimeout(function(){ 
@@ -117,11 +124,14 @@ pg.genereateGrid = function(){
             filterable: false,
             pageable: {
                 input: true,
-                numeric: false
+                numeric: false,
+                change: function(e) {
+                    var timefilter = moment.utc().add(6.5, 'hour');
+                    pg.TimeFilter = ko.observable(timefilter);
+                },
             },
             cellClose:  function(e) {
-                console.log('close');
-                console.log(e.type);
+                // do nothing
             },
             saveChanges: function(e) {
                 swal({
@@ -138,7 +148,6 @@ pg.genereateGrid = function(){
                         return item.dirty
                     });
                     var updatedData = [];
-                    console.log(dirty);
                     $.each(dirty, function(i, v){
                         var item = {
                             id: v.ID,
@@ -209,7 +218,16 @@ pg.genereateGrid = function(){
                 // { field: "TimeBlockInt", title: "Time<br/>Block", width: 50, },
                 { field: "AvaCap", title: "Avg. Cap.<br>(MW)", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", format: '{0:n0}' },
                 { field: "Forecast", title: "Forecast<br>(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
-                { title: "Sch Fcast /<br>SLDC (MW)", field: "SchFcast", template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #", format: '{0:n2}' },
+                { 
+                    title: "Sch Fcast /<br>SLDC (MW)", 
+                    field: "SchFcast", 
+                    template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #", 
+                    format: '{0:n2}',
+                    attributes: {
+                        "class": "#:(SchFcast != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(SchFcast != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
+                    },
+                },
                 { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
                 { title: "Exp Prod /<br>Pwr Curv (MW)", width: 120, field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #", format: '{0:n2}' },
                 { field: "FcastWs", title: "Fcast ws<br>(m/s)", template : "#: (FcastWs==null?'-':kendo.toString(FcastWs, 'n2')) #", format: '{0:n2}' },
@@ -224,11 +242,12 @@ pg.genereateGrid = function(){
                 var data = e.model;
                 var schFcast = data.SchFcast;
                 var timeStamp = data.TimeStamp;
-                var timefilter = moment.utc().add(6.5, 'hour');
+                var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
                 var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
                 if(!isAllowed) {
+                    $(temp1.container[0]).removeAttr('class'); // to remove background as editable cell
                     e.preventDefault();
-                } 
+                }
             },
         });
         $("#gridForecasting").data("kendoGrid").refresh();
@@ -438,10 +457,87 @@ pg.genereateChart = function(){
                 visible: true,
                 template: "${series.name} on #= moment.utc(dataItem.TimeStamp).format('DD-MM-YYYY HH:mm') # = <b>#= kendo.toString(value, 'n2') #</b>"
             },
+            dataBound: function(e) {
+                setTimeout(function() {
+                    var axes = e.sender._plotArea.axes;
+                    var ax1 = axes[1];
+                    var ax2 = axes[2];
+                    if(pg.Axis1().max==0) {
+                        pg.Axis1({
+                            min: ax1.totalMin,
+                            max: ax1.totalMax, 
+                        });
+                    }
+                    if(pg.Axis2().max==0) {
+                        pg.Axis2({
+                            min: ax2.totalMin,
+                            max: ax2.totalMax, 
+                        });
+                    }
+                }, 100)
+            },
         });
         $("#chartForecasting").data("kendoChart").refresh();
+        var chart = $("#chartForecasting").data("kendoChart");
+        var series = chart.options.series;
+        $.each(series, function(i, v){
+            var item = {
+                field: v.field,
+                name: v.name,
+                axis: v.axis,
+            };
+            pg.Series.push(item);
+        });
+        if(pg.Series().length > 0) {
+            pg.SelectedSeries(pg.Series()[0].field);
+        }
         app.loading(false);
     },200);
+    setTimeout(function(){ pg.GetMaxValue(); }, 500);
+}
+
+pg.GetMaxValue = function() {
+    var maxValue = 0;
+    var dt = _.find(pg.Series(), function(o){ return o.field == pg.SelectedSeries(); });
+    if(dt!=null) {
+        if(dt.axis=='dynamic') {
+            maxValue = pg.Axis1().max;
+        } else {
+            maxValue = pg.Axis2().max;
+        }
+        pg.MaxValue(maxValue);
+    }
+}
+
+pg.Adjusted = function() {
+    pg.SetAxis();
+}
+
+pg.SetAxis = function() {
+    var isAdjusted = $('#cbAdjust').is(':checked');
+    var maxValue = pg.MaxValue();
+    var dt = _.find(pg.Series(), function(o){ return o.field == pg.SelectedSeries(); });
+    var chart = $('#chartForecasting').data('kendoChart');
+    if(dt!=null) {
+        if(dt.axis=='dynamic') {
+            var diff = pg.Axis1().max / maxValue;
+            chart.options.valueAxis[0].max = maxValue;
+            if(isAdjusted) { 
+                chart.options.valueAxis[1].max = pg.Axis2().max / diff;
+            } else {
+                chart.options.valueAxis[1].max = pg.Axis2().max;
+            }
+        } else {
+            var diff = pg.Axis2().max / maxValue;
+            chart.options.valueAxis[1].max = maxValue;
+            if(isAdjusted) {
+                chart.options.valueAxis[0].max = pg.Axis1().max / diff;
+            } else {
+                chart.options.valueAxis[0].max = pg.Axis1().max;
+            }
+        }
+        chart.redraw();
+    }
 }
 
 pg.initLoad = function() {
@@ -456,7 +552,8 @@ pg.initLoad = function() {
 
 pg.refresh = function() {
     fa.checkTurbine();
-
+    pg.Axis1({min:0,max:0});
+    pg.Axis2({min:0,max:0});
     pg.getData();
 }
 

@@ -28,7 +28,7 @@
     z-index: 1000;
 }
 .fc-wrapper .k-chart {
-    margin-top: -5px;
+    margin-top: 25px;
 }
 .fc-wrapper .k-content {
     background:none;
@@ -76,4 +76,38 @@
 }
 .modal-backdrop.in {
     opacity: 0.1;
+}
+td[role=gridcell].cell-editable-no, td[role=gridcell] {
+    cursor: default;
+}
+td[role=gridcell].cell-editable {
+    background: #fff1d2;
+    cursor: text;
+}
+tr:hover .cell-editable {
+    background: #ffe7d2;
+    color: #333;
+}
+.top-nav-input {
+    max-width: 520px;
+    position: absolute;
+    top: 11px;
+    right: 100px;
+    z-index: 10001;
+}
+.top-nav-input label {
+    padding-top: 5px;
+    text-align: right;
+}
+.top-nav-input .form-control {
+    padding: 2px 3px;
+    height: 28px;
+    border-radius: 2px;
+    font-size: 12px;
+}
+.top-nav-input input[type=number].form-control, .top-nav-input input[type=text].form-control {
+    text-align: right;
+}
+.top-nav-input select.form-control {
+    border-radius: 2px!important;
 }
