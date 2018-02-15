@@ -655,20 +655,20 @@ func (c *MonitoringRealtimeController) GetTemperatureHeatMap(k *knot.WebContext)
 					colorKey := tk.Sprintf("%s_Color", abbr)
 					opacityKey := tk.Sprintf("%s_Opacity", abbr)
 					dateKey := tk.Sprintf("%s_Date", abbr)
-					opacity := 1.0
+					opacity := "1.0"
 					/* define color for each temperature */
-					color := "green"
+					color := "rgba(100,190,124," //green
 					keyCluster := tk.Sprintf("%s_%s", tags, cluster)
 					tempAvg := avgTempPerCluster[keyCluster] /* misal 30 */
 					tempAvg10 := tempAvg * 0.1               /* 10 percent from avg value, misal 33 atau 27 */
 					tempAvg15 := tempAvg * 0.15              /* 15 percent from avg value, misal 34.5 atau 25.5 */
 					diffValue := math.Abs(value - tempAvg)
 					if diffValue > tempAvg10 && diffValue <= tempAvg15 {
-						color = "yellow"
+						color = "rgba(255,235,59," //yellow
 						if diffValue > 0.1*tempAvg && diffValue <= 0.125*tempAvg {
-							opacity = 0.5
+							opacity = "0.5"
 						} else {
-							opacity = 1.0
+							opacity = "1.0"
 						}
 						/*countStep := 0.15
 						countColor := 0
@@ -685,30 +685,30 @@ func (c *MonitoringRealtimeController) GetTemperatureHeatMap(k *knot.WebContext)
 							}
 						}*/
 					} else if diffValue > tempAvg15 {
-						color = "red"
+						color = "rgba(248,109,111," //red
 						if diffValue > 0.15*tempAvg && diffValue <= 0.175*tempAvg {
-							opacity = 0.33
+							opacity = "0.33"
 						} else if diffValue > 0.175*tempAvg && diffValue <= 0.2*tempAvg {
-							opacity = 0.66
+							opacity = "0.66"
 						} else {
-							opacity = 0.99
+							opacity = "0.99"
 						}
 
 					} else {
 						if diffValue < 0.025*tempAvg {
-							opacity = 1
+							opacity = "1"
 						} else if diffValue > 0.025*tempAvg && diffValue <= 0.05*tempAvg {
-							opacity = 0.75
+							opacity = "0.75"
 						} else if diffValue > 0.05*tempAvg && diffValue <= 0.075*tempAvg {
-							opacity = 0.5
+							opacity = "0.5"
 						} else {
-							opacity = 0.25
+							opacity = "0.25"
 						}
 					}
 
 					lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC().Format("02 Jan 06 15:04:05")
 					result.Set(abbr, value)
-					result.Set(colorKey, color)
+					result.Set(colorKey, color + opacity+")")
 					result.Set(opacityKey, opacity)
 					result.Set(dateKey, lastupdated)
 				}
