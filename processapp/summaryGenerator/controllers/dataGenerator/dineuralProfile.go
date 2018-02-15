@@ -50,6 +50,14 @@ func (ev *DineuralProfileSummary) CreateDineuralProfileSummary(base *BaseControl
 }
 
 func (ev *DineuralProfileSummary) processDataScada() {
+	countWS := tk.M{"$cond": tk.M{}.
+		Set("if", tk.M{"$ifNull": []interface{}{"$avgwindspeed", false}}).
+		Set("then", 1).
+		Set("else", 0)}
+	countTemp := tk.M{"$cond": tk.M{}.
+		Set("if", tk.M{"$ifNull": []interface{}{"$nacelletemperature", false}}).
+		Set("then", 1).
+		Set("else", 0)}
 	pipe := []tk.M{
 		tk.M{"$match": tk.M{"available": 1}},
 		tk.M{"$group": tk.M{
@@ -63,9 +71,8 @@ func (ev *DineuralProfileSummary) processDataScada() {
 			"windspeedtotal":   tk.M{"$sum": "$avgwindspeed"},
 			"temperaturetotal": tk.M{"$sum": "$nacelletemperature"},
 			"powertotal":       tk.M{"$sum": "$power"},
-			"windspeedcount":   tk.M{"$sum": 1},
-			"temperaturecount": tk.M{"$sum": 1},
-			"powercount":       tk.M{"$sum": 1},
+			"windspeedcount":   tk.M{"$sum": countWS},
+			"temperaturecount": tk.M{"$sum": countTemp},
 		}},
 	}
 
