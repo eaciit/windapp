@@ -116,7 +116,6 @@ func (ev *DineuralProfileSummary) processDataScada() {
 
 func (ev *DineuralProfileSummary) processDataMet() {
 	pipe := []tk.M{
-		tk.M{"$match": tk.M{"available": 1}},
 		tk.M{"$group": tk.M{
 			"_id": tk.M{
 				"projectname": "$projectname",
