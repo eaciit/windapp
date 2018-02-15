@@ -31,7 +31,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 			os.Exit(0)
 		}
 
-		d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
+		// d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
 
 		projectList, _ := helper.GetProjectList()
 
@@ -298,7 +298,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 					mdl.Productions = items
 					mdl.CummulativeProductions = item30s
 
-					d.BaseController.Ctx.Insert(mdl)
+					d.BaseController.Ctx.Save(mdl)
 				}
 			}
 		}
