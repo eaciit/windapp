@@ -111,7 +111,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 
 	categories := []string{}
 
-	var maxKey1, maxKey2, minKey2 float64
+	var maxKey1, maxKey2 float64
 	catTitle := ""
 	start, _ := time.Parse("2006-01-02T15:04:05.000Z", p.Filter.Filters[0].Value.(string))
 	end, _ := time.Parse("2006-01-02T15:04:05.000Z", p.Filter.Filters[1].Value.(string))
@@ -127,6 +127,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	durationMonths, months, monthDay := helper.GetDurationInMonth(tStart, tEnd)
 	monthList := tk.M{}
 	measurement := ""
+	measurementList := []string{}
 	// totalData := 0
 	listOfYears := []int{}
 	listOfMonthPVal := []int{}              /* isinya list bulan dengan format [1 2 3 4 5, dst]*/
@@ -320,6 +321,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				measurement = "MWh"
 			}
 			series.Set("satuan", measurement)
+			measurementList = append(measurementList, measurement)
 		} else {
 			series.Set("name", key)
 			series.Set("type", "line")
@@ -327,12 +329,11 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			series.Set("markers", tk.M{"visible": false})
 			series.Set("width", 2)
 			series.Set("axis", "Key2")
-			minKey2 = 100.00
 			if key == "Actual Production" || strings.Contains(key, "Generation") || key == "DGR" {
-				minKey2 = 99999999.99
 				measurement = "MWh"
 			}
 			series.Set("satuan", measurement)
+			measurementList = append(measurementList, measurement)
 		}
 
 		var datas []float64
@@ -484,16 +485,15 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 
 			if !isExpPValue {
 				datas = append(datas, tk.ToFloat64(values, 2, tk.RoundingAuto))
-				if i == 0 {
-					if values > maxKey1 {
-						maxKey1 = values
-					}
-				} else {
-					if values > maxKey2 {
-						maxKey2 = values
-					}
-					if values < minKey2 {
-						minKey2 = values
+				if !strings.Contains(breakDown, "monthid") {
+					if i == 0 {
+						if values > maxKey1 {
+							maxKey1 = values
+						}
+					} else {
+						if values > maxKey2 {
+							maxKey2 = values
+						}
 					}
 				}
 			}
@@ -548,23 +548,17 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 								if values > maxKey2 {
 									maxKey2 = values
 								}
-								if values < minKey2 {
-									minKey2 = values
-								}
 							}
 						} else {
 							newData := tk.Div(values, jumCat)
 							datas = append(datas, newData)
 							if i == 0 {
-								if values > maxKey1 {
-									maxKey1 = values
+								if newData > maxKey1 {
+									maxKey1 = newData
 								}
 							} else {
-								if values > maxKey2 {
-									maxKey2 = values
-								}
-								if values < minKey2 {
-									minKey2 = values
+								if newData > maxKey2 {
+									maxKey2 = newData
 								}
 							}
 						}
@@ -593,9 +587,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							} else {
 								if values > maxKey2 {
 									maxKey2 = values
-								}
-								if values < minKey2 {
-									minKey2 = values
 								}
 							}
 						}
@@ -628,15 +619,21 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 								if monthCumm > maxKey2 {
 									maxKey2 = monthCumm
 								}
-								if monthCumm < minKey2 {
-									minKey2 = monthCumm
-								}
 							}
 						}
 					}
 				} else if strings.Contains(breakDown, "project") {
 					categories = append(categories, projectName)
 					catTitle = "Project"
+					if i == 0 {
+						if values > maxKey1 {
+							maxKey1 = values
+						}
+					} else {
+						if values > maxKey2 {
+							maxKey2 = values
+						}
+					}
 				} else if strings.Contains(breakDown, "turbine") {
 					catTitle = "Turbine"
 
@@ -655,9 +652,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 									if newValues > maxKey2 {
 										maxKey2 = newValues
 									}
-									if newValues < minKey2 {
-										minKey2 = newValues
-									}
 								}
 							} else {
 								/* menggunakan values hasil akumulasi PER HARI */
@@ -670,9 +664,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 								} else {
 									if newData > maxKey2 {
 										maxKey2 = newData
-									}
-									if newData < minKey2 {
-										minKey2 = newData
 									}
 								}
 							}
@@ -716,9 +707,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 									if values > maxKey2 {
 										maxKey2 = values
 									}
-									if values < minKey2 {
-										minKey2 = values
-									}
 								}
 							} else {
 								datas = append(datas, values)
@@ -729,9 +717,6 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 								} else {
 									if values > maxKey2 {
 										maxKey2 = values
-									}
-									if values < minKey2 {
-										minKey2 = values
 									}
 								}
 							}
@@ -757,23 +742,38 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		}
 		dataSeries = append(dataSeries, series)
 	}
-	minKey2 = 0.0 /* pake 0 aja deh minimum nya karena hampir gak mungkin generation atau plf di bawah 0 */
-	if maxKey1 > maxKey2 {
-		if measurement == "MWh" { /* generation */
+
+	if measurementList[0] == measurementList[1] {
+		if maxKey1 > maxKey2 {
+			if measurement == "MWh" { /* generation */
+				penambah := maxMinValue(maxKey1, 0.1)
+				maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+			} else { /* plf which is selalu percentage */
+				maxKey1 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
+			}
+			maxKey2 = maxKey1
+		} else {
+			if measurement == "MWh" { /* generation */
+				penambah := maxMinValue(maxKey2, 0.1)
+				maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+			} else { /* plf which is selalu percentage */
+				maxKey2 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
+			}
+			maxKey1 = maxKey2
+		}
+	} else {
+		if measurementList[0] == "MWh" { /* generation */
 			penambah := maxMinValue(maxKey1, 0.1)
 			maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
 		} else { /* plf which is selalu percentage */
 			maxKey1 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
 		}
-		maxKey2 = maxKey1
-	} else {
-		if measurement == "MWh" { /* generation */
+		if measurementList[1] == "MWh" { /* generation */
 			penambah := maxMinValue(maxKey2, 0.1)
 			maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
 		} else { /* plf which is selalu percentage */
 			maxKey2 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
 		}
-		maxKey1 = maxKey2
 	}
 
 	result := struct {
@@ -789,7 +789,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		Categories: categories,
 		MinKey1:    0,
 		MaxKey1:    tk.ToInt(maxKey1, tk.RoundingAuto), //tk.ToInt((maxKey1*2 - (maxKey1 / 4)), tk.RoundingAuto),
-		MinKey2:    tk.ToInt(minKey2, tk.RoundingAuto),
+		MinKey2:    0,
 		MaxKey2:    tk.ToInt(maxKey2, tk.RoundingAuto),
 		CatTitle:   catTitle,
 	}
