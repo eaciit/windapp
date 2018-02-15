@@ -101,7 +101,7 @@ func (ev *DineuralProfileSummary) processData() {
 		data.TemperatureCount = val.GetFloat64("temperaturecount")
 		data.PowerCount = val.GetFloat64("powercount")
 
-		e = csrSave.Exec(tk.M{"data": dineuralData})
+		e = csrSave.Exec(tk.M{"data": data})
 		if e != nil {
 			ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
 		}
