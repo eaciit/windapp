@@ -5,9 +5,10 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"net/http"
 
+	"sync"
+
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
-	"sync"
 )
 
 type PageController struct {
@@ -592,6 +593,13 @@ func (w *PageController) Forecasting(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-forecast.html"
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) ThreeDAnalytic(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-threedanalytic.html"
 	return w.GetParams(r, true)
 }
 
