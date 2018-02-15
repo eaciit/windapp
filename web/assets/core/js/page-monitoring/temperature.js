@@ -41,6 +41,21 @@ mt.remove = function(str){
     return str.replace(/[\. ,:-]+/g, "");
 }  
 
+mt.getWidth = function(){
+    var width = ($(".feeder-column > table").innerWidth() - (mt.Columns().length + 75)) / (mt.Columns().length - 1);
+    // $.each(mt.Columns(), function(i, val){
+    //     var ths = $('table > thead').find($('#header-'+mt.remove(val.title)));
+    //     var element = ths.eq(0); //<-- instead of ths[0]
+
+    //     if(val.title == 'Turbine'){
+    //         element.css('minWidth', 75);
+    //     }else{
+    //         element.css('minWidth', width);
+    //     }
+    // });
+    return width+"px !important";
+}
+
 mt.Details.subscribeChanged(function(newValue,oldValue){
     if(oldValue.length >0){
         $.each(newValue, function(idx, value){
@@ -61,6 +76,7 @@ mt.Details.subscribeChanged(function(newValue,oldValue){
             window.setTimeout(function(){ 
                 $('table').find($('.blinkYellow')).css('background-color', 'transparent'); 
                 $('table').find($('.blinkYellow')).css('transition' , 'background-color 0.5s ease;');
+
             }, 1200);
 
         });
@@ -136,13 +152,24 @@ mt.GetDataProject = function(project) {
             return;
         }
         var details  = res.data[0].Details;
+        var columnList = res.data[1].ColumnList;
+        columnList.unshift({title : "Turbine", desc : ""});
+
+
+
+        var width = ($(".feeder-column > table").innerWidth() - (columnList.length * 11 + 75)) / (columnList.length - 1);
+
+        $.each(columnList, function(i, val){
+            if(val.title == "Turbine"){
+                val.Width = "70px";
+            }else{
+                val.Width = width +"px";
+            }
+        });
 
         mt.Details(res.data[0].Details);
         mt.Columns(res.data[1].ColumnList);
-        mt.Columns.unshift({title : "Turbine", desc : ""});
-
-
-
+        mt.Columns(columnList);
 
         app.loading(false);
         
@@ -152,7 +179,7 @@ mt.GetDataProject = function(project) {
 
 $(function() {
     app.loading(true);
-    mt.GetData();
+    // mt.GetData();
 
     $('#projectList').kendoDropDownList({
         data: mt.projectList,
