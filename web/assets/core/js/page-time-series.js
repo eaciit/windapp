@@ -521,7 +521,6 @@ pg.getDataStockChart = function(param){
     if(fa.LoadData()) {
         // if (param == "refresh") {
         $("#modalDetail").modal("hide");
-        pg.dataType("MIN");
         // }
         app.loading(true);
         clearInterval(interval);
@@ -589,6 +588,16 @@ pg.getDataStockChart = function(param){
         var dateStart = fa.dateStart; 
         var dateEnd = fa.dateEnd;
         
+        var hours = Math.abs(dateEnd - dateStart) / 36e5;
+
+        // console.log("hours: "+hours);
+
+        if (hours <= defaultHour) {
+            pg.dataType("SEC");
+        }else{
+            pg.dataType("MIN");
+        }
+
         var paramX = {
             period: fa.period,
             Turbine: turbine,
