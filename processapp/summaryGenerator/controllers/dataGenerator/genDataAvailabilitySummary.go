@@ -29,7 +29,7 @@ type DataAvailabilitySummary struct {
 
 func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseController) {
 	ev.BaseController = base
-	tk.Println("===================== Start process Data Availability Summary...")
+	ev.Log.AddLog("===================== Start process Data Availability Summary...", sInfo)
 
 	turbineName = map[string]string{}
 	var e error
@@ -117,11 +117,11 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 
-	tk.Println("===================== End process Data Availability Summary...")
+	ev.Log.AddLog("===================== End process Data Availability Summary...", sInfo)
 }
 
 func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
-	tk.Println("===================== SCADA DATA OEM...")
+	ev.Log.AddLog("===================== SCADA DATA OEM...", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data OEM"
 	availability.Type = "SCADA_DATA_OEM"
@@ -175,7 +175,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD...")
+	ev.Log.AddLog("===================== SCADA DATA HFD...", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data HFD"
 	availability.Type = "SCADA_DATA_HFD"
@@ -231,7 +231,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
-	tk.Println("===================== MET TOWER...")
+	ev.Log.AddLog("===================== MET TOWER...", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Met Tower"
 	availability.Type = "MET_TOWER"
@@ -283,7 +283,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
-	tk.Println("===================== SCADA DATA OEM PROJECT LEVEL . . .")
+	ev.Log.AddLog("===================== SCADA DATA OEM PROJECT LEVEL . . .", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data OEM PROJECT"
 	availability.Type = "SCADA_DATA_OEM_PROJECT"
@@ -335,7 +335,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD PROJECT LEVEL . . .")
+	ev.Log.AddLog("===================== SCADA DATA HFD PROJECT LEVEL . . .", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data HFD PROJECT"
 	availability.Type = "SCADA_DATA_HFD_PROJECT"
@@ -632,7 +632,7 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD DAILY PROJECT LEVEL...")
+	ev.Log.AddLog("===================== SCADA DATA HFD DAILY PROJECT LEVEL...", sInfo)
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
@@ -717,7 +717,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD DAILY TURBINE LEVEL...")
+	ev.Log.AddLog("===================== SCADA DATA HFD DAILY TURBINE LEVEL...", sInfo)
 	var wg sync.WaitGroup
 
 	now := getTimeNow()

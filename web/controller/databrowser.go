@@ -860,6 +860,18 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			val.Field: tk.M{val.Op: val.Value},
 		})
 	}
+	if tipe == "ScadaHFD" {
+		matches = append(matches, tk.M{
+			"windspeed_ms": tk.M{"$gt": -200},
+		})
+		matches = append(matches, tk.M{
+			"windspeed_ms": tk.M{"$exists": true},
+		})
+		matches = append(matches, tk.M{
+			"activepower_kw": tk.M{"$exists": true},
+		})
+	}
+
 	pipes := []tk.M{}
 	// 	tk.M{"$match": tk.M{"$and": matches}},
 	// 	tk.M{"$project": projection},
@@ -884,7 +896,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}...)
 	//tk.Printf("%#v\n", pipes)
 
-	// timenow := time.Now()
+	//timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
 	defer csr.Close()
@@ -892,22 +904,23 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	// defer csr.Close()
-	//	duration := time.Now().Sub(timenow).Seconds()
+	// duration := time.Now().Sub(timenow).Seconds()
 	// tk.Printf("Kondisi 1 = %v\n", duration)
-	// tk.Printf("Total = %v\n", csr.Count())
+	//tk.Printf("Total = %v\n", csr.Count())
 
 	// timenow = time.Now()
 	results := make([]tk.M, 0)
-	e = csr.Fetch(&results, 0, false)
+	// e = csr.Fetch(&results, 0, false)
 	// item := tk.M{}
-	// for {
-	// 	item = tk.M{}
-	// 	e = csr.Fetch(&item, 1, false)
-	// 	if e != nil {
-	// 		break
-	// 	}
-	// 	results = append(results, item)
-	// }
+	for {
+		item := tk.M{}
+		e = csr.Fetch(&item, 1, false)
+		if e != nil {
+			e = nil
+			break
+		}
+		results = append(results, item)
+	}
 	// tk.Printf("Total = %v\n", len(results))
 
 	if e != nil {
@@ -1035,6 +1048,8 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	//tk.Printf("%#v\n", matches)
 	//tk.Printf("%#v\n", groups)
 
+	//tk.Printf("%#v\n", pipes)
+
 	// timenow = time.Now()
 	caggr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
@@ -1048,7 +1063,18 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	// tk.Printf("Kondisi 4 = %v\n", duration)
 
 	// timenow = time.Now()
-	e = caggr.Fetch(&aggrData, 0, false)
+	// e = caggr.Fetch(&aggrData, 0, false)
+
+	for {
+		item := tk.M{}
+		e = caggr.Fetch(&item, 1, false)
+		if e != nil {
+			e = nil
+			break
+		}
+		aggrData = append(aggrData, item)
+	}
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
