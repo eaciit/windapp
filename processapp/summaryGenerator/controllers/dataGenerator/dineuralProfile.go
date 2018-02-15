@@ -127,7 +127,7 @@ func (ev *DineuralProfileSummary) processDataMet() {
 			"windspeedtotal":   tk.M{"$sum": "$vhubws90mavg"},
 			"temperaturetotal": tk.M{"$sum": "$thubhhubtemp855mavg"},
 			"windspeedcount":   tk.M{"$sum": "$vhubws90mcount"},
-			"temperaturecount": tk.M{"$sum": "thubhhubtemp855mcount"},
+			"temperaturecount": tk.M{"$sum": "$thubhhubtemp855mcount"},
 		}},
 	}
 
