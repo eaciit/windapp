@@ -74,6 +74,7 @@ func init() {
 	app.Register(controller.CreateDataSensorGovernanceController())
 	app.Register(controller.CreateTimeSeriesController())
 	app.Register(controller.CreateDiyViewController())
+	app.Register(controller.CreateXyAnalysisController())
 
 	app.Register(controller.CreateReportingController())
 
