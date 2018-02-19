@@ -626,7 +626,7 @@ func (w *PageController) TimeSeriesHFD(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true).Set("PageType", "HFD")
 }
 
-func (w *PageController) DIYView(r *knot.WebContext) interface{} {
+func (w *PageController) XYAnalysis(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-diy-view.html"
