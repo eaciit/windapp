@@ -5,9 +5,10 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"net/http"
 
+	"sync"
+
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
-	"sync"
 )
 
 type PageController struct {
@@ -38,6 +39,9 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 		temperatureList, _ := helper.GetTemperatureList()
 		alarmTagList, _ := helper.GetAlarmTagsList()
 
+		stateList, _ := helper.GetStateList(projectList)
+
+		w.Params.Set("StateList", stateList)
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
 		w.Params.Set("TemperatureList", temperatureList)

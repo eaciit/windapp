@@ -766,6 +766,22 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 	return
 }
 
+func GetStateList(projlist []md.ProjectOut) (result []string, e error) {
+	result = []string{}
+	_tkm := toolkit.M{}
+	for _, proj := range projlist {
+		_tkm.Set(proj.State, 1)
+	}
+
+	for state, _ := range _tkm {
+		result = append(result, state)
+	}
+
+	sort.Strings(result)
+
+	return
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	pipes := []toolkit.M{
 		toolkit.M{"$match": toolkit.M{"active": true}},
@@ -796,6 +812,7 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			SS_AirDensity:     val.SS_AirDensity,
 			STD_AirDensity:    val.STD_AirDensity,
 			Engine:            val.Engine,
+			State:             val.State,
 		})
 	}
 

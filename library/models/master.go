@@ -71,6 +71,7 @@ type ProjectMaster struct {
 	Longitude         float64
 	TotalTurbine      int
 	RevenueMultiplier float64
+	State             string
 	City              string
 	SS_AirDensity     float64
 	STD_AirDensity    float64
@@ -109,6 +110,7 @@ type ProjectOut struct {
 	Value             string
 	Coords            []float64
 	RevenueMultiplier float64
+	State             string
 	City              string
 	NoOfTurbine       int
 	TotalMaxCapacity  float64
