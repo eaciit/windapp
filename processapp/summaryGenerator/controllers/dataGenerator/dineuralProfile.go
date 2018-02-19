@@ -13,16 +13,19 @@ type DineuralProfileSummary struct {
 }
 
 type DineuralProfile struct {
-	ID          string ` bson:"_id" , json:"_id" `
-	Projectname string
-	Turbine     string
-	MonthDesc   string
-	MonthID     int
-	Hours       string
-	WindSpeed   float64
-	Temperature float64
-	Power       float64
-	Type        string
+	ID               string ` bson:"_id" , json:"_id" `
+	Projectname      string
+	Turbine          string
+	MonthDesc        string
+	MonthID          int
+	Hours            string
+	WindSpeedTotal   float64
+	TemperatureTotal float64
+	PowerTotal       float64
+	WindSpeedCount   float64
+	TemperatureCount float64
+	PowerCount       float64
+	Type             string
 }
 
 func (m *DineuralProfile) TableName() string {
@@ -47,6 +50,14 @@ func (ev *DineuralProfileSummary) CreateDineuralProfileSummary(base *BaseControl
 }
 
 func (ev *DineuralProfileSummary) processDataScada() {
+	countWS := tk.M{"$cond": tk.M{}.
+		Set("if", tk.M{"$ifNull": []interface{}{"$avgwindspeed", false}}).
+		Set("then", 1).
+		Set("else", 0)}
+	countTemp := tk.M{"$cond": tk.M{}.
+		Set("if", tk.M{"$ifNull": []interface{}{"$nacelletemperature", false}}).
+		Set("then", 1).
+		Set("else", 0)}
 	pipe := []tk.M{
 		tk.M{"$match": tk.M{"available": 1}},
 		tk.M{"$group": tk.M{
@@ -57,9 +68,11 @@ func (ev *DineuralProfileSummary) processDataScada() {
 				"monthid":     "$dateinfo.monthid",
 				"hours":       tk.M{"$dateToString": tk.M{"format": "%H:00", "date": "$timestamp"}},
 			},
-			"windspeed":   tk.M{"$avg": "$avgwindspeed"},
-			"temperature": tk.M{"$avg": "$nacelletemperature"},
-			"power":       tk.M{"$sum": "$power"},
+			"windspeedtotal":   tk.M{"$sum": "$avgwindspeed"},
+			"temperaturetotal": tk.M{"$sum": "$nacelletemperature"},
+			"powertotal":       tk.M{"$sum": "$power"},
+			"windspeedcount":   tk.M{"$sum": countWS},
+			"temperaturecount": tk.M{"$sum": countTemp},
 		}},
 	}
 
@@ -93,9 +106,12 @@ func (ev *DineuralProfileSummary) processDataScada() {
 		data.Hours = ids.GetString("hours")
 		data.ID = tk.Sprintf("%s_%s_%s_%s", data.Projectname, data.Turbine, tk.ToString(data.MonthID), data.Hours)
 
-		data.WindSpeed = val.GetFloat64("windspeed")
-		data.Temperature = val.GetFloat64("temperature")
-		data.Power = val.GetFloat64("power")
+		data.WindSpeedTotal = val.GetFloat64("windspeedtotal")
+		data.TemperatureTotal = val.GetFloat64("temperaturetotal")
+		data.PowerTotal = val.GetFloat64("powertotal")
+		data.WindSpeedCount = val.GetFloat64("windspeedcount")
+		data.TemperatureCount = val.GetFloat64("temperaturecount")
+		data.PowerCount = val.GetFloat64("powercount")
 		data.Type = "SCADA"
 
 		e = csrSave.Exec(tk.M{"data": data})
@@ -106,6 +122,14 @@ func (ev *DineuralProfileSummary) processDataScada() {
 }
 
 func (ev *DineuralProfileSummary) processDataMet() {
+	countWS := tk.M{"$cond": tk.M{}.
+		Set("if", tk.M{"$ifNull": []interface{}{"$vhubws90mavg", false}}).
+		Set("then", 1).
+		Set("else", 0)}
+	countTemp := tk.M{"$cond": tk.M{}.
+		Set("if", tk.M{"$ifNull": []interface{}{"$thubhhubtemp855mavg", false}}).
+		Set("then", 1).
+		Set("else", 0)}
 	pipe := []tk.M{
 		tk.M{"$group": tk.M{
 			"_id": tk.M{
@@ -114,8 +138,10 @@ func (ev *DineuralProfileSummary) processDataMet() {
 				"monthid":     "$dateinfo.monthid",
 				"hours":       tk.M{"$dateToString": tk.M{"format": "%H:00", "date": "$timestamp"}},
 			},
-			"windspeed":   tk.M{"$avg": "$vhubws90mavg"},
-			"temperature": tk.M{"$avg": "$thubhhubtemp855mavg"},
+			"windspeedtotal":   tk.M{"$sum": "$vhubws90mavg"},
+			"temperaturetotal": tk.M{"$sum": "$thubhhubtemp855mavg"},
+			"windspeedcount":   tk.M{"$sum": countWS},
+			"temperaturecount": tk.M{"$sum": countTemp},
 		}},
 	}
 
@@ -148,8 +174,10 @@ func (ev *DineuralProfileSummary) processDataMet() {
 		data.Hours = ids.GetString("hours")
 		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, tk.ToString(data.MonthID), data.Hours)
 
-		data.WindSpeed = val.GetFloat64("windspeed")
-		data.Temperature = val.GetFloat64("temperature")
+		data.WindSpeedTotal = val.GetFloat64("windspeedtotal")
+		data.TemperatureTotal = val.GetFloat64("temperaturetotal")
+		data.WindSpeedCount = val.GetFloat64("windspeedcount")
+		data.TemperatureCount = val.GetFloat64("temperaturecount")
 		data.Type = "MET"
 
 		e = csrSave.Exec(tk.M{"data": data})
