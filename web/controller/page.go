@@ -633,7 +633,7 @@ func (w *PageController) XYAnalysis(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-diy-view.html"
-	return w.GetParams(r, false)
+	return w.GetParams(r, true)
 }
 
 func (w *PageController) SCMManagement(r *knot.WebContext) interface{} {
