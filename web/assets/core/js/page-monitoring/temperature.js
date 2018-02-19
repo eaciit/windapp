@@ -17,6 +17,9 @@ mt.project = ko.observable();
 mt.Columns = ko.observableArray([]);
 mt.Details = ko.observableArray([]);
 mt.logEntries = ko.observableArray([]);
+mt.getMode = ko.observable('table');
+
+var $tableInterval = false, $heatmapInterval = false, $intervalTime = 5000;
 
 var requests = [];
 var $temperatureInterval = false, $intervalTime = 5000;
@@ -41,19 +44,22 @@ mt.remove = function(str){
     return str.replace(/[\. ,:-]+/g, "");
 }  
 
-mt.getWidth = function(){
-    var width = ($(".feeder-column > table").innerWidth() - (mt.Columns().length + 75)) / (mt.Columns().length - 1);
-    // $.each(mt.Columns(), function(i, val){
-    //     var ths = $('table > thead').find($('#header-'+mt.remove(val.title)));
-    //     var element = ths.eq(0); //<-- instead of ths[0]
+mt.SelectMode = function(type) {
+    mt.abortAll(requests);
 
-    //     if(val.title == 'Turbine'){
-    //         element.css('minWidth', 75);
-    //     }else{
-    //         element.css('minWidth', width);
-    //     }
-    // });
-    return width+"px !important";
+    if(type == 'table') {
+        clearInterval($heatmapInterval);
+        $heatmapInterval = false;
+        mt.getMode("table");
+        $tableInterval = setInterval(function() { mt.GetData("table"); }, $intervalTime);
+    } else {
+        clearInterval($tableInterval);
+        $tableInterval = false;
+        mt.getMode("heatmap");
+        $heatmapInterval = setInterval(function() { mt.GetData("heatmap"); }, $intervalTime);
+    }
+
+
 }
 
 mt.Details.subscribeChanged(function(newValue,oldValue){
@@ -73,17 +79,21 @@ mt.Details.subscribeChanged(function(newValue,oldValue){
                 }
             });
 
-            window.setTimeout(function(){ 
-                $('table').find($('.blinkYellow')).css('background-color', 'transparent'); 
-                $('table').find($('.blinkYellow')).css('transition' , 'background-color 0.5s ease;');
+            if(mt.getMode() == 'table'){
+                window.setTimeout(function(){ 
+                    $('table').find($('.blinkYellow')).css('background-color', 'transparent'); 
+                    $('table').find($('.blinkYellow')).css('transition' , 'background-color 0.5s ease;');
 
-            }, 1200);
+                }, 1200);
+            }
+
+
 
         });
     }
 });
 
-mt.GetData = function(data) {
+mt.GetData = function(type) {
     // app.loading(true);
     var project = "";
 
@@ -96,7 +106,7 @@ mt.GetData = function(data) {
     }
     
     setTimeout(function(){
-         mt.GetDataProject(project);
+         mt.GetDataProject(project, type);
     }, 200);
 
     // count++;
@@ -142,11 +152,14 @@ mt.abortAll = function(requests) {
 
 }
 
-mt.GetDataProject = function(project) {
+mt.GetDataProject = function(project,type) {
     var param = {
         Project: project,
     };
-   requests.push(toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdatatemperature", param, function (res) {
+
+    var url = (type == "table" ? "monitoringrealtime/getdatatemperature" : "monitoringrealtime/gettemperatureheatmap");
+
+   requests.push(toolkit.ajaxPost(viewModel.appName + url, param, function (res) {
         if(!app.isFine(res)) {
             app.loading(false);
             return;
@@ -181,6 +194,12 @@ $(function() {
     app.loading(true);
     // mt.GetData();
 
+    if(mt.getMode() == null){
+        mt.SelectMode('table');
+    }else{
+        $('.nav-pills a[href="#'+mt.getMode()+'"]').trigger("click");
+    }
+
     $('#projectList').kendoDropDownList({
         data: mt.projectList,
         dataValueField: 'value',
@@ -189,10 +208,11 @@ $(function() {
         change: function () { 
             setTimeout(function(){
                 mt.abortAll(requests);
-                mt.GetData();
+                mt.GetData(mt.getMode());
             },1500);
             
          }
     });
-    setInterval(mt.GetData, 5000);
+
+    
 });
