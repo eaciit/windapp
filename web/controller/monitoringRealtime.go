@@ -482,12 +482,12 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 					tempAvg10 := tempAvg * 0.1               /* 10 percent from avg value, misal 33 atau 27 */
 					tempAvg15 := tempAvg * 0.15              /* 15 percent from avg value, misal 34.5 atau 25.5 */
 					diffValue := math.Abs(value - tempAvg)
-					if diffValue > tempAvg10 && diffValue <= tempAvg15 {
+					if value == 0.0 {
+						color = "txt-grey"
+					} else if diffValue > tempAvg10 && diffValue <= tempAvg15 {
 						color = "txt-yellow"
 					} else if diffValue > tempAvg15 {
 						color = "txt-red"
-					} else if diffValue == 0.0 {
-						color = "txt-grey"
 					}
 
 					lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC().Format("02 Jan 06 15:04:05")
