@@ -17,7 +17,7 @@ mt.project = ko.observable();
 mt.Columns = ko.observableArray([]);
 mt.Details = ko.observableArray([]);
 mt.logEntries = ko.observableArray([]);
-mt.getMode = ko.observable('table');
+mt.getMode = ko.observable('heatmap');
 
 var $tableInterval = false, $heatmapInterval = false, $intervalTime = 5000;
 
@@ -195,7 +195,7 @@ $(function() {
     // mt.GetData();
 
     if(mt.getMode() == null){
-        mt.SelectMode('table');
+        mt.SelectMode('heatmap');
     }else{
         $('.nav-pills a[href="#'+mt.getMode()+'"]').trigger("click");
     }
