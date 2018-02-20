@@ -27,6 +27,18 @@ type FieldAnalysis struct {
 	Order int
 }
 
+type PayloadXyAnalysis struct {
+	Period    string
+	Project   string
+	Engine    string
+	Turbine   []interface{}
+	DateStart time.Time
+	DateEnd   time.Time
+	XAxis     FieldAnalysis
+	Y1Axis    FieldAnalysis
+	Y2Axis    FieldAnalysis
+}
+
 func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	result := []FieldAnalysis{}
@@ -45,7 +57,7 @@ func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
 func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	p := new(PayloadAnalyticTLP)
+	p := new(PayloadXyAnalysis)
 	e := k.GetPayload(&p)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -65,30 +77,36 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 
 	dataSeries := []tk.M{}
 
-	ids := tk.M{"project": "$projectname", "turbine": "$turbine"}
-
 	matches := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lte": tEnd}}
 	matches.Set("projectname", p.Project)
 	matches.Set("turbine", tk.M{}.Set("$in", p.Turbine))
 
+	// ids := tk.M{"project": "$projectname", "turbine": "$turbine", "xaxis": "$" + p.XAxis.Id}
+
+	// county1 := tk.M{"$cond": tk.M{}.
+	// 	Set("if", tk.M{"$ifNull": []interface{}{"$" + p.Y1Axis.Id, false}}).
+	// 	Set("then", 1).
+	// 	Set("else", 0)}
+
+	// county2 := tk.M{"$cond": tk.M{}.
+	// 	Set("if", tk.M{"$ifNull": []interface{}{"$" + p.Y2Axis.Id, false}}).
+	// 	Set("then", 1).
+	// 	Set("else", 0)}
+
+	// pipe := []tk.M{{"$match": matches},
+	// 	{"$group": tk.M{
+	// 		"_id":          ids,
+	// 		"y1axis_sum":   tk.M{"$sum": "$" + p.Y1Axis.Id},
+	// 		"y1axis_count": tk.M{"$sum": county1},
+	// 		"y2axis_sum":   tk.M{"$sum": "$" + p.Y2Axis.Id},
+	// 		"y2axis_count": tk.M{"$sum": county2},
+	// 	}}}
+
 	pipe := []tk.M{{"$match": matches},
-		{"$group": tk.M{
-			"_id":            ids,
-			"production":     tk.M{"$sum": "$production"},
-			"lostenergy":     tk.M{"$sum": "$lostenergy"},
-			"mdownhours":     tk.M{"$sum": "$machinedownhours"},
-			"gdownhours":     tk.M{"$sum": "$griddownhours"},
-			"odownhours":     tk.M{"$sum": "$otherdowntimehours"},
-			"oktime":         tk.M{"$sum": "$oktime"},
-			"totaltimestamp": tk.M{"$sum": 1},
-			"power":          tk.M{"$sum": "$powerkw"},
-			"maxdate":        tk.M{"$max": "$dateinfo.dateid"},
-			"mindate":        tk.M{"$min": "$dateinfo.dateid"},
-		}},
-		{"$sort": tk.M{"_id.project": 1}}}
+		{"$project": tk.M{"projectname": 1, "turbine": 1, p.Y1Axis.Id: 1, p.Y2Axis.Id: 1, p.XAxis.Id: 1}}}
 
 	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaSummaryDaily).TableName()).
+		From("Scada10MinHFD").
 		Command("pipe", pipe).
 		Cursor(nil)
 
@@ -106,36 +124,56 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 			break
 		}
 
-		_id := tkm.Get("_id", tk.M{}).(tk.M)
-
-		minDate := tkm.Get("mindate").(time.Time).UTC()
-		maxDate := tkm.Get("maxdate").(time.Time).UTC()
-
-		hourValue := maxDate.UTC().Sub(minDate.UTC()).Hours()
-
-		capacity := float64(0)
+		_key := ""
 		for _, v := range turbineList {
-			if _id.GetString("turbine") == v.Value {
-				capacity = v.Capacity
-				ds.Set("turbine", v.Turbine)
-				ds.Set("cluster", v.Cluster)
+			if tkm.GetString("turbine") == v.Value {
+				// capacity = v.Capacity
+				_key = v.Turbine
+				// ds.Set("turbine", v.Turbine)
 			}
 		}
 
-		in := tk.M{}.Set("noofturbine", 1).Set("oktime", tkm.GetFloat64("oktime")/3600).Set("energy", tkm.GetFloat64("production")).
-			Set("totalhour", hourValue).Set("totalcapacity", capacity).
-			Set("machinedowntime", tkm.GetFloat64("mdownhours")).Set("griddowntime", tkm.GetFloat64("gdownhours")).
-			Set("otherdowntime", tkm.GetFloat64("odownhours"))
+		ds = alltkm.Get(_key, tk.M{}).(tk.M)
 
-		res := helper.CalcAvailabilityAndPLF(in)
+		data1y := ds.Get("data1y", map[float64]float64{}).(map[float64]float64)
+		data2y := ds.Get("data2y", map[float64]float64{}).(map[float64]float64)
 
-		ds.Set("sumGeneration", tk.M{}.Set("value", tkm.GetFloat64("power")/1000).Set("type", "generation"))
-		ds.Set("averageMa", tk.M{}.Set("value", res.GetFloat64("machineavailability")/100).Set("type", "avail"))
-		ds.Set("averageGa", tk.M{}.Set("value", res.GetFloat64("gridavailability")/100).Set("type", "avail"))
+		xaxis := tk.ToFloat64(tkm.Get(p.XAxis.Id), 2, tk.RoundingAuto)
 
-		// dataSeries = append(dataSeries, ds)
-		alltkm.Set(ds.GetString("turbine"), ds)
-		allturb = append(allturb, ds.GetString("turbine"))
+		data1y[xaxis] = tkm.GetFloat64(p.Y1Axis.Id)
+		data2y[xaxis] = tkm.GetFloat64(p.Y2Axis.Id)
+
+		ds.Set("id", tkm.GetString("turbine"))
+		ds.Set("turbine", _key)
+		ds.Set("dashType", "solid")
+		ds.Set("style", "smooth")
+		ds.Set("type", "scatter")
+		ds.Set("data1y", data1y)
+		ds.Set("data2y", data2y)
+
+		alltkm.Set(_key, ds)
+	}
+
+	for key, _ := range alltkm {
+		allturb = append(allturb, key)
+		ds := alltkm.Get(key, tk.M{}).(tk.M)
+		data1y := ds.Get("data1y", map[float64]float64{}).(map[float64]float64)
+		data2y := ds.Get("data2y", map[float64]float64{}).(map[float64]float64)
+
+		_data1y, _data2y := make([][]float64, 0), make([][]float64, 0)
+
+		for _x, _y := range data1y {
+			_data1y = append(_data1y, []float64{_x, _y})
+		}
+
+		for _x, _y := range data2y {
+			_data2y = append(_data2y, []float64{_x, _y})
+		}
+
+		ds.Set("data1y", _data1y)
+		ds.Set("data2y", _data2y)
+
+		alltkm.Set(key, ds)
 	}
 
 	sort.Strings(allturb)
@@ -143,6 +181,6 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 		dataSeries = append(dataSeries, alltkm.Get(turb, tk.M{}).(tk.M))
 	}
 
-	result := tk.M{}.Set("totalturbine", len(p.Turbine)).Set("data", dataSeries).Set("projectname", p.Project)
+	result := tk.M{}.Set("totalturbine", len(p.Turbine)).Set("data", dataSeries).Set("turbine", allturb)
 	return helper.CreateResult(true, result, "success")
 }
