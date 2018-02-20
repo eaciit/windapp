@@ -24,7 +24,6 @@ type DineuralProfile struct {
 	PowerTotal       float64
 	WindSpeedCount   float64
 	TemperatureCount float64
-	PowerCount       float64
 	Type             string
 }
 
@@ -111,7 +110,6 @@ func (ev *DineuralProfileSummary) processDataScada() {
 		data.PowerTotal = val.GetFloat64("powertotal")
 		data.WindSpeedCount = val.GetFloat64("windspeedcount")
 		data.TemperatureCount = val.GetFloat64("temperaturecount")
-		data.PowerCount = val.GetFloat64("powercount")
 		data.Type = "SCADA"
 
 		e = csrSave.Exec(tk.M{"data": data})

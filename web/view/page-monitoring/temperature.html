@@ -69,11 +69,11 @@
                         <i class="fa fa-circle txt-yellow"></i>&nbsp;&nbsp;10 - 15 %&nbsp;&nbsp;&nbsp;
                         <i class="fa fa-circle fa-red"></i>&nbsp;&nbsp;> 15%&nbsp;&nbsp;&nbsp;
                         <ul class="nav nav-pills nav-replace-title" role="tablist">
-							<li role="presentation" data-bind="attr:{class: mt.getMode() == 'heatmap' ? 'active tab-link pull-right' : 'tab-link pull-right'}" data-toggle ="tooltip" title="Heatmap View">
-								<a role="tab" data-toggle="tab" href="#heatmap" onclick="mt.SelectMode('heatmap')"><i class="fa fa-thermometer-half"></i></a>
-							</li>
-							<li role="presentation"  data-bind="attr:{class: mt.getMode() == 'table ' ? 'active tab-link tab-cust pull-right' : 'tab-link tab-cust pull-right'}" data-toggle ="tooltip" title="Table View">
+							<li role="presentation"  data-bind="attr:{class: mt.getMode() == 'table ' ? 'active tab-link pull-right' : 'tab-link pull-right'}" data-toggle ="tooltip" title="Table View">
 								<a role="tab" data-toggle="tab" href="#table" onclick="mt.SelectMode('table')"><i class="fa fa-table"></i></a>
+							</li>
+							<li role="presentation" data-bind="attr:{class: mt.getMode() == 'heatmap' ? 'active tab-link tab-cust pull-right' : 'tab-link tab-cust pull-right'}" data-toggle ="tooltip" title="Heatmap View">
+								<a role="tab" data-toggle="tab" href="#heatmap" onclick="mt.SelectMode('heatmap')"><i class="fa fa-thermometer-half"></i></a>
 							</li>
 						</ul>
 						<!-- <div role="presentation" class="tab-link tab-cust pull-right active">

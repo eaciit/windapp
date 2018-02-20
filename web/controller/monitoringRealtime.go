@@ -441,11 +441,14 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 	realtimePerTurbine := map[string][]tk.M{}
 	for _, _data := range realtimeData {
 		_turbine := _data.GetString("turbine")
-		tags := _data.GetString("tags")
-		cluster := turbineCluster[_turbine]
-		key := tk.Sprintf("%s_%s", tags, cluster)
-		sumTempPerCluster[key] += _data.GetFloat64("value")
-		countTempPerCluster[key]++
+		value := _data.GetFloat64("value")
+		if value != 0.0 {
+			tags := _data.GetString("tags")
+			cluster := turbineCluster[_turbine]
+			key := tk.Sprintf("%s_%s", tags, cluster)
+			sumTempPerCluster[key] += value
+			countTempPerCluster[key]++
+		}
 		realtimePerTurbine[_turbine] = append(realtimePerTurbine[_turbine], _data)
 	}
 	avgTempPerCluster := map[string]float64{}
@@ -483,6 +486,8 @@ func (c *MonitoringRealtimeController) GetDataTemperature(k *knot.WebContext) in
 						color = "txt-yellow"
 					} else if diffValue > tempAvg15 {
 						color = "txt-red"
+					} else if diffValue == 0.0 {
+						color = "txt-grey"
 					}
 
 					lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC().Format("02 Jan 06 15:04:05")
@@ -623,11 +628,14 @@ func (c *MonitoringRealtimeController) GetTemperatureHeatMap(k *knot.WebContext)
 	realtimePerTurbine := map[string][]tk.M{}
 	for _, _data := range realtimeData {
 		_turbine := _data.GetString("turbine")
-		tags := _data.GetString("tags")
-		cluster := turbineCluster[_turbine]
-		key := tk.Sprintf("%s_%s", tags, cluster)
-		sumTempPerCluster[key] += _data.GetFloat64("value")
-		countTempPerCluster[key]++
+		value := _data.GetFloat64("value")
+		if value != 0.0 {
+			tags := _data.GetString("tags")
+			cluster := turbineCluster[_turbine]
+			key := tk.Sprintf("%s_%s", tags, cluster)
+			sumTempPerCluster[key] += _data.GetFloat64("value")
+			countTempPerCluster[key]++
+		}
 		realtimePerTurbine[_turbine] = append(realtimePerTurbine[_turbine], _data)
 	}
 	avgTempPerCluster := map[string]float64{}
@@ -663,27 +671,15 @@ func (c *MonitoringRealtimeController) GetTemperatureHeatMap(k *knot.WebContext)
 					tempAvg10 := tempAvg * 0.1               /* 10 percent from avg value, misal 33 atau 27 */
 					tempAvg15 := tempAvg * 0.15              /* 15 percent from avg value, misal 34.5 atau 25.5 */
 					diffValue := math.Abs(value - tempAvg)
-					if diffValue > tempAvg10 && diffValue <= tempAvg15 {
+					if value == 0.0 {
+						color = "rgba(212,212,212,"
+					} else if diffValue > tempAvg10 && diffValue <= tempAvg15 {
 						color = "rgba(255,235,59," //yellow
 						if diffValue > 0.1*tempAvg && diffValue <= 0.125*tempAvg {
 							opacity = "0.5"
 						} else {
 							opacity = "1.0"
 						}
-						/*countStep := 0.15
-						countColor := 0
-
-						loopYellow:
-						for {
-							countStep -= stepTemp
-							countColor++
-							if diffValue > (countStep * tempAvg) {
-								opacity = 1 / countColor
-							}
-							if countStep == 0.1 {
-								break loopYellow
-							}
-						}*/
 					} else if diffValue > tempAvg15 {
 						color = "rgba(248,109,111," //red
 						if diffValue > 0.15*tempAvg && diffValue <= 0.175*tempAvg {
@@ -708,7 +704,7 @@ func (c *MonitoringRealtimeController) GetTemperatureHeatMap(k *knot.WebContext)
 
 					lastupdated := _data.Get("timestamp", time.Time{}).(time.Time).UTC().Format("02 Jan 06 15:04:05")
 					result.Set(abbr, value)
-					result.Set(colorKey, color + opacity+")")
+					result.Set(colorKey, color+opacity+")")
 					result.Set(opacityKey, opacity)
 					result.Set(dateKey, lastupdated)
 				}
