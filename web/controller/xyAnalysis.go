@@ -29,7 +29,7 @@ type FieldAnalysis struct {
 
 type PayloadXyAnalysis struct {
 	Period    string
-	Project   string
+	Project   []string
 	Engine    string
 	Turbine   []interface{}
 	DateStart time.Time
@@ -69,8 +69,8 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 	}
 
 	var turbineList []TurbineOut
-	if p.Project != "" {
-		turbineList, _ = helper.GetTurbineList([]interface{}{p.Project})
+	if len(p.Project) == 1 {
+		turbineList, _ = helper.GetTurbineList([]interface{}{p.Project[0]})
 	} else {
 		turbineList, _ = helper.GetTurbineList(nil)
 	}
@@ -78,7 +78,11 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 	dataSeries := []tk.M{}
 
 	matches := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lte": tEnd}}
-	matches.Set("projectname", p.Project)
+	if len(p.Project) == 1 {
+		matches.Set("projectname", p.Project[0])
+	} else {
+		matches.Set("projectname", tk.M{}.Set("$in", p.Project))
+	}
 	matches.Set("turbine", tk.M{}.Set("$in", p.Turbine))
 
 	// ids := tk.M{"project": "$projectname", "turbine": "$turbine", "xaxis": "$" + p.XAxis.Id}
