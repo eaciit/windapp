@@ -24,6 +24,7 @@ type FieldAnalysis struct {
 	Id    string
 	Name  string
 	Aggr  string
+	Text  string
 	Order int
 }
 
@@ -44,12 +45,12 @@ func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
 	result := []FieldAnalysis{}
 
 	//manual first
-	result = append(result, FieldAnalysis{Id: "ActivePower_kW", Name: "ActivePower", Aggr: "$sum", Order: 1})
-	result = append(result, FieldAnalysis{Id: "WindSpeed_ms", Name: "WindSpeed", Aggr: "$avg", Order: 2})
-	result = append(result, FieldAnalysis{Id: "NacellePos", Name: "NacellePos", Aggr: "$avg", Order: 3})
-	result = append(result, FieldAnalysis{Id: "WindDirection", Name: "WindDirection", Aggr: "$avg", Order: 4})
-	result = append(result, FieldAnalysis{Id: "PitchAngle", Name: "PitchAngle", Aggr: "$avg", Order: 5})
-	result = append(result, FieldAnalysis{Id: "TempOutdoor", Name: "TempOutdoor", Aggr: "$avg", Order: 6})
+	result = append(result, FieldAnalysis{Id: "ActivePower_kW", Name: "ActivePower", Aggr: "$sum", Order: 1, Text: "ActivePower (MWh)"})
+	result = append(result, FieldAnalysis{Id: "WindSpeed_ms", Name: "WindSpeed", Aggr: "$avg", Order: 2, Text: "WindSpeed (m/s)"})
+	result = append(result, FieldAnalysis{Id: "NacellePos", Name: "NacellePos", Aggr: "$avg", Order: 3, Text: "NacellePos (-)"})
+	result = append(result, FieldAnalysis{Id: "WindDirection", Name: "WindDirection", Aggr: "$avg", Order: 4, Text: "WindDirection (-)"})
+	result = append(result, FieldAnalysis{Id: "PitchAngle", Name: "PitchAngle", Aggr: "$avg", Order: 5, Text: "PitchAngle (-)"})
+	result = append(result, FieldAnalysis{Id: "TempOutdoor", Name: "TempOutdoor", Aggr: "$avg", Order: 6, Text: "TempOutdoor (&deg;C)"})
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -139,13 +140,13 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 
 		ds = alltkm.Get(_key, tk.M{}).(tk.M)
 
-		data1y := ds.Get("data1y", map[float64]float64{}).(map[float64]float64)
-		data2y := ds.Get("data2y", map[float64]float64{}).(map[float64]float64)
+		data1y := ds.Get("data1y", map[float64]interface{}{}).(map[float64]interface{})
+		data2y := ds.Get("data2y", map[float64]interface{}{}).(map[float64]interface{})
 
 		xaxis := tk.ToFloat64(tkm.Get(p.XAxis.Id), 2, tk.RoundingAuto)
 
-		data1y[xaxis] = tkm.GetFloat64(p.Y1Axis.Id)
-		data2y[xaxis] = tkm.GetFloat64(p.Y2Axis.Id)
+		data1y[xaxis] = tkm.Get(p.Y1Axis.Id, nil)
+		data2y[xaxis] = tkm.Get(p.Y2Axis.Id, nil)
 
 		ds.Set("id", tkm.GetString("turbine"))
 		ds.Set("turbine", _key)
@@ -161,21 +162,29 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 	for key, _ := range alltkm {
 		allturb = append(allturb, key)
 		ds := alltkm.Get(key, tk.M{}).(tk.M)
-		data1y := ds.Get("data1y", map[float64]float64{}).(map[float64]float64)
-		data2y := ds.Get("data2y", map[float64]float64{}).(map[float64]float64)
+		data1y := ds.Get("data1y", map[float64]interface{}{}).(map[float64]interface{})
+		data2y := ds.Get("data2y", map[float64]interface{}{}).(map[float64]interface{})
 
-		_data1y, _data2y := make([][]float64, 0), make([][]float64, 0)
+		_data2y := make([][]interface{}, 0)
+
+		// _data1y, _data2y := make([][]float64, 0), make([][]float64, 0)
 
 		for _x, _y := range data1y {
-			_data1y = append(_data1y, []float64{_x, _y})
+			_y2 := data2y[_x]
+			_data2y = append(_data2y, []interface{}{_x, _y, _y2})
 		}
 
-		for _x, _y := range data2y {
-			_data2y = append(_data2y, []float64{_x, _y})
-		}
+		// for _x, _y := range data2y {
+		// 	_data2y = append(_data2y, []float64{_x, _y})
+		// }
 
-		ds.Set("data1y", _data1y)
-		ds.Set("data2y", _data2y)
+		// ds.Set("data1y", _data1y)
+		// ds.Set("data2y", _data2y)
+
+		ds.Set("detail", _data2y)
+
+		ds.Unset("data1y")
+		ds.Unset("data2y")
 
 		alltkm.Set(key, ds)
 	}
@@ -185,6 +194,10 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 		dataSeries = append(dataSeries, alltkm.Get(turb, tk.M{}).(tk.M))
 	}
 
-	result := tk.M{}.Set("totalturbine", len(p.Turbine)).Set("data", dataSeries).Set("turbine", allturb)
+	result := tk.M{}.
+		Set("totalturbine", len(p.Turbine)).
+		Set("data", dataSeries).
+		Set("turbine", allturb).
+		Set("axisinfo", []FieldAnalysis{p.XAxis, p.Y1Axis, p.Y2Axis})
 	return helper.CreateResult(true, result, "success")
 }
