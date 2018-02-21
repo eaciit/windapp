@@ -151,8 +151,9 @@ func (m *ForecastController) UpdateSldc(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
 	type Item struct {
-		Id    string
-		Value float64
+		Id       string
+		Value    float64
+		ValueCap float64
 	}
 	type Payload struct {
 		Project string
@@ -166,7 +167,7 @@ func (m *ForecastController) UpdateSldc(k *knot.WebContext) interface{} {
 
 	if len(p.Values) > 0 {
 		for _, v := range p.Values {
-			err := DB().Connection.NewQuery().Update().From("ForecastData").Where(dbox.Eq("_id", v.Id)).Exec(tk.M{}.Set("data", tk.M{}.Set("schsdlc", v.Value)))
+			err := DB().Connection.NewQuery().Update().From("ForecastData").Where(dbox.Eq("_id", v.Id)).Exec(tk.M{}.Set("data", tk.M{}.Set("schsdlc", v.Value).Set("avgcapacity", v.ValueCap)))
 			if err != nil {
 				tk.Printf("Update data failed : %s\n", err.Error())
 			}
@@ -242,6 +243,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	latestSubject := ""
 	forecast := tk.M{}
 	for {
 		item := tk.M{}
@@ -250,6 +252,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			break
 		}
 		timestamp := item.Get("timestamp", time.Time{}).(time.Time).UTC() //.UTC().Add(time.Duration(330) * time.Minute)
+		latestSubject = item.GetString("mailsubject")
 		if !timestamp.IsZero() {
 			forecast.Set(timestamp.Format("20060102_150405"), item)
 		}
@@ -349,7 +352,39 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		turbineDown = len(dtDowns) //[0].GetInt("total")
 	}
 
+	// get total production from the realtime
 	defaultValue := -999999.0
+	powerRtd := defaultValue
+	tsRtd := time.Time{}
+	matches = []tk.M{
+		tk.M{"projectname": project},
+		tk.M{"timestamp": tk.M{"$gt": tStart}},
+		tk.M{"tags": tk.M{"$eq": "ActivePower_kW"}},
+	}
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$group": tk.M{
+			"_id":       "$projectname",
+			"total":     tk.M{"$sum": "$value"},
+			"timestamp": tk.M{"$max": "$timestamp"},
+		}},
+	}
+	csrpwr, e := DBRealtime().NewQuery().
+		From("ScadaRealTimeNew").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrpwr.Close()
+
+	dtPwrRtd := []tk.M{}
+	e = csrpwr.Fetch(&dtPwrRtd, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	if len(dtPwrRtd) > 0 {
+		powerRtd = dtPwrRtd[0].GetFloat64("total") / 1000.0
+		tsRtd = dtPwrRtd[0].Get("timestamp", time.Time{}).(time.Time)
+	}
+
 	dataReturn := []tk.M{}
 	for _, tp := range timeperiods {
 		tpkey := tp.TimePeriod.Format("20060102_150405")
@@ -372,20 +407,42 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		devsch := defaultValue
 		dsmpenalty := ""
 		deviation := defaultValue
+		isschvalavg := true
 		id := tk.Sprintf("%s_%v_%s", project, tp.TimeBlock, tpkey)
-		if len(dtForecast) > 0 {
-			avacap = dtForecast.GetFloat64("avgcapacity")
-			fcvalue = dtForecast.GetFloat64("schcapacity")
-			schval = dtForecast.GetFloat64("schcapacity")
-			if dtForecast.Has("schsdlc") {
-				schval = dtForecast.GetFloat64("schsdlc")
-			}
-		}
 
 		if len(dtScada) > 0 {
 			actual = dtScada.GetFloat64("power") / 1000
 			actualws = dtScada.GetFloat64("windspeed")
 			expprod = dtScada.GetFloat64("pcstd") / 1000
+		}
+
+		if len(dtForecast) > 0 {
+			avacap = dtForecast.GetFloat64("avgcapacity")
+			fcvalue = dtForecast.GetFloat64("schcapacity")
+			schval = dtForecast.GetFloat64("schcapacity")
+			if actual != defaultValue {
+				schval = (actual + fcvalue) / 2
+			}
+			if powerRtd != defaultValue {
+				if !tsRtd.IsZero() {
+					if tp.TimePeriod.Sub(tsRtd).Minutes() <= 10 {
+						schval = (powerRtd + fcvalue) / 2
+					}
+				}
+			}
+			if dtForecast.Has("schsdlc") {
+				schval = dtForecast.GetFloat64("schsdlc")
+				isschvalavg = false
+			}
+		}
+
+		if isschvalavg {
+			if schval < 8 {
+				schval = 8
+			}
+			if schval > 52 {
+				schval = 52
+			}
 		}
 
 		actualsub := 0.0
@@ -411,23 +468,24 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 
 		item := tk.M{
-			"ID":           id,
-			"Date":         tp.TimePeriod.Format("02/01/2006"),
-			"TimeBlock":    tp.TimeRange,
-			"TimeStamp":    tp.TimePeriod,
-			"TimeBlockInt": tp.TimeBlock,
-			"AvaCap":       avacap,
-			"Forecast":     fcvalue,
-			"SchFcast":     schval,
-			"ExpProd":      expprod,
-			"Actual":       actual,
-			"FcastWs":      fcastws,
-			"ActualWs":     actualws,
-			"DevFcast":     devfcast,
-			"DevSchAct":    devsch,
-			"DSMPenalty":   dsmpenalty,
-			"Deviation":    deviation,
-			"TurbineDown":  turbineDown,
+			"ID":            id,
+			"Date":          tp.TimePeriod.Format("02/01/2006"),
+			"TimeBlock":     tp.TimeRange,
+			"TimeStamp":     tp.TimePeriod,
+			"TimeBlockInt":  tp.TimeBlock,
+			"AvaCap":        avacap,
+			"Forecast":      fcvalue,
+			"SchFcast":      schval,
+			"ExpProd":       expprod,
+			"Actual":        actual,
+			"FcastWs":       fcastws,
+			"ActualWs":      actualws,
+			"DevFcast":      devfcast,
+			"DevSchAct":     devsch,
+			"DSMPenalty":    dsmpenalty,
+			"Deviation":     deviation,
+			"TurbineDown":   turbineDown,
+			"LatestSubject": latestSubject,
 		}
 		if item.GetFloat64("AvaCap") == defaultValue {
 			item.Set("AvaCap", nil)

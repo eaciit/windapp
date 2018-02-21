@@ -43,6 +43,13 @@ pg.getData = function() {
             pg.genereateGrid();
         else
             pg.genereateChart();
+
+        var latestSubject = d.data[0].LatestSubject;
+        if(latestSubject == '') {
+            $('.date-info').html('No data forecast for '+ fa.project);
+        } else {
+            $('.date-info').html(latestSubject);
+        }
         app.loading(false);
     });
 }
@@ -102,7 +109,7 @@ pg.genereateGrid = function(){
                             ID: { editable: false },
                             Date: { editable: false },
                             TimeBlock: { editable: false },
-                            AvaCap: { editable: false },
+                            AvaCap: { type: "number" },
                             Forecast: { editable: false },
                             Actual: { editable: false },
                             ExpProd: { editable: false },
@@ -152,6 +159,7 @@ pg.genereateGrid = function(){
                         var item = {
                             id: v.ID,
                             value: v.SchFcast,
+                            valuecap: v.AvaCap,
                         };
                         updatedData.push(item);
                     });
@@ -216,7 +224,16 @@ pg.genereateGrid = function(){
                 { field: "Date", title: "Date"},
                 { field: "TimeBlock", title: "Time Block", width: 100, },
                 // { field: "TimeBlockInt", title: "Time<br/>Block", width: 50, },
-                { field: "AvaCap", title: "Avg. Cap.<br>(MW)", template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", format: '{0:n0}' },
+                { 
+                    title: "Avg. Cap.<br>(MW)", 
+                    field: "AvaCap", 
+                    template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", 
+                    format: '{0:n0}',
+                    attributes: {
+                        "class": "#:(AvaCap != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(AvaCap != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
+                    },
+                },
                 { field: "Forecast", title: "Forecast<br>(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
                 { 
                     title: "Sch Fcast /<br>SLDC (MW)", 
@@ -241,6 +258,7 @@ pg.genereateGrid = function(){
             beforeEdit: function(e) {
                 var data = e.model;
                 var schFcast = data.SchFcast;
+                var avgCap = data.AvaCap;
                 var timeStamp = data.TimeStamp;
                 var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
                 var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
@@ -541,12 +559,19 @@ pg.SetAxis = function() {
 }
 
 pg.initLoad = function() {
+    $('.date-info').html('');
     window.setTimeout(function(){
         fa.LoadData();
-        di.getAvailDate();
-        app.loading(false);
 
+        // set end date for this module only, forecast data coming until end of next day
+        $('#dateEnd').data('kendoDatePicker').setOptions({
+            max: new Date("2018-02-22"),
+        });
+        $('#dateEnd').data('kendoDatePicker').value(new Date("2018-02-22"));
+
+        di.getAvailDate();
         pg.refresh();
+        app.loading(false);
     }, 200);
 }
 
