@@ -2,32 +2,122 @@
     app.currentDateData = '{{.CurrentDateData}}';
 	vm.menu({{.Menus}});
 </script>
-<script src="{{BaseUrl}}res/core/js/page-diy-view.js?ANTI_CACHE={{.AntiCache}}"></script>
-<!--<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-data-sensor-governance.css">-->
-<div>
-	<div class="row">
-		{{template "_filter-analytic.html"}}
-		<div class="col-md-12 col-sm-12 ez panel-content">
-			<div class="col-md-12 col-sm-12 hardcore landing">
-				<div class="panel ez no-padding hardcore">
-					<div class="panel-heading">
-						DIY View&nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Information"></i>&nbsp;
-						| &nbsp;<span id="project-info"></span>&nbsp; <span id="total-turbine-info"></span> &nbsp;<span id="total-capacity-info"></span>
+<script src="{{BaseUrl}}res/core/js/page-analytic-xyanalysis.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/comparison.css">
+
+<style type="text/css">
+/*	.filter-part{
+		margin-left: 30px;
+	}*/
+</style>
+<div class="row mt15">
+	<div class="col-md-12 col-sm-12 ez panel-content">
+		<div class="col-md-12 col-sm-12 hardcore landing">
+			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+				</div>
+				<div class="panel-body">
+					<div class="col-md-8">
+						<div id="chartxyAnalysis">&nbsp;</div>
 					</div>
-					<div class="panel-body">
-						
-						<div class="clearfix">&nbsp;</div>
-						<div class="information-period"><span data-bind="text:fa.infoPeriodRange()"></span></div>
+					<div class="col-md-4 filter-part">
+						<div class="row mgb10 hide">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Filter</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<h5><b>  </b> </h5>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2">
+								<label class="control-label no-padding">Period</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: page.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {page.showHidePeriod()} }">
+			               		</select>
+
+			               		<span class="show_hide custom-period">
+			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
+			                    <label class="control-label no-padding label-to">&nbsp;&nbsp;to</label>
+			                    <div class="period-nwline">&nbsp;</div>
+			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
+			                    &nbsp;
+			                	</span>
+
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">State</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="project-list" id="StateList" name="table" data-bind="kendoDropDownList: { data: page.StateList,suggest: true , change: function() {page.SetProjectList()}}">
+			                	</select>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Project</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								 <select class="project-list" id="ProjectList" name="table" style="width:270px"></select>
+							</div>
+						</div>
+						<!-- <div class="clearfix">&nbsp;</div> -->
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Turbine</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select id="turbineList" multiple="multiple"  class="turbine-list pull-left"></select>&nbsp;
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">X Axis</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="x-axis" id="xAxis" name="table" data-bind="kendoDropDownList: { data: page.xAxis, dataValueField: 'Id', dataTextField: 'Name', suggest: true, change: function(){page.checkKey()}}">
+			                	</select>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Y Axis</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="y-axis" id="yAxis" name="table" data-bind="kendoDropDownList: { data: page.yAxis, dataValueField: 'Id', dataTextField: 'Name', suggest: true, change: function(){page.checkKey()}}">
+			                	</select>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding">Y' Axis</label>
+							</div>
+							<div class="col-md-10 no-padding">
+								<select class="y2-axis" id="y2Axis" name="table" data-bind="kendoDropDownList: { data: page.y2Axis, dataValueField: 'Id', dataTextField: 'Name', suggest: true, change: function(){page.checkKey()}}">
+			                	</select>
+							</div>
+						</div>
+						<div class="row mgb10">
+							<div class="col-md-2 no-padding">
+								<label class="control-label no-padding"></label>
+							</div>
+							<div class="col-md-2 no-padding">
+								<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
 <div class="clearfix"></div>
 <script>
-    $(document).ready(function () {
-        app.loading(false);
-    });
-	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+	page.StateList({{.StateList}});
+	page.ProjectList({{.ProjectList}}, {{.TurbineList}}, "");
+	page.TurbineList({{.TurbineList}});
 </script>
