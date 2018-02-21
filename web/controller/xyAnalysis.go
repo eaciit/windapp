@@ -5,6 +5,7 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -108,12 +109,14 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 	// 	}}}
 
 	pipe := []tk.M{{"$match": matches},
-		{"$project": tk.M{"projectname": 1, "turbine": 1, p.Y1Axis.Id: 1, p.Y2Axis.Id: 1, p.XAxis.Id: 1}}}
+		{"$project": tk.M{"projectname": 1, "turbine": 1, strings.ToLower(p.Y1Axis.Id): 1, strings.ToLower(p.Y2Axis.Id): 1, strings.ToLower(p.XAxis.Id): 1}}}
 
 	csr, e := DB().Connection.NewQuery().
 		From("Scada10MinHFD").
 		Command("pipe", pipe).
 		Cursor(nil)
+
+	// tk.Println(pipe)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -129,6 +132,8 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 			break
 		}
 
+		// tk.Println(tkm)
+
 		_key := ""
 		for _, v := range turbineList {
 			if tkm.GetString("turbine") == v.Value {
@@ -143,10 +148,10 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 		data1y := ds.Get("data1y", map[float64]interface{}{}).(map[float64]interface{})
 		data2y := ds.Get("data2y", map[float64]interface{}{}).(map[float64]interface{})
 
-		xaxis := tk.ToFloat64(tkm.Get(p.XAxis.Id), 2, tk.RoundingAuto)
+		xaxis := tk.ToFloat64(tkm.Get(strings.ToLower(p.XAxis.Id)), 2, tk.RoundingAuto)
 
-		data1y[xaxis] = tkm.Get(p.Y1Axis.Id, nil)
-		data2y[xaxis] = tkm.Get(p.Y2Axis.Id, nil)
+		data1y[xaxis] = tkm.Get(strings.ToLower(p.Y1Axis.Id), nil)
+		data2y[xaxis] = tkm.Get(strings.ToLower(p.Y2Axis.Id), nil)
 
 		ds.Set("id", tkm.GetString("turbine"))
 		ds.Set("turbine", _key)
