@@ -515,7 +515,7 @@ var colorField = ["#ff9933","#21c4af","#4589b0", "#e4cc37","#008571", "#3ca5bf",
 var colorDegField = ["#ffcf9e","#a6e7df","#ffc8c0","#ffe2b8","#d9f2ba","#a4d8e7","#ffc0db","#fab3ae","#efa5a2","#cfc8dc","#d6a0e0","#a8e6cc","#f5b9bd","#e7d8b5","#ffbbd5","#e7a89d","#edc7be","#ffa9ef","#adddd0","#9fe0f7","#fabcaf","#ff99af","#b9cada","#ffc1c1","#ffeec1","#c6ddff","#c9bbb5"];
 var colorFields2 =  ["#9e9e9e","#337ab7","#ff0000"];
 var colorFieldProject = ["#398a6b","#f3a41b","#2f81b7","#c8be00","#30b4c9","#d90057","#f0c55d","#800080","#e67c52","#9098ad","#9e7d54","#a468a6"];
-
+var colorAnalysis =["#ee6d54", "#ba21f3", "#5665cc", "#9f40f6", "#eff421", "#9e74f7", "#ed5ed9", "#842b29", "#dcd5aa", "#f0cda7", "#c869ca", "#d77f1d", "#475a8d", "#81b0c5", "#27aa94", "#29ac5f", "#791952", "#affc60", "#20fdaa", "#2296df", "#4574bc", "#c79549", "#5f41e1", "#ce3332", "#2cb3d0", "#9fe0cc", "#526042", "#ac7454", "#d2bec1", "#9f4f6f", "#5b82e5", "#8f46ae", "#21c377", "#b03c98", "#b0fbe4", "#9d636f", "#a9f834", "#c1bb71", "#41f0d5", "#448a88", "#e4373c", "#89c5f6", "#338b5a", "#b24bc1", "#d2e244", "#80cdd0", "#e76caf", "#7d91a1", "#9e5969", "#b1846b", "#85888b", "#977a42", "#db3c84", "#e2efa6", "#d977bd", "#94b4a8", "#92883b", "#6d7c80", "#79ddc7", "#8fb6b1"]
 
 var customColorProject = {
     Amba : "#21c4af",

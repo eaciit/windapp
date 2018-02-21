@@ -26,7 +26,7 @@ page.FieldList = ko.observableArray([]);
 page.xAxis = ko.observableArray([]);
 page.yAxis = ko.observableArray([]);
 page.y2Axis = ko.observableArray([]);
-
+page.Data = ko.observableArray([]);
 
 
 page.periodList = ko.observableArray([
@@ -259,34 +259,49 @@ page.LoadData = function(){
     var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
     $.when(getdata).done(function(d){
         page.GenerateChart(d.data);
+        
         app.loading(false);
     });
 }
 
 page.GenerateChart = function(dataSource) {
 
-    var dataSourceCustom = [];
-    var byTurbine = [];
+    var seriesData = [];
+    var color = 0;
     $.each(dataSource.data, function(i, val){
-        var datas = {
-            turbine : val.turbine,
-            details : [],
-        }
-        $.each(val.detail, function(index, value){
-            var seriesData = {};
-            $.each(dataSource.axisinfo, function(j, axisValue){
-                seriesData[axisValue.Id] = value[j];
-            });
-            datas.details.push(seriesData);
-            dataSourceCustom.push(seriesData);
-        });
-        byTurbine.push(datas);
+        $.each(dataSource.axisinfo, function(e, axis){
+            if(e > 0){
+                var series =   {
+                    colorField: "valueColor",
+                    data: [],
+                    "markers": {
+                      "size": 2
+                    },
+                    name: dataSource.axisinfo[e].Id +"-"+val.turbine,
+                    type: "scatter",
+                    xField: dataSource.axisinfo[0].Id,
+                    yField: dataSource.axisinfo[e].Id,
+                    yAxis : dataSource.axisinfo[2].Id,
+                }
+                var valueColor = colorAnalysis[color];
+                $.each(val.detail, function(index, value){
+                    var seriesData = {};
+                    $.each(dataSource.axisinfo, function(j, axisValue){
+                        seriesData[axisValue.Id] = value[j];
+                        seriesData["valueColor"] = valueColor;
+                    });
+                    series.data.push(seriesData);
+                });
+                seriesData.push(series);
+            }
+            color++;
+        })
     });
 
+    page.Data(seriesData);
 
     var xAxis = {};
     var yAxes = [];
-    var series = [];
 
     $.each(dataSource.axisinfo , function(i, value){
         var xField = dataSource.axisinfo[0].Id;
@@ -304,6 +319,20 @@ page.GenerateChart = function(dataSource) {
                             color: "#eee",
                             width: 0.8,
             };
+            xAxis.crosshair = {
+                    visible: true,
+                    tooltip: {
+                        visible: true,
+                        format: "N2",
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    }
+                };
 
         }
         else{
@@ -320,38 +349,25 @@ page.GenerateChart = function(dataSource) {
                     color: "#eee",
                     width: 0.8,
                 },
-            }
-
-            var seriesData = {};
-
-            if(i == 1){
-                seriesData = {
-                    name : value.Text, 
-                    xField : xField,
-                    yField : value.Id,
+                crosshair: {
+                    visible: true,
                     tooltip: {
-                        format: value.Text + " : {0:N2}"
-                    },
-                }
-            }else{
-                seriesData = {
-                    name : value.Text, 
-                    xField : xField,
-                    yField : value.Id, 
-                    yAxis : yAxis,
-                    tooltip: {
-                        format: value.Text + " : {0:N2}"
-                    },
-                }
+                        visible: true,
+                        format: "N1",
+                        background: "rgb(255,255,255, 0.9)",
+                        color: "#58666e",
+                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                        border: {
+                            color: "#eee",
+                            width: "2px",
+                        },
+                    }
+                },
             }
 
             yAxes.push(yAx);
-            series.push(seriesData);
         }
     });
-
-    
-
 
     $('#chartxyAnalysis').html("");
     $("#chartxyAnalysis").kendoChart({
@@ -364,22 +380,20 @@ page.GenerateChart = function(dataSource) {
             visible: false,
             font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
         },
-        dataSource: {
-            data: dataSourceCustom
-        },
         seriesDefaults: {
             type: "scatter",
             style: "smooth",
             markers:{size: 2}
         },
-        series: series,
         xAxis: xAxis,
-        yAxes: yAxes,
+        yAxis: yAxes,
         tooltip: {
             visible: true
         }
     });
-    $("#chartxyAnalysis").data("kendoChart").refresh();
+
+    $("#chartxyAnalysis").data("kendoChart").options.series = page.Data();
+    $("#chartxyAnalysis").data("kendoChart").redraw();
 }
 $(function() {
     
