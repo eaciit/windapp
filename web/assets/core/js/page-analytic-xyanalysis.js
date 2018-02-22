@@ -57,9 +57,9 @@ page.hexToRgb = function(hex) {
 
 page.SetValueFields = function(){
     setTimeout(function(){
-        $("#xAxis").data("kendoDropDownList").select(0);
-        $("#yAxis").data("kendoDropDownList").select(1);
-        $("#y2Axis").data("kendoDropDownList").select(2);
+        $("#xAxis").data("kendoDropDownList").select(1);
+        $("#yAxis").data("kendoDropDownList").select(2);
+        $("#y2Axis").data("kendoDropDownList").select(0);
         var date = new Date();
         date.setDate(date.getDate() - 1);
         $('#dateEnd').data("kendoDatePicker").value(date);
@@ -67,8 +67,7 @@ page.SetValueFields = function(){
         var date2 = new Date();
         date2.setDate(date2.getDate() - 2);
         $('#dateStart').data("kendoDatePicker").value(date2);
-
-    },300);
+    },500);
 }
 
 page.checkProject = function (elmId) {
@@ -83,9 +82,9 @@ page.checkProject = function (elmId) {
         $('#'+elmId).data("kendoMultiSelect").value(["All Project"]);
     }
 }
-
-page.InitDefaultValue = function () {
-    toolkit.ajaxPostDeffered(viewModel.appName + "xyanalysis/getxyfieldlist", {}, function(res) {
+page.GetFieldList = function(){
+    var param  = {project : $('#ProjectList').data('kendoMultiSelect').value()}
+    toolkit.ajaxPostDeffered(viewModel.appName + "xyanalysis/getxyfieldlist", param, function(res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -98,14 +97,23 @@ page.InitDefaultValue = function () {
                 page.yAxis(data);
                 page.y2Axis(data);
 
-                $.when(page.SetValueFields()).done(function(){
-                    $("#periodList").data("kendoDropDownList").value("custom");
-                    $("#periodList").data("kendoDropDownList").trigger("change");
-                    $("#StateList").data("kendoDropDownList").trigger("change");
-                });
-            },500)
+                $("#xAxis").data("kendoDropDownList").select(1);
+                $("#yAxis").data("kendoDropDownList").select(2);
+                $("#y2Axis").data("kendoDropDownList").select(0);
+            },300)
         }   
     });
+}
+
+page.InitDefaultValue = function () {
+    $("#periodList").data("kendoDropDownList").value("custom");
+    $("#periodList").data("kendoDropDownList").trigger("change");
+    $("#StateList").data("kendoDropDownList").trigger("change");
+    setTimeout(function(){
+        $.when(page.SetValueFields()).done(function(){
+            page.checkKey();
+        });
+    },500)
 
 }
 
@@ -123,7 +131,7 @@ page.SetProjectList = function(){
         $("#ProjectList").data("kendoMultiSelect").setDataSource(page.ProjectListState());
         $('#ProjectList').data('kendoMultiSelect').value([page.selectedProjectList()]);
         $("#ProjectList").data("kendoMultiSelect").trigger("change");
-    },300)
+    },500)
 
 }
 
@@ -142,7 +150,7 @@ page.SetTurbineList = function(){
         $("#turbineList").multiselect("dataprovider",page.TurbineListByProject());
         $('#turbineList').multiselect('select', page.TurbineListByProject()[0].value);
         $("#turbineList").multiselect("refresh");
-    },300);
+    },500);
 }
 
 page.checkKey = function () {
@@ -506,7 +514,10 @@ $(function() {
         dataSource: page.ProjectListState(), 
         dataValueField: 'ProjectId', 
         dataTextField: 'ProjectId', 
-        change: function() {page.SetTurbineList()}, 
+        change: function() {
+            page.SetTurbineList();
+            page.GetFieldList();
+        }, 
         suggest: true
     });
 
