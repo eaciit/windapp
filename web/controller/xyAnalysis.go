@@ -41,17 +41,88 @@ type PayloadXyAnalysis struct {
 	Y2Axis    FieldAnalysis
 }
 
+type byOrder []FieldAnalysis
+
+func (s byOrder) Len() int {
+	return len(s)
+}
+func (s byOrder) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byOrder) Less(i, j int) bool {
+	return s[i].Order < s[j].Order
+}
+
+// func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
+// 	k.Config.OutputType = knot.OutputJson
+// 	result := []FieldAnalysis{}
+
+// 	//manual first
+// 	result = append(result, FieldAnalysis{Id: "ActivePower_kW", Name: "ActivePower", Aggr: "$sum", Order: 1, Text: "ActivePower (kWh)"})
+// 	result = append(result, FieldAnalysis{Id: "WindSpeed_ms", Name: "WindSpeed", Aggr: "$avg", Order: 2, Text: "WindSpeed (m/s)"})
+// 	result = append(result, FieldAnalysis{Id: "NacellePos", Name: "NacellePos", Aggr: "$avg", Order: 3, Text: "NacellePos (-)"})
+// 	result = append(result, FieldAnalysis{Id: "WindDirection", Name: "WindDirection", Aggr: "$avg", Order: 4, Text: "WindDirection (-)"})
+// 	result = append(result, FieldAnalysis{Id: "PitchAngle", Name: "PitchAngle", Aggr: "$avg", Order: 5, Text: "PitchAngle (-)"})
+// 	result = append(result, FieldAnalysis{Id: "TempOutdoor", Name: "TempOutdoor", Aggr: "$avg", Order: 6, Text: "TempOutdoor (&deg;C)"})
+
+// 	return helper.CreateResult(true, result, "success")
+// }
+
 func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	result := []FieldAnalysis{}
 
-	//manual first
-	result = append(result, FieldAnalysis{Id: "ActivePower_kW", Name: "ActivePower", Aggr: "$sum", Order: 1, Text: "ActivePower (kWh)"})
-	result = append(result, FieldAnalysis{Id: "WindSpeed_ms", Name: "WindSpeed", Aggr: "$avg", Order: 2, Text: "WindSpeed (m/s)"})
-	result = append(result, FieldAnalysis{Id: "NacellePos", Name: "NacellePos", Aggr: "$avg", Order: 3, Text: "NacellePos (-)"})
-	result = append(result, FieldAnalysis{Id: "WindDirection", Name: "WindDirection", Aggr: "$avg", Order: 4, Text: "WindDirection (-)"})
-	result = append(result, FieldAnalysis{Id: "PitchAngle", Name: "PitchAngle", Aggr: "$avg", Order: 5, Text: "PitchAngle (-)"})
-	result = append(result, FieldAnalysis{Id: "TempOutdoor", Name: "TempOutdoor", Aggr: "$avg", Order: 6, Text: "TempOutdoor (&deg;C)"})
+	p := new(PayloadXyAnalysis)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	pipe := []tk.M{}
+	if len(p.Project) >= 1 {
+		matches := tk.M{}.Set("projectname", p.Project[0])
+		if len(p.Project) > 1 {
+			matches.Set("projectname", tk.M{}.Set("$in", p.Project))
+		}
+		pipe = append(pipe, tk.M{"$match": matches})
+	}
+
+	pipe = append(pipe, tk.M{"$group": tk.M{
+		"_id":   tk.M{"realtime": "$realtimefield", "name": "$label", "units": "$units"},
+		"order": tk.M{"$max": "$order"},
+	}})
+
+	csr, e := DB().Connection.NewQuery().
+		From("ref_databrowsertag").
+		Command("pipe", pipe).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	for {
+		tkm := tk.M{}
+		e = csr.Fetch(&tkm, 1, false)
+
+		if e != nil {
+			break
+		}
+
+		_id := tkm.Get("_id", tk.M{}).(tk.M)
+
+		_fa := FieldAnalysis{
+			Id:    _id.GetString("realtime"),
+			Name:  _id.GetString("name"),
+			Order: tkm.GetInt("order"),
+			Text:  tk.Sprintf("%s (%s)", _id.GetString("name"), _id.GetString("units")),
+		}
+
+		result = append(result, _fa)
+	}
+
+	sort.Sort(byOrder(result))
 
 	return helper.CreateResult(true, result, "success")
 }
@@ -152,6 +223,14 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 
 		data1y[xaxis] = tkm.Get(strings.ToLower(p.Y1Axis.Id), nil)
 		data2y[xaxis] = tkm.Get(strings.ToLower(p.Y2Axis.Id), nil)
+
+		if data1y[xaxis] != nil {
+			data1y[xaxis] = tk.ToFloat64(data1y[xaxis], 2, tk.RoundingAuto)
+		}
+
+		if data2y[xaxis] != nil {
+			data2y[xaxis] = tk.ToFloat64(data2y[xaxis], 2, tk.RoundingAuto)
+		}
 
 		ds.Set("id", tkm.GetString("turbine"))
 		ds.Set("turbine", _key)
