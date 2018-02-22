@@ -79,14 +79,15 @@ func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
 	}
 
 	pipe := []tk.M{}
+	matches := tk.M{}.Set("enable", true)
 	if len(p.Project) >= 1 {
-		matches := tk.M{}.Set("projectname", p.Project[0])
+		matches.Set("projectname", p.Project[0])
 		if len(p.Project) > 1 {
 			matches.Set("projectname", tk.M{}.Set("$in", p.Project))
 		}
-		pipe = append(pipe, tk.M{"$match": matches})
 	}
 
+	pipe = append(pipe, tk.M{"$match": matches})
 	pipe = append(pipe, tk.M{"$group": tk.M{
 		"_id":   tk.M{"realtime": "$realtimefield", "name": "$label", "units": "$units"},
 		"order": tk.M{"$max": "$order"},
