@@ -53,6 +53,7 @@ var (
 		"wsavgforpc":          "Wind Speed Bin",
 		"denadjwindspeed":     "Density Wind Speed Bin",
 		"wsadjforpc":          "Wind Speed Bin",
+		"pcvalue":             "Exp. Prod / PC",
 	}
 	percentageList = []string{"deviationpct", "dendeviationpct"}
 )
@@ -1311,7 +1312,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 		PC2Data, e := getPCData(PC2project, engine, true)
 		PC2Data.Set("name", "Power Curve "+PC2project)
 		PC2Data.Set("idxseries", 1)
-		PC2Data.Set("color", colorField[1])
+		PC2Data.Set("color", "#379179")
 		dataSeries = append(dataSeries, PC2Data)
 		dataSeries[0].Set("name", "Power Curve "+PC1project)
 
@@ -1358,7 +1359,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	turbineData.Set("dashType", "solid")
 	turbineData.Set("markers", tk.M{"visible": false})
 	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[4])
+	turbineData.Set("color", "#FF6565")
 
 	for _, val := range list {
 		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
@@ -1403,7 +1404,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	turbineData.Set("dashType", "solid")
 	turbineData.Set("markers", tk.M{"visible": false})
 	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[7])
+	turbineData.Set("color", colorField[8])
 
 	for _, val := range list {
 		datasC2 = append(datasC2, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
@@ -2145,45 +2146,45 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 
 	switch p.ScatterType {
 	case "deviation":
-		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "pitch":
-		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "ambient":
-		seriesData1 := setScatterData("Ambient Temp. < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Ambient Temp. < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Ambient Temp. > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Ambient Temp. > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "temp":
-		seriesData1 := setScatterData("Nacelle Temp. < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Nacelle Temp. < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Nacelle Temp. > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Nacelle Temp. > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "windspeed_dev":
-		seriesData1 := setScatterData("Wind Speed Std. Dev. < "+tk.ToString(tk.ToFloat64(p.LessValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Wind Speed Std. Dev. < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Wind Speed Std. Dev. > "+tk.ToString(tk.ToFloat64(p.GreaterValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Wind Speed Std. Dev. > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "windspeed_ti":
-		seriesData1 := setScatterData("TI Wind Speed < "+tk.ToString(tk.ToFloat64(p.LessValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("TI Wind Speed < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("TI Wind Speed > "+tk.ToString(tk.ToFloat64(p.GreaterValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("TI Wind Speed > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	}
