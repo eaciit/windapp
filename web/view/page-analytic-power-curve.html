@@ -28,8 +28,11 @@
                         <div class="col-md-12">
 							<div class="col-md-8" style="margin-top: -30px;">
 								<div class="filters">
-									<div class="tools btn-group pull-right btn-pdf">
-										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp', false)}">
+									<div class="tools pull-right btn-pdf">
+										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Power Curve', false)}">
+									    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+									  	</button>
+										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp', false)}">
 									    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 									  	</button>
 									</div>
