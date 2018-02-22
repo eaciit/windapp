@@ -281,8 +281,12 @@ page.GenerateChart = function(dataSource) {
                     type: "scatter",
                     xField: dataSource.axisinfo[0].Id,
                     yField: dataSource.axisinfo[e].Id,
-                    yAxis : dataSource.axisinfo[2].Id,
                 }
+
+                if(e == 2){
+                    series.yAxis = dataSource.axisinfo[2].Id;
+                }
+                
                 var valueColor = colorAnalysis[color];
                 $.each(val.detail, function(index, value){
                     var seriesData = {};
