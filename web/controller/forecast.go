@@ -1140,7 +1140,7 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 	newXls.Save(filetosave)
 
 	mailSubject := tk.Sprintf("%s Schedule Forecast For %s Rev %s", project, date.Format("02/01/2006"), revNo2Digit)
-	mailContent := tk.Sprintf("Dear All,\n\r\n\rPlease find the attachment for %s scheduler forecast for %s revision number %s.\n\r\n\rThank you.", project, date.Format("02/01/2006"), revNo2Digit)
+	mailContent := tk.Sprintf("<p>Dear All,</p><p>&nbsp;</p><p>&nbsp;</p><p>Please find the attachment for %s scheduler forecast for %s revision number %s.</p><p>&nbsp;</p><p>&nbsp;</p><p>Thank you.</p>", project, date.Format("02/01/2006"), revNo2Digit)
 	err = sendEmail(mailSubject, addressFrom, addressTo, addressCc, addressBcc, mailContent, filetosave)
 	if err != nil {
 		tk.Printf("Error send email : %s \n", err.Error())
@@ -1154,20 +1154,31 @@ func sendEmail(subject string, addressFrom tk.M, addressTo []tk.M, addressCc []t
 		mailHost := "smtp.outlook.com"
 		mailPort := 587
 
+		mailTos := []string{}
+		mailCcs := []string{}
+		mailBccs := []string{}
+
 		mail := gomail.NewMessage()
 		mail.SetAddressHeader("From", mailAddress, addressFrom.GetString("name"))
 		for _, to := range addressTo {
-			mail.SetAddressHeader("To", to.GetString("email"), to.GetString("name"))
+			mailTos = append(mailTos, to.GetString("email"))
 		}
 		if len(addressCc) > 0 {
 			for _, cc := range addressCc {
-				mail.SetAddressHeader("Cc", cc.GetString("email"), cc.GetString("name"))
+				mailCcs = append(mailCcs, cc.GetString("email"))
 			}
 		}
 		if len(addressBcc) > 0 {
 			for _, bcc := range addressBcc {
-				mail.SetAddressHeader("Bcc", bcc.GetString("email"), bcc.GetString("name"))
+				mailBccs = append(mailBccs, bcc.GetString("email"))
 			}
+		}
+		mail.SetHeader("To", mailTos...)
+		if len(mailCcs) > 0 {
+			mail.SetHeader("Cc", mailCcs...)
+		}
+		if len(mailBccs) > 0 {
+			mail.SetHeader("Cc", mailBccs...)
 		}
 		mail.SetHeader("Subject", subject)
 		mail.SetBody("text/html", content)
