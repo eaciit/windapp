@@ -46,7 +46,7 @@ func (m *XyAnalysis) GetXYFieldList(k *knot.WebContext) interface{} {
 	result := []FieldAnalysis{}
 
 	//manual first
-	result = append(result, FieldAnalysis{Id: "ActivePower_kW", Name: "ActivePower", Aggr: "$sum", Order: 1, Text: "ActivePower (MWh)"})
+	result = append(result, FieldAnalysis{Id: "ActivePower_kW", Name: "ActivePower", Aggr: "$sum", Order: 1, Text: "ActivePower (kWh)"})
 	result = append(result, FieldAnalysis{Id: "WindSpeed_ms", Name: "WindSpeed", Aggr: "$avg", Order: 2, Text: "WindSpeed (m/s)"})
 	result = append(result, FieldAnalysis{Id: "NacellePos", Name: "NacellePos", Aggr: "$avg", Order: 3, Text: "NacellePos (-)"})
 	result = append(result, FieldAnalysis{Id: "WindDirection", Name: "WindDirection", Aggr: "$avg", Order: 4, Text: "WindDirection (-)"})
