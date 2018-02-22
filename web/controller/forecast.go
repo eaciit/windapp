@@ -1140,7 +1140,7 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 	newXls.Save(filetosave)
 
 	mailSubject := tk.Sprintf("%s Schedule Forecast For %s Rev %s", project, date.Format("02/01/2006"), revNo2Digit)
-	mailContent := tk.Sprintf("<p>Dear All,</p><p>&nbsp;</p><p>&nbsp;</p><p>Please find the attachment for %s scheduler forecast for %s revision number %s.</p><p>&nbsp;</p><p>&nbsp;</p><p>Thank you.</p>", project, date.Format("02/01/2006"), revNo2Digit)
+	mailContent := tk.Sprintf("<p>Dear All,</p><p>Please find the attachment for %s scheduler forecast for %s revision number %s.</p><p>&nbsp;<br /></p><p>Thank you.</p>", project, date.Format("02/01/2006"), revNo2Digit)
 	err = sendEmail(mailSubject, addressFrom, addressTo, addressCc, addressBcc, mailContent, filetosave)
 	if err != nil {
 		tk.Printf("Error send email : %s \n", err.Error())
