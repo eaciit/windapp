@@ -29,6 +29,7 @@ page.y2Axis = ko.observableArray([]);
 page.Data = ko.observableArray([]);
 
 
+
 page.periodList = ko.observableArray([
     { "value": "last24hours", "text": "Today" },
     { "value": "last7days", "text": "Last 7 days" },
@@ -39,7 +40,20 @@ page.periodList = ko.observableArray([
 
 
 var lastPeriod = "";
+var colors = ["#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548", "#383271", "#6a4795", "#bec554", "#ab5919", "#f5b1e1", "#7b3416", "#002fef", "#8d731b", "#1f8805", "#ff9900", "#9C27B0", "#6c7d8a", "#d73c1c", "#5be7a0", "#da02d4", "#afa56e", "#7e32cb", "#a2eaf7", "#9cb8f4", "#9E9E9E", "#065806", "#044082", "#18937d", "#2c787a", "#a57c0c", "#234341", "#1aae7a", "#7ac610", "#736f5f", "#4e741e", "#68349d", "#1df3b6", "#e02b09", "#d9cfab", "#6e4e52", "#f31880", "#7978ec", "#f5ace8", "#3db6ae", "#5e06b0", "#16d0b9", "#a25a5b", "#1e603a", "#4b0981", "#62975f", "#1c8f2f", "#b0c80c", "#642794", "#e2060d", "#2125f0"];
 
+
+page.hexToRgb = function(hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+    return "rgba("+parseInt(result[1], 16) + "," +parseInt(result[2], 16) + "," + parseInt(result[3], 16)+",0.6)";
+}
 
 page.SetValueFields = function(){
     setTimeout(function(){
@@ -57,6 +71,19 @@ page.SetValueFields = function(){
     },300);
 }
 
+page.checkProject = function (elmId) {
+    var arr = $('#'+elmId).data('kendoMultiSelect').value();
+    var index = arr.indexOf("All Turbines");
+    if (index == 0 && arr.length > 1) {
+        arr.splice(index, 1);
+        $('#'+elmId).data('kendoMultiSelect').value(arr)
+    } else if (index > 0 && arr.length > 1) {
+        $('#'+elmId).data("kendoMultiSelect").value(["All Project"]);
+    } else if (arr.length == 0) {
+        $('#'+elmId).data("kendoMultiSelect").value(["All Project"]);
+    }
+}
+
 page.InitDefaultValue = function () {
     toolkit.ajaxPostDeffered(viewModel.appName + "xyanalysis/getxyfieldlist", {}, function(res) {
         if (!app.isFine(res)) {
@@ -72,8 +99,6 @@ page.InitDefaultValue = function () {
                 page.y2Axis(data);
 
                 $.when(page.SetValueFields()).done(function(){
-                    page.checkKey();
-
                     $("#periodList").data("kendoDropDownList").value("custom");
                     $("#periodList").data("kendoDropDownList").trigger("change");
                     $("#StateList").data("kendoDropDownList").trigger("change");
@@ -259,7 +284,8 @@ page.LoadData = function(){
     var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
     $.when(getdata).done(function(d){
         page.GenerateChart(d.data);
-        
+        page.GenerateTurbineList();
+        page.checkKey();
         app.loading(false);
     });
 }
@@ -271,23 +297,26 @@ page.GenerateChart = function(dataSource) {
     $.each(dataSource.data, function(i, val){
         $.each(dataSource.axisinfo, function(e, axis){
             if(e > 0){
+
+                var valueColor = (e == 1 ? colors[color] : page.hexToRgb(colors[color-1])) ;
                 var series =   {
                     colorField: "valueColor",
                     data: [],
                     "markers": {
                       "size": 2
                     },
-                    name: dataSource.axisinfo[e].Id +"-"+val.turbine,
+                    name: (e == 1 ? 'Y' : 'Y1') + " ("+val.turbine+")",
                     type: "scatter",
                     xField: dataSource.axisinfo[0].Id,
                     yField: dataSource.axisinfo[e].Id,
+                    turbineid : val.turbine,
+                    color : valueColor,
                 }
 
                 if(e == 2){
                     series.yAxis = dataSource.axisinfo[2].Id;
                 }
                 
-                var valueColor = colorAnalysis[color];
                 $.each(val.detail, function(index, value){
                     var seriesData = {};
                     $.each(dataSource.axisinfo, function(j, axisValue){
@@ -392,13 +421,84 @@ page.GenerateChart = function(dataSource) {
         xAxis: xAxis,
         yAxis: yAxes,
         tooltip: {
-            visible: true
+            visible: true, 
+            fomat : "N2"
         }
     });
 
     $("#chartxyAnalysis").data("kendoChart").options.series = page.Data();
     $("#chartxyAnalysis").data("kendoChart").redraw();
 }
+
+page.GenerateTurbineList = function() {
+    var dtTurbines = page.Data();
+
+    if (dtTurbines.length > 1) {
+        $("#showHideChk").html('<label>' +
+            '<input type="checkbox" id="showHideAll" checked onclick="page.showHideAllLegend(this)" >' +
+            '<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>' +
+            '<span id="labelShowHide"><b>Select All</b></span>' +
+            '</label>');
+    } else {
+        $("#showHideChk").html("");
+    }
+
+    $("#right-turbine-list").html("");
+    $.each(dtTurbines, function(idx, val) {
+        var nameTurbine = val.name;
+
+        $("#right-turbine-list").append('<div class="btn-group">' +
+        '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
+        '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + idx + '" hidden>' +
+        '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + nameTurbine +'</button>' +
+        '</div>');
+    });
+}
+
+page.showHideAllLegend = function(e) {
+    var dtTurbines = page.Data();
+    if (e.checked == true) {
+        $('.fa-check').css("visibility", 'visible');
+        $.each(dtTurbines, function(i, val) {
+            $("#chartxyAnalysis").data("kendoChart").options.series[val.index].visible = true;
+        });
+        $('#labelShowHide b').text('Select All');
+    } else {
+        $.each(dtTurbines, function(i, val) {
+            $("#chartxyAnalysis").data("kendoChart").options.series[val.index].visible = false;
+        });
+
+        $('.fa-check').css("visibility", 'hidden');
+        $('#labelShowHide b').text('Select All');
+    }
+    $('.chk-option').not(e).prop('checked', e.checked);
+    $("#chartxyAnalysis").data("kendoChart").redraw();
+}
+
+
+page.showHideLegend = function(idx) {
+    $('#chk-' + idx).trigger('click');
+    var chart = $("#chartxyAnalysis").data("kendoChart");
+
+
+    if ($('input[id*=chk-][type=checkbox]:checked').length == $('input[id*=chk-][type=checkbox]').length) {
+        $('#showHideAll').prop('checked', true);
+    } else {
+        $('#showHideAll').prop('checked', false);
+    }
+
+    if ($('#chk-' + idx).is(':checked')) {
+        $('#icon-' + idx).css("visibility", "visible");
+    } else {
+        $('#icon-' + idx).css("visibility", "hidden");
+    }
+    if (idx == $('input[id*=chk-][type=checkbox]').length) {
+        idx == 0
+    }
+
+    chart._legendItemClick(idx);
+}
+
 $(function() {
     
 

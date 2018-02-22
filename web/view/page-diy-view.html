@@ -6,9 +6,48 @@
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/comparison.css">
 
 <style type="text/css">
-/*	.filter-part{
-		margin-left: 30px;
-	}*/
+	#showHideChk {
+	    margin-top: 7.5px;
+	    margin-left: -25px;
+	}
+	.turList{
+	    max-height: 200px;
+	    height: 470px;
+	    margin-top: -13.5px;
+	    overflow-x: auto;
+	    overflow-y: auto;
+	    margin-left: -10px;
+	}
+	.turbine-btn{
+	    margin-bottom: 5px;
+	    margin-right: 5px;
+	    height: 20px !important;
+	    padding: 0;
+	    margin-left: -1px;
+	    border-radius: 0px;
+	}
+	.turbine-chk{
+		width: 20px;
+	    height: 20px;
+	    padding-left: 4px;
+	    color: #fff;
+	    padding-top: 1px!important;
+	    border-radius: 0px;
+	}
+	.turbine-chk:hover, .down-chk:hover{
+	    color: #fff;
+	}
+	.turbine-chk:active, .down-chk:active{
+	    color: #fff;
+	}
+	.wbtn {
+	    font-size: 10px;
+	    width: 80px;
+	    font-weight: 600;
+	    text-align: left;
+	    padding-left: 2px;
+	    padding-top: 2px;
+	}
 </style>
 <div class="row mt15">
 	<div class="col-md-12 col-sm-12 ez panel-content">
@@ -19,6 +58,12 @@
 				<div class="panel-body">
 					<div class="col-md-8">
 						<div id="chartxyAnalysis">&nbsp;</div>
+						<div class="clearfix">&nbsp;</div>
+						<div class="col-md-12 cList">
+							<div class="checkbox" id="showHideChk"></div>
+							<div class="clearfix">&nbsp;</div>
+							<div class="col-md-12 col-sm-12 turList" id="right-turbine-list"></div>
+						</div>
 					</div>
 					<div class="col-md-4 filter-part">
 						<div class="row mgb10 hide">

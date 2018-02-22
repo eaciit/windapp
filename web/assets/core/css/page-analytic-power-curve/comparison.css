@@ -89,3 +89,46 @@
 .multiselect.dropdown-toggle.btn.btn-default {
     border: 1px solid #ecf0f6;
 }
+
+#showHideChk {
+    margin-top: 7.5px;
+    margin-left: -25px;
+}
+.turList{
+    max-height: 200px;
+    height: 470px;
+    margin-top: -13.5px;
+    overflow-x: auto;
+    overflow-y: auto;
+    margin-left: -10px;
+}
+.turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.turbine-chk{
+    width: 20px;
+    height: 20px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.turbine-chk:hover, .down-chk:hover{
+    color: #fff;
+}
+.turbine-chk:active, .down-chk:active{
+    color: #fff;
+}
+.wbtn {
+    font-size: 10px;
+    width: 80px;
+    font-weight: 600;
+    text-align: left;
+    padding-left: 2px;
+    padding-top: 2px;
+}
