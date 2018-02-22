@@ -348,7 +348,7 @@ page.GenerateChart = function(dataSource) {
         var xField = dataSource.axisinfo[0].Id;
         var yAxis = dataSource.axisinfo[2].Id;
         if(i == 0){
-            xAxis.axisCrossingValues =  [0, 10000];
+            xAxis.axisCrossingValues =  [-10000, 10000];
             xAxis.title = {
                 text: value.Text,
                 font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
