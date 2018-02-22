@@ -9,6 +9,8 @@ import (
 
 	// "fmt"
 	"math"
+	"os"
+	"reflect"
 	"sort"
 	"sync"
 	"time"
@@ -17,6 +19,7 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
+	x "github.com/tealeg/xlsx"
 )
 
 type AnalyticPowerCurveController struct {
@@ -31,6 +34,26 @@ var (
 	colorFieldDegradation = [...]string{"#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"}
 	downColor             = [...]string{"#000", "#444", "#666", "#888", "#aaa", "#ccc", "#eee"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
+	headerExcelPC = map[string]string{
+		"avgwindspeed":        "Wind Speed",
+		"power":               "Power",
+		"turbine":             "Turbine",
+		"timestamp":           "Timestamp",
+		"deviationpct":        "Deviation",
+		"dendeviationpct":     "Deviation",
+		"avgbladeangle":       "Pitch Angle",
+		"winddirection":       "Wind Direction",
+		"nacelletemperature":  "Nacelle Temp",
+		"ambienttemperature":  "Ambient Temp",
+		"windspeed_ms_stddev": "Wind Speed Deviation",
+		"windspeed_ms":        "Wind Speed",
+		"activepower_kw":      "Power",
+		"rotorrpm":            "Rotor RPM",
+		"generatorrpm":        "Generator RPM",
+		"wsavgforpc":          "Wind Speed Bin",
+		"denadjwindspeed":     "Density Wind Speed Bin",
+		"wsadjforpc":          "Wind Speed Bin",
+	}
 )
 
 func CreateAnalyticPowerCurveController() *AnalyticPowerCurveController {
@@ -293,6 +316,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	colId := "$wsavgforpc"
 	colValue := "$power"
 	colDeviation := "deviationpct"
+	fieldList := []string{}
 	switch viewSession {
 	case "density":
 		colId = "$denadjwindspeed"
@@ -305,6 +329,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		colId = "$wsavgforpc"
 		colDeviation = "deviationpct"
 	}
+	fieldList = []string{"timestamp", "turbine", "avgwindspeed", strings.Split(colId, "$")[1], strings.Split(colValue, "$")[1], colDeviation}
 
 	issitespecific := false
 	if p.IsSpecific && p.ViewSession != "density" {
@@ -370,8 +395,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	pipesx = append(pipesx, tk.M{"$group": tk.M{"_id": tk.M{"Turbine": "$turbine"}, "totaldata": tk.M{"$sum": 1}}})
 	pipesx = append(pipesx, tk.M{"$sort": tk.M{"_id": 1}})
@@ -526,15 +554,238 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		TotalDataAvail    float64
 		TotalDataShouldBe float64
 		TotalPerTurbine   map[string]tk.M
+		LastFilter        []*dbox.Filter
+		FieldList         []string
+		TableName         string
 	}{
 		Data:              dataSeries,
 		TotalData:         totalDataAll,
 		TotalDataAvail:    totalDataAvail,
 		TotalPerTurbine:   totalAllPerTurbines,
 		TotalDataShouldBe: (float64(totalDataShouldBe) * float64(len(p.Turbine))),
+		LastFilter:        filter,
+		FieldList:         fieldList,
+		TableName:         new(ScadaData).TableName(),
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func toDboxFilter(val interface{}) (newVal []*dbox.Filter) {
+	valInt := val.([]interface{})
+	newVal = []*dbox.Filter{}
+	for _, vInt := range valInt {
+		vMap := vInt.(map[string]interface{})
+		newVal = append(newVal, &dbox.Filter{
+			Field: tk.ToString(vMap["Field"]),
+			Op:    tk.ToString(vMap["Op"]),
+			Value: vMap["Value"],
+		})
+	}
+	return
+}
+
+func GetTurbineNameForPC(turbineIDList []interface{}) (turbineName map[string]string, err error) {
+	query := DB().Connection.NewQuery().From("ref_turbine")
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"turbineid": tk.M{"$in": turbineIDList}}},
+	}
+	query = query.Command("pipe", pipes)
+	csrTurbine, err := query.Cursor(nil)
+	defer csrTurbine.Close()
+	if err != nil {
+		return
+	}
+	turbineList := []tk.M{}
+	err = csrTurbine.Fetch(&turbineList, 0, false)
+	if err != nil {
+		return
+	}
+	turbineName = map[string]string{}
+	for _, val := range turbineList {
+		turbineName[val.GetString("turbineid")] = tk.Sprintf("%s<>%s", val.GetString("project"), val.GetString("turbinename"))
+	}
+	return
+}
+
+func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := struct {
+		Filters   []*dbox.Filter
+		FieldList []string
+		TableName string
+		TypeExcel string
+	}{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	dateList := []string{"dateinfo.dateid", "timestamp"}
+	tStart := time.Time{}
+	tEnd := time.Time{}
+	turbineIDList := []interface{}{}
+	for _, val := range p.Filters {
+		if tk.HasMember(dateList, val.Field) { /* you have to define tStart using gt or gte and tEnd using lt or lte */
+			b, _ := time.Parse("2006-01-02T15:04:05Z", val.Value.(string))
+			val.Value = b.UTC()
+			if strings.Contains(val.Op, "gt") {
+				tStart = b.UTC()
+			} else {
+				tEnd = b.UTC()
+			}
+		}
+		if val.Field == "" && (val.Op == "$and" || val.Op == "$or") { /* if the filter contains $and or $or*/
+			val.Value = toDboxFilter(val.Value)
+		}
+		if val.Field == "turbine" && val.Op == "$in" && tk.IsSlice(val.Value) { /* populate turbine id list to get turbine name */
+			turbineIDList = val.Value.([]interface{})
+		}
+	}
+	fieldList := p.FieldList
+	headerList := []string{}
+	csr, e := DB().Connection.NewQuery().
+		From(p.TableName).
+		Select(fieldList...).
+		Where(dbox.And(p.Filters...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+	results := []tk.M{}
+	e = csr.Fetch(&results, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	sortedTimeStamp := []time.Time{}
+	timeCount := tStart.UTC()
+	for {
+		timeCount = timeCount.Add(time.Duration(time.Minute) * 10).UTC()
+		if timeCount.After(tEnd.UTC()) {
+			break
+		}
+		sortedTimeStamp = append(sortedTimeStamp, timeCount)
+	}
+	turbineName, err := GetTurbineNameForPC(turbineIDList)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbineNameSorted := []string{}
+	for _, val := range turbineName {
+		turbineNameSorted = append(turbineNameSorted, val)
+	}
+	sort.Strings(turbineNameSorted)
+	dataPerTurbine := map[string][]tk.M{}
+	dataPerTimeStamp := map[time.Time][]tk.M{}
+	sortedDataByTimeStamp := []tk.M{}
+	waktu := time.Time{}
+
+	for _, _data := range results { /* grouping data per timestamp */
+		waktu = _data.Get("timestamp", time.Time{}).(time.Time).UTC()
+		_data.Set("turbine", strings.Split(turbineName[_data.GetString("turbine")], "<>")[1])
+		dataPerTimeStamp[waktu] = append(dataPerTimeStamp[waktu], _data)
+	}
+	for _, _waktu := range sortedTimeStamp { /* masukkan data yang sudah urut timestamp ke variable */
+		data, hasData := dataPerTimeStamp[_waktu]
+		if hasData {
+			sortedDataByTimeStamp = append(sortedDataByTimeStamp, data...)
+		}
+	}
+	for _, _data := range sortedDataByTimeStamp { /* grouping sortedDataByTimeStamp per turbine */
+		keys := turbineName[_data.GetString("turbine")]
+		dataPerTurbine[keys] = append(dataPerTurbine[keys], _data)
+	}
+
+	var pathDownload string
+	tempPath := "web/assets/Excel/"
+	typeExcel := p.TypeExcel
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := tk.Sprintf("%s_%s", typeExcel, TimeCreate)
+	filename := tempPath + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	if err := os.RemoveAll(tempPath + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	if _, err := os.Stat(tempPath + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll(tempPath+typeExcel+"/", 0777)
+	}
+
+	for _, val := range fieldList {
+		headerList = append(headerList, headerExcelPC[val])
+	}
+	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, false)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
+func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, header, fieldList, turbineNameSorted []string, isSplitSheet bool) error {
+	file := x.NewFile()
+	sheet := new(x.Sheet)
+	dataType := ""
+
+	for idxTurbine, _turbine := range turbineNameSorted {
+		data := dataPerTurbine[_turbine]
+		if idxTurbine == 0 && !isSplitSheet { /* tambah header dan sheet saat awal saja*/
+			sheet, _ = file.AddSheet("Sheet1")
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
+			}
+		} else if isSplitSheet { /* tambah header dan sheet tiap ada perubahan nama turbine */
+			sheet, _ = file.AddSheet(strings.Replace(_turbine, "<>", "_", 1))
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
+			}
+		}
+		for _, each := range data {
+			rowContent := sheet.AddRow()
+			cell := rowContent.AddCell()
+			for idx, field := range fieldList {
+				if idx > 0 {
+					cell = rowContent.AddCell()
+				}
+				if each.Has(field) {
+					switch field {
+					case "timestamp", "timestamputc", "timestart", "timeend":
+						cell.Value = each[field].(time.Time).UTC().Format("2006-01-02 15:04:05")
+					default:
+						dataType = reflect.Indirect(reflect.ValueOf(each[field])).Type().Name()
+						switch dataType {
+						case "float64":
+							value := each.GetFloat64(field)
+							if value != -999999 {
+								cell.SetFloat(value)
+							}
+						case "int":
+							value := each.GetInt(field)
+							if value != -999999 {
+								cell.SetInt(value)
+							}
+						case "string":
+							cell.Value = each.GetString(field)
+						case "bool":
+							cell.SetBool(each[field].(bool))
+						}
+					}
+				}
+			}
+		}
+	}
+
+	err := file.Save(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebContext) interface{} {

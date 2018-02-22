@@ -52,6 +52,11 @@
     margin-left: 10px !important;
     font-weight: bold;
 }
+.ExportTo{
+    cursor: pointer;
+    margin-left: 3px !important;
+    font-weight: bold;
+}
 .turList{
     max-height: 470px;
     height: 470px;
@@ -155,6 +160,9 @@
     }
     .Epdf {
         margin-right: 10px;
+    }
+    .ExportTo {
+        margin-right: 3px;
     }
 }
 
