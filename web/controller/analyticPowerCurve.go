@@ -45,7 +45,7 @@ var (
 		"winddirection":       "Wind Direction",
 		"nacelletemperature":  "Nacelle Temp",
 		"ambienttemperature":  "Ambient Temp",
-		"windspeed_ms_stddev": "Wind Speed Deviation",
+		"windspeed_ms_stddev": "WS Std. Deviation",
 		"windspeed_ms":        "Wind Speed",
 		"activepower_kw":      "Power",
 		"rotorrpm":            "Rotor RPM",
@@ -54,6 +54,7 @@ var (
 		"denadjwindspeed":     "Density Wind Speed Bin",
 		"wsadjforpc":          "Wind Speed Bin",
 	}
+	percentageList = []string{"deviationpct", "dendeviationpct"}
 )
 
 func CreateAnalyticPowerCurveController() *AnalyticPowerCurveController {
@@ -350,7 +351,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
-	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.In("turbine", turbine...))
 
 	// temporary
@@ -372,18 +372,29 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	// }
 
 	filter = append(filter, dbox.Eq("available", 1))
+	deviationString := "-"
 
 	// modify by ams, 2017-08-11
 	if IsDeviation {
 		if DeviationOpr > 0 {
 			filter = append(filter, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
+			if IsDeviation {
+				deviationString = tk.Sprintf("> %s%%", DeviationVal)
+			}
 		} else {
 			filter = append(filter, dbox.And(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
+			deviationString = tk.Sprintf("< %s%%", DeviationVal)
 		}
 	}
 	if isClean {
 		filter = append(filter, dbox.Eq("isvalidstate", true))
 		// filter = append(filter, dbox.Eq("oktime", 600))
+	}
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+		tk.Sprintf("Data Valid: %v", isClean),
+		tk.Sprintf("Deviation: %s", deviationString),
 	}
 
 	csr, e := DB().Connection.NewQuery().
@@ -548,6 +559,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 	dataSeries = append(dataSeries, pcData)
 
+	/* adding LastFilter, FieldList, TableName & ContentFilter for Download Excel */
 	data := struct {
 		Data              []tk.M
 		TotalData         int
@@ -557,6 +569,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		LastFilter        []*dbox.Filter
 		FieldList         []string
 		TableName         string
+		ContentFilter     []string
 	}{
 		Data:              dataSeries,
 		TotalData:         totalDataAll,
@@ -566,6 +579,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		LastFilter:        filter,
 		FieldList:         fieldList,
 		TableName:         new(ScadaData).TableName(),
+		ContentFilter:     contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -592,10 +606,10 @@ func GetTurbineNameForPC(turbineIDList []interface{}) (turbineName map[string]st
 	}
 	query = query.Command("pipe", pipes)
 	csrTurbine, err := query.Cursor(nil)
-	defer csrTurbine.Close()
 	if err != nil {
 		return
 	}
+	defer csrTurbine.Close()
 	turbineList := []tk.M{}
 	err = csrTurbine.Fetch(&turbineList, 0, false)
 	if err != nil {
@@ -612,10 +626,11 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 	k.Config.OutputType = knot.OutputJson
 
 	p := struct {
-		Filters   []*dbox.Filter
-		FieldList []string
-		TableName string
-		TypeExcel string
+		Filters       []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		TypeExcel     string
+		ContentFilter []string
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
@@ -717,13 +732,14 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 	for _, val := range fieldList {
 		headerList = append(headerList, headerExcelPC[val])
 	}
-	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, false)
+	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, p.ContentFilter, false)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
 	return helper.CreateResult(true, pathDownload, "success")
 }
 
-func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, header, fieldList, turbineNameSorted []string, isSplitSheet bool) error {
+func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, header, fieldList, turbineNameSorted,
+	contentFilter []string, isSplitSheet bool) error {
 	file := x.NewFile()
 	sheet := new(x.Sheet)
 	dataType := ""
@@ -732,6 +748,10 @@ func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, he
 		data := dataPerTurbine[_turbine]
 		if idxTurbine == 0 && !isSplitSheet { /* tambah header dan sheet saat awal saja*/
 			sheet, _ = file.AddSheet("Sheet1")
+			for _, val := range contentFilter {
+				sheet.AddRow().AddCell().Value = val
+			}
+			sheet.AddRow()
 			rowHeader := sheet.AddRow()
 			for _, hdr := range header {
 				cell := rowHeader.AddCell()
@@ -739,6 +759,10 @@ func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, he
 			}
 		} else if isSplitSheet { /* tambah header dan sheet tiap ada perubahan nama turbine */
 			sheet, _ = file.AddSheet(strings.Replace(_turbine, "<>", "_", 1))
+			for key, val := range contentFilter {
+				sheet.AddRow().AddCell().Value = tk.Sprintf("%s: %s", key, val)
+			}
+			sheet.AddRow()
 			rowHeader := sheet.AddRow()
 			for _, hdr := range header {
 				cell := rowHeader.AddCell()
@@ -761,7 +785,9 @@ func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, he
 						switch dataType {
 						case "float64":
 							value := each.GetFloat64(field)
-							if value != -999999 {
+							if tk.HasMember(percentageList, field) {
+								cell.Value = tk.Sprintf("%.2f%%", math.Abs(value*100))
+							} else if value != -999999 {
 								cell.SetFloat(value)
 							}
 						case "int":

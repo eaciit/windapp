@@ -33,6 +33,7 @@ page.viewName = ko.observable();
 page.LastFilter;
 page.TableName;
 page.FieldList;
+page.ContentFilter;
 
 page.totalAvailTurbines = ko.observableArray([]);
 
@@ -118,6 +119,7 @@ page.PowerCurveExporttoExcel = function(tipe, isMultipleProject) {
         FieldList: page.FieldList,
         Tablename: page.TableName,
         TypeExcel: namaFile,
+        ContentFilter: page.ContentFilter,
     };
 
     var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
@@ -279,6 +281,7 @@ var Data = {
             page.LastFilter = res.data.LastFilter;
             page.FieldList = res.data.FieldList;
             page.TableName = res.data.TableName;
+            page.ContentFilter = res.data.ContentFilter;
 
             var tempData = [];
             var powerCurveData;
