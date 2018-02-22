@@ -14,7 +14,7 @@
 					<div class="panel-body">
 						{{template "_dateinfo.html"}}
 						<div class="fc-wrapper">
-							<div class="col-md-10 col-md-offset-1">
+							<div class="col-md-12">
 								<ul class="nav nav-tabs pull-right" role="tablist">
 									<li id="gridTab" role="presentation" class="active" onclick="pg.genereateGrid(); pg.CurrentTab('grid');"><a href="#grid" aria-controls="grid" role="tab" data-toggle="tab" class="tab-custom tooltipster tooltipstered" title="Table View"><i class="fa fa-table"></i></a></li>
 									<li id="chartTab" role="presentation" onclick="pg.genereateChart(); pg.CurrentTab('chart');"><a href="#chart" aria-controls="chart" role="tab" data-toggle="tab" class="tab-custom tooltipster tooltipstered" title="Graph View"><i class="fa fa-bar-chart"></i></a></li>
@@ -27,15 +27,20 @@
 											</div>
 											<div class="clearfix">&nbsp;</div>
 											<div class="btn-excel">
-												<!-- <button type="button" class="btn btn-warning btn-sm tooltipster tooltipstered" title="Edit Schedule Forecast for SLDC" data-bind="click:function(){pg.editData();},visible:(pg.EditMode()=='saved')"><i class="fa fa-pencil" aria-hidden="true"></i></button>
-												<button type="button" class="btn btn-success btn-sm tooltipster tooltipstered" title="Click to Save Schedule Forecast for SLDC" data-bind="click:function(){pg.saveData();},visible:(pg.EditMode()=='edited')"><i class="fa fa-save" aria-hidden="true"></i></button> -->
 												<button type="button" class="btn btn-primary btn-sm tooltipster tooltipstered Epdf" title="Export to Excel" data-bind="click:function(){pg.getPdfGrid();}"><i class="fa fa-file-excel-o" aria-hidden="true"></i></button>
 											</div>
 											<div class="clearfix">&nbsp;</div>
-											<div class="alert alert-info" role="alert">
-												You can edit the SLDC values for time slots 1 hour after the current time. Please click on cell  to edit and Press "Save Changes" button above to save the changes. 
+											<div class="col-md-10">
+												<div class="alert alert-info" role="alert">
+													You can edit the SLDC values for time slots 1 hour after the current time. Please click on cell  to edit and Press "Save Changes" button above to save the changes. 
+												</div>
+												<div id="gridForecasting"></div>
 											</div>
-											<div id="gridForecasting"></div>
+											<div class="col-md-2 grid-send-mail">
+												<button type="button" class="btn btn-primary btn-sm" data-bind="text: pg.TextSendMailToday()" onclick="pg.SendEmail('today')">Send email for current day Rev 0</button>
+												<button type="button" class="btn btn-warning btn-sm" onclick="pg.SendEmail('nextday')">Send email for Rev 0 for next day</button>
+											</div>
+											<div class="clearfix"></div>
 										</div>
 									</div>
 									<div role="tabpanel" class="tab-pane" id="chart">

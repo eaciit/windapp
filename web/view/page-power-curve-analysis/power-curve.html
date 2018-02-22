@@ -1,0 +1,80 @@
+<script src="{{BaseUrl}}res/core/js/page-power-curve-analysis/power-curve.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis/power-curve.css?ANTI_CACHE={{.AntiCache}}&v=1.0.0">
+
+<script id="legendItemTemplate" type="text/kendo">
+    <span class="legend-item">
+        <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+        <span>#:name#</span>
+    </span>
+</script>
+<div class="pc-wrapper">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="text-center">
+                <div class="btn-group" data-toggle="buttons" style="z-index: 10;">
+                    <label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="isAvg" id="sitespesific" autocomplete="off" value="Spesific" checked>Site Specific</label>
+                    <label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="isAvg" id="standardpc" autocomplete="off" value="true">Standard Power Curve</label>
+                </div>
+            </div>
+            <div id="powerCurve"></div>
+            <div class="text-center">
+                <span>Selected Filter : <strong><span id="selectedFilter"></span></strong></span>
+            </div>
+            <div class="text-center">
+                <ul class="list-inline" id="filter-power-curve">
+                    <li class="keep-open">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="isClean" value="Valid" name="filter" checked>
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span ><b class="colBlack">Valid</b></span>
+                            </label>
+                        </div>
+                    </li>
+                    <li class="keep-open">
+                        <div class="form-inline form-group">
+                            <div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="isDeviation" name="filter" value="Deviation" checked="true">
+                                        <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b class="colBlack">For Deviation
+                                        <select id="deviationOpr" class="form-control input-xs sel-deviation" data-bind="options:page.deviationOpts,optionsText:'text',optionsValue:'value',value:page.deviationOpr"></select>
+                                        </b></span>
+                                    </label>
+                                </div>
+                                <label>
+                                    <input type="text" name="txtDeviation" id="deviationValue" class="form-control input-xs txt-deviation" onchange="page.CheckDeviationValue(this); Data.InitLinePowerCurve();" data-bind="value:page.deviationVal, text:page.deviationVal">
+                                    &nbsp;<span><b class="colBlack">%</b></span>
+                                </label>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="keep-open">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="sScater" name="filter" value="Scatter" >
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
+                            </label>
+                        </div>
+                    </li>
+                    <li class="keep-open hidden" id="pc-filter-downtime">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="showDownTime" name="filter" value="Downtime">
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span class="colRed"><b class="colBlack">Show Downtime</b></span>
+                            </label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="checkbox" id="showHideChk"></div>
+            <div class="col-md-12 col-sm-12 turList" id="right-turbine-list"></div>
+            <div data-bind="source: series" data-template="legendItemTemplate" id="legend"></div>
+        </div>
+    </div>
+</div>

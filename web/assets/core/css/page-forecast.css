@@ -36,7 +36,8 @@
 .fc-wrapper .btn-excel{
     position: absolute;
     top: 10px;
-    right: 90px;
+    /* right: 90px; */
+    right: 17.25%;
 }
 .fc-top-info {
     position: absolute;
@@ -56,7 +57,7 @@
 .fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes {
     position: absolute;
     top: -69px;
-    right: 120px;
+    right: 33px;
     max-height: 30px;
     border-radius: 3px;
     color: #fff;
@@ -110,4 +111,11 @@ tr:hover .cell-editable {
 }
 .top-nav-input select.form-control {
     border-radius: 2px!important;
+}
+.grid-send-mail {
+    margin-top: 35px;
+}
+.grid-send-mail button {
+    min-width: 100%;
+    margin-bottom: 5px;
 }

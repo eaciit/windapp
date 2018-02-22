@@ -13,6 +13,7 @@ pg.CurrentTab = ko.observable('grid');
 pg.TurbineDown = ko.observable(0);
 pg.TurbineDownData = ko.observableArray([]);
 pg.EditMode = ko.observable('saved');
+pg.TextSendMailToday = ko.observable('');
 
 pg.Axis1 = ko.observable({min:0,max:0});
 pg.Axis2 = ko.observable({min:0,max:0});
@@ -44,13 +45,53 @@ pg.getData = function() {
         else
             pg.genereateChart();
 
-        var latestSubject = d.data[0].LatestSubject;
-        if(latestSubject == '') {
-            $('.date-info').html('No data forecast for '+ fa.project);
+        var latestSubjects = d.data[0].LatestSubject;
+        var subjects = '';
+        if(latestSubjects.length > 0) {
+            var delim = '';
+            var subject0 = '';
+            $.each(latestSubjects, function(i, v){
+                if(i==0) {
+                    subject0 = v;
+                }
+                subjects += delim + v;
+                delim = ' | ';
+            });
+            var revNo = subject0.toLowerCase().split('rev')[1].trim();
+            var text = 'Send email for current day Rev '+ revNo;
+            $('.date-info').html(subjects);
         } else {
-            $('.date-info').html(latestSubject);
+            var text = 'Send email for current day Rev 0';
+            $('.date-info').html('No data forecast for '+ fa.project);
         }
+        pg.TextSendMailToday(text);
         app.loading(false);
+    });
+}
+pg.SendEmail = function(tipe) {
+    app.loading(true);
+    var url = viewModel.appName + 'forecast/sendmail';
+    var date = new Date(moment().format('YYYY-MM-DD')); 
+    var subject = pg.TextSendMailToday();
+    if(tipe=='nextday') {
+        date = new Date(moment(date).add(1, 'days').format("YYYY-MM-DD"));
+        subject = 'Send email for Rev 0 for next day';
+    }
+    var param = {
+        period: fa.period,
+        date: date,
+        turbine: fa.turbine(),
+        project: fa.project,
+        tipe: tipe,
+        subject: subject,
+    };
+    var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
+    $.when(getdata).done(function(d){
+        if(d.success) {
+            subject = subject.replace('Send email', '');
+            app.loading(false);
+            swal("Mail sent!", "Forecast data" + subject + " has sent.", "success");
+        }
     });
 }
 
@@ -262,8 +303,8 @@ pg.genereateGrid = function(){
                 var timeStamp = data.TimeStamp;
                 var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
                 var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
-                if(!isAllowed) {
-                    $(temp1.container[0]).removeAttr('class'); // to remove background as editable cell
+                if(!isAllowed) {  
+                    $(e.container[0]).removeAttr('class'); // to remove background as editable cell
                     e.preventDefault();
                 }
             },
@@ -564,15 +605,43 @@ pg.initLoad = function() {
         fa.LoadData();
 
         // set end date for this module only, forecast data coming until end of next day
-        $('#dateEnd').data('kendoDatePicker').setOptions({
-            max: new Date("2018-02-22"),
+        var newMaxDate = new Date(moment().utc().add(1, 'days').year(), moment().utc().add(1, 'days').month(), moment().utc().add(1, 'days').date());
+        app.currentDateData = moment(newMaxDate).format("YYYY-MM-DD HH:mm:ss");
+        var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+        var lastEndDate = new Date(app.getDateMax(maxDateData));
+    
+        var elmDateEnd = $('#dateEnd').data('kendoDatePicker');
+        var elmDateStart = $('#dateStart').data('kendoDatePicker');
+        elmDateStart.setOptions({
+            max: lastEndDate,
         });
-        $('#dateEnd').data('kendoDatePicker').value(new Date("2018-02-22"));
+        elmDateEnd.setOptions({
+            max: lastEndDate,
+        });
+        elmDateEnd.value(lastEndDate);
+        // elmDateEnd.trigger("change");
+
+        // elmDateStart.bind('change', pg.dateStartChanged);
 
         di.getAvailDate();
         pg.refresh();
-        app.loading(false);
-    }, 200);
+    }, 500);
+}
+pg.dateStartChanged = function(e) {
+    var newMaxDate = new Date(moment().utc().add(1, 'days').year(), moment().utc().add(1, 'days').month(), moment().utc().add(1, 'days').date());
+    app.currentDateData = moment(newMaxDate).format("YYYY-MM-DD HH:mm:ss");
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var lastEndDate = new Date(app.getDateMax(maxDateData));
+
+    var elmDateEnd = $('#dateEnd').data('kendoDatePicker');
+    var elmDateStart = $('#dateStart').data('kendoDatePicker');
+    elmDateStart.setOptions({
+        max: lastEndDate,
+    });
+    elmDateEnd.setOptions({
+        max: lastEndDate,
+    });
+    elmDateEnd.value(lastEndDate);
 }
 
 pg.refresh = function() {

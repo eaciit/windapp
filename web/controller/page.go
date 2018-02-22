@@ -679,3 +679,21 @@ func (w *PageController) DataAvailability(r *knot.WebContext) interface{} {
 
 	return params
 }
+
+func (w *PageController) PowerCurveAnalysis(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-power-curve-analysis.html"
+	r.Config.IncludeFiles = []string{
+		"_filter-analytic.html",
+		"_filter-powercurve.html",
+		"page-power-curve-analysis/power-curve.html",
+		"page-power-curve-analysis/monthly-scatter.html",
+		"page-power-curve-analysis/individual-month.html",
+		"page-power-curve-analysis/comparison.html",
+		"page-power-curve-analysis/scatter.html",
+		"page-power-curve-analysis/operational.html",
+	}
+
+	return w.GetParams(r, true)
+}
