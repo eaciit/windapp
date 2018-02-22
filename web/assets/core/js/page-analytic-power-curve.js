@@ -30,6 +30,10 @@ page.dataAvailAll = ko.observable(0.0);
 page.totalAvail = ko.observable(0.0);
 page.totalAvailAll = ko.observable(0.0);
 page.viewName = ko.observable();
+page.LastFilter;
+page.TableName;
+page.FieldList;
+page.ContentFilter;
 
 page.totalAvailTurbines = ko.observableArray([]);
 
@@ -100,6 +104,32 @@ page.getPDF = function(selector, detail){
         setTimeout(function(){
             app.loading(false);
         },2000)
+    });
+}
+
+page.PowerCurveExporttoExcel = function(tipe, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isMultipleProject) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: page.LastFilter,
+        FieldList: page.FieldList,
+        Tablename: page.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: page.ContentFilter,
+    };
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
     });
 }
 
@@ -248,6 +278,10 @@ var Data = {
             page.totalAvail(res.data.TotalDataAvail);
             page.totalAvailAll(res.data.TotalDataAvail);
             page.totalAvailTurbines(res.data.TotalPerTurbine);
+            page.LastFilter = res.data.LastFilter;
+            page.FieldList = res.data.FieldList;
+            page.TableName = res.data.TableName;
+            page.ContentFilter = res.data.ContentFilter;
 
             var tempData = [];
             var powerCurveData;
