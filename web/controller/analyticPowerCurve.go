@@ -1678,11 +1678,24 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
 	dataSeries = append(dataSeries, seriesData)
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
 
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
