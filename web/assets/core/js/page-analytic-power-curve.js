@@ -34,6 +34,10 @@ page.LastFilter;
 page.TableName;
 page.FieldList;
 page.ContentFilter;
+page.LastFilterDetails;
+page.TableNameDetails;
+page.FieldListDetails;
+page.ContentFilterDetails;
 
 page.totalAvailTurbines = ko.observableArray([]);
 
@@ -107,12 +111,9 @@ page.getPDF = function(selector, detail){
     });
 }
 
-page.PowerCurveExporttoExcel = function(tipe, isMultipleProject) {
+page.PowerCurveExporttoExcel = function(tipe) {
     app.loading(true);
-    var namaFile = tipe;
-    if (!isMultipleProject) {
-        namaFile = fa.project + " " + tipe;
-    }
+    var namaFile = fa.project + " " + tipe;
 
     var param = {
         Filters: page.LastFilter,
@@ -121,6 +122,15 @@ page.PowerCurveExporttoExcel = function(tipe, isMultipleProject) {
         TypeExcel: namaFile,
         ContentFilter: page.ContentFilter,
     };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: page.LastFilterDetails,
+            FieldList: page.FieldListDetails,
+            Tablename: page.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: page.ContentFilterDetails,
+        };
+    }
 
     var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
     app.ajaxPost(urlName, param, function(res) {
@@ -706,6 +716,10 @@ var Data = {
             }
 
             dataTurbineDetail = res.data.Data;
+            page.LastFilterDetails = res.data.LastFilter;
+            page.FieldListDetails = res.data.FieldList;
+            page.TableNameDetails = res.data.TableName;
+            page.ContentFilterDetails = res.data.ContentFilter;
 
             $('#powerCurveDetail').html("");
             $("#powerCurveDetail").kendoChart({

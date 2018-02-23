@@ -331,7 +331,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		colId = "$wsavgforpc"
 		colDeviation = "deviationpct"
 	}
-	fieldList = []string{"timestamp", "turbine", "avgwindspeed", strings.Split(colId, "$")[1], strings.Split(colValue, "$")[1], colDeviation}
+	fieldList = []string{"timestamp", "turbine", "avgwindspeed", strings.Split(colId, "$")[1], strings.Split(colValue, "$")[1], "pcvalue", colDeviation}
 
 	issitespecific := false
 	if p.IsSpecific && p.ViewSession != "density" {
@@ -656,6 +656,9 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 		}
 		if val.Field == "turbine" && val.Op == "$in" && tk.IsSlice(val.Value) { /* populate turbine id list to get turbine name */
 			turbineIDList = val.Value.([]interface{})
+		}
+		if val.Field == "turbine" && val.Op == "$eq" {
+			turbineIDList = append(turbineIDList, val.Value)
 		}
 	}
 	fieldList := p.FieldList
@@ -2513,8 +2516,8 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 
 	dataSeries = append(dataSeries, pcData)
 
+	var filter []*dbox.Filter
 	if len(turbine) == 1 {
-		var filter []*dbox.Filter
 		filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 		filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 
@@ -2551,11 +2554,24 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 		turbineData.Set("data", datas)
 		dataSeries = append(dataSeries, turbineData)
 	}
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
 
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
