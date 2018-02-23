@@ -29,7 +29,7 @@
 							<div class="col-md-8" style="margin-top: -30px;">
 								<div class="filters">
 									<div class="tools pull-right btn-pdf">
-										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Power Curve', false)}">
+										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Power Curve')}">
 									    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
 									  	</button>
 										<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp', false)}">
@@ -185,8 +185,11 @@
 			<div class="col-md-12 col-sm-12 hardcore landing">
 				<div class="panel ez no-padding hardcore">
 					<div class="panel-heading">Detail Power Curve <span class="fa fa-angle-double-right"></span> Turbine <strong><span data-bind="text:page.detailTitle"></span></strong>						(For period from <span data-bind="text:page.detailStartDate"></span> to <span data-bind="text:page.detailEndDate"></span>)
-						<div class="tools btn-group pull-right btn-pdf">
-							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp-detail',true)}">
+						<div class="tools pull-right btn-pdf">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Power Curve Details')}">
+						    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+						  	</button>
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){page.getPDF('.div-temp-detail',true)}">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
 						</div>
