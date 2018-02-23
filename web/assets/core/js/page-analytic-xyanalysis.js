@@ -444,6 +444,18 @@ page.GenerateChart = function(dataSource) {
                 padding: {top: 135}
             }
         },
+        pannable: {
+            lock: "y"
+        },
+        zoomable: {
+            mousewheel: {
+                lock: "y"
+            },
+            selection: {
+                lock: "y",
+                key: "none",
+            }
+        }
     });
 
     $("#chartxyAnalysis").data("kendoChart").options.series = page.Data();
