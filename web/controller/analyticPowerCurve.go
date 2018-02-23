@@ -880,6 +880,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
 	}
+	filter := pipeMatchToDboxFilter(match)
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 
@@ -1024,12 +1025,26 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		categoryList = append(categoryList, catList)
 	}
 
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
+
 	data := struct {
-		Data     []tk.M
-		Category []tk.M
+		Data          []tk.M
+		Category      []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     results,
-		Category: categoryList,
+		Data:          results,
+		Category:      categoryList,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
