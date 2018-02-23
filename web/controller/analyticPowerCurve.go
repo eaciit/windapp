@@ -627,12 +627,13 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 	k.Config.OutputType = knot.OutputJson
 
 	p := struct {
-		Filters         []*dbox.Filter
-		FieldList       []string
-		TableName       string
-		TypeExcel       string
-		ContentFilter   []string
-		IsSplittedSheet bool
+		Filters           []*dbox.Filter
+		FieldList         []string
+		TableName         string
+		TypeExcel         string
+		ContentFilter     []string
+		IsSplittedSheet   bool
+		IsMultipleProject bool
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
@@ -737,14 +738,14 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 	for _, val := range fieldList {
 		headerList = append(headerList, headerExcelPC[val])
 	}
-	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, p.ContentFilter, p.IsSplittedSheet)
+	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, p.ContentFilter, p.IsSplittedSheet, p.IsMultipleProject)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
 	return helper.CreateResult(true, pathDownload, "success")
 }
 
 func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, header, fieldList, turbineNameSorted,
-	contentFilter []string, isSplitSheet bool) error {
+	contentFilter []string, isSplitSheet, isMultipleProject bool) error {
 	file := x.NewFile()
 	sheet := new(x.Sheet)
 	dataType := ""
@@ -763,9 +764,13 @@ func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, he
 				cell.Value = hdr
 			}
 		} else if isSplitSheet { /* tambah header dan sheet tiap ada perubahan nama turbine */
-			sheet, _ = file.AddSheet(strings.Replace(_turbine, "<>", "_", 1))
-			for key, val := range contentFilter {
-				sheet.AddRow().AddCell().Value = tk.Sprintf("%s: %s", key, val)
+			if isMultipleProject { /* jika multiple project dapat bonus nama project + turbine */
+				sheet, _ = file.AddSheet(strings.Replace(_turbine, "<>", "_", 1))
+			} else {
+				sheet, _ = file.AddSheet(strings.Split(_turbine, "<>")[1])
+			}
+			for _, val := range contentFilter {
+				sheet.AddRow().AddCell().Value = val
 			}
 			sheet.AddRow()
 			rowHeader := sheet.AddRow()

@@ -111,7 +111,7 @@ page.getPDF = function(selector, detail){
     });
 }
 
-page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet) {
+page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
     app.loading(true);
     var namaFile = tipe;
     if (!isSplittedSheet) {
@@ -125,6 +125,7 @@ page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet) {
         TypeExcel: namaFile,
         ContentFilter: page.ContentFilter,
         IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
     };
     if (tipe.indexOf("Details") > 0) {
         var param = {
@@ -133,7 +134,8 @@ page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet) {
             Tablename: page.TableNameDetails,
             TypeExcel: namaFile,
             ContentFilter: page.ContentFilterDetails,
-            IsSplittedSheet: false,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
         };
     }
 
