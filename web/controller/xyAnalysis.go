@@ -26,6 +26,8 @@ type FieldAnalysis struct {
 	Name  string
 	Aggr  string
 	Text  string
+	Min   float64
+	Max   float64
 	Order int
 }
 
@@ -196,6 +198,9 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 	defer csr.Close()
 
 	alltkm, allturb := tk.M{}, []string{}
+	p.XAxis.Min, p.XAxis.Max = 0, 0
+	p.Y1Axis.Min, p.Y1Axis.Max = 0, 0
+	p.Y2Axis.Min, p.Y2Axis.Max = 0, 0
 	for {
 		tkm, ds := tk.M{}, tk.M{}
 		e = csr.Fetch(&tkm, 1, false)
@@ -226,11 +231,36 @@ func (m *XyAnalysis) GetData(k *knot.WebContext) interface{} {
 		data2y[xaxis] = tkm.Get(strings.ToLower(p.Y2Axis.Id), nil)
 
 		if data1y[xaxis] != nil {
-			data1y[xaxis] = tk.ToFloat64(data1y[xaxis], 2, tk.RoundingAuto)
+			_val := tk.ToFloat64(data1y[xaxis], 2, tk.RoundingAuto)
+			data1y[xaxis] = _val
+			if p.Y1Axis.Min == 0 || p.Y1Axis.Min > _val {
+				p.Y1Axis.Min = _val
+			}
+
+			if p.Y1Axis.Max == 0 || p.Y1Axis.Max < _val {
+				p.Y1Axis.Max = _val
+			}
 		}
 
 		if data2y[xaxis] != nil {
-			data2y[xaxis] = tk.ToFloat64(data2y[xaxis], 2, tk.RoundingAuto)
+			_val := tk.ToFloat64(data2y[xaxis], 2, tk.RoundingAuto)
+			data2y[xaxis] = _val
+
+			if p.Y2Axis.Min == 0 || p.Y2Axis.Min > _val {
+				p.Y2Axis.Min = _val
+			}
+
+			if p.Y2Axis.Max == 0 || p.Y2Axis.Max < _val {
+				p.Y2Axis.Max = _val
+			}
+		}
+
+		if p.XAxis.Min == 0 || p.XAxis.Min > xaxis {
+			p.XAxis.Min = xaxis
+		}
+
+		if p.XAxis.Max == 0 || p.XAxis.Max < xaxis {
+			p.XAxis.Max = xaxis
 		}
 
 		ds.Set("id", tkm.GetString("turbine"))
