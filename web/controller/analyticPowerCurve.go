@@ -792,7 +792,7 @@ func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, he
 							if tk.HasMember(percentageList, field) {
 								cell.Value = tk.Sprintf("%.2f%%", math.Abs(value*100))
 							} else if value != -999999 {
-								cell.SetFloat(value)
+								cell.SetFloat(tk.ToFloat64(tk.Sprintf("%.2f", value), 2, tk.RoundingAuto))
 							}
 						case "int":
 							value := each.GetInt(field)
