@@ -965,23 +965,28 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	if len(forecast) > 0 {
 		from := tk.M{"email": "ostro.support@eaciit.com", "name": "Ostro Support"}
 		tos := []tk.M{
+			tk.M{"email": "priyadarshan.b@ostro.in", "name": "Priyadarshan B"},
+		}
+		ccs := []tk.M{
 			tk.M{"email": "sandhya@eaciit.com", "name": "Sandhya Jain"},
 			tk.M{"email": "aris.meika@eaciit.com", "name": "Aris Meika"},
 		}
-		ccs := []tk.M{}
 		bccs := []tk.M{}
 		createXlsAndSend(p.Project, p.Date, p.Subject, from, tos, ccs, bccs, dataReturn)
 	} else {
+		revNos := strings.Split(strings.ToLower(p.Subject), "rev")
+		revNo := strings.TrimSpace(tk.Sprintf("%s ", revNos[1])[0:3])
+		revNo2Digit := tk.Sprintf("%02v", revNo)
 		sendMail = false
-		msg = "No forecast data for " + p.Project
+		msg = "No forecast data for " + p.Project + " for " + p.Date.Format("02/01/2006") + " rev no " + revNo2Digit
 	}
 
-	return helper.CreateResult(sendMail, nil, msg)
+	return helper.CreateResult(sendMail, []tk.M{}, msg)
 }
 
 func createXlsAndSend(project string, date time.Time, subject string, addressFrom tk.M, addressTo []tk.M, addressCc []tk.M, addressBcc []tk.M, data []tk.M) {
 	revNos := strings.Split(strings.ToLower(subject), "rev")
-	revNo := strings.TrimSpace(revNos[1][0:3])
+	revNo := strings.TrimSpace(tk.Sprintf("%s ", revNos[1])[0:3])
 	revNo2Digit := tk.Sprintf("%02v", revNo)
 	pathToSave := tk.Sprintf("web/assets/forecast/%s", date.Format("20060102"))
 	_, err := os.Stat(pathToSave)
