@@ -260,8 +260,12 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	forecastsubject := []tk.M{}
 	e = csrsub.Fetch(&forecastsubject, 0, false)
 	if len(forecastsubject) > 0 {
+		prevSubject := ""
 		for _, d := range forecastsubject {
-			latestSubject = append(latestSubject, d.GetString("max_subject"))
+			if prevSubject != d.GetString("max_subject") || prevSubject == "" {
+				latestSubject = append(latestSubject, d.GetString("max_subject"))
+			}
+			prevSubject = d.GetString("max_subject")
 		}
 	}
 

@@ -627,11 +627,12 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 	k.Config.OutputType = knot.OutputJson
 
 	p := struct {
-		Filters       []*dbox.Filter
-		FieldList     []string
-		TableName     string
-		TypeExcel     string
-		ContentFilter []string
+		Filters         []*dbox.Filter
+		FieldList       []string
+		TableName       string
+		TypeExcel       string
+		ContentFilter   []string
+		IsSplittedSheet bool
 	}{}
 	e := k.GetPayload(&p)
 	if e != nil {
@@ -736,7 +737,7 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 	for _, val := range fieldList {
 		headerList = append(headerList, headerExcelPC[val])
 	}
-	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, p.ContentFilter, false)
+	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, p.ContentFilter, p.IsSplittedSheet)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
 	return helper.CreateResult(true, pathDownload, "success")
@@ -1029,6 +1030,27 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	return helper.CreateResult(true, data, "success")
 }
 
+func pipeMatchToDboxFilter(matches []tk.M) (result []*dbox.Filter) {
+	result = []*dbox.Filter{}
+	for _, match := range matches {
+		_result := new(dbox.Filter)
+		for key, val := range match {
+			_result.Field = key
+			if tk.TypeName(val) == "toolkit.M" {
+				for operator, value := range val.(tk.M) {
+					_result.Op = operator
+					_result.Value = value
+				}
+			} else {
+				_result.Op = "$eq"
+				_result.Value = val
+			}
+		}
+		result = append(result, _result)
+	}
+	return
+}
+
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 	var (
@@ -1078,6 +1100,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+	}
+	filter := pipeMatchToDboxFilter(match)
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
 	}
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
@@ -1246,12 +1273,22 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	categoryList = append(categoryList, tk.M{"category": "Power Curve", "color": "#ff9933"})
 	categoryList = append(categoryList, tk.M{"category": "Data", "color": "#21c4af"})
 
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
+
 	data := struct {
-		Data     []tk.M
-		Category []tk.M
+		Data          []tk.M
+		Category      []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     results,
-		Category: categoryList,
+		Data:          results,
+		Category:      categoryList,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
