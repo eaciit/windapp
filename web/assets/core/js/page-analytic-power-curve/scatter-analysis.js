@@ -19,6 +19,10 @@ page.dtSeries = ko.observableArray([]);
 page.project = ko.observable();
 page.dateStart = ko.observable();
 page.dateEnd = ko.observable();
+page.LastFilter;
+page.TableName;
+page.FieldList;
+page.ContentFilter;
 
 
 page.ExportIndividualMonthPdf = function() {
@@ -59,6 +63,45 @@ page.getPDF = function(selector){
         setTimeout(function(){
             app.loading(false);
         },2000)
+    });
+}
+
+page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isSplittedSheet) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: page.LastFilter,
+        FieldList: page.FieldList,
+        Tablename: page.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: page.ContentFilter,
+        IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
+    };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: page.LastFilterDetails,
+            FieldList: page.FieldListDetails,
+            Tablename: page.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: page.ContentFilterDetails,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
+        };
+    }
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
     });
 }
 
@@ -174,6 +217,10 @@ page.getPowerCurveScatter = function() {
         if (!app.isFine(res)) {
             return;
         }
+        page.LastFilter = res.data.LastFilter;
+        page.FieldList = res.data.FieldList;
+        page.TableName = res.data.TableName;
+        page.ContentFilter = res.data.ContentFilter;
 
         var result = res.data.Data;
 
