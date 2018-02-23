@@ -359,6 +359,8 @@ page.GenerateChart = function(dataSource) {
                             color: "#eee",
                             width: 0.8,
             };
+            xAxis.min = Math.round(value.Min - ((value.Min / 100) * 10));
+            xAxis.max =  Math.round(value.Max + ((value.Max / 100) * 10));
             xAxis.crosshair = {
                     visible: true,
                     tooltip: {
@@ -388,6 +390,7 @@ page.GenerateChart = function(dataSource) {
                     color: "#eee",
                     width: 0.8,
                 },
+
                 axisCrossingValues : [-10000, 10000],
                 crosshair: {
                     visible: true,
@@ -403,6 +406,8 @@ page.GenerateChart = function(dataSource) {
                         },
                     }
                 },
+                min: Math.sign(value.Min)  == -1 ? Math.round(value.Min - ((Math.abs(value.Min) / 100) * 20 )) :  Math.round((Math.abs(-value.Min) + (Math.abs(value.Min) / 100) * 20 )),
+                max: Math.sign(value.Max)  == -1 ? Math.round(value.Max - ((Math.abs(value.Max) / 100) * 20 )) :  Math.round((Math.abs(-value.Max) + (Math.abs(value.Max) / 100) * 20 )),
             }
 
             yAxes.push(yAx);
@@ -465,7 +470,7 @@ page.GenerateTurbineList = function() {
         $("#right-turbine-list").append('<div class="btn-group">' +
         '<button class="btn btn-default btn-sm turbine-chk" type="button" onclick="page.showHideLegend(' + idx + ')" style="border-color:' + val.color + ';background-color:' + val.color + '"><i class="fa fa-check" id="icon-' + idx + '"></i></button>' +
         '<input class="chk-option" type="checkbox" name="' + val.turbineid + '" checked id="chk-' + idx + '" hidden>' +
-        '<button class="btn btn-default btn-sm turbine-btn wbtn" onclick="page.toDetail(\'' + val.turbineid + '\',\'' + val.turbineid + '\')" type="button">' + nameTurbine +'</button>' +
+        '<button class="btn btn-default btn-sm turbine-btn wbtn" type="button">' + nameTurbine +'</button>' +
         '</div>');
     });
 }
