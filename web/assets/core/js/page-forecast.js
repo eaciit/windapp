@@ -90,7 +90,10 @@ pg.SendEmail = function(tipe) {
         if(d.success) {
             subject = subject.replace('Send email', '');
             app.loading(false);
-            swal("Mail sent!", "Forecast data" + subject + " has sent.", "success");
+            swal("Email sent!", "Forecast data" + subject + " has sent.", "success");
+        } else {
+            app.loading(false);
+            swal("Email not sent!", d.message, "warning");
         }
     });
 }
