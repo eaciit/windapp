@@ -41,7 +41,7 @@ page.periodList = ko.observableArray([
 
 var lastPeriod = "";
 var colors = ["#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548", "#383271", "#6a4795", "#bec554", "#ab5919", "#f5b1e1", "#7b3416", "#002fef", "#8d731b", "#1f8805", "#ff9900", "#9C27B0", "#6c7d8a", "#d73c1c", "#5be7a0", "#da02d4", "#afa56e", "#7e32cb", "#a2eaf7", "#9cb8f4", "#9E9E9E", "#065806", "#044082", "#18937d", "#2c787a", "#a57c0c", "#234341", "#1aae7a", "#7ac610", "#736f5f", "#4e741e", "#68349d", "#1df3b6", "#e02b09", "#d9cfab", "#6e4e52", "#f31880", "#7978ec", "#f5ace8", "#3db6ae", "#5e06b0", "#16d0b9", "#a25a5b", "#1e603a", "#4b0981", "#62975f", "#1c8f2f", "#b0c80c", "#642794", "#e2060d", "#2125f0"];
-
+var colorsDeg = ["#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"];
 
 page.hexToRgb = function(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -306,7 +306,7 @@ page.GenerateChart = function(dataSource) {
         $.each(dataSource.axisinfo, function(e, axis){
             if(e > 0){
 
-                var valueColor = (e == 1 ? colors[color] : page.hexToRgb(colors[color-1])) ;
+                var valueColor = (e == 1 ? colors[color] : colorsDeg[color-1]) ;
                 var series =   {
                     colorField: "valueColor",
                     data: [],
@@ -351,8 +351,7 @@ page.GenerateChart = function(dataSource) {
             xAxis.axisCrossingValues =  [-10000, 10000];
             xAxis.title = {
                 text: value.Text,
-                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                color: "#585555",
+                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 visible: true,
             };
             xAxis.majorGridLines = {
@@ -381,8 +380,7 @@ page.GenerateChart = function(dataSource) {
                 name: value.Id, 
                 title : {
                     text: value.Text,
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    color: "#585555",
+                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                     visible: true,
                 },
                 majorGridLines: {
@@ -390,6 +388,7 @@ page.GenerateChart = function(dataSource) {
                     color: "#eee",
                     width: 0.8,
                 },
+                axisCrossingValues : [-10000, 10000],
                 crosshair: {
                     visible: true,
                     tooltip: {
@@ -431,7 +430,15 @@ page.GenerateChart = function(dataSource) {
         tooltip: {
             visible: true, 
             fomat : "N2"
-        }
+        },
+        categoryAxis: {
+            line: {
+                visible: false
+            },
+            labels: {
+                padding: {top: 135}
+            }
+        },
     });
 
     $("#chartxyAnalysis").data("kendoChart").options.series = page.Data();
