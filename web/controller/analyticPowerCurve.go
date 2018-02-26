@@ -1706,11 +1706,24 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
 	dataSeries = append(dataSeries, seriesData)
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
 
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1949,6 +1962,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 
 	powerData := []tk.M{}
+	filterExcel := []*dbox.Filter{}
 
 	pipes := []tk.M{}
 	if !isScada10Min {
@@ -1973,6 +1987,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		filter = append(filter, dbox.Eq("available", 1))
 
 		// filter = append(filter, dbox.Eq("oktime", 600))
+		filterExcel = filter
 
 		csrPower, e := DB().Connection.NewQuery().
 			From(new(ScadaData).TableName()).
@@ -2056,6 +2071,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		filter2 = append(filter2, dbox.Eq("projectname", project))
 		filter2 = append(filter2, dbox.Gt("windspeed_ms", 0))
 		filter2 = append(filter2, dbox.Gt("activepower_kw", 0))
+		filterExcel = filter2
 
 		csr, e := DB().Connection.NewQuery().
 			Select("activepower_kw", "windspeed_ms_stddev", "windspeed_ms").
@@ -2277,10 +2293,40 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		dataSeries = append(dataSeries, seriesData2)
 	}
 
+	addFieldExcel := ""
+	switch p.ScatterType {
+	case "pitch":
+		addFieldExcel = "avgbladeangle"
+	case "deviation":
+		addFieldExcel = "winddirection"
+	case "temp":
+		addFieldExcel = "nacelletemperature"
+	case "ambient":
+		addFieldExcel = "ambienttemperature"
+	case "windspeed_dev":
+		addFieldExcel = "windspeed_ms_stddev"
+	case "windspeed_ti":
+		addFieldExcel = "windspeed_ms_stddev"
+	}
+
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", addFieldExcel, "power", "pcvalue", "deviationpct"}
+
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")

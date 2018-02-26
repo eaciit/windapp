@@ -54,7 +54,7 @@
 }
 .ExportTo{
     cursor: pointer;
-    margin-left: 3px !important;
+    margin-left: 2px !important;
     font-weight: bold;
 }
 .turList{
@@ -162,7 +162,7 @@
         margin-right: 10px;
     }
     .ExportTo {
-        margin-right: 3px;
+        margin-right: 2px;
     }
 }
 
