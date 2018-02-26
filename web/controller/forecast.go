@@ -463,9 +463,9 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			fcvalue = dtForecast.GetFloat64("schcapacity")
 			schval = dtForecast.GetFloat64("schcapacity")
 			// calculate sch value from actual power of 15 min data
-			if actual != defaultValue {
-				schval = (actual + fcvalue) / 2
-			}
+			// if actual != defaultValue {
+			// 	schval = (actual + fcvalue) / 2
+			// }
 			// calculate sch value from the realtime actual power
 			if powerRtd != defaultValue {
 				if !tsRtd.IsZero() {

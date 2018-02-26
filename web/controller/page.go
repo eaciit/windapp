@@ -692,6 +692,7 @@ func (w *PageController) PowerCurveAnalysis(r *knot.WebContext) interface{} {
 		"page-power-curve-analysis/individual-month.html",
 		"page-power-curve-analysis/comparison.html",
 		"page-power-curve-analysis/scatter.html",
+		"page-power-curve-analysis/scatter-with-filter.html",
 		"page-power-curve-analysis/operational.html",
 	}
 

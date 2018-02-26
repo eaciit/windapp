@@ -266,10 +266,11 @@ pg.genereateGrid = function(){
             },
             columns: [
                 { field: "Date", title: "Date"},
-                { field: "TimeBlock", title: "Time Block", width: 100, },
+                { field: "TimeBlock", title: "Time", width: 100, },
+                { field: "TimeBlockInt", title: "Time Block", width: 60, },
                 // { field: "TimeBlockInt", title: "Time<br/>Block", width: 50, },
                 { 
-                    title: "Avg. Cap.<br>(MW)", 
+                    title: "AvC<br>(MW)", 
                     field: "AvaCap", 
                     template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", 
                     format: '{0:n0}',
@@ -290,7 +291,7 @@ pg.genereateGrid = function(){
                     },
                 },
                 { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
-                { title: "Exp Prod /<br>Pwr Curv (MW)", width: 120, field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #", format: '{0:n2}' },
+                { title: "Exp. Prod<br>(MW)", width: 120, field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #", format: '{0:n2}' },
                 { field: "FcastWs", title: "Fcast ws<br>(m/s)", template : "#: (FcastWs==null?'-':kendo.toString(FcastWs, 'n2')) #", format: '{0:n2}' },
                 { field: "ActualWs", title: "Actual ws<br>(m/s)", template : "#: (ActualWs==null?'-':kendo.toString(ActualWs, 'n2')) #", format: '{0:n2}' },
                 { field: "DevFcast", title: "% Error<br>Act / Fcst", template : "#: (DevFcast==null?'-':kendo.toString(DevFcast, 'p2')) #", format: '#,##0.0#%' },

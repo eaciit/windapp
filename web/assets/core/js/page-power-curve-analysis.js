@@ -41,6 +41,12 @@ pg.setSc = function() {
         pg.refresh();
     }
 }
+pg.setSf = function() {
+    if(typeof sf !== 'undefined') {
+        pg.currentObject(sf);
+        pg.refresh();
+    }
+}
 pg.setOp = function() {
     if(typeof op !== 'undefined') {
         pg.currentObject(op);
@@ -73,6 +79,11 @@ pg.resetAllTabs = function() {
             sc.reset();
         }
     }
+    if(typeof sf !== 'undefined') {
+        if(typeof sf.reset !== 'undefined') {
+            sf.reset();
+        }
+    }
     if(typeof op !== 'undefined') {
         if(typeof op.reset !== 'undefined') {
             op.reset();
@@ -87,11 +98,10 @@ pg.refresh = function() {
 }
 
 pg.initLoad = function() {
+    fa.LoadData();
     window.setTimeout(function(){
-        fa.LoadData();
         di.getAvailDate();
         pg.setPc();
-        app.loading(false);
     }, 1000);
 }
 
@@ -132,6 +142,9 @@ $(function(){
     });
     $('#t-scatter a').on('click', function(){
         pg.setSc();
+    });
+    $('#t-scatter-with-filter a').on('click', function(){
+        pg.setSf();
     });
     $('#t-operational a').on('click', function(){
         pg.setOp();

@@ -1,2 +1,28 @@
 <script src="{{BaseUrl}}res/core/js/page-power-curve-analysis/monthly-scatter.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis/monthly-scatter.css?ANTI_CACHE={{.AntiCache}}&v=1.0.0">
+<div class="ms-wrapper">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="input-group ms-period">
+                Period &nbsp;:&nbsp;&nbsp; 
+                <input class="k-input" type="text" id="ms-period" />&nbsp;
+                <button type="button" id="btnRefresh" data-bind="css: fa.infoFiltersChanged() == true ? 'flash-button' : 'no-flash'" class="btn btn-sm btn-primary btn-filter-refresh filter-changed no-flash" aria-hidden="true" onclick="ms.internalRefresh()"><i class="fa fa-refresh"></i>&nbsp;Refresh &nbsp;</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="ms-individual-month" data-bind="foreach: ms.dataPCEachTurbine">
+                <div class="col-md-4 col-xs-12 ms-power-curve-item">
+                    <div class="totalavail_info">
+                        <span>Total DA : <strong data-bind="attr:{id: 'ms-totalAv-' + Name}"></strong></span>
+                    </div>
+                    <div class="dataavail_info">
+                        <span>Valid DA : <strong data-bind="attr:{id: 'ms-dataAv-' + Name}"></strong></span>
+                    </div>
+                    <div data-bind="attr:{id: 'ms-chart-' + Name}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

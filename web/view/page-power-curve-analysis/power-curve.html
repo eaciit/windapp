@@ -12,69 +12,70 @@
         <div class="col-md-8">
             <div class="text-center">
                 <div class="btn-group" data-toggle="buttons" style="z-index: 10;">
-                    <label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="isAvg" id="sitespesific" autocomplete="off" value="Spesific" checked>Site Specific</label>
-                    <label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="isAvg" id="standardpc" autocomplete="off" value="true">Standard Power Curve</label>
+                    <label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="pc-type" id="pc-sitespesific" autocomplete="off" value="Spesific" checked>Site Specific</label>
+                    <label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="pc-type" id="pc-standardpc" autocomplete="off" value="true">Standard Power Curve</label>
                 </div>
             </div>
-            <div id="powerCurve"></div>
-            <div class="text-center">
-                <span>Selected Filter : <strong><span id="selectedFilter"></span></strong></span>
-            </div>
-            <div class="text-center">
-                <ul class="list-inline" id="filter-power-curve">
-                    <li class="keep-open">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="isClean" value="Valid" name="filter" checked>
-                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                                <span ><b class="colBlack">Valid</b></span>
-                            </label>
-                        </div>
-                    </li>
-                    <li class="keep-open">
-                        <div class="form-inline form-group">
-                            <div>
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" id="isDeviation" name="filter" value="Deviation" checked="true">
-                                        <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                                        <span ><b class="colBlack">For Deviation
-                                        <select id="deviationOpr" class="form-control input-xs sel-deviation" data-bind="options:page.deviationOpts,optionsText:'text',optionsValue:'value',value:page.deviationOpr"></select>
-                                        </b></span>
-                                    </label>
-                                </div>
+            <div id="pc-chart"></div>
+            <div class="pc-selected-filter">
+                <div class="text-center">
+                    <span>Selected Filter : <strong><span id="pc-selected-filter" data-bind="text: pc.selectedFilter"></span></strong></span>
+                </div>
+                <div class="text-center">
+                    <ul class="list-inline" id="filter-power-curve">
+                        <li class="keep-open">
+                            <div class="checkbox">
                                 <label>
-                                    <input type="text" name="txtDeviation" id="deviationValue" class="form-control input-xs txt-deviation" onchange="page.CheckDeviationValue(this); Data.InitLinePowerCurve();" data-bind="value:page.deviationVal, text:page.deviationVal">
-                                    &nbsp;<span><b class="colBlack">%</b></span>
+                                    <input type="checkbox" id="pc-is-valid" value="Valid" name="filter" checked>
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span ><b class="colBlack">Valid</b></span>
                                 </label>
                             </div>
-                        </div>
-                    </li>
-                    <li class="keep-open">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="sScater" name="filter" value="Scatter" >
-                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                                <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
-                            </label>
-                        </div>
-                    </li>
-                    <li class="keep-open hidden" id="pc-filter-downtime">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="showDownTime" name="filter" value="Downtime">
-                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-                                <span class="colRed"><b class="colBlack">Show Downtime</b></span>
-                            </label>
-                        </div>
-                    </li>
-                </ul>
+                        </li>
+                        <li class="keep-open">
+                            <div class="form-inline form-group deviation-wrapper">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pc-is-deviation" name="filter" value="Deviation" checked>
+                                        <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b class="colBlack">For Deviation</b></span>
+                                    </label>
+                                </div>
+                                <select id="pc-deviation-opr" class="form-control input-xs sel-deviation" data-bind="options:pc.deviationOpts,optionsText:'text',optionsValue:'value',value:pc.deviationOpr"></select>
+                                <input type="number" id="pc-deviation-value" class="form-control input-xs txt-deviation" onchange="page.CheckDeviationValue(this); pc.refresh();" data-bind="value:pc.deviationVal">
+                                &nbsp;<span><b class="colBlack">%</b></span>
+                            </div>
+                        </li>
+                        <li class="keep-open">
+                            <div class="form-inline form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pc-show-scatter" name="pc-shows" value="Scatter" >
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="keep-open hidden" id="pc-filter-downtime">
+                            <div class="form-inline form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pc-show-downtime" name="pc-shows" value="Downtime">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="colRed"><b class="colBlack">Show Downtime</b></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="checkbox" id="showHideChk"></div>
-            <div class="col-md-12 col-sm-12 turList" id="right-turbine-list"></div>
-            <div data-bind="source: series" data-template="legendItemTemplate" id="legend"></div>
+            <div class="checkbox" id="pc-show-hide-check"></div>
+            <div class="col-md-12 col-sm-12 turList" id="pc-right-turbine-list"></div>
+            <div data-bind="source: series" data-template="legendItemTemplate" id="pc-legend"></div>
         </div>
     </div>
 </div>

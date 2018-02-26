@@ -2,10 +2,14 @@
     app.currentDateData = '{{.CurrentDateData}}';
     vm.menu({{.Menus}});
 </script>
-<script src="{{BaseUrl}}res/core/js/page-power-curve-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis.css?ANTI_CACHE={{.AntiCache}}">
 <div class="row">
     {{template "_filter-powercurve.html"}}
+    <script>
+        var projects = {{.ProjectList}};
+        var turbines = {{.TurbineList}};
+        fa.setProjectTurbine(projects, turbines, "");
+    </script>
     <div class="col-md-12 col-sm-12 ez panel-content">
         <div class="col-md-12 col-sm-12 hardcore landing">
             <div class="panel ez no-padding hardcore mb-5">
@@ -17,6 +21,7 @@
                         <li id="t-individual-month" role="presentation"><a href="#w-individual-month" aria-controls="Individual Month" role="tab" data-toggle="tab" class="tab-custom">Individual Month</a></li>
                         <li id="t-comparison" role="presentation"><a href="#w-comparison" aria-controls="Comparison" role="tab" data-toggle="tab" class="tab-custom">Comparison</a></li>
                         <li id="t-scatter" role="presentation"><a href="#w-scatter" aria-controls="Scatter" role="tab" data-toggle="tab" class="tab-custom">Scatter</a></li>
+                        <li id="t-scatter-with-filter" role="presentation"><a href="#w-scatter-with-filter" aria-controls="Scatter With Filter" role="tab" data-toggle="tab" class="tab-custom">Scatter With Filter</a></li>
                         <li id="t-operational" role="presentation"><a href="#w-operational" aria-controls="Operational" role="tab" data-toggle="tab" class="tab-custom">Operational</a></li>
                     </ul>
                     <div class="tab-content">
@@ -35,6 +40,9 @@
                         <div role="tabpanel" class="tab-pane" id="w-scatter">
                             {{template "scatter.html"}}
                         </div>
+                        <div role="tabpanel" class="tab-pane" id="w-scatter-with-filter">
+                            {{template "scatter-with-filter.html"}}
+                        </div>
                         <div role="tabpanel" class="tab-pane" id="w-operational">
                             {{template "operational.html"}}
                         </div>
@@ -44,8 +52,4 @@
         </div>
     </div>
 </div>
-<script>
-    var projects = {{.ProjectList}};
-    var turbines = {{.TurbineList}};
-	fa.setProjectTurbine(projects, turbines, "");
-</script>
+<script src="{{BaseUrl}}res/core/js/page-power-curve-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>

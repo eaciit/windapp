@@ -1,0 +1,12 @@
+#im-legend-wrapper {
+    width: 100%;
+    text-align: center;
+}
+#im-legend-wrapper #legend-list button {
+    margin-left: 15px;
+    margin-right: 7px;
+}
+#im-legend-wrapper #legend-list button:first-child {
+    margin-left: 0px;
+    margin-right: 7px;
+}

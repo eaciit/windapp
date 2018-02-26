@@ -1,10 +1,10 @@
 .pc-wrapper {
     padding: 0 20px;
 }
-#right-turbine-list {
-    max-width: 90%;
+.pc-wrapper .radio-filter {
+    min-width: 160px;
 }
-.turbine-btn{
+.pc-turbine-btn{
     margin-bottom: 5px;
     margin-right: 5px;
     height: 20px !important;
@@ -12,7 +12,7 @@
     margin-left: -1px;
     border-radius: 0px;
 }
-.turbine-chk, .down-chk{
+.pc-turbine-chk, .down-chk{
 	width: 20px;
     height: 20px;
     padding-left: 4px;
@@ -20,10 +20,10 @@
     padding-top: 1px!important;
     border-radius: 0px;
 }
-.turbine-chk:hover, .down-chk:hover{
+.pc-turbine-chk:hover, .pc-down-chk:hover{
     color: #fff;
 }
-.turbine-chk:active, .down-chk:active{
+.pc-turbine-chk:active, .pc-down-chk:active{
     color: #fff;
 }
 .wbtn
@@ -34,17 +34,39 @@
     text-align: left;
     padding-left: 2px;
     padding-top: 2px;
+    max-height: 20px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border-radius: 0;
 }
 .wbtn label {
     height: 100%;
     font-size: 11px;
-    margin-right: 1px;
-    padding-top: 3px;
+    margin-right: -9px;
+    padding-top: 2px;
     padding-right: 1px;
     padding-left: 3px;
     background: #e0e0e0;
 }
-#showHideChk {
+#pc-show-hide-check {
     margin-top: 7.5px;
     margin-left: -15px;
+}
+
+.pc-selected-filter {
+    margin-top: -7px;
+}
+.pc-selected-filter .deviation-wrapper .form-control {
+    padding: 2px 5px;
+    font-size: 12px;
+    max-height: 28px;
+}
+.pc-selected-filter .deviation-wrapper select {
+    border-radius: none;
+    margin-top: -2px;
+}
+.pc-selected-filter .deviation-wrapper input[type=number] {
+    max-width: 50px;
+    text-align: right;
+    margin-top: -4px;
 }
