@@ -22,13 +22,14 @@ func CreateXyAnalysisController() *XyAnalysis {
 }
 
 type FieldAnalysis struct {
-	Id    string
-	Name  string
-	Aggr  string
-	Text  string
-	Min   float64
-	Max   float64
-	Order int
+	Id     string
+	Name   string
+	Aggr   string
+	Text   string
+	Min    float64
+	Max    float64
+	Order  int
+	Source string
 }
 
 type PayloadXyAnalysis struct {
