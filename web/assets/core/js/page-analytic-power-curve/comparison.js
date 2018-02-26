@@ -424,22 +424,53 @@ pc.initChart = function() {
             toolkit.showError("Invalid Date Range Selection for Filter 2");
         } else {
             var link = "analyticpowercurve/getlistpowercurvecomparison"
+            /*type ComparisonDetail struct {
+        Period    string
+        Project   string
+        Turbine   string
+        DateStart time.Time
+        DateEnd   time.Time
+    }
+
+    type PayloadComparison struct {
+        ProjectList []string
+        TurbineList []string
+        Details     []ComparisonDetail
+    }*/
 
             app.loading(true);
-            var param = {
-                PC1Period       : $('#periodList').data('kendoDropDownList').value(),
-                PC1Project      : $("#projectList1").data("kendoDropDownList").value(),
-                PC1Turbine      : $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
-                PC1DateStart    : p1DateStart,
-                PC1DateEnd      : p1DateEnd,
-
-                PC2Period       : $('#periodList2').data('kendoDropDownList').value(),
-                PC2Project      : $("#projectList2").data("kendoDropDownList").value(),
-                PC2Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList2").data('kendoDropDownList').value() == undefined  ? pc.turbine() : $("#turbineList2").data('kendoDropDownList').value(),
-                PC2DateStart    : p2DateStart,
-                PC2DateEnd      : p2DateEnd
-
+            var projectList = [];
+            var turbineList = [];
+            var project1 = $("#projectList1").data("kendoDropDownList").value();
+            var project2 = $("#projectList2").data("kendoDropDownList").value();
+            projectList.push($("#projectList1").data("kendoDropDownList").value());
+            if(project2 != project1) {
+                projectList.push(project2);
+            }
+            turbineList.push($("#turbineList1").data("kendoDropDownList").value());
+            turbineList.push($("#turbineList2").data("kendoDropDownList").value());
+            var details = [];
+            var detail = {
+                Period       : $('#periodList').data('kendoDropDownList').value(),
+                Project      : $("#projectList1").data("kendoDropDownList").value(),
+                Turbine      : $("#turbineList1").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
+                DateStart    : p1DateStart,
+                DateEnd      : p1DateEnd,
             };
+            details.push(detail);
+            detail = {
+                Period       : $('#periodList2').data('kendoDropDownList').value(),
+                Project      : $("#projectList2").data("kendoDropDownList").value(),
+                Turbine      : $("#turbineList2").data('kendoDropDownList').value(),// == "All Turbine" || $("#turbineList1").data('kendoDropDownList').value() == undefined ? pc.turbine() : $("#turbineList1").data('kendoDropDownList').value(),
+                DateStart    : p2DateStart,
+                DateEnd      : p2DateEnd,
+            };
+            details.push(detail);
+            var param = {
+                ProjectList: projectList,
+                TurbineList: turbineList,
+                Details:     details
+            }
 
             toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
                 if (!app.isFine(res)) {
@@ -587,36 +618,32 @@ pc.initChart = function() {
                 });
                 app.loading(false);
                 if (pc.sScater()) {
-                    pc.getScatter(param, dataTurbine);
+                    pc.getScatter(details, dataTurbine, projectList.length);
                 }
                 $("#chartPCcomparison").data("kendoChart").refresh();                
             });
         }
 }
 
-pc.getScatter = function(paramLine, dtLine) {
+pc.getScatter = function(paramLine, dtLine, startColorIdx) {
     var turbineList = [];
     var kolor = [];
     var idx;
     app.loading(true);
     var paramList = [];
-    for(idx=1; idx<=2; idx++) {
+    paramLine.forEach(function(data){
         turbineList = [];
         kolor = [];
-        var colorIdx = idx;
-        if(dtLine.length === 4) {
-            colorIdx++;
-        }
-        kolor.push(dtLine[colorIdx].color);
-        turbineList.push(paramLine["PC"+idx.toString()+"Turbine"]);
-        var dateStart = paramLine["PC"+idx.toString()+"DateStart"];
-        var dateEnd = paramLine["PC"+idx.toString()+"DateEnd"];
+        kolor.push(dtLine[startColorIdx].color);
+        turbineList.push(data.Turbine);
+        var dateStart = data.DateStart;
+        var dateEnd = data.DateEnd;
         var param = {
-            period: paramLine["PC"+idx.toString()+"Period"],
+            period: data.Period,
             dateStart: dateStart,
             dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
             turbine: turbineList,
-            project: paramLine["PC"+idx.toString()+"Project"],
+            project: data.Project,
             Color: kolor,
             isDeviation: false,
             deviationVal: "",
@@ -626,7 +653,8 @@ pc.getScatter = function(paramLine, dtLine) {
             isPower0: false,
         };
         paramList.push(param);
-    }
+        startColorIdx++;
+    });
     var dataPowerCurves = [];
     var reqScatter1 = toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", paramList[0], function(res) {
         if (!app.isFine(res)) {
